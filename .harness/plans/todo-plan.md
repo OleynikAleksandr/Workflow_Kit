@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 30,
+  "revision": 31,
   "rounds": [
     {
       "digest": null,
@@ -581,9 +581,13 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Контракт провайдера, API, операции и утилиты процессов",
-      "why": "Общий контракт и общие механизмы позволяют реализовать провайдеров без правок сервера и панели"
+      "why": "Общий контракт и общие механизмы позволяют реализовать провайдеров без правок сервера и панели",
+      "integration": {
+        "operationId": "14fee231-3898-41e7-9796-bec768497e02",
+        "sourceCommit": "5653a4cc87fb988d3a23fa36b3aa6f7e2db16c96"
+      }
     },
     {
       "acceptance": [
@@ -835,8 +839,8 @@
 - Delivery: IN_PROGRESS
 - Execution: orchestrated (max 3 workers, owner cfa00ffe-c414-4ae6-9953-e3d2906b3705)
 - Current task: none
-- Progress: 4/11
-- Revision: 30
+- Progress: 5/11
+- Revision: 31
 
 ## Objective
 
@@ -867,7 +871,7 @@
   - Commit: feat: add kit structure installer and session start hook
   - Files: product-parts/backend-core/clusters/projects/modules/kit-structure, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/backend-core/clusters/runtime/modules/data-store, product-parts/backend-core/clusters/http-api/modules/http-server, product-parts/control-panel/clusters/web-panel/modules/panel-shell, package.json
   - Depends on: T002
-- [TODO] T004 — Контракт провайдера, API, операции и утилиты процессов (work)
+- [DONE] T004 — Контракт провайдера, API, операции и утилиты процессов (work)
   - Commit: feat: add provider contract, registry, operations and process utilities
   - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor, product-parts/backend-core/clusters/runtime/modules/data-store, product-parts/backend-core/clusters/http-api/modules/http-server, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, package.json, product-parts/backend-core/clusters/runtime/modules/cli
   - Depends on: T003

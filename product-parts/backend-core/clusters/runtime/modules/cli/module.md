@@ -22,11 +22,19 @@ stripping).
   типы `LinkOptions`, `LinkResult`.
 - `createApp(options?) → Promise<App>` — сборка бэкенда: каталоги данных
   (создаются с правами 0700), конфиг, реестр маршрутов, реестр разделов
-  состояния, HTTP-сервер с панелью, журнал событий, мьютекс и реестр
-  проектов. `App`: `dirs`, `config`, `version`, `os`, `router`, `state`,
-  `server`, `events` (`events.jsonl`), `mutex` (D10), `projects`
-  (`ProjectRegistry`), `start()` (пишет событие `service.started`), `stop()`. Опции: `env`, `platform`,
-  `homedir`, `getInterfaces`, `osInput`, `log`.
+  состояния, HTTP-сервер с панелью, журнал событий, мьютекс, реестр
+  проектов, операции, учёт процессов и реестр провайдеров. `App`: `dirs`,
+  `config`, `version`, `os`, `router`, `state`, `server`, `events`
+  (`events.jsonl`), `mutex` (D10), `projects` (`ProjectRegistry`),
+  `operations` (`Operations`, D10), `providers` (`ProviderRegistry`),
+  `supervisor` (`ProcessSupervisor`, `<state>/processes.json`), `start()`
+  (пишет событие `service.started` и запускает операцию
+  `providers.refresh`: сверка записей процессов и `refresh?()` провайдеров,
+  D11), `stop()`. Опции: `env`, `platform`, `homedir`, `getInterfaces`,
+  `osInput`, `log`, `providers` (фабрики вместо `DEFAULT_PROVIDERS`),
+  `runCommand` (исполнитель внешних программ для провайдеров), `supervisor`.
+- `DEFAULT_PROVIDERS` — фабрики `createProvider` из `#provider-claude` и
+  `#provider-codex`, в порядке панели.
 - `detectOs(input)`, `panelUrls(port, interfaces)`, `readPackageVersion()`.
 - Константы `COMMANDS`, `EXIT_USAGE` (64), `EXIT_NOT_IMPLEMENTED` (2).
 - Типы `CliDeps`, `App`, `AppOptions`, `SystemSection`, `OsInfo`,
@@ -65,12 +73,24 @@ stripping).
 - `kit-structure` (T003): `registerStructureRoutes` —
   `GET|POST /api/projects/:id/structure` и раздел `structure` (с общими
   `mutex` и `events`); `recordSessionStart` для `wfk hook`.
+- `provider-registry` (T004): `registerProviderRoutes` — маршруты
+  провайдеров, `POST /api/refresh` и раздел `providers`; провайдеры
+  регистрируются из фабрик (`ProviderContext`: `platform`, `env`,
+  `homedir`, `dirs`, `config`, `events`, `supervisor`, `runCommand`, `now`,
+  `log`); охранник удаления проекта `projects.addRemoveGuard` — живые сессии
+  и `removeBlockers?` провайдеров.
+- `data-store` (T004): раздел `operations` (`operations.section()`).
+- `process-supervisor` (T004): `createProcessSupervisor` над
+  `<state>/processes.json`, `runCommand`.
 
 ## Инварианты
 
 - Модули подключаются только через их `src/index.ts` (`#data-store`,
-  `#http-server`, `#kit-structure`, `#panel-shell`, `#project-registry`,
-  `#service-installer`).
+  `#http-server`, `#kit-structure`, `#panel-shell`, `#process-supervisor`,
+  `#project-registry`, `#provider-claude`, `#provider-codex`,
+  `#provider-registry`, `#service-installer`).
+- Провайдер подключается фабрикой `createProvider` своего модуля; его
+  реализация меняется без правок `cli`.
 - Новые возможности добавляются регистрацией в `app.router` и `app.state`
   внутри `createApp` до `start()`.
 - `hook` никогда не завершается ошибкой и ничего не печатает в stdout.
@@ -79,6 +99,6 @@ stripping).
 
 ## Дальше
 
-T004–T007 регистрируют свои маршруты и разделы состояния в `createApp`;
-T008 — `open`, `doctor`, служба и установка запускателя `install`
+T005 — карточки провайдеров (монтирование статики `provider-cards`);
+T006 и T007 меняют только свои модули провайдеров; T008 — `open`, `doctor`, служба и установка запускателя `install`
 (с той же меткой `LAUNCHER_MARK`).

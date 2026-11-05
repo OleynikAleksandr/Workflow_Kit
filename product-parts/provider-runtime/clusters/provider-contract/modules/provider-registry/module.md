@@ -1,0 +1,174 @@
+# Модуль: provider-registry
+
+Часть `provider-runtime`, кластер `provider-contract`. Алиас импорта:
+`#provider-registry`.
+
+## Назначение
+
+Общий контракт провайдера (`docs/planning/M1-providers.md`, раздел 1),
+реестр провайдеров по строковому id, чтение журнала хука SessionStart,
+маршруты провайдеров (спецификация, раздел 10) и раздел `providers` в
+`/api/state`. Сервер и панель знают провайдеров только через этот контракт;
+о Claude и Codex модуль ничего не знает.
+
+## Публичный интерфейс (`src/index.ts`)
+
+### Контракт (`contract.ts`)
+
+- `Provider` — `id`, `title`, `capabilities()`, `status()`, `refresh?()`,
+  `previewTrust(project)`, `grantTrust(project, token)`, `trust(project)`,
+  `hooks(project)`, `approveHooks?(project, { command, hash })`,
+  `listSessions(project)`, `createSession(project, { title })`,
+  `resumeSession?(project, sid)`, `stopSession?(project, sid)`,
+  `actions(project | null)`, `runAction(id, project | null)`,
+  `removeBlockers?(project)`.
+  Расширения раздела 1: `trust(project)` — текущее доверие для панели
+  (только чтение); `refresh?()` — перечитать версии и демоны внешними
+  программами (старт службы и `POST /api/refresh`, D11);
+  `removeBlockers?(project)` — причины не убирать проект (окружение).
+  Методы чтения (`status`, `capabilities`, `trust`, `hooks`,
+  `listSessions`, `actions`) обязаны быть дешёвыми и только читать: их
+  вызывает каждый опрос `/api/state`.
+- Типы: `ProviderStatus` (`implemented`, `state` — `ready` |
+  `not-implemented` | `not-installed` | `unavailable` | `error` | `unknown`,
+  `label`, `installed`, `version`, `path`, `note?`, `checkedAt`,
+  `details?`), `Capabilities` (`{ [имя]: { available, reason? } }`; имена
+  `trust`, `hooks`, `sessions`, `createSession`, `resumeSession`,
+  `stopSession`, `environment`, `daemon` и свои), `TrustPreview`
+  (`provider`, `trusted`, `writes: TrustWrite[]`, `autorun: AutorunPoint[]`,
+  `token`, `expiresAt`, `notes?`), `TrustState` (`trusted: boolean | null`,
+  `note?`, `backup?`), `HookState` (`kitHook`, `hooks: HookEntry[]`,
+  `complete` — `false`, если список сессий неполон, `note?`), `HookEntry`
+  (`command`, `hash`, `kit`, `status` — `approved` | `pending` | `modified`
+  | `unknown`, `key?`), `SessionInfo` (`provider`, `localId`, `remoteId?`,
+  `title`, `createdAt`, `origin` — `panel` | `hook`, `state` — `running` |
+  `stopped` | `unknown`, `links { desktop?, mobile?, web? }`, `note?`,
+  `cwd?`, `model?`), `ProviderAction` (`id`, `title`, `scope` — `provider`
+  | `project`, `enabled`, `reason?`, `confirm?`), `ProjectProviderState`
+  (`provider`, `trust`, `hooks`, `sessions`, `actions`, `errors` — ошибки
+  отдельных чтений по имени метода), `ProviderErrorInfo`
+  (`{ code, message, hint? }`), `Project` (из `project-registry`).
+- `ProviderError(code, message, { hint?, status?, details? })` — ошибка
+  провайдера; `status` — HTTP-статус для синхронных маршрутов (по умолчанию
+  409), в операциях `code`, `message`, `hint` и `details` переходят в
+  `operation.error`.
+- `ProviderContext` — что бэкенд передаёт фабрике: `platform`, `env`
+  (окружение службы, PATH из D12), `homedir`, `dirs` (`DataDirs`),
+  `config` (`WfkConfig`, пути программ), `events` (`EventLog`),
+  `supervisor` (`ProcessSupervisor`), `runCommand` (`CommandRunner`), `now`,
+  `log`.
+- `ProviderFactory = (context) => Provider` — модуль провайдера экспортирует
+  `createProvider: ProviderFactory` из своего `src/index.ts`; `cli`
+  регистрирует фабрики `DEFAULT_PROVIDERS`. Замена заглушки на реализацию не
+  требует правок вне каталога провайдера.
+- `providerSessionsFile(dirs, id)` — `<state>/sessions/<id>.json` (записи
+  панели); `providerLogsDir(dirs, id)` — `<logs>/<id>`.
+
+### Журнал хука (`hook-sessions.ts`)
+
+- `readHookSessions(project, client, { includeService?, maxBytes? }) →
+  HookSession[]` — сессии клиента из
+  `<проект>/.workflow-kit/local/sessions.jsonl` (пишет `wfk hook`, модуль
+  `kit-structure`), новые первыми. Строки одной `session_id` сливаются:
+  `firstSeen`, `lastSeen`, `sources` (startup, resume, clear, compact),
+  поля последней строки (`transcriptPath`, `cwd`, `model`,
+  `permissionMode`), `service`. Сессии с меткой `WFK_SERVICE_SESSION`
+  пропускаются (кроме `includeService`). Нет журнала — пустой список;
+  битые строки пропускаются; читается хвост до 4 МиБ
+  (`HOOK_JOURNAL_MAX_BYTES`); результат кэшируется по mtime и размеру файла
+  (D11), `clearHookSessionsCache()` сбрасывает кэш (`/api/refresh`).
+- `parseHookJournal(text)`, `hookJournalFile(projectPath)`.
+- `hookSessionInfo(provider, session, extra?) → SessionInfo` — `origin:
+  'hook'`, `state: 'unknown'`, без ссылок; провайдер дополняет `remoteId`
+  и ссылки.
+- Итоговый список сессий строит сам провайдер (журнал + свои записи);
+  реестр и маршруты ничего не фильтруют.
+
+### Токены предпросмотра (`tokens.ts`, D7)
+
+`createTokenStore({ ttlMs?, now?, newToken? }) → TokenStore`:
+`issue(scope, fingerprint) → { token, expiresAt }` (новый токен того же
+`scope` отменяет старый), `consume(scope, token) → fingerprint |
+undefined` — одноразово, с проверкой срока (`PREVIEW_TOKEN_TTL_MS` =
+10 мин). Провайдер связывает токен с отпечатком показанного и сверяет его
+перед записью.
+
+### Заглушка (`stub.ts`)
+
+`createStubProvider({ id, title, task, client? })` — статус
+`not-implemented` с меткой «не реализовано» (`NOT_IMPLEMENTED_LABEL`), все
+возможности (`STUB_CAPABILITIES`) недоступны с причиной, действий нет,
+`trust`/`hooks` — пустые с пометкой; изменяющие методы бросают
+`ProviderError('not-implemented', …, { status: 501, hint })`. Сессии — из
+журнала хука (`hookSessionInfo`, без ссылок), поэтому сессии, начатые в
+родном приложении, видны уже до реализации провайдера.
+
+### Реестр (`registry.ts`)
+
+`createProviderRegistry({ readTimeoutMs? }) → ProviderRegistry`:
+`register(provider)` (id — `[a-z][a-z0-9-]{0,31}`, повтор — ошибка),
+`get`, `list`, `ids`, `summary(provider)`, `projectState(provider,
+project)`, `section(projects)`, `removeBlockers(project)` (живые сессии
+`state: 'running'` и `removeBlockers?` провайдера, с названием провайдера).
+Каждое чтение ограничено `STATE_READ_TIMEOUT_MS` (3 с): упавшее или
+зависшее чтение попадает в `errors` (`timeout` и т. п.), остальные данные
+отдаются. `errorInfo(error)` — `{ code, message, hint? }`.
+
+### Маршруты (`routes.ts`)
+
+`registerProviderRoutes({ router, state, registry, projects, operations,
+mutex, events?, platform, now?, onRefresh? }) → { refresh() }` регистрирует
+маршруты и раздел `providers`.
+
+| Маршрут | Ответ |
+| --- | --- |
+| `GET /api/providers` | `{ providers: ProviderSummary[] }` |
+| `GET /api/projects/:id/providers/:p` | `ProjectProviderState` |
+| `GET /api/projects/:id/providers/:p/trust/preview` | `TrustPreview` (синхронно) |
+| `POST …/providers/:p/trust` `{token}` | 202, операция `provider.trust` → `grantTrust` |
+| `POST …/providers/:p/hooks/approve` `{command, hash}` | 202, `provider.hooks.approve` → `approveHooks` |
+| `POST …/providers/:p/sessions` `{title?}` | 202, `provider.session.create`; имя по умолчанию `<проект> · ГГГГ-ММ-ДД ЧЧ:ММ` (`defaultSessionTitle`) |
+| `POST …/sessions/:sid/resume`, `…/sessions/:sid/stop` | 202, `provider.session.resume` / `provider.session.stop` |
+| `POST /api/providers/:p/actions/:a` | 202, `provider.action` → `runAction(a, null)` |
+| `POST /api/projects/:id/providers/:p/actions/:a` | 202, `provider.action` → `runAction(a, project)` |
+| `POST /api/refresh` | 202, `providers.refresh`: сброс кэша журнала, `onRefresh` (сверка процессов), `refresh?()` каждого провайдера |
+
+Долгий POST отвечает 202 `{ operationId, operation, existing }`; ход и
+итог — в разделе `operations` `/api/state`. Ключ операции — вид, провайдер,
+проект и (для сессий и действий) id: повтор во время операции возвращает ту
+же операцию (`existing: true`) и второе действие не запускает. Действие
+выполняется под мьютексом `provider:<p>`, затем `project:<id>` (тот же
+ключ, что у установки структуры); пока ключ занят, `progress` — «ожидание
+очереди». Итог пишется в `events.jsonl` (`OPERATION_EVENTS`):
+`provider.trust.granted`, `provider.hooks.approved`,
+`provider.session.created|resumed|stopped`, `provider.action.completed`,
+`providers.refreshed`; неудача — `provider.operation.failed` (`kind`,
+`error`). В событии — `operationId`, `provider`, `project`,
+`projectName`, `projectPath` и краткий итог (id сессии, `trusted`,
+`backup`).
+
+Ошибки до запуска операции — `{ error: { code, message, ...details } }`:
+400 `invalid-body`, `invalid-session`; 403 `access-denied` (с `hint`); 404
+`unknown-provider`, `not-found`, `unknown-action`; 409 `project-missing`,
+`not-supported` (нет необязательного метода), `action-disabled` (с
+`hint` = `reason`); `ProviderError` предпросмотра — со своим статусом
+(у заглушки 501 `not-implemented`).
+
+Раздел `/api/state` → `providers`: `{ providers: ProviderSummary[]
+(id, title, status, capabilities, actions(null), errors), projects: {
+<projectId>: { <providerId>: ProjectProviderState } } }`.
+
+## Инварианты
+
+- Сервер и панель не фильтруют сессии и не знают о конкретных провайдерах.
+- Опрос `/api/state` только читает (D11); внешние программы — в
+  `refresh` и действиях.
+- Действия над проектом и провайдером не перекрываются (D10).
+- Зависимости: `#data-store`, `#http-server`, `#project-registry`,
+  `#kit-structure` (путь журнала), `#process-supervisor` (типы контекста).
+- Тесты работают на подставном провайдере во временном HOME.
+
+## Дальше
+
+T005 рисует карточки провайдеров из раздела `providers` и `operations`;
+T006 и T007 заменяют заглушки `provider-claude` и `provider-codex`.

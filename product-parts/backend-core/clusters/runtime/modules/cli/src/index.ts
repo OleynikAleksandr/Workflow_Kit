@@ -2,7 +2,7 @@
 export type { CliDeps } from './commands.ts';
 export { COMMANDS, EXIT_NOT_IMPLEMENTED, EXIT_USAGE, main } from './commands.ts';
 export type { App, AppOptions, SystemSection } from './app.ts';
-export { createApp } from './app.ts';
+export { DEFAULT_PROVIDERS, createApp } from './app.ts';
 export type { HookDeps } from './hook.ts';
 export { HOOK_BUDGET_MS, readProcessStdin, runHook } from './hook.ts';
 export type { LinkOptions, LinkResult } from './link.ts';

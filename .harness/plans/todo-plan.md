@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 10,
+  "revision": 11,
   "rounds": [
     {
       "digest": null,
@@ -627,11 +627,10 @@
         "Сессии из хука получают remoteId отложенно по bridge-session в transcript_path; без него — без ссылки с note; служебные сессии скрыты",
         "resumeSession поднимает тот же session id; stopSession останавливает только свой процесс по D9",
         "Особое действие проекта «Окружение папки» (запуск и остановка claude remote-control --spawn=same-dir) по D5 и D9",
-        "Ссылки claude://claude.ai/code/session_<id> и https://claude.ai/code/session_<id>; тесты на подставном claude и фикстурах транскриптов"
+        "Ссылки claude://claude.ai/code/session_<id> и https://claude.ai/code/session_<id>; тесты на подставном claude и фикстурах транскриптов",
+        "Ручная проверка пользователем: Визуально: предпросмотр → «Доверять» → «доверено»; «Создать сессию» → открывается в Claude Desktop на Mac и в приложении Claude на iPad; после перезапуска serve сессия жива; окружение папки запускается и видно с iPad"
       ],
-      "checks": [
-        "Визуально: предпросмотр → «Доверять» → «доверено»; «Создать сессию» → открывается в Claude Desktop на Mac и в приложении Claude на iPad; после перезапуска serve сессия жива; окружение папки запускается и видно с iPad"
-      ],
+      "checks": [],
       "commitMessage": "feat: implement claude provider",
       "confirmation": null,
       "context": [
@@ -838,7 +837,7 @@
 - Execution: orchestrated (max 3 workers, owner cfa00ffe-c414-4ae6-9953-e3d2906b3705)
 - Current task: none
 - Progress: 1/11
-- Revision: 10
+- Revision: 11
 
 ## Objective
 

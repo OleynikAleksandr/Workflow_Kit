@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 8,
+  "revision": 9,
   "rounds": [
     {
       "digest": null,
@@ -533,11 +533,10 @@
         "Маршруты раздела 10 (предпросмотр и доверие по токену, одобрение хука по команде и хешу, сессии, особые действия, refresh) работают через контракт; тесты с подставным провайдером",
         "Мьютекс на проект и провайдера; долгие действия — операции с operationId и состоянием в /api/state; повторный запуск того же действия во время операции не создаёт второе",
         "Утилиты процессов по D5 и D9: отдельная группа, вывод в файл, очистка CLAUDE*, запись pid, времени старта, командной строки и boot id; остановка TERM → ожидание → проверка → KILL только после сверки; тесты",
-        "Действия провайдеров (доверие, одобрение, создание) пишутся в events.jsonl"
+        "Действия провайдеров (доверие, одобрение, создание) пишутся в events.jsonl",
+        "Ручная проверка пользователем: Визуально: в «Системе» и в проекте видны провайдеры claude и codex со статусом «не реализовано»; сессии Claude, начатые в Desktop в папке проекта, видны в /api/state по журналу хука"
       ],
-      "checks": [
-        "Визуально: в «Системе» и в проекте видны провайдеры claude и codex со статусом «не реализовано»; сессии Claude, начатые в Desktop в папке проекта, видны в /api/state по журналу хука"
-      ],
+      "checks": [],
       "commitMessage": "feat: add provider contract, registry, operations and process utilities",
       "confirmation": null,
       "context": [
@@ -840,7 +839,7 @@
 - Execution: orchestrated (max 3 workers, owner cfa00ffe-c414-4ae6-9953-e3d2906b3705)
 - Current task: none
 - Progress: 1/11
-- Revision: 8
+- Revision: 9
 
 ## Objective
 

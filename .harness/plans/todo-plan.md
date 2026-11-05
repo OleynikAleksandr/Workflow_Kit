@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 7,
+  "revision": 8,
   "rounds": [
     {
       "digest": null,
@@ -485,11 +485,10 @@
         "Чужие разделы и маркеры (в том числе workflow-kit:begin/end Harness) и текст вне своих маркеров не меняются; тест на AGENTS.md и .codex/hooks.json с разделами Harness",
         "Проверка возвращает ok, missing, modified, outdated, newer; правка вне раздела Kit не меняет статус; невалидный JSON — отказ без перезаписи; CLAUDE.md без @AGENTS.md — предупреждение",
         "wfk hook session-start --client <c> ничего не печатает в stdout, находит проект по $CLAUDE_PROJECT_DIR или вверх от cwd, дописывает одну строку в .workflow-kit/local/sessions.jsonl с меткой WFK_SERVICE_SESSION, выходит с кодом 0 за 2 с; тест с подставным stdin",
-        "wfk link ставит запускатель ~/.local/bin/wfk на текущий клон (разработка); тест на подставном HOME"
+        "wfk link ставит запускатель ~/.local/bin/wfk на текущий клон (разработка); тест на подставном HOME",
+        "Ручная проверка пользователем: Визуально: карточка структуры «нет» → «Установить» → «ok»; правка внутри раздела Kit в AGENTS.md → «modified». Пользователь выполняет wfk link, начинает сессию Claude в папке проекта — строка появляется в журнале"
       ],
-      "checks": [
-        "Визуально: карточка структуры «нет» → «Установить» → «ok»; правка внутри раздела Kit в AGENTS.md → «modified». Пользователь выполняет wfk link, начинает сессию Claude в папке проекта — строка появляется в журнале"
-      ],
+      "checks": [],
       "commitMessage": "feat: add kit structure installer and session start hook",
       "confirmation": null,
       "context": [
@@ -841,7 +840,7 @@
 - Execution: orchestrated (max 3 workers, owner cfa00ffe-c414-4ae6-9953-e3d2906b3705)
 - Current task: none
 - Progress: 1/11
-- Revision: 7
+- Revision: 8
 
 ## Objective
 

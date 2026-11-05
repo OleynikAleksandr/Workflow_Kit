@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 20,
+  "revision": 21,
   "rounds": [
     {
       "digest": null,
@@ -679,9 +679,7 @@
       ],
       "docsWaiver": null,
       "files": [
-        "src/provider-codex",
-        "test/provider-codex",
-        "docs/architecture/modules/provider-codex.md"
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex"
       ],
       "fixes": null,
       "id": "T007",
@@ -820,7 +818,7 @@
 - Execution: orchestrated (max 3 workers, owner cfa00ffe-c414-4ae6-9953-e3d2906b3705)
 - Current task: none
 - Progress: 1/11
-- Revision: 20
+- Revision: 21
 
 ## Objective
 
@@ -865,7 +863,7 @@
   - Depends on: T005
 - [TODO] T007 — Провайдер Codex (work, parallel-safe)
   - Commit: feat: implement codex provider
-  - Files: src/provider-codex, test/provider-codex, docs/architecture/modules/provider-codex.md
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex
   - Depends on: T005
 - [TODO] T008 — Установщик, автозапуск, запускатель и значок (work, parallel-safe)
   - Commit: feat: add backend installer, autostart and launcher

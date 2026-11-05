@@ -19,6 +19,7 @@
     "#panel-shell":"./product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/index.ts",
     "#process-supervisor": "./product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/src/index.ts",
     "#provider-claude": "./product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/index.ts",
+    "#provider-cards": "./product-parts/control-panel/clusters/web-panel/modules/provider-cards/src/index.ts",
     "#provider-codex": "./product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts",
     "#provider-registry": "./product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts",
     "#service-installer": "./product-parts/system-service/clusters/deployment/modules/service-installer/src/index.ts"

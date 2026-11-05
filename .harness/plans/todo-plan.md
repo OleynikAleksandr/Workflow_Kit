@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 34,
+  "revision": 35,
   "rounds": [
     {
       "digest": null,
@@ -627,9 +627,13 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Общий интерфейс провайдеров в панели",
-      "why": "Панель рисует любого провайдера из контракта, без кода под провайдера"
+      "why": "Панель рисует любого провайдера из контракта, без кода под провайдера",
+      "integration": {
+        "operationId": "9f6aa40e-d1f5-45be-b125-83a30fc2fb9b",
+        "sourceCommit": "68e794375bc81c50cbd6959ad89869e38ef2dea6"
+      }
     },
     {
       "acceptance": [
@@ -839,8 +843,8 @@
 - Delivery: IN_PROGRESS
 - Execution: orchestrated (max 3 workers, owner cfa00ffe-c414-4ae6-9953-e3d2906b3705)
 - Current task: none
-- Progress: 5/11
-- Revision: 34
+- Progress: 6/11
+- Revision: 35
 
 ## Objective
 
@@ -875,7 +879,7 @@
   - Commit: feat: add provider contract, registry, operations and process utilities
   - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor, product-parts/backend-core/clusters/runtime/modules/data-store, product-parts/backend-core/clusters/http-api/modules/http-server, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, package.json, product-parts/backend-core/clusters/runtime/modules/cli
   - Depends on: T003
-- [TODO] T005 — Общий интерфейс провайдеров в панели (work)
+- [DONE] T005 — Общий интерфейс провайдеров в панели (work)
   - Commit: feat: add generic provider cards to the panel
   - Files: product-parts/control-panel/clusters/web-panel/modules/provider-cards, product-parts/control-panel/clusters/web-panel/modules/panel-shell, package.json, product-parts/backend-core/clusters/runtime/modules/cli
   - Depends on: T004

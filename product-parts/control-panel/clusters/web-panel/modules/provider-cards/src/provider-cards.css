@@ -1,0 +1,216 @@
+/* Provider cards: status, trust preview, hooks, sessions and actions; uses the shell's theme tokens. */
+.pc-card {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.pc-card p {
+  margin: 0;
+}
+
+.pc-head,
+.pc-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  align-items: center;
+}
+
+.pc-head .pc-control {
+  margin-left: auto;
+}
+
+.pc-version {
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.pc-note {
+  margin: 0;
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+.pc-warn {
+  margin: 0;
+  color: var(--warn);
+  font-size: 0.92rem;
+}
+
+.pc-reason {
+  color: var(--muted);
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+
+.pc-control {
+  display: grid;
+  gap: 4px;
+  justify-items: start;
+  min-width: 0;
+}
+
+.pc-progress {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  color: var(--accent);
+  font-size: 0.85rem;
+}
+
+.pc-spinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: pc-spin 0.9s linear infinite;
+}
+
+@keyframes pc-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pc-spinner {
+    animation: none;
+  }
+}
+
+.pc-error,
+.pc-message {
+  margin-top: 0;
+  justify-self: stretch;
+}
+
+.pc-link-button {
+  margin-top: 6px;
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.85rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.pc-unavailable summary {
+  min-height: 32px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.pc-unavailable li {
+  padding: 2px 0;
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+.pc-project {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.pc-select {
+  flex: 1 1 200px;
+  min-width: 0;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 16px;
+}
+
+.pc-section {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.pc-section h3 {
+  margin: 4px 0 0;
+  font-size: 0.95rem;
+  font-weight: 650;
+}
+
+.pc-preview {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg);
+  min-width: 0;
+}
+
+.pc-preview h4 {
+  margin: 4px 0 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.pc-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pc-list > li {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  overflow-wrap: anywhere;
+}
+
+.pc-list > li:last-child {
+  border-bottom: 0;
+}
+
+.pc-hook {
+  display: grid;
+  gap: 4px;
+}
+
+.pc-session {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pc-session-main {
+  display: grid;
+  gap: 2px;
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.btn.pc-open {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.pc-actions {
+  align-items: flex-start;
+}
+
+.pc-card select:focus-visible,
+.pc-card a:focus-visible,
+.pc-link-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}

@@ -22,7 +22,8 @@ stripping).
   типы `LinkOptions`, `LinkResult`.
 - `createApp(options?) → Promise<App>` — сборка бэкенда: каталоги данных
   (создаются с правами 0700), конфиг, реестр маршрутов, реестр разделов
-  состояния, HTTP-сервер с панелью, журнал событий, мьютекс, реестр
+  состояния, HTTP-сервер с панелью (`panelShellMount()` в корне и
+  `providerCardsMount()` под `/provider-cards/`), журнал событий, мьютекс, реестр
   проектов, операции, учёт процессов и реестр провайдеров. `App`: `dirs`,
   `config`, `version`, `os`, `router`, `state`, `server`, `events`
   (`events.jsonl`), `mutex` (D10), `projects` (`ProjectRegistry`),
@@ -80,6 +81,8 @@ stripping).
   `log`); охранник удаления проекта `projects.addRemoveGuard` — живые сессии
   и `removeBlockers?` провайдеров.
 - `data-store` (T004): раздел `operations` (`operations.section()`).
+- `provider-cards` (T005): статика карточек провайдеров
+  (`providerCardsMount()`, префикс `/provider-cards/`).
 - `process-supervisor` (T004): `createProcessSupervisor` над
   `<state>/processes.json`, `runCommand`.
 
@@ -87,6 +90,7 @@ stripping).
 
 - Модули подключаются только через их `src/index.ts` (`#data-store`,
   `#http-server`, `#kit-structure`, `#panel-shell`, `#process-supervisor`,
+  `#provider-cards`,
   `#project-registry`, `#provider-claude`, `#provider-codex`,
   `#provider-registry`, `#service-installer`).
 - Провайдер подключается фабрикой `createProvider` своего модуля; его
@@ -99,6 +103,5 @@ stripping).
 
 ## Дальше
 
-T005 — карточки провайдеров (монтирование статики `provider-cards`);
 T006 и T007 меняют только свои модули провайдеров; T008 — `open`, `doctor`, служба и установка запускателя `install`
 (с той же меткой `LAUNCHER_MARK`).

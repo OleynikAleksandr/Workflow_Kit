@@ -90,3 +90,12 @@ The recovery packet names your `role:`; follow it.
 - Use `scripts/workflow show-task <ID>` and `scripts/workflow history` for
   details the recovery packet left out.
 <!-- workflow-kit:end -->
+
+## Project start materials (local, not in git)
+
+If `docs/start/README.md` exists, read it right after the recovery packet and
+before writing any specification. It holds the verified research findings,
+decisions, open questions and donor-project links this project starts from
+(written in Russian). Take context only from the sources it lists. Do not
+reconstruct context from other projects' transcripts, agent memories, chat
+history or ad-hoc searches of the disk. If something is missing, ask the user.

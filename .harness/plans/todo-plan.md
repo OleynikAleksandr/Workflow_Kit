@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 39,
+  "revision": 40,
   "rounds": [
     {
       "digest": null,
@@ -721,9 +721,13 @@
       "kind": "work",
       "parallelSafe": true,
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Провайдер Codex",
-      "why": "Демон, доверие, одобрение хука Kit и сессии Codex из панели"
+      "why": "Демон, доверие, одобрение хука Kit и сессии Codex из панели",
+      "integration": {
+        "operationId": "c3698dac-2a90-48a9-bae9-3bc7716d59db",
+        "sourceCommit": "db08ada87d36f6fb74eea27a3d7be369f4a49444"
+      }
     },
     {
       "acceptance": [
@@ -910,8 +914,8 @@
 - Delivery: IN_PROGRESS
 - Execution: orchestrated (max 3 workers, owner cfa00ffe-c414-4ae6-9953-e3d2906b3705)
 - Current task: none
-- Progress: 8/12
-- Revision: 39
+- Progress: 9/12
+- Revision: 40
 
 ## Objective
 
@@ -954,7 +958,7 @@
   - Commit: feat: implement claude provider
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, product-parts/backend-core/clusters/runtime/modules/cli/test/providers.test.ts
   - Depends on: T004
-- [TODO] T007 — Провайдер Codex (work, parallel-safe)
+- [DONE] T007 — Провайдер Codex (work, parallel-safe)
   - Commit: feat: implement codex provider
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex
   - Depends on: T004

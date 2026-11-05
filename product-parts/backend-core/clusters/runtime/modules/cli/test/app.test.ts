@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdir, mkdtemp, readFile, realpath, rm, stat } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, realpath, rm, stat, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { after, before, test } from 'node:test';
@@ -132,6 +132,34 @@ test('projects: create, open by folder list, remove from list, persist across re
   for (const type of ['service.started', 'project.created', 'project.opened', 'project.removed']) {
     assert.match(events, new RegExp(`"type":"${type.replace('.', '\\.')}"`));
   }
+});
+
+test('structure: GET reports "missing", POST installs, the state section shows "ok" then "modified"', async () => {
+  const created = await send('POST', '/api/projects', { name: 'Beta' });
+  const project = created.json['project'] as { id: string; path: string };
+  const url = `/api/projects/${project.id}/structure`;
+  const before = (await (await fetch(`${base}${url}`)).json()) as { structure: { status: string } };
+  assert.equal(before.structure.status, 'missing');
+
+  const installed = await send('POST', url, {});
+  assert.equal(installed.status, 200);
+  assert.equal((installed.json['report'] as { status: string }).status, 'ok');
+  assert.ok((installed.json['written'] as string[]).includes('agents-section'));
+  assert.equal((await send('POST', url, { force: 'yes' })).status, 400);
+  assert.equal((await send('POST', '/api/projects/nope/structure', {})).status, 404);
+
+  const agentsFile = path.join(project.path, 'AGENTS.md');
+  await writeFile(agentsFile, (await readFile(agentsFile, 'utf8')).replace('### Local data', '### Local data!'));
+  const state = (await (await fetch(`${base}/api/state`)).json()) as { structure: { projects: Record<string, { status: string }> } };
+  assert.equal(state.structure.projects[project.id]?.status, 'modified');
+
+  await writeFile(path.join(project.path, '.claude', 'settings.json'), '{ broken');
+  const refused = await send('POST', url, { force: true });
+  assert.equal(refused.status, 409);
+  assert.equal((refused.json['error'] as { code: string; files: string[] }).code, 'invalid-json');
+  assert.deepEqual((refused.json['error'] as { files: string[] }).files, ['.claude/settings.json']);
+  assert.equal(await readFile(path.join(project.path, '.claude', 'settings.json'), 'utf8'), '{ broken');
+  assert.match(await readFile(path.join(tmp, 'data', 'events.jsonl'), 'utf8'), /"type":"structure\.installed"/);
 });
 
 test('serve starts the server and stops on shutdown', async () => {

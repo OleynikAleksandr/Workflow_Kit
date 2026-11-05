@@ -257,3 +257,39 @@ input[type='text']:focus,
   margin-top: 6px !important;
   color: var(--text);
 }
+
+/* The Kit structure card. */
+.structure .actions {
+  flex: 0 0 auto;
+}
+
+.structure-warn {
+  margin-top: 4px;
+  color: var(--warn);
+  font-size: 0.92rem;
+}
+
+.structure-note {
+  margin-top: 4px;
+  font-size: 0.9rem;
+}
+
+.fragments {
+  margin-top: 6px;
+}
+
+.fragments summary {
+  min-height: 32px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.fragment {
+  padding: 4px 0;
+  overflow-wrap: anywhere;
+}
+
+.fragment-error {
+  font-size: 0.85rem;
+}

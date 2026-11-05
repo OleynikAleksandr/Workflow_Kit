@@ -30,7 +30,7 @@ test('help and version', async () => {
 });
 
 test('commands of later tasks answer "не реализовано"', async () => {
-  for (const command of ['open', 'doctor', 'link', 'install', 'uninstall']) {
+  for (const command of ['open', 'doctor', 'install', 'uninstall']) {
     const result = await run(command);
     assert.equal(result.code, EXIT_NOT_IMPLEMENTED, command);
     assert.match(result.err, /не реализовано/, command);
@@ -44,9 +44,18 @@ test('commands of later tasks answer "не реализовано"', async () =>
 });
 
 test('hook never fails and never writes to stdout', async () => {
-  const result = await run('hook', 'session-start', '--client', 'claude');
-  assert.equal(result.code, 0);
-  assert.equal(result.out, '');
+  let out = '';
+  const deps = {
+    stdout: (t: string) => (out += t),
+    stderr: () => undefined,
+    app: { env: {} },
+    cwd: '/',
+    readStdin: async () => 'not json',
+  };
+  assert.equal(await main(['hook', 'session-start', '--client', 'claude'], deps), 0);
+  assert.equal(await main(['hook', 'unknown-event'], deps), 0);
+  assert.equal(await main(['hook'], deps), 0);
+  assert.equal(out, '');
 });
 
 test('service status comes from the service-installer stub', async () => {
@@ -68,7 +77,7 @@ test('bin/wfk.mjs checks Node and loads the cli module through #cli', async () =
   const exec = promisify(execFile);
   const { stdout } = await exec(process.execPath, [bin, '--version']);
   assert.match(stdout, /^\d+\.\d+\.\d+\n$/);
-  await assert.rejects(exec(process.execPath, [bin, 'link']), (error: { code?: number; stderr?: string }) => {
+  await assert.rejects(exec(process.execPath, [bin, 'doctor']), (error: { code?: number; stderr?: string }) => {
     assert.equal(error.code, EXIT_NOT_IMPLEMENTED);
     assert.match(error.stderr ?? '', /не реализовано/);
     return true;

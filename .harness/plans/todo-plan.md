@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 30,
+  "revision": 32,
   "rounds": [
     {
       "digest": null,
@@ -43,7 +43,7 @@
       }
     ],
     "decisions": [],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 1,
       "ownerSession": null,
@@ -83,14 +83,44 @@
         "product-parts/backend-core/clusters/runtime/modules/data-store",
         "product-parts/backend-core/clusters/http-api/modules/http-server",
         "product-parts/control-panel/clusters/web-panel/modules/panel-shell",
-        "package.json"
+        "package.json",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/module.md",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/src/fragments.ts",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/src/hook-config.ts",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/src/index.ts",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/src/markers.ts",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/src/routes.ts",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/src/session-hook.ts",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/src/structure.ts",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/src/templates.ts",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/test/markers.test.ts",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/test/session-hook.test.ts",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/test/structure.test.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/commands.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/hook.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/index.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/link.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/app.test.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/commands.test.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/hook-link.test.ts",
+        "product-parts/backend-core/clusters/runtime/modules/data-store/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/data-store/src/atomic.ts",
+        "product-parts/backend-core/clusters/runtime/modules/data-store/src/index.ts",
+        "product-parts/backend-core/clusters/runtime/modules/data-store/test/atomic.test.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/controls.css",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/structure-card.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/panel-shell.test.ts"
       ],
       "fixes": null,
       "id": "T003",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Структура Kit v1, приём хука и wfk link",
       "why": "Kit записывает в папку свою структуру и узнаёт о сессиях через хук SessionStart"
     }
@@ -102,11 +132,11 @@
 ## State
 
 - Scope: assignment-m1-orchestrator-core-T003-1 (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 0/1
-- Revision: 30
+- Progress: 1/1
+- Revision: 32
 
 ## Objective
 
@@ -126,8 +156,8 @@
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T003 — Структура Kit v1, приём хука и wfk link (work)
+- [DONE] T003 — Структура Kit v1, приём хука и wfk link (work)
   - Commit: feat: add kit structure installer and session start hook
-  - Files: product-parts/backend-core/clusters/projects/modules/kit-structure, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/backend-core/clusters/runtime/modules/data-store, product-parts/backend-core/clusters/http-api/modules/http-server, product-parts/control-panel/clusters/web-panel/modules/panel-shell, package.json
+  - Files: product-parts/backend-core/clusters/projects/modules/kit-structure, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/backend-core/clusters/runtime/modules/data-store, product-parts/backend-core/clusters/http-api/modules/http-server, product-parts/control-panel/clusters/web-panel/modules/panel-shell, package.json, product-parts/backend-core/clusters/projects/modules/kit-structure/module.md, product-parts/backend-core/clusters/projects/modules/kit-structure/src/fragments.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/src/hook-config.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/src/index.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/src/markers.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/src/routes.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/src/session-hook.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/src/structure.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/src/templates.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/test/markers.test.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/test/session-hook.test.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/test/structure.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/commands.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/hook.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/index.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/link.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/app.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/commands.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/hook-link.test.ts, product-parts/backend-core/clusters/runtime/modules/data-store/module.md, product-parts/backend-core/clusters/runtime/modules/data-store/src/atomic.ts, product-parts/backend-core/clusters/runtime/modules/data-store/src/index.ts, product-parts/backend-core/clusters/runtime/modules/data-store/test/atomic.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/controls.css, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/structure-card.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/panel-shell.test.ts
 
 State changes only through `scripts/workflow` commands. History lives in Git.

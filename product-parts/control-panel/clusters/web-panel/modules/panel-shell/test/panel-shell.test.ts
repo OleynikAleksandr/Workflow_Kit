@@ -5,7 +5,19 @@ import { test } from 'node:test';
 import { PANEL_ASSETS_DIR, STATE_POLL_MS, panelShellMount } from '../src/index.ts';
 
 test('the panel files live in the module src directory', async () => {
-  const files = ['index.html', 'app.js', 'styles.css', 'controls.css', 'cards.js', 'dom.js', 'api.js', 'system-card.js', 'projects-card.js', 'folder-picker.js'];
+  const files = [
+    'index.html',
+    'app.js',
+    'styles.css',
+    'controls.css',
+    'cards.js',
+    'dom.js',
+    'api.js',
+    'system-card.js',
+    'projects-card.js',
+    'folder-picker.js',
+    'structure-card.js',
+  ];
   for (const name of files) {
     assert.ok((await stat(path.join(PANEL_ASSETS_DIR, name))).isFile(), name);
   }
@@ -45,4 +57,16 @@ test('the projects card is loaded and text inputs disable iPad autocapitalizatio
   const picker = await readFile(path.join(PANEL_ASSETS_DIR, 'folder-picker.js'), 'utf8');
   assert.match(picker, /\/api\/folders\?/);
   assert.match(picker, /error\.hint/);
+});
+
+test('the structure card is loaded and installs through POST /api/projects/:id/structure', async () => {
+  const app = await readFile(path.join(PANEL_ASSETS_DIR, 'app.js'), 'utf8');
+  assert.match(app, /import '\.\/structure-card\.js';/);
+  const card = await readFile(path.join(PANEL_ASSETS_DIR, 'structure-card.js'), 'utf8');
+  assert.match(card, /\/structure`/);
+  assert.match(card, /state\['structure'\]/);
+  for (const label of ["label: 'ok'", "label: 'нет'", "label: 'modified'", "label: 'outdated'", "label: 'newer'", "'Установить'"]) {
+    assert.ok(card.includes(label), label);
+  }
+  assert.doesNotMatch(card, /innerHTML/);
 });

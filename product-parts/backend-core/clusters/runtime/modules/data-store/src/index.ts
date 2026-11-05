@@ -2,7 +2,7 @@
 export type { DataDirs, DataPlatform, ResolveDirsInput } from './paths.ts';
 export { dataPlatform, ensureDataDirs, listDataDirs, resolveDataDirs } from './paths.ts';
 export type { WriteJsonOptions } from './atomic.ts';
-export { InvalidJsonFileError, readJsonFile, writeJsonAtomic } from './atomic.ts';
+export { InvalidJsonFileError, readJsonFile, writeFileAtomic, writeJsonAtomic } from './atomic.ts';
 export type { LoadConfigInput, WfkConfig } from './config.ts';
 export { ConfigError, DEFAULT_PORT, configFile, loadConfig, parsePort } from './config.ts';
 export type { EventLog, EventLogOptions, EventRecord } from './events.ts';

@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 25,
+  "revision": 26,
   "rounds": [
     {
       "digest": null,
@@ -516,7 +516,8 @@
         "product-parts/backend-core/clusters/runtime/modules/cli",
         "product-parts/backend-core/clusters/runtime/modules/data-store",
         "product-parts/backend-core/clusters/http-api/modules/http-server",
-        "product-parts/control-panel/clusters/web-panel/modules/panel-shell"
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell",
+        "package.json"
       ],
       "fixes": null,
       "id": "T003",
@@ -823,7 +824,7 @@
 - Execution: orchestrated (max 3 workers, owner cfa00ffe-c414-4ae6-9953-e3d2906b3705)
 - Current task: none
 - Progress: 2/11
-- Revision: 25
+- Revision: 26
 
 ## Objective
 
@@ -852,7 +853,7 @@
   - Depends on: T001
 - [TODO] T003 — Структура Kit v1, приём хука и wfk link (work)
   - Commit: feat: add kit structure installer and session start hook
-  - Files: product-parts/backend-core/clusters/projects/modules/kit-structure, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/backend-core/clusters/runtime/modules/data-store, product-parts/backend-core/clusters/http-api/modules/http-server, product-parts/control-panel/clusters/web-panel/modules/panel-shell
+  - Files: product-parts/backend-core/clusters/projects/modules/kit-structure, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/backend-core/clusters/runtime/modules/data-store, product-parts/backend-core/clusters/http-api/modules/http-server, product-parts/control-panel/clusters/web-panel/modules/panel-shell, package.json
   - Depends on: T002
 - [TODO] T004 — Контракт провайдера, API, операции и утилиты процессов (work)
   - Commit: feat: add provider contract, registry, operations and process utilities

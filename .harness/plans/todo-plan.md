@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 31,
+  "revision": 32,
   "rounds": [
     {
       "digest": null,
@@ -658,7 +658,7 @@
         }
       ],
       "dependencies": [
-        "T005"
+        "T004"
       ],
       "docsWaiver": null,
       "files": [
@@ -840,7 +840,7 @@
 - Execution: orchestrated (max 3 workers, owner cfa00ffe-c414-4ae6-9953-e3d2906b3705)
 - Current task: none
 - Progress: 5/11
-- Revision: 31
+- Revision: 32
 
 ## Objective
 
@@ -882,7 +882,7 @@
 - [TODO] T006 — Провайдер Claude (work, parallel-safe)
   - Commit: feat: implement claude provider
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude
-  - Depends on: T005
+  - Depends on: T004
 - [TODO] T007 — Провайдер Codex (work, parallel-safe)
   - Commit: feat: implement codex provider
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex

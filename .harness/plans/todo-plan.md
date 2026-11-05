@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 33,
+  "revision": 34,
   "rounds": [
     {
       "digest": null,
@@ -734,7 +734,7 @@
         }
       ],
       "dependencies": [
-        "T005"
+        "T004"
       ],
       "docsWaiver": null,
       "files": [
@@ -840,7 +840,7 @@
 - Execution: orchestrated (max 3 workers, owner cfa00ffe-c414-4ae6-9953-e3d2906b3705)
 - Current task: none
 - Progress: 5/11
-- Revision: 33
+- Revision: 34
 
 ## Objective
 
@@ -890,7 +890,7 @@
 - [TODO] T008 — Установщик, автозапуск, запускатель и значок (work, parallel-safe)
   - Commit: feat: add backend installer, autostart and launcher
   - Files: product-parts/system-service/clusters/deployment/modules/service-installer
-  - Depends on: T005
+  - Depends on: T004
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M1-orchestrator-core.md, docs/architecture/modules/cli.md, docs/architecture/modules/core.md, docs/architecture/modules/server.md, docs/architecture/modules/panel.md, docs/architecture/modules/service.md, docs/architecture/modules/kit-structure.md, docs/architecture/modules/providers.md, docs/architecture/modules/provider-claude.md, docs/architecture/modules/provider-codex.md

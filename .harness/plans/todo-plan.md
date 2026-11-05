@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 16,
+  "revision": 17,
   "rounds": [
     {
       "digest": null,
@@ -505,19 +505,11 @@
       ],
       "docsWaiver": null,
       "files": [
-        "src/kit-structure",
-        "src/cli",
-        "src/core",
-        "src/server",
-        "src/panel",
-        "test/kit-structure",
-        "test/cli",
-        "test/server",
-        "docs/architecture/modules/kit-structure.md",
-        "docs/architecture/modules/cli.md",
-        "docs/architecture/modules/core.md",
-        "docs/architecture/modules/server.md",
-        "docs/architecture/modules/panel.md"
+        "product-parts/backend-core/clusters/projects/modules/kit-structure",
+        "product-parts/backend-core/clusters/runtime/modules/cli",
+        "product-parts/backend-core/clusters/runtime/modules/data-store",
+        "product-parts/backend-core/clusters/http-api/modules/http-server",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell"
       ],
       "fixes": null,
       "id": "T003",
@@ -836,7 +828,7 @@
 - Execution: orchestrated (max 3 workers, owner cfa00ffe-c414-4ae6-9953-e3d2906b3705)
 - Current task: none
 - Progress: 1/11
-- Revision: 16
+- Revision: 17
 
 ## Objective
 
@@ -865,7 +857,7 @@
   - Depends on: T001
 - [TODO] T003 — Структура Kit v1, приём хука и wfk link (work)
   - Commit: feat: add kit structure installer and session start hook
-  - Files: src/kit-structure, src/cli, src/core, src/server, src/panel, test/kit-structure, test/cli, test/server, docs/architecture/modules/kit-structure.md, docs/architecture/modules/cli.md, docs/architecture/modules/core.md, docs/architecture/modules/server.md, docs/architecture/modules/panel.md
+  - Files: product-parts/backend-core/clusters/projects/modules/kit-structure, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/backend-core/clusters/runtime/modules/data-store, product-parts/backend-core/clusters/http-api/modules/http-server, product-parts/control-panel/clusters/web-panel/modules/panel-shell
   - Depends on: T002
 - [TODO] T004 — Контракт провайдера, API, операции и утилиты процессов (work)
   - Commit: feat: add provider contract, registry, operations and process utilities

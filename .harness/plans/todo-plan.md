@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 9,
+  "revision": 10,
   "rounds": [
     {
       "digest": null,
@@ -583,11 +583,10 @@
         "Карточка провайдера: статус и версии CLI, доверие с предпросмотром (ключи и точки автозапуска) и подтверждением по токену, хуки Kit и чужие с командой и хешем, кнопка одобрения передаёт команду и хеш, список сессий, особые действия",
         "Недоступное показано с причиной; идущие операции блокируют свою кнопку и показывают ход",
         "Ссылка сессии выбирается по устройству: mobile при navigator.maxTouchPoints > 1, иначе desktop, web — запасная; сессия без ссылки показывает note",
-        "Логика выбора ссылки и отображения состояний покрыта тестами node --test"
+        "Логика выбора ссылки и отображения состояний покрыта тестами node --test",
+        "Ручная проверка пользователем: Визуально: на Mac и iPad в проекте две карточки (Claude, ChatGPT) с заглушками; сессии Claude из журнала хука видны в списке; на iPad вёрстка не ломается"
       ],
-      "checks": [
-        "Визуально: на Mac и iPad в проекте две карточки (Claude, ChatGPT) с заглушками; сессии Claude из журнала хука видны в списке; на iPad вёрстка не ломается"
-      ],
+      "checks": [],
       "commitMessage": "feat: add generic provider cards to the panel",
       "confirmation": null,
       "context": [
@@ -839,7 +838,7 @@
 - Execution: orchestrated (max 3 workers, owner cfa00ffe-c414-4ae6-9953-e3d2906b3705)
 - Current task: none
 - Progress: 1/11
-- Revision: 9
+- Revision: 10
 
 ## Objective
 

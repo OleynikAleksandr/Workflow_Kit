@@ -33,8 +33,8 @@ Workflow Kit — оркестратор поверх родных приложе
 - D2. Node 24, TypeScript исполняется напрямую (type stripping;
   `erasableSyntaxOnly`, `verbatimModuleSyntax`, импорты с `.ts`). Точка входа
   `bin/wfk.mjs` сначала проверяет версию Node, затем загружает
-  `src/cli/main.ts`. Runtime-зависимостей нет. Dev: `typescript`,
-  `@types/node`; тесты `node --test "test/**/*.test.ts"`. JS панели
+  модуль `cli` (раздел 4). Runtime-зависимостей нет. Dev: `typescript`,
+  `@types/node`; тесты `node --test "product-parts/**/test/*.test.ts"`. JS панели
   проверяется через JSDoc и `checkJs`.
 - D3. Панель — статические HTML/CSS/ES-модули без сборки; опрос `/api/state`
   раз в 3 с.
@@ -78,23 +78,34 @@ Workflow Kit — оркестратор поверх родных приложе
 
 ## 4. Модули и файлы
 
-Код — `src/<module>/**`, контракт — `docs/architecture/modules/<module>.md`
-(`bin/**` → `cli.md`). Лимит файла — 400 строк. Тесты —
-`test/<module>/**`; внешние программы вызываются через внедряемый
-исполнитель, тесты идут на подставных программах, подставном HOME и
-переопределённых `WFK_DATA_DIR`, `WFK_PORT` и никогда не трогают настоящие
-`~/Library/LaunchAgents`, `~/.claude.json`, `~/.codex`.
+Кодовая база устроена как в Harness AI: части продукта → кластеры → модули.
+Модуль — каталог
+`product-parts/<part>/clusters/<cluster>/modules/<module>/` с `module.md`
+(контракт модуля), `src/` (код) и `test/` (тесты `*.test.ts`). У части —
+`product-part.md`, у кластера — `cluster.md`. Контракт модуля меняется в том
+же коммите, что и `src/**` модуля; точка входа `bin/wfk.mjs` относится к
+модулю `cli`. Модули обращаются друг к другу только через `src/index.ts`
+модуля (импорт через `#`-алиасы поля `imports` в `package.json`). Лимит
+файла — 400 строк.
 
-| Модуль | Обязанность |
-| --- | --- |
-| `cli` | `bin/wfk.mjs`; команды `serve`, `open`, `install`, `uninstall`, `service start/stop/status`, `doctor`, `link`, `hook` |
-| `core` | каталоги, конфиг, атомарная запись, реестр проектов, журнал, мьютексы, операции |
-| `server` | HTTP, фильтр доступа, маршруты, раздача панели |
-| `panel` | веб-панель (`src/panel/**`) |
-| `kit-structure` | шаблоны, установка и проверка структуры, приём хука |
-| `providers` | контракт, реестр, журнал хука, утилиты процессов |
-| `provider-claude`, `provider-codex` | провайдеры ([M1-providers.md](M1-providers.md)) |
-| `service` | развёртывание, автозапуск, запускатель и значок, статус службы |
+| Часть / кластер | Модуль | Обязанность |
+| --- | --- | --- |
+| `backend-core` / `runtime` | `cli` | `bin/wfk.mjs`; команды `serve`, `open`, `install`, `uninstall`, `service start/stop/status`, `doctor`, `link`, `hook` |
+| `backend-core` / `runtime` | `data-store` | каталоги по ОС, конфиг, атомарная запись, журнал событий, мьютексы, операции |
+| `backend-core` / `http-api` | `http-server` | HTTP, фильтр доступа, реестр маршрутов, раздача панели |
+| `backend-core` / `projects` | `project-registry` | реестр проектов, проверка путей и имён, выбор папки |
+| `backend-core` / `projects` | `kit-structure` | шаблоны, установка и проверка структуры, приём хука |
+| `provider-runtime` / `provider-contract` | `provider-registry` | контракт, реестр провайдеров, журнал хука, маршруты провайдеров |
+| `provider-runtime` / `provider-contract` | `process-supervisor` | запуск, учёт и остановка процессов (D5, D9) |
+| `provider-runtime` / `provider-adapters` | `provider-claude`, `provider-codex` | провайдеры ([M1-providers.md](M1-providers.md)) |
+| `control-panel` / `web-panel` | `panel-shell` | каркас панели, «Система», проекты, структура |
+| `control-panel` / `web-panel` | `provider-cards` | карточки провайдеров из контракта |
+| `system-service` / `deployment` | `service-installer` | развёртывание, автозапуск, запускатель и значок, статус службы |
+
+Внешние программы вызываются через внедряемый исполнитель; тесты идут на
+подставных программах, подставном HOME и переопределённых `WFK_DATA_DIR`,
+`WFK_PORT` и никогда не трогают настоящие `~/Library/LaunchAgents`,
+`~/.claude.json`, `~/.codex`.
 
 ## 5. Контракт провайдера
 
@@ -149,7 +160,7 @@ Workflow Kit — оркестратор поверх родных приложе
 ## 9. Установщик, запуск и автозапуск
 
 - `node bin/wfk.mjs install` (из клона репозитория при Node 24):
-  копирует `bin`, `src`, `package.json` в `app/<версия>/`, записывает
+  копирует `bin`, `product-parts`, `package.json` в `app/<версия>/`, записывает
   `app/current.json` (без симлинков), сохраняет пути программ (D12), ставит
   запускатель `wfk` (`~/.local/bin/wfk`; Windows — `wfk.cmd` в каталоге
   данных и PATH пользователя), значок «Workflow Kit» (macOS

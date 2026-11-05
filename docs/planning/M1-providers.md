@@ -37,7 +37,7 @@ interface Provider {
   чужие хуки `.codex/hooks.json`); токен предпросмотра.
 - Ошибка — `{ code, message, hint }`; `hint` говорит, что сделать.
 - Итоговый список сессий строит сам провайдер: общий помощник
-  `readHookSessions(project, client)` из `providers` + свои записи панели.
+  `readHookSessions(project, client)` из модуля `provider-registry` + свои записи панели.
   Сервер и панель ничего не фильтруют и не знают о провайдере.
 - Ссылка выбирается панелью: `mobile`, если `navigator.maxTouchPoints > 1`
   (iPad Safari выдаёт себя за Mac), иначе `desktop`; `web` — запасная.

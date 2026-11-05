@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 43,
+  "revision": 45,
   "rounds": [
     {
       "digest": {
@@ -41,7 +41,7 @@
       },
       "id": "R1",
       "kind": "implementation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Implementation"
     }
   ],
@@ -119,7 +119,7 @@
         "text": "Windows и Linux в вехе 1 проверяются только тестами; приёмка на устройствах — Mac и iPad (ответ пользователя: «Тестов достаточно»)"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cfa00ffe-c414-4ae6-9953-e3d2906b3705",
@@ -916,7 +916,7 @@
       ],
       "checks": [],
       "commitMessage": "docs: record milestone 1 acceptance",
-      "confirmation": null,
+      "confirmation": "Да, ставить",
       "context": [
         {
           "path": "docs/planning/M1-orchestrator-core.md",
@@ -938,7 +938,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Установка на Mac и приёмка вехи 1",
       "why": "Пользователь проверяет веху визуально на своём Mac и iPad"
     }
@@ -950,11 +950,11 @@
 ## State
 
 - Scope: m1-orchestrator-core (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: orchestrated (max 3 workers, owner cfa00ffe-c414-4ae6-9953-e3d2906b3705)
 - Current task: none
-- Progress: 11/12
-- Revision: 43
+- Progress: 12/12
+- Revision: 45
 
 ## Objective
 
@@ -968,7 +968,7 @@
 
 ## Rounds
 
-### R1 — Implementation (implementation, OPEN)
+### R1 — Implementation (implementation, CLOSED)
 
 - [DONE] QUALITY — Configure the project quality profile (quality)
   - Commit: chore: configure the project quality profile
@@ -1014,7 +1014,7 @@
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M1-orchestrator-core.md, docs/architecture/modules/cli.md, docs/architecture/modules/core.md, docs/architecture/modules/server.md, docs/architecture/modules/panel.md, docs/architecture/modules/service.md, docs/architecture/modules/kit-structure.md, docs/architecture/modules/providers.md, docs/architecture/modules/provider-claude.md, docs/architecture/modules/provider-codex.md, node_modules/@types/node/README.md, node_modules/typescript/README.md, node_modules/typescript/SECURITY.md, node_modules/undici-types/README.md, product-parts/system-service/clusters/deployment/modules/service-installer/module.md, product-parts/backend-core/product-part.md, product-parts/provider-runtime/product-part.md, product-parts/control-panel/product-part.md, product-parts/system-service/product-part.md, product-parts/backend-core/clusters/runtime/cluster.md, product-parts/backend-core/clusters/http-api/cluster.md, product-parts/backend-core/clusters/projects/cluster.md, product-parts/provider-runtime/clusters/provider-contract/cluster.md, product-parts/provider-runtime/clusters/provider-adapters/cluster.md, product-parts/control-panel/clusters/web-panel/cluster.md, product-parts/system-service/clusters/deployment/cluster.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md
   - Depends on: QUALITY, T001, T002, T003, T004, T005, T006, T007, T008, T010
-- [TODO] T009 — Установка на Mac и приёмка вехи 1 (delivery)
+- [DONE] T009 — Установка на Mac и приёмка вехи 1 (delivery)
   - Commit: docs: record milestone 1 acceptance
   - Files: docs/evidence/M1-acceptance.md
   - Depends on: T006, T007, T008, DOCS-R1

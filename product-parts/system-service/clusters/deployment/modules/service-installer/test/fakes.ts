@@ -14,6 +14,8 @@ interface Entry {
 export class MemoryFs implements InstallerFs {
   readonly files = new Map<string, Entry>();
   readonly dirs = new Set<string>();
+  /** Symbolic links: link path to target path (absolute). */
+  readonly links = new Map<string, string>();
   readonly p: path.PlatformPath;
 
   constructor(platform: NodeJS.Platform) {
@@ -105,6 +107,22 @@ export class MemoryFs implements InstallerFs {
     const entry = this.files.get(file);
     if (!entry) return false;
     return this.p === path.win32 ? true : (entry.mode & 0o111) !== 0;
+  }
+
+  /** Seeds an executable symlink (it also reads as the file for isExecutable). */
+  symlink(link: string, target: string): void {
+    this.seed(link, 'link', 0o755);
+    this.links.set(link, target);
+  }
+
+  realpath(file: string): string | null {
+    let current = file;
+    for (let hops = 0; hops < 40; hops += 1) {
+      const target = this.links.get(current);
+      if (target === undefined) return this.existsSync(current) ? current : null;
+      current = target;
+    }
+    return null;
   }
 
   mode(file: string): number | undefined {

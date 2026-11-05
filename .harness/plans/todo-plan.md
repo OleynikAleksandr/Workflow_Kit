@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 42,
+  "revision": 44,
   "rounds": [
     {
       "digest": null,
@@ -42,7 +42,7 @@
       }
     ],
     "decisions": [],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 1,
       "ownerSession": null,
@@ -82,14 +82,28 @@
         "product-parts/system-service/product-part.md",
         "product-parts/system-service/clusters/deployment/cluster.md",
         "node_modules",
-        ".gitignore"
+        ".gitignore",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/commands.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/app.test.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/commands.test.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/system-card.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/panel-shell.test.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/module.md",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/fs.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/install.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/programs.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/test/fakes.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/test/node-path.test.ts"
       ],
       "fixes": null,
       "id": "T010",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Подключение установщика к cli и панели",
       "why": "T008 не мог менять cli и панель: команды install, uninstall, service, open, doctor пока отвечают заглушкой, а «Система» не показывает автозапуск и программы"
     }
@@ -101,11 +115,11 @@
 ## State
 
 - Scope: assignment-m1-orchestrator-core-T010-1 (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 0/1
-- Revision: 42
+- Progress: 1/1
+- Revision: 44
 
 ## Objective
 
@@ -124,8 +138,8 @@
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T010 — Подключение установщика к cli и панели (work)
+- [DONE] T010 — Подключение установщика к cli и панели (work)
   - Commit: fix: wire the service installer into the cli and panel
-  - Files: product-parts/backend-core/clusters/runtime/modules/cli, product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/system-service/clusters/deployment/modules/service-installer, product-parts/system-service/product-part.md, product-parts/system-service/clusters/deployment/cluster.md, node_modules, .gitignore
+  - Files: product-parts/backend-core/clusters/runtime/modules/cli, product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/system-service/clusters/deployment/modules/service-installer, product-parts/system-service/product-part.md, product-parts/system-service/clusters/deployment/cluster.md, node_modules, .gitignore, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/commands.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/app.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/commands.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/system-card.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/panel-shell.test.ts, product-parts/system-service/clusters/deployment/modules/service-installer/module.md, product-parts/system-service/clusters/deployment/modules/service-installer/src/fs.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/install.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/programs.ts, product-parts/system-service/clusters/deployment/modules/service-installer/test/fakes.ts, product-parts/system-service/clusters/deployment/modules/service-installer/test/node-path.test.ts
 
 State changes only through `scripts/workflow` commands. History lives in Git.

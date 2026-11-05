@@ -1,6 +1,6 @@
 // File system operations of the installer behind an interface, so the same install flow is
 // tested for macOS, Linux and Windows paths on an in-memory file system.
-import { accessSync, constants, existsSync, readFileSync, statSync } from 'node:fs';
+import { accessSync, constants, existsSync, readFileSync, realpathSync, statSync } from 'node:fs';
 import { cp, mkdir, readFile, readdir, rename, rm, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { writeFileAtomic } from '#data-store';
@@ -26,6 +26,8 @@ export interface InstallerFs {
   readTextSync(file: string): string | undefined;
   /** A regular file the user may execute. */
   isExecutable(file: string): boolean;
+  /** Path with every symlink resolved; null when it does not exist. */
+  realpath(file: string): string | null;
 }
 
 /** The real file system. */
@@ -75,6 +77,13 @@ export const nodeFs: InstallerFs = {
       return true;
     } catch {
       return false;
+    }
+  },
+  realpath(file) {
+    try {
+      return realpathSync(file);
+    } catch {
+      return null;
     }
   },
 };

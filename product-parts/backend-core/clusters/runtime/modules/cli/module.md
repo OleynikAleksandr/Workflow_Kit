@@ -13,8 +13,11 @@ stripping).
 
 - `main(argv, deps?) → Promise<number>` — разбор команды, возвращает код
   выхода. `deps` (`stdout`, `stderr`, `app`, `waitForShutdown`, `cwd`,
-  `readStdin`) внедряются в тестах; `app.env`, `app.platform`,
-  `app.homedir` служат и командам `link` и `hook`.
+  `readStdin`, `service`) внедряются в тестах; `app.env`, `app.platform`,
+  `app.homedir` служат командам `link`, `hook` и командам службы;
+  `service` (`ServiceDeps` из `#service-installer`: `run`, `fs`, `health`,
+  `spawnDetached`, `sleep`, `readyTimeoutMs` и др.) — подставные эффекты
+  установщика.
 - `runHook(args, deps) → Promise<0>`, `readProcessStdin(timeoutMs)`,
   `HOOK_BUDGET_MS` (1500), тип `HookDeps`.
 - `linkLauncher(options) → LinkResult`, `launcherPath(homedir)`,
@@ -46,9 +49,8 @@ stripping).
 | Команда | Поведение |
 | --- | --- |
 | `serve` | собирает приложение, слушает `config.port` (4747, `WFK_PORT`), печатает адреса панели, останавливается по SIGINT/SIGTERM |
-| `install`, `uninstall`, `service start/stop` | передаются в `service-installer` (заглушка: «не реализовано», код 2) |
-| `service status` | статус из `service-installer` (заглушка: «не установлена») |
-| `open`, `doctor` | «не реализовано (задача T008)», код 2 |
+| `install`, `uninstall`, `service start/stop/status`, `open` | передаются в `runServiceCommand` из `service-installer` с контекстом `{ env, platform, homedir, ...deps.service }` (по умолчанию — текущий процесс и `os.homedir()`); сообщение — в stdout (успех) или stderr (ошибка), код выхода — из результата |
+| `doctor [--installed]` | то же, `--installed` передаётся аргументом; другие аргументы — справка, код 64 |
 | `link [--force]` | пишет запускатель `~/.local/bin/wfk` (0755, `#!/bin/sh`, строка-метка `# Workflow Kit launcher`), который запускает `bin/wfk.mjs` этого клона абсолютным `node`; чужой файл заменяется только с `--force`; предупреждает, если каталога нет в PATH; на Windows — отказ, код 1 |
 | `hook session-start --client <claude\|codex>` | читает JSON хука из stdin (до 1 с, терминал — пусто) и передаёт `recordSessionStart` из `kit-structure`; весь бюджет 1,5 с; stdout пуст, код всегда 0; другие подкоманды `hook` игнорируются |
 | `--help`, `--version` | справка и версия из `package.json` |
@@ -62,8 +64,11 @@ stripping).
 `SystemVersion.plist` / `/etc/os-release` / `os.version()` один раз при
 старте, без внешних программ), `node`, `hostname`, `pid`, `startedAt`,
 `port`, `dataDir` (каталог конфига), `dataDirOverridden`, `dataDirs`,
-`addresses` (URL панели: loopback и адреса Tailscale), `service` (статус из
-`service-installer`). `GET /api/health` → `{ ok, version, pid, startedAt }`.
+`addresses` (URL панели: loopback и адреса Tailscale), `service` —
+`getServiceStatus(platform, { env, homedir, serving: true })` из
+`service-installer` (только файлы, D11): установленная версия, экземпляр
+(`default` / `development` при `WFK_DATA_DIR`), способ и состояние
+автозапуска, запускатель, значок, пути программ. `GET /api/health` → `{ ok, version, pid, startedAt }`.
 
 ## Подключённые модули
 
@@ -100,8 +105,12 @@ stripping).
 - `hook` никогда не завершается ошибкой и ничего не печатает в stdout.
 - Тесты `link` работают на подставном HOME; настоящий
   `~/.local/bin/wfk` не трогается.
+- Тесты команд службы передают подставной HOME, `WFK_DATA_DIR` во
+  временном каталоге и подставные эффекты (`deps.service`): настоящие
+  `launchctl`, LaunchAgents, `~/Applications` и автозапуск не трогаются.
 
 ## Дальше
 
-T006 и T007 меняют только свои модули провайдеров; T008 — `open`, `doctor`, служба и установка запускателя `install`
-(с той же меткой `LAUNCHER_MARK`).
+Установщик подключён (T010): `install` ставит запускатель с той же меткой
+`LAUNCHER_MARK`, что и `link`. `EXIT_NOT_IMPLEMENTED` (2) остаётся в
+интерфейсе для команд следующих вех.

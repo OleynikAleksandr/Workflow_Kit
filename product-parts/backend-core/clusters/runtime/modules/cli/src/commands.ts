@@ -1,7 +1,7 @@
 import os from 'node:os';
 import path from 'node:path';
-import { NOT_IMPLEMENTED, runServiceCommand } from '#service-installer';
-import type { ServiceCommand } from '#service-installer';
+import { runServiceCommand } from '#service-installer';
+import type { ServiceCommand, ServiceDeps } from '#service-installer';
 import { createApp } from './app.ts';
 import type { App, AppOptions } from './app.ts';
 import { readProcessStdin, runHook } from './hook.ts';
@@ -20,6 +20,8 @@ export interface CliDeps {
   readStdin?: (timeoutMs: number) => Promise<string>;
   /** Resolves when the service should stop (default: SIGINT or SIGTERM). */
   waitForShutdown?: (app: App) => Promise<void>;
+  /** Effects of the service installer (runner, health probe, spawner); tests pass fakes. */
+  service?: ServiceDeps;
 }
 
 /** Top-level commands of wfk, in help order. */
@@ -42,12 +44,6 @@ const USAGE = `Использование: wfk <команда>
   hook session-start --client   приём хука SessionStart
   --version                     версия
 `;
-
-/** Which task brings each command that is not implemented yet. */
-const PLANNED: Readonly<Record<string, string>> = {
-  open: 'T008',
-  doctor: 'T008',
-};
 
 function defaultShutdown(): Promise<void> {
   return new Promise((resolve) => {
@@ -95,8 +91,14 @@ async function service(args: string[], deps: CliDeps): Promise<number> {
   return printServiceResult(sub, deps);
 }
 
-async function printServiceResult(command: ServiceCommand, deps: CliDeps): Promise<number> {
-  const result = await runServiceCommand(command);
+async function printServiceResult(command: ServiceCommand, deps: CliDeps, args: readonly string[] = []): Promise<number> {
+  const context: ServiceDeps = {
+    env: deps.app?.env ?? process.env,
+    platform: deps.app?.platform ?? process.platform,
+    homedir: deps.app?.homedir ?? os.homedir(),
+    ...deps.service,
+  };
+  const result = await runServiceCommand(command, context, args);
   (result.ok ? deps.stdout : deps.stderr)(`${result.message}\n`);
   return result.exitCode;
 }
@@ -167,9 +169,13 @@ export async function main(argv: readonly string[], deps?: Partial<CliDeps>): Pr
         readStdin: full.readStdin ?? readProcessStdin,
       });
     case 'open':
+      return printServiceResult(command, full);
     case 'doctor':
-      full.stderr(`wfk ${command}: ${NOT_IMPLEMENTED} (задача ${PLANNED[command]})\n`);
-      return EXIT_NOT_IMPLEMENTED;
+      if (rest.some((arg) => arg !== '--installed')) {
+        full.stderr('Использование: wfk doctor [--installed]\n');
+        return EXIT_USAGE;
+      }
+      return printServiceResult(command, full, rest);
     default:
       full.stderr(`wfk: неизвестная команда «${command}»\n\n${USAGE}`);
       return EXIT_USAGE;

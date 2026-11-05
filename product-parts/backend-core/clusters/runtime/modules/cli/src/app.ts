@@ -121,7 +121,7 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
     dataDirOverridden: dirs.overridden,
     dataDirs: { config: dirs.configDir, state: dirs.stateDir, app: dirs.appDir, logs: dirs.logsDir },
     addresses: panelUrls(server.port(), getInterfaces()),
-    service: getServiceStatus(platform),
+    service: getServiceStatus(platform, { env, homedir, serving: true }),
   }));
   registerProjectRoutes(router, state, projects, homeScope);
   registerStructureRoutes({ router, state, projects, platform, mutex, events });

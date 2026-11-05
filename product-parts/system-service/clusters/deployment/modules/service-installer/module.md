@@ -23,10 +23,8 @@ login-shell (D12), запускатель `wfk`, значок «Workflow Kit», 
   `uid`, `sourceRoot` (что устанавливать, по умолчанию корень этого кода
   `SOURCE_ROOT`), `nodePath` (по умолчанию `process.execPath`),
   `readyTimeoutMs` (20 с), `stopTimeoutMs` (10 с). Без `context` вызов
-  ничего не трогает и отвечает как заглушка T001: `status` — «не
-  установлена» (код 0), остальное — «не реализовано» (код 2). Так вызов
-  без контекста машины (тесты `cli`) не может выполнить настоящую
-  установку.
+  ничего не трогает: `status` — «не установлена» (код 0), остальное —
+  «не реализовано» (код 2). `cli` всегда передаёт контекст (T010).
 - `getServiceStatus(platform?, context?) → ServiceStatus` — синхронно,
   только файлы (D11): `implemented`, `installed` (есть валидный
   `app/current.json`), `running` (= `context.serving`: статус строит сама
@@ -48,6 +46,8 @@ login-shell (D12), запускатель `wfk`, значок «Workflow Kit», 
   `SYSTEMD_UNIT` (`workflow-kit.service`), `RUN_KEY`, `RUN_VALUE_NAME`
   (`WorkflowKit`), `ICON_BUNDLE_ID` (`ai.workflowkit.launcher`), метки
   `LAUNCHER_MARK` (та же строка, что у `cli`), `DESKTOP_MARK`, `UNIT_MARK`.
+- `InstallerFs` включает `realpath(file) → string | null` (разрешение
+  символьных ссылок; нужен выбору `node`, см. «Установка», п. 3).
 - Типы `ServiceStatus`, `ServiceCommand`, `ServiceCommandResult`,
   `ServiceContext`, `ServiceDeps`, `InstallerFs`, `HealthInfo`,
   `HealthProbe`, `DetachedSpawner`, `ManagedItem`, `CurrentRecord`,
@@ -75,9 +75,18 @@ login-shell (D12), запускатель `wfk`, значок «Workflow Kit», 
    `app/<версия>`. Запуск из самой установленной копии ничего не копирует.
 3. PATH login-shell: `$SHELL -i -l -c`, затем `-l -c` (маркеры
    `__WFK_PATH__`), объединяется с каталогом `node` (первым) и PATH
-   процесса. Пути `claude`, `codex`, `expect` ищутся по нему, `node` —
-   абсолютный `process.execPath`. В `config.json` пишутся `programs` и
-   `loginPath`, остальные ключи сохраняются; невалидный JSON — отказ.
+   процесса. Пути `claude`, `codex`, `expect` ищутся по нему.
+   `node` службы устойчив к обновлению Homebrew: `process.execPath` —
+   версионный путь `…/Cellar/node@24/24.x.y/bin/node`, который исчезает
+   после `brew upgrade`, поэтому берётся первый `node` из login PATH (затем
+   PATH процесса) с тем же `realpath`, например `/opt/homebrew/bin/node`;
+   если такого нет — ссылка Homebrew `<префикс>/opt/<формула>/bin/node`
+   (`homebrewOptNode`) с тем же `realpath`; иначе сам `process.execPath`.
+   Windows оставляет `process.execPath`. Каталог выбранного `node` идёт в
+   PATH службы первым. Этот же `node` пишется в `config.json`
+   (`programs.node`), `app/current.json`, запускатель, значок и
+   автозапуск. В `config.json` пишутся `programs` и `loginPath`, остальные
+   ключи сохраняются; невалидный JSON — отказ.
 4. Запускатель (метка `# Workflow Kit launcher`; `wfk link` с той же меткой
    заменяется), значок, автозапуск:
    - macOS: LaunchAgent с `RunAtLoad`, `KeepAlive`, `AbandonProcessGroup`,
@@ -154,25 +163,17 @@ unit, `daemon-reload`; XDG-файл; `reg delete`, `.vbs`, PATH пользова
 - Опрос панели (`getServiceStatus`) только читает файлы.
 - `uninstall` не трогает данные пользователя.
 
-## Подключение к `cli` (не сделано в T008)
+## Подключение к `cli` и панели (T010)
 
-Файлы задачи T008 ограничены этим модулем, а `cli` вызывает его без
-контекста, поэтому команды пока отвечают как заглушка. Чтобы включить
-установщик, `cli` должен:
-
-- передавать контекст: `runServiceCommand(command, { env, platform,
-  homedir, ...deps.service }, args)` для `install`, `uninstall`,
-  `service start|stop|status`, а также `open` и `doctor` (сейчас `cli`
-  отвечает на них сам «не реализовано»);
-- в разделе `system` вызывать `getServiceStatus(platform, { env, homedir,
-  serving: true })`;
-- заменить тесты `cli`, которые ждут ответов заглушки, на вызовы с
-  подставными эффектами (`CliDeps.service`), иначе тесты выполнят
-  настоящую установку.
-
-Карточка «Система» (`panel-shell`) сейчас показывает только плашку службы;
-способ автозапуска, версия установки и пути программ уже есть в
-`ServiceStatus` и требуют правки `system-card.js`.
+- `cli` передаёт `runServiceCommand(command, { env, platform, homedir,
+  ...deps.service }, args)` для `install`, `uninstall`,
+  `service start|stop|status`, `open` и `doctor [--installed]`; тесты
+  `cli` подставляют эффекты через `CliDeps.service`.
+- Раздел `system` бэкенда вызывает `getServiceStatus(platform, { env,
+  homedir, serving: true })`.
+- Карточка «Система» (`panel-shell`) показывает службу и установленную
+  версию, экземпляр, способ и состояние автозапуска, запускатель, значок и
+  пути программ.
 
 ## Проверить при приёмке (на устройстве)
 

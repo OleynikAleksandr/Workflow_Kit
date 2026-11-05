@@ -71,6 +71,18 @@ test('the structure card is loaded and installs through POST /api/projects/:id/s
   assert.doesNotMatch(card, /innerHTML/);
 });
 
+test('the System card shows the service from service-installer: instance, autostart, launcher, icon, programs', async () => {
+  const card = await readFile(path.join(PANEL_ASSETS_DIR, 'system-card.js'), 'utf8');
+  for (const label of ["'Служба'", "'Экземпляр'", "'Автозапуск'", "'Запускатель'", "'Значок'", "'Программы'"]) {
+    assert.ok(card.includes(label), label);
+  }
+  for (const field of ['service.version', 'service.instance', 'service.mechanism', 'service.autostartEntry', 'service?.launcher', 'service?.icon', 'service?.programs']) {
+    assert.ok(card.includes(field), field);
+  }
+  for (const name of ["'node'", "'claude'", "'codex'", "'expect'"]) assert.ok(card.includes(name), name);
+  assert.doesNotMatch(card, /innerHTML/);
+});
+
 test('card groups expand into one card per item, sorted by order with the plain cards', async () => {
   const cards = await import('../src/cards.js');
   cards.registerCard({ id: 'test-a', title: 'A', order: 5, select: () => 'a', render: () => ({}) as Node });

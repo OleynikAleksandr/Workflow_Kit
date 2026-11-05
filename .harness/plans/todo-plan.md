@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 27,
+  "revision": 28,
   "rounds": [
     {
       "digest": null,
@@ -606,7 +606,9 @@
       "docsWaiver": null,
       "files": [
         "product-parts/control-panel/clusters/web-panel/modules/provider-cards",
-        "product-parts/control-panel/clusters/web-panel/modules/panel-shell"
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell",
+        "package.json",
+        "product-parts/backend-core/clusters/runtime/modules/cli"
       ],
       "fixes": null,
       "id": "T005",
@@ -826,7 +828,7 @@
 - Execution: orchestrated (max 3 workers, owner cfa00ffe-c414-4ae6-9953-e3d2906b3705)
 - Current task: none
 - Progress: 2/11
-- Revision: 27
+- Revision: 28
 
 ## Objective
 
@@ -863,7 +865,7 @@
   - Depends on: T003
 - [TODO] T005 — Общий интерфейс провайдеров в панели (work)
   - Commit: feat: add generic provider cards to the panel
-  - Files: product-parts/control-panel/clusters/web-panel/modules/provider-cards, product-parts/control-panel/clusters/web-panel/modules/panel-shell
+  - Files: product-parts/control-panel/clusters/web-panel/modules/provider-cards, product-parts/control-panel/clusters/web-panel/modules/panel-shell, package.json, product-parts/backend-core/clusters/runtime/modules/cli
   - Depends on: T004
 - [TODO] T006 — Провайдер Claude (work, parallel-safe)
   - Commit: feat: implement claude provider

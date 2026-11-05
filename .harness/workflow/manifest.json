@@ -1,0 +1,102 @@
+{
+  "files": [
+    {
+      "executable": false,
+      "kind": "owned",
+      "path": ".harness/workflow/runtime/workflow.mjs",
+      "sha256": "a2ed4ed48ac157aa4a41aaf3e21f7476acdc529cffa8b307c188568eee5c1d00"
+    },
+    {
+      "executable": true,
+      "kind": "owned",
+      "path": "scripts/workflow",
+      "sha256": "44ef38fb0ad55c726e8ee36d9987f2aaa630f7ce785726b54f87d7a20ceac99c"
+    },
+    {
+      "executable": false,
+      "kind": "owned",
+      "path": "scripts/workflow.cmd",
+      "sha256": "bc539cd7152e5d4be8dd565f97551473e579718e87596d8a78033fddd8ff81a2"
+    },
+    {
+      "executable": false,
+      "kind": "owned",
+      "path": "scripts/workflow.ps1",
+      "sha256": "146ae19797175b0aba21e72cb57acb0f30913dab456ec3595c9f61e9e0e1e21d"
+    },
+    {
+      "executable": true,
+      "kind": "owned",
+      "path": ".harness/workflow/hooks/pre-commit",
+      "sha256": "c954d8c74d414cde18c8d66782138190cb98bf4248b3d1884ef63872156e8bde"
+    },
+    {
+      "executable": true,
+      "kind": "owned",
+      "path": ".harness/workflow/hooks/commit-msg",
+      "sha256": "67de7d2628231a2379d8174dbafad60d1d5e8f82c78712a685ae706ff0933210"
+    },
+    {
+      "executable": true,
+      "kind": "owned",
+      "path": ".harness/workflow/hooks/post-commit",
+      "sha256": "e3fbea1e20aaa506ddd47bdeb47e410e40bebd4624086ce7cbb2daa8c42e4d2c"
+    },
+    {
+      "executable": true,
+      "kind": "owned",
+      "path": ".harness/workflow/hooks/pre-push",
+      "sha256": "1b59a9031627813b9e5b55c2b716b2a2d2d03c43e0a986b94f119cc932b81aab"
+    },
+    {
+      "executable": false,
+      "kind": "section",
+      "path": "AGENTS.md",
+      "sha256": "1684c6fa9fc107da5dd20457646ff228543bb96ada992aa7b962c71c64d9b36d"
+    },
+    {
+      "executable": false,
+      "kind": "line",
+      "path": "CLAUDE.md",
+      "sha256": "918b1c90559355ef78f33fdf3562f2b021ef8bdfd8a5c8415e5decd44934de55"
+    },
+    {
+      "executable": false,
+      "kind": "json",
+      "path": ".codex/hooks.json",
+      "sha256": "f1db89e517d3a9e3e49e97579625e53371919882f24e047ce963608e62b03cc5"
+    },
+    {
+      "executable": false,
+      "kind": "json",
+      "path": ".claude/settings.json",
+      "sha256": "01703b1a346f2561e91e27992a673bd2eeab11388236387559e6ee35bfbc5318"
+    },
+    {
+      "executable": false,
+      "kind": "section",
+      "path": ".gitignore",
+      "sha256": "170dc7b63caef67c4559aac6d12907ccb51ea1a52415faf1c28110149d257a34"
+    },
+    {
+      "executable": false,
+      "kind": "section",
+      "path": ".gitattributes",
+      "sha256": "2c00894a2f4493d5773f4bdcda4d54ea14acdfc3e700bffc005b936d8c30369d"
+    },
+    {
+      "executable": false,
+      "kind": "create",
+      "path": "README.md",
+      "sha256": null
+    },
+    {
+      "executable": false,
+      "kind": "create",
+      "path": "docs/architecture/OVERVIEW.md",
+      "sha256": null
+    }
+  ],
+  "schema": "harness-workflow-manifest/1",
+  "version": "2.2.0"
+}

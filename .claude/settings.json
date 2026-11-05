@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "command": "\"$CLAUDE_PROJECT_DIR/scripts/workflow\" hook session-start --client claude",
+            "type": "command"
+          }
+        ]
+      }
+    ]
+  }
+}

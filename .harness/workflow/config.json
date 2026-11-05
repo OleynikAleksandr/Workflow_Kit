@@ -1,0 +1,66 @@
+{
+  "autopilot": {
+    "maxContinues": 40
+  },
+  "budget": {
+    "briefBytes": 60000,
+    "documentBytes": 28000,
+    "recoveryBytes": 32000
+  },
+  "docs": {
+    "contracts": []
+  },
+  "policy": {
+    "maxFileLines": null,
+    "taskFileSoftLimit": null
+  },
+  "quality": {
+    "checks": [
+      {
+        "builtin": "kit:doc-size",
+        "id": "kit:doc-size",
+        "required": true,
+        "role": "custom",
+        "stage": "commit",
+        "timeoutMs": 120000
+      },
+      {
+        "builtin": "kit:md-links",
+        "id": "kit:md-links",
+        "required": true,
+        "role": "custom",
+        "stage": "commit",
+        "timeoutMs": 120000
+      },
+      {
+        "builtin": "kit:file-lines",
+        "id": "kit:file-lines",
+        "required": true,
+        "role": "custom",
+        "stage": "commit",
+        "timeoutMs": 120000
+      },
+      {
+        "builtin": "kit:docs-contracts",
+        "id": "kit:docs-contracts",
+        "required": true,
+        "role": "custom",
+        "stage": "commit",
+        "timeoutMs": 120000
+      },
+      {
+        "builtin": "kit:conflict-markers",
+        "id": "kit:conflict-markers",
+        "required": true,
+        "role": "custom",
+        "stage": "commit",
+        "timeoutMs": 120000
+      }
+    ],
+    "packageManager": null,
+    "stacks": [],
+    "status": "DISCOVERY"
+  },
+  "schema": "harness-workflow-config/1",
+  "host": "harness"
+}

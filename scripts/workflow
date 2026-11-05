@@ -1,0 +1,30 @@
+#!/bin/sh
+# Managed by Harness Workflow Kit. Do not edit.
+set -eu
+root=$(git rev-parse --show-toplevel 2>/dev/null || (cd "$(dirname "$0")/.." && pwd))
+kit="$root/.harness/workflow/runtime/workflow.mjs"
+try_runtime() {
+  candidate=$1
+  mode=$2
+  shift 2
+  [ -n "$candidate" ] && [ -x "$candidate" ] || return 1
+  if [ "$mode" = electron ]; then
+    ELECTRON_RUN_AS_NODE=1 "$candidate" -e "process.exit(Number(process.versions.node.split('.')[0])>=22?0:1)" >/dev/null 2>&1 || return 1
+    ELECTRON_RUN_AS_NODE=1 exec "$candidate" "$kit" "$@"
+  fi
+  env -u ELECTRON_RUN_AS_NODE "$candidate" -e "process.exit(Number(process.versions.node.split('.')[0])>=22?0:1)" >/dev/null 2>&1 || return 1
+  exec env -u ELECTRON_RUN_AS_NODE "$candidate" "$kit" "$@"
+}
+if [ -n "${HARNESS_WORKFLOW_NODE:-}" ]; then
+  try_runtime "$HARNESS_WORKFLOW_NODE" node "$@" || true
+fi
+runtime_file="$root/.harness/workflow/local/runtime"
+if [ -f "$runtime_file" ]; then
+  try_runtime "$(sed -n 1p "$runtime_file")" "$(sed -n 2p "$runtime_file")" "$@" || true
+fi
+try_runtime "$(command -v node 2>/dev/null || true)" node "$@" || true
+for candidate in /opt/homebrew/bin/node /usr/local/bin/node /usr/bin/node; do
+  try_runtime "$candidate" node "$@" || true
+done
+echo "Workflow Kit needs Node.js 22+ (or open the project in Harness AI once)." >&2
+exit 127

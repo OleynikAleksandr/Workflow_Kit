@@ -1,0 +1,8 @@
+# workflow-kit:begin
+# Workflow Kit local state
+.harness/workflow/local/
+.harness/runtime/
+.harness/sessions/
+.claude/worktrees/
+.DS_Store
+# workflow-kit:end

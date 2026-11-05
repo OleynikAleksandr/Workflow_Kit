@@ -17,16 +17,16 @@ export interface CodexRecord {
   model?: string;
 }
 
-/**
- * Parameters of the service turn. The turn only makes Codex write the thread (ChatGPT does not
- * open an empty one): no writes (readOnly, no network) and no approval prompts, since nobody
- * would answer them. Per the protocol schema they also apply to later turns unless the client of
- * that turn overrides them; to be checked on the device at acceptance.
- */
-export const SERVICE_TURN_POLICY = { sandboxPolicy: { type: 'readOnly', networkAccess: false }, approvalPolicy: 'never' } as const;
+// The service turn only makes Codex write the thread (ChatGPT does not open an empty one). It
+// passes no sandboxPolicy/approvalPolicy overrides: per the protocol schema they would stick to
+// the thread for later turns, so the thread keeps the user's own Codex settings (D1, as in the
+// verified prototype).
 
 /** How long createSession waits for the service turn to finish (it does not fail after that). */
 export const SERVICE_TURN_WAIT_MS = 15_000;
+
+/** Timeout of thread/unsubscribe after the service turn. */
+export const UNSUBSCRIBE_TIMEOUT_MS = 5_000;
 
 /** Text of the service turn. */
 export function serviceTurnText(projectName: string): string {
@@ -44,6 +44,11 @@ function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+/** Status of a thread/unsubscribe answer: unsubscribed | notSubscribed | notLoaded. */
+function unsubscribeStatus(answer: unknown): string {
+  return isObject(answer) && typeof answer['status'] === 'string' ? answer['status'] : 'unknown';
+}
+
 function parseRecords(value: unknown): CodexRecord[] {
   const list = isObject(value) && Array.isArray(value['sessions']) ? value['sessions'] : [];
   return list.filter((r): r is CodexRecord =>
@@ -59,9 +64,15 @@ export interface SessionParts {
   records(): Promise<CodexRecord[]>;
 }
 
+/** Options of the session methods (tests shorten the wait for the service turn). */
+export interface SessionOptions {
+  serviceTurnWaitMs?: number;
+}
+
 /** Creates the session methods over the runtime. */
-export function createSessionParts(rt: CodexRuntime): SessionParts {
+export function createSessionParts(rt: CodexRuntime, options: SessionOptions = {}): SessionParts {
   const { context, paths } = rt;
+  const turnWaitMs = options.serviceTurnWaitMs ?? SERVICE_TURN_WAIT_MS;
   const file = providerSessionsFile(context.dirs, 'codex');
   let names: { text: string | null; map: Map<string, string> } = { text: null, map: new Map() };
 
@@ -130,13 +141,18 @@ export function createSessionParts(rt: CodexRuntime): SessionParts {
         const started = await session.request<{ thread?: { id?: unknown }; model?: unknown }>('thread/start', { cwd: project.path });
         const threadId = started?.thread?.id;
         if (typeof threadId !== 'string' || threadId === '') throw new ProviderError('bad-answer', 'Codex не вернул id треда', { hint: 'Обновите Codex CLI.' });
-        await session.request('thread/name/set', { threadId, name: opts.title });
-        await session.request('turn/start', {
-          threadId,
-          input: [{ type: 'text', text: serviceTurnText(project.name) }],
-          ...SERVICE_TURN_POLICY,
-        });
-        await session.waitForNotification('turn/completed', SERVICE_TURN_WAIT_MS);
+        try {
+          await session.request('thread/name/set', { threadId, name: opts.title });
+          await session.request('turn/start', { threadId, input: [{ type: 'text', text: serviceTurnText(project.name) }] });
+          await session.waitForNotification('turn/completed', turnWaitMs);
+        } finally {
+          // While this connection stays subscribed the daemon keeps the thread loaded and ChatGPT
+          // says the chat is open in another app (D1): release it before the connection closes.
+          await session.request('thread/unsubscribe', { threadId }, UNSUBSCRIBE_TIMEOUT_MS).then(
+            (answer) => context.log(`codex: thread/unsubscribe ${threadId}: ${unsubscribeStatus(answer)}`),
+            (error: unknown) => context.log(`codex: thread/unsubscribe ${threadId} failed: ${error instanceof Error ? error.message : String(error)}`),
+          );
+        }
         return { threadId, model: typeof started.model === 'string' ? started.model : undefined };
       }, 60_000);
       const record: CodexRecord = {

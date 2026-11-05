@@ -1,6 +1,7 @@
 // A fake Codex daemon for tests: a WebSocket JSON-RPC server on a unix socket (server frames are
-// unmasked, client frames must be masked). It records every request and answers the methods the
-// provider uses.
+// unmasked, client frames must be masked). It records every request, answers the methods the
+// provider uses and keeps the list of loaded threads like the real daemon: thread/start loads a
+// thread, thread/unsubscribe of its last subscriber unloads it, thread/loaded/list lists them.
 import { createServer } from 'node:net';
 import type { Server, Socket } from 'node:net';
 import { OPCODE, acceptKey, createFrameDecoder, encodeFrame } from '../src/ws.ts';
@@ -20,6 +21,10 @@ export interface FakeDaemonOptions {
   tricky?: boolean;
   /** Answers the handshake with this status line instead of 101. */
   refuse?: string;
+  /** turn/start never sends turn/completed (the provider's wait times out). */
+  silentTurn?: boolean;
+  /** thread/unsubscribe answers with a JSON-RPC error with this message. */
+  unsubscribeError?: string;
 }
 
 /** A running fake daemon. */
@@ -27,6 +32,8 @@ export interface FakeDaemon {
   socketPath: string;
   calls: DaemonCall[];
   pongs: number;
+  /** Thread ids currently loaded (what thread/loaded/list returns). */
+  loaded: Set<string>;
   close(): Promise<void>;
 }
 
@@ -47,9 +54,23 @@ function sendJson(socket: Socket, message: unknown, tricky: boolean): void {
 export async function startFakeDaemon(socketPath: string, options: FakeDaemonOptions = {}): Promise<FakeDaemon> {
   const calls: DaemonCall[] = [];
   const sockets = new Set<Socket>();
-  const daemon: FakeDaemon = { socketPath, calls, pongs: 0, close: async () => undefined };
+  const loaded = new Set<string>();
+  const subscribers = new Map<string, Set<Socket>>();
+  const daemon: FakeDaemon = { socketPath, calls, pongs: 0, loaded, close: async () => undefined };
+  const release = (threadId: string, socket: Socket): 'unsubscribed' | 'notSubscribed' | 'notLoaded' => {
+    if (!loaded.has(threadId)) return 'notLoaded';
+    const set = subscribers.get(threadId);
+    if (!set?.delete(socket)) return 'notSubscribed';
+    if (set.size === 0) {
+      subscribers.delete(threadId);
+      loaded.delete(threadId);
+    }
+    return 'unsubscribed';
+  };
   const server: Server = createServer((socket) => {
     sockets.add(socket);
+    // A closed connection does not unload its threads: the fake keeps them loaded, which is the
+    // defect D1 that thread/unsubscribe fixes.
     socket.on('close', () => sockets.delete(socket));
     socket.on('error', () => undefined);
     let head = Buffer.alloc(0);
@@ -91,12 +112,23 @@ export async function startFakeDaemon(socketPath: string, options: FakeDaemonOpt
           answer(message.id, { userAgent: 'fake-daemon/9.9.9', codexHome: '/fake', platformOs: 'macos' });
           sendJson(socket, { method: 'remoteControl/status/changed', params: { status: options.remoteControl ?? 'connected', serverName: 'fake-mac' } }, tricky);
         } else if (message.method === 'thread/start') {
+          loaded.add(threadId);
+          subscribers.set(threadId, new Set([...(subscribers.get(threadId) ?? []), socket]));
           answer(message.id, { thread: { id: threadId }, model: 'gpt-fake' });
         } else if (message.method === 'thread/name/set') {
           answer(message.id, {});
         } else if (message.method === 'turn/start') {
           answer(message.id, { turn: { id: 'turn-1' } });
-          sendJson(socket, { method: 'turn/completed', params: { threadId } }, tricky);
+          if (!options.silentTurn) sendJson(socket, { method: 'turn/completed', params: { threadId } }, tricky);
+        } else if (message.method === 'thread/unsubscribe' && options.unsubscribeError) {
+          sendJson(socket, { jsonrpc: '2.0', id: message.id, error: { code: -32000, message: options.unsubscribeError } }, tricky);
+        } else if (message.method === 'thread/unsubscribe') {
+          const id = (message.params as { threadId?: unknown } | undefined)?.threadId;
+          const status = typeof id === 'string' ? release(id, socket) : 'notLoaded';
+          answer(message.id, { status });
+          if (typeof id === 'string' && status === 'unsubscribed' && !loaded.has(id)) sendJson(socket, { method: 'thread/closed', params: { threadId: id } }, tricky);
+        } else if (message.method === 'thread/loaded/list') {
+          answer(message.id, { data: [...loaded], nextCursor: null });
         } else {
           sendJson(socket, { jsonrpc: '2.0', id: message.id, error: { code: -32601, message: 'unknown' } }, tricky);
         }

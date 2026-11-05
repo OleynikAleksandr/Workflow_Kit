@@ -25,6 +25,8 @@ export interface CodexDeps {
   tokens?: TokenStore;
   /** How long a daemon probe is reused by status() (default 15 s). */
   daemonTtlMs?: number;
+  /** How long createSession waits for turn/completed of the service turn (default 15 s). */
+  serviceTurnWaitMs?: number;
 }
 
 /** What the last daemon probe found. */

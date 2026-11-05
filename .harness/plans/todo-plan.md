@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 48,
+  "revision": 50,
   "rounds": [
     {
       "digest": null,
@@ -45,7 +45,7 @@
       }
     ],
     "decisions": [],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 1,
       "ownerSession": null,
@@ -82,7 +82,15 @@
       "dependencies": [],
       "docsWaiver": null,
       "files": [
-        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex"
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/runtime.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/sessions.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/release.test.ts"
       ],
       "fixes": null,
       "id": "T012",
@@ -90,7 +98,7 @@
       "kind": "work",
       "parallelSafe": true,
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Codex отпускает тред после служебного хода",
       "why": "Приёмка: ChatGPT показал «Этот чат открыт в другом приложении» для сессии, созданной панелью (D1)"
     }
@@ -102,11 +110,11 @@
 ## State
 
 - Scope: assignment-m1-orchestrator-core-T012-1 (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 0/1
-- Revision: 48
+- Progress: 1/1
+- Revision: 50
 
 ## Objective
 
@@ -124,8 +132,8 @@ Codex отпускает тред после служебного хода: Пр
 
 ### R2 — Исправления по приёмке вехи 1 (fixes, OPEN)
 
-- [TODO] T012 — Codex отпускает тред после служебного хода (work, parallel-safe)
+- [DONE] T012 — Codex отпускает тред после служебного хода (work, parallel-safe)
   - Commit: fix: release the codex thread after the service turn
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/runtime.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/release.test.ts
 
 State changes only through `scripts/workflow` commands. History lives in Git.

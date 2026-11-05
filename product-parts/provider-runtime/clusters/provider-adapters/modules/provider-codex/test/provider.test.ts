@@ -6,7 +6,7 @@ import { after, before, test } from 'node:test';
 import { installStructure, recordSessionStart } from '#kit-structure';
 import { providerSessionsFile } from '#provider-registry';
 import type { Project, Provider } from '#provider-registry';
-import { KIT_HOOK_COMMAND, SERVICE_TURN_POLICY, createCodexProvider } from '../src/index.ts';
+import { KIT_HOOK_COMMAND, createCodexProvider } from '../src/index.ts';
 import type { FakeDaemon } from './fake-daemon.ts';
 import { fakeMachine } from './helpers.ts';
 import type { FakeMachine } from './helpers.ts';
@@ -110,21 +110,21 @@ test('approveHooks approves only the Kit hook with the exact command and hash; f
   assert.equal((await provider.hooks(project)).complete, true);
 });
 
-test('createSession: thread/start, thread/name/set and a safe service turn on the daemon; recorded in sessions/codex.json', async () => {
+test('createSession: thread/start, thread/name/set, a service turn without policy overrides, then thread/unsubscribe; recorded in sessions/codex.json', async () => {
   const session = await provider.createSession(project, { title: 'Alpha · 2026-11-05 10:00' });
   const threadId = '019a0000-0000-7000-8000-000000000001';
   assert.equal(session.localId, threadId);
   assert.equal(session.origin, 'panel');
   assert.deepEqual(session.links, { desktop: `codex://threads/${threadId}`, mobile: `codex://threads/${threadId}` });
-  const calls = daemon.calls.slice(-5);
-  assert.deepEqual(calls.map((c) => c.method), ['initialize', 'initialized', 'thread/start', 'thread/name/set', 'turn/start']);
+  const calls = daemon.calls.slice(-6);
+  assert.deepEqual(calls.map((c) => c.method), ['initialize', 'initialized', 'thread/start', 'thread/name/set', 'turn/start', 'thread/unsubscribe']);
   assert.deepEqual(calls[2]?.params, { cwd: project.path });
   assert.deepEqual(calls[3]?.params, { threadId, name: 'Alpha · 2026-11-05 10:00' });
   const turn = calls[4]?.params as Record<string, unknown>;
-  assert.deepEqual(turn['sandboxPolicy'], { type: 'readOnly', networkAccess: false });
-  assert.equal(turn['approvalPolicy'], 'never');
-  assert.deepEqual(turn['sandboxPolicy'], SERVICE_TURN_POLICY.sandboxPolicy);
+  assert.deepEqual(Object.keys(turn).sort(), ['input', 'threadId'], 'no sandboxPolicy/approvalPolicy overrides');
   assert.match(((turn['input'] as Array<{ text: string }>)[0])!.text, /Workflow Kit.*«Alpha»/);
+  assert.deepEqual(calls[5]?.params, { threadId });
+  assert.deepEqual([...daemon.loaded], [], 'the daemon no longer holds the thread');
   const saved = JSON.parse(await readFile(providerSessionsFile(machine.dirs, 'codex'), 'utf8')) as { sessions: Array<{ threadId: string; projectId: string; title: string }> };
   assert.deepEqual(saved.sessions.map((s) => [s.threadId, s.projectId, s.title]), [[threadId, project.id, 'Alpha · 2026-11-05 10:00']]);
 });

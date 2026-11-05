@@ -17,11 +17,12 @@ app-server на весь Mac, доверие к папке, одобрение �
   бэкенд (`cli`, `DEFAULT_PROVIDERS`) регистрирует его в реестре.
 - `createCodexProvider(context, deps?)` — то же с внедрением (`CodexDeps`):
   `openAppServer` (stdio `codex app-server`), `openDaemon` (сокет демона),
-  `isAlive(pid)`, `tokens` (`TokenStore`), `daemonTtlMs`.
+  `isAlive(pid)`, `tokens` (`TokenStore`), `daemonTtlMs`,
+  `serviceTurnWaitMs` (ожидание `turn/completed` служебного хода).
 - Константы: `PROVIDER_ID` = `codex`, `PROVIDER_TITLE`,
   `DAEMON_START_ACTION` = `daemon-start`, `LOGIN_HINT`,
   `KIT_HOOK_COMMAND` (= `hookCommand('codex')` из `kit-structure`),
-  `SERVICE_TURN_POLICY`; функции `serviceTurnText(name)`,
+  `SERVICE_TURN_WAIT_MS` (15 с), `UNSUBSCRIBE_TIMEOUT_MS` (5 с); функции `serviceTurnText(name)`,
   `threadLinks(id)`, `parseRemoteControlStart(stdout)`.
 - Типы: `CodexDeps`, `DaemonOpener`, `DaemonState`, `ProgramState`,
   `AppServerOpener`, `AppServerSpec`, `RpcTransport`, `CodexRecord`.
@@ -108,10 +109,18 @@ app-server на весь Mac, доверие к папке, одобрение �
 - **createSession** (нужны работающий демон без ошибки входа и доверенная
   папка: `daemon-not-running`, `codex-login`, `not-trusted`): по сокету
   демона `thread/start { cwd }` → `thread/name/set { threadId, name }` →
-  служебный `turn/start { threadId, input: [{ type: "text", text }],
-  sandboxPolicy: { type: "readOnly", networkAccess: false },
-  approvalPolicy: "never" }` и ожидание `turn/completed` до 15 с (без
-  ошибки по истечении). Запись `{ threadId, projectId, projectPath, title,
+  служебный `turn/start { threadId, input: [{ type: "text", text }] }` и
+  ожидание `turn/completed` до 15 с (без ошибки по истечении) →
+  `thread/unsubscribe { threadId }` (таймаут 5 с) и только потом закрытие
+  соединения. Служебный ход не передаёт `sandboxPolicy` и `approvalPolicy`:
+  по схеме они остались бы у треда для следующих ходов, а тред должен
+  сохранить настройки пользователя (как в проверенном прототипе).
+  `thread/unsubscribe` выполняется в `finally` после `thread/start`, то
+  есть и при ошибке имени или хода; без него демон держит тред загруженным
+  и ChatGPT пишет «Этот чат открыт в другом приложении» (дефект D1).
+  Ответ (`unsubscribed | notSubscribed | notLoaded`) или ошибка
+  unsubscribe пишутся в журнал (`codex: thread/unsubscribe <id>: …` /
+  `… failed: …`); ошибка создание сессии не ломает. Запись `{ threadId, projectId, projectPath, title,
   createdAt, model? }` добавляется в `sessions/codex.json`
   (`providerSessionsFile`, атомарно).
 - **listSessions**: записи панели этого проекта (`origin: 'panel'`) +
@@ -133,12 +142,14 @@ app-server на весь Mac, доверие к папке, одобрение �
 `remoteControl/status/changed: connected`) и `hooks/list`. Изменяющие
 вызовы проверены только на подставных программах.
 
-- Параметры служебного хода выбраны по схеме протокола
-  (`codex app-server generate-json-schema`, `TurnStartParams`):
-  `sandboxPolicy` и `approvalPolicy` действуют «для этого и последующих
-  ходов». Проверить: сессия открывается в ChatGPT на Mac и iPad; ход из
-  ChatGPT задаёт свои параметры (iPad — `bypassPermissions`); служебный ход
-  ничего не пишет и не ждёт одобрения.
+- Служебный ход идёт без переопределений `sandboxPolicy` и
+  `approvalPolicy` (по схеме `TurnStartParams` они действуют «для этого и
+  последующих ходов»), после хода — `thread/unsubscribe`
+  (`ThreadUnsubscribeParams { threadId }` → `{ status }`). Проверить:
+  новая сессия из панели сразу открывается в ChatGPT на Mac и iPad без
+  сообщения «Этот чат открыт в другом приложении»; в журнале службы —
+  строка `codex: thread/unsubscribe <id>: unsubscribed`; настройки треда в
+  ChatGPT — пользовательские.
 - `grantTrust` и `approveHooks` пишут через `config/value/write` и
   проверяются после записи; хук Kit после одобрения срабатывает с первым
   ходом и попадает в журнал.
@@ -159,8 +170,12 @@ app-server на весь Mac, доверие к папке, одобрение �
 - Тесты (`test/`) работают на подставном HOME, подставной программе
   `codex` (`test/fixtures/fake-codex.mjs`: `app-server` по stdio,
   `--version`, `remote-control start`) и подставном демоне (WebSocket
-  JSON-RPC на unix-сокете, `test/fake-daemon.ts`); настоящий `~/.codex` не
-  трогается.
+  JSON-RPC на unix-сокете, `test/fake-daemon.ts`; ведёт список
+  загруженных тредов: `thread/start` загружает, `thread/unsubscribe`
+  последнего подписчика выгружает, закрытие соединения — нет, как в D1;
+  отвечает на `thread/loaded/list`); настоящий `~/.codex` не трогается.
+- После `createSession` тред не остаётся загруженным в демоне
+  (`test/release.test.ts`).
 
 ## Дальше
 

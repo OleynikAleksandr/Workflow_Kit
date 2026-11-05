@@ -1,15 +1,23 @@
+import os from 'node:os';
+import path from 'node:path';
 import { NOT_IMPLEMENTED, runServiceCommand } from '#service-installer';
 import type { ServiceCommand } from '#service-installer';
 import { createApp } from './app.ts';
 import type { App, AppOptions } from './app.ts';
+import { readProcessStdin, runHook } from './hook.ts';
+import { linkLauncher } from './link.ts';
 import { readPackageVersion } from './system-info.ts';
 
 /** Output streams and process hooks of the CLI; injected for tests. */
 export interface CliDeps {
   stdout: (text: string) => void;
   stderr: (text: string) => void;
-  /** Options for createApp (serve). */
+  /** Options for createApp (serve); env, platform and homedir also serve link and hook. */
   app?: AppOptions;
+  /** Working directory for hook (default: process.cwd()). */
+  cwd?: string;
+  /** Reads the hook input (default: process stdin with a timeout). */
+  readStdin?: (timeoutMs: number) => Promise<string>;
   /** Resolves when the service should stop (default: SIGINT or SIGTERM). */
   waitForShutdown?: (app: App) => Promise<void>;
 }
@@ -30,7 +38,7 @@ const USAGE = `Использование: wfk <команда>
   install | uninstall           установить или снять службу и автозапуск
   service start|stop|status     управление службой
   doctor [--installed]          проверка установки
-  link                          запускатель wfk на текущий клон (разработка)
+  link [--force]                запускатель ~/.local/bin/wfk на текущий клон (разработка)
   hook session-start --client   приём хука SessionStart
   --version                     версия
 `;
@@ -39,8 +47,6 @@ const USAGE = `Использование: wfk <команда>
 const PLANNED: Readonly<Record<string, string>> = {
   open: 'T008',
   doctor: 'T008',
-  link: 'T003',
-  hook: 'T003',
 };
 
 function defaultShutdown(): Promise<void> {
@@ -95,6 +101,31 @@ async function printServiceResult(command: ServiceCommand, deps: CliDeps): Promi
   return result.exitCode;
 }
 
+async function link(args: string[], deps: CliDeps): Promise<number> {
+  const unknown = args.filter((arg) => arg !== '--force');
+  if (unknown.length > 0) {
+    deps.stderr('Использование: wfk link [--force]\n');
+    return EXIT_USAGE;
+  }
+  const env = deps.app?.env ?? process.env;
+  try {
+    const result = await linkLauncher({
+      homedir: deps.app?.homedir ?? os.homedir(),
+      platform: deps.app?.platform ?? process.platform,
+      pathEnv: env['PATH'],
+      force: args.includes('--force'),
+    });
+    deps.stdout(`Запускатель ${result.launcher} ${result.replaced ? 'обновлён' : 'создан'}: ${result.node} ${result.entry}\n`);
+    if (!result.inPath) {
+      deps.stdout(`Каталог ${path.dirname(result.launcher)} не в PATH: хуки работают и без этого, для терминала добавьте его в PATH\n`);
+    }
+    return 0;
+  } catch (error) {
+    deps.stderr(`wfk link: ${error instanceof Error ? error.message : String(error)}\n`);
+    return 1;
+  }
+}
+
 /**
  * Runs the wfk command line and returns the process exit code. "hook" always exits
  * with 0 so a broken backend never disturbs a Claude or Codex session (spec section 7).
@@ -126,12 +157,19 @@ export async function main(argv: readonly string[], deps?: Partial<CliDeps>): Pr
       return printServiceResult(command, full);
     case 'service':
       return service(rest, full);
+    case 'link':
+      return link(rest, full);
+    case 'hook':
+      return runHook(rest, {
+        stderr: full.stderr,
+        env: full.app?.env ?? process.env,
+        cwd: full.cwd ?? process.cwd(),
+        readStdin: full.readStdin ?? readProcessStdin,
+      });
     case 'open':
     case 'doctor':
-    case 'link':
-    case 'hook':
       full.stderr(`wfk ${command}: ${NOT_IMPLEMENTED} (задача ${PLANNED[command]})\n`);
-      return command === 'hook' ? 0 : EXIT_NOT_IMPLEMENTED;
+      return EXIT_NOT_IMPLEMENTED;
     default:
       full.stderr(`wfk: неизвестная команда «${command}»\n\n${USAGE}`);
       return EXIT_USAGE;

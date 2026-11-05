@@ -3,7 +3,7 @@ import { mkdtemp, readdir, readFile, rm, stat, writeFile } from 'node:fs/promise
 import os from 'node:os';
 import path from 'node:path';
 import { after, before, test } from 'node:test';
-import { InvalidJsonFileError, readJsonFile, writeJsonAtomic } from '../src/index.ts';
+import { InvalidJsonFileError, readJsonFile, writeFileAtomic, writeJsonAtomic } from '../src/index.ts';
 
 let tmp = '';
 before(async () => {
@@ -56,4 +56,17 @@ test('readJsonFile returns undefined for a missing file and rejects bad JSON', a
   const bad = path.join(tmp, 'bad.json');
   await writeFile(bad, '{ not json');
   await assert.rejects(readJsonFile(bad), InvalidJsonFileError);
+});
+
+test('writeFileAtomic writes text with the given file and directory modes', async () => {
+  const file = path.join(tmp, 'text', 'deep', 'notes.md');
+  await writeFileAtomic(file, '# Notes\n', { mode: 0o644, dirMode: 0o755 });
+  assert.equal(await readFile(file, 'utf8'), '# Notes\n');
+  if (process.platform !== 'win32') {
+    assert.equal((await stat(file)).mode & 0o777, 0o644);
+    assert.equal((await stat(path.dirname(file))).mode & 0o777, 0o755);
+  }
+  await writeFileAtomic(file, '# Changed\n', { mode: 0o644 });
+  assert.equal(await readFile(file, 'utf8'), '# Changed\n');
+  assert.deepEqual(await readdir(path.dirname(file)), ['notes.md']);
 });

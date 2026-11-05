@@ -28,6 +28,11 @@
 - `writeJsonAtomic(file, value, { mode? })` — JSON с отступом 2 и переводом
   строки: запись во временный файл рядом, `fsync`, `rename`; права файла по
   умолчанию 0600; при ошибке временный файл удаляется.
+  Опции: `mode` (права файла), `dirMode` (права создаваемых каталогов,
+  по умолчанию 0700).
+- `writeFileAtomic(file, text, { mode?, dirMode? })` — та же атомарная
+  запись для текста (права выставляются точно, независимо от umask);
+  `kit-structure` пишет так файлы в папку проекта (0644, каталоги 0755).
 - `readJsonFile(file)` — `undefined`, если файла нет;
   `InvalidJsonFileError` при невалидном JSON (файл не перезаписывается).
 - `loadConfig({ dirs, env, homedir? }) → WfkConfig` — `port` (4747,

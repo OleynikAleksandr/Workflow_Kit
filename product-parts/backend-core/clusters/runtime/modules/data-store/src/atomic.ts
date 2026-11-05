@@ -6,6 +6,8 @@ import path from 'node:path';
 export interface WriteJsonOptions {
   /** File mode of the written file (default 0600). */
   mode?: number;
+  /** Mode of parent directories created on the way (default 0700). */
+  dirMode?: number;
 }
 
 /**
@@ -14,14 +16,24 @@ export interface WriteJsonOptions {
  * the old or the new content, never a partial file.
  */
 export async function writeJsonAtomic(file: string, value: unknown, options: WriteJsonOptions = {}): Promise<void> {
-  const text = `${JSON.stringify(value, null, 2)}\n`;
+  await writeFileAtomic(file, `${JSON.stringify(value, null, 2)}\n`, options);
+}
+
+/**
+ * Writes text atomically (temporary file next to the target, fsync, rename). The default
+ * mode is 0600; callers that write into user projects pass the mode they want to keep.
+ */
+export async function writeFileAtomic(file: string, text: string, options: WriteJsonOptions = {}): Promise<void> {
   const dir = path.dirname(file);
-  await mkdir(dir, { recursive: true, mode: 0o700 });
+  await mkdir(dir, { recursive: true, mode: options.dirMode ?? 0o700 });
   const tmp = path.join(dir, `.${path.basename(file)}.${process.pid}.${randomBytes(6).toString('hex')}.tmp`);
-  const handle = await open(tmp, 'wx', options.mode ?? 0o600);
+  const mode = options.mode ?? 0o600;
+  const handle = await open(tmp, 'wx', mode);
   try {
     try {
       await handle.writeFile(text, 'utf8');
+      // The umask may narrow the mode given to open(); chmod sets it exactly.
+      if (process.platform !== 'win32') await handle.chmod(mode);
       await handle.sync();
     } finally {
       await handle.close();

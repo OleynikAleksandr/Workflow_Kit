@@ -12,8 +12,14 @@ stripping).
 ## Публичный интерфейс (`src/index.ts`)
 
 - `main(argv, deps?) → Promise<number>` — разбор команды, возвращает код
-  выхода. `deps` (`stdout`, `stderr`, `app`, `waitForShutdown`) внедряются в
-  тестах.
+  выхода. `deps` (`stdout`, `stderr`, `app`, `waitForShutdown`, `cwd`,
+  `readStdin`) внедряются в тестах; `app.env`, `app.platform`,
+  `app.homedir` служат и командам `link` и `hook`.
+- `runHook(args, deps) → Promise<0>`, `readProcessStdin(timeoutMs)`,
+  `HOOK_BUDGET_MS` (1500), тип `HookDeps`.
+- `linkLauncher(options) → LinkResult`, `launcherPath(homedir)`,
+  `launcherScript(node, entry)`, `LAUNCHER_MARK`, `REPO_ROOT`, `LinkError`,
+  типы `LinkOptions`, `LinkResult`.
 - `createApp(options?) → Promise<App>` — сборка бэкенда: каталоги данных
   (создаются с правами 0700), конфиг, реестр маршрутов, реестр разделов
   состояния, HTTP-сервер с панелью, журнал событий, мьютекс и реестр
@@ -28,14 +34,14 @@ stripping).
 
 ## Команды
 
-| Команда | Поведение в T001 |
+| Команда | Поведение |
 | --- | --- |
 | `serve` | собирает приложение, слушает `config.port` (4747, `WFK_PORT`), печатает адреса панели, останавливается по SIGINT/SIGTERM |
 | `install`, `uninstall`, `service start/stop` | передаются в `service-installer` (заглушка: «не реализовано», код 2) |
 | `service status` | статус из `service-installer` (заглушка: «не установлена») |
 | `open`, `doctor` | «не реализовано (задача T008)», код 2 |
-| `link` | «не реализовано (задача T003)», код 2 |
-| `hook` | «не реализовано (задача T003)» в stderr, всегда код 0 и пустой stdout |
+| `link [--force]` | пишет запускатель `~/.local/bin/wfk` (0755, `#!/bin/sh`, строка-метка `# Workflow Kit launcher`), который запускает `bin/wfk.mjs` этого клона абсолютным `node`; чужой файл заменяется только с `--force`; предупреждает, если каталога нет в PATH; на Windows — отказ, код 1 |
+| `hook session-start --client <claude\|codex>` | читает JSON хука из stdin (до 1 с, терминал — пусто) и передаёт `recordSessionStart` из `kit-structure`; весь бюджет 1,5 с; stdout пуст, код всегда 0; другие подкоманды `hook` игнорируются |
 | `--help`, `--version` | справка и версия из `package.json` |
 
 Неизвестная команда — сообщение и справка в stderr, код 64.
@@ -56,16 +62,23 @@ stripping).
   `GET|POST /api/projects`, `POST /api/projects/open`,
   `DELETE /api/projects/:id` и раздел `projects`; корень новых проектов —
   `config.projectsRoot`, домашняя папка — `homedir` из опций.
+- `kit-structure` (T003): `registerStructureRoutes` —
+  `GET|POST /api/projects/:id/structure` и раздел `structure` (с общими
+  `mutex` и `events`); `recordSessionStart` для `wfk hook`.
 
 ## Инварианты
 
 - Модули подключаются только через их `src/index.ts` (`#data-store`,
-  `#http-server`, `#panel-shell`, `#project-registry`, `#service-installer`).
+  `#http-server`, `#kit-structure`, `#panel-shell`, `#project-registry`,
+  `#service-installer`).
 - Новые возможности добавляются регистрацией в `app.router` и `app.state`
   внутри `createApp` до `start()`.
 - `hook` никогда не завершается ошибкой и ничего не печатает в stdout.
+- Тесты `link` работают на подставном HOME; настоящий
+  `~/.local/bin/wfk` не трогается.
 
 ## Дальше
 
-T003–T007 регистрируют свои маршруты и разделы состояния в `createApp`;
-T003 реализует `link` и `hook`; T008 — `open`, `doctor` и службу.
+T004–T007 регистрируют свои маршруты и разделы состояния в `createApp`;
+T008 — `open`, `doctor`, служба и установка запускателя `install`
+(с той же меткой `LAUNCHER_MARK`).

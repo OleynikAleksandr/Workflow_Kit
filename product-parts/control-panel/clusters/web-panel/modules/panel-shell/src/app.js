@@ -4,6 +4,7 @@ import { listCards, setRefreshHandler } from './cards.js';
 import { h } from './dom.js';
 import './system-card.js';
 import './projects-card.js';
+import './structure-card.js';
 
 /** Polling interval in milliseconds (D3). */
 const POLL_MS = 3000;

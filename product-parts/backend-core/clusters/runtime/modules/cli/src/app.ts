@@ -3,6 +3,7 @@ import { createEventLog, createKeyedMutex, ensureDataDirs, eventsFile, loadConfi
 import type { DataDirs, EventLog, KeyedMutex, WfkConfig } from '#data-store';
 import { createHttpServer, createRouter, createStateRegistry, registerCoreRoutes } from '#http-server';
 import type { HttpServerHandle, InterfaceMap, Router, StateRegistry } from '#http-server';
+import { registerStructureRoutes } from '#kit-structure';
 import { panelShellMount } from '#panel-shell';
 import { createProjectRegistry, projectsFile, registerProjectRoutes } from '#project-registry';
 import type { ProjectRegistry } from '#project-registry';
@@ -101,6 +102,7 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
     service: getServiceStatus(platform),
   }));
   registerProjectRoutes(router, state, projects, homeScope);
+  registerStructureRoutes({ router, state, projects, platform, mutex, events });
 
   return {
     dirs,

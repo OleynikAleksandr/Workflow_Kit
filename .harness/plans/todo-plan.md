@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 29,
+  "revision": 30,
   "rounds": [
     {
       "digest": null,
@@ -528,9 +528,13 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Структура Kit v1, приём хука и wfk link",
-      "why": "Kit записывает в папку свою структуру и узнаёт о сессиях через хук SessionStart"
+      "why": "Kit записывает в папку свою структуру и узнаёт о сессиях через хук SessionStart",
+      "integration": {
+        "operationId": "9cab5559-ee7b-4600-b433-2ff0c3e7c5a8",
+        "sourceCommit": "977b9dcac830f962e573413bee06ea94a3f69466"
+      }
     },
     {
       "acceptance": [
@@ -831,8 +835,8 @@
 - Delivery: IN_PROGRESS
 - Execution: orchestrated (max 3 workers, owner cfa00ffe-c414-4ae6-9953-e3d2906b3705)
 - Current task: none
-- Progress: 3/11
-- Revision: 29
+- Progress: 4/11
+- Revision: 30
 
 ## Objective
 
@@ -859,7 +863,7 @@
   - Commit: feat: add project registry and folder picker
   - Files: product-parts/backend-core/clusters/runtime/modules/data-store, product-parts/backend-core/clusters/http-api/modules/http-server, product-parts/backend-core/clusters/projects/modules/project-registry, product-parts/control-panel/clusters/web-panel/modules/panel-shell, package.json, product-parts/backend-core/clusters/runtime/modules/cli
   - Depends on: T001
-- [TODO] T003 — Структура Kit v1, приём хука и wfk link (work)
+- [DONE] T003 — Структура Kit v1, приём хука и wfk link (work)
   - Commit: feat: add kit structure installer and session start hook
   - Files: product-parts/backend-core/clusters/projects/modules/kit-structure, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/backend-core/clusters/runtime/modules/data-store, product-parts/backend-core/clusters/http-api/modules/http-server, product-parts/control-panel/clusters/web-panel/modules/panel-shell, package.json
   - Depends on: T002

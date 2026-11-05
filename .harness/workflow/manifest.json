@@ -4,7 +4,7 @@
       "executable": false,
       "kind": "owned",
       "path": ".harness/workflow/runtime/workflow.mjs",
-      "sha256": "a2ed4ed48ac157aa4a41aaf3e21f7476acdc529cffa8b307c188568eee5c1d00"
+      "sha256": "e1921b9e6d3a611177882bdca76b04e4aaa99c8672dae36cca6920a484f22981"
     },
     {
       "executable": true,
@@ -76,7 +76,7 @@
       "executable": false,
       "kind": "section",
       "path": ".gitignore",
-      "sha256": "170dc7b63caef67c4559aac6d12907ccb51ea1a52415faf1c28110149d257a34"
+      "sha256": "f7dca29d96504cfbfefc9976f5308a4fc9ed8972d932876101b3e471deb4b477"
     },
     {
       "executable": false,
@@ -98,5 +98,5 @@
     }
   ],
   "schema": "harness-workflow-manifest/1",
-  "version": "2.2.0"
+  "version": "2.2.1"
 }

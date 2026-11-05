@@ -546,6 +546,7 @@ var workflowPlatformFacade = new WorkflowPlatformFacade();
 var BOOLEAN_FLAGS = /* @__PURE__ */ new Set([
 	"help",
 	"fix",
+	"force",
 	"dry-run",
 	"global",
 	"list",
@@ -691,6 +692,18 @@ function cleanupText(value) {
 	if (result.assignments.some((record) => record.cleanup?.status === "PENDING")) lines.push("next: resolve the reason (for example commit or remove the changes in the worktree), then scripts/workflow assignment:cleanup");
 	return `${lines.join("\n")}\n`;
 }
+function cancelText(value) {
+	const result = value;
+	const record = result.assignment;
+	const task = result.task;
+	return [
+		`assignment: ${record.id} cancelled, task ${record.taskId} ${task?.status ?? "not in the plan"}`,
+		`worktree: ${result.worktree === null ? "none" : `removed ${result.worktree}`}`,
+		result.branch === null || result.branchTip === null ? "branch: none" : `branch: deleted ${result.branch} at ${result.branchTip.slice(0, 12)} (restore: git branch ${result.branch} ${result.branchTip})`,
+		task?.status === "TODO" ? `next: scripts/workflow assignment:create --task ${task.id}` : "next: scripts/workflow assignment:next",
+		""
+	].join("\n");
+}
 function statusText$2(value) {
 	const result = value;
 	const task = result.task;
@@ -725,7 +738,7 @@ function ensureExecutorCommand(kit, root, command) {
 	ensure(executor === null, "ASSIGNMENT_READ_ONLY", `${command} is not available in the executor worktree of ${executor?.id}.`, { allowed: [...EXECUTOR_COMMANDS] }, "Run only your task: task:start, commit --task, status, recover, show-task, schema, context, repair, task:block, assignment:status, assignment:setup.");
 }
 /**
-* Orchestrated assignments (spec 5.1, 5.4, 7): `assignment:next|create|cleanup`
+* Orchestrated assignments (spec 5.1, 5.4, 7): `assignment:next|create|cleanup|cancel`
 * in main, `attach|status` in the executor worktree, `setup` in both.
 */
 var ASSIGNMENT_COMMANDS = {
@@ -733,6 +746,11 @@ var ASSIGNMENT_COMMANDS = {
 		run: ({ args, kit, root }) => kit.attachAssignment(root, positional(args, 0, "Assignment id")),
 		text: attachText,
 		usage: "assignment:attach <id>"
+	},
+	"assignment:cancel": {
+		run: ({ args, kit, root }) => kit.cancelAssignment(root, requiredFlag(args, "id"), args.flags.get("force") === true),
+		text: cancelText,
+		usage: "assignment:cancel --id <id> [--force]"
 	},
 	"assignment:cleanup": {
 		run: ({ args, kit, root }) => kit.cleanupAssignments(root, flag(args, "id")),
@@ -2092,14 +2110,17 @@ function taskFields(prefix) {
 		field$2(`${prefix}[].kind`, "string", false, "work (default) or delivery; Kit adds the quality and docs tasks.", { enum: INPUT_TASK_KINDS }),
 		field$2(`${prefix}[].files`, "string[]", false, "Canonical project-relative files or directories the task may change."),
 		field$2(`${prefix}[].dependencies`, "string[]", false, "Ids of earlier tasks that must be DONE first."),
-		field$2(`${prefix}[].checks`, "string[]", false, "Extra manual checks."),
+		field$2(`${prefix}[].checks`, "string[]", false, CHECKS_DESCRIPTION),
 		...documentFields(`${prefix}[].context`),
 		field$2(`${prefix}[].docsWaiver`, "string|null", false, "Reason the task changes code without its contract document."),
 		field$2(`${prefix}[].fixes`, "string|null", false, "Id of the earlier task this task fixes."),
 		field$2(`${prefix}[].parallelSafe`, "boolean", false, "The work task may run in parallel; it then lists concrete files only.")
 	];
 }
+var CHECKS_DESCRIPTION = "Ids of quality checks (quality.checks of .harness/workflow/config.json, Kit builtins kit:*) the task runs besides the required ones, e.g. an optional delivery check; never manual checks (those go into acceptance).";
+var CHECKS_RULE = "checks are quality check ids (CHECK_UNKNOWN): with the profile CONFIGURED each id is one of its checks (scripts/workflow quality:status); before QUALITY an id without spaces (^[A-Za-z0-9][A-Za-z0-9._:-]*$, a kit: id must be a Kit builtin) that task:start then finds in the profile. Only new tasks and changed checks are checked.";
 var TASK_RULES = [
+	CHECKS_RULE,
 	"dependencies and fixes point only to earlier tasks (TASK_ORDER, PLAN_SCHEMA).",
 	"parallelSafe applies to work tasks only (PARALLEL_KIND) that list concrete paths: no glob, no `.`, no trailing `/` (PARALLEL_FILES).",
 	"A QUALITY task is added before the first task with functional files while the quality profile is not CONFIGURED; the round DOCS task and the order of delivery tasks are computed by Kit."
@@ -2251,7 +2272,7 @@ var PATCH_SCHEMA = {
 	},
 	fields: [
 		field$2("acceptance", "string[]", false, "Acceptance criteria: unique non-empty strings.", { minItems: 1 }),
-		field$2("checks", "string[]", false, "Extra manual checks."),
+		field$2("checks", "string[]", false, CHECKS_DESCRIPTION),
 		field$2("commitMessage", "string", false, "One-line commit message."),
 		field$2("context", "object[]", false, "Documents: {path, required, heading?}."),
 		field$2("dependencies", "string[]", false, "Ids of earlier tasks."),
@@ -2264,6 +2285,7 @@ var PATCH_SCHEMA = {
 		`Only these fields change (TASK_PATCH): ${TASK_PATCH_FIELDS.join(", ")}.`,
 		`A task IN_PROGRESS changes only ${IN_PROGRESS_PATCH_FIELDS.join(", ")}; a DONE task never changes (TASK_PATCH).`,
 		"The patched plan is validated as a whole; refusals name the plan field `tasks.<ID>.<field>`.",
+		CHECKS_RULE,
 		"`--expected-revision N` refuses a stale plan (REVISION_MISMATCH)."
 	]
 };
@@ -2991,9 +3013,21 @@ function finalize(root, journal, sha) {
 	};
 }
 function rollback(git, root, journal) {
-	const backup = localPath(root, "index-before");
 	const plan = planAbsolute(root, journal.planPath);
 	if (!(head$1(git, root) === journal.beforeHead && existsSync(plan) && sha256$1(readFileSync(plan)) === journal.candidateHash && git.text(root, ["write-tree"]) === journal.candidateTree)) return false;
+	discardPreparation(git, root, journal);
+	return true;
+}
+/**
+* Restores the index from `index-before` (or the HEAD tree, or empty without
+* commits) and the plan from the journal, never touching other working-tree
+* files, then records the journal as failed and removes it. `rollback` calls
+* it when nothing changed since the preparation; `repair --cancel` also
+* when the index or plan changed but HEAD did not.
+*/
+function discardPreparation(git, root, journal) {
+	const backup = localPath(root, "index-before");
+	const plan = planAbsolute(root, journal.planPath);
 	if (existsSync(backup)) workflowPlatformFacade.writeFileAtomic(indexFile(git, root), readFileSync(backup));
 	else if (journal.beforeHead) git.run(root, ["read-tree", journal.beforeHead]);
 	else git.run(root, ["read-tree", "--empty"]);
@@ -3002,8 +3036,34 @@ function rollback(git, root, journal) {
 	workflowPlatformFacade.writeFileAtomic(localPath(root, "verification", `failed-${journal.id}.json`), `${JSON.stringify(journal, null, 2)}\n`);
 	rmSync(pendingEvidence(root, journal), { force: true });
 	removeJournal$1(root);
-	return true;
 }
+/** The given paths that git ignores; read through stdin, so any count fits. */
+function ignoredPaths(git, root, files) {
+	if (files.length === 0) return /* @__PURE__ */ new Set();
+	const output = git.run(root, [
+		"check-ignore",
+		"-z",
+		"--stdin"
+	], {
+		allowFailure: true,
+		input: `${files.join("\0")}\u0000`
+	});
+	ensure(output.status === 0 || output.status === 1, "GIT_FAILED", `git check-ignore failed: ${output.stderr.trim() || output.stdout.trim()}`, {
+		args: [
+			"check-ignore",
+			"-z",
+			"--stdin"
+		],
+		status: output.status
+	});
+	return new Set(output.stdout.split("\0").filter(Boolean));
+}
+/**
+* Stages the selected paths. Index paths are added as they are on disk. A
+* path outside the index is added only when it exists and git does not
+* ignore it: a deletion already staged for an ignored or missing path (for
+* example after `git rm -r --cached node_modules`) stays in the index as is.
+*/
 function stage(git, root, files) {
 	const tracked = new Set(git.run(root, [
 		"ls-files",
@@ -3011,7 +3071,9 @@ function stage(git, root, files) {
 		"--",
 		...files
 	]).stdout.split("\0").filter(Boolean));
-	const stageable = files.filter((file) => tracked.has(file) || existsSync(path.join(root, ...file.split("/"))));
+	const untracked = new Set(files.filter((file) => !tracked.has(file) && existsSync(path.join(root, ...file.split("/")))));
+	const ignored = ignoredPaths(git, root, [...untracked]);
+	const stageable = files.filter((file) => tracked.has(file) || untracked.has(file) && !ignored.has(file));
 	if (stageable.length > 0) git.run(root, [
 		"add",
 		"-A",
@@ -3167,10 +3229,10 @@ function planRepair(git, root, planPath) {
 		repairId
 	};
 }
-function retry(git, root) {
+function retry(git, root, repairId) {
 	const journal = readJournal$1(root);
 	ensure(journal, "NO_TRANSACTION", "There is no transaction to retry.");
-	ensure(rollback(git, root, journal), "REPAIR_MANUAL", "HEAD, plan or index changed after preparation; resolve manually.", {}, "Inspect `git status` and `.harness/workflow/local/transaction.json`.");
+	ensure(rollback(git, root, journal), "REPAIR_MANUAL", "HEAD, plan or index changed after preparation; the prepared commit cannot be repeated.", {}, `Cancel the preparation with \`scripts/workflow repair --cancel ${repairId}\` (working-tree edits are kept), then repeat the commit command.`);
 	return commitCandidate(git, root, {
 		assignmentId: journal.assignmentId ?? null,
 		checks: journal.checks,
@@ -3195,7 +3257,7 @@ function applyRepair(git, root, planPath, repairId) {
 		message: planned.message
 	};
 	if (planned.kind === "retry-commit") return {
-		commit: retry(git, root),
+		commit: retry(git, root, repairId),
 		kind: planned.kind,
 		message: planned.message
 	};
@@ -3214,11 +3276,22 @@ function cancelRepair(git, root, planPath, repairId) {
 	ensure(planned.repairId === repairId, "REPAIR_CHANGED", "The project changed; run `repair` again for a fresh id.");
 	ensure(planned.kind === "retry-commit", "NO_PREPARATION", "Only an unconfirmed commit preparation can be cancelled.");
 	const journal = readJournal$1(root);
-	ensure(journal && rollback(git, root, journal), "REPAIR_MANUAL", "The preparation cannot be rolled back automatically.");
-	return {
+	ensure(journal, "NO_PREPARATION", "There is no preparation to cancel.");
+	if (rollback(git, root, journal)) return {
 		commit: null,
 		kind: "cancel",
 		message: "Preparation cancelled; edits are kept and the task stays open."
+	};
+	const now = head(git, root) || null;
+	ensure(now === journal.beforeHead, "REPAIR_MANUAL", `HEAD moved from ${journal.beforeHead ?? "no commit"} to ${now ?? "no commit"} after the preparation; the Kit does not undo commits.`, {
+		beforeHead: journal.beforeHead,
+		head: now
+	}, journal.beforeHead ? `Ask the user. To cancel the preparation, return HEAD with \`git reset --soft ${journal.beforeHead}\` (every change stays in the working tree) and run \`scripts/workflow repair\` again.` : "Ask the user how to resolve it; the Kit cannot restore a repository that had no commit.");
+	discardPreparation(git, root, journal);
+	return {
+		commit: null,
+		kind: "cancel",
+		message: "Preparation cancelled: the index and plan were restored from before the preparation; working-tree files are kept and the task stays open."
 	};
 }
 //#endregion
@@ -4755,7 +4828,49 @@ function effectiveChecks(config) {
 function unknownChecks(checks, ids) {
 	const known = new Set(checks.map((check) => check.id));
 	const unknown = ids.filter((id) => !known.has(id));
-	ensure(unknown.length === 0, "CHECK_UNKNOWN", `Unknown checks: ${unknown.join(", ")}`, { checks: unknown });
+	ensure(unknown.length === 0, "CHECK_UNKNOWN", `Unknown checks: ${unknown.join(", ")}`, { checks: unknown }, "Task checks must be ids from `scripts/workflow quality:status`; fix the task with `scripts/workflow task:update <ID> --input <patch.json>`.");
+}
+var BUILTIN_PREFIX = "kit:";
+/**
+* Ids a planned task may name in `checks`. A CONFIGURED profile knows its
+* checks plus the implicit Kit guards (`known` is exact). Before QUALITY
+* only the Kit builtins are known; other ids of the check id form are
+* accepted as checks QUALITY will define (`open`), and task:start verifies
+* them against the profile.
+*/
+function plannedCheckRule(config) {
+	if (config.quality.status === "CONFIGURED") return {
+		known: effectiveChecks(config).map((check) => check.id),
+		open: false
+	};
+	return {
+		known: Object.keys(BUILTIN_CHECKS).sort(),
+		open: true
+	};
+}
+/** The planned check ids the profile cannot run (see `plannedCheckRule`). */
+function unknownPlannedChecks(config, ids) {
+	const { known, open } = plannedCheckRule(config);
+	return ids.filter((id) => {
+		if (known.includes(id)) return false;
+		return !(open && CHECK_ID_PATTERN.test(id) && !id.startsWith(BUILTIN_PREFIX));
+	});
+}
+/**
+* CHECK_UNKNOWN for the first planned task whose `checks` holds an id the
+* profile cannot run: `checks` are quality check ids, never manual checks.
+*/
+function ensurePlannedChecks(config, tasks) {
+	const { known, open } = plannedCheckRule(config);
+	for (const task of tasks) {
+		const unknown = unknownPlannedChecks(config, task.checks);
+		ensure(unknown.length === 0, "CHECK_UNKNOWN", `${task.field}${task.taskId ? ` of ${task.taskId}` : ""} names unknown quality checks: ${unknown.join(", ")}. \`checks\` holds ids of quality checks ${open ? "(a Kit builtin kit:* or an id without spaces that QUALITY will define)" : "of the profile"}; manual checks belong in acceptance.`, {
+			checks: unknown,
+			field: task.field,
+			known,
+			taskId: task.taskId
+		}, "Use check ids from `scripts/workflow quality:status` or leave `checks` empty, and write manual checks into `acceptance`.");
+	}
 }
 /** Checks a stage runs, in configuration order. */
 function selectChecks(request) {
@@ -4918,6 +5033,18 @@ var WorkflowQualityFacade = class {
 			stacks: options.stacks,
 			which: options.which ?? ((name) => workflowPlatformFacade.findExecutable(name) !== null)
 		});
+	}
+	/**
+	* Planned `tasks[].checks` ids the profile cannot run: with a CONFIGURED
+	* profile every id not in it, before QUALITY ids that are not of the check
+	* id form or name an unknown `kit:` builtin.
+	*/
+	unknownPlannedChecks(config, ids) {
+		return unknownPlannedChecks(config, ids);
+	}
+	/** CHECK_UNKNOWN for the first planned task with an unknown check id. */
+	ensurePlannedChecks(config, tasks) {
+		ensurePlannedChecks(config, tasks);
 	}
 	/** Checks a stage would run, without running them. */
 	selectChecks(request) {
@@ -5175,6 +5302,10 @@ function listRecords(root) {
 function writeRecord(root, record) {
 	workflowPlatformFacade.writeFileAtomic(recordFile(root, record.id), `${JSON.stringify(record, null, 2)}\n`);
 }
+/** Removes the record file; a missing file is not an error. */
+function removeRecord(root, id) {
+	rmSync(recordFile(root, id), { force: true });
+}
 /** A record that still occupies its task and a worker: not yet integrated. */
 function isActiveRecord(record) {
 	return record.status !== "INTEGRATED";
@@ -5277,6 +5408,79 @@ function cleanupAssignment(git, root, record, now) {
 	};
 	writeRecord(root, updated);
 	return updated;
+}
+//#endregion
+//#region product-parts/core-runtime/clusters/project-workflow/modules/workflow-assignment/src/assignment-cancel.ts
+/** The registered worktree path of the record, or null. */
+function registeredWorktree(git, root, record) {
+	const worktree = record.worktree;
+	if (worktree === null) return null;
+	return registeredWorktrees(git, root).find((item) => workflowPlatformFacade.samePath(item, worktree)) ?? null;
+}
+function failed(record, reason) {
+	throw new WorkflowError("ASSIGNMENT_CANCEL_FAILED", `${record.id} was not cancelled: ${reason}`, {
+		id: record.id,
+		reason
+	}, `Resolve the reason, then repeat scripts/workflow assignment:cancel --id ${record.id}; the record is kept.`);
+}
+/**
+* Cancels an assignment that is not INTEGRATED: removes its registered
+* worktree (a dirty one only with `force`), prunes, deletes its branch even
+* with commits that were never integrated, and removes the record last, so
+* a git refusal keeps the record and the cancel can be repeated. The plan
+* of main is not touched: the task stays TODO.
+*/
+function cancelAssignment$1(git, root, record, options) {
+	ensure(record.status !== "INTEGRATED", "ASSIGNMENT_INTEGRATED", `${record.id} is INTEGRATED; its task is done and only its cleanup remains.`, {
+		id: record.id,
+		status: record.status
+	}, `Run scripts/workflow assignment:cleanup --id ${record.id}.`);
+	const worktree = registeredWorktree(git, root, record);
+	const present = worktree !== null && existsSync(worktree);
+	if (present && !options.force) {
+		const dirty = git.changes(worktree).all;
+		ensure(dirty.length === 0, "ASSIGNMENT_DIRTY", `The worktree ${worktree} of ${record.id} has uncommitted changes.`, {
+			id: record.id,
+			paths: dirty,
+			worktree
+		}, `Commit or remove them, or drop them with scripts/workflow assignment:cancel --id ${record.id} --force.`);
+	}
+	if (present) {
+		const removed = refusal(git, root, [
+			"worktree",
+			"remove",
+			...options.force ? ["-f", "-f"] : [],
+			worktree
+		]);
+		if (removed) failed(record, removed);
+	}
+	const pruned = refusal(git, root, ["worktree", "prune"]);
+	if (pruned) failed(record, pruned);
+	let branchTip = null;
+	if (record.branch !== null) {
+		const tip = git.git.run(root, [
+			"rev-parse",
+			"--verify",
+			"-q",
+			`refs/heads/${record.branch}`
+		], { allowFailure: true });
+		if (tip.status === 0) {
+			const deleted = refusal(git, root, [
+				"branch",
+				"-D",
+				record.branch
+			]);
+			if (deleted) failed(record, deleted);
+			branchTip = tip.stdout.trim();
+		}
+	}
+	removeRecord(root, record.id);
+	return {
+		assignment: record,
+		branch: branchTip === null ? null : record.branch,
+		branchTip,
+		worktree
+	};
 }
 //#endregion
 //#region product-parts/core-runtime/clusters/project-workflow/modules/workflow-assignment/src/assignment-guard.ts
@@ -5716,6 +5920,14 @@ var WorkflowAssignmentFacade = class {
 	*/
 	cleanup(git, mainRoot, record, now) {
 		return cleanupAssignment(git, mainRoot, record, now);
+	}
+	/**
+	* `assignment:cancel`: a record that is not INTEGRATED is removed with its
+	* registered worktree (dirty only with `force`) and its branch; a git
+	* refusal keeps the record (ASSIGNMENT_CANCEL_FAILED).
+	*/
+	cancel(git, mainRoot, record, options) {
+		return cancelAssignment$1(git, mainRoot, record, options);
 	}
 };
 var workflowAssignmentFacade = new WorkflowAssignmentFacade();
@@ -7153,7 +7365,11 @@ function gitignoreSection() {
 		".harness/runtime/",
 		".harness/sessions/",
 		".claude/worktrees/",
-		".DS_Store"
+		".DS_Store",
+		"# Dependency folders: installed by quality:apply, never committed",
+		"node_modules/",
+		".venv/",
+		"__pycache__/"
 	].join("\n");
 }
 function gitattributesSection() {
@@ -7189,7 +7405,7 @@ in line with the code.
 //#endregion
 //#region product-parts/core-runtime/clusters/project-workflow/modules/workflow-installer/src/installer-payload.ts
 /** Version of the Workflow Kit payload; Kit 1.x was Workflow Pilot. */
-var KIT_VERSION = "2.2.0";
+var KIT_VERSION = "2.2.1";
 var MANIFEST_PATH = ".harness/workflow/manifest.json";
 var MANIFEST_SCHEMA = "harness-workflow-manifest/1";
 var OWN_HOOKS_DIR = ".harness/workflow/hooks";
@@ -7368,7 +7584,7 @@ function damagedFiles(root, manifest) {
 }
 function kitState(root, manifest) {
 	const damaged = damagedFiles(root, manifest);
-	if (compareVersions(manifest.version, "2.2.0") < 0) return {
+	if (compareVersions(manifest.version, "2.2.1") < 0) return {
 		damaged,
 		state: "KIT_OUTDATED"
 	};
@@ -7609,7 +7825,7 @@ function file(root, relative) {
 function manifestChecks(root) {
 	const manifest = readManifest(root);
 	if (!manifest) return [check("manifest", "fail", "The Workflow Kit manifest is missing.", false, "Install the Kit: `scripts/workflow install`.")];
-	const checks = [compareVersions(manifest.version, "2.2.0") < 0 ? check("manifest", "fail", `Kit ${manifest.version} is older than ${KIT_VERSION}.`, true, UPDATE) : check("manifest", "ok", `Kit ${manifest.version}.`)];
+	const checks = [compareVersions(manifest.version, "2.2.1") < 0 ? check("manifest", "fail", `Kit ${manifest.version} is older than ${KIT_VERSION}.`, true, UPDATE) : check("manifest", "ok", `Kit ${manifest.version}.`)];
 	const damaged = damagedFiles(root, manifest);
 	checks.push(damaged.length === 0 ? check("managed-files", "ok", "Managed files and sections match the manifest.") : check("managed-files", "fail", `Changed or missing managed parts: ${damaged.join(", ")}.`, true, UPDATE));
 	if (process.platform !== "win32") {
@@ -8920,6 +9136,28 @@ function cleanupAssignments(context, id) {
 		return { assignments: records.map((record) => workflowAssignmentFacade.cleanup(context.git, context.root, record, context.now())) };
 	});
 }
+/**
+* `assignment:cancel --id <id> [--force]` in main: drops an assignment that
+* is not INTEGRATED with its worktree and branch (`workflow-assignment`).
+* The plan does not change, so the task stays TODO and can be handed out
+* again.
+*/
+function cancelAssignment(context, id, force) {
+	return locked(context, () => {
+		ensureNoTransaction(context);
+		const record = workflowAssignmentFacade.read(context.root, id);
+		ensure(record, "ASSIGNMENT_UNKNOWN", `The main checkout has no assignment ${id}.`, {}, "Run `scripts/workflow assignment:next` for the active assignments.");
+		const result = workflowAssignmentFacade.cancel(context.git, context.root, record, { force });
+		const task = readPlan(context).tasks.find((item) => item.id === record.taskId);
+		return {
+			...result,
+			task: task ? {
+				id: task.id,
+				status: task.status
+			} : null
+		};
+	});
+}
 //#endregion
 //#region product-parts/core-runtime/clusters/project-workflow/modules/workflow-kit/src/kit-executor.ts
 /** The executor record of this checkout, or null outside an executor worktree. */
@@ -9306,6 +9544,18 @@ function transition(context) {
 		qualityConfigured: readConfig(context).quality.status === "CONFIGURED"
 	};
 }
+/**
+* CHECK_UNKNOWN before anything is written: `checks` of the input tasks are
+* quality check ids (`workflowQualityFacade.ensurePlannedChecks`), refusals
+* name the input field `tasks[<index>].checks`.
+*/
+function ensureInputChecks(context, tasks) {
+	workflowQualityFacade.ensurePlannedChecks(readConfig(context), (tasks ?? []).map((task, index) => ({
+		checks: task.checks ?? [],
+		field: `tasks[${index}].checks`,
+		taskId: task.id ?? null
+	})));
+}
 function change(plan, commit) {
 	return {
 		commit,
@@ -9317,6 +9567,7 @@ function change(plan, commit) {
 function commitScope(context, input) {
 	ensureNoTransaction(context);
 	const plan = workflowPlanFacade.createScope(readPlan(context), input, transition(context));
+	ensureInputChecks(context, input.tasks);
 	ensureContextBudget(context, plan, plan.tasks);
 	const commit = commitPlan(context, plan, {
 		files: changedDocuments(context, [input.spec, ...(input.context ?? []).map((ref) => ref.path)]),
@@ -9362,6 +9613,7 @@ function proposeScope(context, request) {
 	return locked(context, () => {
 		ensureNoTransaction(context);
 		const candidate = workflowPlanFacade.createScope(readPlan(context), withExecution(request.input, request.recommended, null, null), transition(context));
+		ensureInputChecks(context, request.input.tasks);
 		ensureContextBudget(context, candidate, candidate.tasks);
 		const proposal = workflowExecutionModeFacade.nextProposal(context.root, {
 			hasParallelWork: workflowPlanFacade.hasParallelWork(candidate),
@@ -9434,6 +9686,7 @@ function extendScope(context, input, expectedRevision) {
 		const current = readPlan(context);
 		ensureRevision(current, expectedRevision);
 		const result = workflowPlanFacade.extend(current, input, transition(context));
+		ensureInputChecks(context, input.tasks);
 		ensureContextBudget(context, result.plan, changedContextTasks(current, result.plan));
 		const commit = commitPlan(context, result.plan, {
 			files: [],
@@ -9463,6 +9716,11 @@ function updateTask(context, taskId, patch, expectedRevision) {
 		plan.revision += 1;
 		Object.assign(workflowPlanFacade.task(plan, taskId), structuredClone(patch));
 		workflowPlanFacade.validate(plan);
+		if (patch.checks !== void 0) workflowQualityFacade.ensurePlannedChecks(readConfig(context), [{
+			checks: patch.checks,
+			field: "checks",
+			taskId
+		}]);
 		ensureContextBudget(context, plan, [workflowPlanFacade.task(plan, taskId)]);
 		return change(plan, commitPlan(context, plan, {
 			files: [],
@@ -10019,6 +10277,10 @@ var WorkflowKitFacade = class {
 	/** `assignment:cleanup [--id]` in main: worktree and branch removal after integration. */
 	cleanupAssignments(root, id) {
 		return cleanupAssignments(this.context(root), id);
+	}
+	/** `assignment:cancel --id [--force]` in main: drops a stuck assignment; the task stays TODO. */
+	cancelAssignment(root, id, force = false) {
+		return cancelAssignment(this.context(root), id, force);
 	}
 	/** `integration:start --id --source` in main: merge, plan candidate and integration commit. */
 	startIntegration(root, assignmentId, source) {

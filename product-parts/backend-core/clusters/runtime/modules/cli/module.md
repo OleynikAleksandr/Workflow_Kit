@@ -16,8 +16,10 @@ stripping).
   тестах.
 - `createApp(options?) → Promise<App>` — сборка бэкенда: каталоги данных
   (создаются с правами 0700), конфиг, реестр маршрутов, реестр разделов
-  состояния, HTTP-сервер с панелью. `App`: `dirs`, `config`, `version`, `os`,
-  `router`, `state`, `server`, `start()`, `stop()`. Опции: `env`, `platform`,
+  состояния, HTTP-сервер с панелью, журнал событий, мьютекс и реестр
+  проектов. `App`: `dirs`, `config`, `version`, `os`, `router`, `state`,
+  `server`, `events` (`events.jsonl`), `mutex` (D10), `projects`
+  (`ProjectRegistry`), `start()` (пишет событие `service.started`), `stop()`. Опции: `env`, `platform`,
   `homedir`, `getInterfaces`, `osInput`, `log`.
 - `detectOs(input)`, `panelUrls(port, interfaces)`, `readPackageVersion()`.
 - Константы `COMMANDS`, `EXIT_USAGE` (64), `EXIT_NOT_IMPLEMENTED` (2).
@@ -48,15 +50,22 @@ stripping).
 `addresses` (URL панели: loopback и адреса Tailscale), `service` (статус из
 `service-installer`). `GET /api/health` → `{ ok, version, pid, startedAt }`.
 
+## Подключённые модули
+
+- `project-registry` (T002): `registerProjectRoutes` — `GET /api/folders`,
+  `GET|POST /api/projects`, `POST /api/projects/open`,
+  `DELETE /api/projects/:id` и раздел `projects`; корень новых проектов —
+  `config.projectsRoot`, домашняя папка — `homedir` из опций.
+
 ## Инварианты
 
 - Модули подключаются только через их `src/index.ts` (`#data-store`,
-  `#http-server`, `#panel-shell`, `#service-installer`).
+  `#http-server`, `#panel-shell`, `#project-registry`, `#service-installer`).
 - Новые возможности добавляются регистрацией в `app.router` и `app.state`
   внутри `createApp` до `start()`.
 - `hook` никогда не завершается ошибкой и ничего не печатает в stdout.
 
 ## Дальше
 
-T002–T007 регистрируют свои маршруты и разделы состояния в `createApp`;
+T003–T007 регистрируют свои маршруты и разделы состояния в `createApp`;
 T003 реализует `link` и `hook`; T008 — `open`, `doctor` и службу.

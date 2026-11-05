@@ -19,7 +19,8 @@ HTTP-сервер бэкенда: фильтр доступа (D8), реестр
   шаблоны с `:name`; `match`, `list`. Обработчик получает `RouteContext`
   (`method`, `path`, `query`, `params`, `body`, `req`, `res`); возвращённое
   значение уходит JSON 200, `jsonResult(status, body)` — другой статус,
-  `throw new HttpError(status, code, message)` — ошибка.
+  `throw new HttpError(status, code, message, details?)` — ошибка;
+  `details` (например, `{ hint }`) добавляются в объект `error` ответа.
 - `createStateRegistry() → StateRegistry` — `add(name, provider)`,
   `collect()`; упавший раздел даёт `{ error }`, остальные отдаются.
 - `registerCoreRoutes(router, state, health)` — `GET /api/health`
@@ -50,7 +51,7 @@ HTTP-сервер бэкенда: фильтр доступа (D8), реестр
 
 ## Ответы и ошибки
 
-- Все ошибки — `{ error: { code, message } }`: 400 `invalid-json`,
+- Все ошибки — `{ error: { code, message, ...details } }`: 400 `invalid-json`,
   `bad-path`; 403 `forbidden`; 404 `not-found`; 405 `method-not-allowed`
   (с `Allow`); 413 `body-too-large` (тело больше 1 МиБ); 500 `internal`.
 - API: `Cache-Control: no-store`; статика: `no-cache` и CSP
@@ -69,5 +70,7 @@ HTTP-сервер бэкенда: фильтр доступа (D8), реестр
 
 ## Дальше
 
-T002–T007 добавляют маршруты и разделы через `Router` и `StateRegistry`;
+T002 (`project-registry`) регистрирует маршруты проектов и папок и раздел
+`projects`. T003–T007 добавляют маршруты и разделы через `Router` и
+`StateRegistry`;
 T005 монтирует каталог `provider-cards` под своим префиксом.

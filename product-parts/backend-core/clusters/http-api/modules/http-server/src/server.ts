@@ -53,9 +53,15 @@ export function sendJson(res: http.ServerResponse, status: number, body: unknown
   res.end(head ? undefined : text);
 }
 
-/** Sends the uniform JSON error shape { error: { code, message } }. */
-export function sendError(res: http.ServerResponse, status: number, code: string, message: string): void {
-  sendJson(res, status, { error: { code, message } });
+/** Sends the uniform JSON error shape { error: { code, message, ...details } }. */
+export function sendError(
+  res: http.ServerResponse,
+  status: number,
+  code: string,
+  message: string,
+  details?: Readonly<Record<string, unknown>>,
+): void {
+  sendJson(res, status, { error: { ...details, code, message } });
 }
 
 async function readJsonBody(req: http.IncomingMessage, limit: number): Promise<unknown> {
@@ -166,7 +172,7 @@ export function createHttpServer(options: HttpServerOptions): HttpServerHandle {
         return;
       }
       if (error instanceof HttpError) {
-        sendError(res, error.status, error.code, error.message);
+        sendError(res, error.status, error.code, error.message, error.details);
         return;
       }
       log(`handler failed for ${method} ${path}: ${error instanceof Error ? (error.stack ?? error.message) : String(error)}`);

@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 28,
+  "revision": 29,
   "rounds": [
     {
       "digest": null,
@@ -483,9 +483,13 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Реестр проектов и выбор папки",
-      "why": "Проект — основная единица навигации панели"
+      "why": "Проект — основная единица навигации панели",
+      "integration": {
+        "operationId": "23129545-dafb-4f1b-b5f2-d898df268fa0",
+        "sourceCommit": "54af4cfaeb21c37e12db5f9b8c3f311e0624f179"
+      }
     },
     {
       "acceptance": [
@@ -827,8 +831,8 @@
 - Delivery: IN_PROGRESS
 - Execution: orchestrated (max 3 workers, owner cfa00ffe-c414-4ae6-9953-e3d2906b3705)
 - Current task: none
-- Progress: 2/11
-- Revision: 28
+- Progress: 3/11
+- Revision: 29
 
 ## Objective
 
@@ -851,7 +855,7 @@
   - Commit: feat: add backend skeleton with access filter and panel shell
   - Files: bin, package.json, package-lock.json, tsconfig.json, .gitignore, node_modules, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/backend-core/clusters/runtime/modules/data-store, product-parts/backend-core/clusters/http-api/modules/http-server, product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/system-service/clusters/deployment/modules/service-installer/src/index.ts, product-parts/system-service/clusters/deployment/modules/service-installer/module.md, product-parts/backend-core/product-part.md, product-parts/provider-runtime/product-part.md, product-parts/control-panel/product-part.md, product-parts/system-service/product-part.md, product-parts/backend-core/clusters/runtime/cluster.md, product-parts/backend-core/clusters/http-api/cluster.md, product-parts/backend-core/clusters/projects/cluster.md, product-parts/provider-runtime/clusters/provider-contract/cluster.md, product-parts/provider-runtime/clusters/provider-adapters/cluster.md, product-parts/control-panel/clusters/web-panel/cluster.md, product-parts/system-service/clusters/deployment/cluster.md
   - Depends on: QUALITY
-- [TODO] T002 — Реестр проектов и выбор папки (work)
+- [DONE] T002 — Реестр проектов и выбор папки (work)
   - Commit: feat: add project registry and folder picker
   - Files: product-parts/backend-core/clusters/runtime/modules/data-store, product-parts/backend-core/clusters/http-api/modules/http-server, product-parts/backend-core/clusters/projects/modules/project-registry, product-parts/control-panel/clusters/web-panel/modules/panel-shell, package.json, product-parts/backend-core/clusters/runtime/modules/cli
   - Depends on: T001

@@ -5,7 +5,8 @@
 ## Назначение
 
 Данные Workflow Kit на диске: выбор каталогов по ОС, их создание с правами
-0700, чтение `config.json`, атомарная запись JSON.
+0700, чтение `config.json`, атомарная запись JSON, журнал событий
+`events.jsonl` и мьютексы по ключу.
 
 ## Публичный интерфейс (`src/index.ts`)
 
@@ -34,6 +35,16 @@
   (`~/WorkflowKitProjects`), `programs` (пути программ, D12). Ошибка значения
   — `ConfigError`.
 - `parsePort(value, source)`, `configFile(dirs)`, `DEFAULT_PORT`.
+- `createEventLog({ file, maxBytes?, now?, mode? }) → EventLog` — журнал
+  JSON Lines: `append(type, fields?)` дописывает строку
+  `{ ...fields, time, type }` (записи идут строго по очереди). Если строка
+  сделает файл больше `maxBytes` (`EVENTS_MAX_BYTES` = 5 МиБ), файл сначала
+  переименовывается в `events.1.jsonl` (предыдущая копия заменяется) и
+  начинается новый. Права файла 0600.
+- `eventsFile(dirs)` — `<state>/events.jsonl`; `rotatedEventsFile(file)`.
+- `createKeyedMutex() → KeyedMutex` — `run(key, action)` выполняет действия
+  с одним ключом по очереди (D10), ошибка действия освобождает ключ;
+  `busy(key)`.
 
 ## Инварианты
 
@@ -44,6 +55,6 @@
 
 ## Дальше
 
-T002 — `projects.json`; T004 — журнал событий `events.jsonl` (ротация
-5 МБ), мьютексы и операции (D10); T008 — запись путей программ в
-`config.json` (D12).
+T004 — операции (D10: `operationId`, ход в `/api/state`); T008 — запись
+путей программ в `config.json` (D12). Файл `projects.json` ведёт модуль
+`project-registry` через `writeJsonAtomic`.

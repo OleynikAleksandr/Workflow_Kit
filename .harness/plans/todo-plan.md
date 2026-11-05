@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 13,
+  "revision": 14,
   "rounds": [
     {
       "digest": null,
@@ -791,11 +791,10 @@
     {
       "acceptance": [
         "Бэкенд установлен на Mac пользователя командой node bin/wfk.mjs install после его подтверждения; после перезагрузки и входа служба работает",
-        "Сценарий раздела 11 пройден с пользователем на Mac и iPad; результат каждого шага записан в docs/evidence/M1-acceptance.md"
+        "Сценарий раздела 11 пройден с пользователем на Mac и iPad; результат каждого шага записан в docs/evidence/M1-acceptance.md",
+        "Ручная проверка пользователем: Пользователь проходит сценарий раздела 11 спецификации"
       ],
-      "checks": [
-        "Пользователь проходит сценарий раздела 11 спецификации"
-      ],
+      "checks": [],
       "commitMessage": "docs: record milestone 1 acceptance",
       "confirmation": null,
       "context": [
@@ -835,7 +834,7 @@
 - Execution: orchestrated (max 3 workers, owner cfa00ffe-c414-4ae6-9953-e3d2906b3705)
 - Current task: none
 - Progress: 1/11
-- Revision: 13
+- Revision: 14
 
 ## Objective
 

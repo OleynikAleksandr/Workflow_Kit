@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 36,
+  "revision": 38,
   "rounds": [
     {
       "digest": null,
@@ -41,7 +41,7 @@
       }
     ],
     "decisions": [],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 1,
       "ownerSession": null,
@@ -74,7 +74,29 @@
       "dependencies": [],
       "docsWaiver": null,
       "files": [
-        "product-parts/system-service/clusters/deployment/modules/service-installer"
+        "product-parts/system-service/clusters/deployment/modules/service-installer",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/module.md",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/commands.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/context.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/control.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/deploy.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/doctor.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/fs.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/index.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/install.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/integrate.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/layout.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/open.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/programs.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/run.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/status.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/templates.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/types.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/test/control.test.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/test/fakes.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/test/install.test.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/test/real-fs.test.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/test/templates.test.ts"
       ],
       "fixes": null,
       "id": "T008",
@@ -82,7 +104,7 @@
       "kind": "work",
       "parallelSafe": true,
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Установщик, автозапуск, запускатель и значок",
       "why": "Бэкенд разворачивается на любой ОС и стартует сам после входа в систему или при запуске интерфейса"
     }
@@ -94,11 +116,11 @@
 ## State
 
 - Scope: assignment-m1-orchestrator-core-T008-1 (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 0/1
-- Revision: 36
+- Progress: 1/1
+- Revision: 38
 
 ## Objective
 
@@ -117,8 +139,8 @@
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T008 — Установщик, автозапуск, запускатель и значок (work, parallel-safe)
+- [DONE] T008 — Установщик, автозапуск, запускатель и значок (work, parallel-safe)
   - Commit: feat: add backend installer, autostart and launcher
-  - Files: product-parts/system-service/clusters/deployment/modules/service-installer
+  - Files: product-parts/system-service/clusters/deployment/modules/service-installer, product-parts/system-service/clusters/deployment/modules/service-installer/module.md, product-parts/system-service/clusters/deployment/modules/service-installer/src/commands.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/context.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/control.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/deploy.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/doctor.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/fs.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/index.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/install.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/integrate.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/layout.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/open.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/programs.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/run.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/status.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/templates.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/types.ts, product-parts/system-service/clusters/deployment/modules/service-installer/test/control.test.ts, product-parts/system-service/clusters/deployment/modules/service-installer/test/fakes.ts, product-parts/system-service/clusters/deployment/modules/service-installer/test/install.test.ts, product-parts/system-service/clusters/deployment/modules/service-installer/test/real-fs.test.ts, product-parts/system-service/clusters/deployment/modules/service-installer/test/templates.test.ts
 
 State changes only through `scripts/workflow` commands. History lives in Git.

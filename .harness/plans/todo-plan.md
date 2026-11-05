@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 48,
+  "revision": 49,
   "rounds": [
     {
       "digest": {
@@ -1063,9 +1063,13 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "node_modules вне git и актуальные контракты модулей",
-      "why": "node_modules закоммичен коммитом QUALITY; разделы «Дальше» в module.md устарели после раунда R1"
+      "why": "node_modules закоммичен коммитом QUALITY; разделы «Дальше» в module.md устарели после раунда R1",
+      "integration": {
+        "operationId": "91b59e1e-277d-45be-ae79-582b545e066d",
+        "sourceCommit": "dd08b0d5eeaad12cf622bd1f559bf2533d8d151d"
+      }
     },
     {
       "acceptance": [
@@ -1150,8 +1154,8 @@
 - Delivery: IN_PROGRESS
 - Execution: orchestrated (max 3 workers, owner cfa00ffe-c414-4ae6-9953-e3d2906b3705)
 - Current task: none
-- Progress: 14/17
-- Revision: 48
+- Progress: 15/17
+- Revision: 49
 
 ## Objective
 
@@ -1228,7 +1232,7 @@ Digest: Milestone 1 core is in code: wfk CLI and createApp, data store with oper
   - Commit: fix: release the codex thread after the service turn
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex
   - Fixes: T007
-- [TODO] T013 — node_modules вне git и актуальные контракты модулей (work)
+- [DONE] T013 — node_modules вне git и актуальные контракты модулей (work)
   - Commit: chore: stop tracking node_modules and refresh module contracts
   - Files: node_modules, product-parts/backend-core/clusters/runtime/modules/data-store/module.md, product-parts/backend-core/clusters/http-api/modules/http-server/module.md, product-parts/backend-core/clusters/projects/modules/project-registry/module.md, product-parts/backend-core/clusters/projects/modules/kit-structure/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/module.md
   - Depends on: T011, T012

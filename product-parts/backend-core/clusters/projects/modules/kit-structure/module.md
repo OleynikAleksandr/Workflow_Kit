@@ -98,7 +98,20 @@
 - Модуль зависит от `#data-store`, `#http-server`, `#project-registry`.
 - Тесты работают во временных папках.
 
+## Потребители
+
+- `cli` подключает `registerStructureRoutes`; команда `wfk hook
+  session-start` вызывает `recordSessionStart`.
+- `provider-registry` читает `.workflow-kit/local/sessions.jsonl`
+  (`readHookSessions` по `SESSIONS_JOURNAL_PATH`); из него провайдеры
+  Claude и Codex строят списки сессий.
+- `provider-codex` сверяет хук Kit с `hookCommand('codex')`
+  (`isKitHookCommand`) и одобряет его по команде и хешу
+  (`POST .../hooks/approve`); `provider-claude` находит свой хук через
+  `findKitHook`, `normalizeHook`, `sha256` и `isKitHookCommand`.
+
 ## Дальше
 
-T004 (`provider-registry`) читает `sessions.jsonl` (`readHookSessions`);
-T007 одобряет хук Codex по команде `hookCommand('codex')` и хешу.
+В вехе 1 изменений не запланировано. Веха 3: product-parts как стандарт
+Kit — команды создания частей, кластеров и модулей и проверки раскладки
+(спецификация, раздел 13).

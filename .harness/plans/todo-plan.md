@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 21,
+  "revision": 22,
   "rounds": [
     {
       "digest": null,
@@ -695,7 +695,7 @@
       "acceptance": [
         "install копирует bin, src, package.json в app/<версия>, пишет app/current.json, сохраняет пути node, claude, codex, expect и PATH login-shell, ставит запускатель wfk и значок, регистрирует автозапуск и запускает службу; повтор обновляет; uninstall снимает всё, кроме данных",
         "macOS: LaunchAgent с RunAtLoad, KeepAlive, AbandonProcessGroup, PATH и абсолютным node; Linux: systemd user unit с KillMode=process, без systemd — XDG autostart; Windows: ключ HKCU Run со скрытым окном; тесты проверяют файлы и команды для трёх ОС на подставном HOME",
-        "service start, stop, status; статус службы и автозапуска отдаётся в «Систему» через src/service/index.ts",
+        "service start, stop, status; статус службы и автозапуска отдаётся в «Систему» через src/index.ts модуля service-installer",
         "open: проверяет /api/health, при необходимости запускает службу, ждёт готовности и открывает панель в окне приложения (Chrome/Edge --app, иначе браузер); значок вызывает open",
         "doctor --installed проверяет установленную службу и /api/health",
         "Ручная проверка пользователем: Визуально (на dev-экземпляре с WFK_DATA_DIR и WFK_PORT, без регистрации автозапуска на Mac): карточка «Система» показывает службу, способ автозапуска и пути программ; open открывает панель в окне без вкладок"
@@ -714,9 +714,7 @@
       ],
       "docsWaiver": null,
       "files": [
-        "src/service",
-        "test/service",
-        "docs/architecture/modules/service.md"
+        "product-parts/system-service/clusters/deployment/modules/service-installer"
       ],
       "fixes": null,
       "id": "T008",
@@ -818,7 +816,7 @@
 - Execution: orchestrated (max 3 workers, owner cfa00ffe-c414-4ae6-9953-e3d2906b3705)
 - Current task: none
 - Progress: 1/11
-- Revision: 21
+- Revision: 22
 
 ## Objective
 
@@ -867,7 +865,7 @@
   - Depends on: T005
 - [TODO] T008 — Установщик, автозапуск, запускатель и значок (work, parallel-safe)
   - Commit: feat: add backend installer, autostart and launcher
-  - Files: src/service, test/service, docs/architecture/modules/service.md
+  - Files: product-parts/system-service/clusters/deployment/modules/service-installer
   - Depends on: T005
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1

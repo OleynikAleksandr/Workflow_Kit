@@ -52,6 +52,9 @@ before(async () => {
   router.get('/api/teapot', () => {
     throw new HttpError(418, 'teapot', 'short and stout');
   });
+  router.get('/api/hinted', () => {
+    throw new HttpError(403, 'access-denied', 'no access', { hint: 'grant access' });
+  });
   router.get('/api/crash', () => {
     throw new Error('unexpected');
   });
@@ -86,6 +89,9 @@ test('route params, query, JSON bodies and errors', async () => {
   const teapot = await send('GET', '/api/teapot');
   assert.equal(teapot.status, 418);
   assert.deepEqual(JSON.parse(teapot.text), { error: { code: 'teapot', message: 'short and stout' } });
+  const hinted = await send('GET', '/api/hinted');
+  assert.equal(hinted.status, 403);
+  assert.deepEqual(JSON.parse(hinted.text), { error: { hint: 'grant access', code: 'access-denied', message: 'no access' } });
   assert.equal((await send('GET', '/api/crash')).status, 500);
   assert.ok(logs.some((l) => l.includes('unexpected')));
   assert.equal((await send('GET', '/api/nothing')).status, 404);

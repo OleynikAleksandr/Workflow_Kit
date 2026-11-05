@@ -11,9 +11,12 @@
  * @property {string} id Unique card id, also the DOM id suffix.
  * @property {string} title Card heading.
  * @property {number} order Sort key; smaller cards come first.
+ * @property {boolean} [wide] Spans the full width of the grid.
  * @property {(state: PanelState) => unknown} select Picks the part of the state the card shows;
  *   the card is re-rendered only when this value changes.
- * @property {(data: any, state: PanelState) => Node} render Builds the card body.
+ * @property {(data: any, state: PanelState) => Node} render Builds the card body. A card with its
+ *   own interactive state (forms, pickers) may return the same node every time; it is then kept
+ *   in place so focus and typed text survive the update.
  */
 
 /** @type {CardDefinition[]} */
@@ -35,4 +38,20 @@ export function registerCard(card) {
  */
 export function listCards() {
   return [...cards].sort((a, b) => a.order - b.order);
+}
+
+/** @type {() => void} */
+let refreshHandler = () => undefined;
+
+/**
+ * Sets what requestRefresh() does (app.js: poll /api/state now).
+ * @param {() => void} handler
+ */
+export function setRefreshHandler(handler) {
+  refreshHandler = handler;
+}
+
+/** Asks the panel to fetch /api/state right away, e.g. after a successful action. */
+export function requestRefresh() {
+  refreshHandler();
 }

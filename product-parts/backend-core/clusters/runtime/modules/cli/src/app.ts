@@ -1,9 +1,11 @@
 import os from 'node:os';
-import { ensureDataDirs, loadConfig, resolveDataDirs } from '#data-store';
-import type { DataDirs, WfkConfig } from '#data-store';
+import { createEventLog, createKeyedMutex, ensureDataDirs, eventsFile, loadConfig, resolveDataDirs } from '#data-store';
+import type { DataDirs, EventLog, KeyedMutex, WfkConfig } from '#data-store';
 import { createHttpServer, createRouter, createStateRegistry, registerCoreRoutes } from '#http-server';
 import type { HttpServerHandle, InterfaceMap, Router, StateRegistry } from '#http-server';
 import { panelShellMount } from '#panel-shell';
+import { createProjectRegistry, projectsFile, registerProjectRoutes } from '#project-registry';
+import type { ProjectRegistry } from '#project-registry';
 import { getServiceStatus } from '#service-installer';
 import { currentOsInput, detectOs, panelUrls, readPackageVersion } from './system-info.ts';
 import type { DetectOsInput, OsInfo } from './system-info.ts';
@@ -29,6 +31,12 @@ export interface App {
   /** /api/state sections; feature modules add their sections here before start(). */
   readonly state: StateRegistry;
   readonly server: HttpServerHandle;
+  /** Backend event journal (events.jsonl, rotated at 5 MiB). */
+  readonly events: EventLog;
+  /** Keyed mutex for actions on projects and providers (D10). */
+  readonly mutex: KeyedMutex;
+  /** Project list (projects.json); later modules add remove guards here. */
+  readonly projects: ProjectRegistry;
   /** Starts listening on config.port; returns the bound port and the panel URLs. */
   start(): Promise<{ port: number; host: string; urls: string[] }>;
   stop(): Promise<void>;
@@ -66,6 +74,16 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
   const router = createRouter();
   const state = createStateRegistry();
   const server = createHttpServer({ router, staticMounts: [panelShellMount()], getInterfaces, log: options.log });
+  const events = createEventLog({ file: eventsFile(dirs) });
+  const mutex = createKeyedMutex();
+  const homeScope = { homedir, platform };
+  const projects = createProjectRegistry({
+    ...homeScope,
+    file: projectsFile(dirs),
+    projectsRoot: config.projectsRoot,
+    events,
+    mutex,
+  });
 
   registerCoreRoutes(router, state, () => ({ version, pid: process.pid, startedAt }));
   state.add('system', (): SystemSection => ({
@@ -82,6 +100,7 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
     addresses: panelUrls(server.port(), getInterfaces()),
     service: getServiceStatus(platform),
   }));
+  registerProjectRoutes(router, state, projects, homeScope);
 
   return {
     dirs,
@@ -91,8 +110,12 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
     router,
     state,
     server,
+    events,
+    mutex,
+    projects,
     async start() {
       const bound = await server.listen(config.port);
+      await events.append('service.started', { version, pid: process.pid, port: bound.port }).catch(() => undefined);
       return { ...bound, urls: panelUrls(bound.port, getInterfaces()) };
     },
     stop: () => server.close(),

@@ -4,12 +4,15 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 export class HttpError extends Error {
   readonly status: number;
   readonly code: string;
+  /** Extra fields of the error object, e.g. { hint } shown by the panel. */
+  readonly details: Readonly<Record<string, unknown>> | undefined;
 
-  constructor(status: number, code: string, message: string) {
+  constructor(status: number, code: string, message: string, details?: Record<string, unknown>) {
     super(message);
     this.name = 'HttpError';
     this.status = status;
     this.code = code;
+    this.details = details;
   }
 }
 

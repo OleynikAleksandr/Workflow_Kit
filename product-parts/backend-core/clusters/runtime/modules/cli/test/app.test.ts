@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, rm, stat } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, realpath, rm, stat } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { after, before, test } from 'node:test';
@@ -69,6 +69,69 @@ test('the panel shell is served at /', async () => {
   assert.match(await response.text(), /<title>Workflow Kit<\/title>/);
   assert.equal((await fetch(`${base}/app.js`)).status, 200);
   assert.equal((await fetch(`${base}/index.ts`)).status, 404);
+});
+
+async function send(method: string, url: string, body?: unknown): Promise<{ status: number; json: Record<string, unknown> }> {
+  const headers = { Origin: base, 'Content-Type': 'application/json' };
+  const response = await fetch(`${base}${url}`, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) });
+  return { status: response.status, json: (await response.json()) as Record<string, unknown> };
+}
+
+interface ProjectsState {
+  root: string;
+  projects: Array<{ id: string; name: string; path: string; missing: boolean }>;
+}
+
+test('projects: create, open by folder list, remove from list, persist across restart', async () => {
+  const home = await realpath(tmp);
+  await mkdir(path.join(home, 'code', 'existing'), { recursive: true });
+  const created = await send('POST', '/api/projects', { name: 'Alpha' });
+  assert.equal(created.status, 201);
+  const alphaPath = path.join(home, 'WorkflowKitProjects', 'Alpha');
+  assert.equal((created.json['project'] as { path: string }).path, alphaPath);
+  const bad = await send('POST', '/api/projects', { name: 'a/b' });
+  assert.equal(bad.status, 400);
+  assert.equal((bad.json['error'] as { code: string }).code, 'invalid-name');
+
+  const top = (await (await fetch(`${base}/api/folders`)).json()) as { path: string; entries: Array<{ name: string; path: string }> };
+  assert.equal(top.path, home);
+  const codeEntry = top.entries.find((e) => e.name === 'code');
+  assert.ok(codeEntry);
+  const inner = (await (await fetch(`${base}/api/folders?path=${encodeURIComponent(codeEntry.path)}`)).json()) as {
+    entries: Array<{ name: string; path: string }>;
+  };
+  assert.deepEqual(inner.entries.map((e) => e.name), ['existing']);
+  const outside = await fetch(`${base}/api/folders?path=${encodeURIComponent(path.parse(home).root)}`);
+  assert.equal(outside.status, 400);
+  assert.equal(((await outside.json()) as { error: { code: string } }).error.code, 'outside-home');
+
+  const opened = await send('POST', '/api/projects/open', { path: inner.entries[0]!.path });
+  assert.equal(opened.status, 201);
+  assert.equal((await send('POST', '/api/projects/open', { path: inner.entries[0]!.path })).status, 200);
+
+  const state = (await (await fetch(`${base}/api/state`)).json()) as { projects: ProjectsState };
+  assert.deepEqual(state.projects.projects.map((p) => p.name), ['Alpha', 'existing']);
+  assert.equal(state.projects.root, path.join(tmp, 'WorkflowKitProjects'));
+
+  const alphaId = state.projects.projects[0]!.id;
+  const removed = await send('DELETE', `/api/projects/${alphaId}`);
+  assert.equal(removed.status, 200);
+  assert.equal(removed.json['folderKept'], true);
+  assert.ok((await stat(alphaPath)).isDirectory());
+  assert.equal((await send('DELETE', `/api/projects/${alphaId}`)).status, 404);
+
+  const restarted = await createApp({
+    env: { WFK_DATA_DIR: path.join(tmp, 'data'), WFK_PORT: '0' },
+    homedir: tmp,
+    getInterfaces: () => ({}),
+    osInput: fakeOs,
+  });
+  const section = (await restarted.state.collect())['projects'] as ProjectsState;
+  assert.deepEqual(section.projects.map((p) => p.name), ['existing']);
+  const events = await readFile(path.join(tmp, 'data', 'events.jsonl'), 'utf8');
+  for (const type of ['service.started', 'project.created', 'project.opened', 'project.removed']) {
+    assert.match(events, new RegExp(`"type":"${type.replace('.', '\\.')}"`));
+  }
 });
 
 test('serve starts the server and stops on shutdown', async () => {

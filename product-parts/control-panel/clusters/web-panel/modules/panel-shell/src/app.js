@@ -1,8 +1,9 @@
 // @ts-check
 // Panel bootstrap: polls GET /api/state every 3 s and renders the header and the registered cards.
-import { listCards } from './cards.js';
+import { listCards, setRefreshHandler } from './cards.js';
 import { h } from './dom.js';
 import './system-card.js';
+import './projects-card.js';
 
 /** Polling interval in milliseconds (D3). */
 const POLL_MS = 3000;
@@ -56,7 +57,8 @@ function renderCards(state) {
     const domId = `card-${card.id}`;
     let section = document.getElementById(domId);
     if (!section) {
-      section = h('section', { class: 'card', id: domId, 'aria-labelledby': `${domId}-title` }, [
+      const cls = card.wide ? 'card card-wide' : 'card';
+      section = h('section', { class: cls, id: domId, 'aria-labelledby': `${domId}-title` }, [
         h('h2', { id: `${domId}-title` }, [card.title]),
         h('div', { class: 'card-body' }),
       ]);
@@ -69,7 +71,8 @@ function renderCards(state) {
     const body = section.querySelector('.card-body');
     if (!body) continue;
     try {
-      body.replaceChildren(card.render(data, state));
+      const node = card.render(data, state);
+      if (body.childNodes.length !== 1 || body.firstChild !== node) body.replaceChildren(node);
     } catch (error) {
       body.replaceChildren(h('p', { class: 'error' }, [`Ошибка карточки: ${String(error)}`]));
     }
@@ -94,21 +97,31 @@ async function refresh() {
   }
 }
 
-/** True while a poll is running; a second loop() call meanwhile is ignored. */
+/** True while a poll is running. */
 let inFlight = false;
+/** Set when loop() is called during a poll; one more poll follows right after it. */
+let again = false;
 
 /** Polls forever; the next poll starts after the previous one finishes. */
 async function loop() {
-  if (inFlight) return;
+  if (inFlight) {
+    again = true;
+    return;
+  }
   clearTimeout(timer);
   inFlight = true;
   try {
-    await refresh();
+    do {
+      again = false;
+      await refresh();
+    } while (again);
   } finally {
     inFlight = false;
   }
   timer = setTimeout(loop, POLL_MS);
 }
+
+setRefreshHandler(() => void loop());
 
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') void loop();

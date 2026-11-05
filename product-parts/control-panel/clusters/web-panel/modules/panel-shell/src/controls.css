@@ -1,0 +1,259 @@
+/* Panel controls: buttons, text inputs, notices, the projects card and the folder picker. */
+[hidden] {
+  display: none !important;
+}
+
+.card-wide {
+  grid-column: 1 / -1;
+}
+
+/* Controls: at least 44px tall for touch on iPad. */
+.btn {
+  min-height: 44px;
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.95rem;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.btn:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.btn-primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+.btn-quiet {
+  border-color: transparent;
+  background: transparent;
+  color: var(--muted);
+}
+
+.btn-quiet:hover:not(:disabled) {
+  color: var(--error);
+  border-color: var(--border);
+}
+
+input[type='text'] {
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 16px; /* 16px keeps iPad Safari from zooming on focus */
+}
+
+input[type='text']:focus,
+.btn:focus-visible,
+.folder:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.inline-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.inline-form input {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.root-line {
+  margin: 0 0 8px;
+}
+
+.empty {
+  padding: 10px 0;
+}
+
+.project-list,
+.folder-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.project {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.project-main {
+  display: grid;
+  gap: 2px;
+  flex: 1 1 280px;
+  min-width: 0;
+}
+
+.projects-actions {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(0, 1fr);
+  margin-top: 16px;
+}
+
+.projects-actions > .btn {
+  justify-self: start;
+}
+
+.picker {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(0, 1fr);
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg);
+}
+
+.picker-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.picker-current {
+  min-width: 0;
+  flex: 1 1 240px;
+}
+
+.picker-nav,
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.check {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.folder-list {
+  max-height: min(50vh, 420px);
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  -webkit-overflow-scrolling: touch;
+}
+
+.folder-list li + li {
+  border-top: 1px solid var(--border);
+}
+
+.folder-list .empty {
+  padding: 10px 12px;
+}
+
+.folder {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.folder:hover {
+  background: var(--muted-bg);
+}
+
+.folder-icon {
+  flex: none;
+  width: 18px;
+  height: 14px;
+  border-radius: 3px;
+  background: var(--accent);
+  opacity: 0.75;
+}
+
+.folder-name {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.chevron {
+  color: var(--muted);
+}
+
+.notice {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 0.92rem;
+}
+
+.notice p,
+.notice ul {
+  margin: 0;
+}
+
+.notice ul {
+  margin-top: 4px;
+  padding-left: 20px;
+}
+
+.notice-ok {
+  background: var(--ok-bg);
+  color: var(--ok);
+}
+
+.notice-error {
+  background: var(--error-bg);
+  color: var(--error);
+}
+
+.notice-muted {
+  background: var(--muted-bg);
+  color: var(--muted);
+}
+
+.notice-hint {
+  margin-top: 6px !important;
+  color: var(--text);
+}

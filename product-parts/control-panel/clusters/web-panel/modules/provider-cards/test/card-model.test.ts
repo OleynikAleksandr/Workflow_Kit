@@ -147,6 +147,70 @@ test('a ready provider: links per device, stop locked by its operation, actions 
   assert.equal(cardModel({ ...input, maxTouchPoints: 0, nowMs: Date.parse('2026-11-05T11:00:00.000Z') }).project?.trust.previewData?.expired, true);
 });
 
+test('trust choices: no default answer, "Доверять" waits for required answers; a trusted parent is a mark', () => {
+  const state: ProjectProviderState = {
+    provider: 'acme',
+    trust: { trusted: false, inherited: { from: '/Users/me', note: 'клиент не спросит' } },
+    hooks: null,
+    sessions: [],
+    actions: [],
+    errors: {},
+  };
+  const preview = {
+    provider: 'acme',
+    trusted: false,
+    writes: [{ file: '~/.acme.json', key: 'k', description: 'доверие' }],
+    autorun: [],
+    choices: [
+      {
+        id: 'imports',
+        title: 'Внешние импорты',
+        description: 'импортирует ~/AGENTS.md',
+        options: [
+          { id: 'allow', title: 'Разрешить' },
+          { id: 'deny', title: 'Запретить', description: 'не загружать' },
+        ],
+        required: true,
+      },
+      { id: 'extra', title: 'Необязательно', description: '', options: [{ id: 'x', title: 'X' }], required: false },
+    ],
+    inherited: { from: '/Users/me', note: 'клиент не спросит' },
+    token: 'tok',
+    expiresAt: '2026-11-05T10:10:00.000Z',
+  };
+  const model = (choices: Record<string, string>) =>
+    cardModel({
+      provider: readyProvider(),
+      projects: projects(),
+      projectId: project.id,
+      project: state,
+      operations: [],
+      ui: { ...emptyUi, preview, choices },
+      maxTouchPoints: 0,
+      nowMs: Date.parse('2026-11-05T10:05:00.000Z'),
+    }).project!.trust;
+
+  const empty = model({});
+  assert.deepEqual(empty.inherited, { from: '/Users/me', note: 'клиент не спросит' });
+  assert.deepEqual(empty.previewData?.inherited, { from: '/Users/me', note: 'клиент не спросит' });
+  assert.deepEqual(empty.previewData?.choices.map((c) => [c.id, c.selected, c.options.map((o) => o.selected)]), [
+    ['imports', null, [false, false]],
+    ['extra', null, [false]],
+  ]);
+  assert.equal(empty.grant.disabled, true, 'no answer to a required choice: the grant is locked');
+  assert.match(empty.grant.reason ?? '', /«Внешние импорты»/);
+  assert.doesNotMatch(empty.grant.reason ?? '', /Необязательно/);
+  assert.deepEqual(empty.previewData?.answers, {});
+  assert.equal(model({ imports: 'maybe' }).grant.disabled, true, 'an answer that is not an option does not count');
+
+  const answered = model({ imports: 'deny' });
+  assert.equal(answered.grant.disabled, false);
+  assert.equal(answered.previewData?.choices[0]?.options[1]?.selected, true);
+  assert.equal(answered.previewData?.choices[0]?.options[1]?.description, 'не загружать');
+  assert.deepEqual(answered.previewData?.answers, { imports: 'deny' });
+  assert.equal(answered.previewData?.needsGrant, true);
+});
+
 test('no projects: the card shows the provider only; routes are built from ids', () => {
   const model = cardModel({ provider: readyProvider(), projects: [], projectId: null, project: null, operations: [], ui: emptyUi, maxTouchPoints: 0, nowMs: 0 });
   assert.equal(model.project, null);

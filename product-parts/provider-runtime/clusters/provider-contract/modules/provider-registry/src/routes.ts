@@ -8,7 +8,7 @@ import type { JsonResult, RouteContext, Router, StateRegistry } from '#http-serv
 import { accessHint } from '#project-registry';
 import type { ProjectRegistry } from '#project-registry';
 import { ProviderError } from './contract.ts';
-import type { Project, Provider, ProviderStatus, SessionInfo } from './contract.ts';
+import type { Project, Provider, ProviderStatus, SessionInfo, TrustChoices } from './contract.ts';
 import { clearHookSessionsCache } from './hook-sessions.ts';
 import type { ProviderRegistry } from './registry.ts';
 import { errorInfo } from './registry.ts';
@@ -67,6 +67,25 @@ function requiredText(body: Record<string, unknown>, field: string): string {
     throw new HttpError(400, 'invalid-body', `Поле ${field} должно быть непустой строкой`);
   }
   return value;
+}
+
+const CHOICE_ID = /^[A-Za-z0-9._:-]{1,64}$/;
+const MAX_CHOICES = 16;
+
+/** Answers to the trust choices: an optional { <choice id>: <option id> } object of short ids. */
+function trustChoices(body: Record<string, unknown>): TrustChoices {
+  const value = body['choices'];
+  if (value === undefined || value === null) return {};
+  const invalid = new HttpError(400, 'invalid-body', 'Поле choices должно быть объектом { <id выбора>: <id ответа> }');
+  if (typeof value !== 'object' || Array.isArray(value)) throw invalid;
+  const entries = Object.entries(value as Record<string, unknown>);
+  if (entries.length > MAX_CHOICES) throw invalid;
+  const choices: TrustChoices = {};
+  for (const [id, answer] of entries) {
+    if (!CHOICE_ID.test(id) || typeof answer !== 'string' || !CHOICE_ID.test(answer)) throw invalid;
+    choices[id] = answer;
+  }
+  return choices;
 }
 
 function toHttpError(error: unknown): unknown {
@@ -200,7 +219,9 @@ export function registerProviderRoutes(options: ProviderRoutesOptions): Provider
   });
 
   router.post('/api/projects/:id/providers/:p/trust', async (ctx) => {
-    const token = requiredText(bodyObject(ctx.body), 'token');
+    const body = bodyObject(ctx.body);
+    const token = requiredText(body, 'token');
+    const choices = trustChoices(body);
     const provider = providerOf(ctx);
     const project = await projectOf(ctx);
     return startOperation({
@@ -208,7 +229,7 @@ export function registerProviderRoutes(options: ProviderRoutesOptions): Provider
       title: `${provider.title}: доверие к папке`,
       provider,
       project,
-      run: () => provider.grantTrust(project, token),
+      run: () => provider.grantTrust(project, token, choices),
     });
   });
 

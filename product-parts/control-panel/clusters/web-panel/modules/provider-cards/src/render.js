@@ -6,6 +6,7 @@
 /** @typedef {import('./card-model.js').ProjectModel} ProjectModel */
 /** @typedef {import('./card-model.js').SessionModel} SessionModel */
 /** @typedef {import('./card-model.js').CardMessage} CardMessage */
+/** @typedef {import('./card-model.js').ChoiceView} ChoiceView */
 /** @typedef {import('./model.js').ButtonView} ButtonView */
 /** @typedef {import('./model.js').HookRow} HookRow */
 /** @typedef {Pick<typeof import('../../panel-shell/src/dom.js'), 'h' | 'pill' | 'code' | 'notice' | 'facts'>} Dom */
@@ -18,7 +19,8 @@
  * @property {(action: { id: string, title: string, confirm: string | null }, projectId: string | null) => void} runAction
  * @property {() => void} preview
  * @property {() => void} cancelPreview
- * @property {(token: string) => void} grant
+ * @property {(token: string, choices: Record<string, string>) => void} grant
+ * @property {(choiceId: string, optionId: string) => void} choose
  * @property {(row: HookRow) => void} approve
  * @property {() => void} createSession
  * @property {(session: SessionModel, verb: 'resume' | 'stop') => void} session
@@ -180,13 +182,22 @@ export function renderCard(model, dom, on) {
     if (trust.note && trust.note !== trust.preview.reason) children.push(h('p', { class: 'muted pc-note' }, [trust.note]));
     if (trust.backup) children.push(h('p', { class: 'muted pc-note' }, ['Копия конфига: ', dom.code(trust.backup)]));
     const preview = trust.previewData;
+    const inherited = trust.inherited ?? preview?.inherited ?? null;
+    if (inherited) {
+      children.push(
+        h('div', { class: 'pc-inherited' }, [
+          h('div', { class: 'pc-line' }, [pill('доверена родительская папка', 'warn'), dom.code(inherited.from)]),
+          h('div', { class: 'muted pc-note' }, [inherited.note]),
+        ]),
+      );
+    }
     if (!preview) {
       children.push(control('Предпросмотр доверия…', trust.preview, on.preview));
       if (trust.grant.busy || trust.grant.error) children.push(control('Доверять', { ...trust.grant, disabled: true }, () => undefined));
       return section('Доверие к папке', children);
     }
     const box = h('div', { class: 'pc-preview' });
-    if (preview.trusted) box.append(h('p', {}, ['Папка уже доверена: записывать нечего.']));
+    if (!preview.needsGrant) box.append(h('p', {}, ['Папка уже доверена: записывать нечего.']));
     if (preview.writes.length > 0) {
       box.append(
         h('h4', {}, ['Будет записано']),
@@ -199,16 +210,37 @@ export function renderCard(model, dom, on) {
         ? h('p', { class: 'muted' }, ['Не найдены.'])
         : h('ul', { class: 'pc-list' }, preview.autorun.map((a) => h('li', {}, [dom.code(a.file), ' ', pill(a.kind, 'warn'), h('div', { class: 'muted' }, [a.detail])]))),
     );
+    for (const choice of preview.choices) box.append(choiceBox(project.id, choice));
     for (const note of preview.notes) box.append(h('p', { class: 'muted pc-note' }, [note]));
     box.append(h('p', { class: preview.expired ? 'error pc-note' : 'muted pc-note' }, [preview.expired ? 'Предпросмотр устарел: откройте его заново.' : `Подтверждение действует до ${formatTime(preview.expiresAt)}.`]));
+    const grantLabel = preview.trusted ? 'Записать выбор' : 'Доверять';
     const buttons = h('div', { class: 'actions' }, [
-      preview.trusted || preview.expired ? null : control('Доверять', trust.grant, () => on.grant(preview.token), { primary: true }),
+      !preview.needsGrant || preview.expired ? null : control(grantLabel, trust.grant, () => on.grant(preview.token, preview.answers), { primary: true }),
       preview.expired ? control('Обновить предпросмотр', trust.preview, on.preview) : null,
       h('div', { class: 'pc-control' }, [button('Закрыть', on.cancelPreview)]),
     ]);
     box.append(buttons);
     children.push(box);
     return section('Доверие к папке', children);
+  }
+
+  /**
+   * One trust choice as a radio group without a preselected answer.
+   * @param {string} projectId
+   * @param {ChoiceView} choice
+   * @returns {HTMLElement}
+   */
+  function choiceBox(projectId, choice) {
+    const name = `pc-choice-${model.id}-${projectId}-${choice.id}`;
+    const options = choice.options.map((option) => {
+      const input = /** @type {HTMLInputElement} */ (h('input', { type: 'radio', name, value: option.id }));
+      input.checked = option.selected;
+      input.addEventListener('change', () => on.choose(choice.id, option.id));
+      const text = h('span', {}, [h('strong', {}, [option.title]), option.description ? h('span', { class: 'muted' }, [` — ${option.description}`]) : null]);
+      return h('label', { class: 'pc-option' }, [input, text]);
+    });
+    const legend = h('legend', {}, [choice.title, choice.required ? h('span', { class: 'pc-required' }, [' — нужен ответ']) : null]);
+    return h('fieldset', { class: 'pc-choice' }, [legend, h('p', { class: 'muted pc-note' }, [choice.description]), ...options]);
   }
 
   /**

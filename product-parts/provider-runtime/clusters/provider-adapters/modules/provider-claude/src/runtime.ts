@@ -18,7 +18,7 @@ import type { BridgeReader } from './transcripts.ts';
 /** Registry id of the provider (also the hook journal client). */
 export const PROVIDER_ID = 'claude';
 
-/** Tunables; tests shorten the waits and the pauses of the trust dialog. */
+/** Tunables; tests shorten the waits and imitate concurrent writes of ~/.claude.json. */
 export interface ClaudeProviderOptions {
   scripts?: PtyScripts;
   /** Wait for SESSION_URL (or the debug file), ms. */
@@ -27,10 +27,8 @@ export interface ClaudeProviderOptions {
   debugGraceMs?: number;
   /** Wait for the environment to start, ms. */
   environmentTimeoutMs?: number;
-  /** Whole trust dialog, ms. */
-  trustTimeoutMs?: number;
-  /** Unit of the pauses inside trust.exp, ms (1000 in production). */
-  trustPaceMs?: number;
+  /** Called after each write of ~/.claude.json by grantTrust, before it is read back (tests only). */
+  afterConfigWrite?: (attempt: number) => Promise<void>;
   pollMs?: number;
   /** TERM → KILL grace of stopSession and the environment stop, ms. */
   stopGraceMs?: number;
@@ -74,8 +72,7 @@ export function createRuntime(context: ProviderContext, options: ClaudeProviderO
     sessionTimeoutMs: options.sessionTimeoutMs ?? 120_000,
     debugGraceMs: options.debugGraceMs ?? 10_000,
     environmentTimeoutMs: options.environmentTimeoutMs ?? 45_000,
-    trustTimeoutMs: options.trustTimeoutMs ?? 120_000,
-    trustPaceMs: options.trustPaceMs ?? 1000,
+    afterConfigWrite: options.afterConfigWrite ?? (async () => undefined),
     pollMs: options.pollMs ?? 250,
     stopGraceMs: options.stopGraceMs ?? 5000,
   };

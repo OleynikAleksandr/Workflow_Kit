@@ -5,7 +5,7 @@ import { ProviderError, hookSessionInfo, readHookSessions } from '#provider-regi
 import type { HookSession, Project, SessionInfo } from '#provider-registry';
 import { ProcessError } from '#process-supervisor';
 import { sessionLinks } from './links.ts';
-import { debugSessionId, logTail, parseMarkers, poll, readText } from './pty.ts';
+import { debugSessionId, dialogError, logTail, parseMarkers, poll, readText } from './pty.ts';
 import type { SessionRecord } from './records.ts';
 import { PROVIDER_ID } from './runtime.ts';
 import type { ClaudeRuntime } from './runtime.ts';
@@ -54,6 +54,7 @@ async function followSession(rt: ClaudeRuntime, processId: string, logFile: stri
       const markers = parseMarkers(log);
       claudePid = markers.claudePid ?? claudePid;
       if (markers.sessionId) return { remoteId: markers.sessionId, source: 'screen' };
+      if (markers.dialog) throw dialogError(markers.dialog, log, logFile);
       if (markers.failure === 'not-trusted') throw failure('not-trusted', 'Claude: «Workspace not trusted» — папка не доверена', logFile, log);
       if (markers.noSessionUrl) {
         const id = await fromDebug();
@@ -62,8 +63,10 @@ async function followSession(rt: ClaudeRuntime, processId: string, logFile: stri
         if (Date.now() - noUrlSince > rt.options.debugGraceMs) throw failure('no-session-url', 'Claude не сообщил ссылку Remote Control', logFile, log);
       }
       if (markers.failure === 'exited' || !(await rt.isAlive(processId))) {
-        const last = parseMarkers(await readText(logFile));
+        const lastLog = await readText(logFile);
+        const last = parseMarkers(lastLog);
         if (last.sessionId) return { remoteId: last.sessionId, source: 'screen' };
+        if (last.dialog) throw dialogError(last.dialog, lastLog, logFile);
         throw failure('session-exited', 'Claude завершился до появления ссылки Remote Control', logFile, await readText(logFile));
       }
       return undefined;

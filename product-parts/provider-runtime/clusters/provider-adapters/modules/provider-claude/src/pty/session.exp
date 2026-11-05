@@ -8,9 +8,11 @@
 #                             backend falls back to the debug file ("Created session cse_<id>")
 #   SESSION_NOT_TRUSTED       the folder is not trusted (exit 5)
 #   SESSION_EXITED            claude exited before a link appeared (exit 4)
+#   DIALOG <kind>             claude showed a dialog; it was stopped, no key pressed (exit 6)
 # After the link the screen is no longer copied to the log; the session lives until claude exits.
 set timeout 90
 lassign $argv dir claude title debug resume
+source [file join [file dirname [info script]] dialogs.tcl]
 cd $dir
 if {$resume ne ""} {
   spawn $claude --resume $resume --remote-control $title --debug-file $debug
@@ -23,6 +25,7 @@ stty rows 40 columns 160 < $spawn_out(slave,name)
 expect {
   -re {claude\.ai/code/(session_[A-Za-z0-9]+)} { puts "\nSESSION_URL $expect_out(1,string)" }
   -re {Workspace not trusted} { puts "\nSESSION_NOT_TRUSTED"; exit 5 }
+  -re $dialog_pattern { stop_on_dialog $expect_out(buffer) }
   timeout { puts "\nNO_SESSION_URL" }
   eof { puts "\nSESSION_EXITED"; exit 4 }
 }

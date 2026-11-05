@@ -77,7 +77,14 @@ export function compareVersions(a: string, b: string): number {
   return 0;
 }
 
-/** Why pty-based actions (trust, sessions, environment) are unavailable; null when they are available. */
+/** Why writing trust is unavailable (it needs no pty: Kit writes ~/.claude.json itself); null when available. */
+export function trustUnavailableReason(platform: NodeJS.Platform, programs: ClaudePrograms): string | null {
+  if (platform === 'win32') return 'Windows: Claude пока не поддерживается (Q1)';
+  if (!programs.claude) return 'claude не найден: установите Claude Code или укажите путь в config.json → programs.claude';
+  return null;
+}
+
+/** Why pty-based actions (sessions, environment) are unavailable; null when they are available. */
 export function ptyUnavailableReason(platform: NodeJS.Platform, programs: ClaudePrograms, version: string | null): string | null {
   if (platform === 'win32') return 'Windows: pty для Claude пока не поддерживается (Q1)';
   if (!programs.claude) return 'claude не найден: установите Claude Code или укажите путь в config.json → programs.claude';
@@ -95,8 +102,9 @@ export function claudeCapabilities(platform: NodeJS.Platform, programs: ClaudePr
   const reason = ptyUnavailableReason(platform, programs, version);
   const pty = reason ? { available: false, reason } : { available: true };
   const stop = platform === 'win32' ? { available: false, reason: 'Windows: процессы сессий не поддерживаются' } : { available: true };
+  const trustReason = trustUnavailableReason(platform, programs);
   return {
-    trust: { ...pty },
+    trust: trustReason ? { available: false, reason: trustReason } : { available: true },
     hooks: { available: true },
     sessions: { available: true },
     createSession: { ...pty },

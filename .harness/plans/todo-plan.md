@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 46,
+  "revision": 47,
   "rounds": [
     {
       "digest": {
@@ -987,9 +987,13 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Доверие Claude без подмены решений пользователя",
-      "why": "Приёмка: скрипт доверия выбрал «Yes, allow external imports» вместо пользователя и не записал доверие; при доверенной домашней папке Claude не показывает диалог доверия (D2, D3)"
+      "why": "Приёмка: скрипт доверия выбрал «Yes, allow external imports» вместо пользователя и не записал доверие; при доверенной домашней папке Claude не показывает диалог доверия (D2, D3)",
+      "integration": {
+        "operationId": "e699e4c8-15c5-4267-a63e-eb01c023edff",
+        "sourceCommit": "e7eb4401457e413bfe3316282d81df99ca44c8b9"
+      }
     },
     {
       "acceptance": [
@@ -1142,8 +1146,8 @@
 - Delivery: IN_PROGRESS
 - Execution: orchestrated (max 3 workers, owner cfa00ffe-c414-4ae6-9953-e3d2906b3705)
 - Current task: none
-- Progress: 12/17
-- Revision: 46
+- Progress: 13/17
+- Revision: 47
 
 ## Objective
 
@@ -1212,7 +1216,7 @@ Digest: Milestone 1 core is in code: wfk CLI and createApp, data store with oper
 
 ### R2 — Исправления по приёмке вехи 1 (fixes, OPEN)
 
-- [TODO] T011 — Доверие Claude без подмены решений пользователя (work)
+- [DONE] T011 — Доверие Claude без подмены решений пользователя (work)
   - Commit: fix: grant claude trust explicitly and ask about external imports
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/control-panel/clusters/web-panel/modules/provider-cards, docs/planning/M1-providers.md
   - Fixes: T006

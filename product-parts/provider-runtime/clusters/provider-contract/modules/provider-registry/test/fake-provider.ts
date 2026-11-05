@@ -4,6 +4,8 @@ import type { Project, Provider, ProviderAction, SessionInfo } from '../src/inde
 
 export interface FakeProvider extends Provider {
   calls: string[];
+  /** Choices passed to grantTrust, in call order. */
+  choices: Array<Record<string, string>>;
   /** Resolve to let blocked actions continue. */
   release(): void;
   block(): void;
@@ -26,6 +28,7 @@ export function createFakeProvider(id = 'fake', options: { withOptional?: boolea
     id,
     title: id === 'fake' ? 'Fake' : id,
     calls: [],
+    choices: [],
     sessions: [],
     failHooks: false,
     slow: false,
@@ -43,8 +46,9 @@ export function createFakeProvider(id = 'fake', options: { withOptional?: boolea
       const issued = tokens.issue(`${id}:${project.id}`, 'fp-1');
       return { provider: id, trusted: false, writes: [{ file: '~/.fake.json', key: project.path, description: 'доверие' }], autorun: [], ...issued };
     },
-    async grantTrust(project: Project, token: string) {
+    async grantTrust(project: Project, token: string, choices?: Record<string, string>) {
       provider.calls.push(`grantTrust:${project.name}`);
+      provider.choices.push(choices ?? { omitted: 'yes' });
       await wait();
       if (tokens.consume(`${id}:${project.id}`, token) !== 'fp-1') {
         throw new ProviderError('invalid-token', 'Предпросмотр устарел', { hint: 'Откройте предпросмотр снова' });

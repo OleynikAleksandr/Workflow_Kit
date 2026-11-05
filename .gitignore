@@ -6,3 +6,6 @@
 .claude/worktrees/
 .DS_Store
 # workflow-kit:end
+
+# Dependencies (installed with npm ci)
+node_modules/

@@ -17,5 +17,5 @@
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true
   },
-  "include": ["bin/**/*.mjs", "src/**/*.ts", "test/**/*.ts", "src/panel/**/*.js"]
+  "include": ["bin/**/*.mjs", "product-parts/**/*.ts", "product-parts/**/src/**/*.js"]
 }

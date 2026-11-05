@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 31,
+  "revision": 33,
   "rounds": [
     {
       "digest": null,
@@ -47,7 +47,7 @@
       }
     ],
     "decisions": [],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 1,
       "ownerSession": null,
@@ -95,14 +95,42 @@
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts",
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md",
         "package.json",
-        "product-parts/backend-core/clusters/runtime/modules/cli"
+        "product-parts/backend-core/clusters/runtime/modules/cli",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/index.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/providers.test.ts",
+        "product-parts/backend-core/clusters/runtime/modules/data-store/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/data-store/src/backup.ts",
+        "product-parts/backend-core/clusters/runtime/modules/data-store/src/index.ts",
+        "product-parts/backend-core/clusters/runtime/modules/data-store/src/operations.ts",
+        "product-parts/backend-core/clusters/runtime/modules/data-store/test/operations.test.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/module.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/src/command.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/src/env.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/src/index.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/src/proc-info.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/src/supervisor.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/test/supervisor.test.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/test/utils.test.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/hook-sessions.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/registry.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/routes.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/stub.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/tokens.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/fake-provider.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/hook-sessions.test.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/routes.test.ts"
       ],
       "fixes": null,
       "id": "T004",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Контракт провайдера, API, операции и утилиты процессов",
       "why": "Общий контракт и общие механизмы позволяют реализовать провайдеров без правок сервера и панели"
     }
@@ -114,11 +142,11 @@
 ## State
 
 - Scope: assignment-m1-orchestrator-core-T004-1 (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 0/1
-- Revision: 31
+- Progress: 1/1
+- Revision: 33
 
 ## Objective
 
@@ -138,8 +166,8 @@
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T004 — Контракт провайдера, API, операции и утилиты процессов (work)
+- [DONE] T004 — Контракт провайдера, API, операции и утилиты процессов (work)
   - Commit: feat: add provider contract, registry, operations and process utilities
-  - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor, product-parts/backend-core/clusters/runtime/modules/data-store, product-parts/backend-core/clusters/http-api/modules/http-server, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, package.json, product-parts/backend-core/clusters/runtime/modules/cli
+  - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor, product-parts/backend-core/clusters/runtime/modules/data-store, product-parts/backend-core/clusters/http-api/modules/http-server, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, package.json, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/index.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/providers.test.ts, product-parts/backend-core/clusters/runtime/modules/data-store/module.md, product-parts/backend-core/clusters/runtime/modules/data-store/src/backup.ts, product-parts/backend-core/clusters/runtime/modules/data-store/src/index.ts, product-parts/backend-core/clusters/runtime/modules/data-store/src/operations.ts, product-parts/backend-core/clusters/runtime/modules/data-store/test/operations.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/src/command.ts, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/src/env.ts, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/src/index.ts, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/src/proc-info.ts, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/src/supervisor.ts, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/test/supervisor.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/test/utils.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/hook-sessions.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/registry.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/routes.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/stub.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/tokens.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/fake-provider.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/hook-sessions.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/routes.test.ts
 
 State changes only through `scripts/workflow` commands. History lives in Git.

@@ -50,6 +50,25 @@
 - `createKeyedMutex() → KeyedMutex` — `run(key, action)` выполняет действия
   с одним ключом по очереди (D10), ошибка действия освобождает ключ;
   `busy(key)`.
+- `createOperations({ now?, newId?, keepFinished?, keepMs? }) → Operations`
+  — долгие действия (D10) в памяти: `start({ key, kind, title, scope?, run,
+  onFinish? })` сразу возвращает `{ operation, existing }` и выполняет
+  `run(handle)` в фоне; пока операция с тем же `key` идёт, повторный
+  `start` возвращает её (`existing: true`) и второй раз ничего не
+  запускает. `Operation`: `id` (operationId), `key`, `kind`, `title`,
+  `scope`, `status` (`running` | `succeeded` | `failed`), `progress`
+  (`handle.progress(note)`), `startedAt`, `finishedAt`, `result?`,
+  `error?` (`{ code, message, hint?, ...details }` из
+  `toOperationError`). `onFinish(operation)` вызывается один раз после
+  завершения (ошибки игнорируются; так пишется журнал). `get`,
+  `active(key)`, `list()` (идущие первыми, затем новые), `wait(id)`,
+  `section()` → `{ operations }` (раздел `/api/state`). Хранятся последние
+  50 завершённых не дольше 15 мин; после перезапуска службы операций нет.
+- `backupFile(file, { backupsDir, keep?, now? }) → string | null` — копия
+  чужого конфига перед записью (D7) в
+  `<backups>/<имя>-<sha256 пути, 10 знаков>/<время>.<расширение>` (0600,
+  каталоги 0700); остаются последние `BACKUPS_KEPT` (10); нет файла —
+  `null`. `backupDirFor(backupsDir, file)`.
 
 ## Инварианты
 
@@ -60,6 +79,7 @@
 
 ## Дальше
 
-T004 — операции (D10: `operationId`, ход в `/api/state`); T008 — запись
+T006 и T007 — копии `~/.claude.json` и `~/.codex/config.toml` через
+`backupFile`; T008 — запись
 путей программ в `config.json` (D12). Файл `projects.json` ведёт модуль
 `project-registry` через `writeJsonAtomic`.

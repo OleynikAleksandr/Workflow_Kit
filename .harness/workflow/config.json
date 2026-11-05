@@ -10,15 +10,15 @@
   "docs": {
     "contracts": [
       {
-        "code": "src/{module}/**",
+        "code": "product-parts/{part}/clusters/{cluster}/modules/{module}/src/**",
         "docs": [
-          "docs/architecture/modules/{module}.md"
+          "product-parts/{part}/clusters/{cluster}/modules/{module}/module.md"
         ]
       },
       {
         "code": "bin/**",
         "docs": [
-          "docs/architecture/modules/cli.md"
+          "product-parts/backend-core/clusters/runtime/modules/cli/module.md"
         ]
       }
     ]
@@ -47,8 +47,9 @@
         "appliesTo": [
           "**/*.ts",
           "**/*.mjs",
-          "src/panel/**/*.js",
-          "tsconfig.json"
+          "product-parts/**/src/**/*.js",
+          "tsconfig.json",
+          "package.json"
         ]
       },
       {
@@ -61,13 +62,15 @@
           "executable": "node",
           "args": [
             "--test",
-            "test/**/*.test.ts"
+            "product-parts/**/test/*.test.ts"
           ]
         },
         "appliesTo": [
           "**/*.ts",
           "**/*.mjs",
-          "src/panel/**/*.js"
+          "product-parts/**/src/**/*.js",
+          "tsconfig.json",
+          "package.json"
         ]
       },
       {

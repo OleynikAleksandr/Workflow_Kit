@@ -3059,21 +3059,32 @@ function ignoredPaths(git, root, files) {
 	return new Set(output.stdout.split("\0").filter(Boolean));
 }
 /**
-* Stages the selected paths. Index paths are added as they are on disk. A
-* path outside the index is added only when it exists and git does not
-* ignore it: a deletion already staged for an ignored or missing path (for
-* example after `git rm -r --cached node_modules`) stays in the index as is.
+* Paths of `files` the commit candidate will not contain: outside the index
+* and either missing on disk or ignored by git. A deletion already staged for
+* such a path (for example after `git rm -r --cached node_modules`) stays in
+* the index as is; content checks must not read the copies left on disk.
 */
-function stage(git, root, files) {
+function absentPaths(git, root, files) {
+	if (files.length === 0) return /* @__PURE__ */ new Set();
 	const tracked = new Set(git.run(root, [
 		"ls-files",
 		"-z",
 		"--",
 		...files
 	]).stdout.split("\0").filter(Boolean));
-	const untracked = new Set(files.filter((file) => !tracked.has(file) && existsSync(path.join(root, ...file.split("/")))));
-	const ignored = ignoredPaths(git, root, [...untracked]);
-	const stageable = files.filter((file) => tracked.has(file) || untracked.has(file) && !ignored.has(file));
+	const untracked = files.filter((file) => !tracked.has(file));
+	const existing = new Set(untracked.filter((file) => existsSync(path.join(root, ...file.split("/")))));
+	const ignored = ignoredPaths(git, root, [...existing]);
+	return new Set(untracked.filter((file) => !existing.has(file) || ignored.has(file)));
+}
+/**
+* Stages the selected paths except the absent ones (`absentPaths`): index
+* paths are added as they are on disk, other paths only when they exist and
+* git does not ignore them.
+*/
+function stage(git, root, files) {
+	const absent = absentPaths(git, root, files);
+	const stageable = files.filter((file) => !absent.has(file));
 	if (stageable.length > 0) git.run(root, [
 		"add",
 		"-A",
@@ -3550,6 +3561,14 @@ var WorkflowGitFacade = class {
 			finish: (root) => finishConfirmed(this.git, root),
 			journal: (root) => readJournal$1(root)
 		};
+	}
+	/**
+	* Paths of `files` the commit candidate will not contain: outside the
+	* index and missing on disk or ignored by git (the paths `stage` skips).
+	*/
+	absentPaths(root, files) {
+		const absent = absentPaths(this.git, root, files);
+		return files.filter((file) => absent.has(file));
 	}
 	/** The commit being merged (`MERGE_HEAD`), or null without a merge in progress. */
 	mergeHead(root) {
@@ -4162,8 +4181,12 @@ function existingFile(root, file) {
 function markdownFiles(root, files) {
 	return files.filter((file) => isMarkdownPath(file) && file !== ".harness/plans/todo-plan.md" && existingFile(root, file));
 }
+/** Candidate files the commit keeps: the input of the content checks. */
+function committedFiles(context) {
+	return context.files.filter((file) => !context.removed.has(file));
+}
 function changedMarkdown(context) {
-	return markdownFiles(context.root, context.files);
+	return markdownFiles(context.root, committedFiles(context));
 }
 function fileLines(context) {
 	const limit = context.config.policy.maxFileLines;
@@ -4172,7 +4195,7 @@ function fileLines(context) {
 		passed: true
 	};
 	const over = [];
-	for (const file of context.files) {
+	for (const file of committedFiles(context)) {
 		if (isDocumentationPath(file) || file.startsWith(".harness/") || !existingFile(context.root, file)) continue;
 		const text = readFileSync(absolute(context.root, file), "utf8");
 		if (text.includes(NUL)) continue;
@@ -4202,7 +4225,7 @@ function oversizedDocuments(root, files, limit) {
 }
 function docSize(context) {
 	const limit = context.config.budget.documentBytes;
-	const over = oversizedDocuments(context.root, context.files, limit).map((item) => `${item.path}: ${item.bytes} bytes (limit ${limit}); split the document.`);
+	const over = oversizedDocuments(context.root, committedFiles(context), limit).map((item) => `${item.path}: ${item.bytes} bytes (limit ${limit}); split the document.`);
 	return over.length === 0 ? {
 		output: `Document size limit ${limit}: OK.`,
 		passed: true
@@ -4263,7 +4286,7 @@ function conflictLines(text) {
 }
 function conflictMarkers(context) {
 	const found = [];
-	for (const file of context.files) {
+	for (const file of committedFiles(context)) {
 		if (!existingFile(context.root, file)) continue;
 		const text = readFileSync(absolute(context.root, file), "utf8");
 		if (text.includes(NUL)) continue;
@@ -4910,7 +4933,8 @@ function runCommand(check, request, files) {
 		status: "error"
 	});
 	const usesFiles = command.args.includes(FILES_ARGUMENT);
-	const existing = (files ?? []).filter((file) => isExistingFile(request.root, file));
+	const removed = new Set(request.removed ?? []);
+	const existing = (files ?? []).filter((file) => !removed.has(file) && isExistingFile(request.root, file));
 	if (usesFiles && existing.length === 0) return result(check, {
 		reason: "No existing files to pass.",
 		status: "skipped"
@@ -4959,6 +4983,7 @@ function runOne(check, request) {
 			config: request.config,
 			docsWaiver: request.docsWaiver ?? null,
 			files: filtered ?? [],
+			removed: new Set(request.removed ?? []),
 			root: request.root
 		});
 		return result(check, {
@@ -7405,7 +7430,7 @@ in line with the code.
 //#endregion
 //#region product-parts/core-runtime/clusters/project-workflow/modules/workflow-installer/src/installer-payload.ts
 /** Version of the Workflow Kit payload; Kit 1.x was Workflow Pilot. */
-var KIT_VERSION = "2.2.1";
+var KIT_VERSION = "2.2.2";
 var MANIFEST_PATH = ".harness/workflow/manifest.json";
 var MANIFEST_SCHEMA = "harness-workflow-manifest/1";
 var OWN_HOOKS_DIR = ".harness/workflow/hooks";
@@ -7584,7 +7609,7 @@ function damagedFiles(root, manifest) {
 }
 function kitState(root, manifest) {
 	const damaged = damagedFiles(root, manifest);
-	if (compareVersions(manifest.version, "2.2.1") < 0) return {
+	if (compareVersions(manifest.version, "2.2.2") < 0) return {
 		damaged,
 		state: "KIT_OUTDATED"
 	};
@@ -7825,7 +7850,7 @@ function file(root, relative) {
 function manifestChecks(root) {
 	const manifest = readManifest(root);
 	if (!manifest) return [check("manifest", "fail", "The Workflow Kit manifest is missing.", false, "Install the Kit: `scripts/workflow install`.")];
-	const checks = [compareVersions(manifest.version, "2.2.1") < 0 ? check("manifest", "fail", `Kit ${manifest.version} is older than ${KIT_VERSION}.`, true, UPDATE) : check("manifest", "ok", `Kit ${manifest.version}.`)];
+	const checks = [compareVersions(manifest.version, "2.2.2") < 0 ? check("manifest", "fail", `Kit ${manifest.version} is older than ${KIT_VERSION}.`, true, UPDATE) : check("manifest", "ok", `Kit ${manifest.version}.`)];
 	const damaged = damagedFiles(root, manifest);
 	checks.push(damaged.length === 0 ? check("managed-files", "ok", "Managed files and sections match the manifest.") : check("managed-files", "fail", `Changed or missing managed parts: ${damaged.join(", ")}.`, true, UPDATE));
 	if (process.platform !== "win32") {
@@ -9365,6 +9390,7 @@ function preCommit(context) {
 		docsWaiver: task?.docsWaiver ?? null,
 		env: context.env,
 		files: journal.selected,
+		removed: git.absentPaths(root, journal.selected),
 		root,
 		service: isServiceCommit(journal, task),
 		stage: "commit"
@@ -10070,6 +10096,7 @@ function runPrepare(context, config, task, files) {
 		config,
 		env: context.env,
 		files,
+		removed: context.git.absentPaths(context.root, files),
 		root: context.root,
 		stage: "prepare"
 	});

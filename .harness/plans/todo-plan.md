@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 24,
+  "revision": 26,
   "rounds": [
     {
       "digest": null,
@@ -43,7 +43,7 @@
       }
     ],
     "decisions": [],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 1,
       "ownerSession": null,
@@ -100,14 +100,50 @@
         "product-parts/provider-runtime/clusters/provider-contract/cluster.md",
         "product-parts/provider-runtime/clusters/provider-adapters/cluster.md",
         "product-parts/control-panel/clusters/web-panel/cluster.md",
-        "product-parts/system-service/clusters/deployment/cluster.md"
+        "product-parts/system-service/clusters/deployment/cluster.md",
+        "bin/wfk.mjs",
+        "product-parts/backend-core/clusters/http-api/modules/http-server/module.md",
+        "product-parts/backend-core/clusters/http-api/modules/http-server/src/access.ts",
+        "product-parts/backend-core/clusters/http-api/modules/http-server/src/address.ts",
+        "product-parts/backend-core/clusters/http-api/modules/http-server/src/index.ts",
+        "product-parts/backend-core/clusters/http-api/modules/http-server/src/router.ts",
+        "product-parts/backend-core/clusters/http-api/modules/http-server/src/server.ts",
+        "product-parts/backend-core/clusters/http-api/modules/http-server/src/state.ts",
+        "product-parts/backend-core/clusters/http-api/modules/http-server/src/static.ts",
+        "product-parts/backend-core/clusters/http-api/modules/http-server/test/access.test.ts",
+        "product-parts/backend-core/clusters/http-api/modules/http-server/test/router.test.ts",
+        "product-parts/backend-core/clusters/http-api/modules/http-server/test/server.test.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/commands.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/index.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/system-info.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/app.test.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/commands.test.ts",
+        "product-parts/backend-core/clusters/runtime/modules/data-store/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/data-store/src/atomic.ts",
+        "product-parts/backend-core/clusters/runtime/modules/data-store/src/config.ts",
+        "product-parts/backend-core/clusters/runtime/modules/data-store/src/index.ts",
+        "product-parts/backend-core/clusters/runtime/modules/data-store/src/paths.ts",
+        "product-parts/backend-core/clusters/runtime/modules/data-store/test/atomic.test.ts",
+        "product-parts/backend-core/clusters/runtime/modules/data-store/test/config.test.ts",
+        "product-parts/backend-core/clusters/runtime/modules/data-store/test/paths.test.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/cards.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/dom.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/index.html",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/index.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/styles.css",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/system-card.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/panel-shell.test.ts"
       ],
       "fixes": null,
       "id": "T001",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Каркас бэкенда, фильтр доступа и панель-оболочка",
       "why": "Точка входа, HTTP-сервер с безопасным доступом с Mac и iPad и пустая панель, на которой наращиваются видимые функции"
     }
@@ -119,11 +155,11 @@
 ## State
 
 - Scope: assignment-m1-orchestrator-core-T001-1 (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 0/1
-- Revision: 24
+- Progress: 1/1
+- Revision: 26
 
 ## Objective
 
@@ -144,8 +180,8 @@
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T001 — Каркас бэкенда, фильтр доступа и панель-оболочка (work)
+- [DONE] T001 — Каркас бэкенда, фильтр доступа и панель-оболочка (work)
   - Commit: feat: add backend skeleton with access filter and panel shell
-  - Files: bin, package.json, package-lock.json, tsconfig.json, .gitignore, node_modules, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/backend-core/clusters/runtime/modules/data-store, product-parts/backend-core/clusters/http-api/modules/http-server, product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/system-service/clusters/deployment/modules/service-installer/src/index.ts, product-parts/system-service/clusters/deployment/modules/service-installer/module.md, product-parts/backend-core/product-part.md, product-parts/provider-runtime/product-part.md, product-parts/control-panel/product-part.md, product-parts/system-service/product-part.md, product-parts/backend-core/clusters/runtime/cluster.md, product-parts/backend-core/clusters/http-api/cluster.md, product-parts/backend-core/clusters/projects/cluster.md, product-parts/provider-runtime/clusters/provider-contract/cluster.md, product-parts/provider-runtime/clusters/provider-adapters/cluster.md, product-parts/control-panel/clusters/web-panel/cluster.md, product-parts/system-service/clusters/deployment/cluster.md
+  - Files: bin, package.json, package-lock.json, tsconfig.json, .gitignore, node_modules, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/backend-core/clusters/runtime/modules/data-store, product-parts/backend-core/clusters/http-api/modules/http-server, product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/system-service/clusters/deployment/modules/service-installer/src/index.ts, product-parts/system-service/clusters/deployment/modules/service-installer/module.md, product-parts/backend-core/product-part.md, product-parts/provider-runtime/product-part.md, product-parts/control-panel/product-part.md, product-parts/system-service/product-part.md, product-parts/backend-core/clusters/runtime/cluster.md, product-parts/backend-core/clusters/http-api/cluster.md, product-parts/backend-core/clusters/projects/cluster.md, product-parts/provider-runtime/clusters/provider-contract/cluster.md, product-parts/provider-runtime/clusters/provider-adapters/cluster.md, product-parts/control-panel/clusters/web-panel/cluster.md, product-parts/system-service/clusters/deployment/cluster.md, bin/wfk.mjs, product-parts/backend-core/clusters/http-api/modules/http-server/module.md, product-parts/backend-core/clusters/http-api/modules/http-server/src/access.ts, product-parts/backend-core/clusters/http-api/modules/http-server/src/address.ts, product-parts/backend-core/clusters/http-api/modules/http-server/src/index.ts, product-parts/backend-core/clusters/http-api/modules/http-server/src/router.ts, product-parts/backend-core/clusters/http-api/modules/http-server/src/server.ts, product-parts/backend-core/clusters/http-api/modules/http-server/src/state.ts, product-parts/backend-core/clusters/http-api/modules/http-server/src/static.ts, product-parts/backend-core/clusters/http-api/modules/http-server/test/access.test.ts, product-parts/backend-core/clusters/http-api/modules/http-server/test/router.test.ts, product-parts/backend-core/clusters/http-api/modules/http-server/test/server.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/commands.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/index.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/system-info.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/app.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/commands.test.ts, product-parts/backend-core/clusters/runtime/modules/data-store/module.md, product-parts/backend-core/clusters/runtime/modules/data-store/src/atomic.ts, product-parts/backend-core/clusters/runtime/modules/data-store/src/config.ts, product-parts/backend-core/clusters/runtime/modules/data-store/src/index.ts, product-parts/backend-core/clusters/runtime/modules/data-store/src/paths.ts, product-parts/backend-core/clusters/runtime/modules/data-store/test/atomic.test.ts, product-parts/backend-core/clusters/runtime/modules/data-store/test/config.test.ts, product-parts/backend-core/clusters/runtime/modules/data-store/test/paths.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/cards.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/dom.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/index.html, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/index.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/styles.css, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/system-card.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/panel-shell.test.ts
 
 State changes only through `scripts/workflow` commands. History lives in Git.

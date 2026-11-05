@@ -19,5 +19,6 @@ autostart, Windows ключ `HKCU\…\Run`), запускатель `wfk`, зн�
   службы.
 - Тесты никогда не трогают настоящие `~/Library/LaunchAgents`, реестр Windows
   и systemd: внешние программы вызываются через внедряемый исполнитель.
-- В T001 модуль `service-installer` — заглушка (статус «не установлена»,
-  команды отвечают «не реализовано»); реализация — задача T008.
+- Модуль `service-installer` реализован (T008) и подключён к `cli` и
+  карточке «Система» (T010): `wfk install`, `uninstall`,
+  `service start|stop|status`, `open`, `doctor [--installed]`.

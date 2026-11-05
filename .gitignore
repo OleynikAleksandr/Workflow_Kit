@@ -10,6 +10,3 @@ node_modules/
 .venv/
 __pycache__/
 # workflow-kit:end
-
-# Dependencies (installed with npm ci)
-node_modules/

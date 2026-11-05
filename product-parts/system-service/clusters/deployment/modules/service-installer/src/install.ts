@@ -83,7 +83,7 @@ export async function install(deps: ResolvedDeps): Promise<InstallReport> {
   await saveProgramPaths(deps.fs, layout, detected.programs, detected.loginPath);
 
   const program: ServiceProgram = {
-    node: deps.nodePath,
+    node: detected.programs['node'] ?? deps.nodePath,
     entry: entryOf(deps.platform, appPath),
     workingDir: appPath,
     path: detected.loginPath,

@@ -8,7 +8,7 @@ export const PROGRAMS: readonly string[] = ['node', 'claude', 'codex', 'expect']
 
 /** Result of the detection. */
 export interface DetectedPrograms {
-  /** Found programs only; node is always the absolute node that runs install. */
+  /** Found programs only; node is the running node, by a stable path when one exists (stableNodePath). */
   programs: Record<string, string>;
   /** PATH given to the service and its children. */
   loginPath: string;
@@ -68,13 +68,43 @@ export async function loginShellPath(deps: ResolvedDeps): Promise<string | null>
   return null;
 }
 
+/** Homebrew keg link of a Cellar node: <prefix>/Cellar/<formula>/<version>/bin/node → <prefix>/opt/<formula>/bin/node. */
+export function homebrewOptNode(realNode: string): string | null {
+  const match = /^(.*)\/Cellar\/([^/]+)\/[^/]+\/bin\/node$/.exec(realNode);
+  return match ? `${match[1]}/opt/${match[2]}/bin/node` : null;
+}
+
+/**
+ * Node path for the service that survives a Homebrew upgrade: process.execPath is the versioned
+ * Cellar path (…/Cellar/node@24/24.x.y/bin/node) that disappears on `brew upgrade`. The first
+ * `node` of the search PATH (login PATH first) with the same realpath is taken, then the Homebrew
+ * opt link; when none matches, the running node itself. Windows keeps the running node.
+ */
+export function stableNodePath(deps: ResolvedDeps, searchPath: string): string {
+  if (deps.platform === 'win32') return deps.nodePath;
+  const real = deps.fs.realpath(deps.nodePath);
+  if (!real) return deps.nodePath;
+  const p = pathApi(deps.platform);
+  const candidates = searchPath
+    .split(':')
+    .filter((dir) => dir !== '' && p.isAbsolute(dir))
+    .map((dir) => p.join(dir, 'node'));
+  const opt = homebrewOptNode(real);
+  if (opt) candidates.push(opt);
+  for (const candidate of candidates) {
+    if (deps.fs.isExecutable(candidate) && deps.fs.realpath(candidate) === real) return candidate;
+  }
+  return deps.nodePath;
+}
+
 /** Detects the service PATH and the program paths saved by install (D12). */
 export async function detectPrograms(deps: ResolvedDeps): Promise<DetectedPrograms> {
   const p = pathApi(deps.platform);
   const login = await loginShellPath(deps);
-  // The directory of the installing node goes first: the service runs exactly that node.
-  const loginPath = mergePath(deps.platform, p.dirname(deps.nodePath), login ?? '', envPath(deps.env));
-  const programs: Record<string, string> = { node: deps.nodePath };
+  const node = stableNodePath(deps, mergePath(deps.platform, login ?? '', envPath(deps.env)));
+  // The directory of the service node goes first: the service runs exactly that node.
+  const loginPath = mergePath(deps.platform, p.dirname(node), login ?? '', envPath(deps.env));
+  const programs: Record<string, string> = { node };
   for (const name of PROGRAMS) {
     if (name === 'node') continue;
     const found = findProgram(name, loginPath, { platform: deps.platform, env: deps.env, isExecutable: (file) => deps.fs.isExecutable(file) });

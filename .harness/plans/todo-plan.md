@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 41,
+  "revision": 42,
   "rounds": [
     {
       "digest": null,
@@ -805,9 +805,13 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Подключение установщика к cli и панели",
-      "why": "T008 не мог менять cli и панель: команды install, uninstall, service, open, doctor пока отвечают заглушкой, а «Система» не показывает автозапуск и программы"
+      "why": "T008 не мог менять cli и панель: команды install, uninstall, service, open, doctor пока отвечают заглушкой, а «Система» не показывает автозапуск и программы",
+      "integration": {
+        "operationId": "c1cbdc48-43bb-4797-902e-807cf4b9ee0e",
+        "sourceCommit": "fbe32ea887f834282e6e9d6b1fc897ed3020eeef"
+      }
     },
     {
       "acceptance": [
@@ -917,8 +921,8 @@
 - Delivery: IN_PROGRESS
 - Execution: orchestrated (max 3 workers, owner cfa00ffe-c414-4ae6-9953-e3d2906b3705)
 - Current task: none
-- Progress: 9/12
-- Revision: 41
+- Progress: 10/12
+- Revision: 42
 
 ## Objective
 
@@ -969,7 +973,7 @@
   - Commit: feat: add backend installer, autostart and launcher
   - Files: product-parts/system-service/clusters/deployment/modules/service-installer
   - Depends on: T004
-- [TODO] T010 — Подключение установщика к cli и панели (work)
+- [DONE] T010 — Подключение установщика к cli и панели (work)
   - Commit: fix: wire the service installer into the cli and panel
   - Files: product-parts/backend-core/clusters/runtime/modules/cli, product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/system-service/clusters/deployment/modules/service-installer, product-parts/system-service/product-part.md, product-parts/system-service/clusters/deployment/cluster.md, node_modules, .gitignore
   - Depends on: T008

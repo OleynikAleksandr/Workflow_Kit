@@ -56,7 +56,9 @@ test('GET /api/health and GET /api/state expose the "system" section', async () 
   assert.equal(system.os.label, 'macOS 26.1 (arm64)');
   assert.equal(system.dataDir, path.join(tmp, 'data'));
   assert.equal(system.dataDirOverridden, true);
-  assert.equal(system.service.implemented, false);
+  assert.equal(system.service.implemented, true);
+  assert.equal(system.service.instance, 'development');
+  assert.equal(system.service.running, true);
   assert.deepEqual(system.addresses, [
     `http://127.0.0.1:${app.server.port()}/`,
     `http://100.101.102.103:${app.server.port()}/`,

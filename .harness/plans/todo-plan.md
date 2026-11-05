@@ -3,11 +3,11 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T014",
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 50,
+  "revision": 53,
   "rounds": [
     {
       "digest": {
@@ -89,7 +89,7 @@
       "text": "Пользователь: «Согласен с твоим предложением, но важно, чтобы по каждой вехе я мог что-то тестировать визуально. Для меня важно, чтобы бэкэнд мог работать на любой операционной системе, разворачиваться. И чтобы он стартовал при старте компьютера или при старте самого интерфейса кита. У нас независимый совершенно проект, поэтому переносим все абсолютно в наш проект, формируем его по новой и строим инсталлятор бэкэнда.» | Execution mode chosen by the user: orchestrated: Согласен с планом, прошу тебя его показывать как виджет и отмечать его выполнение. А также в тех местах, в которых ты мог бы запустить процессы параллельно, запускай сабагентов. Жду первый релиз."
     },
     "baselineCommit": "4ec2edc62005983d0455d69078bcd50c5f74c178",
-    "blockedReason": null,
+    "blockedReason": "wfk install: после launchctl bootout служба не загружается заново (гонка print/kickstart в service-installer); нужен раунд исправлений",
     "context": [
       {
         "path": "docs/planning/M1-orchestrator-core.md",
@@ -159,7 +159,7 @@
     "id": "m1-orchestrator-core",
     "objective": "Веха 1: бэкенд-служба Workflow Kit (любая ОС, установщик, автозапуск, запускатель), проекты, собственная структура Kit, провайдеры Claude и Codex с общим контрактом и веб-панель для Mac и iPad",
     "spec": "docs/planning/M1-orchestrator-core.md",
-    "status": "ACTIVE"
+    "status": "BLOCKED"
   },
   "tasks": [
     {
@@ -1136,11 +1136,12 @@
     {
       "acceptance": [
         "Служба обновлена командой node bin/wfk.mjs install после подтверждения пользователя; wfk doctor --installed — всё в порядке",
+        "Перезапуск LaunchAgent (переустановка, wfk service stop/start) после launchctl bootout ждёт, пока launchctl print перестанет находить ai.workflowkit.backend, и только потом загружает службу через bootstrap; подставной launchctl в тестах умеет асинхронную выгрузку и воспроизводит дефект без исправления; module.md service-installer обновлён",
         "Сценарий раздела 11 пройден пользователем по порядку на Mac и iPad; результат каждого шага дописан в docs/evidence/M1-acceptance.md"
       ],
       "checks": [],
       "commitMessage": "docs: record milestone 1 acceptance after fixes",
-      "confirmation": null,
+      "confirmation": "Да, переустановить",
       "context": [
         {
           "path": "docs/planning/M1-orchestrator-core.md",
@@ -1160,14 +1161,15 @@
       ],
       "docsWaiver": null,
       "files": [
-        "docs/evidence/M1-acceptance.md"
+        "docs/evidence/M1-acceptance.md",
+        "product-parts/system-service/clusters/deployment/modules/service-installer"
       ],
       "fixes": null,
       "id": "T014",
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "Переустановка службы и повторная приёмка вехи 1",
       "why": "Пользователь проверяет исправления на своём Mac и iPad, проходя сценарий по порядку"
     }
@@ -1178,12 +1180,12 @@
 
 ## State
 
-- Scope: m1-orchestrator-core (ACTIVE)
+- Scope: m1-orchestrator-core (BLOCKED: wfk install: после launchctl bootout служба не загружается заново (гонка print/kickstart в service-installer); нужен раунд исправлений)
 - Delivery: IN_PROGRESS
 - Execution: orchestrated (max 3 workers, owner cfa00ffe-c414-4ae6-9953-e3d2906b3705)
-- Current task: none
+- Current task: T014
 - Progress: 16/17
-- Revision: 50
+- Revision: 53
 
 ## Objective
 
@@ -1268,9 +1270,9 @@ Digest: Milestone 1 core is in code: wfk CLI and createApp, data store with oper
   - Commit: docs: reconcile documentation for R2
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M1-providers.md, product-parts/backend-core/clusters/runtime/modules/data-store/module.md, product-parts/backend-core/clusters/http-api/modules/http-server/module.md, product-parts/backend-core/clusters/projects/modules/project-registry/module.md, product-parts/backend-core/clusters/projects/modules/kit-structure/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/module.md
   - Depends on: T011, T012, T013
-- [TODO] T014 — Переустановка службы и повторная приёмка вехи 1 (delivery)
+- [IN_PROGRESS] T014 — Переустановка службы и повторная приёмка вехи 1 (delivery)
   - Commit: docs: record milestone 1 acceptance after fixes
-  - Files: docs/evidence/M1-acceptance.md
+  - Files: docs/evidence/M1-acceptance.md, product-parts/system-service/clusters/deployment/modules/service-installer
   - Depends on: T011, T012, T013, DOCS-R2
 
 Digest: R2 fixes defects D1-D3 of the first Mac acceptance. Claude trust is written atomically into ~/.claude.json without pty dialogs (trust.exp removed); the preview requires an allow/deny choice for external CLAUDE.md imports and marks a trusted parent folder (inherited); session/environment scripts never press keys in dialogs. Codex releases the thread with thread/unsubscribe after the service turn, which has no policy overrides. node_modules left git, module contracts match the code, Kit is 2.2.2. Repeat device acceptance is pending.

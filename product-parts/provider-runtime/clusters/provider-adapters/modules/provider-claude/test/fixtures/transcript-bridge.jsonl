@@ -1,0 +1,5 @@
+{"type":"summary","summary":"Fixture session","leafUuid":"0b0e7c34-0000-4000-8000-000000000001"}
+{"parentUuid":null,"isSidechain":false,"userType":"external","cwd":"/Users/me/WorkflowKitProjects/Alpha","sessionId":"6f1c2a9e-1111-4b2b-9c3d-000000000001","version":"2.1.318","type":"user","message":{"role":"user","content":"mention bridge-session in text only"},"uuid":"0b0e7c34-0000-4000-8000-000000000002","timestamp":"2026-11-05T10:00:00.000Z"}
+{"type":"bridge-session","bridgeSessionId":"cse_01AbCdEf234","sessionId":"6f1c2a9e-1111-4b2b-9c3d-000000000001","timestamp":"2026-11-05T10:00:01.000Z"}
+{"parentUuid":"0b0e7c34-0000-4000-8000-000000000002","type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"Привет"}]},"uuid":"0b0e7c34-0000-4000-8000-000000000003","timestamp":"2026-11-05T10:00:02.000Z"}
+not json at all

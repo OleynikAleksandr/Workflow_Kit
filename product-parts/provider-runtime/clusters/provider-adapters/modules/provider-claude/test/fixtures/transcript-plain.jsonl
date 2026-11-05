@@ -1,0 +1,2 @@
+{"parentUuid":null,"cwd":"/Users/me/WorkflowKitProjects/Alpha","sessionId":"6f1c2a9e-2222-4b2b-9c3d-000000000002","type":"user","message":{"role":"user","content":"a session without Remote Control"},"uuid":"1b0e7c34-0000-4000-8000-000000000001","timestamp":"2026-11-05T11:00:00.000Z"}
+{"parentUuid":"1b0e7c34-0000-4000-8000-000000000001","type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"ok"}]},"uuid":"1b0e7c34-0000-4000-8000-000000000002","timestamp":"2026-11-05T11:00:01.000Z"}

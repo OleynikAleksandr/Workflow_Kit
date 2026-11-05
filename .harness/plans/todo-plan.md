@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 37,
+  "revision": 39,
   "rounds": [
     {
       "digest": null,
@@ -50,7 +50,7 @@
       }
     ],
     "decisions": [],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 1,
       "ownerSession": null,
@@ -93,7 +93,29 @@
       "docsWaiver": null,
       "files": [
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude",
-        "product-parts/backend-core/clusters/runtime/modules/cli/test/providers.test.ts"
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/providers.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/autorun.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/claude-config.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/environment.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/index.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/links.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/programs.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/provider.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/environment.exp",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/session.exp",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/trust.exp",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/records.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/runtime.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/sessions.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/transcripts.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/trust.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/fixtures/fake-claude.mjs",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/fixtures/transcript-bridge.jsonl",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/fixtures/transcript-plain.jsonl",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parts.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/provider.test.ts"
       ],
       "fixes": null,
       "id": "T006",
@@ -101,7 +123,7 @@
       "kind": "work",
       "parallelSafe": true,
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Провайдер Claude",
       "why": "Доверие, сессии Remote Control и окружение папки Claude из панели"
     }
@@ -113,11 +135,11 @@
 ## State
 
 - Scope: assignment-m1-orchestrator-core-T006-1 (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 0/1
-- Revision: 37
+- Progress: 1/1
+- Revision: 39
 
 ## Objective
 
@@ -139,8 +161,8 @@
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T006 — Провайдер Claude (work, parallel-safe)
+- [DONE] T006 — Провайдер Claude (work, parallel-safe)
   - Commit: feat: implement claude provider
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, product-parts/backend-core/clusters/runtime/modules/cli/test/providers.test.ts
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, product-parts/backend-core/clusters/runtime/modules/cli/test/providers.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/autorun.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/claude-config.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/environment.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/links.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/programs.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/environment.exp, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/session.exp, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/trust.exp, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/records.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/runtime.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/transcripts.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/trust.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/fixtures/fake-claude.mjs, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/fixtures/transcript-bridge.jsonl, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/fixtures/transcript-plain.jsonl, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parts.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/provider.test.ts
 
 State changes only through `scripts/workflow` commands. History lives in Git.

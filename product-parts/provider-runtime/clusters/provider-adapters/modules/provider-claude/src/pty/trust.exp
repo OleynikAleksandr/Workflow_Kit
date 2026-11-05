@@ -1,0 +1,29 @@
+# Accepts Claude Code's workspace trust dialog for one folder.
+# Usage: expect trust.exp <folder> <claude> [<pace ms>]
+# The dialog's default is "No, exit": one Down selects "Yes". If the layout ever changes, the
+# wrong pick exits without trust and the backend's check of ~/.claude.json reports the failure.
+# The pauses (multiples of pace, 1000 ms by default) let the UI start taking keys.
+# Prints CLAUDE_PID <pid>, then TRUST_DONE, TRUST_EXITED (exit 4) or TRUST_FAILED (exit 3).
+set timeout 40
+lassign $argv dir claude pace
+if {$pace eq ""} { set pace 1000 }
+cd $dir
+spawn $claude
+puts "\nCLAUDE_PID [exp_pid]"
+stty rows 40 columns 120 < $spawn_out(slave,name)
+expect {
+  -re {confirm} { }
+  eof { puts "\nTRUST_EXITED"; exit 4 }
+  timeout { puts "\nTRUST_FAILED no trust dialog"; exit 3 }
+}
+after [expr {3 * $pace}]
+send "\033\[B"
+after [expr {2 * $pace}]
+send "\r"
+after [expr {6 * $pace}]
+send "/exit\r"
+after [expr {2 * $pace}]
+catch {close}
+catch {wait}
+puts "\nTRUST_DONE"
+exit 0

@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 6,
+  "revision": 7,
   "rounds": [
     {
       "digest": null,
@@ -444,11 +444,10 @@
         "Открыть можно только папку внутри домашней по realpath (на Windows без учёта регистра); выход через .. и симлинки отклоняется; тесты",
         "GET /api/folders отдаёт подкаталоги; ошибка доступа (macOS TCC) показывается с подсказкой; поля ввода с autocapitalize=off и autocorrect=off",
         "DELETE убирает проект только из списка, папка остаётся",
-        "projects.json пишется атомарно; события пишутся в events.jsonl с ротацией по 5 МБ"
+        "projects.json пишется атомарно; события пишутся в events.jsonl с ротацией по 5 МБ",
+        "Ручная проверка пользователем: Визуально: создать проект и открыть существующую папку выбором из списка на Mac и iPad; после перезапуска serve проекты на месте"
       ],
-      "checks": [
-        "Визуально: создать проект и открыть существующую папку выбором из списка на Mac и iPad; после перезапуска serve проекты на месте"
-      ],
+      "checks": [],
       "commitMessage": "feat: add project registry and folder picker",
       "confirmation": null,
       "context": [
@@ -842,7 +841,7 @@
 - Execution: orchestrated (max 3 workers, owner cfa00ffe-c414-4ae6-9953-e3d2906b3705)
 - Current task: none
 - Progress: 1/11
-- Revision: 6
+- Revision: 7
 
 ## Objective
 

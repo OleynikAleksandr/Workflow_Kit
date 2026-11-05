@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 35,
+  "revision": 36,
   "rounds": [
     {
       "digest": null,
@@ -644,7 +644,8 @@
         "resumeSession поднимает тот же session id; stopSession останавливает только свой процесс по D9",
         "Особое действие проекта «Окружение папки» (запуск и остановка claude remote-control --spawn=same-dir) по D5 и D9",
         "Ссылки claude://claude.ai/code/session_<id> и https://claude.ai/code/session_<id>; тесты на подставном claude и фикстурах транскриптов",
-        "Ручная проверка пользователем: Визуально: предпросмотр → «Доверять» → «доверено»; «Создать сессию» → открывается в Claude Desktop на Mac и в приложении Claude на iPad; после перезапуска serve сессия жива; окружение папки запускается и видно с iPad"
+        "Ручная проверка пользователем: Визуально: предпросмотр → «Доверять» → «доверено»; «Создать сессию» → открывается в Claude Desktop на Mac и в приложении Claude на iPad; после перезапуска serve сессия жива; окружение папки запускается и видно с iPad",
+        "Тест cli/test/providers.test.ts не зависит от того, реализован ли провайдер: проверки заглушек и not-implemented идут на внедрённых провайдерах-заглушках (createApp({providers})), а для настоящих claude и codex проверяется только регистрация и раздел состояния — так реализация T007 его не ломает"
       ],
       "checks": [],
       "commitMessage": "feat: implement claude provider",
@@ -666,7 +667,8 @@
       ],
       "docsWaiver": null,
       "files": [
-        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude"
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/providers.test.ts"
       ],
       "fixes": null,
       "id": "T006",
@@ -844,7 +846,7 @@
 - Execution: orchestrated (max 3 workers, owner cfa00ffe-c414-4ae6-9953-e3d2906b3705)
 - Current task: none
 - Progress: 6/11
-- Revision: 35
+- Revision: 36
 
 ## Objective
 
@@ -885,7 +887,7 @@
   - Depends on: T004
 - [TODO] T006 — Провайдер Claude (work, parallel-safe)
   - Commit: feat: implement claude provider
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, product-parts/backend-core/clusters/runtime/modules/cli/test/providers.test.ts
   - Depends on: T004
 - [TODO] T007 — Провайдер Codex (work, parallel-safe)
   - Commit: feat: implement codex provider

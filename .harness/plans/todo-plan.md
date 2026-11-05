@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 38,
+  "revision": 39,
   "rounds": [
     {
       "digest": null,
@@ -766,6 +766,44 @@
     },
     {
       "acceptance": [
+        "cli передаёт install, uninstall, service start/stop/status, open и doctor [--installed] в service-installer с контекстом (env, homedir, платформа, исполнитель); тесты cli используют подставные эффекты и никогда не трогают настоящий HOME, LaunchAgents и автозапуск",
+        "Карточка «Система» показывает установленную версию, экземпляр (установка или разработка), способ и состояние автозапуска, запускатель, значок и найденные пути программ",
+        "Путь к node для службы устойчив к обновлению Homebrew: вместо версионного пути Cellar берётся node из login PATH с тем же realpath (например /opt/homebrew/opt/node@24/bin/node или /opt/homebrew/bin/node); тест",
+        "module.md модулей cli, panel-shell и service-installer обновлены; product-part.md и cluster.md части system-service больше не называют установщик заглушкой",
+        "Ручная проверка пользователем: WFK_DATA_DIR=<временный каталог> WFK_PORT=<порт> node bin/wfk.mjs install, затем open — панель в окне без вкладок, «Система» показывает службу и пути программ"
+      ],
+      "checks": [],
+      "commitMessage": "fix: wire the service installer into the cli and panel",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M1-orchestrator-core.md",
+          "required": true,
+          "heading": "9. Установщик, запуск и автозапуск"
+        }
+      ],
+      "dependencies": [
+        "T008"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/backend-core/clusters/runtime/modules/cli",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell",
+        "product-parts/system-service/clusters/deployment/modules/service-installer",
+        "product-parts/system-service/product-part.md",
+        "product-parts/system-service/clusters/deployment/cluster.md"
+      ],
+      "fixes": "T008",
+      "id": "T010",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R1",
+      "status": "TODO",
+      "title": "Подключение установщика к cli и панели",
+      "why": "T008 не мог менять cli и панель: команды install, uninstall, service, open, doctor пока отвечают заглушкой, а «Система» не показывает автозапуск и программы"
+    },
+    {
+      "acceptance": [
         "Project-wide documents describe the round result",
         "The round digest records result, decisions, contracts and references"
       ],
@@ -782,7 +820,8 @@
         "T005",
         "T006",
         "T007",
-        "T008"
+        "T008",
+        "T010"
       ],
       "docsWaiver": null,
       "files": [
@@ -797,7 +836,25 @@
         "docs/architecture/modules/kit-structure.md",
         "docs/architecture/modules/providers.md",
         "docs/architecture/modules/provider-claude.md",
-        "docs/architecture/modules/provider-codex.md"
+        "docs/architecture/modules/provider-codex.md",
+        "node_modules/@types/node/README.md",
+        "node_modules/typescript/README.md",
+        "node_modules/typescript/SECURITY.md",
+        "node_modules/undici-types/README.md",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/module.md",
+        "product-parts/backend-core/product-part.md",
+        "product-parts/provider-runtime/product-part.md",
+        "product-parts/control-panel/product-part.md",
+        "product-parts/system-service/product-part.md",
+        "product-parts/backend-core/clusters/runtime/cluster.md",
+        "product-parts/backend-core/clusters/http-api/cluster.md",
+        "product-parts/backend-core/clusters/projects/cluster.md",
+        "product-parts/provider-runtime/clusters/provider-contract/cluster.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/cluster.md",
+        "product-parts/control-panel/clusters/web-panel/cluster.md",
+        "product-parts/system-service/clusters/deployment/cluster.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md"
       ],
       "fixes": null,
       "id": "DOCS-R1",
@@ -853,8 +910,8 @@
 - Delivery: IN_PROGRESS
 - Execution: orchestrated (max 3 workers, owner cfa00ffe-c414-4ae6-9953-e3d2906b3705)
 - Current task: none
-- Progress: 8/11
-- Revision: 38
+- Progress: 8/12
+- Revision: 39
 
 ## Objective
 
@@ -905,10 +962,15 @@
   - Commit: feat: add backend installer, autostart and launcher
   - Files: product-parts/system-service/clusters/deployment/modules/service-installer
   - Depends on: T004
+- [TODO] T010 — Подключение установщика к cli и панели (work)
+  - Commit: fix: wire the service installer into the cli and panel
+  - Files: product-parts/backend-core/clusters/runtime/modules/cli, product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/system-service/clusters/deployment/modules/service-installer, product-parts/system-service/product-part.md, product-parts/system-service/clusters/deployment/cluster.md
+  - Depends on: T008
+  - Fixes: T008
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
-  - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M1-orchestrator-core.md, docs/architecture/modules/cli.md, docs/architecture/modules/core.md, docs/architecture/modules/server.md, docs/architecture/modules/panel.md, docs/architecture/modules/service.md, docs/architecture/modules/kit-structure.md, docs/architecture/modules/providers.md, docs/architecture/modules/provider-claude.md, docs/architecture/modules/provider-codex.md
-  - Depends on: QUALITY, T001, T002, T003, T004, T005, T006, T007, T008
+  - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M1-orchestrator-core.md, docs/architecture/modules/cli.md, docs/architecture/modules/core.md, docs/architecture/modules/server.md, docs/architecture/modules/panel.md, docs/architecture/modules/service.md, docs/architecture/modules/kit-structure.md, docs/architecture/modules/providers.md, docs/architecture/modules/provider-claude.md, docs/architecture/modules/provider-codex.md, node_modules/@types/node/README.md, node_modules/typescript/README.md, node_modules/typescript/SECURITY.md, node_modules/undici-types/README.md, product-parts/system-service/clusters/deployment/modules/service-installer/module.md, product-parts/backend-core/product-part.md, product-parts/provider-runtime/product-part.md, product-parts/control-panel/product-part.md, product-parts/system-service/product-part.md, product-parts/backend-core/clusters/runtime/cluster.md, product-parts/backend-core/clusters/http-api/cluster.md, product-parts/backend-core/clusters/projects/cluster.md, product-parts/provider-runtime/clusters/provider-contract/cluster.md, product-parts/provider-runtime/clusters/provider-adapters/cluster.md, product-parts/control-panel/clusters/web-panel/cluster.md, product-parts/system-service/clusters/deployment/cluster.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md
+  - Depends on: QUALITY, T001, T002, T003, T004, T005, T006, T007, T008, T010
 - [TODO] T009 — Установка на Mac и приёмка вехи 1 (delivery)
   - Commit: docs: record milestone 1 acceptance
   - Files: docs/evidence/M1-acceptance.md

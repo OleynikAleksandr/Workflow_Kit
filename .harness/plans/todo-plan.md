@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 40,
+  "revision": 41,
   "rounds": [
     {
       "digest": null,
@@ -774,7 +774,8 @@
         "Карточка «Система» показывает установленную версию, экземпляр (установка или разработка), способ и состояние автозапуска, запускатель, значок и найденные пути программ",
         "Путь к node для службы устойчив к обновлению Homebrew: вместо версионного пути Cellar берётся node из login PATH с тем же realpath (например /opt/homebrew/opt/node@24/bin/node или /opt/homebrew/bin/node); тест",
         "module.md модулей cli, panel-shell и service-installer обновлены; product-part.md и cluster.md части system-service больше не называют установщик заглушкой",
-        "Ручная проверка пользователем: WFK_DATA_DIR=<временный каталог> WFK_PORT=<порт> node bin/wfk.mjs install, затем open — панель в окне без вкладок, «Система» показывает службу и пути программ"
+        "Ручная проверка пользователем: WFK_DATA_DIR=<временный каталог> WFK_PORT=<порт> node bin/wfk.mjs install, затем open — панель в окне без вкладок, «Система» показывает службу и пути программ",
+        "node_modules удалён из индекса git (git rm -r --cached node_modules; Kit 2.2.1 это коммитит); дублирующая строка node_modules/ вне блока Workflow Kit в .gitignore убрана (блок Kit уже её содержит); файлы на диске остаются"
       ],
       "checks": [],
       "commitMessage": "fix: wire the service installer into the cli and panel",
@@ -795,7 +796,9 @@
         "product-parts/control-panel/clusters/web-panel/modules/panel-shell",
         "product-parts/system-service/clusters/deployment/modules/service-installer",
         "product-parts/system-service/product-part.md",
-        "product-parts/system-service/clusters/deployment/cluster.md"
+        "product-parts/system-service/clusters/deployment/cluster.md",
+        "node_modules",
+        ".gitignore"
       ],
       "fixes": "T008",
       "id": "T010",
@@ -915,7 +918,7 @@
 - Execution: orchestrated (max 3 workers, owner cfa00ffe-c414-4ae6-9953-e3d2906b3705)
 - Current task: none
 - Progress: 9/12
-- Revision: 40
+- Revision: 41
 
 ## Objective
 
@@ -968,7 +971,7 @@
   - Depends on: T004
 - [TODO] T010 — Подключение установщика к cli и панели (work)
   - Commit: fix: wire the service installer into the cli and panel
-  - Files: product-parts/backend-core/clusters/runtime/modules/cli, product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/system-service/clusters/deployment/modules/service-installer, product-parts/system-service/product-part.md, product-parts/system-service/clusters/deployment/cluster.md
+  - Files: product-parts/backend-core/clusters/runtime/modules/cli, product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/system-service/clusters/deployment/modules/service-installer, product-parts/system-service/product-part.md, product-parts/system-service/clusters/deployment/cluster.md, node_modules, .gitignore
   - Depends on: T008
   - Fixes: T008
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)

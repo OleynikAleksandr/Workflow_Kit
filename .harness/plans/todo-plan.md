@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 47,
+  "revision": 48,
   "rounds": [
     {
       "digest": {
@@ -1028,9 +1028,13 @@
       "kind": "work",
       "parallelSafe": true,
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Codex отпускает тред после служебного хода",
-      "why": "Приёмка: ChatGPT показал «Этот чат открыт в другом приложении» для сессии, созданной панелью (D1)"
+      "why": "Приёмка: ChatGPT показал «Этот чат открыт в другом приложении» для сессии, созданной панелью (D1)",
+      "integration": {
+        "operationId": "557aba39-73f4-4b63-97ec-576f3c7b1ead",
+        "sourceCommit": "5955478bc66e7296504bb04b18cf6c8b1e8e0123"
+      }
     },
     {
       "acceptance": [
@@ -1146,8 +1150,8 @@
 - Delivery: IN_PROGRESS
 - Execution: orchestrated (max 3 workers, owner cfa00ffe-c414-4ae6-9953-e3d2906b3705)
 - Current task: none
-- Progress: 13/17
-- Revision: 47
+- Progress: 14/17
+- Revision: 48
 
 ## Objective
 
@@ -1220,7 +1224,7 @@ Digest: Milestone 1 core is in code: wfk CLI and createApp, data store with oper
   - Commit: fix: grant claude trust explicitly and ask about external imports
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/control-panel/clusters/web-panel/modules/provider-cards, docs/planning/M1-providers.md
   - Fixes: T006
-- [TODO] T012 — Codex отпускает тред после служебного хода (work, parallel-safe)
+- [DONE] T012 — Codex отпускает тред после служебного хода (work, parallel-safe)
   - Commit: fix: release the codex thread after the service turn
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex
   - Fixes: T007

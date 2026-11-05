@@ -9,7 +9,7 @@ export type { CodexDeps, DaemonOpener, DaemonState, ProgramState } from './runti
 export type { AppServerOpener, AppServerSpec } from './stdio.ts';
 export type { RpcTransport } from './rpc.ts';
 export { KIT_HOOK_COMMAND } from './hooks.ts';
-export { SERVICE_TURN_POLICY, serviceTurnText, threadLinks } from './sessions.ts';
+export { SERVICE_TURN_WAIT_MS, UNSUBSCRIBE_TIMEOUT_MS, serviceTurnText, threadLinks } from './sessions.ts';
 export type { CodexRecord } from './sessions.ts';
 
 /** Creates the Codex provider with the real transports (stdio app-server, daemon socket). */

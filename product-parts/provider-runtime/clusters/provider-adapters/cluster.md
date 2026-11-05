@@ -8,12 +8,10 @@
 
 ## Модули
 
-| Модуль | Обязанность | Задача |
-| --- | --- | --- |
-| `provider-claude` | доверие, сессии, окружение (pty через `expect`) | T006 |
-| `provider-codex` | демон, доверие, хуки, сессии | T007 |
-
-Модули ещё не созданы; их контракты появятся вместе с кодом.
+| Модуль | Обязанность |
+| --- | --- |
+| [provider-claude](modules/provider-claude/module.md) | доверие, сессии Remote Control, окружение папки (pty через `expect`) |
+| [provider-codex](modules/provider-codex/module.md) | демон app-server, доверие, одобрение хука Kit, сессии |
 
 ## Границы
 

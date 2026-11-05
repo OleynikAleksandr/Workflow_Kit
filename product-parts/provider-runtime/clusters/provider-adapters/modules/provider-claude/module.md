@@ -179,6 +179,7 @@ EnvironmentRecord[] }`. `SessionRecord`: `localId | null`, `remoteId`,
 
 ## Дальше
 
-T008 — пути `claude` и `expect` в `config.json` при `install` (D12).
+Пути `claude` и `expect` в `config.json` (`programs`, D12) записывает
+`wfk install` (`service-installer`); провайдер читает их первыми.
 Автовосстановление сессий после перезагрузки — Q3 (сейчас «остановлена» и
 «Возобновить»).

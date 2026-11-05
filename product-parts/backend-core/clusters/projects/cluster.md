@@ -8,12 +8,13 @@
 
 ## Модули
 
-| Модуль | Обязанность | Задача |
-| --- | --- | --- |
-| `project-registry` | реестр проектов (`projects.json`), проверка путей и имён, выбор папки | T002 |
-| `kit-structure` | шаблоны, установка и проверка структуры, приём хука, `wfk link` | T003 |
+| Модуль | Обязанность |
+| --- | --- |
+| [project-registry](modules/project-registry/module.md) | реестр проектов (`projects.json`), проверка путей и имён, выбор папки |
+| [kit-structure](modules/kit-structure/module.md) | шаблоны, установка и проверка структуры, приём хука SessionStart (`recordSessionStart`) |
 
-Модули ещё не созданы; их контракты появятся вместе с кодом.
+Команды `wfk link` и `wfk hook` живут в модуле `cli` (кластер `runtime`);
+`wfk hook` передаёт вход хука в `recordSessionStart`.
 
 ## Границы
 

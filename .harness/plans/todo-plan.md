@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 12,
+  "revision": 13,
   "rounds": [
     {
       "digest": null,
@@ -713,11 +713,10 @@
         "macOS: LaunchAgent с RunAtLoad, KeepAlive, AbandonProcessGroup, PATH и абсолютным node; Linux: systemd user unit с KillMode=process, без systemd — XDG autostart; Windows: ключ HKCU Run со скрытым окном; тесты проверяют файлы и команды для трёх ОС на подставном HOME",
         "service start, stop, status; статус службы и автозапуска отдаётся в «Систему» через src/service/index.ts",
         "open: проверяет /api/health, при необходимости запускает службу, ждёт готовности и открывает панель в окне приложения (Chrome/Edge --app, иначе браузер); значок вызывает open",
-        "doctor --installed проверяет установленную службу и /api/health"
+        "doctor --installed проверяет установленную службу и /api/health",
+        "Ручная проверка пользователем: Визуально (на dev-экземпляре с WFK_DATA_DIR и WFK_PORT, без регистрации автозапуска на Mac): карточка «Система» показывает службу, способ автозапуска и пути программ; open открывает панель в окне без вкладок"
       ],
-      "checks": [
-        "Визуально (на dev-экземпляре с WFK_DATA_DIR и WFK_PORT, без регистрации автозапуска на Mac): карточка «Система» показывает службу, способ автозапуска и пути программ; open открывает панель в окне без вкладок"
-      ],
+      "checks": [],
       "commitMessage": "feat: add backend installer, autostart and launcher",
       "confirmation": null,
       "context": [
@@ -836,7 +835,7 @@
 - Execution: orchestrated (max 3 workers, owner cfa00ffe-c414-4ae6-9953-e3d2906b3705)
 - Current task: none
 - Progress: 1/11
-- Revision: 12
+- Revision: 13
 
 ## Objective
 

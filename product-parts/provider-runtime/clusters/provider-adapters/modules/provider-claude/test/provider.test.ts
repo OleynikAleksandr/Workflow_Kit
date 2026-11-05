@@ -1,49 +1,30 @@
 // The Claude provider end to end on a fake `claude` (test/fixtures/fake-claude.mjs) under the real
-// expect scripts, in a temporary HOME and WFK_DATA_DIR. The real claude, ~/.claude.json and the
-// real Remote Control are never touched. Needs `expect` (macOS has it); skipped without it.
+// expect scripts, in a temporary HOME and WFK_DATA_DIR (test/harness.ts). The real claude,
+// ~/.claude.json and the real Remote Control are never touched. Needs `expect`; skipped without it.
+// Trust, external imports and dialogs are covered in trust.test.ts.
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
-import { appendFile, chmod, mkdir, mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
-import os from 'node:os';
+import { appendFile, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { after, before, test } from 'node:test';
-import { fileURLToPath } from 'node:url';
-import { createEventLog, ensureDataDirs, eventsFile, resolveDataDirs } from '#data-store';
-import { createProcessSupervisor, processesFile, runCommand } from '#process-supervisor';
 import type { ProcessSupervisor } from '#process-supervisor';
 import { providerSessionsFile } from '#provider-registry';
 import type { Project, Provider, ProviderContext, ProviderError } from '#provider-registry';
-import { ENVIRONMENT_START, ENVIRONMENT_STOP, createClaudeProvider } from '../src/index.ts';
+import { ENVIRONMENT_START, ENVIRONMENT_STOP } from '../src/index.ts';
 import type { ClaudeProviderOptions } from '../src/index.ts';
+import { code, createHarness, fixtures, hasExpect, skip } from './harness.ts';
+import type { FakeCall, Harness } from './harness.ts';
 
-const fixtures = fileURLToPath(new URL('./fixtures/', import.meta.url));
-const hasExpect = process.platform !== 'win32' && (() => {
-  try {
-    execFileSync('/bin/sh', ['-c', 'command -v expect'], { stdio: 'ignore' });
-    return true;
-  } catch {
-    return false;
-  }
-})();
-const skip = hasExpect ? false : 'expect is not installed';
-
-let tmp = '';
-let home = '';
-let fakeLog = '';
+let h: Harness;
 let project: Project;
 let supervisor: ProcessSupervisor;
 let context: ProviderContext;
 let provider: Provider;
-const fast: ClaudeProviderOptions = { trustPaceMs: 50, pollMs: 50, sessionTimeoutMs: 20_000, stopGraceMs: 2000 };
 
 function withEnv(extra: Record<string, string>, options: ClaudeProviderOptions = {}): Provider {
-  return createClaudeProvider({ ...context, env: { ...context.env, ...extra } }, { ...fast, ...options });
+  return h.withEnv(extra, options);
 }
 
-async function fakeCalls(): Promise<Array<{ argv: string[]; vars: Record<string, string>; pid: number }>> {
-  const text = await readFile(fakeLog, 'utf8').catch(() => '');
-  return text.split('\n').filter(Boolean).map((line) => JSON.parse(line) as { argv: string[]; vars: Record<string, string>; pid: number });
-}
+const fakeCalls = (): Promise<FakeCall[]> => h.fakeCalls();
 
 function alive(pid: number): boolean {
   try {
@@ -54,49 +35,15 @@ function alive(pid: number): boolean {
   }
 }
 
-const code = (expected: string) => (error: unknown): boolean => (error as ProviderError).code === expected;
-
 before(async () => {
   if (!hasExpect) return;
-  tmp = await realpath(await mkdtemp(path.join(os.tmpdir(), 'wfk-claude-')));
-  home = path.join(tmp, 'home');
-  const folder = path.join(home, 'WorkflowKitProjects', 'Alpha');
-  await mkdir(path.join(folder, '.workflow-kit', 'local'), { recursive: true });
-  await mkdir(path.join(folder, '.claude'), { recursive: true });
-  await writeFile(
-    path.join(folder, '.claude', 'settings.json'),
-    JSON.stringify({ hooks: { SessionStart: [{ hooks: [{ type: 'command', command: '"$HOME/.local/bin/wfk" hook session-start --client claude; exit 0' }] }] } }),
-  );
-  await writeFile(path.join(home, '.claude.json'), JSON.stringify({ numStartups: 3, projects: { '/elsewhere': { hasTrustDialogAccepted: true } } }));
-  const bin = path.join(tmp, 'bin');
-  await mkdir(bin, { recursive: true });
-  const claude = path.join(bin, 'claude.mjs');
-  await writeFile(claude, `#!${process.execPath}\n${await readFile(path.join(fixtures, 'fake-claude.mjs'), 'utf8')}`);
-  await chmod(claude, 0o755);
-  fakeLog = path.join(tmp, 'fake-claude.jsonl');
-  const dirs = resolveDataDirs({ platform: process.platform, env: { WFK_DATA_DIR: path.join(tmp, 'data') }, homedir: home });
-  await ensureDataDirs(dirs);
-  supervisor = createProcessSupervisor({ file: processesFile(dirs.stateDir), graceMs: 2000, pollMs: 50 });
-  context = {
-    platform: process.platform,
-    env: { PATH: process.env['PATH'], HOME: home, FAKE_CLAUDE_LOG: fakeLog, CLAUDECODE: '1', CLAUDE_CODE_ENTRYPOINT: 'cli' },
-    homedir: home,
-    dirs,
-    config: { port: 0, projectsRoot: path.join(home, 'WorkflowKitProjects'), programs: { claude } },
-    events: createEventLog({ file: eventsFile(dirs) }),
-    supervisor,
-    runCommand,
-    now: () => new Date(),
-    log: () => undefined,
-  };
-  project = { id: 'p-alpha', name: 'Alpha', path: folder, source: 'created', createdAt: new Date().toISOString() };
-  provider = createClaudeProvider(context, fast);
+  h = await createHarness(() => ({ numStartups: 3, projects: { '/elsewhere': { hasTrustDialogAccepted: true } } }));
+  ({ supervisor, context, provider } = h);
+  project = await h.project('Alpha');
 });
 
 after(async () => {
-  if (!hasExpect) return;
-  for (const record of await supervisor.list()) await supervisor.stop(record.id, { graceMs: 500 }).catch(() => undefined);
-  await rm(tmp, { recursive: true, force: true });
+  if (hasExpect) await h.cleanup();
 });
 
 test('status reads files only; refresh reads the version; capabilities are available', { skip }, async () => {
@@ -116,7 +63,7 @@ test('status reads files only; refresh reads the version; capabilities are avail
 });
 
 test('without trust: sessions and the environment are refused with a hint', { skip }, async () => {
-  assert.equal((await provider.trust(project)).trusted, false);
+  assert.deepEqual(await provider.trust(project), { trusted: false });
   await assert.rejects(provider.createSession(project, { title: 'x' }), code('not-trusted'));
   const actions = await provider.actions(project);
   assert.equal(actions.find((a) => a.id === ENVIRONMENT_START)?.enabled, false);
@@ -124,32 +71,18 @@ test('without trust: sessions and the environment are refused with a hint', { sk
   assert.deepEqual(await provider.actions(null), []);
 });
 
-test('trust: preview with token and autorun points; grant passes the dialog with a backup and a check', { skip }, async () => {
+test('trust: the grant writes the key itself (no claude, no dialog) after the preview token', { skip }, async () => {
   const preview = await provider.previewTrust(project);
   assert.equal(preview.trusted, false);
+  assert.deepEqual(preview.choices, [], 'no external imports: nothing to choose');
   assert.equal(preview.writes[0]?.key, `projects["${project.path}"].hasTrustDialogAccepted`);
   assert.ok(preview.autorun.some((p) => p.kind === 'hook' && /хук Kit/.test(p.detail)));
-  assert.ok(preview.notes?.some((n) => n.includes('WFK_SERVICE_SESSION=trust')));
-  await assert.rejects(provider.grantTrust(project, 'wrong'), code('invalid-token'));
-  const stale = await provider.previewTrust(project);
-  await writeFile(path.join(project.path, '.mcp.json'), JSON.stringify({ mcpServers: { late: { command: 'late' } } }));
-  await assert.rejects(provider.grantTrust(project, stale.token), code('preview-changed'));
-  const fresh = await provider.previewTrust(project);
-  assert.ok(fresh.autorun.some((p) => p.kind === 'mcp-server' && p.detail === 'late: late'));
-  const granted = await provider.grantTrust(project, fresh.token);
+  const calls = (await fakeCalls()).length;
+  const granted = await provider.grantTrust(project, preview.token, {});
   assert.equal(granted.trusted, true);
-  assert.ok(granted.backup);
-  assert.equal(JSON.parse(await readFile(granted.backup!, 'utf8')).numStartups, 3);
-  const config = JSON.parse(await readFile(path.join(home, '.claude.json'), 'utf8'));
-  assert.equal(config.projects[project.path].hasTrustDialogAccepted, true);
-  assert.equal(config.projects['/elsewhere'].hasTrustDialogAccepted, true);
-  assert.deepEqual(await provider.trust(project), { trusted: true, backup: granted.backup });
-  const dialog = (await fakeCalls()).find((c) => c.argv.length === 0)!;
-  assert.deepEqual(dialog.vars, { WFK_SERVICE_SESSION: 'trust' });
-  // The dialog's session is in the journal but marked as a service session, so it is hidden.
-  assert.match(await readFile(path.join(project.path, '.workflow-kit', 'local', 'sessions.jsonl'), 'utf8'), /"service":"trust"/);
+  assert.equal((await fakeCalls()).length, calls, 'grantTrust starts no claude');
+  assert.equal((await h.readConfig()).projects[project.path]?.['hasTrustDialogAccepted'], true);
   assert.deepEqual(await provider.listSessions(project), []);
-  assert.equal((await provider.previewTrust(project)).trusted, true);
 });
 
 let localId = '';

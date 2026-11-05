@@ -93,8 +93,32 @@ export function providerRoutes(providerId) {
  * @property {string[]} sending Keys (operationKey) of requests being sent.
  * @property {string[]} dismissed Ids of failed operations the user hid.
  * @property {TrustPreview | null} preview Trust preview of the selected project.
+ * @property {Record<string, string>} [choices] Answers to the preview's choices: { <choice id>: <option id> }.
  * @property {CardMessage | null} message Last message of a synchronous request.
  */
+
+/**
+ * The choices of a trust preview with the user's answers; an answer that is not an option of its
+ * choice is ignored, so there is never a default answer.
+ * @param {TrustPreview} preview
+ * @param {Record<string, string>} answers
+ */
+export function choiceViews(preview, answers) {
+  return (preview.choices ?? []).map((choice) => {
+    const answer = answers[choice.id];
+    const selected = choice.options.some((o) => o.id === answer) ? /** @type {string} */ (answer) : null;
+    return {
+      id: choice.id,
+      title: choice.title,
+      description: choice.description,
+      required: choice.required,
+      selected,
+      options: choice.options.map((o) => ({ id: o.id, title: o.title, description: o.description ?? null, selected: o.id === selected })),
+    };
+  });
+}
+
+/** @typedef {ReturnType<typeof choiceViews>[number]} ChoiceView */
 
 /**
  * @typedef {object} CardInput
@@ -177,6 +201,10 @@ function projectModel(input, selected, actionButton) {
   const trustGate = capabilityGate(caps, 'trust');
   const hooksGate = capabilityGate(caps, 'hooks');
   const preview = ui.preview && ui.preview.provider === id ? ui.preview : null;
+  const choices = preview ? choiceViews(preview, ui.choices ?? {}) : [];
+  const unanswered = choices.filter((c) => c.required && c.selected === null).map((c) => `«${c.title}»`);
+  // "Доверять" is never sent without the required answers: the button waits for them.
+  const grantGate = trustGate.enabled && unanswered.length > 0 ? { shown: true, enabled: false, reason: `Сначала выберите ответ: ${unanswered.join(', ')}` } : trustGate;
   const approve = buttonView({ ...common, gate: hooksGate, match: MATCHES.approve(id, selected.id) });
 
   return {
@@ -188,13 +216,19 @@ function projectModel(input, selected, actionButton) {
     errors: readErrors(state?.errors),
     trust: {
       ...trustView(state?.trust),
+      inherited: state?.trust?.inherited ?? null,
       preview: buttonView({ ...common, gate: trustGate, match: MATCHES.preview(id, selected.id) }),
-      grant: buttonView({ ...common, gate: trustGate, match: MATCHES.trust(id, selected.id) }),
+      grant: buttonView({ ...common, gate: grantGate, match: MATCHES.trust(id, selected.id) }),
       previewData: preview
         ? {
             trusted: preview.trusted,
+            /** Something to write: trust itself or the answers of the choices. */
+            needsGrant: preview.writes.length > 0 || choices.length > 0,
             writes: preview.writes,
             autorun: preview.autorun,
+            choices,
+            answers: Object.fromEntries(choices.filter((c) => c.selected !== null).map((c) => [c.id, /** @type {string} */ (c.selected)])),
+            inherited: preview.inherited ?? null,
             notes: preview.notes ?? [],
             token: preview.token,
             expiresAt: preview.expiresAt,

@@ -14,7 +14,7 @@ interface Provider {
   capabilities(): Promise<Capabilities>            // depends on OS, CLI version, login, expect
   status(): Promise<ProviderStatus>                // read-only, cached: installed, versions, daemon
   previewTrust(project: Project): Promise<TrustPreview> // keys to write, autorun points, token
-  grantTrust(project: Project, token: string): Promise<TrustState>
+  grantTrust(project: Project, token: string, choices?: TrustChoices): Promise<TrustState>
   hooks(project: Project): Promise<HookState>      // kit hook and foreign hooks with command + hash
   approveHooks?(project: Project, expected: { command: string; hash: string }): Promise<HookState>
   listSessions(project: Project): Promise<SessionInfo[]>
@@ -34,7 +34,12 @@ interface Provider {
   `enabled`, `reason?`, `confirm?`. Панель рисует их из контракта.
 - `TrustPreview`: записываемые ключи и файлы; найденные в папке точки
   автозапуска (`.claude/settings*.json` с хуками и разрешениями, `.mcp.json`,
-  чужие хуки `.codex/hooks.json`); токен предпросмотра.
+  чужие хуки `.codex/hooks.json`); выборы пользователя `choices` (`id`,
+  `title`, `description`, `options`, `required`; ответа по умолчанию нет);
+  `inherited` `{ from, note }`, если доверена только родительская папка;
+  токен предпросмотра. `grantTrust` получает ответы `{ <id выбора>: <id
+  ответа> }` (маршрут `POST …/trust { token, choices }`); панель не
+  отправляет «Доверять» без обязательного ответа.
 - Ошибка — `{ code, message, hint }`; `hint` говорит, что сделать.
 - Итоговый список сессий строит сам провайдер: общий помощник
   `readHookSessions(project, client)` из модуля `provider-registry` + свои записи панели.
@@ -59,11 +64,28 @@ interface Provider {
   заменены на '-'>/<localId>.jsonl`.
 - `claude remote-control --name <имя> --spawn=same-dir` — окружение папки:
   к нему подключаются с iPad и веба, чтобы начать сессию там.
-- Доверие: `~/.claude.json` → `projects["<путь>"].hasTrustDialogAccepted`,
-  подпапки не наследуют; без доверия Remote Control отвечает «Workspace not
-  trusted». Диалог доверия проходит под pty: `claude`, ждать `confirm`,
-  стрелка вниз, Enter, `/exit`. Диалог запускает сессию, срабатывают хуки
-  и MCP папки.
+- Доверие: `~/.claude.json` → `projects["<путь>"].hasTrustDialogAccepted`;
+  без доверия самой папки Remote Control отвечает «Workspace not trusted».
+- Проверено 2026-11-05 (Claude Code 2.1.318): доверие `~`
+  (`projects["<home>"].hasTrustDialogAccepted = true`) подавляет диалог
+  доверия для вложенных папок — интерактивный `claude` в
+  `~/WorkflowKitProjects/!_001` стартовал без диалога, а ключ самой папки
+  остался `false`. Интерактивный Claude наследует доверие родителя, Remote
+  Control требует доверия самой папки. Текст настоящего диалога доверия на
+  этой машине поэтому не получен **[не проверено]**.
+- Проверено 2026-11-05: если CLAUDE.md папки или родительской папки (или
+  `.claude/rules`) импортирует файлы вне папки (`~/CLAUDE.md` со строкой
+  `@AGENTS.md` → `~/AGENTS.md`), первый запуск показывает диалог «Allow
+  external CLAUDE.md file imports? This project's CLAUDE.md or
+  .claude/rules imports files outside the current working directory. Never
+  allow this for third-party repositories. External imports: … ❯ No,
+  disable external imports / Yes, allow external imports · Enter to
+  confirm · Esc to cancel». Ответ записывается в запись папки:
+  `hasClaudeMdExternalIncludesApproved` (true / false) и
+  `hasClaudeMdExternalIncludesWarningShown: true`. На экране pty пробелы
+  выводятся сдвигами курсора (`ESC[nC`), фразы надо искать с допуском.
+- Пользовательские `~/.claude/CLAUDE.md` и `~/.claude/rules` не считаются
+  памятью проекта **[не проверено]**.
 - Хук `SessionStart` (`.claude/settings.json`) получает `session_id`
   (локальный), `transcript_path`, `cwd`, `source`, `model`; stdout хука
   попадает в контекст сессии.
@@ -77,9 +99,28 @@ interface Provider {
 
 Требования вехи 1:
 
-- `previewTrust` перечисляет точки автозапуска папки (диалог их запустит);
-  `grantTrust` проходит диалог под pty с `WFK_SERVICE_SESSION=trust`,
-  копией `~/.claude.json` до и проверкой файла после.
+- Доверие для Remote Control — только точный ключ папки; доверенная
+  родительская папка — отдельная пометка в панели («интерактивный Claude
+  не спросит, Remote Control требует доверия папки»).
+- `previewTrust` перечисляет точки автозапуска папки (их запустит первая
+  сессия) и внешние импорты CLAUDE.md, которые Claude загрузит для папки
+  (CLAUDE.md, CLAUDE.local.md, `.claude/CLAUDE.md`, `.claude/rules` папки и
+  родительских папок); если они есть и не решены — обязательный выбор
+  «разрешить / запретить внешние импорты».
+- `grantTrust` не проходит диалогов и не запускает `claude`: после
+  предпросмотра и токена он сам атомарно записывает в `~/.claude.json`
+  `projects[<папка>].hasTrustDialogAccepted = true` и (по выбору)
+  `hasClaudeMdExternalIncludesApproved`,
+  `hasClaudeMdExternalIncludesWarningShown = true`: копия до записи,
+  временный файл с теми же правами и `rename`, JSON с отступом 2, проверка
+  чтением; запись, потерянную из-за параллельной записи Claude, повторяет
+  до 3 раз. `trust.exp` удалён.
+- `session.exp` и `environment.exp` никогда не нажимают клавиш в диалогах:
+  диалоги доверия и внешних импортов узнаются по тексту, любой другой — по
+  подвалу «Enter to confirm / Esc to cancel»; процесс останавливается,
+  операция завершается ошибкой (`trust-dialog`, `imports-dialog`,
+  `unknown-dialog`) с текстом диалога и подсказкой «решите это в
+  предпросмотре доверия».
 - Создание: `session.exp` печатает `SESSION_URL session_<id>` (основной
   источник) и pid дочернего `claude`; debug-файл — запасной источник. Имя
   `<проект> · <время>`. Запись в `sessions/claude.json` (D9).

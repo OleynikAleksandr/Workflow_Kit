@@ -6,7 +6,7 @@ import path from 'node:path';
 import { ProviderError } from '#provider-registry';
 import type { Project, ProviderAction } from '#provider-registry';
 import { ProcessError } from '#process-supervisor';
-import { logTail, parseMarkers, poll, readText } from './pty.ts';
+import { dialogError, logTail, parseMarkers, poll, readText } from './pty.ts';
 import type { EnvironmentRecord } from './records.ts';
 import { PROVIDER_ID } from './runtime.ts';
 import type { ClaudeRuntime } from './runtime.ts';
@@ -73,19 +73,28 @@ export async function startEnvironment(rt: ClaudeRuntime, project: Project): Pro
       throw error;
     });
   let claudePid: number | null = null;
-  const fail = async (code: string, message: string): Promise<never> => {
+  const halt = async (): Promise<string> => {
     if (claudePid !== null) await rt.context.supervisor.track(record.id, claudePid).catch(() => undefined);
     await rt.context.supervisor.stop(record.id, { graceMs: 2000 }).catch(() => undefined);
-    const tail = logTail(await readText(logFile));
+    return readText(logFile);
+  };
+  const fail = async (code: string, message: string): Promise<never> => {
+    const tail = logTail(await halt());
     throw new ProviderError(code, tail ? `${message}\n${tail}` : message, { hint: `Журнал окружения: ${logFile}`, details: { log: logFile } });
   };
   const started = await poll<{ envId: string | null }>(
     async () => {
       const markers = parseMarkers(await readText(logFile));
       claudePid = markers.claudePid ?? claudePid;
+      if (markers.dialog) throw dialogError(markers.dialog, await halt(), logFile);
       if (markers.envStarted) return { envId: markers.envId };
       if (markers.failure === 'not-trusted') return fail('not-trusted', 'Claude: «Workspace not trusted» — папка не доверена');
-      if (markers.failure === 'exited' || !(await rt.isAlive(record.id))) return fail('environment-exited', 'Окружение папки завершилось сразу после запуска');
+      if (markers.failure === 'exited' || !(await rt.isAlive(record.id))) {
+        // The script may have printed DIALOG right before it exited.
+        const dialog = parseMarkers(await readText(logFile)).dialog;
+        if (dialog) throw dialogError(dialog, await halt(), logFile);
+        return fail('environment-exited', 'Окружение папки завершилось сразу после запуска');
+      }
       return undefined;
     },
     { timeoutMs: rt.options.environmentTimeoutMs, pollMs: rt.options.pollMs },

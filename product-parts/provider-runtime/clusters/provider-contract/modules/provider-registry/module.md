@@ -16,7 +16,8 @@
 ### Контракт (`contract.ts`)
 
 - `Provider` — `id`, `title`, `capabilities()`, `status()`, `refresh?()`,
-  `previewTrust(project)`, `grantTrust(project, token)`, `trust(project)`,
+  `previewTrust(project)`, `grantTrust(project, token, choices?)`,
+  `trust(project)`,
   `hooks(project)`, `approveHooks?(project, { command, hash })`,
   `listSessions(project)`, `createSession(project, { title })`,
   `resumeSession?(project, sid)`, `stopSession?(project, sid)`,
@@ -35,9 +36,16 @@
   `details?`), `Capabilities` (`{ [имя]: { available, reason? } }`; имена
   `trust`, `hooks`, `sessions`, `createSession`, `resumeSession`,
   `stopSession`, `environment`, `daemon` и свои), `TrustPreview`
-  (`provider`, `trusted`, `writes: TrustWrite[]`, `autorun: AutorunPoint[]`,
-  `token`, `expiresAt`, `notes?`), `TrustState` (`trusted: boolean | null`,
-  `note?`, `backup?`), `HookState` (`kitHook`, `hooks: HookEntry[]`,
+  (`provider`, `trusted` — доверие самой папки, `writes: TrustWrite[]`,
+  `autorun: AutorunPoint[]`, `choices?: TrustChoice[]`, `inherited?`,
+  `token`, `expiresAt`, `notes?`), `TrustChoice` (`id`, `title`,
+  `description`, `options: TrustChoiceOption[]` — `{ id, title,
+  description? }`, `required` — без ответа «Доверять» не отправляется,
+  ответа по умолчанию нет), `TrustChoices` (`{ <id выбора>: <id ответа> }`),
+  `TrustInherited` (`{ from, note }` — доверена только родительская папка;
+  `note` провайдера объясняет, что это значит), `TrustState`
+  (`trusted: boolean | null`, `note?`, `inherited?`, `backup?`),
+  `HookState` (`kitHook`, `hooks: HookEntry[]`,
   `complete` — `false`, если список сессий неполон, `note?`), `HookEntry`
   (`command`, `hash`, `kit`, `status` — `approved` | `pending` | `modified`
   | `unknown`, `key?`), `SessionInfo` (`provider`, `localId`, `remoteId?`,
@@ -125,7 +133,7 @@ mutex, events?, platform, now?, onRefresh? }) → { refresh() }` регистр�
 | `GET /api/providers` | `{ providers: ProviderSummary[] }` |
 | `GET /api/projects/:id/providers/:p` | `ProjectProviderState` |
 | `GET /api/projects/:id/providers/:p/trust/preview` | `TrustPreview` (синхронно) |
-| `POST …/providers/:p/trust` `{token}` | 202, операция `provider.trust` → `grantTrust` |
+| `POST …/providers/:p/trust` `{token, choices?}` | 202, операция `provider.trust` → `grantTrust(project, token, choices)`; `choices` — объект `{ <id>: <id ответа> }` (id — `[A-Za-z0-9._:-]{1,64}`, до 16 пар), без него — `{}`; иначе 400 `invalid-body`. Обязательность ответов проверяет провайдер |
 | `POST …/providers/:p/hooks/approve` `{command, hash}` | 202, `provider.hooks.approve` → `approveHooks` |
 | `POST …/providers/:p/sessions` `{title?}` | 202, `provider.session.create`; имя по умолчанию `<проект> · ГГГГ-ММ-ДД ЧЧ:ММ` (`defaultSessionTitle`) |
 | `POST …/sessions/:sid/resume`, `…/sessions/:sid/stop` | 202, `provider.session.resume` / `provider.session.stop` |

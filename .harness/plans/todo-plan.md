@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 47,
+  "revision": 49,
   "rounds": [
     {
       "digest": null,
@@ -48,7 +48,7 @@
       }
     ],
     "decisions": [],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 1,
       "ownerSession": null,
@@ -91,14 +91,47 @@
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude",
         "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry",
         "product-parts/control-panel/clusters/web-panel/modules/provider-cards",
-        "docs/planning/M1-providers.md"
+        "docs/planning/M1-providers.md",
+        "product-parts/control-panel/clusters/web-panel/modules/provider-cards/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/provider-cards/src/card-model.js",
+        "product-parts/control-panel/clusters/web-panel/modules/provider-cards/src/provider-cards.css",
+        "product-parts/control-panel/clusters/web-panel/modules/provider-cards/src/provider-cards.js",
+        "product-parts/control-panel/clusters/web-panel/modules/provider-cards/src/render.js",
+        "product-parts/control-panel/clusters/web-panel/modules/provider-cards/test/card-model.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/claude-config.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/config-writer.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/environment.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/imports.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/programs.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/provider.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/dialogs.tcl",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/environment.exp",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/session.exp",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/trust.exp",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/runtime.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/sessions.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/trust.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/config.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/fixtures/fake-claude.mjs",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/harness.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parts.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/provider.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/trust.test.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/routes.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/fake-provider.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/routes.test.ts"
       ],
       "fixes": null,
       "id": "T011",
       "iteration": 1,
       "kind": "work",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Доверие Claude без подмены решений пользователя",
       "why": "Приёмка: скрипт доверия выбрал «Yes, allow external imports» вместо пользователя и не записал доверие; при доверенной домашней папке Claude не показывает диалог доверия (D2, D3)"
     }
@@ -110,11 +143,11 @@
 ## State
 
 - Scope: assignment-m1-orchestrator-core-T011-1 (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 0/1
-- Revision: 47
+- Progress: 1/1
+- Revision: 49
 
 ## Objective
 
@@ -135,8 +168,8 @@
 
 ### R2 — Исправления по приёмке вехи 1 (fixes, OPEN)
 
-- [TODO] T011 — Доверие Claude без подмены решений пользователя (work)
+- [DONE] T011 — Доверие Claude без подмены решений пользователя (work)
   - Commit: fix: grant claude trust explicitly and ask about external imports
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/control-panel/clusters/web-panel/modules/provider-cards, docs/planning/M1-providers.md
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/control-panel/clusters/web-panel/modules/provider-cards, docs/planning/M1-providers.md, product-parts/control-panel/clusters/web-panel/modules/provider-cards/module.md, product-parts/control-panel/clusters/web-panel/modules/provider-cards/src/card-model.js, product-parts/control-panel/clusters/web-panel/modules/provider-cards/src/provider-cards.css, product-parts/control-panel/clusters/web-panel/modules/provider-cards/src/provider-cards.js, product-parts/control-panel/clusters/web-panel/modules/provider-cards/src/render.js, product-parts/control-panel/clusters/web-panel/modules/provider-cards/test/card-model.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/claude-config.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/config-writer.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/environment.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/imports.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/programs.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/dialogs.tcl, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/environment.exp, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/session.exp, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/trust.exp, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/runtime.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/trust.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/config.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/fixtures/fake-claude.mjs, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/harness.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parts.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/trust.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/routes.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/fake-provider.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/routes.test.ts
 
 State changes only through `scripts/workflow` commands. History lives in Git.

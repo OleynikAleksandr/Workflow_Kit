@@ -110,8 +110,8 @@ export function createClaudeProvider(context: ProviderContext, options: ClaudePr
       return status(rt);
     },
     previewTrust: (project) => previewTrust(rt, tokens, project),
-    async grantTrust(project, token) {
-      const state = await grantTrust(rt, tokens, project, token);
+    async grantTrust(project, token, choices) {
+      const state = await grantTrust(rt, tokens, project, token, choices ?? {});
       if (state.backup !== undefined) backups.set(project.path, state.backup);
       return state;
     },

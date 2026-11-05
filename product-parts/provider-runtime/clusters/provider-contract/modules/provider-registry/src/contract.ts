@@ -85,13 +85,50 @@ export interface AutorunPoint {
   detail: string;
 }
 
+/** One answer of a trust choice. */
+export interface TrustChoiceOption {
+  id: string;
+  title: string;
+  description?: string;
+}
+
+/**
+ * A decision the user makes in the trust preview (e.g. allow or deny external imports). The panel
+ * draws it from the contract; grantTrust gets the answers as { <choice id>: <option id> }.
+ */
+export interface TrustChoice {
+  id: string;
+  title: string;
+  description: string;
+  options: TrustChoiceOption[];
+  /** True when "Доверять" must not be sent without an answer; there is no default option. */
+  required: boolean;
+}
+
+/** Answers to the trust choices: { <choice id>: <option id> }. */
+export type TrustChoices = Record<string, string>;
+
+/**
+ * Only a parent folder is trusted, not the folder itself: the provider's interactive client may
+ * not ask, while other features still need the folder's own trust.
+ */
+export interface TrustInherited {
+  /** The trusted parent folder. */
+  from: string;
+  /** What it means for this provider, shown as a separate mark next to the trust state. */
+  note: string;
+}
+
 /** Preview of the trust action; grantTrust accepts only this token (D7). */
 export interface TrustPreview {
   provider: ProviderId;
-  /** Current state; when true nothing has to be written. */
+  /** Trust of the folder itself; when true and writes is empty nothing has to be written. */
   trusted: boolean;
   writes: TrustWrite[];
   autorun: AutorunPoint[];
+  /** Decisions made before "Доверять"; absent or empty when there are none. */
+  choices?: TrustChoice[];
+  inherited?: TrustInherited;
   token: string;
   expiresAt: string;
   notes?: string[];
@@ -101,6 +138,8 @@ export interface TrustPreview {
 export interface TrustState {
   trusted: boolean | null;
   note?: string;
+  /** Set when only a parent folder is trusted. */
+  inherited?: TrustInherited;
   /** Copy of the foreign config taken before the last write (after grantTrust). */
   backup?: string | null;
 }
@@ -179,7 +218,11 @@ export interface Provider {
   /** Re-reads versions and daemons with external programs (POST /api/refresh, start of the service). */
   refresh?(): Promise<ProviderStatus>;
   previewTrust(project: Project): Promise<TrustPreview>;
-  grantTrust(project: Project, token: string): Promise<TrustState>;
+  /**
+   * Writes trust after the preview; choices answer TrustPreview.choices (the routes always pass an
+   * object, {} when the body has none; omitted means {}).
+   */
+  grantTrust(project: Project, token: string, choices?: TrustChoices): Promise<TrustState>;
   /** Current trust as read from the provider config (extension of section 1: the panel shows it). */
   trust(project: Project): Promise<TrustState>;
   hooks(project: Project): Promise<HookState>;

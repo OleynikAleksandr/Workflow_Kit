@@ -35,7 +35,7 @@ const PROJECT_KEY = 'wfk.provider-cards.project';
  * @typedef {object} LocalUi
  * @property {Set<string>} sending
  * @property {Set<string>} dismissed
- * @property {{ projectId: string, data: TrustPreview } | null} preview
+ * @property {{ projectId: string, data: TrustPreview, choices: Record<string, string> } | null} preview The open trust preview and the answers to its choices.
  * @property {CardMessage | null} message
  */
 
@@ -141,15 +141,21 @@ export function install(shell) {
       },
       preview: !project || projectId === null ? noop : () =>
         void send(providerId, MATCHES.preview(providerId, projectId), async () => {
-          ui.preview = { projectId, data: /** @type {TrustPreview} */ (await api('GET', project.preview)) };
+          // A new preview starts without answers: the choices have no default.
+          ui.preview = { projectId, data: /** @type {TrustPreview} */ (await api('GET', project.preview)), choices: {} };
         }),
       cancelPreview() {
         ui.preview = null;
         requestRefresh();
       },
-      grant: !project || projectId === null ? noop : (token) =>
+      choose(choiceId, optionId) {
+        if (!ui.preview) return;
+        ui.preview.choices = { ...ui.preview.choices, [choiceId]: optionId };
+        requestRefresh();
+      },
+      grant: !project || projectId === null ? noop : (token, choices) =>
         void send(providerId, MATCHES.trust(providerId, projectId), async () => {
-          await api('POST', project.trust, { token });
+          await api('POST', project.trust, { token, choices });
           ui.preview = null;
         }),
       approve: !project || projectId === null ? noop : (row) => {
@@ -197,14 +203,14 @@ export function install(shell) {
       const operationsSection = /** @type {{ operations?: Operation[] } | undefined} */ (state['operations']);
       const operations = (operationsSection?.operations ?? []).filter((op) => op.kind === 'providers.refresh' || op.scope?.['provider'] === providerId);
       const ui = uiOf(providerId);
-      const preview = ui.preview && ui.preview.projectId === projectId ? ui.preview.data : null;
+      const shown = ui.preview && ui.preview.projectId === projectId ? ui.preview : null;
       return cardModel({
         provider,
         projects,
         projectId,
         project: projectId === null ? null : (section.projects[projectId]?.[providerId] ?? null),
         operations,
-        ui: { sending: [...ui.sending], dismissed: [...ui.dismissed], preview, message: ui.message },
+        ui: { sending: [...ui.sending], dismissed: [...ui.dismissed], preview: shown?.data ?? null, choices: shown?.choices ?? {}, message: ui.message },
         maxTouchPoints: typeof navigator === 'undefined' ? 0 : navigator.maxTouchPoints,
         nowMs: Date.now(),
       });

@@ -110,9 +110,14 @@ test('trust: preview gives a token; only that token is accepted; the grant is jo
   assert.deepEqual(wrong.error, { code: 'invalid-token', message: 'Предпросмотр устарел', hint: 'Откройте предпросмотр снова' });
 
   const fresh = (await call('GET', `${base()}/trust/preview`)).body as unknown as TrustPreview;
-  const granted = await finished(await call('POST', `${base()}/trust`, { token: fresh.token }));
+  for (const choices of [[], 'allow', { imports: 1 }, { 'bad id': 'allow' }, { imports: '' }]) {
+    assert.equal(errorCode(await call('POST', `${base()}/trust`, { token: fresh.token, choices })), 'invalid-body');
+  }
+  const granted = await finished(await call('POST', `${base()}/trust`, { token: fresh.token, choices: { 'external-imports': 'deny' } }));
   assert.equal(granted.status, 'succeeded');
   assert.deepEqual(granted.result, { trusted: true, backup: '/backups/x' });
+  assert.deepEqual(fake.choices.at(-1), { 'external-imports': 'deny' }, 'the answers reach grantTrust as they are');
+  assert.deepEqual(fake.choices[0], {}, 'no choices in the body: an empty object');
   assert.deepEqual(granted.scope, { provider: 'fake', project: alpha.id });
   const types = await eventTypes();
   assert.ok(types.includes('provider.trust.granted'));

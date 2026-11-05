@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 26,
+  "revision": 27,
   "rounds": [
     {
       "digest": null,
@@ -564,7 +564,9 @@
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/index.ts",
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md",
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts",
-        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md"
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md",
+        "package.json",
+        "product-parts/backend-core/clusters/runtime/modules/cli"
       ],
       "fixes": null,
       "id": "T004",
@@ -824,7 +826,7 @@
 - Execution: orchestrated (max 3 workers, owner cfa00ffe-c414-4ae6-9953-e3d2906b3705)
 - Current task: none
 - Progress: 2/11
-- Revision: 26
+- Revision: 27
 
 ## Objective
 
@@ -857,7 +859,7 @@
   - Depends on: T002
 - [TODO] T004 — Контракт провайдера, API, операции и утилиты процессов (work)
   - Commit: feat: add provider contract, registry, operations and process utilities
-  - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor, product-parts/backend-core/clusters/runtime/modules/data-store, product-parts/backend-core/clusters/http-api/modules/http-server, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md
+  - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor, product-parts/backend-core/clusters/runtime/modules/data-store, product-parts/backend-core/clusters/http-api/modules/http-server, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, package.json, product-parts/backend-core/clusters/runtime/modules/cli
   - Depends on: T003
 - [TODO] T005 — Общий интерфейс провайдеров в панели (work)
   - Commit: feat: add generic provider cards to the panel

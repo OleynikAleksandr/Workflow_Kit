@@ -8,9 +8,9 @@
 
 ## Модули
 
-| Модуль | Обязанность | Задача |
-| --- | --- | --- |
-| [service-installer](modules/service-installer/module.md) | развёртывание, автозапуск, запускатель и значок, `open`, `doctor`, статус службы | реализация в T008, подключение к `cli` и панели в T010 |
+| Модуль | Обязанность |
+| --- | --- |
+| [service-installer](modules/service-installer/module.md) | развёртывание, автозапуск, запускатель и значок, `service start/stop/status`, `open`, `doctor`, статус службы |
 
 ## Границы
 

@@ -162,6 +162,8 @@ unit, `daemon-reload`; XDG-файл; `reg delete`, `.vbs`, PATH пользова
 - Файлы, созданные не Workflow Kit, не заменяются и не удаляются.
 - Опрос панели (`getServiceStatus`) только читает файлы.
 - `uninstall` не трогает данные пользователя.
+- Зависимости: `#data-store` (каталоги, порт, атомарная запись),
+  `#process-supervisor` (`runCommand`, `cleanEnv`).
 
 ## Подключение к `cli` и панели (T010)
 

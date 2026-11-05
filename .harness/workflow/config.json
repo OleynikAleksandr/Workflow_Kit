@@ -8,14 +8,84 @@
     "recoveryBytes": 32000
   },
   "docs": {
-    "contracts": []
+    "contracts": [
+      {
+        "code": "src/{module}/**",
+        "docs": [
+          "docs/architecture/modules/{module}.md"
+        ]
+      },
+      {
+        "code": "bin/**",
+        "docs": [
+          "docs/architecture/modules/cli.md"
+        ]
+      }
+    ]
   },
   "policy": {
-    "maxFileLines": null,
+    "maxFileLines": 400,
     "taskFileSoftLimit": null
   },
   "quality": {
     "checks": [
+      {
+        "id": "typecheck",
+        "role": "typecheck",
+        "stage": "commit",
+        "required": true,
+        "timeoutMs": 300000,
+        "command": {
+          "executable": "npx",
+          "args": [
+            "tsc",
+            "--noEmit",
+            "-p",
+            "tsconfig.json"
+          ]
+        },
+        "appliesTo": [
+          "**/*.ts",
+          "**/*.mjs",
+          "src/panel/**/*.js",
+          "tsconfig.json"
+        ]
+      },
+      {
+        "id": "test",
+        "role": "test",
+        "stage": "commit",
+        "required": true,
+        "timeoutMs": 300000,
+        "command": {
+          "executable": "node",
+          "args": [
+            "--test",
+            "test/**/*.test.ts"
+          ]
+        },
+        "appliesTo": [
+          "**/*.ts",
+          "**/*.mjs",
+          "src/panel/**/*.js"
+        ]
+      },
+      {
+        "id": "installed-service",
+        "role": "installed",
+        "stage": "delivery",
+        "required": true,
+        "timeoutMs": 120000,
+        "command": {
+          "executable": "node",
+          "args": [
+            "bin/wfk.mjs",
+            "doctor",
+            "--installed"
+          ]
+        },
+        "evidence": "Установленная служба Workflow Kit отвечает на /api/health после перезагрузки и входа пользователя; docs/evidence/M1-acceptance.md"
+      },
       {
         "builtin": "kit:doc-size",
         "id": "kit:doc-size",
@@ -57,9 +127,11 @@
         "timeoutMs": 120000
       }
     ],
-    "packageManager": null,
-    "stacks": [],
-    "status": "DISCOVERY"
+    "packageManager": "npm",
+    "stacks": [
+      "node"
+    ],
+    "status": "CONFIGURED"
   },
   "schema": "harness-workflow-config/1",
   "host": "harness"

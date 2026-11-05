@@ -1,0 +1,22 @@
+{
+  "name": "workflow-kit",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Workflow Kit: an orchestrator over the native Claude and ChatGPT/Codex apps",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "bin": {
+    "wfk": "bin/wfk.mjs"
+  },
+  "scripts": {
+    "start": "node bin/wfk.mjs serve",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "node --test \"test/**/*.test.ts\""
+  },
+  "devDependencies": {
+    "@types/node": "24.19.2",
+    "typescript": "5.9.3"
+  }
+}

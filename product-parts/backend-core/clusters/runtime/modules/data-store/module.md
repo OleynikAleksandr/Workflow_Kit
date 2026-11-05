@@ -85,9 +85,12 @@
   — `processes.json`, `provider-claude` и `provider-codex` — свои записи
   сессий `<state>/sessions/<провайдер>.json` (`writeJsonAtomic`);
   `kit-structure` — файлы в папке проекта, `service-installer` — файлы
-  развёртывания и `config.json` (`writeFileAtomic`).
+  развёртывания и `config.json`, `cli` — запускатель `wfk link`
+  (`writeFileAtomic`).
 - Копии чужих конфигов (D7) через `backupFile`: `provider-claude` —
-  `~/.claude.json` перед записью доверия, `provider-codex` —
+  `~/.claude.json` перед записью доверия (сам файл он пишет своим
+  писателем: права и символическая ссылка сохраняются, запись, потерянная
+  из-за параллельной записи Claude, повторяется), `provider-codex` —
   `~/.codex/config.toml` перед записью доверия и одобрением хука.
 - `service-installer` при `install` дописывает в `config.json` `programs`
   (пути `node`, `claude`, `codex`, `expect`) и `loginPath` (D12), сохраняя

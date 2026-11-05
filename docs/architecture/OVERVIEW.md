@@ -1,6 +1,9 @@
 # Workflow Kit — обзор архитектуры
 
-Состояние после вехи 1 (`m1-orchestrator-core`, раунд R1). Документ
+Состояние после вехи 1 (`m1-orchestrator-core`, раунд R2 — исправления
+дефектов D1–D3 первой приёмки на Mac, см.
+[M1-acceptance.md](../evidence/M1-acceptance.md); повторная приёмка
+впереди). Документ
 поддерживает задача DOCS каждого раунда; подробности — в контрактах модулей
 (`module.md`), на которые он ссылается. Спецификация вехи и проверенные
 факты о провайдерах пока лежат в `docs/planning/` (после приёмки вехи
@@ -40,8 +43,8 @@ ChatGPT/Codex через общий контракт провайдера и с�
 | | | [kit-structure](../../product-parts/backend-core/clusters/projects/modules/kit-structure/module.md) | структура Kit v1 в папке проекта, приём хука SessionStart |
 | [provider-runtime](../../product-parts/provider-runtime/product-part.md) | [provider-contract](../../product-parts/provider-runtime/clusters/provider-contract/cluster.md) | [provider-registry](../../product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md) | контракт провайдера, реестр, журнал хука, токены предпросмотра, маршруты провайдеров |
 | | | [process-supervisor](../../product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/module.md) | запуск, учёт и остановка процессов (D5, D9), исполнитель внешних программ |
-| | [provider-adapters](../../product-parts/provider-runtime/clusters/provider-adapters/cluster.md) | [provider-claude](../../product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md) | доверие, сессии Remote Control, окружение папки (pty через `expect`) |
-| | | [provider-codex](../../product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md) | демон app-server, доверие, одобрение хука Kit, сессии (треды) |
+| | [provider-adapters](../../product-parts/provider-runtime/clusters/provider-adapters/cluster.md) | [provider-claude](../../product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md) | доверие (прямая запись `~/.claude.json`, выбор о внешних импортах CLAUDE.md), сессии Remote Control, окружение папки (pty через `expect`) |
+| | | [provider-codex](../../product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md) | демон app-server, доверие, одобрение хука Kit, сессии (треды; после служебного хода — `thread/unsubscribe`) |
 | [control-panel](../../product-parts/control-panel/product-part.md) | [web-panel](../../product-parts/control-panel/clusters/web-panel/cluster.md) | [panel-shell](../../product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md) | каркас панели, опрос, реестр карточек, «Система», «Проекты», «Структура Kit» |
 | | | [provider-cards](../../product-parts/control-panel/clusters/web-panel/modules/provider-cards/module.md) | карточки провайдеров только из контракта и операций |
 | [system-service](../../product-parts/system-service/product-part.md) | [deployment](../../product-parts/system-service/clusters/deployment/cluster.md) | [service-installer](../../product-parts/system-service/clusters/deployment/modules/service-installer/module.md) | `install`/`uninstall`, автозапуск, запускатель и значок, `service`, `open`, `doctor`, статус службы |
@@ -91,7 +94,12 @@ HTTP-сервер с панелью (`panelShellMount()` в корне,
 `removeBlockers?`) и фабрика `createProvider(context)` из `src/index.ts`
 модуля провайдера. Методы чтения дёшевы и только читают (D11). Запись в
 чужие конфиги — по одноразовому токену предпросмотра, связанному с
-отпечатком показанного (D7). Модуль даёт маршруты провайдеров, раздел
+отпечатком показанного (D7). Предпросмотр (`TrustPreview`) может содержать
+выборы `choices` — решения пользователя до «Доверять», без ответа по
+умолчанию; ответы приходят в `grantTrust(project, token, choices)`
+(`POST …/trust { token, choices }`), и панель не отправляет «Доверять» без
+обязательного ответа. Пометка `inherited` (в предпросмотре и в состоянии
+доверия) говорит, что доверена только родительская папка. Модуль даёт маршруты провайдеров, раздел
 `providers` и чтение журнала хука `.workflow-kit/local/sessions.jsonl`.
 Сервер и панель о конкретных провайдерах не знают. Контракт —
 [provider-registry/module.md](../../product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md);
@@ -166,24 +174,29 @@ Linux `$XDG_CONFIG_HOME`, `$XDG_STATE_HOME`, `$XDG_DATA_HOME` +
 | Бэкенд, панель, проекты, структура | да | да | да |
 | Автозапуск | LaunchAgent `ai.workflowkit.backend` | systemd user, без systemd — XDG autostart | `HKCU\…\Run` → `WorkflowKit` |
 | Запускатель и значок | `~/.local/bin/wfk`, `~/Applications/Workflow Kit.app` | `~/.local/bin/wfk`, `.desktop` | `wfk.cmd` и PATH, ярлык в «Пуске» |
-| Claude: доверие, сессии, окружение (pty) | да | если есть `expect` | нет (Q1) |
+| Claude: доверие (запись `~/.claude.json`) | да | да | нет (Q1) |
+| Claude: сессии, окружение (pty) | да | если есть `expect` | нет (Q1) |
 | Codex: демон, доверие, хуки, сессии | да | да | нет (Q2) |
 | Запуск и остановка процессов сессий | да | да | нет (`unsupported`) |
 | Проверено на устройстве в вехе 1 | при приёмке | нет | нет |
 
 ## Известные ограничения
 
-- `node_modules/` пока лежит в индексе git, хотя указан в `.gitignore`;
-  уберётся после обновления Kit до 2.2.2.
-- Параметры служебного хода Codex (`sandboxPolicy: readOnly`,
-  `approvalPolicy: never`) выведены из схемы протокола и на устройстве не
-  проверены; запись доверия и одобрение хука через `config/value/write`
-  проверены только на подставных программах
+- Codex: служебный ход идёт без `sandboxPolicy` и `approvalPolicy` (тред
+  сохраняет настройки пользователя), после него — `thread/unsubscribe`
+  (дефект D1); что ChatGPT сразу открывает новую сессию на Mac и iPad,
+  проверяется при повторной приёмке. Запись доверия и одобрение хука через
+  `config/value/write` проверены только на подставных программах
   ([provider-codex](../../product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md)).
-- Готовность окружения Claude определяется по тексту `environment=<id>` на
-  экране `claude remote-control`, иначе окружение считается запущенным
-  через 20 с; это, диалог доверия (паузы, клавиши) и формат
-  `bridge-session` в транскрипте проверяются при приёмке
+- Claude: доверие пишется в `~/.claude.json` напрямую, без запуска
+  `claude` (D2, D3); что Claude Code принимает такую запись без диалогов,
+  текст настоящего диалога доверия (на машине пользователя он подавлен
+  доверием `~`), набор файлов-источников внешних импортов, готовность
+  окружения по тексту `environment=<id>` (иначе — через 20 с) и формат
+  `bridge-session` в транскрипте проверяются при приёмке. Сессии и
+  окружение при любом диалоге Claude останавливаются с ошибкой
+  (`trust-dialog`, `imports-dialog`, `unknown-dialog`), клавиши не
+  нажимаются
   ([provider-claude](../../product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md)).
 - Установщик на macOS (`launchctl bootstrap/bootout`, значок из Finder и
   Dock, окно `--app`) проверяется при приёмке.
@@ -201,4 +214,5 @@ Linux `$XDG_CONFIG_HOME`, `$XDG_STATE_HOME`, `$XDG_DATA_HOME` +
 
 - Спецификация вехи 1: [docs/planning/M1-orchestrator-core.md](../planning/M1-orchestrator-core.md).
 - Контракт провайдера и факты о Claude и Codex: [docs/planning/M1-providers.md](../planning/M1-providers.md).
+- Первая приёмка на Mac и найденные дефекты: [docs/evidence/M1-acceptance.md](../evidence/M1-acceptance.md).
 - Запуск и установка: [README.md](../../README.md).

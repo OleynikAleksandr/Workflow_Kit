@@ -77,9 +77,24 @@
 - Тесты используют `WFK_DATA_DIR` во временном каталоге и подставные
   `platform`/`env`/`homedir`; настоящий HOME не трогается.
 
+## Потребители
+
+- `cli` создаёт каталоги, читает конфиг, ведёт журнал событий, мьютекс и
+  операции (`createOperations`) и отдаёт раздел `operations`.
+- Атомарная запись: `project-registry` — `projects.json`, `process-supervisor`
+  — `processes.json`, `provider-claude` и `provider-codex` — свои записи
+  сессий `<state>/sessions/<провайдер>.json` (`writeJsonAtomic`);
+  `kit-structure` — файлы в папке проекта, `service-installer` — файлы
+  развёртывания и `config.json` (`writeFileAtomic`).
+- Копии чужих конфигов (D7) через `backupFile`: `provider-claude` —
+  `~/.claude.json` перед записью доверия, `provider-codex` —
+  `~/.codex/config.toml` перед записью доверия и одобрением хука.
+- `service-installer` при `install` дописывает в `config.json` `programs`
+  (пути `node`, `claude`, `codex`, `expect`) и `loginPath` (D12), сохраняя
+  остальные ключи. `loadConfig` читает `programs` (по ним провайдеры
+  находят `claude` и `codex`); `loginPath` он не читает: PATH служба
+  получает от автозапуска.
+
 ## Дальше
 
-T006 и T007 — копии `~/.claude.json` и `~/.codex/config.toml` через
-`backupFile`; T008 — запись
-путей программ в `config.json` (D12). Файл `projects.json` ведёт модуль
-`project-registry` через `writeJsonAtomic`.
+В вехе 1 новых обязанностей у модуля нет.

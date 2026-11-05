@@ -68,9 +68,20 @@ HTTP-сервер бэкенда: фильтр доступа (D8), реестр
   каталогов монтирования.
 - Тесты подставляют интерфейсы и слушают свободный порт (`listen(0)`).
 
+## Потребители
+
+- `cli` собирает сервер: `registerCoreRoutes`, разделы `system` и
+  `operations`; статика передаётся через `staticMounts` — `panel-shell` под
+  `/`, `provider-cards` под `/provider-cards/` (`addStatic` сейчас никто не
+  вызывает).
+- `project-registry` — `GET /api/folders`, `/api/projects`,
+  `/api/projects/open`, `DELETE /api/projects/:id` и раздел `projects`.
+- `kit-structure` — `/api/projects/:id/structure` и раздел `structure`.
+- `provider-registry` — `/api/providers`, `/api/projects/:id/providers/:p/**`
+  (доверие, хуки, сессии, действия), `/api/providers/:p/actions/:a`,
+  `POST /api/refresh` и раздел `providers`.
+
 ## Дальше
 
-T002 (`project-registry`) регистрирует маршруты проектов и папок и раздел
-`projects`. T003–T007 добавляют маршруты и разделы через `Router` и
-`StateRegistry`;
-T005 монтирует каталог `provider-cards` под своим префиксом.
+В вехе 1 изменений не запланировано. Авторизация панели вне Tailscale —
+веха 2 (спецификация, раздел 13).

@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 37,
+  "revision": 38,
   "rounds": [
     {
       "digest": null,
@@ -756,9 +756,13 @@
       "kind": "work",
       "parallelSafe": true,
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Установщик, автозапуск, запускатель и значок",
-      "why": "Бэкенд разворачивается на любой ОС и стартует сам после входа в систему или при запуске интерфейса"
+      "why": "Бэкенд разворачивается на любой ОС и стартует сам после входа в систему или при запуске интерфейса",
+      "integration": {
+        "operationId": "b9d76f5a-9250-4687-a235-2043c7590fda",
+        "sourceCommit": "b1630eb69a54d2fb83cfce20e99801fa14435ccc"
+      }
     },
     {
       "acceptance": [
@@ -849,8 +853,8 @@
 - Delivery: IN_PROGRESS
 - Execution: orchestrated (max 3 workers, owner cfa00ffe-c414-4ae6-9953-e3d2906b3705)
 - Current task: none
-- Progress: 7/11
-- Revision: 37
+- Progress: 8/11
+- Revision: 38
 
 ## Objective
 
@@ -897,7 +901,7 @@
   - Commit: feat: implement codex provider
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex
   - Depends on: T004
-- [TODO] T008 — Установщик, автозапуск, запускатель и значок (work, parallel-safe)
+- [DONE] T008 — Установщик, автозапуск, запускатель и значок (work, parallel-safe)
   - Commit: feat: add backend installer, autostart and launcher
   - Files: product-parts/system-service/clusters/deployment/modules/service-installer
   - Depends on: T004

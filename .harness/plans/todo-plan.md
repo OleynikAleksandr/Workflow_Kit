@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 45,
+  "revision": 46,
   "rounds": [
     {
       "digest": {
@@ -43,6 +43,13 @@
       "kind": "implementation",
       "status": "CLOSED",
       "title": "Implementation"
+    },
+    {
+      "digest": null,
+      "id": "R2",
+      "kind": "fixes",
+      "status": "OPEN",
+      "title": "Исправления по приёмке вехи 1"
     }
   ],
   "schema": "harness-workflow-plan/1",
@@ -119,7 +126,7 @@
         "text": "Windows и Linux в вехе 1 проверяются только тестами; приёмка на устройствах — Mac и iPad (ответ пользователя: «Тестов достаточно»)"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "IN_PROGRESS",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cfa00ffe-c414-4ae6-9953-e3d2906b3705",
@@ -941,6 +948,188 @@
       "status": "DONE",
       "title": "Установка на Mac и приёмка вехи 1",
       "why": "Пользователь проверяет веху визуально на своём Mac и iPad"
+    },
+    {
+      "acceptance": [
+        "Доверие для Remote Control определяется точным ключом папки в ~/.claude.json; если доверена родительская папка (например ~), панель показывает это отдельной пометкой («интерактивный Claude не спросит, Remote Control требует доверия папки»)",
+        "grantTrust больше не проходит диалоги под pty: после предпросмотра и подтверждения по токену он атомарно записывает projects[<папка>].hasTrustDialogAccepted=true в ~/.claude.json с копией до записи, перечитывает файл и при потере записи из-за параллельной записи Claude повторяет до 3 раз; trust.exp удалён",
+        "Предпросмотр находит внешние импорты CLAUDE.md, которые Claude загрузит для папки, включая CLAUDE.md родительских папок (например ~/CLAUDE.md → ~/AGENTS.md) и .claude/rules; если они есть, предпросмотр содержит обязательный выбор «разрешить / запретить внешние импорты», а запись ставит hasClaudeMdExternalIncludesApproved по выбору пользователя и hasClaudeMdExternalIncludesWarningShown=true",
+        "Контракт: TrustPreview.choices (id, title, description, options, required) и grantTrust(project, token, choices); маршрут POST …/trust принимает {token, choices}; карточка провайдера рисует выбор и не отправляет «Доверять» без обязательного ответа — без кода под конкретного провайдера",
+        "session.exp и environment.exp никогда не нажимают клавиши в диалогах: известные диалоги (доверие, внешние импорты) распознаются по точному тексту, процесс останавливается, операция завершается ошибкой с текстом диалога и подсказкой «решите это в предпросмотре доверия»; любой другой диалог — то же с кодом unknown-dialog",
+        "Тесты на подставном claude: диалог импортов при создании сессии, доверие через запись файла, выбор импортов, доверенная родительская папка, потеря записи и повтор; тесты cli и карточек обновлены",
+        "module.md provider-claude, provider-registry, provider-cards и факты раздела 2 в docs/planning/M1-providers.md обновлены (проверено 2026-11-05: доверие ~ подавляет диалог доверия для вложенных папок; диалог внешних импортов)",
+        "Ручная проверка пользователем: предпросмотр доверия Claude для проекта под ~ показывает пометку о родительской папке и выбор про внешние импорты; после «Доверять» карточка показывает «доверено», ~/.claude.json содержит ключ проекта"
+      ],
+      "checks": [],
+      "commitMessage": "fix: grant claude trust explicitly and ask about external imports",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/evidence/M1-acceptance.md",
+          "required": true
+        },
+        {
+          "path": "docs/planning/M1-providers.md",
+          "required": true,
+          "heading": "2. Claude"
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry",
+        "product-parts/control-panel/clusters/web-panel/modules/provider-cards",
+        "docs/planning/M1-providers.md"
+      ],
+      "fixes": "T006",
+      "id": "T011",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Доверие Claude без подмены решений пользователя",
+      "why": "Приёмка: скрипт доверия выбрал «Yes, allow external imports» вместо пользователя и не записал доверие; при доверенной домашней папке Claude не показывает диалог доверия (D2, D3)"
+    },
+    {
+      "acceptance": [
+        "После служебного хода (turn/completed или таймаут ожидания) createSession вызывает thread/unsubscribe {threadId} и только потом закрывает соединение; ошибка unsubscribe не ломает создание, но пишется в журнал",
+        "Служебный ход не передаёт переопределения sandboxPolicy и approvalPolicy (как в проверенном прототипе), чтобы не менять настройки треда для дальнейшей работы пользователя в ChatGPT",
+        "Тест на подставном демоне: после createSession тред отсутствует в thread/loaded/list подставного демона, порядок вызовов thread/start → thread/name/set → turn/start → thread/unsubscribe",
+        "module.md provider-codex обновлён",
+        "Ручная проверка пользователем: новая сессия Codex из панели сразу открывается в ChatGPT на Mac и iPad без сообщения «Этот чат открыт в другом приложении»"
+      ],
+      "checks": [],
+      "commitMessage": "fix: release the codex thread after the service turn",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/evidence/M1-acceptance.md",
+          "required": true
+        },
+        {
+          "path": "docs/planning/M1-providers.md",
+          "required": true,
+          "heading": "3. Codex"
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex"
+      ],
+      "fixes": "T007",
+      "id": "T012",
+      "iteration": 1,
+      "kind": "work",
+      "parallelSafe": true,
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Codex отпускает тред после служебного хода",
+      "why": "Приёмка: ChatGPT показал «Этот чат открыт в другом приложении» для сессии, созданной панелью (D1)"
+    },
+    {
+      "acceptance": [
+        "node_modules удалён из индекса git (git rm -r --cached node_modules), файлы на диске остаются; .gitignore (блок Workflow Kit) его исключает",
+        "Разделы «Дальше» и упоминания будущих задач T00x в module.md data-store, http-server, project-registry, kit-structure, process-supervisor приведены к факту"
+      ],
+      "checks": [],
+      "commitMessage": "chore: stop tracking node_modules and refresh module contracts",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T011",
+        "T012"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "node_modules",
+        "product-parts/backend-core/clusters/runtime/modules/data-store/module.md",
+        "product-parts/backend-core/clusters/http-api/modules/http-server/module.md",
+        "product-parts/backend-core/clusters/projects/modules/project-registry/module.md",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/module.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/module.md"
+      ],
+      "fixes": null,
+      "id": "T013",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "node_modules вне git и актуальные контракты модулей",
+      "why": "node_modules закоммичен коммитом QUALITY; разделы «Дальше» в module.md устарели после раунда R1"
+    },
+    {
+      "acceptance": [
+        "Project-wide documents describe the round result",
+        "The round digest records result, decisions, contracts and references"
+      ],
+      "checks": [],
+      "commitMessage": "docs: reconcile documentation for R2",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T011",
+        "T012",
+        "T013"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/architecture/OVERVIEW.md",
+        "docs/planning/M1-providers.md",
+        "product-parts/backend-core/clusters/runtime/modules/data-store/module.md",
+        "product-parts/backend-core/clusters/http-api/modules/http-server/module.md",
+        "product-parts/backend-core/clusters/projects/modules/project-registry/module.md",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/module.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/module.md"
+      ],
+      "fixes": null,
+      "id": "DOCS-R2",
+      "iteration": 1,
+      "kind": "docs",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Reconcile project documentation and write the round digest",
+      "why": "Keep the project context current for the next agent and close the round."
+    },
+    {
+      "acceptance": [
+        "Служба обновлена командой node bin/wfk.mjs install после подтверждения пользователя; wfk doctor --installed — всё в порядке",
+        "Сценарий раздела 11 пройден пользователем по порядку на Mac и iPad; результат каждого шага дописан в docs/evidence/M1-acceptance.md"
+      ],
+      "checks": [],
+      "commitMessage": "docs: record milestone 1 acceptance after fixes",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M1-orchestrator-core.md",
+          "required": true,
+          "heading": "11. Визуальная приёмка вехи"
+        },
+        {
+          "path": "docs/evidence/M1-acceptance.md",
+          "required": true
+        }
+      ],
+      "dependencies": [
+        "T011",
+        "T012",
+        "T013",
+        "DOCS-R2"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "docs/evidence/M1-acceptance.md"
+      ],
+      "fixes": null,
+      "id": "T014",
+      "iteration": 1,
+      "kind": "delivery",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Переустановка службы и повторная приёмка вехи 1",
+      "why": "Пользователь проверяет исправления на своём Mac и iPad, проходя сценарий по порядку"
     }
   ]
 }
@@ -950,11 +1139,11 @@
 ## State
 
 - Scope: m1-orchestrator-core (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: IN_PROGRESS
 - Execution: orchestrated (max 3 workers, owner cfa00ffe-c414-4ae6-9953-e3d2906b3705)
 - Current task: none
-- Progress: 12/12
-- Revision: 45
+- Progress: 12/17
+- Revision: 46
 
 ## Objective
 
@@ -1020,5 +1209,28 @@
   - Depends on: T006, T007, T008, DOCS-R1
 
 Digest: Milestone 1 core is in code: wfk CLI and createApp, data store with operations, HTTP API with the D8 access filter, project registry, Kit structure v1 with the SessionStart hook, provider contract with Claude and Codex providers, process supervisor, web panel with System, Projects, Structure and provider cards, and a service installer wired into the cli and panel. Device acceptance on Mac and iPad is still pending.
+
+### R2 — Исправления по приёмке вехи 1 (fixes, OPEN)
+
+- [TODO] T011 — Доверие Claude без подмены решений пользователя (work)
+  - Commit: fix: grant claude trust explicitly and ask about external imports
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/control-panel/clusters/web-panel/modules/provider-cards, docs/planning/M1-providers.md
+  - Fixes: T006
+- [TODO] T012 — Codex отпускает тред после служебного хода (work, parallel-safe)
+  - Commit: fix: release the codex thread after the service turn
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex
+  - Fixes: T007
+- [TODO] T013 — node_modules вне git и актуальные контракты модулей (work)
+  - Commit: chore: stop tracking node_modules and refresh module contracts
+  - Files: node_modules, product-parts/backend-core/clusters/runtime/modules/data-store/module.md, product-parts/backend-core/clusters/http-api/modules/http-server/module.md, product-parts/backend-core/clusters/projects/modules/project-registry/module.md, product-parts/backend-core/clusters/projects/modules/kit-structure/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/module.md
+  - Depends on: T011, T012
+- [TODO] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
+  - Commit: docs: reconcile documentation for R2
+  - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M1-providers.md, product-parts/backend-core/clusters/runtime/modules/data-store/module.md, product-parts/backend-core/clusters/http-api/modules/http-server/module.md, product-parts/backend-core/clusters/projects/modules/project-registry/module.md, product-parts/backend-core/clusters/projects/modules/kit-structure/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/module.md
+  - Depends on: T011, T012, T013
+- [TODO] T014 — Переустановка службы и повторная приёмка вехи 1 (delivery)
+  - Commit: docs: record milestone 1 acceptance after fixes
+  - Files: docs/evidence/M1-acceptance.md
+  - Depends on: T011, T012, T013, DOCS-R2
 
 State changes only through `scripts/workflow` commands. History lives in Git.

@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 11,
+  "revision": 12,
   "rounds": [
     {
       "digest": null,
@@ -671,11 +671,10 @@
         "approveHooks одобряет только хук Kit при точном совпадении команды и хеша; чужие хуки не одобряются; тест",
         "createSession: thread/start, thread/name/set, служебный turn/start с безопасными sandbox и approval (параметры проверены на устройстве и записаны в контракт модуля); запись в sessions/codex.json",
         "listSessions: журнал хука + записи панели, названия из session_index.jsonl; неодобренный хук — note «список неполон»; ссылка codex://threads/<id>",
-        "Windows — возможности недоступны с причиной; тесты на подставном JSON-RPC сервере и фикстурах"
+        "Windows — возможности недоступны с причиной; тесты на подставном JSON-RPC сервере и фикстурах",
+        "Ручная проверка пользователем: Визуально: статус демона; доверие с предпросмотром; «Одобрить хук» с командой и хешем; «Создать сессию» → открывается в ChatGPT на Mac и на iPad"
       ],
-      "checks": [
-        "Визуально: статус демона; доверие с предпросмотром; «Одобрить хук» с командой и хешем; «Создать сессию» → открывается в ChatGPT на Mac и на iPad"
-      ],
+      "checks": [],
       "commitMessage": "feat: implement codex provider",
       "confirmation": null,
       "context": [
@@ -837,7 +836,7 @@
 - Execution: orchestrated (max 3 workers, owner cfa00ffe-c414-4ae6-9953-e3d2906b3705)
 - Current task: none
 - Progress: 1/11
-- Revision: 11
+- Revision: 12
 
 ## Objective
 

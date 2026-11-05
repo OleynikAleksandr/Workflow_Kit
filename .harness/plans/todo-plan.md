@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 15,
+  "revision": 16,
   "rounds": [
     {
       "digest": null,
@@ -467,14 +467,10 @@
       ],
       "docsWaiver": null,
       "files": [
-        "src/core",
-        "src/server",
-        "src/panel",
-        "test/core",
-        "test/server",
-        "docs/architecture/modules/core.md",
-        "docs/architecture/modules/server.md",
-        "docs/architecture/modules/panel.md"
+        "product-parts/backend-core/clusters/runtime/modules/data-store",
+        "product-parts/backend-core/clusters/http-api/modules/http-server",
+        "product-parts/backend-core/clusters/projects/modules/project-registry",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell"
       ],
       "fixes": null,
       "id": "T002",
@@ -840,7 +836,7 @@
 - Execution: orchestrated (max 3 workers, owner cfa00ffe-c414-4ae6-9953-e3d2906b3705)
 - Current task: none
 - Progress: 1/11
-- Revision: 15
+- Revision: 16
 
 ## Objective
 
@@ -865,7 +861,7 @@
   - Depends on: QUALITY
 - [TODO] T002 — Реестр проектов и выбор папки (work)
   - Commit: feat: add project registry and folder picker
-  - Files: src/core, src/server, src/panel, test/core, test/server, docs/architecture/modules/core.md, docs/architecture/modules/server.md, docs/architecture/modules/panel.md
+  - Files: product-parts/backend-core/clusters/runtime/modules/data-store, product-parts/backend-core/clusters/http-api/modules/http-server, product-parts/backend-core/clusters/projects/modules/project-registry, product-parts/control-panel/clusters/web-panel/modules/panel-shell
   - Depends on: T001
 - [TODO] T003 — Структура Kit v1, приём хука и wfk link (work)
   - Commit: feat: add kit structure installer and session start hook

@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 5,
+  "revision": 6,
   "rounds": [
     {
       "digest": null,
@@ -393,11 +393,10 @@
         "Помощник атомарной записи JSON (tmp + rename) с тестом",
         "Фильтр доступа по D8: адрес клиента и локальный адрес сокета — loopback или Tailscale (IPv4 и IPv6), Host из списка, Origin изменяющих запросов совпадает с Host, тело JSON; иначе 403; тесты",
         "GET /api/health и GET /api/state (раздел «Система»: версия, ОС, каталог данных, статус службы из заглушки); / отдаёт панель с опросом раз в 3 с",
-        "node_modules удалён из индекса git (git rm -r --cached node_modules; он попал туда коммитом QUALITY), .gitignore исключает node_modules/ вне блока Workflow Kit; зависимости ставятся npm ci"
+        "node_modules удалён из индекса git (git rm -r --cached node_modules; он попал туда коммитом QUALITY), .gitignore исключает node_modules/ вне блока Workflow Kit; зависимости ставятся npm ci",
+        "Ручная проверка пользователем: Визуально: node bin/wfk.mjs serve; панель на http://127.0.0.1:4747/ и с iPad по адресу Tailscale без правки конфига; карточка «Система» показывает версию, ОС и каталог данных"
       ],
-      "checks": [
-        "Визуально: node bin/wfk.mjs serve; панель на http://127.0.0.1:4747/ и с iPad по адресу Tailscale без правки конфига; карточка «Система» показывает версию, ОС и каталог данных"
-      ],
+      "checks": [],
       "commitMessage": "feat: add backend skeleton with access filter and panel shell",
       "confirmation": null,
       "context": [
@@ -843,7 +842,7 @@
 - Execution: orchestrated (max 3 workers, owner cfa00ffe-c414-4ae6-9953-e3d2906b3705)
 - Current task: none
 - Progress: 1/11
-- Revision: 5
+- Revision: 6
 
 ## Objective
 

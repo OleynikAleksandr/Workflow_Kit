@@ -9,15 +9,19 @@ Workflow Kit — оркестратор поверх родных приложе
 Веха 1 (`m1-orchestrator-core`) реализована; приёмка на устройстве —
 по разделу 11 спецификации
 ([docs/planning/M1-orchestrator-core.md](docs/planning/M1-orchestrator-core.md)).
+Первый проход приёмки на Mac нашёл дефекты D1–D3
+([docs/evidence/M1-acceptance.md](docs/evidence/M1-acceptance.md)); они
+исправлены раундом R2, повторная приёмка — после переустановки.
 
 ## Требования
 
 - Node.js 24 или новее (TypeScript исполняется напрямую, type stripping).
   Runtime-зависимостей нет; `typescript` и `@types/node` нужны только для
   проверок.
-- Провайдеры: `claude` (2.1.0+) и `expect` для Claude; `codex` для
-  ChatGPT/Codex. Без них панель показывает недоступные возможности с
-  причиной.
+- Провайдеры: `claude` (2.1.0+) для Claude и `expect` для его сессий и
+  окружения (доверие к папке Kit пишет в `~/.claude.json` сам, без
+  `expect`); `codex` для ChatGPT/Codex. Без них панель показывает
+  недоступные возможности с причиной.
 - Основная ОС — macOS. Linux и Windows поддержаны кодом, но проверены
   только тестами (см. матрицу ОС в
   [OVERVIEW](docs/architecture/OVERVIEW.md#матрица-ос)).

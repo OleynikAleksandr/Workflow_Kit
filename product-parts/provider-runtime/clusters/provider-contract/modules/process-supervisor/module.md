@@ -79,7 +79,8 @@
 - `provider-claude` запускает сессии и окружение папки под `expect`
   (`spawn`), добавляет pid дочернего `claude` через `track`, останавливает
   через `stop`.
-- `provider-codex` и `service-installer` используют `cleanEnv`;
+- `provider-claude`, `provider-codex` и `service-installer` используют
+  `cleanEnv`;
   `runCommand` — исполнитель внешних программ по умолчанию в `cli` и
   `service-installer`.
 

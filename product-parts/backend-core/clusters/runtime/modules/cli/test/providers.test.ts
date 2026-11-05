@@ -1,3 +1,7 @@
+// Provider wiring of the app. Stub behaviour (labels, 501, not-implemented operations, hook journal)
+// is checked on injected stub providers, so the test does not depend on whether the real Claude
+// and Codex providers are implemented; for DEFAULT_PROVIDERS only registration and the state
+// section are checked.
 import assert from 'node:assert/strict';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import os from 'node:os';
@@ -5,6 +9,7 @@ import path from 'node:path';
 import { after, before, test } from 'node:test';
 import { recordSessionStart } from '#kit-structure';
 import type { Operation } from '#data-store';
+import type { CommandRunner } from '#process-supervisor';
 import { createStubProvider } from '#provider-registry';
 import type { ProvidersSection } from '#provider-registry';
 import { DEFAULT_PROVIDERS, createApp } from '../src/index.ts';
@@ -14,9 +19,31 @@ let tmp = '';
 let app: App;
 let base = '';
 
+/** Stand-ins for claude and codex that stay stubs whatever T006/T007 implement. */
+const STUB_PROVIDERS = [
+  () => createStubProvider({ id: 'claude', title: 'Claude', task: 'T006' }),
+  () => createStubProvider({ id: 'codex', title: 'Codex', task: 'T007' }),
+];
+
+/** No external program is ever started by these tests. */
+const noPrograms: CommandRunner = async () => ({
+  code: null,
+  signal: null,
+  stdout: '',
+  stderr: '',
+  timedOut: false,
+  startError: 'ENOENT',
+});
+
 before(async () => {
   tmp = await mkdtemp(path.join(os.tmpdir(), 'wfk-app-prov-'));
-  app = await createApp({ env: { WFK_DATA_DIR: path.join(tmp, 'data'), WFK_PORT: '0' }, homedir: tmp, getInterfaces: () => ({}) });
+  app = await createApp({
+    env: { WFK_DATA_DIR: path.join(tmp, 'data'), WFK_PORT: '0' },
+    homedir: tmp,
+    getInterfaces: () => ({}),
+    runCommand: noPrograms,
+    providers: STUB_PROVIDERS,
+  });
   base = `http://127.0.0.1:${(await app.start()).port}`;
 });
 
@@ -34,12 +61,38 @@ async function send(method: string, url: string, body?: unknown): Promise<{ stat
   return { status: response.status, json: (await response.json()) as Record<string, unknown> };
 }
 
-async function getState(): Promise<{ providers: ProvidersSection; operations: { operations: Operation[] } }> {
-  return (await (await fetch(`${base}/api/state`)).json()) as { providers: ProvidersSection; operations: { operations: Operation[] } };
+async function getState(from = base): Promise<{ providers: ProvidersSection; operations: { operations: Operation[] } }> {
+  return (await (await fetch(`${from}/api/state`)).json()) as { providers: ProvidersSection; operations: { operations: Operation[] } };
 }
 
-test('claude and codex are registered as "не реализовано" for the system and for each project', async () => {
+test('DEFAULT_PROVIDERS register claude and codex, each with a state section for the system and each project', async () => {
   assert.equal(DEFAULT_PROVIDERS.length, 2);
+  const real = await createApp({
+    env: { WFK_DATA_DIR: path.join(tmp, 'defaults'), WFK_PORT: '0' },
+    homedir: tmp,
+    getInterfaces: () => ({}),
+    runCommand: noPrograms,
+  });
+  try {
+    assert.deepEqual(real.providers.ids(), ['claude', 'codex']);
+    const project = await real.projects.create('Defaults');
+    const realBase = `http://127.0.0.1:${(await real.start()).port}`;
+    const state = await getState(realBase);
+    assert.deepEqual(state.providers.providers.map((p) => p.id), ['claude', 'codex']);
+    for (const summary of state.providers.providers) {
+      assert.equal(typeof summary.title, 'string');
+      assert.equal(typeof summary.capabilities, 'object');
+      assert.ok(summary.status !== null || Object.keys(summary.errors).length > 0, `${summary.id}: no status and no error`);
+    }
+    const entry = state.providers.projects[project.id]!;
+    assert.deepEqual(Object.keys(entry), ['claude', 'codex']);
+    for (const id of ['claude', 'codex']) assert.ok(Array.isArray(entry[id]!.sessions), `${id}: sessions list`);
+  } finally {
+    await real.stop();
+  }
+});
+
+test('stub providers are shown as "не реализовано" for the system and for each project', async () => {
   const created = await send('POST', '/api/projects', { name: 'Gamma' });
   const project = created.json['project'] as { id: string };
   const state = await getState();
@@ -50,10 +103,11 @@ test('claude and codex are registered as "не реализовано" for the s
   const entry = state.providers.projects[project.id]!;
   assert.deepEqual(Object.keys(entry), ['claude', 'codex']);
   assert.deepEqual(entry['claude']!.sessions, []);
+  assert.deepEqual(entry['codex']!.sessions, []);
   assert.ok(Array.isArray(state.operations.operations));
 });
 
-test('Claude sessions started in the project folder appear in /api/state from the hook journal', async () => {
+test('sessions started in the project folder appear in /api/state from the hook journal', async () => {
   const created = await send('POST', '/api/projects', { name: 'Delta' });
   const project = created.json['project'] as { id: string; path: string };
   assert.equal((await send('POST', `/api/projects/${project.id}/structure`, {})).status, 200);

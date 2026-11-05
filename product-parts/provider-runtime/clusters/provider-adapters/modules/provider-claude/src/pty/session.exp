@@ -1,0 +1,32 @@
+# Starts one interactive Claude Code session with Remote Control in a project folder, or resumes
+# a local session under the same Remote Control id when a fifth argument (its local id) is given.
+# Usage: expect session.exp <folder> <claude> <title> <debug file> [<local id>]
+# Prints (each on its own line):
+#   CLAUDE_PID <pid>          pid of the spawned claude (D9: the supervisor tracks it)
+#   SESSION_URL session_<id>  once claude.ai has the session (primary source of the id)
+#   NO_SESSION_URL            no link on the screen in time; the session keeps running and the
+#                             backend falls back to the debug file ("Created session cse_<id>")
+#   SESSION_NOT_TRUSTED       the folder is not trusted (exit 5)
+#   SESSION_EXITED            claude exited before a link appeared (exit 4)
+# After the link the screen is no longer copied to the log; the session lives until claude exits.
+set timeout 90
+lassign $argv dir claude title debug resume
+cd $dir
+if {$resume ne ""} {
+  spawn $claude --resume $resume --remote-control $title --debug-file $debug
+} else {
+  spawn $claude --remote-control $title --debug-file $debug
+}
+puts "\nCLAUDE_PID [exp_pid]"
+# Without a controlling terminal the pty has no size and claude prints nothing; give it one.
+stty rows 40 columns 160 < $spawn_out(slave,name)
+expect {
+  -re {claude\.ai/code/(session_[A-Za-z0-9]+)} { puts "\nSESSION_URL $expect_out(1,string)" }
+  -re {Workspace not trusted} { puts "\nSESSION_NOT_TRUSTED"; exit 5 }
+  timeout { puts "\nNO_SESSION_URL" }
+  eof { puts "\nSESSION_EXITED"; exit 4 }
+}
+log_user 0
+set timeout -1
+expect eof
+puts "\nSESSION_ENDED"

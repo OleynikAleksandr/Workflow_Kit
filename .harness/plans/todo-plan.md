@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 36,
+  "revision": 37,
   "rounds": [
     {
       "digest": null,
@@ -676,9 +676,13 @@
       "kind": "work",
       "parallelSafe": true,
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Провайдер Claude",
-      "why": "Доверие, сессии Remote Control и окружение папки Claude из панели"
+      "why": "Доверие, сессии Remote Control и окружение папки Claude из панели",
+      "integration": {
+        "operationId": "684c6a9c-bb65-480f-a4c4-532c0dd36d93",
+        "sourceCommit": "4ae08d0354cd123d14d950626bd4d533e6418ded"
+      }
     },
     {
       "acceptance": [
@@ -845,8 +849,8 @@
 - Delivery: IN_PROGRESS
 - Execution: orchestrated (max 3 workers, owner cfa00ffe-c414-4ae6-9953-e3d2906b3705)
 - Current task: none
-- Progress: 6/11
-- Revision: 36
+- Progress: 7/11
+- Revision: 37
 
 ## Objective
 
@@ -885,7 +889,7 @@
   - Commit: feat: add generic provider cards to the panel
   - Files: product-parts/control-panel/clusters/web-panel/modules/provider-cards, product-parts/control-panel/clusters/web-panel/modules/panel-shell, package.json, product-parts/backend-core/clusters/runtime/modules/cli
   - Depends on: T004
-- [TODO] T006 — Провайдер Claude (work, parallel-safe)
+- [DONE] T006 — Провайдер Claude (work, parallel-safe)
   - Commit: feat: implement claude provider
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, product-parts/backend-core/clusters/runtime/modules/cli/test/providers.test.ts
   - Depends on: T004

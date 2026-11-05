@@ -71,6 +71,13 @@ test('the panel shell is served at /', async () => {
   assert.equal((await fetch(`${base}/index.ts`)).status, 404);
 });
 
+test('the provider cards are served under /provider-cards/', async () => {
+  for (const name of ['provider-cards.js', 'model.js', 'card-model.js', 'render.js', 'provider-cards.css']) {
+    assert.equal((await fetch(`${base}/provider-cards/${name}`)).status, 200, name);
+  }
+  assert.equal((await fetch(`${base}/provider-cards/index.ts`)).status, 404);
+});
+
 async function send(method: string, url: string, body?: unknown): Promise<{ status: number; json: Record<string, unknown> }> {
   const headers = { Origin: base, 'Content-Type': 'application/json' };
   const response = await fetch(`${base}${url}`, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) });

@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 35,
+  "revision": 37,
   "rounds": [
     {
       "digest": null,
@@ -46,7 +46,7 @@
       }
     ],
     "decisions": [],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 1,
       "ownerSession": null,
@@ -87,14 +87,32 @@
         "product-parts/control-panel/clusters/web-panel/modules/provider-cards",
         "product-parts/control-panel/clusters/web-panel/modules/panel-shell",
         "package.json",
-        "product-parts/backend-core/clusters/runtime/modules/cli"
+        "product-parts/backend-core/clusters/runtime/modules/cli",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/app.test.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/cards.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/index.html",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/panel-shell.test.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/provider-cards/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/provider-cards/src/card-model.js",
+        "product-parts/control-panel/clusters/web-panel/modules/provider-cards/src/index.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/provider-cards/src/model.js",
+        "product-parts/control-panel/clusters/web-panel/modules/provider-cards/src/provider-cards.css",
+        "product-parts/control-panel/clusters/web-panel/modules/provider-cards/src/provider-cards.js",
+        "product-parts/control-panel/clusters/web-panel/modules/provider-cards/src/render.js",
+        "product-parts/control-panel/clusters/web-panel/modules/provider-cards/test/assets.test.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/provider-cards/test/card-model.test.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/provider-cards/test/model.test.ts"
       ],
       "fixes": null,
       "id": "T005",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Общий интерфейс провайдеров в панели",
       "why": "Панель рисует любого провайдера из контракта, без кода под провайдера"
     }
@@ -106,11 +124,11 @@
 ## State
 
 - Scope: assignment-m1-orchestrator-core-T005-1 (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 0/1
-- Revision: 35
+- Progress: 1/1
+- Revision: 37
 
 ## Objective
 
@@ -128,8 +146,8 @@
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T005 — Общий интерфейс провайдеров в панели (work)
+- [DONE] T005 — Общий интерфейс провайдеров в панели (work)
   - Commit: feat: add generic provider cards to the panel
-  - Files: product-parts/control-panel/clusters/web-panel/modules/provider-cards, product-parts/control-panel/clusters/web-panel/modules/panel-shell, package.json, product-parts/backend-core/clusters/runtime/modules/cli
+  - Files: product-parts/control-panel/clusters/web-panel/modules/provider-cards, product-parts/control-panel/clusters/web-panel/modules/panel-shell, package.json, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/app.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/cards.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/index.html, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/panel-shell.test.ts, product-parts/control-panel/clusters/web-panel/modules/provider-cards/module.md, product-parts/control-panel/clusters/web-panel/modules/provider-cards/src/card-model.js, product-parts/control-panel/clusters/web-panel/modules/provider-cards/src/index.ts, product-parts/control-panel/clusters/web-panel/modules/provider-cards/src/model.js, product-parts/control-panel/clusters/web-panel/modules/provider-cards/src/provider-cards.css, product-parts/control-panel/clusters/web-panel/modules/provider-cards/src/provider-cards.js, product-parts/control-panel/clusters/web-panel/modules/provider-cards/src/render.js, product-parts/control-panel/clusters/web-panel/modules/provider-cards/test/assets.test.ts, product-parts/control-panel/clusters/web-panel/modules/provider-cards/test/card-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/provider-cards/test/model.test.ts
 
 State changes only through `scripts/workflow` commands. History lives in Git.

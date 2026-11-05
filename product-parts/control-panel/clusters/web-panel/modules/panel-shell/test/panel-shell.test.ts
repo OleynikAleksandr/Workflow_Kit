@@ -70,3 +70,45 @@ test('the structure card is loaded and installs through POST /api/projects/:id/s
   }
   assert.doesNotMatch(card, /innerHTML/);
 });
+
+test('card groups expand into one card per item, sorted by order with the plain cards', async () => {
+  const cards = await import('../src/cards.js');
+  cards.registerCard({ id: 'test-a', title: 'A', order: 5, select: () => 'a', render: () => ({}) as Node });
+  cards.registerCardGroup({
+    id: 'test-group',
+    order: 7,
+    items: (state) => (state['items'] as string[]).map((id) => ({ id, title: id.toUpperCase() })),
+    select: (state, id) => `${String(state['tag'])}:${id}`,
+    render: () => ({}) as Node,
+  });
+  const expanded = cards.expandCards({ items: ['x', 'y'], tag: 't' }).filter((c) => c.id.startsWith('test-'));
+  assert.deepEqual(
+    expanded.map((c) => [c.id, c.title, c.order, c.select({ tag: 't' })]),
+    [
+      ['test-a', 'A', 5, 'a'],
+      ['test-group-x', 'X', 7, 't:x'],
+      ['test-group-y', 'Y', 7, 't:y'],
+    ],
+  );
+  assert.equal(cards.expandCards({ items: [] }).filter((c) => c.id.startsWith('test-group')).length, 0);
+  cards.registerCardGroup({
+    id: 'test-group',
+    order: 7,
+    items: () => {
+      throw new Error('boom');
+    },
+    select: () => null,
+    render: () => ({}) as Node,
+  });
+  const broken = cards.expandCards({}).find((c) => c.id === 'test-group');
+  assert.ok(broken);
+  assert.throws(() => broken.render(null, {}), /boom/);
+});
+
+test('app.js loads panel extensions with the shell helpers and keeps card sections in order', async () => {
+  const app = await readFile(path.join(PANEL_ASSETS_DIR, 'app.js'), 'utf8');
+  assert.match(app, /export const PANEL_EXTENSIONS = \[/);
+  assert.match(app, /extension\.install\(shell\)/);
+  assert.match(app, /expandCards\(state\)/);
+  assert.match(app, /node\.remove\(\)/);
+});

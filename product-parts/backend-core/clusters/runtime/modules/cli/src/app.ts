@@ -5,6 +5,7 @@ import { createHttpServer, createRouter, createStateRegistry, registerCoreRoutes
 import type { HttpServerHandle, InterfaceMap, Router, StateRegistry } from '#http-server';
 import { registerStructureRoutes } from '#kit-structure';
 import { panelShellMount } from '#panel-shell';
+import { providerCardsMount } from '#provider-cards';
 import { createProcessSupervisor, processesFile, runCommand } from '#process-supervisor';
 import type { CommandRunner, ProcessSupervisor } from '#process-supervisor';
 import { createProvider as createClaudeProvider } from '#provider-claude';
@@ -95,7 +96,7 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
 
   const router = createRouter();
   const state = createStateRegistry();
-  const server = createHttpServer({ router, staticMounts: [panelShellMount()], getInterfaces, log: options.log });
+  const server = createHttpServer({ router, staticMounts: [panelShellMount(), providerCardsMount()], getInterfaces, log: options.log });
   const events = createEventLog({ file: eventsFile(dirs) });
   const mutex = createKeyedMutex();
   const homeScope = { homedir, platform };

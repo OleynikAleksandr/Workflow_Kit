@@ -19,8 +19,27 @@
  *   in place so focus and typed text survive the update.
  */
 
+/**
+ * @typedef {object} CardGroupItem
+ * @property {string} id Item id, unique inside the group ([a-z0-9-] recommended; part of the DOM id).
+ * @property {string} title Heading of the item's card.
+ */
+
+/**
+ * @typedef {object} CardGroupDefinition
+ * A set of cards whose number depends on the state (e.g. one card per provider).
+ * @property {string} id Unique group id; an item card gets the id "<group>-<item>".
+ * @property {number} order Sort key of every card of the group.
+ * @property {boolean} [wide]
+ * @property {(state: PanelState) => CardGroupItem[]} items Cards to draw for this state, in order.
+ * @property {(state: PanelState, itemId: string) => unknown} select Data of one item card.
+ * @property {(data: any, state: PanelState, itemId: string) => Node} render Body of one item card.
+ */
+
 /** @type {CardDefinition[]} */
 const cards = [];
+/** @type {CardGroupDefinition[]} */
+const groups = [];
 
 /**
  * Registers a card; a duplicate id replaces the previous definition.
@@ -33,11 +52,54 @@ export function registerCard(card) {
 }
 
 /**
+ * Registers a card group; a duplicate id replaces the previous definition.
+ * @param {CardGroupDefinition} group
+ */
+export function registerCardGroup(group) {
+  const index = groups.findIndex((g) => g.id === group.id);
+  if (index >= 0) groups.splice(index, 1, group);
+  else groups.push(group);
+}
+
+/**
  * Registered cards sorted by order.
  * @returns {CardDefinition[]}
  */
 export function listCards() {
   return [...cards].sort((a, b) => a.order - b.order);
+}
+
+/**
+ * Cards to draw for a state: plain cards plus one card per group item, sorted by order (stable).
+ * A group whose items() throws becomes one card that shows the error.
+ * @param {PanelState} state
+ * @returns {CardDefinition[]}
+ */
+export function expandCards(state) {
+  /** @type {CardDefinition[]} */
+  const expanded = [...cards];
+  for (const group of groups) {
+    /** @type {CardGroupItem[]} */
+    let items;
+    try {
+      items = group.items(state);
+    } catch (error) {
+      const message = String(error);
+      expanded.push({ id: group.id, title: group.id, order: group.order, wide: group.wide, select: () => message, render: () => { throw new Error(message); } });
+      continue;
+    }
+    for (const item of items) {
+      expanded.push({
+        id: `${group.id}-${item.id}`,
+        title: item.title,
+        order: group.order,
+        wide: group.wide,
+        select: (s) => group.select(s, item.id),
+        render: (data, s) => group.render(data, s, item.id),
+      });
+    }
+  }
+  return expanded.sort((a, b) => a.order - b.order);
 }
 
 /** @type {() => void} */

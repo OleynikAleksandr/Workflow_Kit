@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 102,
+  "revision": 103,
   "rounds": [
     {
       "digest": {
@@ -33,6 +33,13 @@
       "kind": "implementation",
       "status": "CLOSED",
       "title": "Implementation"
+    },
+    {
+      "digest": null,
+      "id": "R2",
+      "kind": "fixes",
+      "status": "OPEN",
+      "title": "Fixes"
     }
   ],
   "schema": "harness-workflow-plan/1",
@@ -64,7 +71,7 @@
         "text": "Claude: имя передаёт хук UserPromptSubmit полем hookSpecificOutput.sessionTitle"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "IN_PROGRESS",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cfa00ffe-c414-4ae6-9953-e3d2906b3705",
@@ -210,6 +217,90 @@
       "status": "DONE",
       "title": "Релиз раунда 1",
       "why": "Релиз раунда 1"
+    },
+    {
+      "acceptance": [
+        "load() отправляет имена Codex с synced: false (ручное имя или тема) через rename",
+        "Имя с synced: true повторно не отправляется"
+      ],
+      "checks": [],
+      "commitMessage": "fix: retry unsynced Codex names when the service starts",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M3-fixes.md",
+          "heading": "4. Раунд 1: имена сессий в приложениях",
+          "required": true
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/titles.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/session-titles/test/titles.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md"
+      ],
+      "fixes": "T001",
+      "id": "T004",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Повтор неотправленных имён Codex при запуске службы",
+      "why": "После перезапуска службы имя со synced: false ждало хода в этой сессии и не доходило до ChatGPT"
+    },
+    {
+      "acceptance": [
+        "Project-wide documents describe the round result",
+        "The round digest records result, decisions, contracts and references"
+      ],
+      "checks": [],
+      "commitMessage": "docs: reconcile documentation for R2",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T004"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/architecture/OVERVIEW.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md"
+      ],
+      "fixes": null,
+      "id": "DOCS-R2",
+      "iteration": 1,
+      "kind": "docs",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Reconcile project documentation and write the round digest",
+      "why": "Keep the project context current for the next agent and close the round."
+    },
+    {
+      "acceptance": [
+        "node bin/wfk.mjs install и wfk doctor --installed — всё в порядке",
+        "Имена сессий видны в ChatGPT и в Claude; результат записан в docs/evidence/M3-acceptance.md"
+      ],
+      "checks": [],
+      "commitMessage": "chore: install the M3 round 2 release",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T004",
+        "DOCS-R2"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "docs/evidence/M3-acceptance.md"
+      ],
+      "fixes": null,
+      "id": "T005",
+      "iteration": 1,
+      "kind": "delivery",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Релиз раунда 2",
+      "why": "Релиз раунда 2"
     }
   ]
 }
@@ -219,11 +310,11 @@
 ## State
 
 - Scope: m3-fixes (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 4/4
-- Revision: 102
+- Progress: 4/7
+- Revision: 103
 
 ## Objective
 
@@ -254,5 +345,20 @@
   - Depends on: T001, T002, DOCS-R1
 
 Digest: Имена сессий Workflow Kit уходят в приложения: Codex — thread/name/set демона для любого треда без загрузки; Claude — hookSpecificOutput.sessionTitle в ответе хука UserPromptSubmit, один раз на имя.
+
+### R2 — Fixes (fixes, OPEN)
+
+- [TODO] T004 — Повтор неотправленных имён Codex при запуске службы (work)
+  - Commit: fix: retry unsynced Codex names when the service starts
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/titles.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/test/titles.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md
+  - Fixes: T001
+- [TODO] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
+  - Commit: docs: reconcile documentation for R2
+  - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md
+  - Depends on: T004
+- [TODO] T005 — Релиз раунда 2 (delivery)
+  - Commit: chore: install the M3 round 2 release
+  - Files: docs/evidence/M3-acceptance.md
+  - Depends on: T004, DOCS-R2
 
 State changes only through `scripts/workflow` commands. History lives in Git.

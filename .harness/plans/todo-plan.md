@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 91,
+  "revision": 92,
   "rounds": [
     {
       "digest": {
@@ -53,7 +53,10 @@
       "После «Создать и открыть в ChatGPT / Claude» пользователю не задаётся вопросов: проект, процесс Kit, доверие, хуки и сессия готовятся сами, чат открывается сам",
       "Обязательные проверки качества (типы, тесты) проходят"
     ],
-    "acceptanceNote": null,
+    "acceptanceNote": {
+      "at": "2026-11-06T17:22:57.023Z",
+      "text": "Да, план можно принять, и думаю, что закрыть, чтобы не плодить пункты."
+    },
     "approval": {
       "at": "2026-11-06T08:11:14.601Z",
       "text": "Пользователь: «Да, начинай» — после согласования макета («Да, все правильно, ты уловил, все отлично»), решений «Интерфейс и процесс вместе», «Собранный Kit 2.2.2 сейчас», «Взять экран «Домой» iPad» и разрешения проверить хук Stop на устройстве («Да, проверить») | Execution mode chosen by the user: sequential: Пользователь: «Последовательно»"
@@ -92,7 +95,7 @@
         "text": "Старые пункты вехи 2 (сканер доверия, раскладка окон, авторизация панели) переносятся в следующие вехи; экран «Домой» iPad входит"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "ACCEPTED",
     "execution": {
       "maxWorkers": 2,
       "ownerSession": "cfa00ffe-c414-4ae6-9953-e3d2906b3705",
@@ -720,11 +723,11 @@
 ## State
 
 - Scope: m2-interface-and-process (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: ACCEPTED
 - Execution: sequential
 - Current task: none
 - Progress: 10/10
-- Revision: 91
+- Revision: 92
 
 ## Objective
 

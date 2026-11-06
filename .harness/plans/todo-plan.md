@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 123,
+  "revision": 125,
   "rounds": [
     {
       "digest": {
@@ -91,7 +91,7 @@
       },
       "id": "R4",
       "kind": "fixes",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Fixes"
     }
   ],
@@ -124,7 +124,7 @@
         "text": "Claude: имя передаёт хук UserPromptSubmit полем hookSpecificOutput.sessionTitle"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cfa00ffe-c414-4ae6-9953-e3d2906b3705",
@@ -557,7 +557,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: release 0.3.0",
-      "confirmation": null,
+      "confirmation": "что значит новый релиз установлен? Если я вижу маркировку Workflow Kit 0.1.0",
       "context": [],
       "dependencies": [
         "T009",
@@ -574,7 +574,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R4",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Релиз 0.3.0",
       "why": "Релиз 0.3.0"
     }
@@ -586,11 +586,11 @@
 ## State
 
 - Scope: m3-fixes (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 13/14
-- Revision: 123
+- Progress: 14/14
+- Revision: 125
 
 ## Objective
 
@@ -658,7 +658,7 @@ Digest: Имена Codex, не дошедшие до ChatGPT (synced не true),
 
 Digest: Имя сессии Claude из Kit уходит в приложение командой /rename, которую session.exp вводит в терминал сессии вне хода (сразу или на Stop). Карточка «Проектов пока нет» убрана из боковой панели.
 
-### R4 — Fixes (fixes, OPEN)
+### R4 — Fixes (fixes, CLOSED)
 
 - [DONE] T009 — Главный экран без карточки «Начните с проекта» (work)
   - Commit: fix: drop the start card from the home screen
@@ -668,7 +668,7 @@ Digest: Имя сессии Claude из Kit уходит в приложение
   - Commit: docs: reconcile documentation for R4
   - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md
   - Depends on: T009
-- [TODO] T010 — Релиз 0.3.0 (delivery)
+- [DONE] T010 — Релиз 0.3.0 (delivery)
   - Commit: chore: release 0.3.0
   - Files: package.json, package-lock.json, docs/evidence/M3-acceptance.md
   - Depends on: T009, DOCS-R4

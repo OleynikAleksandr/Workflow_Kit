@@ -1,7 +1,7 @@
 // wfk install and wfk uninstall (spec section 9). A repeated install updates the version;
 // uninstall removes autostart, launcher, icon and the installed copies, the data stays.
-import { launchctl, systemctl } from './commands.ts';
-import { ServiceError, startService, stopService } from './control.ts';
+import { systemctl } from './commands.ts';
+import { ServiceError, startService, stopService, unloadLaunchAgent } from './control.ts';
 import type { ControlTarget, StartResult } from './control.ts';
 import { copyApp, pruneVersions, readCurrent, readSourceVersion, saveProgramPaths, servicePort, writeCurrent } from './deploy.ts';
 import type { CurrentRecord } from './deploy.ts';
@@ -45,9 +45,9 @@ export function layoutOf(deps: ResolvedDeps): ServiceLayout {
 async function restart(deps: ResolvedDeps, target: ControlTarget): Promise<StartResult> {
   const mechanism = target.current?.integrated ? target.current.mechanism : null;
   if (mechanism === 'launchagent') {
-    // bootout drops the old job (and its process); startService bootstraps the new plist.
-    const bootout = launchctl.bootout(deps.uid);
-    await deps.run(bootout.command, bootout.args);
+    // bootout drops the old job (and its process); startService bootstraps the new plist only
+    // after launchd has forgotten the old job.
+    await unloadLaunchAgent(deps);
     // An old process still answering (or one started by hand) is stopped by its health pid.
     if (await deps.health(target.port)) await stopService(deps, target);
   } else if (mechanism === 'systemd-user') {

@@ -18,11 +18,14 @@ app-server на весь Mac, доверие к папке, одобрение �
 - `createCodexProvider(context, deps?)` — то же с внедрением (`CodexDeps`):
   `openAppServer` (stdio `codex app-server`), `openDaemon` (сокет демона),
   `isAlive(pid)`, `tokens` (`TokenStore`), `daemonTtlMs`,
-  `serviceTurnWaitMs` (ожидание `turn/completed` служебного хода).
+  `serviceTurnWaitMs` (ожидание `turn/completed` служебного хода),
+  `releaseWaitMs` и `releasePollMs` (ожидание выгрузки треда демоном).
 - Константы: `PROVIDER_ID` = `codex`, `PROVIDER_TITLE`,
   `DAEMON_START_ACTION` = `daemon-start`, `LOGIN_HINT`,
   `KIT_HOOK_COMMAND` (= `hookCommand('codex')` из `kit-structure`),
-  `SERVICE_TURN_WAIT_MS` (15 с), `UNSUBSCRIBE_TIMEOUT_MS` (5 с); функции `serviceTurnText(name)`,
+  `SERVICE_TURN_WAIT_MS` (15 с), `UNSUBSCRIBE_TIMEOUT_MS` (5 с),
+  `RELEASE_WAIT_MS` (90 с), `RELEASE_POLL_MS` (2 с), `RELEASING_NOTE`,
+  `HELD_NOTE`; функции `serviceTurnText(name)`,
   `threadLinks(id)`, `parseRemoteControlStart(stdout)`.
 - Типы: `CodexDeps`, `DaemonOpener`, `DaemonState`, `ProgramState`,
   `AppServerOpener`, `AppServerSpec`, `RpcTransport`, `CodexRecord`.
@@ -120,7 +123,20 @@ app-server на весь Mac, доверие к папке, одобрение �
   и ChatGPT пишет «Этот чат открыт в другом приложении» (дефект D1).
   Ответ (`unsubscribed | notSubscribed | notLoaded`) или ошибка
   unsubscribe пишутся в журнал (`codex: thread/unsubscribe <id>: …` /
-  `… failed: …`); ошибка создание сессии не ломает. Запись `{ threadId, projectId, projectPath, title,
+  `… failed: …`); ошибка создание сессии не ломает.
+  После отписки демон держит тред без подписчиков ещё около минуты
+  (проверено 2026-11-05: «has no subscribers and is idle; shutting down»
+  через 60 с после `thread/unsubscribe`) и остаётся его единственным
+  писателем: ChatGPT в это время получает «thread-store conflict: … already
+  has an active writer» и пишет «Этот чат открыт в другом приложении».
+  Поэтому createSession в том же соединении опрашивает `thread/loaded/list`
+  (все страницы) каждые 2 с, пока тред не исчезнет, но не дольше 90 с, и
+  пишет в журнал `codex: thread <id> released by the daemon` или `… still
+  held by the daemon after 90 s`. Пока тред удерживается, `listSessions`
+  показывает сессию (`state: 'running'`) без ссылок и с пояснением
+  `RELEASING_NOTE`. Если время вышло, сессия всё равно создаётся, а в её
+  `note` попадает `HELD_NOTE`.
+  Запись `{ threadId, projectId, projectPath, title,
   createdAt, model? }` добавляется в `sessions/codex.json`
   (`providerSessionsFile`, атомарно).
 - **listSessions**: записи панели этого проекта (`origin: 'panel'`) +
@@ -150,6 +166,11 @@ app-server на весь Mac, доверие к папке, одобрение �
   сообщения «Этот чат открыт в другом приложении»; в журнале службы —
   строка `codex: thread/unsubscribe <id>: unsubscribed`; настройки треда в
   ChatGPT — пользовательские.
+- Операция «Создать сессию» длится около минуты: служба ждёт, пока демон
+  выгрузит тред. Проверить: пока идёт операция, у сессии нет кнопки
+  «Открыть» и есть пояснение «Codex ещё держит чат»; после конца операции
+  ссылка открывает чат в ChatGPT на Mac и iPad без сообщения; в журнале
+  службы — `codex: thread <id> released by the daemon`.
 - `grantTrust` и `approveHooks` пишут через `config/value/write` и
   проверяются после записи; хук Kit после одобрения срабатывает с первым
   ходом и попадает в журнал.
@@ -172,10 +193,12 @@ app-server на весь Mac, доверие к папке, одобрение �
   `--version`, `remote-control start`) и подставном демоне (WebSocket
   JSON-RPC на unix-сокете, `test/fake-daemon.ts`; ведёт список
   загруженных тредов: `thread/start` загружает, `thread/unsubscribe`
-  последнего подписчика выгружает, закрытие соединения — нет, как в D1;
-  отвечает на `thread/loaded/list`); настоящий `~/.codex` не трогается.
-- После `createSession` тред не остаётся загруженным в демоне
-  (`test/release.test.ts`).
+  последнего подписчика выгружает (с `idleUnloadPolls` — только через
+  столько вызовов `thread/loaded/list`, как настоящий демон через минуту),
+  закрытие соединения — нет, как в D1; отвечает на `thread/loaded/list`);
+  настоящий `~/.codex` не трогается.
+- После `createSession` тред не остаётся загруженным в демоне, а ссылка
+  появляется только после его выгрузки (`test/release.test.ts`).
 
 ## Дальше
 

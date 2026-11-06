@@ -171,6 +171,15 @@ interface Provider {
   `thread/unsubscribe { threadId }` → `{ status: unsubscribed |
   notSubscribed | notLoaded }`; закрытие соединения тред не выгружает
   **[не проверено на устройстве]**.
+- **[проверено]** 2026-11-05, повторная приёмка, журнал `~/.codex/logs_2.sqlite`:
+  - `thread/unsubscribe` отвечает `unsubscribed`, но демон выгружает тред
+    без подписчиков только через 60 с («has no subscribers and is idle;
+    shutting down»);
+  - до этого ChatGPT (своим `codex app-server` по stdio, `thread/resume`)
+    получает «thread-store conflict: thread … already has an active writer»
+    и показывает «Этот чат открыт в другом приложении»;
+  - после выгрузки тред открывается. Принудительной выгрузки в протоколе
+    нет: у `ThreadUnsubscribeParams` только `threadId`.
 - По схеме `TurnStartParams` переопределения `sandboxPolicy` и
   `approvalPolicy` действуют «для этого и последующих ходов», то есть
   остаются у треда.
@@ -190,9 +199,12 @@ interface Provider {
   `sandboxPolicy` и `approvalPolicy` (тред сохраняет настройки
   пользователя), ожидание `turn/completed` до 15 с, затем
   `thread/unsubscribe` (в `finally` — и при ошибке имени или хода; ошибка
-  unsubscribe только пишется в журнал) и лишь потом закрытие соединения;
-  запись в `sessions/codex.json`. При повторной приёмке проверить: новая
-  сессия сразу открывается в ChatGPT на Mac и iPad.
+  unsubscribe только пишется в журнал), затем ожидание выгрузки треда
+  демоном (`thread/loaded/list` каждые 2 с, до 90 с), и лишь потом
+  закрытие соединения и запись в `sessions/codex.json`. Пока тред
+  удерживается, сессия в списке без ссылки и с пояснением. При повторной
+  приёмке проверить: после конца операции сессия сразу открывается в
+  ChatGPT на Mac и iPad.
 - Список: журнал хука + записи панели, названия из `session_index.jsonl`.
   Хук не одобрен — панель прямо говорит, что список неполон.
 - Windows — возможности недоступны с причиной (Q2).

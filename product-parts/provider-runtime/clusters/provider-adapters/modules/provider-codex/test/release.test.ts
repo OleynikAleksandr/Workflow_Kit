@@ -4,7 +4,7 @@ import path from 'node:path';
 import { after, before, test } from 'node:test';
 import { providerSessionsFile } from '#provider-registry';
 import type { Project } from '#provider-registry';
-import { createCodexProvider } from '../src/index.ts';
+import { HELD_NOTE, RELEASING_NOTE, createCodexProvider } from '../src/index.ts';
 import { createRpcSession, initializeSession } from '../src/rpc.ts';
 import { connectUnixWebSocket } from '../src/ws.ts';
 import type { FakeDaemon, FakeDaemonOptions } from './fake-daemon.ts';
@@ -37,13 +37,13 @@ async function ask<T>(daemon: FakeDaemon, method: string, params: unknown): Prom
 
 const loadedThreads = async (daemon: FakeDaemon): Promise<string[]> => (await ask<{ data: string[] }>(daemon, 'thread/loaded/list', {})).data;
 
-async function create(options: FakeDaemonOptions, title: string): Promise<{ daemon: FakeDaemon; log: string[]; threadId: string }> {
+async function create(options: FakeDaemonOptions, title: string, wait: { releaseWaitMs?: number } = {}): Promise<{ daemon: FakeDaemon; log: string[]; threadId: string; note?: string }> {
   const daemon = await machine.daemon(options);
   const log: string[] = [];
-  const provider = createCodexProvider(machine.context({ log: (line: string) => log.push(line) }), { serviceTurnWaitMs: 100, daemonTtlMs: 0 });
+  const provider = createCodexProvider(machine.context({ log: (line: string) => log.push(line) }), { serviceTurnWaitMs: 100, daemonTtlMs: 0, releasePollMs: 10, ...wait });
   await provider.refresh!();
   const session = await provider.createSession(project, { title });
-  return { daemon, log, threadId: session.localId };
+  return { daemon, log, threadId: session.localId, ...(session.note ? { note: session.note } : {}) };
 }
 
 test('the fake daemon keeps a thread loaded after its connection closes without thread/unsubscribe (defect D1)', async () => {
@@ -56,7 +56,8 @@ test('after createSession the thread is not loaded in the daemon: start, name, t
   const { daemon, log, threadId } = await create({ threadId: 'thread-released' }, 'Release · 1');
   assert.deepEqual(await loadedThreads(daemon), []);
   const methods = daemon.calls.map((c) => c.method).filter((m) => m.startsWith('thread/') || m === 'turn/start');
-  assert.deepEqual(methods, ['thread/start', 'thread/name/set', 'turn/start', 'thread/unsubscribe', 'thread/loaded/list']);
+  // The provider's own release check, then the test's question over a fresh connection.
+  assert.deepEqual(methods, ['thread/start', 'thread/name/set', 'turn/start', 'thread/unsubscribe', 'thread/loaded/list', 'thread/loaded/list']);
   assert.deepEqual(daemon.calls.find((c) => c.method === 'thread/unsubscribe')?.params, { threadId });
   assert.ok(log.includes(`codex: thread/unsubscribe ${threadId}: unsubscribed`), log.join('\n'));
 });
@@ -64,7 +65,7 @@ test('after createSession the thread is not loaded in the daemon: start, name, t
 test('a service turn without turn/completed still ends with thread/unsubscribe and creates the session', async () => {
   const { daemon, threadId } = await create({ threadId: 'thread-silent', silentTurn: true }, 'Release · 2');
   assert.equal(threadId, 'thread-silent');
-  assert.equal(daemon.calls.at(-1)?.method, 'thread/unsubscribe');
+  assert.deepEqual(daemon.calls.slice(-2).map((c) => c.method), ['thread/unsubscribe', 'thread/loaded/list']);
   assert.deepEqual(await loadedThreads(daemon), []);
 });
 
@@ -75,4 +76,32 @@ test('a failed thread/unsubscribe is logged and does not break session creation'
   const saved = JSON.parse(await readFile(providerSessionsFile(machine.dirs, 'codex'), 'utf8')) as { sessions: Array<{ threadId: string }> };
   assert.ok(saved.sessions.some((s) => s.threadId === 'thread-stuck'));
   assert.deepEqual(await loadedThreads(daemon), ['thread-stuck'], 'the daemon still holds it: only the log tells');
+});
+
+test('createSession waits until the daemon unloads the idle thread; meanwhile the session has no link', async () => {
+  const daemon = await machine.daemon({ threadId: 'thread-idle', idleUnloadPolls: 5 });
+  const log: string[] = [];
+  const provider = createCodexProvider(machine.context({ log: (line: string) => log.push(line) }), { serviceTurnWaitMs: 100, daemonTtlMs: 0, releasePollMs: 20 });
+  await provider.refresh!();
+  const creating = provider.createSession(project, { title: 'Release · 4' });
+  while (!daemon.calls.some((c) => c.method === 'thread/loaded/list')) await new Promise((resolve) => setTimeout(resolve, 5));
+  const during = (await provider.listSessions(project)).find((s) => s.localId === 'thread-idle');
+  assert.ok(during, 'the session is listed while the daemon holds the thread');
+  assert.deepEqual(during.links, {}, 'no link while ChatGPT would hit "already has an active writer"');
+  assert.equal(during.note, RELEASING_NOTE);
+  const session = await creating;
+  assert.equal(session.note, undefined);
+  assert.deepEqual(daemon.loaded.has('thread-idle'), false, 'handed out only after the daemon unloaded it');
+  assert.ok(daemon.calls.filter((c) => c.method === 'thread/loaded/list').length >= 5);
+  assert.ok(log.includes('codex: thread thread-idle released by the daemon'), log.join('\n'));
+  const after = (await provider.listSessions(project)).find((s) => s.localId === 'thread-idle');
+  assert.equal(after?.links.desktop, 'codex://threads/thread-idle');
+  assert.equal(after?.note, undefined);
+});
+
+test('a thread still held when the wait ends gives the session with a note, not an error', async () => {
+  const { daemon, log, note } = await create({ threadId: 'thread-long', idleUnloadPolls: 1_000 }, 'Release · 5', { releaseWaitMs: 50 });
+  assert.equal(note, HELD_NOTE);
+  assert.ok(daemon.loaded.has('thread-long'));
+  assert.ok(log.some((line) => line.startsWith('codex: thread thread-long still held by the daemon after')), log.join('\n'));
 });

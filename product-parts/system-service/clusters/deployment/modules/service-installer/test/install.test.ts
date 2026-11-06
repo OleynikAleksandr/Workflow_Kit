@@ -56,6 +56,7 @@ test('macOS install: copy, current.json, programs, launcher, icon, LaunchAgent a
   assert.deepEqual(launchctl, [
     '/bin/launchctl bootout gui/501/ai.workflowkit.backend',
     '/bin/launchctl print gui/501/ai.workflowkit.backend',
+    '/bin/launchctl print gui/501/ai.workflowkit.backend',
     `/bin/launchctl bootstrap gui/501 ${MAC_PLIST}`,
   ]);
   assert.equal(m.spawned.length, 0, 'launchd starts the service, nothing detached');

@@ -3,11 +3,11 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": "T014",
+  "currentTaskId": null,
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 55,
+  "revision": 56,
   "rounds": [
     {
       "digest": {
@@ -72,7 +72,7 @@
       },
       "id": "R2",
       "kind": "fixes",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Исправления по приёмке вехи 1"
     }
   ],
@@ -150,7 +150,7 @@
         "text": "Windows и Linux в вехе 1 проверяются только тестами; приёмка на устройствах — Mac и iPad (ответ пользователя: «Тестов достаточно»)"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cfa00ffe-c414-4ae6-9953-e3d2906b3705",
@@ -1165,14 +1165,30 @@
         "docs/evidence/M1-acceptance.md",
         "docs/planning/M1-providers.md",
         "product-parts/system-service/clusters/deployment/modules/service-installer",
-        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex"
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex",
+        "docs/design/ui-mockup.html",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/runtime.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/sessions.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/release.test.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/module.md",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/control.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/install.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/test/control.test.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/test/fakes.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/test/install.test.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/test/launchd-unload.test.ts"
       ],
       "fixes": null,
       "id": "T014",
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R2",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "title": "Переустановка службы и повторная приёмка вехи 1",
       "why": "Пользователь проверяет исправления на своём Mac и iPad, проходя сценарий по порядку"
     }
@@ -1184,11 +1200,11 @@
 ## State
 
 - Scope: m1-orchestrator-core (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: orchestrated (max 3 workers, owner cfa00ffe-c414-4ae6-9953-e3d2906b3705)
-- Current task: T014
-- Progress: 16/17
-- Revision: 55
+- Current task: none
+- Progress: 17/17
+- Revision: 56
 
 ## Objective
 
@@ -1255,7 +1271,7 @@
 
 Digest: Milestone 1 core is in code: wfk CLI and createApp, data store with operations, HTTP API with the D8 access filter, project registry, Kit structure v1 with the SessionStart hook, provider contract with Claude and Codex providers, process supervisor, web panel with System, Projects, Structure and provider cards, and a service installer wired into the cli and panel. Device acceptance on Mac and iPad is still pending.
 
-### R2 — Исправления по приёмке вехи 1 (fixes, OPEN)
+### R2 — Исправления по приёмке вехи 1 (fixes, CLOSED)
 
 - [DONE] T011 — Доверие Claude без подмены решений пользователя (work)
   - Commit: fix: grant claude trust explicitly and ask about external imports
@@ -1273,9 +1289,9 @@ Digest: Milestone 1 core is in code: wfk CLI and createApp, data store with oper
   - Commit: docs: reconcile documentation for R2
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M1-providers.md, product-parts/backend-core/clusters/runtime/modules/data-store/module.md, product-parts/backend-core/clusters/http-api/modules/http-server/module.md, product-parts/backend-core/clusters/projects/modules/project-registry/module.md, product-parts/backend-core/clusters/projects/modules/kit-structure/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/module.md
   - Depends on: T011, T012, T013
-- [IN_PROGRESS] T014 — Переустановка службы и повторная приёмка вехи 1 (delivery)
+- [DONE] T014 — Переустановка службы и повторная приёмка вехи 1 (delivery)
   - Commit: docs: record milestone 1 acceptance after fixes
-  - Files: docs/evidence/M1-acceptance.md, docs/planning/M1-providers.md, product-parts/system-service/clusters/deployment/modules/service-installer, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex
+  - Files: docs/evidence/M1-acceptance.md, docs/planning/M1-providers.md, product-parts/system-service/clusters/deployment/modules/service-installer, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, docs/design/ui-mockup.html, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/runtime.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/release.test.ts, product-parts/system-service/clusters/deployment/modules/service-installer/module.md, product-parts/system-service/clusters/deployment/modules/service-installer/src/control.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/install.ts, product-parts/system-service/clusters/deployment/modules/service-installer/test/control.test.ts, product-parts/system-service/clusters/deployment/modules/service-installer/test/fakes.ts, product-parts/system-service/clusters/deployment/modules/service-installer/test/install.test.ts, product-parts/system-service/clusters/deployment/modules/service-installer/test/launchd-unload.test.ts
   - Depends on: T011, T012, T013, DOCS-R2
 
 Digest: R2 fixes defects D1-D3 of the first Mac acceptance. Claude trust is written atomically into ~/.claude.json without pty dialogs (trust.exp removed); the preview requires an allow/deny choice for external CLAUDE.md imports and marks a trusted parent folder (inherited); session/environment scripts never press keys in dialogs. Codex releases the thread with thread/unsubscribe after the service turn, which has no policy overrides. node_modules left git, module contracts match the code, Kit is 2.2.2. Repeat device acceptance is pending.

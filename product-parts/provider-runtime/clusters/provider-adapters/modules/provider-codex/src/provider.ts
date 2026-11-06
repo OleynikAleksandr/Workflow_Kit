@@ -67,7 +67,11 @@ function buildStatus(rt: CodexRuntime, daemon: DaemonState): ProviderStatus {
 export function createCodexProvider(context: ProviderContext, deps: CodexDeps = {}): Provider {
   const rt = createCodexRuntime(context, deps);
   const trustParts = createTrustParts(rt);
-  const sessionParts = createSessionParts(rt, deps.serviceTurnWaitMs === undefined ? {} : { serviceTurnWaitMs: deps.serviceTurnWaitMs });
+  const sessionParts = createSessionParts(rt, {
+    ...(deps.serviceTurnWaitMs === undefined ? {} : { serviceTurnWaitMs: deps.serviceTurnWaitMs }),
+    ...(deps.releaseWaitMs === undefined ? {} : { releaseWaitMs: deps.releaseWaitMs }),
+    ...(deps.releasePollMs === undefined ? {} : { releasePollMs: deps.releasePollMs }),
+  });
 
   const capabilities = async (): Promise<Capabilities> => {
     if (context.platform === 'win32') {

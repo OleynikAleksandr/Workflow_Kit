@@ -23,7 +23,7 @@ test('service start, status and stop of an installed macOS service', async () =>
   await runServiceCommand('install', m.deps);
   const stop = await runServiceCommand('stop', m.deps);
   assert.equal(stop.message, 'служба остановлена');
-  assert.equal(m.lines().at(-1), '/bin/launchctl bootout gui/501/ai.workflowkit.backend');
+  assert.deepEqual(m.lines().slice(-2), ['/bin/launchctl bootout gui/501/ai.workflowkit.backend', '/bin/launchctl print gui/501/ai.workflowkit.backend']);
   assert.equal((await runServiceCommand('stop', m.deps)).message, 'служба не была запущена');
 
   const status = await runServiceCommand('status', m.deps);

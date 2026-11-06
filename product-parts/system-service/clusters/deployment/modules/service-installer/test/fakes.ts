@@ -253,20 +253,39 @@ export function makeMachine(platform: NodeJS.Platform, options: { handler?: Hand
   return machine;
 }
 
+/** Options of the fake service managers. */
+export interface HandlerOptions {
+  /**
+   * launchd unloads a job asynchronously: after bootout, print still finds the job for this many
+   * calls; meanwhile kickstart "succeeds" without starting anything and bootstrap fails (code 5).
+   */
+  unloadPolls?: number;
+}
+
 /** Default handler: login shell prints PATH, launchctl and systemd behave like a fresh machine. */
-export function defaultHandler(platform: NodeJS.Platform, machine: () => Machine, extra?: Handler): Handler {
+export function defaultHandler(platform: NodeJS.Platform, machine: () => Machine, extra?: Handler, handlerOptions: HandlerOptions = {}): Handler {
   let loaded = false;
+  let unloading = 0;
   return (command, args) => {
     const custom = extra?.(command, args);
     if (custom) return custom;
     if (args.includes('-c')) return { stdout: `noise\n__WFK_PATH__${LOGIN_PATH[platform]}__WFK_PATH__` };
     if (command === '/bin/launchctl') {
-      if (args[0] === 'print') return { code: loaded ? 0 : 113 };
+      if (args[0] === 'print') {
+        if (unloading > 0) {
+          unloading -= 1;
+          return { code: 0 };
+        }
+        return { code: loaded ? 0 : 113 };
+      }
+      if (unloading > 0 && args[0] === 'kickstart') return undefined;
+      if (unloading > 0 && args[0] === 'bootstrap') return { code: 5, stderr: 'Bootstrap failed: 5: Input/output error' };
       if (args[0] === 'bootstrap' || args[0] === 'kickstart') {
         loaded = true;
         machine().boot();
       }
       if (args[0] === 'bootout') {
+        if (loaded) unloading = handlerOptions.unloadPolls ?? 0;
         loaded = false;
         machine().backend.health = null;
       }
@@ -283,9 +302,9 @@ export function defaultHandler(platform: NodeJS.Platform, machine: () => Machine
 }
 
 /** A machine with the default handler (plus optional overrides). */
-export function standardMachine(platform: NodeJS.Platform, options: { extra?: Handler; env?: NodeJS.ProcessEnv } = {}): Machine {
+export function standardMachine(platform: NodeJS.Platform, options: { extra?: Handler; env?: NodeJS.ProcessEnv } & HandlerOptions = {}): Machine {
   let machine: Machine | undefined;
-  const handler = defaultHandler(platform, () => machine as Machine, options.extra);
+  const handler = defaultHandler(platform, () => machine as Machine, options.extra, { unloadPolls: options.unloadPolls });
   machine = makeMachine(platform, { handler, env: options.env });
   return machine;
 }

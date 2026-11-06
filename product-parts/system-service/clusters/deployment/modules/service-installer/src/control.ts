@@ -6,7 +6,7 @@ import type { PlannedCommand } from './commands.ts';
 import type { CurrentRecord } from './deploy.ts';
 import { readProgramPathsSync } from './deploy.ts';
 import { pathApi } from './fs.ts';
-import { entryOf } from './layout.ts';
+import { LAUNCH_AGENT_LABEL, entryOf } from './layout.ts';
 import type { ServiceLayout } from './layout.ts';
 import type { HealthInfo, ResolvedDeps } from './types.ts';
 
@@ -73,6 +73,19 @@ export function serviceEnv(deps: ResolvedDeps, layout: ServiceLayout): Record<st
     env[key] = loginPath;
   }
   return env;
+}
+
+/**
+ * Unloads the LaunchAgent and waits until launchd forgets it. launchctl bootout returns while the
+ * job is still leaving the domain: print keeps finding it, a kickstart then hits the dying job and
+ * a bootstrap fails, so a start right after bootout must wait for this.
+ */
+export async function unloadLaunchAgent(deps: ResolvedDeps): Promise<void> {
+  await call(deps, launchctl.bootout(deps.uid));
+  const gone = await waitUntil(deps, deps.stopTimeoutMs, async () => !(await call(deps, launchctl.print(deps.uid))).ok);
+  if (!gone) {
+    throw new ServiceError(`launchd не выгрузил ${LAUNCH_AGENT_LABEL} за ${Math.round(deps.stopTimeoutMs / 1000)} с после launchctl bootout; повторите wfk service start`);
+  }
 }
 
 async function bootstrap(deps: ResolvedDeps, plist: string): Promise<void> {
@@ -146,7 +159,7 @@ export async function stopService(deps: ResolvedDeps, target: ControlTarget): Pr
   const before = await deps.health(target.port);
   if (mode === 'launchagent') {
     // bootout unloads the job until the next login or start; a job that is not loaded is fine.
-    await call(deps, launchctl.bootout(deps.uid));
+    await unloadLaunchAgent(deps);
   } else if (mode === 'systemd-user') {
     const stopped = await call(deps, systemctl.stop());
     if (!stopped.ok) throw new ServiceError(`systemctl --user stop не удался: ${stopped.output}`);

@@ -27,6 +27,10 @@ export interface CodexDeps {
   daemonTtlMs?: number;
   /** How long createSession waits for turn/completed of the service turn (default 15 s). */
   serviceTurnWaitMs?: number;
+  /** How long createSession waits for the daemon to unload the thread (default 90 s). */
+  releaseWaitMs?: number;
+  /** Interval of the thread/loaded/list polls while waiting (default 2 s). */
+  releasePollMs?: number;
 }
 
 /** What the last daemon probe found. */

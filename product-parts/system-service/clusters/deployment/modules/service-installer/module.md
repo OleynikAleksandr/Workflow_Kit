@@ -108,7 +108,8 @@ login-shell (D12), запускатель `wfk`, значок «Workflow Kit», 
 5. `app/current.json` (0600): `version`, `appPath`, `entry`, `node`,
    `installedAt`, `integrated`, `mechanism`, `autostartEntry`, `launcher`,
    `icon`. Без симлинков.
-6. Перезапуск на новой версии: macOS — `launchctl bootout`, затем
+6. Перезапуск на новой версии: macOS — `launchctl bootout`, ожидание
+   выгрузки старой службы (`unloadLaunchAgent`, см. «Инварианты»), затем
    `bootstrap gui/<uid>`; systemd — `restart`; иначе остановка старого
    процесса и отсоединённый запуск. Ожидание `/api/health`.
 7. Остаются текущая и одна предыдущая версия; остальные удаляются.
@@ -133,7 +134,8 @@ unit, `daemon-reload`; XDG-файл; `reg delete`, `.vbs`, PATH пользова
   или отсоединённый `node entry serve` (своя группа, stdin закрыт, вывод в
   `service.log`, окружение без `CLAUDE*` и с PATH из `config.json`).
   Ожидание `/api/health` до 20 с, иначе ошибка с путём журнала.
-- `stop`: `launchctl bootout` или `systemctl --user stop`; если бэкенд
+- `stop`: `launchctl bootout` с ожиданием выгрузки или
+  `systemctl --user stop`; если бэкенд
   всё ещё отвечает (или служба отсоединённая) — TERM процессу с pid,
   который только что сообщил сам `/api/health`, ожидание до 10 с. Шаблонов
   `pkill` нет (D9).
@@ -161,6 +163,15 @@ unit, `daemon-reload`; XDG-файл; `reg delete`, `.vbs`, PATH пользова
   systemd.
 - Файлы, созданные не Workflow Kit, не заменяются и не удаляются.
 - Опрос панели (`getServiceStatus`) только читает файлы.
+- launchd выгружает службу асинхронно: сразу после `launchctl bootout`
+  `print` ещё находит старую службу, `kickstart` попадает в уходящую, а
+  `bootstrap` отвечает ошибкой 5. Поэтому после каждого `bootout`
+  (переустановка, `stop`) `unloadLaunchAgent` опрашивает `print`, пока
+  служба не исчезнет (до `stopTimeoutMs`, 10 с), иначе ошибка «launchd не
+  выгрузил ai.workflowkit.backend … повторите wfk service start». Найдено
+  при переустановке 2026-11-05 (T014): без ожидания `wfk install` оставлял
+  службу выгруженной. Подставной `launchctl` тестов умеет такую выгрузку
+  (`unloadPolls`), тест `launchd-unload.test.ts`.
 - `uninstall` не трогает данные пользователя.
 - Зависимости: `#data-store` (каталоги, порт, атомарная запись),
   `#process-supervisor` (`runCommand`, `cleanEnv`).

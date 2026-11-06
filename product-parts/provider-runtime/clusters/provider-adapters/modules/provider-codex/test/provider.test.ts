@@ -116,8 +116,8 @@ test('createSession: thread/start, thread/name/set, a service turn without polic
   assert.equal(session.localId, threadId);
   assert.equal(session.origin, 'panel');
   assert.deepEqual(session.links, { desktop: `codex://threads/${threadId}`, mobile: `codex://threads/${threadId}` });
-  const calls = daemon.calls.slice(-6);
-  assert.deepEqual(calls.map((c) => c.method), ['initialize', 'initialized', 'thread/start', 'thread/name/set', 'turn/start', 'thread/unsubscribe']);
+  const calls = daemon.calls.slice(-7);
+  assert.deepEqual(calls.map((c) => c.method), ['initialize', 'initialized', 'thread/start', 'thread/name/set', 'turn/start', 'thread/unsubscribe', 'thread/loaded/list']);
   assert.deepEqual(calls[2]?.params, { cwd: project.path });
   assert.deepEqual(calls[3]?.params, { threadId, name: 'Alpha · 2026-11-05 10:00' });
   const turn = calls[4]?.params as Record<string, unknown>;

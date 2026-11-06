@@ -25,6 +25,11 @@ export interface FakeDaemonOptions {
   silentTurn?: boolean;
   /** thread/unsubscribe answers with a JSON-RPC error with this message. */
   unsubscribeError?: string;
+  /**
+   * Like the real daemon (about 60 s, verified 2026-11-05), a thread without subscribers stays
+   * loaded: it is unloaded only after this many thread/loaded/list calls (default 0: at once).
+   */
+  idleUnloadPolls?: number;
 }
 
 /** A running fake daemon. */
@@ -56,6 +61,8 @@ export async function startFakeDaemon(socketPath: string, options: FakeDaemonOpt
   const sockets = new Set<Socket>();
   const loaded = new Set<string>();
   const subscribers = new Map<string, Set<Socket>>();
+  /** Idle threads without subscribers: loaded/list calls left before they unload. */
+  const idle = new Map<string, number>();
   const daemon: FakeDaemon = { socketPath, calls, pongs: 0, loaded, close: async () => undefined };
   const release = (threadId: string, socket: Socket): 'unsubscribed' | 'notSubscribed' | 'notLoaded' => {
     if (!loaded.has(threadId)) return 'notLoaded';
@@ -63,7 +70,9 @@ export async function startFakeDaemon(socketPath: string, options: FakeDaemonOpt
     if (!set?.delete(socket)) return 'notSubscribed';
     if (set.size === 0) {
       subscribers.delete(threadId);
-      loaded.delete(threadId);
+      const polls = options.idleUnloadPolls ?? 0;
+      if (polls > 0) idle.set(threadId, polls);
+      else loaded.delete(threadId);
     }
     return 'unsubscribed';
   };
@@ -129,6 +138,13 @@ export async function startFakeDaemon(socketPath: string, options: FakeDaemonOpt
           if (typeof id === 'string' && status === 'unsubscribed' && !loaded.has(id)) sendJson(socket, { method: 'thread/closed', params: { threadId: id } }, tricky);
         } else if (message.method === 'thread/loaded/list') {
           answer(message.id, { data: [...loaded], nextCursor: null });
+          for (const [id, left] of idle) {
+            if (left > 1) idle.set(id, left - 1);
+            else {
+              idle.delete(id);
+              loaded.delete(id);
+            }
+          }
         } else {
           sendJson(socket, { jsonrpc: '2.0', id: message.id, error: { code: -32601, message: 'unknown' } }, tricky);
         }

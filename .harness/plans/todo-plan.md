@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 114,
+  "revision": 116,
   "rounds": [
     {
       "digest": {
@@ -54,7 +54,23 @@
       "title": "Fixes"
     },
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "provider-claude: renameSession, RENAME_WAIT_MS, RENAME_BY_HOOK_NOTE; session.exp читает <debug>.rename и печатает RENAMED",
+          "session-titles: onStop(key); имена Claude через rename вне хода",
+          "cli: обёртка канала вызывает titles.onStop на хуке stop",
+          "panel-shell: без выбранного проекта дерево пусто"
+        ],
+        "decisions": [
+          "/rename вводится только вне хода (канал не working) или на Stop: ввод во время хода мог бы ответить на диалог разрешения",
+          "Хук UserPromptSubmit с sessionTitle остаётся запасным путём для сессий, начатых не панелью",
+          "Записи файла имени сессии сериализуются; поздний отказ не перезаписывает подтверждённое имя"
+        ],
+        "references": [
+          "docs/planning/M3-fixes.md#7. Раунд 3: имя Claude через /rename"
+        ],
+        "result": "Имя сессии Claude из Kit уходит в приложение командой /rename, которую session.exp вводит в терминал сессии вне хода (сразу или на Stop). Карточка «Проектов пока нет» убрана из боковой панели."
+      },
       "id": "R3",
       "kind": "fixes",
       "status": "OPEN",
@@ -426,7 +442,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R3",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -468,8 +484,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 9/11
-- Revision: 114
+- Progress: 10/11
+- Revision: 116
 
 ## Objective
 
@@ -526,7 +542,7 @@ Digest: Имена Codex, не дошедшие до ChatGPT (synced не true),
 - [DONE] T007 — Убрать карточку «Проектов пока нет» из боковой панели (work)
   - Commit: fix: drop the empty projects card from the sidebar
   - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/sidebar.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/tree.css, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/panel-shell.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts
-- [TODO] DOCS-R3 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R3 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R3
   - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md
   - Depends on: T006, T007
@@ -534,5 +550,7 @@ Digest: Имена Codex, не дошедшие до ChatGPT (synced не true),
   - Commit: chore: install the M3 round 3 release
   - Files: docs/evidence/M3-acceptance.md
   - Depends on: T006, T007, DOCS-R3
+
+Digest: Имя сессии Claude из Kit уходит в приложение командой /rename, которую session.exp вводит в терминал сессии вне хода (сразу или на Stop). Карточка «Проектов пока нет» убрана из боковой панели.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

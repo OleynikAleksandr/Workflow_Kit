@@ -1,7 +1,8 @@
 // Session names (spec section 11): manual name → the agent's topic (`wfk session title`) → the
 // plan objective (owner session) → the provider's own name → «Новая сессия». Names live in the
 // project folder next to the review toggle, .workflow-kit/local/sessions/<client>.<id>.json
-// (fields title, topic, synced); Codex threads also get the name in ChatGPT when that is safe.
+// (fields title, topic, synced); Codex threads get the name in ChatGPT through the daemon, Claude
+// sessions through the UserPromptSubmit hook answer (hookSpecificOutput.sessionTitle).
 import { readdir } from 'node:fs/promises';
 import path from 'node:path';
 import { readJsonFile, writeJsonAtomic } from '#data-store';
@@ -9,6 +10,8 @@ import { readJsonFile, writeJsonAtomic } from '#data-store';
 export const SESSIONS_DIR = '.workflow-kit/local/sessions';
 export const DEFAULT_NAME = 'Новая сессия';
 export const MAX_TITLE_LENGTH = 80;
+/** Note of a Claude session whose name waits for the next prompt hook. */
+export const CLAUDE_NEXT_NOTE = 'Имя уйдёт в Claude со следующим сообщением';
 
 export type TitleSource = 'manual' | 'agent' | 'scope' | 'provider' | 'default';
 
@@ -82,6 +85,12 @@ export interface SessionTitles {
   name(projectId: string, key: string, providerTitle?: string | null): SessionTitle;
   /** A turn of the session started: retries a provider rename that had to wait. */
   onTurn(key: string): void;
+  /**
+   * Prompt hook of a Claude session: the Workflow Kit name to give the app (once per name and
+   * service run) when it differs from `current`, the app's title; null otherwise. A matching
+   * title marks the name synced.
+   */
+  appTitle(key: string, current: string | null): Promise<string | null>;
   section(): { projects: Record<string, Record<string, SessionTitle>> };
 }
 
@@ -112,6 +121,8 @@ export function createSessionTitles(options: SessionTitlesOptions): SessionTitle
   const log = options.log ?? (() => undefined);
   const stored = new Map<string, Map<string, Stored>>();
   const pending = new Map<string, { projectId: string; name: string }>();
+  // Claude session key -> the name already sent through the prompt hook in this service run.
+  const sentToApp = new Map<string, string>();
 
   const projectMap = (projectId: string): Map<string, Stored> => {
     let map = stored.get(projectId);
@@ -156,6 +167,10 @@ export function createSessionTitles(options: SessionTitlesOptions): SessionTitle
 
   async function sync(projectId: string, key: string): Promise<void> {
     const title = resolve(projectId, key);
+    if (key.startsWith('claude:') && (title.source === 'manual' || title.source === 'agent')) {
+      await save(projectId, key, { synced: false, note: CLAUDE_NEXT_NOTE });
+      return;
+    }
     if (!options.rename || !key.startsWith('codex:') || (title.source !== 'manual' && title.source !== 'agent')) return;
     try {
       const result = await options.rename(projectId, key, title.name);
@@ -244,6 +259,23 @@ export function createSessionTitles(options: SessionTitlesOptions): SessionTitle
     onTurn(key) {
       const waiting = pending.get(key);
       if (waiting) void sync(waiting.projectId, key);
+    },
+    async appTitle(key, current) {
+      if (!key.startsWith('claude:')) return null;
+      for (const [projectId, map] of stored) {
+        if (!map.has(key)) continue;
+        const title = resolve(projectId, key);
+        if (title.source !== 'manual' && title.source !== 'agent') return null;
+        if (current === title.name) {
+          if (title.synced !== true) await save(projectId, key, { synced: true, note: null }).catch(() => undefined);
+          return null;
+        }
+        // Sent once per name: a later rename in the app itself is not overridden on every prompt.
+        if (sentToApp.get(key) === title.name) return null;
+        sentToApp.set(key, title.name);
+        return title.name;
+      }
+      return null;
     },
     section() {
       const projects: Record<string, Record<string, SessionTitle>> = {};

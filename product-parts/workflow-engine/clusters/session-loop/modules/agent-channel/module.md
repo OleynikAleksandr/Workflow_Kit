@@ -16,7 +16,9 @@
   входа хука (проверено на Claude 2.1.318 и codex-cli 0.166.0):
   `session_id` (у Codex — id треда), `turn_id` (только Codex), `cwd`,
   `transcript_path`, `stop_hook_active`, `last_assistant_message`,
-  `prompt`; `projectDir` — `$CLAUDE_PROJECT_DIR` процесса хука.
+  `prompt`, `session_title` (`sessionTitle`: текущее имя сессии в Claude
+  2.1.319, вход `UserPromptSubmit`); `projectDir` — `$CLAUDE_PROJECT_DIR`
+  процесса хука.
   `sessionKey(client, sessionId)` — `<client>:<id>`.
 - `blockAnswer(reason)`, `contextAnswer(text)` (`hookSpecificOutput.
   additionalContext` события `UserPromptSubmit`).

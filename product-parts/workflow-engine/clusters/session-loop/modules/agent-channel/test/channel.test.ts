@@ -49,6 +49,9 @@ test('parseHookInput reads Claude and Codex Stop inputs', () => {
   assert.equal(codex.stopHookActive, true);
   assert.equal(parseHookInput('other', CODEX_STOP), null);
   assert.equal(parseHookInput('codex', { cwd: '/x' }), null);
+  assert.equal(claude.sessionTitle, null);
+  const prompt = parseHookInput('claude', { session_id: 's', hook_event_name: 'UserPromptSubmit', prompt: 'x', session_title: 'Склад' })!;
+  assert.equal(prompt.sessionTitle, 'Склад');
 });
 
 test('without a decision the Stop is released at once; activity is recorded', async () => {

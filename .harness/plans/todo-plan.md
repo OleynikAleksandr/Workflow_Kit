@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 96,
+  "revision": 98,
   "rounds": [
     {
       "digest": null,
@@ -133,7 +133,7 @@
       "kind": "work",
       "parallelSafe": true,
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Имя сессии Claude через хук",
       "why": "Агент не может переименовать сессию Claude; хук Kit может"
     },
@@ -207,8 +207,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 1/4
-- Revision: 96
+- Progress: 2/4
+- Revision: 98
 
 ## Objective
 
@@ -226,7 +226,7 @@
 - [DONE] T001 — Имя сессии Codex в ChatGPT (work, parallel-safe)
   - Commit: fix: rename Codex threads that the daemon does not hold
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/release.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md
-- [TODO] T002 — Имя сессии Claude через хук (work, parallel-safe)
+- [DONE] T002 — Имя сессии Claude через хук (work, parallel-safe)
   - Commit: feat: send the Kit session name to Claude through the prompt hook
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/hook-input.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/channel.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/titles.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/test/titles.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/hook-channel.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)

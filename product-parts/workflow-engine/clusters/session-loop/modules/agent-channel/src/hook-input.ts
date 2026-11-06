@@ -1,6 +1,7 @@
 // Hook input of Claude and Codex (verified 2026-11-06 with Claude 2.1.318 and codex-cli 0.166.0):
 // session_id (for Codex the thread id), turn_id (Codex only), transcript_path, cwd,
-// hook_event_name, stop_hook_active (Stop), last_assistant_message (Stop), prompt (UserPromptSubmit).
+// hook_event_name, stop_hook_active (Stop), last_assistant_message (Stop), prompt (UserPromptSubmit);
+// session_title (Claude 2.1.319 UserPromptSubmit: the session's current title).
 
 export type AgentClient = 'claude' | 'codex';
 export const AGENT_CLIENTS: readonly AgentClient[] = ['claude', 'codex'];
@@ -17,6 +18,8 @@ export interface HookInput {
   stopHookActive: boolean;
   lastAssistantMessage: string | null;
   prompt: string | null;
+  /** Current title of the session in the app (Claude only), when it has one. */
+  sessionTitle: string | null;
 }
 
 function text(value: unknown): string | null {
@@ -43,6 +46,7 @@ export function parseHookInput(client: unknown, raw: unknown, projectDir?: unkno
     stopHookActive: input['stop_hook_active'] === true,
     lastAssistantMessage: text(input['last_assistant_message']),
     prompt: text(input['prompt']),
+    sessionTitle: text(input['session_title']),
   };
 }
 

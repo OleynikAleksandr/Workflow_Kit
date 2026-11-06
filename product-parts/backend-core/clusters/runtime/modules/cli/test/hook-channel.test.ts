@@ -37,9 +37,9 @@ after(async () => {
   await rm(tmp, { recursive: true, force: true });
 });
 
-async function hook(event: string, input: object, extraEnv: Record<string, string> = {}): Promise<{ code: number; out: string }> {
+async function hook(event: string, input: object, extraEnv: Record<string, string> = {}, client = 'codex'): Promise<{ code: number; out: string }> {
   let out = '';
-  const code = await main(['hook', event, '--client', 'codex'], {
+  const code = await main(['hook', event, '--client', client], {
     stdout: (text) => (out += text),
     stderr: () => undefined,
     app: { env: { ...env, ...extraEnv }, homedir: tmp },
@@ -141,4 +141,22 @@ test('wfk session title names the calling session by CODEX_THREAD_ID even when o
   assert.equal(code, 0, err);
   const project = (await app.projects.list())[0]!;
   assert.equal(app.titles.name(project.id, 'codex:thread-a').name, 'Склад: анализ остатков');
+});
+
+test('the Claude prompt hook gives the Kit session name to the app, with queued messages', async () => {
+  const project = (await app.projects.list())[0]!;
+  const key = sessionKey('claude', 'claude-named');
+  const prompt = (title: string) =>
+    hook('prompt', { session_id: 'claude-named', cwd: folder, hook_event_name: 'UserPromptSubmit', prompt: 'задача', session_title: title }, {}, 'claude');
+  await app.titles.setManual(project.id, key, 'Склад — остатки');
+  const first = await prompt('Старое имя');
+  assert.deepEqual(JSON.parse(first.out), { hookSpecificOutput: { hookEventName: 'UserPromptSubmit', sessionTitle: 'Склад — остатки' } });
+  assert.equal((await prompt('Склад — остатки')).out, '');
+  assert.equal(app.titles.name(project.id, key).synced, true);
+  await app.titles.setManual(project.id, key, 'Склад');
+  app.channel.enqueue(key, 'Workflow Kit: продолжай.');
+  const both = await prompt('Склад — остатки');
+  assert.deepEqual(JSON.parse(both.out), {
+    hookSpecificOutput: { hookEventName: 'UserPromptSubmit', additionalContext: 'Workflow Kit: продолжай.', sessionTitle: 'Склад' },
+  });
 });

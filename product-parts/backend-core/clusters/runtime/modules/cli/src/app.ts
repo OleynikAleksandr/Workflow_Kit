@@ -251,7 +251,12 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
       const key = `${input.client}:${input.sessionId}`;
       autopilot.onPrompt(key, reply.answer !== null);
       titles.onTurn(key);
-      return reply;
+      // Claude takes the session name from the prompt hook answer (hookSpecificOutput.sessionTitle).
+      const appTitle = input.client === 'claude' ? await titles.appTitle(key, input.sessionTitle).catch(() => null) : null;
+      if (!appTitle) return reply;
+      const answer = reply.answer ?? {};
+      const specific = (answer['hookSpecificOutput'] ?? {}) as Record<string, unknown>;
+      return { ...reply, answer: { ...answer, hookSpecificOutput: { ...specific, hookEventName: 'UserPromptSubmit', sessionTitle: appTitle } } };
     },
   };
   registerChannelRoutes({ router, state, channel: observedChannel });

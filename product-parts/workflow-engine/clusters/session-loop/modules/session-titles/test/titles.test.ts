@@ -4,6 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { after, before, test } from 'node:test';
 import { DEFAULT_NAME, SESSIONS_DIR, TitleError, createSessionTitles } from '../src/index.ts';
+import { CLAUDE_NEXT_NOTE } from '../src/titles.ts';
 import type { ActiveSession, SessionTitlesOptions } from '../src/index.ts';
 
 let tmp = '';
@@ -131,4 +132,20 @@ test('a session removed from the lists stays removed after a reload', async () =
   await reloaded.load();
   assert.equal(reloaded.section().projects['p']?.['codex:gone']?.forgottenAt, '2026-11-06T10:00:00.000Z');
   await assert.rejects(titles.setForgotten('p', '../x'), (error: unknown) => error instanceof TitleError && error.code === 'bad-session');
+});
+
+test('a Claude name goes to the app through the prompt hook once per name; a matching title marks it synced', async () => {
+  const titles = createSessionTitles(options());
+  await titles.load();
+  assert.equal(await titles.appTitle('claude:hooked', 'Старое'), null, 'no Kit name, nothing to send');
+  await titles.setManual('p', 'claude:hooked', 'Склад — остатки');
+  assert.deepEqual([titles.name('p', 'claude:hooked').synced, titles.name('p', 'claude:hooked').note], [false, CLAUDE_NEXT_NOTE]);
+  assert.equal(await titles.appTitle('claude:hooked', 'Старое'), 'Склад — остатки');
+  assert.equal(await titles.appTitle('claude:hooked', 'Старое'), null, 'sent once: a rename in the app is not overridden');
+  assert.equal(await titles.appTitle('claude:hooked', 'Склад — остатки'), null);
+  assert.deepEqual([titles.name('p', 'claude:hooked').synced, titles.name('p', 'claude:hooked').note], [true, null]);
+  await titles.setManual('p', 'claude:hooked', 'Склад');
+  assert.equal(await titles.appTitle('claude:hooked', 'Склад — остатки'), 'Склад', 'a new name is sent again');
+  await titles.setManual('p', 'codex:hooked', 'Codex');
+  assert.equal(await titles.appTitle('codex:hooked', null), null, 'Codex names go through the daemon');
 });

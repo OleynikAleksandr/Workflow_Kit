@@ -66,7 +66,7 @@ stripping).
 | `link [--force]` | пишет запускатель `~/.local/bin/wfk` (0755, `#!/bin/sh`, строка-метка `# Workflow Kit launcher`), который запускает `bin/wfk.mjs` этого клона абсолютным `node`; чужой файл заменяется только с `--force`; предупреждает, если каталога нет в PATH; на Windows — отказ, код 1 |
 | `hook session-start --client <claude\|codex>` | читает JSON хука из stdin (до 1 с, терминал — пусто) и передаёт `recordSessionStart` из `kit-structure`; весь бюджет 1,5 с; stdout пуст, код всегда 0; неизвестные подкоманды `hook` игнорируются |
 | `session title "<тема>"` | отправляет `{ title, cwd, projectDir, client, sessionId }` на `POST /api/sessions/title` (id сессии — `CODEX_THREAD_ID` или `CLAUDE_CODE_SESSION_ID`, `callingSession`); успех — «Имя сессии в Workflow Kit: …», код 0; отказ службы — причина в stderr, код 1; без темы — справка, код 64 |
-| `hook stop\|prompt --client <claude\|codex>` | читает JSON хука из stdin и отправляет `{ client, input, projectDir }` (`projectDir` — `$CLAUDE_PROJECT_DIR`) на `POST /api/hooks/stop\|prompt` службы; печатает в stdout поле `answer` ответа (JSON для агента) или ничего; служба недоступна, вход не JSON — без вывода; код всегда 0; `WFK_HOOK_DEBUG` — причина в stderr |
+| `hook stop\|prompt --client <claude\|codex>` | читает JSON хука из stdin и отправляет `{ client, input, projectDir }` (`projectDir` — `$CLAUDE_PROJECT_DIR`) на `POST /api/hooks/stop\|prompt` службы; печатает в stdout поле `answer` ответа (JSON для агента) или ничего; ответ `prompt` сессии Claude несёт `hookSpecificOutput.sessionTitle` из `titles.appTitle` — имя Workflow Kit уходит в Claude; служба недоступна, вход не JSON — без вывода; код всегда 0; `WFK_HOOK_DEBUG` — причина в stderr |
 | `--help`, `--version` | справка и версия из `package.json` |
 
 Неизвестная команда — сообщение и справка в stderr, код 64.
@@ -121,7 +121,7 @@ stripping).
   — тот же поиск, что у канала, с `realpath` ближайшей существующей
   папки; сессии — из канала; цель плана — из раздела `workflow`;
   переименование — `renameSession` провайдера по префиксу ключа сессии),
-  `load()` при `start()`, `onTurn` из хука `prompt`,
+  `load()` при `start()`, `onTurn` и `appTitle` (Claude) из хука `prompt`,
   `registerTitleRoutes` — маршруты имён и раздел `titles`.
 - `autopilot` (веха 2, T003): `createAutopilot` — решатель `Stop` канала
   (`channel.setDecider`); маршруты хуков получают канал-обёртку, чей

@@ -36,11 +36,18 @@ ChatGPT) → «Новая сессия».
     `source`: `manual` | `agent` | `scope` | `provider` | `default`,
     `manual`, `topic`, `synced`, `note`, `archivedAt`, `forgottenAt`);
   - `onTurn(key)` — начало хода: повтор отложенного переименования;
+  - `appTitle(key, current) → Promise<string | null>` — хук `prompt`
+    сессии Claude: ручное имя или тема агента, если оно отличается от
+    `current` (`session_title` хука); одно имя отправляется один раз за
+    работу службы (переименование в самом приложении не перебивается);
+    совпадение `current` с именем — `synced: true`; для Codex — `null`;
   - `section()` — `{ projects: { <id>: { <key>: SessionTitle } } }`.
 - Синхронизация: для сессий Codex ручное имя и тема уходят в ChatGPT через
-  `rename` (провайдер `renameSession`: `thread/name/set` только для треда,
-  который демон и так держит); иначе `synced: false` с заметкой и повтор при
-  следующем ходе. Имена Claude хранятся только в Workflow Kit.
+  `rename` (провайдер `renameSession`: `thread/name/set` демона, тред не
+  загружается); отказ — `synced: false` с причиной и повтор при следующем
+  ходе. Для сессий Claude имя ждёт хука `UserPromptSubmit` (`synced: false`,
+  `CLAUDE_NEXT_NOTE` «Имя уйдёт в Claude со следующим сообщением»): `cli`
+  добавляет его в ответ хука как `hookSpecificOutput.sessionTitle`.
 - `registerTitleRoutes({ router, state, titles })`:
   `POST /api/projects/:id/sessions/:sid/title { name }`,
   `POST /api/projects/:id/sessions/:sid/archive { archived }`,

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 107,
+  "revision": 109,
   "rounds": [
     {
       "digest": {
@@ -50,7 +50,7 @@
       },
       "id": "R2",
       "kind": "fixes",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Fixes"
     }
   ],
@@ -83,7 +83,7 @@
         "text": "Claude: имя передаёт хук UserPromptSubmit полем hookSpecificOutput.sessionTitle"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cfa00ffe-c414-4ae6-9953-e3d2906b3705",
@@ -295,7 +295,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: install the M3 round 2 release",
-      "confirmation": null,
+      "confirmation": "разберись, сделай, и собери новый релиз",
       "context": [],
       "dependencies": [
         "T004",
@@ -310,7 +310,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Релиз раунда 2",
       "why": "Релиз раунда 2"
     }
@@ -322,11 +322,11 @@
 ## State
 
 - Scope: m3-fixes (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 6/7
-- Revision: 107
+- Progress: 7/7
+- Revision: 109
 
 ## Objective
 
@@ -358,7 +358,7 @@
 
 Digest: Имена сессий Workflow Kit уходят в приложения: Codex — thread/name/set демона для любого треда без загрузки; Claude — hookSpecificOutput.sessionTitle в ответе хука UserPromptSubmit, один раз на имя.
 
-### R2 — Fixes (fixes, OPEN)
+### R2 — Fixes (fixes, CLOSED)
 
 - [DONE] T004 — Повтор неотправленных имён Codex при запуске службы (work)
   - Commit: fix: retry unsynced Codex names when the service starts
@@ -368,7 +368,7 @@ Digest: Имена сессий Workflow Kit уходят в приложени�
   - Commit: docs: reconcile documentation for R2
   - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md
   - Depends on: T004
-- [TODO] T005 — Релиз раунда 2 (delivery)
+- [DONE] T005 — Релиз раунда 2 (delivery)
   - Commit: chore: install the M3 round 2 release
   - Files: docs/evidence/M3-acceptance.md
   - Depends on: T004, DOCS-R2

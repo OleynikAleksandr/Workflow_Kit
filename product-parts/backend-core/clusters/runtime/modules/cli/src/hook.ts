@@ -1,7 +1,10 @@
-// wfk hook session-start --client <claude|codex>: reads the hook JSON from stdin and hands it to
-// kit-structure. It never prints to stdout (Claude adds hook stdout to the session context),
-// always exits with 0 and gives up after HOOK_BUDGET_MS.
+// wfk hook session-start|stop|prompt --client <claude|codex>. session-start reads the hook JSON
+// from stdin and hands it to kit-structure; it never prints to stdout (Claude adds hook stdout to
+// the session context) and gives up after HOOK_BUDGET_MS. stop and prompt ask the running service
+// (hook-service.ts) and print its answer. Every subcommand always exits with 0.
 import { recordSessionStart } from '#kit-structure';
+import { runServiceHook } from './hook-service.ts';
+import type { PostJson } from './hook-service.ts';
 
 /** Whole time budget of the hook; the spec allows 2 s. */
 export const HOOK_BUDGET_MS = 1500;
@@ -12,7 +15,12 @@ const MAX_STDIN_BYTES = 256 * 1024;
 
 /** Inputs of runHook; tests inject stdin, env and cwd. */
 export interface HookDeps {
+  stdout: (text: string) => void;
   stderr: (text: string) => void;
+  homedir?: string;
+  platform?: NodeJS.Platform;
+  /** Posts to the service (stop, prompt); tests pass a fake. */
+  post?: PostJson;
   env: Readonly<Record<string, string | undefined>>;
   cwd: string;
   readStdin: (timeoutMs: number) => Promise<string>;
@@ -66,6 +74,15 @@ async function sessionStart(args: readonly string[], deps: HookDeps): Promise<vo
 /** Runs a hook subcommand; unknown subcommands are ignored. Always resolves to exit code 0. */
 export async function runHook(args: readonly string[], deps: HookDeps): Promise<number> {
   const [event, ...rest] = args;
+  if (event === 'stop' || event === 'prompt') {
+    try {
+      const stdin = await deps.readStdin(STDIN_TIMEOUT_MS);
+      await runServiceHook(event, option(rest, '--client'), { ...deps, stdin });
+    } catch (error) {
+      if (deps.env['WFK_HOOK_DEBUG']) deps.stderr(`wfk hook: ${error instanceof Error ? error.message : String(error)}\n`);
+    }
+    return 0;
+  }
   if (event !== 'session-start') return 0;
   let timer: ReturnType<typeof setTimeout> | undefined;
   const budget = new Promise<void>((resolve) => {

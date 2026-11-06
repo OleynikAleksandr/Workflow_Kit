@@ -1,12 +1,17 @@
-// The Kit SessionStart hook entry inside .claude/settings.json and .codex/hooks.json. Both files
-// use { hooks: { SessionStart: [{ matcher?, hooks: [{ type, command }] }] } }; foreign entries
-// stay where they are, and the Kit group is only ever appended at the end (Codex approves hooks
-// by position).
-import { hookCommand } from './templates.ts';
-import type { HookClient } from './templates.ts';
+// Kit hook entries inside .claude/settings.json and .codex/hooks.json (structure v2): SessionStart,
+// Stop and UserPromptSubmit. Both files use { hooks: { <Event>: [{ matcher?, hooks: [{ type,
+// command, timeout? }] }] } }; foreign entries stay where they are, and a Kit group is only ever
+// appended at the end of its event list (Codex approves hooks by position).
+import { hookCommand, KIT_HOOK_EVENTS } from './templates.ts';
+import type { HookClient, KitHookEvent } from './templates.ts';
 
-/** Hook event Kit listens to. */
+/** Hook event of structure v1 (kept for callers that only care about the session start). */
 export const HOOK_EVENT = 'SessionStart';
+
+/** Seconds a Stop hook may wait for the service (the service answers within 9 minutes). */
+export const STOP_HOOK_TIMEOUT_S = 600;
+/** Seconds a UserPromptSubmit hook may take. */
+export const PROMPT_HOOK_TIMEOUT_S = 30;
 
 /** The config file has a shape Kit cannot safely edit (not an object, hooks not an object...). */
 export class HookConfigError extends Error {
@@ -16,7 +21,7 @@ export class HookConfigError extends Error {
   }
 }
 
-/** Where the Kit hook was found. */
+/** Where a Kit hook was found. */
 export type HookLookup =
   | { kind: 'none' }
   | { kind: 'found'; group: number; index: number; hook: Record<string, unknown> };
@@ -27,12 +32,27 @@ function isObject(value: unknown): value is JsonObject {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-/** The hook object Kit writes for a client. */
-export function kitHookEntry(client: HookClient): JsonObject {
-  return { type: 'command', command: hookCommand(client) };
+const SUBCOMMANDS: Readonly<Record<KitHookEvent, string>> = {
+  SessionStart: 'session-start',
+  Stop: 'stop',
+  UserPromptSubmit: 'prompt',
+};
+
+/** The hook object Kit writes for a client and an event (SessionStart by default). */
+export function kitHookEntry(client: HookClient, event: KitHookEvent = 'SessionStart'): JsonObject {
+  const entry: JsonObject = { type: 'command', command: hookCommand(client, event) };
+  const timeout = event === 'Stop' ? STOP_HOOK_TIMEOUT_S : event === 'UserPromptSubmit' ? PROMPT_HOOK_TIMEOUT_S : undefined;
+  // Claude reads `timeout`, Codex reads `timeoutSec` (seconds in both).
+  if (timeout !== undefined) entry[client === 'codex' ? 'timeoutSec' : 'timeout'] = timeout;
+  return entry;
 }
 
-/** True for a command that runs the Kit launcher's session-start hook (any client, any edit around it). */
+/** True for a command that runs the Kit launcher's hook of an event (any client, any edit around it). */
+export function isKitEventCommand(command: unknown, event: KitHookEvent): boolean {
+  return typeof command === 'string' && command.includes('/.local/bin/wfk') && command.includes(`hook ${SUBCOMMANDS[event]} `);
+}
+
+/** True for the Kit SessionStart hook command. */
 export function isKitHookCommand(command: unknown): boolean {
   return typeof command === 'string' && command.includes('/.local/bin/wfk') && command.includes('hook session-start');
 }
@@ -50,51 +70,82 @@ export function normalizeHook(hook: unknown): string {
   return JSON.stringify(sortKeys(hook));
 }
 
-/** The SessionStart group list, validating the shape on the way; undefined when absent. */
-function sessionStartGroups(config: unknown): unknown[] | undefined {
+/** The group list of an event, validating the shape on the way; undefined when absent. */
+function eventGroups(config: unknown, event: string): unknown[] | undefined {
   if (config === undefined) return undefined;
   if (!isObject(config)) throw new HookConfigError('the file must contain a JSON object');
   const hooks = config['hooks'];
   if (hooks === undefined) return undefined;
   if (!isObject(hooks)) throw new HookConfigError('"hooks" must be an object');
-  const groups = hooks[HOOK_EVENT];
+  const groups = hooks[event];
   if (groups === undefined) return undefined;
-  if (!Array.isArray(groups)) throw new HookConfigError(`"hooks.${HOOK_EVENT}" must be an array`);
+  if (!Array.isArray(groups)) throw new HookConfigError(`"hooks.${event}" must be an array`);
   return groups;
 }
 
-/** Finds the first Kit hook among the SessionStart groups. Throws HookConfigError on a bad shape. */
-export function findKitHook(config: unknown): HookLookup {
-  const groups = sessionStartGroups(config) ?? [];
+/** Finds the first Kit hook of an event (SessionStart by default). Throws HookConfigError on a bad shape. */
+export function findKitHook(config: unknown, event: KitHookEvent = 'SessionStart'): HookLookup {
+  const groups = eventGroups(config, event) ?? [];
   for (const [group, entry] of groups.entries()) {
     if (!isObject(entry) || !Array.isArray(entry['hooks'])) continue;
     for (const [index, hook] of entry['hooks'].entries()) {
-      if (isObject(hook) && isKitHookCommand(hook['command'])) return { kind: 'found', group, index, hook };
+      if (isObject(hook) && isKitEventCommand(hook['command'], event)) return { kind: 'found', group, index, hook };
     }
   }
   return { kind: 'none' };
 }
 
 /**
- * Returns a copy of the config with the Kit hook written: replaced in place when it exists,
- * otherwise appended as a new group at the end of SessionStart. Other entries are untouched.
+ * Returns a copy of the config with the Kit hook of one event written: replaced in place when it
+ * exists, otherwise appended as a new group at the end of the event list.
  */
-export function withKitHook(config: unknown, client: HookClient): JsonObject {
+export function withKitHook(config: unknown, client: HookClient, event: KitHookEvent = 'SessionStart'): JsonObject {
   const copy: JsonObject = config === undefined ? {} : (structuredClone(config) as JsonObject);
-  const lookup = findKitHook(copy);
-  const entry = kitHookEntry(client);
+  const lookup = findKitHook(copy, event);
+  const entry = kitHookEntry(client, event);
   if (lookup.kind === 'found') {
-    const groups = sessionStartGroups(copy) ?? [];
+    const groups = eventGroups(copy, event) ?? [];
     const group = groups[lookup.group] as JsonObject;
     (group['hooks'] as unknown[])[lookup.index] = entry;
     return copy;
   }
   const hooks = isObject(copy['hooks']) ? copy['hooks'] : {};
   copy['hooks'] = hooks;
-  const groups = Array.isArray(hooks[HOOK_EVENT]) ? (hooks[HOOK_EVENT] as unknown[]) : [];
-  hooks[HOOK_EVENT] = groups;
+  const groups = Array.isArray(hooks[event]) ? (hooks[event] as unknown[]) : [];
+  hooks[event] = groups;
   groups.push({ hooks: [entry] });
   return copy;
+}
+
+/** All Kit hooks of structure v2 written into a config. */
+export function withKitHooks(config: unknown, client: HookClient): JsonObject {
+  let result: unknown = config;
+  for (const event of KIT_HOOK_EVENTS) result = withKitHook(result, client, event);
+  return result as JsonObject;
+}
+
+/**
+ * The managed text of the Kit hooks of a config: undefined without any Kit hook; the v1 form
+ * (the SessionStart entry alone) when only that one exists, so a v1 manifest hash still matches;
+ * otherwise the normalized object { <event>: entry } of the Kit hooks found.
+ */
+export function kitHooksText(config: unknown): string | undefined {
+  const found: JsonObject = {};
+  for (const event of KIT_HOOK_EVENTS) {
+    const lookup = findKitHook(config, event);
+    if (lookup.kind === 'found') found[event] = lookup.hook;
+  }
+  const events = Object.keys(found);
+  if (events.length === 0) return undefined;
+  if (events.length === 1 && events[0] === 'SessionStart') return normalizeHook(found['SessionStart']);
+  return normalizeHook(found);
+}
+
+/** The managed text Kit writes for a client (all events). */
+export function expectedKitHooksText(client: HookClient): string {
+  const all: JsonObject = {};
+  for (const event of KIT_HOOK_EVENTS) all[event] = kitHookEntry(client, event);
+  return normalizeHook(all);
 }
 
 /** Indentation used by an existing JSON text (default two spaces). */

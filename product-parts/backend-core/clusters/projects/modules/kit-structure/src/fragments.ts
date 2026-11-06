@@ -1,6 +1,6 @@
-// Managed fragments of the Kit structure v1: how each one is found in its file and written.
+// Managed fragments of the Kit structure v2: how each one is found in its file and written.
 import { createHash } from 'node:crypto';
-import { HookConfigError, findKitHook, formatJson, kitHookEntry, normalizeHook, withKitHook } from './hook-config.ts';
+import { HookConfigError, expectedKitHooksText, formatJson, kitHooksText, withKitHooks } from './hook-config.ts';
 import { appendMarkedSection, findMarkedSection, normalizeEol, renderMarkedSection, replaceMarkedSection } from './markers.ts';
 import {
   AGENTS_BEGIN,
@@ -105,12 +105,11 @@ function hookSpec(id: FragmentId, file: string, client: HookClient): FragmentSpe
     path: file,
     kind: 'hook',
     hashed: true,
-    expected: normalizeHook(kitHookEntry(client)),
+    expected: expectedKitHooksText(client),
     extract(text) {
       if (text === undefined) return undefined;
       try {
-        const lookup = findKitHook(parseJson(file, text));
-        return lookup.kind === 'found' ? normalizeHook(lookup.hook) : undefined;
+        return kitHooksText(parseJson(file, text));
       } catch (error) {
         return shapeError(error);
       }
@@ -118,7 +117,7 @@ function hookSpec(id: FragmentId, file: string, client: HookClient): FragmentSpe
     write(text) {
       try {
         const config = text === undefined ? undefined : parseJson(file, text);
-        return formatJson(withKitHook(config, client), text);
+        return formatJson(withKitHooks(config, client), text);
       } catch (error) {
         return shapeError(error);
       }
@@ -141,7 +140,7 @@ function fileSpec(id: FragmentId, file: string, content: string, hashed = true):
 /** Path of product-parts/README.md, which is managed only when Kit created it. */
 export const PRODUCT_PARTS_README_PATH = 'product-parts/README.md';
 
-/** All fragments of the structure v1. */
+/** All fragments of the structure v2. */
 export const FRAGMENTS: readonly FragmentSpec[] = [
   markedSpec('agents-section', 'AGENTS.md', 'section', AGENTS_BEGIN, AGENTS_END, AGENTS_SECTION),
   fileSpec('claude-md', 'CLAUDE.md', CLAUDE_MD, false),

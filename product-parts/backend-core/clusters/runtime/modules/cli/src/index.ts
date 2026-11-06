@@ -5,6 +5,8 @@ export type { App, AppOptions, SystemSection } from './app.ts';
 export { DEFAULT_PROVIDERS, createApp } from './app.ts';
 export type { HookDeps } from './hook.ts';
 export { HOOK_BUDGET_MS, readProcessStdin, runHook } from './hook.ts';
+export type { PostJson, ServiceEvent, ServiceHookDeps } from './hook-service.ts';
+export { PROMPT_REQUEST_MS, STOP_REQUEST_MS, postJson, runServiceHook, serviceUrl } from './hook-service.ts';
 export type { LinkOptions, LinkResult } from './link.ts';
 export { LAUNCHER_MARK, LinkError, REPO_ROOT, launcherPath, launcherScript, linkLauncher } from './link.ts';
 export type { DetectOsInput, OsInfo } from './system-info.ts';

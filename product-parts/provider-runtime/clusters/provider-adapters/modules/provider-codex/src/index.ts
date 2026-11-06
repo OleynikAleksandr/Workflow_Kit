@@ -8,7 +8,7 @@ export { DAEMON_START_ACTION, LOGIN_HINT, PROVIDER_ID, PROVIDER_TITLE, createCod
 export type { CodexDeps, DaemonOpener, DaemonState, ProgramState } from './runtime.ts';
 export type { AppServerOpener, AppServerSpec } from './stdio.ts';
 export type { RpcTransport } from './rpc.ts';
-export { KIT_HOOK_COMMAND } from './hooks.ts';
+export { KIT_HOOK_COMMAND, KIT_HOOK_COMMANDS, isExactKitCommand } from './hooks.ts';
 export { HELD_NOTE, RELEASE_POLL_MS, RELEASE_WAIT_MS, RELEASING_NOTE, SERVICE_TURN_WAIT_MS, UNSUBSCRIBE_TIMEOUT_MS, serviceTurnText, threadLinks } from './sessions.ts';
 export type { CodexRecord } from './sessions.ts';
 

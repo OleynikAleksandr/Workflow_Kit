@@ -19,7 +19,13 @@ stripping).
   `spawnDetached`, `sleep`, `readyTimeoutMs` и др.) — подставные эффекты
   установщика.
 - `runHook(args, deps) → Promise<0>`, `readProcessStdin(timeoutMs)`,
-  `HOOK_BUDGET_MS` (1500), тип `HookDeps`.
+  `HOOK_BUDGET_MS` (1500), тип `HookDeps` (`stdout`, `stderr`, `env`,
+  `cwd`, `readStdin`, `homedir?`, `platform?`, `post?`).
+- `runServiceHook(event, client, deps)`, `serviceUrl(env, homedir,
+  platform)` (`http://127.0.0.1:<config.port>`), `postJson` (POST с
+  `Origin` своего адреса), `STOP_REQUEST_MS` (9 мин 30 с),
+  `PROMPT_REQUEST_MS` (20 с), типы `PostJson`, `ServiceEvent`,
+  `ServiceHookDeps`.
 - `linkLauncher(options) → LinkResult`, `launcherPath(homedir)`,
   `launcherScript(node, entry)`, `LAUNCHER_MARK`, `REPO_ROOT`, `LinkError`,
   типы `LinkOptions`, `LinkResult`.
@@ -31,7 +37,8 @@ stripping).
   `config`, `version`, `os`, `router`, `state`, `server`, `events`
   (`events.jsonl`), `mutex` (D10), `projects` (`ProjectRegistry`),
   `operations` (`Operations`, D10), `providers` (`ProviderRegistry`),
-  `supervisor` (`ProcessSupervisor`, `<state>/processes.json`), `kit`
+  `supervisor` (`ProcessSupervisor`, `<state>/processes.json`), `channel`
+  (`AgentChannel`: канал к агентам через хуки), `kit`
   (`KitRunner`: команды Kit проектов), `workflow` (`WorkflowState`: кэш
   состояния Kit и раздел `workflow`), `start()` (пишет событие
   `service.started`, запускает операцию `providers.refresh`: сверка записей
@@ -54,7 +61,8 @@ stripping).
 | `install`, `uninstall`, `service start/stop/status`, `open` | передаются в `runServiceCommand` из `service-installer` с контекстом `{ env, platform, homedir, ...deps.service }` (по умолчанию — текущий процесс и `os.homedir()`); сообщение — в stdout (успех) или stderr (ошибка), код выхода — из результата |
 | `doctor [--installed]` | то же, `--installed` передаётся аргументом; другие аргументы — справка, код 64 |
 | `link [--force]` | пишет запускатель `~/.local/bin/wfk` (0755, `#!/bin/sh`, строка-метка `# Workflow Kit launcher`), который запускает `bin/wfk.mjs` этого клона абсолютным `node`; чужой файл заменяется только с `--force`; предупреждает, если каталога нет в PATH; на Windows — отказ, код 1 |
-| `hook session-start --client <claude\|codex>` | читает JSON хука из stdin (до 1 с, терминал — пусто) и передаёт `recordSessionStart` из `kit-structure`; весь бюджет 1,5 с; stdout пуст, код всегда 0; другие подкоманды `hook` игнорируются |
+| `hook session-start --client <claude\|codex>` | читает JSON хука из stdin (до 1 с, терминал — пусто) и передаёт `recordSessionStart` из `kit-structure`; весь бюджет 1,5 с; stdout пуст, код всегда 0; неизвестные подкоманды `hook` игнорируются |
+| `hook stop\|prompt --client <claude\|codex>` | читает JSON хука из stdin и отправляет `{ client, input, projectDir }` (`projectDir` — `$CLAUDE_PROJECT_DIR`) на `POST /api/hooks/stop\|prompt` службы; печатает в stdout поле `answer` ответа (JSON для агента) или ничего; служба недоступна, вход не JSON — без вывода; код всегда 0; `WFK_HOOK_DEBUG` — причина в stderr |
 | `--help`, `--version` | справка и версия из `package.json` |
 
 Неизвестная команда — сообщение и справка в stderr, код 64.
@@ -92,6 +100,11 @@ stripping).
   (`providerCardsMount()`, префикс `/provider-cards/`).
 - `process-supervisor` (T004): `createProcessSupervisor` над
   `<state>/processes.json`, `runCommand`.
+- `agent-channel` (веха 2, T002): `createAgentChannel` (проект хука —
+  самый глубокий зарегистрированный проект, содержащий `$CLAUDE_PROJECT_DIR`
+  или `cwd`, пути сравниваются и после `realpath`), `registerChannelRoutes`
+  — `POST /api/hooks/stop|prompt` и раздел `channel`; `stop()` отпускает
+  ожидающие хуки.
 - `kit-bundle` и `kit-runner` (веха 2, T001): `kitBundleProvider` над
   `dirs.appDir` (распаковка бандла Kit 2.2.2 при первой команде),
   `createKitRunner` (тот же `runCommand` и `env`), `createWorkflowState` над
@@ -101,7 +114,7 @@ stripping).
 ## Инварианты
 
 - Модули подключаются только через их `src/index.ts` (`#data-store`,
-  `#http-server`, `#kit-bundle`, `#kit-runner`, `#kit-structure`,
+  `#agent-channel`, `#http-server`, `#kit-bundle`, `#kit-runner`, `#kit-structure`,
   `#panel-shell`, `#process-supervisor`,
   `#provider-cards`,
   `#project-registry`, `#provider-claude`, `#provider-codex`,

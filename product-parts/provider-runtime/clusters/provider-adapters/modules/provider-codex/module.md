@@ -23,6 +23,8 @@ app-server на весь Mac, доверие к папке, одобрение �
 - Константы: `PROVIDER_ID` = `codex`, `PROVIDER_TITLE`,
   `DAEMON_START_ACTION` = `daemon-start`, `LOGIN_HINT`,
   `KIT_HOOK_COMMAND` (= `hookCommand('codex')` из `kit-structure`),
+  `KIT_HOOK_COMMANDS` (команды всех хуков Kit v2: SessionStart, Stop,
+  UserPromptSubmit), `isExactKitCommand(command)`,
   `SERVICE_TURN_WAIT_MS` (15 с), `UNSUBSCRIBE_TIMEOUT_MS` (5 с),
   `RELEASE_WAIT_MS` (90 с), `RELEASE_POLL_MS` (2 с), `RELEASING_NOTE`,
   `HELD_NOTE`; функции `serviceTurnText(name)`,
@@ -97,8 +99,11 @@ app-server на весь Mac, доверие к папке, одобрение �
   `hooks/list` вызывается, только если папка доверена и `hooks.json` есть,
   и только при изменении mtime `hooks.json` или `config.toml` (одно чтение
   на проект одновременно; первое ждётся до 2 с, дальше «проверяется…»).
-  Хук Kit — запись с командой, точно равной `KIT_HOOK_COMMAND`;
-  изменённая вручную команда хуком Kit не считается. `complete: true`
+  Хуки Kit — записи с командой, точно равной одной из `KIT_HOOK_COMMANDS`;
+  изменённая вручную команда хуком Kit не считается. В контракте они
+  показываются одним `kitHook` (запись SessionStart) с общим статусом:
+  `approved` — только когда одобрены все хуки Kit, иначе статус первого
+  неодобренного; в списке `hooks` — только чужие. `complete: true`
   только при доверенной папке и одобренном хуке Kit; иначе `false` и
   заметка с причиной и словами «список сессий неполон».
 - **approveHooks** одобряет только хук Kit: `command` должна совпасть с
@@ -106,7 +111,10 @@ app-server на весь Mac, доверие к папке, одобрение �
   — с текущим `currentHash` свежего `hooks/list` (`hash-changed`, в
   `details.current` — текущие хеши). Запись — копия `config.toml`, затем
   `config/value/write { keyPath: hooks.state."<key>".trusted_hash, value:
-  <hash>, mergeStrategy: "upsert" }` и проверка новым `hooks/list`. Чужие
+  <hash>, mergeStrategy: "upsert" }` и проверка новым `hooks/list`.
+  Вместе с подтверждённым хуком SessionStart одобряются хуки Stop и
+  UserPromptSubmit той же структуры (команды точно по шаблону Kit, хеш —
+  текущий из `hooks/list`). Чужие
   хуки показываются с командой и хешем, но не одобряются; уже одобренный
   хук повторно не пишется.
 - **createSession** (нужны работающий демон без ошибки входа и доверенная

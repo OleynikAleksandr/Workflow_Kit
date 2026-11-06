@@ -6,7 +6,7 @@ import { after, before, test } from 'node:test';
 import { installStructure, recordSessionStart } from '#kit-structure';
 import { providerSessionsFile } from '#provider-registry';
 import type { Project, Provider } from '#provider-registry';
-import { KIT_HOOK_COMMAND, createCodexProvider } from '../src/index.ts';
+import { KIT_HOOK_COMMAND, KIT_HOOK_COMMANDS, createCodexProvider } from '../src/index.ts';
 import type { FakeDaemon } from './fake-daemon.ts';
 import { fakeMachine } from './helpers.ts';
 import type { FakeMachine } from './helpers.ts';
@@ -71,6 +71,8 @@ test('trust: preview lists the key and autorun points; the write goes through co
   assert.deepEqual(preview.autorun.map((a) => [a.kind, a.detail]), [
     ['hook', `SessionStart: ${FOREIGN}`],
     ['kit-hook', `SessionStart: ${KIT_HOOK_COMMAND}`],
+    ['kit-hook', `Stop: ${KIT_HOOK_COMMANDS[1]}`],
+    ['kit-hook', `UserPromptSubmit: ${KIT_HOOK_COMMANDS[2]}`],
   ]);
   const granted = await provider.grantTrust(project, preview.token);
   assert.equal(granted.trusted, true);

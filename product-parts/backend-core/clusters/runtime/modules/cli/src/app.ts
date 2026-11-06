@@ -1,8 +1,11 @@
+import { realpath } from 'node:fs/promises';
 import os from 'node:os';
 import { createEventLog, createKeyedMutex, createOperations, ensureDataDirs, eventsFile, loadConfig, resolveDataDirs } from '#data-store';
 import type { DataDirs, EventLog, KeyedMutex, Operations, WfkConfig } from '#data-store';
 import { createHttpServer, createRouter, createStateRegistry, registerCoreRoutes } from '#http-server';
 import type { HttpServerHandle, InterfaceMap, Router, StateRegistry } from '#http-server';
+import { createAgentChannel, registerChannelRoutes } from '#agent-channel';
+import type { AgentChannel } from '#agent-channel';
 import { kitBundleProvider } from '#kit-bundle';
 import { createKitRunner, createWorkflowState } from '#kit-runner';
 import type { KitRunner, WorkflowState } from '#kit-runner';
@@ -15,7 +18,7 @@ import { createProvider as createClaudeProvider } from '#provider-claude';
 import { createProvider as createCodexProvider } from '#provider-codex';
 import { createProviderRegistry, registerProviderRoutes } from '#provider-registry';
 import type { ProviderContext, ProviderFactory, ProviderRegistry } from '#provider-registry';
-import { createProjectRegistry, projectsFile, registerProjectRoutes } from '#project-registry';
+import { createProjectRegistry, isInside, projectsFile, registerProjectRoutes } from '#project-registry';
 import type { ProjectRegistry } from '#project-registry';
 import { getServiceStatus } from '#service-installer';
 import { currentOsInput, detectOs, panelUrls, readPackageVersion } from './system-info.ts';
@@ -67,6 +70,8 @@ export interface App {
   readonly kit: KitRunner;
   /** Cached Kit state of projects: the "workflow" section of /api/state. */
   readonly workflow: WorkflowState;
+  /** Channel to agents through the Stop and UserPromptSubmit hooks. */
+  readonly channel: AgentChannel;
   /** Starts listening on config.port; returns the bound port and the panel URLs. */
   start(): Promise<{ port: number; host: string; urls: string[] }>;
   stop(): Promise<void>;
@@ -178,6 +183,19 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
   });
   state.add('workflow', () => workflow.section());
 
+  const channel = createAgentChannel({
+    resolveProject: async (folder) => {
+      // The deepest registered project that contains the folder (paths compared after realpath).
+      const real = await realpath(folder).catch(() => folder);
+      const found = (await projects.list())
+        .filter((project) => isInside(real, project.path, platform, true) || isInside(folder, project.path, platform, true))
+        .sort((a, b) => b.path.length - a.path.length)[0];
+      return found ? { id: found.id } : undefined;
+    },
+    log: options.log,
+  });
+  registerChannelRoutes({ router, state, channel });
+
   return {
     dirs,
     config,
@@ -194,6 +212,7 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
     supervisor,
     kit,
     workflow,
+    channel,
     async start() {
       const bound = await server.listen(config.port);
       await events.append('service.started', { version, pid: process.pid, port: bound.port }).catch(() => undefined);
@@ -204,6 +223,7 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
     },
     async stop() {
       workflow.stop();
+      channel.close();
       await server.close();
     },
   };

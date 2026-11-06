@@ -12,6 +12,7 @@ import {
   checkStructure,
   hookCommand,
   installStructure,
+  normalizeHook,
   sha256,
 } from '../src/index.ts';
 import type { StructureReport } from '../src/index.ts';
@@ -84,13 +85,23 @@ test('an empty folder is "missing"; install writes everything and the result is 
   assert.match(await read(root, 'product-parts/README.md'), /product parts, clusters and modules/);
 
   const claude = JSON.parse(await read(root, '.claude/settings.json'));
-  assert.deepEqual(claude, { hooks: { SessionStart: [{ hooks: [{ type: 'command', command: hookCommand('claude') }] }] } });
+  assert.deepEqual(claude, {
+    hooks: {
+      SessionStart: [{ hooks: [{ type: 'command', command: hookCommand('claude') }] }],
+      Stop: [{ hooks: [{ type: 'command', command: hookCommand('claude', 'Stop'), timeout: 600 }] }],
+      UserPromptSubmit: [{ hooks: [{ type: 'command', command: hookCommand('claude', 'UserPromptSubmit'), timeout: 30 }] }],
+    },
+  });
+  assert.equal(hookCommand('claude', 'Stop'), '[ -x "$HOME/.local/bin/wfk" ] && "$HOME/.local/bin/wfk" hook stop --client claude; exit 0');
   assert.equal(
     hookCommand('codex'),
     '[ -x "$HOME/.local/bin/wfk" ] && "$HOME/.local/bin/wfk" hook session-start --client codex; exit 0',
   );
   const codex = JSON.parse(await read(root, '.codex/hooks.json'));
   assert.equal(codex.hooks.SessionStart[0].hooks[0].command, hookCommand('codex'));
+  assert.deepEqual(codex.hooks.Stop[0].hooks[0], { type: 'command', command: hookCommand('codex', 'Stop'), timeoutSec: 600 });
+  assert.deepEqual(codex.hooks.UserPromptSubmit[0].hooks[0], { type: 'command', command: hookCommand('codex', 'UserPromptSubmit'), timeoutSec: 30 });
+  assert.match(agents, /wfk session title/);
 
   const manifest = JSON.parse(await read(root, MANIFEST_PATH));
   assert.equal(manifest.version, STRUCTURE_VERSION);
@@ -137,7 +148,9 @@ test('foreign sections, Harness markers and text outside the Kit markers stay un
   const codex = JSON.parse(await read(root, '.codex/hooks.json'));
   assert.deepEqual(codex.hooks.SessionStart[0], HARNESS_CODEX_HOOKS.hooks.SessionStart[0], 'Harness hook keeps position 0');
   assert.deepEqual(codex.hooks.SessionStart[1], { hooks: [{ type: 'command', command: hookCommand('codex') }] }, 'Kit hook is appended at the end');
-  assert.deepEqual(codex.hooks.Stop, HARNESS_CODEX_HOOKS.hooks.Stop);
+  assert.deepEqual(codex.hooks.Stop[0], HARNESS_CODEX_HOOKS.hooks.Stop[0], 'Harness Stop hook keeps position 0');
+  assert.equal(codex.hooks.Stop[1].hooks[0].command, hookCommand('codex', 'Stop'), 'Kit Stop hook is appended at the end');
+  assert.equal(codex.hooks.Stop.length, 2);
   assert.match(await read(root, '.codex/hooks.json'), /^ {4}"hooks"/m, 'existing indentation is kept');
 
   const claude = JSON.parse(await read(root, '.claude/settings.json'));
@@ -196,6 +209,24 @@ test('a fragment written by an older Kit is "outdated", by a newer Kit "newer"',
   const updated = await installStructure(root);
   assert.deepEqual(updated.written, ['gitignore-block', 'manifest']);
   assert.equal(updated.report.status, 'ok');
+});
+
+test('a structure v1 project is "outdated" and the update adds the Stop and prompt hooks', async () => {
+  const v1Hook = { type: 'command', command: hookCommand('claude') };
+  const root = await project({ '.claude/settings.json': JSON.stringify({ hooks: { SessionStart: [{ hooks: [v1Hook] }] } }) });
+  await installStructure(root);
+  const manifestFile = path.join(root, MANIFEST_PATH);
+  const manifest = JSON.parse(await readFile(manifestFile, 'utf8'));
+  await writeFile(path.join(root, '.claude/settings.json'), JSON.stringify({ hooks: { SessionStart: [{ hooks: [v1Hook] }] } }));
+  manifest.fragments['claude-hook'] = { path: '.claude/settings.json', sha256: sha256(normalizeHook(v1Hook)), version: 1 };
+  await writeFile(manifestFile, JSON.stringify(manifest));
+  assert.equal(statusOf(await checkStructure(root), 'claude-hook'), 'outdated');
+  const updated = await installStructure(root);
+  assert.ok(updated.written.includes('claude-hook'));
+  const claude = JSON.parse(await read(root, '.claude/settings.json'));
+  assert.equal(claude.hooks.SessionStart.length, 1);
+  assert.equal(claude.hooks.Stop[0].hooks[0].command, hookCommand('claude', 'Stop'));
+  assert.equal(statusOf(updated.report, 'claude-hook'), 'ok');
 });
 
 test('invalid JSON or broken markers refuse the install without writing anything', async () => {

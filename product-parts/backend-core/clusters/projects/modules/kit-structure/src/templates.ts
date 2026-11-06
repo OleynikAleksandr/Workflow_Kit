@@ -1,8 +1,9 @@
-// Texts that Workflow Kit writes into user projects (structure v1, spec section 7).
+// Texts that Workflow Kit writes into user projects (structure v2: milestone 1 spec section 7,
+// milestone 2 spec section 9.1).
 // They are read by agents of any project, so they are written in English.
 
 /** Version of the Kit structure; bump it whenever a managed text below changes. */
-export const STRUCTURE_VERSION = 1;
+export const STRUCTURE_VERSION = 2;
 
 /** Markers of the Kit section in AGENTS.md. */
 export const AGENTS_BEGIN = '<!-- wfk:begin -->';
@@ -16,22 +17,47 @@ export const GITIGNORE_END = '# wfk:end';
 export type HookClient = 'claude' | 'codex';
 export const HOOK_CLIENTS: readonly HookClient[] = ['claude', 'codex'];
 
+/** Hook events Kit listens to, in the order they are written. */
+export type KitHookEvent = 'SessionStart' | 'Stop' | 'UserPromptSubmit';
+export const KIT_HOOK_EVENTS: readonly KitHookEvent[] = ['SessionStart', 'Stop', 'UserPromptSubmit'];
+
+const HOOK_SUBCOMMAND: Readonly<Record<KitHookEvent, string>> = {
+  SessionStart: 'session-start',
+  Stop: 'stop',
+  UserPromptSubmit: 'prompt',
+};
+
 /**
- * Machine-independent SessionStart hook command (spec section 7): it silently does nothing
- * when the launcher is missing and always exits with 0.
+ * Machine-independent hook command (SessionStart by default): it silently does nothing when the
+ * launcher is missing and always exits with 0; the launcher's stdout is the hook answer.
  */
-export function hookCommand(client: HookClient): string {
-  return `[ -x "$HOME/.local/bin/wfk" ] && "$HOME/.local/bin/wfk" hook session-start --client ${client}; exit 0`;
+export function hookCommand(client: HookClient, event: KitHookEvent = 'SessionStart'): string {
+  return `[ -x "$HOME/.local/bin/wfk" ] && "$HOME/.local/bin/wfk" hook ${HOOK_SUBCOMMAND[event]} --client ${client}; exit 0`;
 }
 
 /** Body of the Kit section in AGENTS.md (between the markers). */
 export const AGENTS_SECTION = `## Workflow Kit (managed section, do not edit by hand)
 
-Workflow Kit (\`wfk\`) manages this section, the SessionStart hook entries in
-\`.claude/settings.json\` and \`.codex/hooks.json\`, the \`.gitignore\` block between
+Workflow Kit (\`wfk\`) manages this section, its SessionStart, Stop and
+UserPromptSubmit hook entries in \`.claude/settings.json\` and \`.codex/hooks.json\`, the \`.gitignore\` block between
 \`# wfk:begin\` and \`# wfk:end\` and the files listed in
 \`.workflow-kit/manifest.json\`. Write project instructions outside the
 \`wfk:begin\`/\`wfk:end\` markers; Kit never changes text outside them.
+
+### Working with the Workflow Kit panel
+
+The user follows this project in the Workflow Kit panel (Mac and iPad), not
+only in this chat.
+
+- Session title: in your first substantive turn, once you understand the
+  task, run \`wfk session title "<short title in the user's language>"\` once.
+  Do not rename the session again unless the user asks.
+- Execution mode and plan start: after \`scripts/workflow scope:propose\` the
+  user chooses the mode and starts the plan with buttons in the panel. End
+  your turn and wait; the choice reaches you as a message from Workflow Kit.
+- Messages that start with \`Workflow Kit:\` come from the panel on behalf of
+  the user (the Stop and UserPromptSubmit hooks deliver them). Follow them
+  as the user's instructions.
 
 ### Architecture: product-parts
 

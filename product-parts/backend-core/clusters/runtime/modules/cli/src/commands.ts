@@ -5,6 +5,7 @@ import type { ServiceCommand, ServiceDeps } from '#service-installer';
 import { createApp } from './app.ts';
 import type { App, AppOptions } from './app.ts';
 import { readProcessStdin, runHook } from './hook.ts';
+import type { PostJson } from './hook-service.ts';
 import { linkLauncher } from './link.ts';
 import { readPackageVersion } from './system-info.ts';
 
@@ -18,6 +19,8 @@ export interface CliDeps {
   cwd?: string;
   /** Reads the hook input (default: process stdin with a timeout). */
   readStdin?: (timeoutMs: number) => Promise<string>;
+  /** Posts hook input to the service (wfk hook stop|prompt); tests pass a fake. */
+  postJson?: PostJson;
   /** Resolves when the service should stop (default: SIGINT or SIGTERM). */
   waitForShutdown?: (app: App) => Promise<void>;
   /** Effects of the service installer (runner, health probe, spawner); tests pass fakes. */
@@ -41,7 +44,8 @@ const USAGE = `Использование: wfk <команда>
   service start|stop|status     управление службой
   doctor [--installed]          проверка установки
   link [--force]                запускатель ~/.local/bin/wfk на текущий клон (разработка)
-  hook session-start --client   приём хука SessionStart
+  hook session-start|stop|prompt --client <claude|codex>
+                                хуки агентов: начало сессии, конец хода, новое сообщение
   --version                     версия
 `;
 
@@ -163,7 +167,11 @@ export async function main(argv: readonly string[], deps?: Partial<CliDeps>): Pr
       return link(rest, full);
     case 'hook':
       return runHook(rest, {
+        stdout: full.stdout,
         stderr: full.stderr,
+        homedir: full.app?.homedir,
+        platform: full.app?.platform,
+        post: full.postJson,
         env: full.app?.env ?? process.env,
         cwd: full.cwd ?? process.cwd(),
         readStdin: full.readStdin ?? readProcessStdin,

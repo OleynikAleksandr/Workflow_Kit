@@ -95,7 +95,6 @@ export interface SessionParts {
 }
 
 /** Why a name stays only in Workflow Kit for now. */
-export const RENAME_LATER_NOTE = 'Чат сейчас не открыт: имя в ChatGPT обновится, когда в сессии начнётся ход';
 
 /** Options of the session methods (tests shorten the waits). */
 export interface SessionOptions {
@@ -331,10 +330,9 @@ export function createSessionParts(rt: CodexRuntime, options: SessionOptions = {
     },
 
     async renameSession(_project, threadId, name) {
-      // Loading an idle thread would make the daemon hold it for a minute and ChatGPT would say
-      // the chat is open in another app (D1): rename only a thread that is loaded anyway.
+      // thread/name/set works on a thread the daemon does not hold and does not load it
+      // (verified 2026-11-06): the name goes to ~/.codex/session_index.jsonl that ChatGPT reads.
       return rt.withDaemon(async (session) => {
-        if ((await isLoaded(session, threadId)) !== true) return { synced: false, note: RENAME_LATER_NOTE };
         await session.request('thread/name/set', { threadId, name });
         return { synced: true };
       }, UNSUBSCRIBE_TIMEOUT_MS * 2);

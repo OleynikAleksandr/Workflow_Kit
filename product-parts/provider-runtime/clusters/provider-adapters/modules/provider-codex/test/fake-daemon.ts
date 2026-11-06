@@ -32,6 +32,8 @@ export interface FakeDaemonOptions {
   idleUnloadPolls?: number;
   /** thread/archive answers with a JSON-RPC error with this message (a daemon without it). */
   archiveError?: string;
+  /** thread/name/set answers with this error. */
+  nameError?: string;
 }
 
 /** A running fake daemon. */
@@ -129,6 +131,8 @@ export async function startFakeDaemon(socketPath: string, options: FakeDaemonOpt
           loaded.add(threadId);
           subscribers.set(threadId, new Set([...(subscribers.get(threadId) ?? []), socket]));
           answer(message.id, { thread: { id: threadId }, model: 'gpt-fake' });
+        } else if (message.method === 'thread/name/set' && options.nameError) {
+          sendJson(socket, { jsonrpc: '2.0', id: message.id, error: { code: -32000, message: options.nameError } }, tricky);
         } else if (message.method === 'thread/name/set') {
           answer(message.id, {});
         } else if (message.method === 'turn/start') {

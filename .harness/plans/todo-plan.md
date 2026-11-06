@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 94,
+  "revision": 96,
   "rounds": [
     {
       "digest": null,
@@ -93,7 +93,7 @@
       "kind": "work",
       "parallelSafe": true,
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Имя сессии Codex в ChatGPT",
       "why": "Имя не доходило до ChatGPT: служба отказывалась, пока тред не загружен"
     },
@@ -207,8 +207,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 0/4
-- Revision: 94
+- Progress: 1/4
+- Revision: 96
 
 ## Objective
 
@@ -223,7 +223,7 @@
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T001 — Имя сессии Codex в ChatGPT (work, parallel-safe)
+- [DONE] T001 — Имя сессии Codex в ChatGPT (work, parallel-safe)
   - Commit: fix: rename Codex threads that the daemon does not hold
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/release.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md
 - [TODO] T002 — Имя сессии Claude через хук (work, parallel-safe)

@@ -4,7 +4,7 @@ import path from 'node:path';
 import { after, before, test } from 'node:test';
 import { providerSessionsFile } from '#provider-registry';
 import type { Project } from '#provider-registry';
-import { HELD_NOTE, RELEASING_NOTE, RENAME_LATER_NOTE, createCodexProvider } from '../src/index.ts';
+import { HELD_NOTE, RELEASING_NOTE, createCodexProvider } from '../src/index.ts';
 import { createRpcSession, initializeSession } from '../src/rpc.ts';
 import { connectUnixWebSocket } from '../src/ws.ts';
 import type { FakeDaemon, FakeDaemonOptions } from './fake-daemon.ts';
@@ -128,17 +128,24 @@ test('a thread still held when the wait ends gives the session with a note, not 
   assert.ok(log.some((line) => line.startsWith('codex: thread thread-long not unloaded by thread/archive:')), log.join('\n'));
 });
 
-test('renameSession sets the name only while the daemon has the thread loaded', async () => {
+test('renameSession names an idle thread without loading it', async () => {
   const daemon = await machine.daemon({ threadId: 'thread-rename' });
   const provider = createCodexProvider(machine.context({}), { serviceTurnWaitMs: 100, daemonTtlMs: 0, releasePollMs: 10 });
   await provider.refresh!();
-  const idle = await provider.renameSession!(project, 'thread-rename', 'Склад — остатки');
-  assert.deepEqual(idle, { synced: false, note: RENAME_LATER_NOTE });
-  assert.ok(!daemon.calls.some((c) => c.method === 'thread/name/set'), 'an idle thread is not touched');
-  daemon.loaded.add('thread-rename');
   assert.deepEqual(await provider.renameSession!(project, 'thread-rename', 'Склад — остатки'), { synced: true });
   const set = daemon.calls.filter((c) => c.method === 'thread/name/set');
   assert.deepEqual(set.map((c) => c.params), [{ threadId: 'thread-rename', name: 'Склад — остатки' }]);
+  assert.ok(!daemon.calls.some((c) => c.method === 'thread/resume'), 'the thread is not resumed for a name');
+  assert.ok(!daemon.loaded.has('thread-rename'), 'the thread stays unloaded');
+  daemon.loaded.add('thread-rename');
+  assert.deepEqual(await provider.renameSession!(project, 'thread-rename', 'Склад'), { synced: true });
+});
+
+test('renameSession reports a daemon refusal', async () => {
+  await machine.daemon({ threadId: 'thread-rename-down', nameError: 'thread not found' });
+  const provider = createCodexProvider(machine.context({}), { serviceTurnWaitMs: 100, daemonTtlMs: 0, releasePollMs: 10 });
+  await provider.refresh!();
+  await assert.rejects(provider.renameSession!(project, 'thread-rename-down', 'Имя'), /thread not found/);
 });
 
 test('createSession with a first message starts the turn with it instead of the service text', async () => {

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 85,
+  "revision": 86,
   "rounds": [
     {
       "digest": {
@@ -636,7 +636,8 @@
         "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/view-model.js",
         "product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts",
         "product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md",
-        "docs/planning/M2-interface-and-process.md"
+        "docs/planning/M2-interface-and-process.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts"
       ],
       "fixes": null,
       "id": "T009",
@@ -659,7 +660,7 @@
 - Execution: sequential
 - Current task: T009
 - Progress: 9/10
-- Revision: 85
+- Revision: 86
 
 ## Objective
 
@@ -711,7 +712,7 @@
   - Depends on: T001, T002, T003, T004, T005, T006, T007, T008
 - [IN_PROGRESS] T009 — Установка и визуальная приёмка вехи 2 (delivery)
   - Commit: docs: record milestone 2 acceptance
-  - Files: docs/evidence/M2-acceptance.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/hook-sessions.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/hook-sessions.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/titles.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/test/titles.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/session-command.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/commands.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/view-model.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, docs/planning/M2-interface-and-process.md
+  - Files: docs/evidence/M2-acceptance.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/hook-sessions.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/hook-sessions.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/titles.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/test/titles.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/session-command.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/commands.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/view-model.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, docs/planning/M2-interface-and-process.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts
   - Depends on: T008, DOCS-R1
 
 Digest: Веха 2, R1: Kit 2.2.2 в проектах (бандл, команды, раздел workflow), хуки Stop/UserPromptSubmit и автопилот, «Ревью плана» (переключатель), имена и архив сессий, мастер проекта с одним согласием и первой сессией, интерфейс по макету: дерево, экран сессии с выбором пути и планом, «Настройки», экран «Домой» iPad. 286 тестов.

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 109,
+  "revision": 110,
   "rounds": [
     {
       "digest": {
@@ -52,6 +52,13 @@
       "kind": "fixes",
       "status": "CLOSED",
       "title": "Fixes"
+    },
+    {
+      "digest": null,
+      "id": "R3",
+      "kind": "fixes",
+      "status": "OPEN",
+      "title": "Fixes"
     }
   ],
   "schema": "harness-workflow-plan/1",
@@ -83,7 +90,7 @@
         "text": "Claude: имя передаёт хук UserPromptSubmit полем hookSpecificOutput.sessionTitle"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "IN_PROGRESS",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cfa00ffe-c414-4ae6-9953-e3d2906b3705",
@@ -313,6 +320,142 @@
       "status": "DONE",
       "title": "Релиз раунда 2",
       "why": "Релиз раунда 2"
+    },
+    {
+      "acceptance": [
+        "session.exp после ссылки раз в секунду проверяет файл <debug>.rename и вводит /rename <имя>, печатает RENAMED",
+        "renameSession провайдера Claude пишет файл для работающей сессии Kit и ждёт RENAMED; без процесса Kit — synced: false с заметкой",
+        "session-titles отправляет имя Claude через rename, только когда сессия не в ходе (не working); в ходе — повтор на Stop",
+        "Хук UserPromptSubmit остаётся запасным путём для сессий, начатых не Kit"
+      ],
+      "checks": [],
+      "commitMessage": "feat: rename Claude Remote Control sessions with /rename in their terminal",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M3-fixes.md",
+          "heading": "7. Раунд 3: имя Claude через /rename",
+          "required": true
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/session.exp",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/sessions.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/provider.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/provider.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parts.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/harness.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/fixtures",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/titles.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/session-titles/test/titles.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/hook-channel.test.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md"
+      ],
+      "fixes": null,
+      "id": "T006",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R3",
+      "status": "TODO",
+      "title": "Имя сессии Claude через /rename",
+      "why": "Имя из хука UserPromptSubmit ждёт сообщения пользователя, а автопилот идёт через Stop; приложение Claude показывает имя проекта"
+    },
+    {
+      "acceptance": [
+        "Без выбранного проекта под «Ваши проекты» нет пунктирной карточки",
+        "Меню «Ваши проекты» по-прежнему показывает «Проектов пока нет» и действия создания"
+      ],
+      "checks": [],
+      "commitMessage": "fix: drop the empty projects card from the sidebar",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M3-fixes.md",
+          "heading": "7. Раунд 3: имя Claude через /rename",
+          "required": true
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/sidebar.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/tree.css",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/panel-shell.test.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts"
+      ],
+      "fixes": null,
+      "id": "T007",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R3",
+      "status": "TODO",
+      "title": "Убрать карточку «Проектов пока нет» из боковой панели",
+      "why": "Карточка повторяет меню «Ваши проекты»"
+    },
+    {
+      "acceptance": [
+        "Project-wide documents describe the round result",
+        "The round digest records result, decisions, contracts and references"
+      ],
+      "checks": [],
+      "commitMessage": "docs: reconcile documentation for R3",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T006",
+        "T007"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/architecture/OVERVIEW.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md"
+      ],
+      "fixes": null,
+      "id": "DOCS-R3",
+      "iteration": 1,
+      "kind": "docs",
+      "roundId": "R3",
+      "status": "TODO",
+      "title": "Reconcile project documentation and write the round digest",
+      "why": "Keep the project context current for the next agent and close the round."
+    },
+    {
+      "acceptance": [
+        "node bin/wfk.mjs install и wfk doctor --installed — всё в порядке",
+        "Имя сессии Claude из Kit видно в приложении Claude; результат в docs/evidence/M3-acceptance.md"
+      ],
+      "checks": [],
+      "commitMessage": "chore: install the M3 round 3 release",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T006",
+        "T007",
+        "DOCS-R3"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "docs/evidence/M3-acceptance.md"
+      ],
+      "fixes": null,
+      "id": "T008",
+      "iteration": 1,
+      "kind": "delivery",
+      "roundId": "R3",
+      "status": "TODO",
+      "title": "Релиз раунда 3",
+      "why": "Релиз раунда 3"
     }
   ]
 }
@@ -322,11 +465,11 @@
 ## State
 
 - Scope: m3-fixes (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 7/7
-- Revision: 109
+- Progress: 7/11
+- Revision: 110
 
 ## Objective
 
@@ -374,5 +517,22 @@ Digest: Имена сессий Workflow Kit уходят в приложени�
   - Depends on: T004, DOCS-R2
 
 Digest: Имена Codex, не дошедшие до ChatGPT (synced не true), отправляются заново при запуске службы, а не при следующем ходе сессии.
+
+### R3 — Fixes (fixes, OPEN)
+
+- [TODO] T006 — Имя сессии Claude через /rename (work)
+  - Commit: feat: rename Claude Remote Control sessions with /rename in their terminal
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/session.exp, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parts.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/harness.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/fixtures, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/titles.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/test/titles.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/hook-channel.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md
+- [TODO] T007 — Убрать карточку «Проектов пока нет» из боковой панели (work)
+  - Commit: fix: drop the empty projects card from the sidebar
+  - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/sidebar.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/tree.css, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/panel-shell.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts
+- [TODO] DOCS-R3 — Reconcile project documentation and write the round digest (docs)
+  - Commit: docs: reconcile documentation for R3
+  - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md
+  - Depends on: T006, T007
+- [TODO] T008 — Релиз раунда 3 (delivery)
+  - Commit: chore: install the M3 round 3 release
+  - Files: docs/evidence/M3-acceptance.md
+  - Depends on: T006, T007, DOCS-R3
 
 State changes only through `scripts/workflow` commands. History lives in Git.

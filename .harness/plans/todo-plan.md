@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 75,
+  "revision": 76,
   "rounds": [
     {
       "digest": null,
@@ -449,7 +449,7 @@
         "Тесты моделей отображения; module.md; ручная проверка путём раздела 14 на подставных данных"
       ],
       "checks": [],
-      "commitMessage": "feat: show the setup wizard and the session screen",
+      "commitMessage": "feat: rebuild the panel layout, show the setup wizard and the session screen",
       "confirmation": null,
       "context": [
         {
@@ -468,6 +468,7 @@
         "product-parts/control-panel/clusters/web-panel/modules/session-view",
         "product-parts/control-panel/clusters/web-panel/modules/project-wizard",
         "product-parts/control-panel/clusters/web-panel/cluster.md",
+        "product-parts/control-panel/product-part.md",
         "product-parts/backend-core/clusters/http-api/modules/http-server"
       ],
       "fixes": null,
@@ -562,7 +563,7 @@
 - Execution: sequential
 - Current task: none
 - Progress: 7/10
-- Revision: 75
+- Revision: 76
 
 ## Objective
 
@@ -605,8 +606,8 @@
   - Commit: feat: rebuild the panel layout after the agreed mockup
   - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/control-panel/clusters/web-panel/modules/provider-cards, product-parts/control-panel/clusters/web-panel/cluster.md, product-parts/control-panel/product-part.md
 - [TODO] T008 — Мастер и экран сессии в интерфейсе (work)
-  - Commit: feat: show the setup wizard and the session screen
-  - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/control-panel/clusters/web-panel/modules/provider-cards, product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/control-panel/clusters/web-panel/modules/project-wizard, product-parts/control-panel/clusters/web-panel/cluster.md, product-parts/backend-core/clusters/http-api/modules/http-server
+  - Commit: feat: rebuild the panel layout, show the setup wizard and the session screen
+  - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/control-panel/clusters/web-panel/modules/provider-cards, product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/control-panel/clusters/web-panel/modules/project-wizard, product-parts/control-panel/clusters/web-panel/cluster.md, product-parts/control-panel/product-part.md, product-parts/backend-core/clusters/http-api/modules/http-server
   - Depends on: T006, T007
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1

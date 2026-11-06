@@ -3,7 +3,7 @@
 // from ~/.codex/session_index.jsonl.
 import { readJsonFile, writeJsonAtomic } from '#data-store';
 import { ProviderError, hookSessionInfo, providerSessionsFile, readHookSessions } from '#provider-registry';
-import type { Project, SessionInfo, SessionLinks } from '#provider-registry';
+import type { Project, RenameResult, SessionInfo, SessionLinks } from '#provider-registry';
 import { parseSessionIndex, projectTrustLevel } from './codex-files.ts';
 import type { RpcSession } from './rpc.ts';
 import type { CodexRuntime } from './runtime.ts';
@@ -80,7 +80,12 @@ export interface SessionParts {
   createSession(project: Project, opts: { title: string }): Promise<SessionInfo>;
   /** Panel records (tests and removeBlockers use them). */
   records(): Promise<CodexRecord[]>;
+  /** thread/name/set, only while the daemon has the thread loaded (an open chat or a turn). */
+  renameSession(project: Project, threadId: string, name: string): Promise<RenameResult>;
 }
+
+/** Why a name stays only in Workflow Kit for now. */
+export const RENAME_LATER_NOTE = 'Чат сейчас не открыт: имя в ChatGPT обновится, когда в сессии начнётся ход';
 
 /** Options of the session methods (tests shorten the waits). */
 export interface SessionOptions {
@@ -272,6 +277,16 @@ export function createSessionParts(rt: CodexRuntime, options: SessionOptions = {
         // Dropped only after the record is written, so the session never vanishes from the list.
         if (started.id) releasing.delete(started.id);
       }
+    },
+
+    async renameSession(_project, threadId, name) {
+      // Loading an idle thread would make the daemon hold it for a minute and ChatGPT would say
+      // the chat is open in another app (D1): rename only a thread that is loaded anyway.
+      return rt.withDaemon(async (session) => {
+        if ((await isLoaded(session, threadId)) !== true) return { synced: false, note: RENAME_LATER_NOTE };
+        await session.request('thread/name/set', { threadId, name });
+        return { synced: true };
+      }, UNSUBSCRIBE_TIMEOUT_MS * 2);
     },
   };
 }

@@ -27,6 +27,7 @@ app-server на весь Mac, доверие к папке, одобрение �
   UserPromptSubmit), `isExactKitCommand(command)`,
   `SERVICE_TURN_WAIT_MS` (15 с), `UNSUBSCRIBE_TIMEOUT_MS` (5 с),
   `RELEASE_WAIT_MS` (90 с), `RELEASE_POLL_MS` (2 с), `RELEASING_NOTE`,
+  `RENAME_LATER_NOTE`,
   `HELD_NOTE`; функции `serviceTurnText(name)`,
   `threadLinks(id)`, `parseRemoteControlStart(stdout)`.
 - Типы: `CodexDeps`, `DaemonOpener`, `DaemonState`, `ProgramState`,
@@ -117,6 +118,11 @@ app-server на весь Mac, доверие к папке, одобрение �
   текущий из `hooks/list`). Чужие
   хуки показываются с командой и хешем, но не одобряются; уже одобренный
   хук повторно не пишется.
+- **renameSession(project, threadId, name)** — `thread/name/set` через
+  демон, только если тред загружен (`thread/loaded/list`: открыт чат или
+  идёт ход); иначе ничего не трогает и возвращает `{ synced: false, note:
+  RENAME_LATER_NOTE }` — загрузка простаивающего треда заставила бы демон
+  держать его минуту (D1).
 - **createSession** (нужны работающий демон без ошибки входа и доверенная
   папка: `daemon-not-running`, `codex-login`, `not-trusted`): по сокету
   демона `thread/start { cwd }` → `thread/name/set { threadId, name }` →

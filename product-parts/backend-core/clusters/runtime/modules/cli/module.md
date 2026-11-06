@@ -22,10 +22,11 @@ stripping).
   `HOOK_BUDGET_MS` (1500), тип `HookDeps` (`stdout`, `stderr`, `env`,
   `cwd`, `readStdin`, `homedir?`, `platform?`, `post?`).
 - `runServiceHook(event, client, deps)`, `serviceUrl(env, homedir,
-  platform)` (`http://127.0.0.1:<config.port>`), `postJson` (POST с
-  `Origin` своего адреса), `STOP_REQUEST_MS` (9 мин 30 с),
-  `PROMPT_REQUEST_MS` (20 с), типы `PostJson`, `ServiceEvent`,
-  `ServiceHookDeps`.
+  platform)` (`http://127.0.0.1:<config.port>`), `requestJson` (POST с
+  `Origin` своего адреса → `{ status, body }`), `postJson` (то же, статус
+  ≥ 300 — ошибка), `runSessionCommand(args, deps)`, `SESSION_USAGE`, `STOP_REQUEST_MS` (9 мин 30 с),
+  `PROMPT_REQUEST_MS` (20 с), типы `PostJson`, `RequestJson`,
+  `ServiceEvent`, `ServiceHookDeps`, `SessionCommandDeps`.
 - `linkLauncher(options) → LinkResult`, `launcherPath(homedir)`,
   `launcherScript(node, entry)`, `LAUNCHER_MARK`, `REPO_ROOT`, `LinkError`,
   типы `LinkOptions`, `LinkResult`.
@@ -39,7 +40,7 @@ stripping).
   `operations` (`Operations`, D10), `providers` (`ProviderRegistry`),
   `supervisor` (`ProcessSupervisor`, `<state>/processes.json`), `channel`
   (`AgentChannel`: канал к агентам через хуки), `autopilot`
-  (`Autopilot`), `review` (`ReviewToggles`), `kit`
+  (`Autopilot`), `review` (`ReviewToggles`), `titles` (`SessionTitles`), `kit`
   (`KitRunner`: команды Kit проектов), `workflow` (`WorkflowState`: кэш
   состояния Kit и раздел `workflow`), `start()` (пишет событие
   `service.started`, запускает операцию `providers.refresh`: сверка записей
@@ -63,6 +64,7 @@ stripping).
 | `doctor [--installed]` | то же, `--installed` передаётся аргументом; другие аргументы — справка, код 64 |
 | `link [--force]` | пишет запускатель `~/.local/bin/wfk` (0755, `#!/bin/sh`, строка-метка `# Workflow Kit launcher`), который запускает `bin/wfk.mjs` этого клона абсолютным `node`; чужой файл заменяется только с `--force`; предупреждает, если каталога нет в PATH; на Windows — отказ, код 1 |
 | `hook session-start --client <claude\|codex>` | читает JSON хука из stdin (до 1 с, терминал — пусто) и передаёт `recordSessionStart` из `kit-structure`; весь бюджет 1,5 с; stdout пуст, код всегда 0; неизвестные подкоманды `hook` игнорируются |
+| `session title "<тема>"` | отправляет `{ title, cwd, projectDir }` на `POST /api/sessions/title`; успех — «Имя сессии в Workflow Kit: …», код 0; отказ службы — причина в stderr, код 1; без темы — справка, код 64 |
 | `hook stop\|prompt --client <claude\|codex>` | читает JSON хука из stdin и отправляет `{ client, input, projectDir }` (`projectDir` — `$CLAUDE_PROJECT_DIR`) на `POST /api/hooks/stop\|prompt` службы; печатает в stdout поле `answer` ответа (JSON для агента) или ничего; служба недоступна, вход не JSON — без вывода; код всегда 0; `WFK_HOOK_DEBUG` — причина в stderr |
 | `--help`, `--version` | справка и версия из `package.json` |
 
@@ -110,6 +112,12 @@ stripping).
   проекта есть `execution` в разделе `workflow`), `load()` при `start()`,
   `registerReviewRoutes` — `POST /api/projects/:id/sessions/:sid/review` и
   раздел `review`.
+- `session-titles` (веха 2, T005): `createSessionTitles` (проект по папке
+  — тот же поиск, что у канала, с `realpath` ближайшей существующей
+  папки; сессии — из канала; цель плана — из раздела `workflow`;
+  переименование — `renameSession` провайдера по префиксу ключа сессии),
+  `load()` при `start()`, `onTurn` из хука `prompt`,
+  `registerTitleRoutes` — маршруты имён и раздел `titles`.
 - `autopilot` (веха 2, T003): `createAutopilot` — решатель `Stop` канала
   (`channel.setDecider`); маршруты хуков получают канал-обёртку, чей
   `prompt` сообщает автопилоту, кто начал ход (`onPrompt`);
@@ -124,7 +132,7 @@ stripping).
 ## Инварианты
 
 - Модули подключаются только через их `src/index.ts` (`#data-store`,
-  `#agent-channel`, `#autopilot`, `#http-server`, `#plan-review`, `#kit-bundle`, `#kit-runner`, `#kit-structure`,
+  `#agent-channel`, `#autopilot`, `#http-server`, `#plan-review`, `#session-titles`, `#kit-bundle`, `#kit-runner`, `#kit-structure`,
   `#panel-shell`, `#process-supervisor`,
   `#provider-cards`,
   `#project-registry`, `#provider-claude`, `#provider-codex`,

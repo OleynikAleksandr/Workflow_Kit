@@ -21,6 +21,8 @@
   `hooks(project)`, `approveHooks?(project, { command, hash })`,
   `listSessions(project)`, `createSession(project, { title })`,
   `resumeSession?(project, sid)`, `stopSession?(project, sid)`,
+  `renameSession?(project, sid, name) → RenameResult` (`synced`, `note?`:
+  имя в приложении провайдера, если это безопасно сейчас; веха 2),
   `actions(project | null)`, `runAction(id, project | null)`,
   `removeBlockers?(project)`.
   Расширения раздела 1: `trust(project)` — текущее доверие для панели

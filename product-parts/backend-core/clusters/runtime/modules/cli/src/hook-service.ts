@@ -15,7 +15,16 @@ export type ServiceEvent = 'stop' | 'prompt';
 /** Posts JSON to a loopback URL; resolves to the parsed answer or rejects. */
 export type PostJson = (url: string, body: unknown, timeoutMs: number) => Promise<unknown>;
 
-export const postJson: PostJson = (url, body, timeoutMs) =>
+/** Posts JSON to a loopback URL; resolves to the status and the parsed answer (null when not JSON). */
+export type RequestJson = (url: string, body: unknown, timeoutMs: number) => Promise<{ status: number; body: unknown }>;
+
+export const postJson: PostJson = async (url, body, timeoutMs) => {
+  const reply = await requestJson(url, body, timeoutMs);
+  if (reply.status >= 300) throw new Error(`HTTP ${reply.status}`);
+  return reply.body;
+};
+
+export const requestJson: RequestJson = (url, body, timeoutMs) =>
   new Promise((resolve, reject) => {
     const target = new URL(url);
     const payload = JSON.stringify(body);
@@ -34,15 +43,13 @@ export const postJson: PostJson = (url, body, timeoutMs) =>
         const chunks: Buffer[] = [];
         res.on('data', (chunk: Buffer) => chunks.push(chunk));
         res.on('end', () => {
-          if ((res.statusCode ?? 0) >= 300) {
-            reject(new Error(`HTTP ${res.statusCode ?? '?'}`));
-            return;
-          }
+          let parsed: unknown = null;
           try {
-            resolve(JSON.parse(Buffer.concat(chunks).toString('utf8')));
-          } catch (error) {
-            reject(error);
+            parsed = JSON.parse(Buffer.concat(chunks).toString('utf8'));
+          } catch {
+            parsed = null;
           }
+          resolve({ status: res.statusCode ?? 0, body: parsed });
         });
         res.on('error', reject);
       },

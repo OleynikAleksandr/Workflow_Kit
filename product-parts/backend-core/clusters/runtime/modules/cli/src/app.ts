@@ -1,5 +1,6 @@
 import { realpath } from 'node:fs/promises';
 import os from 'node:os';
+import path from 'node:path';
 import { createEventLog, createKeyedMutex, createOperations, ensureDataDirs, eventsFile, loadConfig, resolveDataDirs } from '#data-store';
 import type { DataDirs, EventLog, KeyedMutex, Operations, WfkConfig } from '#data-store';
 import { createHttpServer, createRouter, createStateRegistry, registerCoreRoutes } from '#http-server';
@@ -10,6 +11,8 @@ import { createAutopilot, registerAutopilotRoutes } from '#autopilot';
 import type { Autopilot } from '#autopilot';
 import { kitBundleProvider } from '#kit-bundle';
 import { createReviewToggles, registerReviewRoutes } from '#plan-review';
+import { createSessionTitles, registerTitleRoutes } from '#session-titles';
+import type { SessionTitles } from '#session-titles';
 import type { ReviewToggles } from '#plan-review';
 import { createKitRunner, createWorkflowState } from '#kit-runner';
 import type { KitRunner, WorkflowState } from '#kit-runner';
@@ -27,6 +30,22 @@ import type { ProjectRegistry } from '#project-registry';
 import { getServiceStatus } from '#service-installer';
 import { currentOsInput, detectOs, panelUrls, readPackageVersion } from './system-info.ts';
 import type { DetectOsInput, OsInfo } from './system-info.ts';
+
+/** realpath of a folder; for a missing one, realpath of its nearest existing parent plus the rest. */
+async function realFolder(folder: string): Promise<string> {
+  let base = path.resolve(folder);
+  const rest: string[] = [];
+  for (;;) {
+    try {
+      return path.join(await realpath(base), ...rest);
+    } catch {
+      const parent = path.dirname(base);
+      if (parent === base) return path.resolve(folder);
+      rest.unshift(path.basename(base));
+      base = parent;
+    }
+  }
+}
 
 /** Inputs of createApp; everything machine-specific is injectable for tests. */
 export interface AppOptions {
@@ -80,6 +99,8 @@ export interface App {
   readonly autopilot: Autopilot;
   /** Per-session "Ревью плана" toggles (stored only in milestone 2). */
   readonly review: ReviewToggles;
+  /** Session names: manual, agent topic, plan objective, provider name. */
+  readonly titles: SessionTitles;
   /** Starts listening on config.port; returns the bound port and the panel URLs. */
   start(): Promise<{ port: number; host: string; urls: string[] }>;
   stop(): Promise<void>;
@@ -191,15 +212,16 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
   });
   state.add('workflow', () => workflow.section());
 
+  // The deepest registered project that contains a folder (paths compared after realpath).
+  const resolveFolderProject = async (folder: string): Promise<{ id: string } | undefined> => {
+    const real = await realFolder(folder);
+    const found = (await projects.list())
+      .filter((project) => isInside(real, project.path, platform, true) || isInside(folder, project.path, platform, true))
+      .sort((a, b) => b.path.length - a.path.length)[0];
+    return found ? { id: found.id } : undefined;
+  };
   const channel = createAgentChannel({
-    resolveProject: async (folder) => {
-      // The deepest registered project that contains the folder (paths compared after realpath).
-      const real = await realpath(folder).catch(() => folder);
-      const found = (await projects.list())
-        .filter((project) => isInside(real, project.path, platform, true) || isInside(folder, project.path, platform, true))
-        .sort((a, b) => b.path.length - a.path.length)[0];
-      return found ? { id: found.id } : undefined;
-    },
+    resolveProject: resolveFolderProject,
     log: options.log,
   });
   const autopilot = createAutopilot({
@@ -215,7 +237,9 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
     ...channel,
     async prompt(input) {
       const reply = await channel.prompt(input);
-      autopilot.onPrompt(`${input.client}:${input.sessionId}`, reply.answer !== null);
+      const key = `${input.client}:${input.sessionId}`;
+      autopilot.onPrompt(key, reply.answer !== null);
+      titles.onTurn(key);
       return reply;
     },
   };
@@ -227,6 +251,24 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
     pathChosen: (id) => Boolean(workflow.get(id)?.execution),
   });
   registerReviewRoutes({ router, state, toggles: review });
+
+  const titles = createSessionTitles({
+    listProjects: async () => (await projects.list()).map((project) => ({ id: project.id, path: project.path })),
+    resolveProject: resolveFolderProject,
+    sessions: () => channel.list(),
+    scope: (id) => {
+      const view = workflow.get(id);
+      return view?.scope ? { objective: view.scope.objective, ownerSession: view.execution?.ownerSession ?? null } : null;
+    },
+    rename: async (id, key, name) => {
+      const project = await projects.get(id);
+      const provider = providers.get(key.slice(0, key.indexOf(':')));
+      if (!project || !provider?.renameSession) return { synced: false, note: 'Имя хранится только в Workflow Kit' };
+      return provider.renameSession(project, key.slice(key.indexOf(':') + 1), name);
+    },
+    log: options.log,
+  });
+  registerTitleRoutes({ router, state, titles });
 
   return {
     dirs,
@@ -247,6 +289,7 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
     channel,
     autopilot,
     review,
+    titles,
     async start() {
       const bound = await server.listen(config.port);
       await events.append('service.started', { version, pid: process.pid, port: bound.port }).catch(() => undefined);
@@ -254,6 +297,7 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
       providerRoutes.refresh();
       void workflow.start();
       await review.load().catch(() => undefined);
+      await titles.load().catch(() => undefined);
       return { ...bound, urls: panelUrls(bound.port, getInterfaces()) };
     },
     async stop() {

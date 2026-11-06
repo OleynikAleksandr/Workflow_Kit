@@ -209,6 +209,12 @@ export interface ProjectProviderState {
   errors: Record<string, ProviderErrorInfo>;
 }
 
+/** Result of renameSession. */
+export interface RenameResult {
+  synced: boolean;
+  note?: string;
+}
+
 /** The provider contract. All read methods must be cheap and read-only (D11). */
 export interface Provider {
   readonly id: ProviderId;
@@ -232,6 +238,11 @@ export interface Provider {
   createSession(project: Project, opts: { title: string }): Promise<SessionInfo>;
   resumeSession?(project: Project, sessionId: string): Promise<SessionInfo>;
   stopSession?(project: Project, sessionId: string): Promise<void>;
+  /**
+   * Gives a session a new name in the provider app when that is safe now; synced false with a
+   * note when the name stays only in Workflow Kit (for now or for good).
+   */
+  renameSession?(project: Project, sessionId: string, name: string): Promise<RenameResult>;
   actions(project: Project | null): Promise<ProviderAction[]>;
   runAction(id: string, project: Project | null): Promise<ProviderStatus | ProjectProviderState>;
   /** Reasons the project cannot be removed (e.g. a running environment); live sessions are found by the registry. */

@@ -5,7 +5,8 @@ import type { ServiceCommand, ServiceDeps } from '#service-installer';
 import { createApp } from './app.ts';
 import type { App, AppOptions } from './app.ts';
 import { readProcessStdin, runHook } from './hook.ts';
-import type { PostJson } from './hook-service.ts';
+import type { PostJson, RequestJson } from './hook-service.ts';
+import { runSessionCommand } from './session-command.ts';
 import { linkLauncher } from './link.ts';
 import { readPackageVersion } from './system-info.ts';
 
@@ -21,6 +22,8 @@ export interface CliDeps {
   readStdin?: (timeoutMs: number) => Promise<string>;
   /** Posts hook input to the service (wfk hook stop|prompt); tests pass a fake. */
   postJson?: PostJson;
+  /** Posts to the service and reads the answer (wfk session title); tests pass a fake. */
+  requestJson?: RequestJson;
   /** Resolves when the service should stop (default: SIGINT or SIGTERM). */
   waitForShutdown?: (app: App) => Promise<void>;
   /** Effects of the service installer (runner, health probe, spawner); tests pass fakes. */
@@ -28,7 +31,7 @@ export interface CliDeps {
 }
 
 /** Top-level commands of wfk, in help order. */
-export const COMMANDS: readonly string[] = ['serve', 'open', 'install', 'uninstall', 'service', 'doctor', 'link', 'hook'];
+export const COMMANDS: readonly string[] = ['serve', 'open', 'install', 'uninstall', 'service', 'doctor', 'link', 'hook', 'session'];
 
 /** Exit code for usage errors (unknown command or subcommand). */
 export const EXIT_USAGE = 64;
@@ -46,6 +49,7 @@ const USAGE = `Использование: wfk <команда>
   link [--force]                запускатель ~/.local/bin/wfk на текущий клон (разработка)
   hook session-start|stop|prompt --client <claude|codex>
                                 хуки агентов: начало сессии, конец хода, новое сообщение
+  session title "<тема>"        имя сессии от агента (один раз, в идущем ходе)
   --version                     версия
 `;
 
@@ -175,6 +179,16 @@ export async function main(argv: readonly string[], deps?: Partial<CliDeps>): Pr
         env: full.app?.env ?? process.env,
         cwd: full.cwd ?? process.cwd(),
         readStdin: full.readStdin ?? readProcessStdin,
+      });
+    case 'session':
+      return runSessionCommand(rest, {
+        stdout: full.stdout,
+        stderr: full.stderr,
+        env: full.app?.env ?? process.env,
+        cwd: full.cwd ?? process.cwd(),
+        homedir: full.app?.homedir,
+        platform: full.app?.platform,
+        request: full.requestJson,
       });
     case 'open':
       return printServiceResult(command, full);

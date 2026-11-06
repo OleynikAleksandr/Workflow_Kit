@@ -100,3 +100,30 @@ test('no service: no output and exit 0', async () => {
   });
   assert.equal(broken, 0);
 });
+
+test('wfk session title names the session whose turn is running', async () => {
+  const run = async (args: string[]) => {
+    let out = '';
+    let err = '';
+    const code = await main(args, {
+      stdout: (t) => (out += t),
+      stderr: (t) => (err += t),
+      app: { env, homedir: tmp },
+      cwd: path.join(folder, 'src'),
+    });
+    return { code, out, err };
+  };
+  // Two sessions are in a turn: ambiguous.
+  await hook('prompt', { session_id: 'title-1', cwd: folder, hook_event_name: 'UserPromptSubmit', prompt: 'задача' });
+  await hook('prompt', { session_id: 'title-2', cwd: folder, hook_event_name: 'UserPromptSubmit', prompt: 'задача' });
+  const ambiguous = await run(['session', 'title', 'Анализ', 'остатков']);
+  assert.equal(ambiguous.code, 1);
+  assert.match(ambiguous.err, /нескольких сессий/);
+  for (const id of ['title-2', 'late-session', CODEX_STOP.session_id, 'held-session']) await hook('stop', { ...CODEX_STOP, session_id: id, cwd: folder });
+  const named = await run(['session', 'title', 'Анализ', 'остатков']);
+  assert.equal(named.code, 0, named.err);
+  assert.match(named.out, /Анализ остатков/);
+  const project = (await app.projects.list())[0]!;
+  assert.equal(app.titles.name(project.id, 'codex:title-1').name, 'Анализ остатков');
+  assert.equal((await run(['session', 'title'])).code, 64);
+});

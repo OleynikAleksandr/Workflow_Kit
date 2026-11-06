@@ -149,6 +149,10 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
       requireCodex(rt);
       return sessionParts.createSession(project, opts);
     },
+    async renameSession(project, sessionId, name) {
+      requireCodex(rt);
+      return sessionParts.renameSession(project, sessionId, name);
+    },
     actions,
     async runAction(id, project): Promise<ProviderStatus | ProjectProviderState> {
       if (id === DAEMON_START_ACTION && project === null) return startDaemon();

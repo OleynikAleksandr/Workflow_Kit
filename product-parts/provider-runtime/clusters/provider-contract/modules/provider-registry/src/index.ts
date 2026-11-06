@@ -15,6 +15,7 @@ export type {
   ProviderId,
   ProviderState,
   ProviderStatus,
+  RenameResult,
   SessionInfo,
   SessionLinks,
   TrustChoice,

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 69,
+  "revision": 71,
   "rounds": [
     {
       "digest": null,
@@ -306,14 +306,35 @@
         "product-parts/backend-core/clusters/runtime/modules/cli",
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex",
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude",
-        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry"
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/commands.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/hook-service.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/index.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/session-command.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/hook-channel.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/sessions.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/release.test.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts",
+        "product-parts/workflow-engine/clusters/session-loop/cluster.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/index.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/routes.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/titles.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/session-titles/test/titles.test.ts"
       ],
       "fixes": null,
       "id": "T005",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Имена сессий",
       "why": "Сессия называется по задаче, которую понял агент"
     },
@@ -515,8 +536,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 4/10
-- Revision: 69
+- Progress: 5/10
+- Revision: 71
 
 ## Objective
 
@@ -547,9 +568,9 @@
   - Commit: feat: store the per-session plan review toggle
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/plan-review, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/workflow-engine/clusters/session-loop/cluster.md, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/module.md, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/src/toggles.ts, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/test/toggles.test.ts
   - Depends on: T003
-- [TODO] T005 — Имена сессий (work)
+- [DONE] T005 — Имена сессий (work)
   - Commit: feat: name sessions after the task
-  - Files: product-parts/workflow-engine/clusters/session-loop/modules/session-titles, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/session-titles, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/commands.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/hook-service.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/index.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/session-command.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/hook-channel.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/release.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts, product-parts/workflow-engine/clusters/session-loop/cluster.md, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/titles.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/test/titles.test.ts
   - Depends on: T004
 - [TODO] T006 — Мастер проекта с одним согласием и первая сессия (work)
   - Commit: feat: set up a project and its first session in one step

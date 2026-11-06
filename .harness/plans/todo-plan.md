@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 61,
+  "revision": 62,
   "rounds": [
     {
       "digest": null,
@@ -204,13 +204,13 @@
     },
     {
       "acceptance": [
-        "Переключатель на сессию (POST …/sessions/:sid/review), по умолчанию выключен, после scope:choose недоступен",
-        "Включён: после scope:propose служба через Stop просит агента выполнить wfk review; wfk review запускает рецензента другого провайдера только на чтение (claude -p с инструментами чтения или codex exec read-only) и печатает вердикт agreed или замечания JSON; до трёх раундов; карточка выбора — после agreed",
-        "Выключен: карточка выбора сразу; итог ревью по поколению предложения — в разделе workflow",
-        "Тесты на подставных CLI рецензента: agreed, замечания и повтор, три раунда, нет второго CLI — понятная причина; module.md"
+        "Переключатель на сессию: POST /api/projects/:id/sessions/:sid/review { on } хранит значение в .workflow-kit/local/sessions/<sid>.json (поле review), по умолчанию выключен",
+        "Значение и видимость переключателя отдаются в /api/state; после scope:choose (у scope есть execution) переключатель не виден и запрос отклоняется понятной причиной",
+        "Функции ревью нет: агенту ничего не передаётся, wfk review не создаётся, карточка выбора появляется сразу при любом положении переключателя",
+        "Тесты: значение по умолчанию, включение и выключение, сохранение после перезапуска, отказ после выбора пути; module.md"
       ],
       "checks": [],
-      "commitMessage": "feat: review the specification and plan per session",
+      "commitMessage": "feat: store the per-session plan review toggle",
       "confirmation": null,
       "context": [
         {
@@ -233,8 +233,8 @@
       "kind": "work",
       "roundId": "R1",
       "status": "TODO",
-      "title": "Ревью плана для сессии",
-      "why": "Пользователь хочет включать ревью спецификации и плана отдельно в каждой сессии"
+      "title": "Переключатель «Ревью плана» на сессию (без функции ревью)",
+      "why": "Пользователь хочет переключатель ревью в каждой сессии уже сейчас; перекрёстное ревью другим вендором делается отдельно другим подходом"
     },
     {
       "acceptance": [
@@ -472,7 +472,7 @@
 - Execution: sequential
 - Current task: none
 - Progress: 1/10
-- Revision: 61
+- Revision: 62
 
 ## Objective
 
@@ -499,8 +499,8 @@
   - Commit: feat: choose the execution mode and drive the plan from the panel
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/backend-core/clusters/runtime/modules/cli
   - Depends on: T002
-- [TODO] T004 — Ревью плана для сессии (work)
-  - Commit: feat: review the specification and plan per session
+- [TODO] T004 — Переключатель «Ревью плана» на сессию (без функции ревью) (work)
+  - Commit: feat: store the per-session plan review toggle
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/plan-review, product-parts/backend-core/clusters/runtime/modules/cli
   - Depends on: T003
 - [TODO] T005 — Имена сессий (work)

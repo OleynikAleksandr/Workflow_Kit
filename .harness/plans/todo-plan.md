@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T009",
   "lastClosed": {
     "closedAt": "2026-11-06T07:38:39.028Z",
     "scopeId": "m1-orchestrator-core"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 83,
+  "revision": 85,
   "rounds": [
     {
       "digest": {
@@ -599,11 +599,15 @@
     {
       "acceptance": [
         "Служба обновлена node bin/wfk.mjs install после подтверждения пользователя; wfk doctor --installed — всё в порядке",
-        "Сценарий раздела 14 пройден пользователем на Mac и iPad; результат каждого шага и ответы на Q1–Q3 записаны в docs/evidence/M2-acceptance.md"
+        "Сценарий раздела 14 пройден пользователем на Mac и iPad; результат каждого шага и ответы на Q1–Q3 записаны в docs/evidence/M2-acceptance.md",
+        "Дефекты шага 2 приёмки исправлены: Служебный форк Codex (SessionStart с source fork без transcript_path) не появляется в списке сессий проекта",
+        "Дефекты шага 2 приёмки исправлены: wfk session title передаёт id своей сессии (CODEX_THREAD_ID или CLAUDE_CODE_SESSION_ID), и служба задаёт тему именно ей, даже если в проекте числятся другие ходы",
+        "Дефекты шага 2 приёмки исправлены: Без id из окружения тема достаётся единственной идущей сессии из списка провайдера; служебные призраки канала не делают выбор неоднозначным",
+        "Дефекты шага 2 приёмки исправлены: Сессия-владелец плана без ручного имени и темы называется целью плана в дереве и шапке"
       ],
       "checks": [],
       "commitMessage": "docs: record milestone 2 acceptance",
-      "confirmation": null,
+      "confirmation": "Да, начинай и продолжай без пауз до самого конца, до сборки нового релиза.",
       "context": [
         {
           "path": "docs/planning/M2-interface-and-process.md",
@@ -617,14 +621,29 @@
       ],
       "docsWaiver": null,
       "files": [
-        "docs/evidence/M2-acceptance.md"
+        "docs/evidence/M2-acceptance.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/hook-sessions.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/hook-sessions.test.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/titles.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/routes.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/session-titles/test/titles.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/session-command.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/commands.test.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/view-model.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md",
+        "docs/planning/M2-interface-and-process.md"
       ],
       "fixes": null,
       "id": "T009",
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "Установка и визуальная приёмка вехи 2",
       "why": "Пользователь проверяет веху на своём Mac и iPad"
     }
@@ -638,9 +657,9 @@
 - Scope: m2-interface-and-process (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: none
+- Current task: T009
 - Progress: 9/10
-- Revision: 83
+- Revision: 85
 
 ## Objective
 
@@ -690,9 +709,9 @@
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M2-interface-and-process.md, product-parts/workflow-engine/product-part.md, product-parts/workflow-engine/clusters/session-loop/cluster.md, product-parts/backend-core/clusters/projects/cluster.md, product-parts/control-panel/clusters/web-panel/cluster.md, product-parts/control-panel/product-part.md
   - Depends on: T001, T002, T003, T004, T005, T006, T007, T008
-- [TODO] T009 — Установка и визуальная приёмка вехи 2 (delivery)
+- [IN_PROGRESS] T009 — Установка и визуальная приёмка вехи 2 (delivery)
   - Commit: docs: record milestone 2 acceptance
-  - Files: docs/evidence/M2-acceptance.md
+  - Files: docs/evidence/M2-acceptance.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/hook-sessions.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/hook-sessions.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/titles.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/test/titles.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/session-command.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/commands.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/view-model.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, docs/planning/M2-interface-and-process.md
   - Depends on: T008, DOCS-R1
 
 Digest: Веха 2, R1: Kit 2.2.2 в проектах (бандл, команды, раздел workflow), хуки Stop/UserPromptSubmit и автопилот, «Ревью плана» (переключатель), имена и архив сессий, мастер проекта с одним согласием и первой сессией, интерфейс по макету: дерево, экран сессии с выбором пути и планом, «Настройки», экран «Домой» iPad. 286 тестов.

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 118,
+  "revision": 119,
   "rounds": [
     {
       "digest": {
@@ -75,6 +75,13 @@
       "kind": "fixes",
       "status": "CLOSED",
       "title": "Fixes"
+    },
+    {
+      "digest": null,
+      "id": "R4",
+      "kind": "fixes",
+      "status": "OPEN",
+      "title": "Fixes"
     }
   ],
   "schema": "harness-workflow-plan/1",
@@ -106,7 +113,7 @@
         "text": "Claude: имя передаёт хук UserPromptSubmit полем hookSpecificOutput.sessionTitle"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "IN_PROGRESS",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cfa00ffe-c414-4ae6-9953-e3d2906b3705",
@@ -472,6 +479,93 @@
       "status": "DONE",
       "title": "Релиз раунда 3",
       "why": "Релиз раунда 3"
+    },
+    {
+      "acceptance": [
+        "Главный экран без проекта — заголовок и строка о Kit, без карточки и кнопок",
+        "Создание и открытие проекта остаются в меню «Ваши проекты»"
+      ],
+      "checks": [],
+      "commitMessage": "fix: drop the start card from the home screen",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M3-fixes.md",
+          "heading": "8. Раунд 4: версия релиза и главный экран",
+          "required": true
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/screens.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/panel-shell.test.ts"
+      ],
+      "fixes": "T007",
+      "id": "T009",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R4",
+      "status": "TODO",
+      "title": "Главный экран без карточки «Начните с проекта»",
+      "why": "Карточка повторяет меню «Ваши проекты»; раунд 3 убрал не ту карточку"
+    },
+    {
+      "acceptance": [
+        "Project-wide documents describe the round result",
+        "The round digest records result, decisions, contracts and references"
+      ],
+      "checks": [],
+      "commitMessage": "docs: reconcile documentation for R4",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T009"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/architecture/OVERVIEW.md",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md"
+      ],
+      "fixes": null,
+      "id": "DOCS-R4",
+      "iteration": 1,
+      "kind": "docs",
+      "roundId": "R4",
+      "status": "TODO",
+      "title": "Reconcile project documentation and write the round digest",
+      "why": "Keep the project context current for the next agent and close the round."
+    },
+    {
+      "acceptance": [
+        "package.json и package-lock.json — версия 0.3.0",
+        "node bin/wfk.mjs install ставит app/0.3.0, wfk doctor --installed — всё в порядке, панель показывает 0.3.0"
+      ],
+      "checks": [],
+      "commitMessage": "chore: release 0.3.0",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T009",
+        "DOCS-R4"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "package.json",
+        "package-lock.json",
+        "docs/evidence/M3-acceptance.md"
+      ],
+      "fixes": null,
+      "id": "T010",
+      "iteration": 1,
+      "kind": "delivery",
+      "roundId": "R4",
+      "status": "TODO",
+      "title": "Релиз 0.3.0",
+      "why": "Релиз 0.3.0"
     }
   ]
 }
@@ -481,11 +575,11 @@
 ## State
 
 - Scope: m3-fixes (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 11/11
-- Revision: 118
+- Progress: 11/14
+- Revision: 119
 
 ## Objective
 
@@ -552,5 +646,20 @@ Digest: Имена Codex, не дошедшие до ChatGPT (synced не true),
   - Depends on: T006, T007, DOCS-R3
 
 Digest: Имя сессии Claude из Kit уходит в приложение командой /rename, которую session.exp вводит в терминал сессии вне хода (сразу или на Stop). Карточка «Проектов пока нет» убрана из боковой панели.
+
+### R4 — Fixes (fixes, OPEN)
+
+- [TODO] T009 — Главный экран без карточки «Начните с проекта» (work)
+  - Commit: fix: drop the start card from the home screen
+  - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/screens.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/panel-shell.test.ts
+  - Fixes: T007
+- [TODO] DOCS-R4 — Reconcile project documentation and write the round digest (docs)
+  - Commit: docs: reconcile documentation for R4
+  - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md
+  - Depends on: T009
+- [TODO] T010 — Релиз 0.3.0 (delivery)
+  - Commit: chore: release 0.3.0
+  - Files: package.json, package-lock.json, docs/evidence/M3-acceptance.md
+  - Depends on: T009, DOCS-R4
 
 State changes only through `scripts/workflow` commands. History lives in Git.

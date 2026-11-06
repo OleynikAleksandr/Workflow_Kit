@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 105,
+  "revision": 107,
   "rounds": [
     {
       "digest": {
@@ -35,7 +35,19 @@
       "title": "Implementation"
     },
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "session-titles: load() отправляет неотправленные имена Codex через rename"
+        ],
+        "decisions": [
+          "Повтор при load() идёт в фоне и не задерживает запуск службы; забытые сессии пропускаются"
+        ],
+        "references": [
+          "docs/planning/M3-fixes.md",
+          "docs/evidence/M3-acceptance.md"
+        ],
+        "result": "Имена Codex, не дошедшие до ChatGPT (synced не true), отправляются заново при запуске службы, а не при следующем ходе сессии."
+      },
       "id": "R2",
       "kind": "fixes",
       "status": "OPEN",
@@ -272,7 +284,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -313,8 +325,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 5/7
-- Revision: 105
+- Progress: 6/7
+- Revision: 107
 
 ## Objective
 
@@ -352,7 +364,7 @@ Digest: Имена сессий Workflow Kit уходят в приложени�
   - Commit: fix: retry unsynced Codex names when the service starts
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/titles.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/test/titles.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md
   - Fixes: T001
-- [TODO] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R2
   - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md
   - Depends on: T004
@@ -360,5 +372,7 @@ Digest: Имена сессий Workflow Kit уходят в приложени�
   - Commit: chore: install the M3 round 2 release
   - Files: docs/evidence/M3-acceptance.md
   - Depends on: T004, DOCS-R2
+
+Digest: Имена Codex, не дошедшие до ChatGPT (synced не true), отправляются заново при запуске службы, а не при следующем ходе сессии.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

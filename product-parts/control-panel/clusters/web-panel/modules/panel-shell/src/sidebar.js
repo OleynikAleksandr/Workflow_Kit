@@ -266,11 +266,9 @@ export function createSidebar(handlers) {
       if (key !== treeKey) {
         treeKey = key;
         closeMenu();
-        tree.replaceChildren(
-          ...(model.tree.length === 0
-            ? [h('div', { class: 'tree-empty' }, [model.projects.length > 0 ? 'Выберите проект в «Ваши проекты»' : 'Проектов пока нет'])]
-            : model.tree.flatMap((p) => projectNodes(p, model.route))),
-        );
+        // Without a selected project the tree stays empty: the «Ваши проекты» menu has the list,
+        // «Проектов пока нет» and the actions to create or open a project.
+        tree.replaceChildren(...model.tree.flatMap((p) => projectNodes(p, model.route)));
       }
       if (!menu.hidden) renderMenuList();
       conn.replaceChildren(

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 112,
+  "revision": 114,
   "rounds": [
     {
       "digest": {
@@ -395,7 +395,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R3",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Убрать карточку «Проектов пока нет» из боковой панели",
       "why": "Карточка повторяет меню «Ваши проекты»"
     },
@@ -468,8 +468,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 8/11
-- Revision: 112
+- Progress: 9/11
+- Revision: 114
 
 ## Objective
 
@@ -523,7 +523,7 @@ Digest: Имена Codex, не дошедшие до ChatGPT (synced не true),
 - [DONE] T006 — Имя сессии Claude через /rename (work)
   - Commit: feat: rename Claude Remote Control sessions with /rename in their terminal
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/session.exp, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parts.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/harness.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/fixtures, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/titles.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/test/titles.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/hook-channel.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md
-- [TODO] T007 — Убрать карточку «Проектов пока нет» из боковой панели (work)
+- [DONE] T007 — Убрать карточку «Проектов пока нет» из боковой панели (work)
   - Commit: fix: drop the empty projects card from the sidebar
   - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/sidebar.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/tree.css, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/panel-shell.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts
 - [TODO] DOCS-R3 — Reconcile project documentation and write the round digest (docs)

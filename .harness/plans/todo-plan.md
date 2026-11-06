@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 116,
+  "revision": 118,
   "rounds": [
     {
       "digest": {
@@ -73,7 +73,7 @@
       },
       "id": "R3",
       "kind": "fixes",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Fixes"
     }
   ],
@@ -106,7 +106,7 @@
         "text": "Claude: имя передаёт хук UserPromptSubmit полем hookSpecificOutput.sessionTitle"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cfa00ffe-c414-4ae6-9953-e3d2906b3705",
@@ -453,7 +453,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: install the M3 round 3 release",
-      "confirmation": null,
+      "confirmation": "разберись, сделай, и собери новый релиз",
       "context": [],
       "dependencies": [
         "T006",
@@ -469,7 +469,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R3",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Релиз раунда 3",
       "why": "Релиз раунда 3"
     }
@@ -481,11 +481,11 @@
 ## State
 
 - Scope: m3-fixes (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 10/11
-- Revision: 116
+- Progress: 11/11
+- Revision: 118
 
 ## Objective
 
@@ -534,7 +534,7 @@ Digest: Имена сессий Workflow Kit уходят в приложени�
 
 Digest: Имена Codex, не дошедшие до ChatGPT (synced не true), отправляются заново при запуске службы, а не при следующем ходе сессии.
 
-### R3 — Fixes (fixes, OPEN)
+### R3 — Fixes (fixes, CLOSED)
 
 - [DONE] T006 — Имя сессии Claude через /rename (work)
   - Commit: feat: rename Claude Remote Control sessions with /rename in their terminal
@@ -546,7 +546,7 @@ Digest: Имена Codex, не дошедшие до ChatGPT (synced не true),
   - Commit: docs: reconcile documentation for R3
   - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md
   - Depends on: T006, T007
-- [TODO] T008 — Релиз раунда 3 (delivery)
+- [DONE] T008 — Релиз раунда 3 (delivery)
   - Commit: chore: install the M3 round 3 release
   - Files: docs/evidence/M3-acceptance.md
   - Depends on: T006, T007, DOCS-R3

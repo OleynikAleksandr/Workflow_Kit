@@ -3,6 +3,9 @@ import { createEventLog, createKeyedMutex, createOperations, ensureDataDirs, eve
 import type { DataDirs, EventLog, KeyedMutex, Operations, WfkConfig } from '#data-store';
 import { createHttpServer, createRouter, createStateRegistry, registerCoreRoutes } from '#http-server';
 import type { HttpServerHandle, InterfaceMap, Router, StateRegistry } from '#http-server';
+import { kitBundleProvider } from '#kit-bundle';
+import { createKitRunner, createWorkflowState } from '#kit-runner';
+import type { KitRunner, WorkflowState } from '#kit-runner';
 import { registerStructureRoutes } from '#kit-structure';
 import { panelShellMount } from '#panel-shell';
 import { providerCardsMount } from '#provider-cards';
@@ -60,6 +63,10 @@ export interface App {
   readonly providers: ProviderRegistry;
   /** Session and environment processes (D5, D9). */
   readonly supervisor: ProcessSupervisor;
+  /** Kit commands of projects (app bundle for inspect/install, project bundle otherwise). */
+  readonly kit: KitRunner;
+  /** Cached Kit state of projects: the "workflow" section of /api/state. */
+  readonly workflow: WorkflowState;
   /** Starts listening on config.port; returns the bound port and the panel URLs. */
   start(): Promise<{ port: number; host: string; urls: string[] }>;
   stop(): Promise<void>;
@@ -158,6 +165,19 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
   state.add('operations', () => operations.section());
   projects.addRemoveGuard((project) => providers.removeBlockers(project));
 
+  const kitBundle = kitBundleProvider({ appDir: dirs.appDir });
+  const kit = createKitRunner({
+    runCommand: options.runCommand ?? runCommand,
+    appBundle: async () => (await kitBundle()).file,
+    env,
+  });
+  const workflow = createWorkflowState({
+    runner: kit,
+    listProjects: async () => (await projects.list()).map((project) => ({ id: project.id, path: project.path })),
+    log: options.log,
+  });
+  state.add('workflow', () => workflow.section());
+
   return {
     dirs,
     config,
@@ -172,13 +192,19 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
     operations,
     providers,
     supervisor,
+    kit,
+    workflow,
     async start() {
       const bound = await server.listen(config.port);
       await events.append('service.started', { version, pid: process.pid, port: bound.port }).catch(() => undefined);
       // External programs run at start and on "Обновить" only (D11).
       providerRoutes.refresh();
+      void workflow.start();
       return { ...bound, urls: panelUrls(bound.port, getInterfaces()) };
     },
-    stop: () => server.close(),
+    async stop() {
+      workflow.stop();
+      await server.close();
+    },
   };
 }

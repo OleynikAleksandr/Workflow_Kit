@@ -1,0 +1,10 @@
+Harness Workflow Kit 2.2.2 single-file bundle (gzip of workflow.mjs).
+
+source repository: harness-ai (local checkout of the Kit author)
+source commit:     e4226208
+source file:       dist/workflow-kit/workflow.mjs
+lines:             10651
+sha256 (unpacked): 036c82fb602435575f03464c2f9c0c9ec12845da680263052a411f0fd32e0fc2
+
+The bundle is unpacked into <appDir>/kit/ and verified against this hash
+before use (module kit-bundle). Replace both files together when updating.

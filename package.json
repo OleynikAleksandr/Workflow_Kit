@@ -11,18 +11,26 @@
     "wfk": "bin/wfk.mjs"
   },
   "imports": {
+    "#agent-channel": "./product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/index.ts",
+    "#autopilot": "./product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/index.ts",
     "#cli": "./product-parts/backend-core/clusters/runtime/modules/cli/src/index.ts",
     "#data-store": "./product-parts/backend-core/clusters/runtime/modules/data-store/src/index.ts",
     "#http-server": "./product-parts/backend-core/clusters/http-api/modules/http-server/src/index.ts",
+    "#kit-bundle": "./product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/src/index.ts",
+    "#kit-runner": "./product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/src/index.ts",
     "#kit-structure": "./product-parts/backend-core/clusters/projects/modules/kit-structure/src/index.ts",
-    "#project-registry": "./product-parts/backend-core/clusters/projects/modules/project-registry/src/index.ts",
-    "#panel-shell":"./product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/index.ts",
+    "#panel-shell": "./product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/index.ts",
+    "#plan-review": "./product-parts/workflow-engine/clusters/session-loop/modules/plan-review/src/index.ts",
+    "#plan-view": "./product-parts/workflow-engine/clusters/kit-host/modules/plan-view/src/index.ts",
     "#process-supervisor": "./product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/src/index.ts",
-    "#provider-claude": "./product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/index.ts",
+    "#project-registry": "./product-parts/backend-core/clusters/projects/modules/project-registry/src/index.ts",
+    "#project-setup": "./product-parts/backend-core/clusters/projects/modules/project-setup/src/index.ts",
     "#provider-cards": "./product-parts/control-panel/clusters/web-panel/modules/provider-cards/src/index.ts",
+    "#provider-claude": "./product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/index.ts",
     "#provider-codex": "./product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts",
     "#provider-registry": "./product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts",
-    "#service-installer": "./product-parts/system-service/clusters/deployment/modules/service-installer/src/index.ts"
+    "#service-installer": "./product-parts/system-service/clusters/deployment/modules/service-installer/src/index.ts",
+    "#session-titles": "./product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/index.ts"
   },
   "scripts": {
     "start": "node bin/wfk.mjs serve",

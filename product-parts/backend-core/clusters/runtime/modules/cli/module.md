@@ -31,10 +31,12 @@ stripping).
   `config`, `version`, `os`, `router`, `state`, `server`, `events`
   (`events.jsonl`), `mutex` (D10), `projects` (`ProjectRegistry`),
   `operations` (`Operations`, D10), `providers` (`ProviderRegistry`),
-  `supervisor` (`ProcessSupervisor`, `<state>/processes.json`), `start()`
-  (пишет событие `service.started` и запускает операцию
-  `providers.refresh`: сверка записей процессов и `refresh?()` провайдеров,
-  D11), `stop()`. Опции: `env`, `platform`, `homedir`, `getInterfaces`,
+  `supervisor` (`ProcessSupervisor`, `<state>/processes.json`), `kit`
+  (`KitRunner`: команды Kit проектов), `workflow` (`WorkflowState`: кэш
+  состояния Kit и раздел `workflow`), `start()` (пишет событие
+  `service.started`, запускает операцию `providers.refresh`: сверка записей
+  процессов и `refresh?()` провайдеров, D11, и слежение `workflow.start()`),
+  `stop()` (останавливает слежение и сервер). Опции: `env`, `platform`, `homedir`, `getInterfaces`,
   `osInput`, `log`, `providers` (фабрики вместо `DEFAULT_PROVIDERS`),
   `runCommand` (исполнитель внешних программ для провайдеров), `supervisor`.
 - `DEFAULT_PROVIDERS` — фабрики `createProvider` из `#provider-claude` и
@@ -90,11 +92,17 @@ stripping).
   (`providerCardsMount()`, префикс `/provider-cards/`).
 - `process-supervisor` (T004): `createProcessSupervisor` над
   `<state>/processes.json`, `runCommand`.
+- `kit-bundle` и `kit-runner` (веха 2, T001): `kitBundleProvider` над
+  `dirs.appDir` (распаковка бандла Kit 2.2.2 при первой команде),
+  `createKitRunner` (тот же `runCommand` и `env`), `createWorkflowState` над
+  `projects.list()` и раздел `workflow` (`workflow.section()`; опрос панели
+  команд Kit не запускает).
 
 ## Инварианты
 
 - Модули подключаются только через их `src/index.ts` (`#data-store`,
-  `#http-server`, `#kit-structure`, `#panel-shell`, `#process-supervisor`,
+  `#http-server`, `#kit-bundle`, `#kit-runner`, `#kit-structure`,
+  `#panel-shell`, `#process-supervisor`,
   `#provider-cards`,
   `#project-registry`, `#provider-claude`, `#provider-codex`,
   `#provider-registry`, `#service-installer`).

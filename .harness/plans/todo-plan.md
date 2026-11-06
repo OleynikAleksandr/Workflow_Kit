@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 59,
+  "revision": 61,
   "rounds": [
     {
       "digest": null,
@@ -102,7 +102,27 @@
         "product-parts/workflow-engine/product-part.md",
         "product-parts/workflow-engine/clusters/kit-host",
         "package.json",
-        "product-parts/backend-core/clusters/runtime/modules/cli"
+        "product-parts/backend-core/clusters/runtime/modules/cli",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts",
+        "product-parts/workflow-engine/clusters/kit-host/cluster.md",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/src/bundle.ts",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/src/index.ts",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/test/bundle.test.ts",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/PROVENANCE",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/workflow-kit-2.2.2.mjs.gz",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/module.md",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/src/index.ts",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/src/runner.ts",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/src/state.ts",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/test/kit-project.test.ts",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/test/runner.test.ts",
+        "product-parts/workflow-engine/clusters/kit-host/modules/plan-view/module.md",
+        "product-parts/workflow-engine/clusters/kit-host/modules/plan-view/src/index.ts",
+        "product-parts/workflow-engine/clusters/kit-host/modules/plan-view/src/kit-types.ts",
+        "product-parts/workflow-engine/clusters/kit-host/modules/plan-view/src/plan-view.ts",
+        "product-parts/workflow-engine/clusters/kit-host/modules/plan-view/test/plan-view.test.ts"
       ],
       "fixes": null,
       "id": "T001",
@@ -110,7 +130,7 @@
       "kind": "work",
       "parallelSafe": true,
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Процесс Kit 2.2.2: бандл, запуск команд, модель плана",
       "why": "Карточки плана и выбора пути и мастер проекта опираются на Kit 2.2.2 в проекте"
     },
@@ -451,8 +471,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 0/10
-- Revision: 59
+- Progress: 1/10
+- Revision: 61
 
 ## Objective
 
@@ -468,9 +488,9 @@
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T001 — Процесс Kit 2.2.2: бандл, запуск команд, модель плана (work, parallel-safe)
+- [DONE] T001 — Процесс Kit 2.2.2: бандл, запуск команд, модель плана (work, parallel-safe)
   - Commit: feat: run workflow kit 2.2.2 in projects and model its plan
-  - Files: product-parts/workflow-engine/product-part.md, product-parts/workflow-engine/clusters/kit-host, package.json, product-parts/backend-core/clusters/runtime/modules/cli
+  - Files: product-parts/workflow-engine/product-part.md, product-parts/workflow-engine/clusters/kit-host, package.json, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/workflow-engine/clusters/kit-host/cluster.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/src/bundle.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/src/index.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/test/bundle.test.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/PROVENANCE, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/workflow-kit-2.2.2.mjs.gz, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/src/index.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/src/runner.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/src/state.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/test/kit-project.test.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/test/runner.test.ts, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/module.md, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/src/index.ts, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/src/kit-types.ts, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/src/plan-view.ts, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/test/plan-view.test.ts
 - [TODO] T002 — Канал к агенту: структура v2 и хуки Stop/UserPromptSubmit (work)
   - Commit: feat: talk to agents through stop and prompt hooks
   - Files: product-parts/backend-core/clusters/projects/modules/kit-structure, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/workflow-engine/clusters/session-loop/cluster.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel

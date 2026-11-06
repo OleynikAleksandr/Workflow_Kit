@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 100,
+  "revision": 102,
   "rounds": [
     {
       "digest": {
@@ -31,7 +31,7 @@
       },
       "id": "R1",
       "kind": "implementation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Implementation"
     }
   ],
@@ -64,7 +64,7 @@
         "text": "Claude: имя передаёт хук UserPromptSubmit полем hookSpecificOutput.sessionTitle"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cfa00ffe-c414-4ae6-9953-e3d2906b3705",
@@ -191,7 +191,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: install the M3 round 1 release",
-      "confirmation": null,
+      "confirmation": "разберись, сделай, и собери новый релиз",
       "context": [],
       "dependencies": [
         "T001",
@@ -207,7 +207,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Релиз раунда 1",
       "why": "Релиз раунда 1"
     }
@@ -219,11 +219,11 @@
 ## State
 
 - Scope: m3-fixes (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 3/4
-- Revision: 100
+- Progress: 4/4
+- Revision: 102
 
 ## Objective
 
@@ -236,7 +236,7 @@
 
 ## Rounds
 
-### R1 — Implementation (implementation, OPEN)
+### R1 — Implementation (implementation, CLOSED)
 
 - [DONE] T001 — Имя сессии Codex в ChatGPT (work, parallel-safe)
   - Commit: fix: rename Codex threads that the daemon does not hold
@@ -248,7 +248,7 @@
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M3-fixes.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md
   - Depends on: T001, T002
-- [TODO] T003 — Релиз раунда 1 (delivery)
+- [DONE] T003 — Релиз раунда 1 (delivery)
   - Commit: chore: install the M3 round 1 release
   - Files: docs/evidence/M3-acceptance.md
   - Depends on: T001, T002, DOCS-R1

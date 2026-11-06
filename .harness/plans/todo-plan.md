@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 88,
+  "revision": 89,
   "rounds": [
     {
       "digest": {
@@ -604,7 +604,9 @@
         "Дефекты шага 2 приёмки исправлены: wfk session title передаёт id своей сессии (CODEX_THREAD_ID или CLAUDE_CODE_SESSION_ID), и служба задаёт тему именно ей, даже если в проекте числятся другие ходы",
         "Дефекты шага 2 приёмки исправлены: Без id из окружения тема достаётся единственной идущей сессии из списка провайдера; служебные призраки канала не делают выбор неоднозначным",
         "Дефекты шага 2 приёмки исправлены: Сессия-владелец плана без ручного имени и темы называется целью плана в дереве и шапке",
-        "Дефекты шага 2 приёмки исправлены: Новая сессия ChatGPT отдаётся без минутного ожидания: после хода служба выгружает тред из демона (thread/archive и thread/unarchive) и сразу проверяет thread/loaded/list; без thread/archive остаётся прежнее ожидание"
+        "Дефекты шага 2 приёмки исправлены: Новая сессия ChatGPT отдаётся без минутного ожидания: после хода служба выгружает тред из демона (thread/archive и thread/unarchive) и сразу проверяет thread/loaded/list; без thread/archive остаётся прежнее ожидание",
+        "Дефекты шага 2 приёмки исправлены: Повторное нажатие на шестерёнку и кнопка «Закрыть» выводят из «Настроек» на экран, с которого их открыли (иначе на главный)",
+        "Дефекты шага 2 приёмки исправлены: На macOS wfk install собирает Workflow Kit.app (swiftc) — панель в собственном окне со своим значком в Dock (слева половина значка Claude, справа ChatGPT), который можно закрепить; без swiftc остаётся прежний значок с окном браузера и причиной в отчёте"
       ],
       "checks": [],
       "commitMessage": "docs: record milestone 2 acceptance",
@@ -643,7 +645,21 @@
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/release.test.ts",
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts",
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md",
-        "product-parts/backend-core/clusters/runtime/modules/cli/test/hook-channel.test.ts"
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/hook-channel.test.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/assets/macos/WorkflowKitApp.swift",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/templates.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/commands.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/integrate.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/install.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/run.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/open.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/test/mac-app.test.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/sidebar.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/settings.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/layout.css",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/commands.ts"
       ],
       "fixes": null,
       "id": "T009",
@@ -666,7 +682,7 @@
 - Execution: sequential
 - Current task: T009
 - Progress: 9/10
-- Revision: 88
+- Revision: 89
 
 ## Objective
 
@@ -718,7 +734,7 @@
   - Depends on: T001, T002, T003, T004, T005, T006, T007, T008
 - [IN_PROGRESS] T009 — Установка и визуальная приёмка вехи 2 (delivery)
   - Commit: docs: record milestone 2 acceptance
-  - Files: docs/evidence/M2-acceptance.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/hook-sessions.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/hook-sessions.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/titles.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/test/titles.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/session-command.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/commands.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/view-model.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, docs/planning/M2-interface-and-process.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/release.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/backend-core/clusters/runtime/modules/cli/test/hook-channel.test.ts
+  - Files: docs/evidence/M2-acceptance.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/hook-sessions.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/hook-sessions.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/titles.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/test/titles.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/session-command.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/commands.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/view-model.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, docs/planning/M2-interface-and-process.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/release.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/backend-core/clusters/runtime/modules/cli/test/hook-channel.test.ts, product-parts/system-service/clusters/deployment/modules/service-installer/assets/macos/WorkflowKitApp.swift, product-parts/system-service/clusters/deployment/modules/service-installer/src/templates.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/commands.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/integrate.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/install.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/run.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/open.ts, product-parts/system-service/clusters/deployment/modules/service-installer/test/mac-app.test.ts, product-parts/system-service/clusters/deployment/modules/service-installer/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/sidebar.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/settings.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/layout.css, product-parts/backend-core/clusters/runtime/modules/cli/src/commands.ts
   - Depends on: T008, DOCS-R1
 
 Digest: Веха 2, R1: Kit 2.2.2 в проектах (бандл, команды, раздел workflow), хуки Stop/UserPromptSubmit и автопилот, «Ревью плана» (переключатель), имена и архив сессий, мастер проекта с одним согласием и первой сессией, интерфейс по макету: дерево, экран сессии с выбором пути и планом, «Настройки», экран «Домой» iPad. 286 тестов.

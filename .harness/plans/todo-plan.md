@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 67,
+  "revision": 69,
   "rounds": [
     {
       "digest": null,
@@ -261,14 +261,22 @@
       "docsWaiver": null,
       "files": [
         "product-parts/workflow-engine/clusters/session-loop/modules/plan-review",
-        "product-parts/backend-core/clusters/runtime/modules/cli"
+        "product-parts/backend-core/clusters/runtime/modules/cli",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts",
+        "product-parts/workflow-engine/clusters/session-loop/cluster.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/plan-review/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/plan-review/src/index.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/plan-review/src/routes.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/plan-review/src/toggles.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/plan-review/test/toggles.test.ts"
       ],
       "fixes": null,
       "id": "T004",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Переключатель «Ревью плана» на сессию (без функции ревью)",
       "why": "Пользователь хочет переключатель ревью в каждой сессии уже сейчас; перекрёстное ревью другим вендором делается отдельно другим подходом"
     },
@@ -507,8 +515,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 3/10
-- Revision: 67
+- Progress: 4/10
+- Revision: 69
 
 ## Objective
 
@@ -535,9 +543,9 @@
   - Commit: feat: choose the execution mode and drive the plan from the panel
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/workflow-engine/clusters/session-loop/cluster.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/autopilot.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/decide.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/texts.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/decide.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/flow.test.ts
   - Depends on: T002
-- [TODO] T004 — Переключатель «Ревью плана» на сессию (без функции ревью) (work)
+- [DONE] T004 — Переключатель «Ревью плана» на сессию (без функции ревью) (work)
   - Commit: feat: store the per-session plan review toggle
-  - Files: product-parts/workflow-engine/clusters/session-loop/modules/plan-review, product-parts/backend-core/clusters/runtime/modules/cli
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/plan-review, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/workflow-engine/clusters/session-loop/cluster.md, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/module.md, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/src/toggles.ts, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/test/toggles.test.ts
   - Depends on: T003
 - [TODO] T005 — Имена сессий (work)
   - Commit: feat: name sessions after the task

@@ -9,6 +9,8 @@ import type { AgentChannel } from '#agent-channel';
 import { createAutopilot, registerAutopilotRoutes } from '#autopilot';
 import type { Autopilot } from '#autopilot';
 import { kitBundleProvider } from '#kit-bundle';
+import { createReviewToggles, registerReviewRoutes } from '#plan-review';
+import type { ReviewToggles } from '#plan-review';
 import { createKitRunner, createWorkflowState } from '#kit-runner';
 import type { KitRunner, WorkflowState } from '#kit-runner';
 import { registerStructureRoutes } from '#kit-structure';
@@ -76,6 +78,8 @@ export interface App {
   readonly channel: AgentChannel;
   /** Autopilot of sessions and the plan actions of the panel. */
   readonly autopilot: Autopilot;
+  /** Per-session "Ревью плана" toggles (stored only in milestone 2). */
+  readonly review: ReviewToggles;
   /** Starts listening on config.port; returns the bound port and the panel URLs. */
   start(): Promise<{ port: number; host: string; urls: string[] }>;
   stop(): Promise<void>;
@@ -218,6 +222,12 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
   registerChannelRoutes({ router, state, channel: observedChannel });
   registerAutopilotRoutes({ router, state, autopilot, mutex });
 
+  const review = createReviewToggles({
+    listProjects: async () => (await projects.list()).map((project) => ({ id: project.id, path: project.path })),
+    pathChosen: (id) => Boolean(workflow.get(id)?.execution),
+  });
+  registerReviewRoutes({ router, state, toggles: review });
+
   return {
     dirs,
     config,
@@ -236,12 +246,14 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
     workflow,
     channel,
     autopilot,
+    review,
     async start() {
       const bound = await server.listen(config.port);
       await events.append('service.started', { version, pid: process.pid, port: bound.port }).catch(() => undefined);
       // External programs run at start and on "Обновить" only (D11).
       providerRoutes.refresh();
       void workflow.start();
+      await review.load().catch(() => undefined);
       return { ...bound, urls: panelUrls(bound.port, getInterfaces()) };
     },
     async stop() {

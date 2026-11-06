@@ -39,7 +39,7 @@ stripping).
   `operations` (`Operations`, D10), `providers` (`ProviderRegistry`),
   `supervisor` (`ProcessSupervisor`, `<state>/processes.json`), `channel`
   (`AgentChannel`: канал к агентам через хуки), `autopilot`
-  (`Autopilot`), `kit`
+  (`Autopilot`), `review` (`ReviewToggles`), `kit`
   (`KitRunner`: команды Kit проектов), `workflow` (`WorkflowState`: кэш
   состояния Kit и раздел `workflow`), `start()` (пишет событие
   `service.started`, запускает операцию `providers.refresh`: сверка записей
@@ -106,6 +106,10 @@ stripping).
   или `cwd`, пути сравниваются и после `realpath`), `registerChannelRoutes`
   — `POST /api/hooks/stop|prompt` и раздел `channel`; `stop()` отпускает
   ожидающие хуки.
+- `plan-review` (веха 2, T004): `createReviewToggles` (путь выбран — у
+  проекта есть `execution` в разделе `workflow`), `load()` при `start()`,
+  `registerReviewRoutes` — `POST /api/projects/:id/sessions/:sid/review` и
+  раздел `review`.
 - `autopilot` (веха 2, T003): `createAutopilot` — решатель `Stop` канала
   (`channel.setDecider`); маршруты хуков получают канал-обёртку, чей
   `prompt` сообщает автопилоту, кто начал ход (`onPrompt`);
@@ -120,7 +124,7 @@ stripping).
 ## Инварианты
 
 - Модули подключаются только через их `src/index.ts` (`#data-store`,
-  `#agent-channel`, `#autopilot`, `#http-server`, `#kit-bundle`, `#kit-runner`, `#kit-structure`,
+  `#agent-channel`, `#autopilot`, `#http-server`, `#plan-review`, `#kit-bundle`, `#kit-runner`, `#kit-structure`,
   `#panel-shell`, `#process-supervisor`,
   `#provider-cards`,
   `#project-registry`, `#provider-claude`, `#provider-codex`,

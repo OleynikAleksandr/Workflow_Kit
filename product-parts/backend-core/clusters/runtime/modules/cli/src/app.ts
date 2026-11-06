@@ -6,6 +6,8 @@ import { createHttpServer, createRouter, createStateRegistry, registerCoreRoutes
 import type { HttpServerHandle, InterfaceMap, Router, StateRegistry } from '#http-server';
 import { createAgentChannel, registerChannelRoutes } from '#agent-channel';
 import type { AgentChannel } from '#agent-channel';
+import { createAutopilot, registerAutopilotRoutes } from '#autopilot';
+import type { Autopilot } from '#autopilot';
 import { kitBundleProvider } from '#kit-bundle';
 import { createKitRunner, createWorkflowState } from '#kit-runner';
 import type { KitRunner, WorkflowState } from '#kit-runner';
@@ -72,6 +74,8 @@ export interface App {
   readonly workflow: WorkflowState;
   /** Channel to agents through the Stop and UserPromptSubmit hooks. */
   readonly channel: AgentChannel;
+  /** Autopilot of sessions and the plan actions of the panel. */
+  readonly autopilot: Autopilot;
   /** Starts listening on config.port; returns the bound port and the panel URLs. */
   start(): Promise<{ port: number; host: string; urls: string[] }>;
   stop(): Promise<void>;
@@ -194,7 +198,25 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
     },
     log: options.log,
   });
-  registerChannelRoutes({ router, state, channel });
+  const autopilot = createAutopilot({
+    runner: kit,
+    workflow,
+    channel,
+    projectPath: async (id) => (await projects.get(id))?.path,
+    log: options.log,
+  });
+  channel.setDecider((context) => autopilot.decide(context));
+  // The prompt hook tells the autopilot who started the turn: the user typing, or panel messages.
+  const observedChannel: AgentChannel = {
+    ...channel,
+    async prompt(input) {
+      const reply = await channel.prompt(input);
+      autopilot.onPrompt(`${input.client}:${input.sessionId}`, reply.answer !== null);
+      return reply;
+    },
+  };
+  registerChannelRoutes({ router, state, channel: observedChannel });
+  registerAutopilotRoutes({ router, state, autopilot, mutex });
 
   return {
     dirs,
@@ -213,6 +235,7 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
     kit,
     workflow,
     channel,
+    autopilot,
     async start() {
       const bound = await server.listen(config.port);
       await events.append('service.started', { version, pid: process.pid, port: bound.port }).catch(() => undefined);

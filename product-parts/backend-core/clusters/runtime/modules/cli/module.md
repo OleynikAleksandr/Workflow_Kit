@@ -38,7 +38,8 @@ stripping).
   (`events.jsonl`), `mutex` (D10), `projects` (`ProjectRegistry`),
   `operations` (`Operations`, D10), `providers` (`ProviderRegistry`),
   `supervisor` (`ProcessSupervisor`, `<state>/processes.json`), `channel`
-  (`AgentChannel`: канал к агентам через хуки), `kit`
+  (`AgentChannel`: канал к агентам через хуки), `autopilot`
+  (`Autopilot`), `kit`
   (`KitRunner`: команды Kit проектов), `workflow` (`WorkflowState`: кэш
   состояния Kit и раздел `workflow`), `start()` (пишет событие
   `service.started`, запускает операцию `providers.refresh`: сверка записей
@@ -105,6 +106,11 @@ stripping).
   или `cwd`, пути сравниваются и после `realpath`), `registerChannelRoutes`
   — `POST /api/hooks/stop|prompt` и раздел `channel`; `stop()` отпускает
   ожидающие хуки.
+- `autopilot` (веха 2, T003): `createAutopilot` — решатель `Stop` канала
+  (`channel.setDecider`); маршруты хуков получают канал-обёртку, чей
+  `prompt` сообщает автопилоту, кто начал ход (`onPrompt`);
+  `registerAutopilotRoutes` — `POST /api/projects/:id/workflow/…` и раздел
+  `autopilot`.
 - `kit-bundle` и `kit-runner` (веха 2, T001): `kitBundleProvider` над
   `dirs.appDir` (распаковка бандла Kit 2.2.2 при первой команде),
   `createKitRunner` (тот же `runCommand` и `env`), `createWorkflowState` над
@@ -114,7 +120,7 @@ stripping).
 ## Инварианты
 
 - Модули подключаются только через их `src/index.ts` (`#data-store`,
-  `#agent-channel`, `#http-server`, `#kit-bundle`, `#kit-runner`, `#kit-structure`,
+  `#agent-channel`, `#autopilot`, `#http-server`, `#kit-bundle`, `#kit-runner`, `#kit-structure`,
   `#panel-shell`, `#process-supervisor`,
   `#provider-cards`,
   `#project-registry`, `#provider-claude`, `#provider-codex`,

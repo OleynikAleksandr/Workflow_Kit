@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T002",
   "lastClosed": {
     "closedAt": "2026-11-06T07:38:39.028Z",
     "scopeId": "m1-orchestrator-core"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 62,
+  "revision": 64,
   "rounds": [
     {
       "digest": null,
@@ -158,14 +158,15 @@
         "product-parts/backend-core/clusters/projects/modules/kit-structure",
         "product-parts/backend-core/clusters/runtime/modules/cli",
         "product-parts/workflow-engine/clusters/session-loop/cluster.md",
-        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel"
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex"
       ],
       "fixes": null,
       "id": "T002",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "Канал к агенту: структура v2 и хуки Stop/UserPromptSubmit",
       "why": "Без своего чата выбор пользователя и автопилот доходят до агента только через хуки"
     },
@@ -470,9 +471,9 @@
 - Scope: m2-interface-and-process (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: none
+- Current task: T002
 - Progress: 1/10
-- Revision: 62
+- Revision: 64
 
 ## Objective
 
@@ -491,9 +492,9 @@
 - [DONE] T001 — Процесс Kit 2.2.2: бандл, запуск команд, модель плана (work, parallel-safe)
   - Commit: feat: run workflow kit 2.2.2 in projects and model its plan
   - Files: product-parts/workflow-engine/product-part.md, product-parts/workflow-engine/clusters/kit-host, package.json, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/workflow-engine/clusters/kit-host/cluster.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/src/bundle.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/src/index.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/test/bundle.test.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/PROVENANCE, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/workflow-kit-2.2.2.mjs.gz, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/src/index.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/src/runner.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/src/state.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/test/kit-project.test.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/test/runner.test.ts, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/module.md, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/src/index.ts, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/src/kit-types.ts, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/src/plan-view.ts, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/test/plan-view.test.ts
-- [TODO] T002 — Канал к агенту: структура v2 и хуки Stop/UserPromptSubmit (work)
+- [IN_PROGRESS] T002 — Канал к агенту: структура v2 и хуки Stop/UserPromptSubmit (work)
   - Commit: feat: talk to agents through stop and prompt hooks
-  - Files: product-parts/backend-core/clusters/projects/modules/kit-structure, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/workflow-engine/clusters/session-loop/cluster.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel
+  - Files: product-parts/backend-core/clusters/projects/modules/kit-structure, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/workflow-engine/clusters/session-loop/cluster.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex
   - Depends on: T001
 - [TODO] T003 — Выбор пути, автопилот и действия с планом (work)
   - Commit: feat: choose the execution mode and drive the plan from the panel

@@ -55,22 +55,13 @@ function sessionButtons(projectId, handlers) {
 }
 
 /**
- * First start (no projects) or no selection.
- * @param {{ hasProjects: boolean }} data
- * @param {ScreenHandlers} handlers
+ * First start (no projects) or no selection: only the greeting. Creating, opening and choosing a
+ * project live in the «Ваши проекты» menu, so the screen repeats none of it.
  * @returns {HTMLElement}
  */
-export function homeScreen(data, handlers) {
+export function homeScreen() {
   return h('div', { class: 'screen' }, [
     header('Добро пожаловать в Workflow Kit', ['Kit ведёт ваши проекты в ChatGPT и Claude: план, задачи, сессии — на Mac и iPad.']),
-    h('div', { class: 'panel' }, [
-      h('h2', {}, [data.hasProjects ? 'Выберите проект слева' : 'Начните с проекта']),
-      h('p', {}, ['Создайте новую папку проекта или откройте существующую. Kit добавит инструкции, документацию и план, а затем откроет первую сессию.']),
-      h('div', { class: 'row' }, [
-        button('Создать проект', () => handlers.navigate({ screen: 'new', mode: 'create' }), 'btn primary'),
-        button('Открыть папку проекта', () => handlers.navigate({ screen: 'new', mode: 'open' })),
-      ]),
-    ]),
   ]);
 }
 

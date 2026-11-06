@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 119,
+  "revision": 121,
   "rounds": [
     {
       "digest": {
@@ -508,7 +508,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R4",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Главный экран без карточки «Начните с проекта»",
       "why": "Карточка повторяет меню «Ваши проекты»; раунд 3 убрал не ту карточку"
     },
@@ -578,8 +578,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 11/14
-- Revision: 119
+- Progress: 12/14
+- Revision: 121
 
 ## Objective
 
@@ -649,7 +649,7 @@ Digest: Имя сессии Claude из Kit уходит в приложение
 
 ### R4 — Fixes (fixes, OPEN)
 
-- [TODO] T009 — Главный экран без карточки «Начните с проекта» (work)
+- [DONE] T009 — Главный экран без карточки «Начните с проекта» (work)
   - Commit: fix: drop the start card from the home screen
   - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/screens.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/panel-shell.test.ts
   - Fixes: T007

@@ -151,7 +151,7 @@ function renderMain() {
   const r = route;
   if (r.screen === 'home') {
     const hasProjects = tree.length > 0;
-    screen = ['home', hasProjects, () => homeScreen({ hasProjects }, handlers)];
+    screen = ['home', hasProjects, () => homeScreen()];
   } else if (r.screen === 'project') {
     const project = tree.find((p) => p.id === r.projectId);
     const home = projectLists(state).home;

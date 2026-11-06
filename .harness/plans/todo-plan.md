@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 89,
+  "revision": 90,
   "rounds": [
     {
       "digest": {
@@ -606,7 +606,12 @@
         "Дефекты шага 2 приёмки исправлены: Сессия-владелец плана без ручного имени и темы называется целью плана в дереве и шапке",
         "Дефекты шага 2 приёмки исправлены: Новая сессия ChatGPT отдаётся без минутного ожидания: после хода служба выгружает тред из демона (thread/archive и thread/unarchive) и сразу проверяет thread/loaded/list; без thread/archive остаётся прежнее ожидание",
         "Дефекты шага 2 приёмки исправлены: Повторное нажатие на шестерёнку и кнопка «Закрыть» выводят из «Настроек» на экран, с которого их открыли (иначе на главный)",
-        "Дефекты шага 2 приёмки исправлены: На macOS wfk install собирает Workflow Kit.app (swiftc) — панель в собственном окне со своим значком в Dock (слева половина значка Claude, справа ChatGPT), который можно закрепить; без swiftc остаётся прежний значок с окном браузера и причиной в отчёте"
+        "Дефекты шага 2 приёмки исправлены: На macOS wfk install собирает Workflow Kit.app (swiftc) — панель в собственном окне со своим значком в Dock (слева половина значка Claude, справа ChatGPT), который можно закрепить; без swiftc остаётся прежний значок с окном браузера и причиной в отчёте",
+        "Дефекты шага 2 приёмки исправлены: В дереве только выбранный проект, остальные — в меню «Ваши проекты», стрелка которого показывает, открыто ли меню",
+        "Дефекты шага 2 приёмки исправлены: В «Настройках» карточка «Архив»: проекты и сессии в две колонки с выбором как в Workflow Pilot; проекты — вернуть, убрать из списка (папка остаётся), удалить с диска после ввода точного имени; сессии — вернуть, убрать из списка",
+        "Дефекты шага 2 приёмки исправлены: Карточек «Структура Kit» и провайдеров в «Настройках» нет; действия провайдера (например, «Запустить демон») показывает мастер",
+        "Дефекты шага 2 приёмки исправлены: Мастер не спрашивает о внешних импортах CLAUDE.md — они разрешаются по умолчанию; после подготовки нет кнопок «Открыть чат» и «Перейти к сессии»",
+        "Дефекты шага 2 приёмки исправлены: У всех кнопок панели три состояния (обычное, наведение, нажатие) и заметная анимация нажатия"
       ],
       "checks": [],
       "commitMessage": "docs: record milestone 2 acceptance",
@@ -659,7 +664,44 @@
         "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js",
         "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/settings.js",
         "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/layout.css",
-        "product-parts/backend-core/clusters/runtime/modules/cli/src/commands.ts"
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/commands.ts",
+        "docs/architecture/OVERVIEW.md",
+        "package.json",
+        "product-parts/backend-core/clusters/http-api/modules/http-server/module.md",
+        "product-parts/backend-core/clusters/projects/modules/project-registry/module.md",
+        "product-parts/backend-core/clusters/projects/modules/project-registry/src/errors.ts",
+        "product-parts/backend-core/clusters/projects/modules/project-registry/src/home-paths.ts",
+        "product-parts/backend-core/clusters/projects/modules/project-registry/src/registry.ts",
+        "product-parts/backend-core/clusters/projects/modules/project-registry/src/routes.ts",
+        "product-parts/backend-core/clusters/projects/modules/project-registry/test/registry.test.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/app.test.ts",
+        "product-parts/control-panel/clusters/web-panel/cluster.md",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/actions.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/index.html",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/screens.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/slots.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/structure-card.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/panel-shell.test.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/project-wizard/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/project-wizard/src/project-wizard.js",
+        "product-parts/control-panel/clusters/web-panel/modules/provider-cards/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/provider-cards/src/card-model.js",
+        "product-parts/control-panel/clusters/web-panel/modules/provider-cards/src/index.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/provider-cards/src/model.js",
+        "product-parts/control-panel/clusters/web-panel/modules/provider-cards/src/provider-cards.css",
+        "product-parts/control-panel/clusters/web-panel/modules/provider-cards/src/provider-cards.js",
+        "product-parts/control-panel/clusters/web-panel/modules/provider-cards/src/render.js",
+        "product-parts/control-panel/clusters/web-panel/modules/provider-cards/test/assets.test.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/provider-cards/test/card-model.test.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/provider-cards/test/model.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/trust.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/trust.test.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/archive.css",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/archive.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/buttons.css",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/press.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/selection.js"
       ],
       "fixes": null,
       "id": "T009",
@@ -682,7 +724,7 @@
 - Execution: sequential
 - Current task: T009
 - Progress: 9/10
-- Revision: 89
+- Revision: 90
 
 ## Objective
 
@@ -734,7 +776,7 @@
   - Depends on: T001, T002, T003, T004, T005, T006, T007, T008
 - [IN_PROGRESS] T009 — Установка и визуальная приёмка вехи 2 (delivery)
   - Commit: docs: record milestone 2 acceptance
-  - Files: docs/evidence/M2-acceptance.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/hook-sessions.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/hook-sessions.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/titles.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/test/titles.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/session-command.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/commands.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/view-model.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, docs/planning/M2-interface-and-process.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/release.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/backend-core/clusters/runtime/modules/cli/test/hook-channel.test.ts, product-parts/system-service/clusters/deployment/modules/service-installer/assets/macos/WorkflowKitApp.swift, product-parts/system-service/clusters/deployment/modules/service-installer/src/templates.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/commands.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/integrate.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/install.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/run.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/open.ts, product-parts/system-service/clusters/deployment/modules/service-installer/test/mac-app.test.ts, product-parts/system-service/clusters/deployment/modules/service-installer/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/sidebar.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/settings.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/layout.css, product-parts/backend-core/clusters/runtime/modules/cli/src/commands.ts
+  - Files: docs/evidence/M2-acceptance.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/hook-sessions.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/hook-sessions.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/titles.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/test/titles.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/session-command.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/commands.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/view-model.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, docs/planning/M2-interface-and-process.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/release.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/backend-core/clusters/runtime/modules/cli/test/hook-channel.test.ts, product-parts/system-service/clusters/deployment/modules/service-installer/assets/macos/WorkflowKitApp.swift, product-parts/system-service/clusters/deployment/modules/service-installer/src/templates.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/commands.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/integrate.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/install.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/run.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/open.ts, product-parts/system-service/clusters/deployment/modules/service-installer/test/mac-app.test.ts, product-parts/system-service/clusters/deployment/modules/service-installer/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/sidebar.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/settings.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/layout.css, product-parts/backend-core/clusters/runtime/modules/cli/src/commands.ts, docs/architecture/OVERVIEW.md, package.json, product-parts/backend-core/clusters/http-api/modules/http-server/module.md, product-parts/backend-core/clusters/projects/modules/project-registry/module.md, product-parts/backend-core/clusters/projects/modules/project-registry/src/errors.ts, product-parts/backend-core/clusters/projects/modules/project-registry/src/home-paths.ts, product-parts/backend-core/clusters/projects/modules/project-registry/src/registry.ts, product-parts/backend-core/clusters/projects/modules/project-registry/src/routes.ts, product-parts/backend-core/clusters/projects/modules/project-registry/test/registry.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/app.test.ts, product-parts/control-panel/clusters/web-panel/cluster.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/actions.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/index.html, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/screens.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/slots.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/structure-card.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/panel-shell.test.ts, product-parts/control-panel/clusters/web-panel/modules/project-wizard/module.md, product-parts/control-panel/clusters/web-panel/modules/project-wizard/src/project-wizard.js, product-parts/control-panel/clusters/web-panel/modules/provider-cards/module.md, product-parts/control-panel/clusters/web-panel/modules/provider-cards/src/card-model.js, product-parts/control-panel/clusters/web-panel/modules/provider-cards/src/index.ts, product-parts/control-panel/clusters/web-panel/modules/provider-cards/src/model.js, product-parts/control-panel/clusters/web-panel/modules/provider-cards/src/provider-cards.css, product-parts/control-panel/clusters/web-panel/modules/provider-cards/src/provider-cards.js, product-parts/control-panel/clusters/web-panel/modules/provider-cards/src/render.js, product-parts/control-panel/clusters/web-panel/modules/provider-cards/test/assets.test.ts, product-parts/control-panel/clusters/web-panel/modules/provider-cards/test/card-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/provider-cards/test/model.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/trust.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/trust.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/archive.css, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/archive.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/buttons.css, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/press.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/selection.js
   - Depends on: T008, DOCS-R1
 
 Digest: Веха 2, R1: Kit 2.2.2 в проектах (бандл, команды, раздел workflow), хуки Stop/UserPromptSubmit и автопилот, «Ревью плана» (переключатель), имена и архив сессий, мастер проекта с одним согласием и первой сессией, интерфейс по макету: дерево, экран сессии с выбором пути и планом, «Настройки», экран «Домой» iPad. 286 тестов.

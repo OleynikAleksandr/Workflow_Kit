@@ -40,7 +40,7 @@ stripping).
   `operations` (`Operations`, D10), `providers` (`ProviderRegistry`),
   `supervisor` (`ProcessSupervisor`, `<state>/processes.json`), `channel`
   (`AgentChannel`: канал к агентам через хуки), `autopilot`
-  (`Autopilot`), `review` (`ReviewToggles`), `titles` (`SessionTitles`), `kit`
+  (`Autopilot`), `review` (`ReviewToggles`), `titles` (`SessionTitles`), `setup` (`ProjectSetup`), `kit`
   (`KitRunner`: команды Kit проектов), `workflow` (`WorkflowState`: кэш
   состояния Kit и раздел `workflow`), `start()` (пишет событие
   `service.started`, запускает операцию `providers.refresh`: сверка записей
@@ -112,6 +112,10 @@ stripping).
   проекта есть `execution` в разделе `workflow`), `load()` при `start()`,
   `registerReviewRoutes` — `POST /api/projects/:id/sessions/:sid/review` и
   раздел `review`.
+- `project-setup` (веха 2, T006): `createProjectSetup` (те же `runCommand`,
+  `env`, реестры, `operations`), `registerSetupRoutes` — мастер и раздел
+  `setup`; реестр проектов получает `saveRoot` (запись `projectsRoot` в
+  `config.json` с сохранением других полей).
 - `session-titles` (веха 2, T005): `createSessionTitles` (проект по папке
   — тот же поиск, что у канала, с `realpath` ближайшей существующей
   папки; сессии — из канала; цель плана — из раздела `workflow`;
@@ -132,7 +136,7 @@ stripping).
 ## Инварианты
 
 - Модули подключаются только через их `src/index.ts` (`#data-store`,
-  `#agent-channel`, `#autopilot`, `#http-server`, `#plan-review`, `#session-titles`, `#kit-bundle`, `#kit-runner`, `#kit-structure`,
+  `#agent-channel`, `#autopilot`, `#http-server`, `#plan-review`, `#project-setup`, `#session-titles`, `#kit-bundle`, `#kit-runner`, `#kit-structure`,
   `#panel-shell`, `#process-supervisor`,
   `#provider-cards`,
   `#project-registry`, `#provider-claude`, `#provider-codex`,

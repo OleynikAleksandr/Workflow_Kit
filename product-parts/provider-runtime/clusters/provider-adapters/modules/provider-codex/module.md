@@ -127,7 +127,9 @@ app-server на весь Mac, доверие к папке, одобрение �
   папка: `daemon-not-running`, `codex-login`, `not-trusted`): по сокету
   демона `thread/start { cwd }` → `thread/name/set { threadId, name }` →
   служебный `turn/start { threadId, input: [{ type: "text", text }] }` и
-  ожидание `turn/completed` до 15 с (без ошибки по истечении) →
+  ожидание `turn/completed` до 15 с (без ошибки по истечении; с
+  `firstMessage` вместо служебного текста идёт первое сообщение агенту, ждём
+  до `FIRST_TURN_WAIT_MS` = 180 с) →
   `thread/unsubscribe { threadId }` (таймаут 5 с) и только потом закрытие
   соединения. Служебный ход не передаёт `sandboxPolicy` и `approvalPolicy`:
   по схеме они остались бы у треда для следующих ходов, а тред должен

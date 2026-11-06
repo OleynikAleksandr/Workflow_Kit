@@ -21,6 +21,8 @@ export interface Project {
   /** How the project got into the list. */
   source: 'created' | 'opened';
   createdAt: string;
+  /** Set when the user moved the project to the archive (the folder stays). */
+  archivedAt?: string;
 }
 
 /** A project as shown in /api/state. */
@@ -53,12 +55,14 @@ export interface ProjectRegistryOptions extends HomeScope {
   mutex?: KeyedMutex;
   now?: () => Date;
   newId?: () => string;
+  /** Saves a new root for new projects (config.json projectsRoot). */
+  saveRoot?: (root: string) => Promise<void>;
 }
 
 /** The project list stored in projects.json. */
 export interface ProjectRegistry {
   readonly file: string;
-  /** Root for new projects with "~" expanded. */
+  /** Root for new projects with "~" expanded (changes with setRoot). */
   readonly root: string;
   list(): Promise<Project[]>;
   get(id: string): Promise<Project | undefined>;
@@ -68,6 +72,12 @@ export interface ProjectRegistry {
   open(folder: unknown): Promise<{ project: Project; existing: boolean }>;
   /** Removes the project from the list only; the folder stays on disk. */
   remove(id: string): Promise<Project>;
+  /** Moves the project to the archive (hidden from the tree; the folder stays). */
+  archive(id: string): Promise<Project>;
+  /** Brings an archived project back. */
+  restore(id: string): Promise<Project>;
+  /** Changes the root for new projects: an absolute folder inside home, created when missing. */
+  setRoot(folder: unknown): Promise<string>;
   addRemoveGuard(guard: RemoveGuard): void;
   section(): Promise<ProjectsSection>;
 }
@@ -90,7 +100,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function parseProject(value: unknown): Project | undefined {
   if (!isRecord(value)) return undefined;
-  const { id, name, path: folder, source, createdAt } = value;
+  const { id, name, path: folder, source, createdAt, archivedAt } = value;
   if (typeof id !== 'string' || typeof name !== 'string' || typeof folder !== 'string') return undefined;
   return {
     id,
@@ -98,6 +108,7 @@ function parseProject(value: unknown): Project | undefined {
     path: folder,
     source: source === 'created' ? 'created' : 'opened',
     createdAt: typeof createdAt === 'string' ? createdAt : '',
+    ...(typeof archivedAt === 'string' ? { archivedAt } : {}),
   };
 }
 
@@ -107,7 +118,7 @@ export function createProjectRegistry(options: ProjectRegistryOptions): ProjectR
   const mutex = options.mutex ?? createKeyedMutex();
   const now = options.now ?? (() => new Date());
   const newId = options.newId ?? (() => randomBytes(6).toString('hex'));
-  const root = expandHome(options.projectsRoot, options.homedir);
+  let root = expandHome(options.projectsRoot, options.homedir);
   const guards: RemoveGuard[] = [];
   let cache: Project[] | undefined;
 
@@ -210,6 +221,36 @@ export function createProjectRegistry(options: ProjectRegistryOptions): ProjectR
     return project;
   }
 
+  async function setArchived(id: string, archived: boolean): Promise<Project> {
+    const projects = await load();
+    const index = projects.findIndex((p) => p.id === id);
+    if (index < 0) throw new ProjectError('not-found', `Проект не найден: ${id}`);
+    const { archivedAt: _old, ...rest } = projects[index]!;
+    const project: Project = archived ? { ...rest, archivedAt: now().toISOString() } : rest;
+    const next = [...projects];
+    next[index] = project;
+    await save(next);
+    await log(archived ? 'project.archived' : 'project.restored', project);
+    return project;
+  }
+
+  async function setRoot(folder: unknown): Promise<string> {
+    if (typeof folder !== 'string' || folder.trim() === '') throw new ProjectError('invalid-path', 'Укажите папку для проектов');
+    const expanded = expandHome(folder.trim(), options.homedir);
+    if (!path.isAbsolute(expanded)) throw new ProjectError('invalid-path', `Нужен абсолютный путь: ${folder}`);
+    const home = await realHome(options);
+    try {
+      await fs.mkdir(expanded, { recursive: true });
+    } catch (error) {
+      throw fsError(error, expanded, options.platform);
+    }
+    const real = await resolveInsideHome(expanded, options);
+    if (!isInside(real, home, options.platform)) throw new ProjectError('outside-home', `Папка вне домашней: ${real}`);
+    await options.saveRoot?.(real);
+    root = real;
+    return real;
+  }
+
   async function exists(folder: string): Promise<boolean> {
     try {
       return (await fs.stat(folder)).isDirectory();
@@ -220,12 +261,17 @@ export function createProjectRegistry(options: ProjectRegistryOptions): ProjectR
 
   return {
     file: options.file,
-    root,
+    get root() {
+      return root;
+    },
     list: () => load().then((p) => [...p]),
     get: async (id) => (await load()).find((p) => p.id === id),
     create: (name) => mutex.run('projects', () => create(name)),
     open: (folder) => mutex.run('projects', () => open(folder)),
     remove: (id) => mutex.run('projects', () => remove(id)),
+    archive: (id) => mutex.run('projects', () => setArchived(id, true)),
+    restore: (id) => mutex.run('projects', () => setArchived(id, false)),
+    setRoot: (folder) => mutex.run('projects', () => setRoot(folder)),
     addRemoveGuard(guard) {
       guards.push(guard);
     },

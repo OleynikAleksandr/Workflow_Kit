@@ -113,12 +113,15 @@ D5) и останавливает только по своим записям (D
 
 ### Сессии
 
-- `createSession(project, { title })` — нужны pty и доверие
+- `createSession(project, { title, firstMessage? })` — нужны pty и доверие
   (`not-trusted` с подсказкой). `expect session.exp <папка> <claude>
   <имя> <debug-файл>` под `supervisor.spawn` (owner `{ provider: 'claude',
   project, kind: 'session', ref }`), журнал pty —
   `<logs>/claude/session-*.log`, debug — `…debug.log`. Скрипт печатает
   `CLAUDE_PID <pid>` и `SESSION_URL session_<id>` (основной источник);
+  с `firstMessage` (передаётся скрипту переменной `WFK_FIRST_MESSAGE` в одну
+  строку и убирается из окружения claude) скрипт после ссылки набирает
+  сообщение и нажимает Enter, печатает `FIRST_MESSAGE_SENT`;
   при `NO_SESSION_URL` или по истечении ожидания id берётся из debug-файла
   (`Created session cse_<id>`). Pid дочернего `claude` добавляется в
   запись (`supervisor.track`) после появления id. Ошибки: `not-trusted`,

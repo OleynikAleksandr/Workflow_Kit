@@ -235,7 +235,8 @@ export interface Provider {
   approveHooks?(project: Project, expected: { command: string; hash: string }): Promise<HookState>;
   /** The final list: hook journal (readHookSessions) plus the provider's own records. */
   listSessions(project: Project): Promise<SessionInfo[]>;
-  createSession(project: Project, opts: { title: string }): Promise<SessionInfo>;
+  /** firstMessage: the agent's first instruction instead of the provider's service turn. */
+  createSession(project: Project, opts: { title: string; firstMessage?: string }): Promise<SessionInfo>;
   resumeSession?(project: Project, sessionId: string): Promise<SessionInfo>;
   stopSession?(project: Project, sessionId: string): Promise<void>;
   /**

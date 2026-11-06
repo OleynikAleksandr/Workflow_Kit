@@ -1,6 +1,8 @@
 # Starts one interactive Claude Code session with Remote Control in a project folder, or resumes
 # a local session under the same Remote Control id when a fifth argument (its local id) is given.
 # Usage: expect session.exp <folder> <claude> <title> <debug file> [<local id>]
+# With $WFK_FIRST_MESSAGE set (one line), the message is typed into the new session and sent
+# once the link is on the screen.
 # Prints (each on its own line):
 #   CLAUDE_PID <pid>          pid of the spawned claude (D9: the supervisor tracks it)
 #   SESSION_URL session_<id>  once claude.ai has the session (primary source of the id)
@@ -12,6 +14,12 @@
 # After the link the screen is no longer copied to the log; the session lives until claude exits.
 set timeout 90
 lassign $argv dir claude title debug resume
+# The first message is not passed on to claude's environment.
+set first ""
+if {[info exists env(WFK_FIRST_MESSAGE)]} {
+  set first $env(WFK_FIRST_MESSAGE)
+  unset env(WFK_FIRST_MESSAGE)
+}
 source [file join [file dirname [info script]] dialogs.tcl]
 cd $dir
 if {$resume ne ""} {
@@ -23,7 +31,16 @@ puts "\nCLAUDE_PID [exp_pid]"
 # Without a controlling terminal the pty has no size and claude prints nothing; give it one.
 stty rows 40 columns 160 < $spawn_out(slave,name)
 expect {
-  -re {claude\.ai/code/(session_[A-Za-z0-9]+)} { puts "\nSESSION_URL $expect_out(1,string)" }
+  -re {claude\.ai/code/(session_[A-Za-z0-9]+)} {
+    puts "\nSESSION_URL $expect_out(1,string)"
+    if {$first ne ""} {
+      after 1500
+      send -- $first
+      after 500
+      send "\r"
+      puts "\nFIRST_MESSAGE_SENT"
+    }
+  }
   -re {Workspace not trusted} { puts "\nSESSION_NOT_TRUSTED"; exit 5 }
   -re $dialog_pattern { stop_on_dialog $expect_out(buffer) }
   timeout { puts "\nNO_SESSION_URL" }

@@ -170,6 +170,11 @@ if (argv[0] === 'remote-control') {
     if (debug) writeFileSync(debug, `[DEBUG] Created session cse_${remote}\n[DEBUG] server title ${option('--remote-control')}\n`);
     if (mode !== 'debug-only') process.stdout.write(`\x1b[2mRemote Control:\x1b[0m https://claude.ai/code/session_${remote}\r\n`);
     else process.stdout.write('Remote Control connecting...\r\n');
+    // What is typed into the session (the first message) goes to FAKE_CLAUDE_LOG + ".input".
+    if (process.stdin.isTTY) process.stdin.setRawMode(true);
+    process.stdin.on('data', (chunk) => {
+      if (process.env.FAKE_CLAUDE_LOG) appendFileSync(`${process.env.FAKE_CLAUDE_LOG}.input`, chunk.toString('utf8'));
+    });
     stayAlive();
   }
 } else {

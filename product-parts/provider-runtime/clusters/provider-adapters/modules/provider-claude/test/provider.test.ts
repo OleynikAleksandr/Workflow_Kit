@@ -163,6 +163,19 @@ test('the debug file is the fallback source of the session id; a failing claude 
   assert.equal((await supervisor.list({ provider: 'claude', kind: 'session' })).length, 0);
 });
 
+test('createSession with a first message types it into the session after the link', { skip }, async () => {
+  const session = await provider.createSession(project, { title: 'First', firstMessage: 'Проект создан.\nПрочитай AGENTS.md' });
+  const started = (await fakeCalls()).filter((c) => c.argv.includes('--remote-control')).at(-1)!;
+  assert.deepEqual(started.vars, {}, 'the message is not in claude\'s environment');
+  let input = '';
+  for (let i = 0; i < 100 && !input.includes('\r'); i += 1) {
+    input = await readFile(`${h.fakeLog}.input`, 'utf8').catch(() => '');
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+  assert.equal(input, 'Проект создан. Прочитай AGENTS.md\r');
+  await provider.stopSession!(project, session.remoteId!);
+});
+
 test('folder environment: start and stop as project actions, state shown, removal blocked while it runs', { skip }, async () => {
   const startAction = (await provider.actions(project)).find((a) => a.id === ENVIRONMENT_START)!;
   assert.equal(startAction.enabled, true);

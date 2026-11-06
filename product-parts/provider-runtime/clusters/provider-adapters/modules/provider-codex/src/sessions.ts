@@ -25,6 +25,8 @@ export interface CodexRecord {
 
 /** How long createSession waits for the service turn to finish (it does not fail after that). */
 export const SERVICE_TURN_WAIT_MS = 15_000;
+/** How long the first message of a new session may run before the thread is released. */
+export const FIRST_TURN_WAIT_MS = 180_000;
 
 /** Timeout of thread/unsubscribe after the service turn. */
 export const UNSUBSCRIBE_TIMEOUT_MS = 5_000;
@@ -77,7 +79,7 @@ function parseRecords(value: unknown): CodexRecord[] {
 /** Session methods of the provider. */
 export interface SessionParts {
   listSessions(project: Project): Promise<SessionInfo[]>;
-  createSession(project: Project, opts: { title: string }): Promise<SessionInfo>;
+  createSession(project: Project, opts: { title: string; firstMessage?: string }): Promise<SessionInfo>;
   /** Panel records (tests and removeBlockers use them). */
   records(): Promise<CodexRecord[]>;
   /** thread/name/set, only while the daemon has the thread loaded (an open chat or a turn). */
@@ -89,6 +91,8 @@ export const RENAME_LATER_NOTE = 'Чат сейчас не открыт: имя 
 
 /** Options of the session methods (tests shorten the waits). */
 export interface SessionOptions {
+  /** Wait for the first message's turn (default FIRST_TURN_WAIT_MS). */
+  firstTurnWaitMs?: number;
   serviceTurnWaitMs?: number;
   releaseWaitMs?: number;
   releasePollMs?: number;
@@ -126,6 +130,7 @@ async function isLoaded(session: RpcSession, threadId: string): Promise<boolean 
 export function createSessionParts(rt: CodexRuntime, options: SessionOptions = {}): SessionParts {
   const { context, paths } = rt;
   const turnWaitMs = options.serviceTurnWaitMs ?? SERVICE_TURN_WAIT_MS;
+  const firstTurnWaitMs = options.firstTurnWaitMs ?? FIRST_TURN_WAIT_MS;
   const releaseWaitMs = options.releaseWaitMs ?? RELEASE_WAIT_MS;
   const releasePollMs = options.releasePollMs ?? RELEASE_POLL_MS;
   const releasing = new Map<string, Releasing>();
@@ -152,7 +157,13 @@ export function createSessionParts(rt: CodexRuntime, options: SessionOptions = {
    * thread/start, name, service turn, thread/unsubscribe, then waits until the daemon unloads the
    * thread. The thread id goes to `started` (and to the releasing list) as soon as it is known.
    */
-  const startThread = async (session: RpcSession, project: Project, title: string, started: { id: string | null }): Promise<{ threadId: string; model?: string; held: boolean }> => {
+  const startThread = async (
+    session: RpcSession,
+    project: Project,
+    title: string,
+    started: { id: string | null },
+    firstMessage: string | undefined,
+  ): Promise<{ threadId: string; model?: string; held: boolean }> => {
     const answer = await session.request<{ thread?: { id?: unknown }; model?: unknown }>('thread/start', { cwd: project.path });
     const threadId = answer?.thread?.id;
     if (typeof threadId !== 'string' || threadId === '') throw new ProviderError('bad-answer', 'Codex не вернул id треда', { hint: 'Обновите Codex CLI.' });
@@ -160,8 +171,8 @@ export function createSessionParts(rt: CodexRuntime, options: SessionOptions = {
     releasing.set(threadId, { projectId: project.id, projectPath: project.path, title, createdAt: context.now().toISOString() });
     try {
       await session.request('thread/name/set', { threadId, name: title });
-      await session.request('turn/start', { threadId, input: [{ type: 'text', text: serviceTurnText(project.name) }] });
-      await session.waitForNotification('turn/completed', turnWaitMs);
+      await session.request('turn/start', { threadId, input: [{ type: 'text', text: firstMessage ?? serviceTurnText(project.name) }] });
+      await session.waitForNotification('turn/completed', firstMessage ? firstTurnWaitMs : turnWaitMs);
     } finally {
       // While this connection stays subscribed the daemon keeps the thread loaded and ChatGPT
       // says the chat is open in another app (D1): release it before the connection closes.
@@ -246,8 +257,8 @@ export function createSessionParts(rt: CodexRuntime, options: SessionOptions = {
       const started: { id: string | null } = { id: null };
       try {
         const created = await rt.withDaemon(
-          (session) => startThread(session, project, opts.title, started),
-          turnWaitMs + UNSUBSCRIBE_TIMEOUT_MS + releaseWaitMs + 30_000,
+          (session) => startThread(session, project, opts.title, started, opts.firstMessage),
+          (opts.firstMessage ? firstTurnWaitMs : turnWaitMs) + UNSUBSCRIBE_TIMEOUT_MS + releaseWaitMs + 30_000,
         );
         const record: CodexRecord = {
           threadId: created.threadId,

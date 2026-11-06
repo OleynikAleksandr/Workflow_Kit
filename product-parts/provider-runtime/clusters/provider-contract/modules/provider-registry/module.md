@@ -19,7 +19,8 @@
   `previewTrust(project)`, `grantTrust(project, token, choices?)`,
   `trust(project)`,
   `hooks(project)`, `approveHooks?(project, { command, hash })`,
-  `listSessions(project)`, `createSession(project, { title })`,
+  `listSessions(project)`, `createSession(project, { title, firstMessage? })`
+  (`firstMessage` — первое сообщение агенту вместо служебного хода; веха 2),
   `resumeSession?(project, sid)`, `stopSession?(project, sid)`,
   `renameSession?(project, sid, name) → RenameResult` (`synced`, `note?`:
   имя в приложении провайдера, если это безопасно сейчас; веха 2),

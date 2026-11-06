@@ -14,7 +14,8 @@
 - `createProjectRegistry(options) → ProjectRegistry`. Опции: `file`
   (`projectsFile(dirs)` = `<config>/projects.json`), `projectsRoot`
   (из `config.json`; `~` и `~/…` раскрываются), `homedir`, `platform`,
-  `events?` (`EventLog`), `mutex?` (`KeyedMutex`), `fs?`, `now?`, `newId?`.
+  `events?` (`EventLog`), `mutex?` (`KeyedMutex`), `fs?`, `now?`, `newId?`,
+  `saveRoot?(root)` (запись `projectsRoot` в `config.json`; веха 2).
   Методы:
   - `list()`, `get(id)`;
   - `create(name)` — проверяет имя, создаёт корень проектов при
@@ -26,6 +27,11 @@
   - `remove(id)` — убирает только запись; перед этим опрашивает
     `addRemoveGuard(guard)`: если охранники вернули причины (работающие
     сессии, окружение папки), ошибка `busy` с `details.blockers`;
+  - `archive(id)` / `restore(id)` — поле `archivedAt` проекта ставится или
+    снимается (папка не трогается; события `project.archived|restored`);
+  - `setRoot(path)` — новая папка для проектов: абсолютная (`~` раскрывается),
+    внутри домашней (иначе `outside-home`), создаётся при необходимости,
+    сохраняется через `saveRoot`; `root` — текущее значение;
   - `section()` — раздел состояния `projects`: `root`, `home`, `projects`
     (с флагом `missing`, если папки больше нет), `error` при повреждённом
     `projects.json`.
@@ -55,7 +61,8 @@
   «Системные настройки → Конфиденциальность и безопасность → Файлы и
   папки»).
 - `registerProjectRoutes(router, state, registry, scope)` — маршруты и
-  раздел `projects` в `/api/state`.
+  раздел `projects` в `/api/state`; веха 2: `POST /api/projects/:id/archive`,
+  `POST /api/projects/:id/restore`, `POST /api/settings/projects-root { path }`.
 - `expandHome`, `nodeFs`, `PROJECTS_FILE_VERSION`; типы `Project`,
   `ProjectView`, `ProjectsSection`, `RemoveGuard`, `HomeScope`,
   `RegistryFs`, `FolderEntry`, `FolderListing`.

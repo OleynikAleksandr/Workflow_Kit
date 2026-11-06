@@ -91,7 +91,7 @@ async function followSession(rt: ClaudeRuntime, processId: string, logFile: stri
 }
 
 /** Starts session.exp (new session, or --resume <localId>) and waits for its Remote Control id. */
-async function startSessionProcess(rt: ClaudeRuntime, project: Project, title: string, resume: string | null): Promise<StartedSession> {
+async function startSessionProcess(rt: ClaudeRuntime, project: Project, title: string, resume: string | null, firstMessage?: string): Promise<StartedSession> {
   const { claude, expect } = await rt.requirePty();
   await rt.requireTrust(project);
   const key = rt.newKey('session');
@@ -105,7 +105,8 @@ async function startSessionProcess(rt: ClaudeRuntime, project: Project, title: s
       command: expect,
       args,
       cwd: project.path,
-      env: rt.context.env,
+      // session.exp types the first message into the session once the link is there.
+      env: firstMessage ? { ...rt.context.env, WFK_FIRST_MESSAGE: firstMessage.replace(/\s+/g, ' ').trim() } : rt.context.env,
       logFile,
     });
   } catch (error) {
@@ -170,8 +171,8 @@ export async function listSessions(rt: ClaudeRuntime, project: Project): Promise
 }
 
 /** Starts a Remote Control session in the project folder and records it (D9). */
-export async function createSession(rt: ClaudeRuntime, project: Project, title: string): Promise<SessionInfo> {
-  const started = await startSessionProcess(rt, project, title, null);
+export async function createSession(rt: ClaudeRuntime, project: Project, title: string, firstMessage?: string): Promise<SessionInfo> {
+  const started = await startSessionProcess(rt, project, title, null, firstMessage);
   const record: SessionRecord = {
     localId: null,
     remoteId: started.remoteId,

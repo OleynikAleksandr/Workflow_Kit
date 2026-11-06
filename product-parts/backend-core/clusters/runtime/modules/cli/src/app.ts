@@ -1,7 +1,7 @@
 import { realpath } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { createEventLog, createKeyedMutex, createOperations, ensureDataDirs, eventsFile, loadConfig, resolveDataDirs } from '#data-store';
+import { configFile, createEventLog, createKeyedMutex, createOperations, ensureDataDirs, eventsFile, loadConfig, readJsonFile, resolveDataDirs, writeJsonAtomic } from '#data-store';
 import type { DataDirs, EventLog, KeyedMutex, Operations, WfkConfig } from '#data-store';
 import { createHttpServer, createRouter, createStateRegistry, registerCoreRoutes } from '#http-server';
 import type { HttpServerHandle, InterfaceMap, Router, StateRegistry } from '#http-server';
@@ -11,6 +11,8 @@ import { createAutopilot, registerAutopilotRoutes } from '#autopilot';
 import type { Autopilot } from '#autopilot';
 import { kitBundleProvider } from '#kit-bundle';
 import { createReviewToggles, registerReviewRoutes } from '#plan-review';
+import { createProjectSetup, registerSetupRoutes } from '#project-setup';
+import type { ProjectSetup } from '#project-setup';
 import { createSessionTitles, registerTitleRoutes } from '#session-titles';
 import type { SessionTitles } from '#session-titles';
 import type { ReviewToggles } from '#plan-review';
@@ -101,6 +103,8 @@ export interface App {
   readonly review: ReviewToggles;
   /** Session names: manual, agent topic, plan objective, provider name. */
   readonly titles: SessionTitles;
+  /** The project wizard: preview and the one-consent apply. */
+  readonly setup: ProjectSetup;
   /** Starts listening on config.port; returns the bound port and the panel URLs. */
   start(): Promise<{ port: number; host: string; urls: string[] }>;
   stop(): Promise<void>;
@@ -147,6 +151,12 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
     projectsRoot: config.projectsRoot,
     events,
     mutex,
+    saveRoot: async (root) => {
+      const file = configFile(dirs);
+      const current = await readJsonFile(file).catch(() => undefined);
+      const base = typeof current === 'object' && current !== null && !Array.isArray(current) ? (current as Record<string, unknown>) : {};
+      await writeJsonAtomic(file, { ...base, projectsRoot: root });
+    },
   });
 
   registerCoreRoutes(router, state, () => ({ version, pid: process.pid, startedAt }));
@@ -270,6 +280,21 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
   });
   registerTitleRoutes({ router, state, titles });
 
+  const setup = createProjectSetup({
+    projects,
+    providers,
+    kit,
+    workflow,
+    operations,
+    runCommand: options.runCommand ?? runCommand,
+    env,
+    homedir,
+    platform,
+    now: () => new Date(),
+    log: options.log,
+  });
+  registerSetupRoutes({ router, state, setup });
+
   return {
     dirs,
     config,
@@ -290,6 +315,7 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
     autopilot,
     review,
     titles,
+    setup,
     async start() {
       const bound = await server.listen(config.port);
       await events.append('service.started', { version, pid: process.pid, port: bound.port }).catch(() => undefined);

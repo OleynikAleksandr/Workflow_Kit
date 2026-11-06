@@ -12,6 +12,7 @@
 | --- | --- |
 | [project-registry](modules/project-registry/module.md) | реестр проектов (`projects.json`), проверка путей и имён, выбор папки |
 | [kit-structure](modules/kit-structure/module.md) | шаблоны, установка и проверка структуры, приём хука SessionStart (`recordSessionStart`) |
+| [project-setup](modules/project-setup/module.md) | мастер проекта (веха 2): предпросмотр и одно согласие — структура, git, Kit 2.2.2, доверие, хуки, первая сессия |
 
 Команды `wfk link` и `wfk hook` живут в модуле `cli` (кластер `runtime`);
 `wfk hook` передаёт вход хука в `recordSessionStart`.

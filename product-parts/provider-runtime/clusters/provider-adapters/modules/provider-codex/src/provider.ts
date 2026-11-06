@@ -70,6 +70,7 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
   const sessionParts = createSessionParts(rt, {
     ...(deps.serviceTurnWaitMs === undefined ? {} : { serviceTurnWaitMs: deps.serviceTurnWaitMs }),
     ...(deps.releaseWaitMs === undefined ? {} : { releaseWaitMs: deps.releaseWaitMs }),
+    ...(deps.firstTurnWaitMs === undefined ? {} : { firstTurnWaitMs: deps.firstTurnWaitMs }),
     ...(deps.releasePollMs === undefined ? {} : { releasePollMs: deps.releasePollMs }),
   });
 

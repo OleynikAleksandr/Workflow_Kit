@@ -118,3 +118,12 @@ test('renameSession sets the name only while the daemon has the thread loaded', 
   const set = daemon.calls.filter((c) => c.method === 'thread/name/set');
   assert.deepEqual(set.map((c) => c.params), [{ threadId: 'thread-rename', name: 'Склад — остатки' }]);
 });
+
+test('createSession with a first message starts the turn with it instead of the service text', async () => {
+  const daemon = await machine.daemon({ threadId: 'thread-first' });
+  const provider = createCodexProvider(machine.context({}), { serviceTurnWaitMs: 100, firstTurnWaitMs: 200, daemonTtlMs: 0, releasePollMs: 10 });
+  await provider.refresh!();
+  await provider.createSession(project, { title: 'Склад', firstMessage: 'Проект создан. Прочитай AGENTS.md' });
+  const turn = daemon.calls.find((c) => c.method === 'turn/start');
+  assert.deepEqual((turn?.params as { input: unknown }).input, [{ type: 'text', text: 'Проект создан. Прочитай AGENTS.md' }]);
+});

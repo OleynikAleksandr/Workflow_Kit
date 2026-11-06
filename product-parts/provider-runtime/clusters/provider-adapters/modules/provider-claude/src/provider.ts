@@ -121,7 +121,7 @@ export function createClaudeProvider(context: ProviderContext, options: ClaudePr
     },
     hooks,
     listSessions: (project) => listSessions(rt, project),
-    createSession: (project, opts) => createSession(rt, project, opts.title),
+    createSession: (project, opts) => createSession(rt, project, opts.title, opts.firstMessage),
     resumeSession: (project, sid) => resumeSession(rt, project, sid),
     stopSession: (project, sid) => stopSession(rt, project, sid),
     actions: async (project) => (project ? environmentActions(rt, project) : []),

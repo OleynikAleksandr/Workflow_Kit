@@ -10,10 +10,25 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 98,
+  "revision": 100,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "provider-codex: renameSession всегда thread/name/set; RENAME_LATER_NOTE удалён",
+          "agent-channel: HookInput.sessionTitle из session_title",
+          "session-titles: appTitle(key, current), CLAUDE_NEXT_NOTE, synced для Claude",
+          "cli: ответ prompt сессии Claude несёт hookSpecificOutput.sessionTitle"
+        ],
+        "decisions": [
+          "Codex: проверка «тред загружен» перед thread/name/set убрана (проверено на демоне: тред не загружается)",
+          "Claude: имя передаёт хук Kit, а не агент (/rename — команда пользователя); одно имя отправляется один раз за работу службы, чтобы не перебивать переименование в приложении"
+        ],
+        "references": [
+          "docs/planning/M3-fixes.md"
+        ],
+        "result": "Имена сессий Workflow Kit уходят в приложения: Codex — thread/name/set демона для любого треда без загрузки; Claude — hookSpecificOutput.sessionTitle в ответе хука UserPromptSubmit, один раз на имя."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -165,7 +180,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -207,8 +222,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 2/4
-- Revision: 98
+- Progress: 3/4
+- Revision: 100
 
 ## Objective
 
@@ -229,7 +244,7 @@
 - [DONE] T002 — Имя сессии Claude через хук (work, parallel-safe)
   - Commit: feat: send the Kit session name to Claude through the prompt hook
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/hook-input.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/channel.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/titles.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/test/titles.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/hook-channel.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M3-fixes.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md
   - Depends on: T001, T002
@@ -237,5 +252,7 @@
   - Commit: chore: install the M3 round 1 release
   - Files: docs/evidence/M3-acceptance.md
   - Depends on: T001, T002, DOCS-R1
+
+Digest: Имена сессий Workflow Kit уходят в приложения: Codex — thread/name/set демона для любого треда без загрузки; Claude — hookSpecificOutput.sessionTitle в ответе хука UserPromptSubmit, один раз на имя.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

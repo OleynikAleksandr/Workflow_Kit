@@ -17,10 +17,11 @@ Workflow Kit — оркестратор поверх родных приложе
 ([docs/evidence/M1-acceptance.md](docs/evidence/M1-acceptance.md)); они
 исправлены раундом R2, повторная приёмка — после переустановки.
 
-Веха 2 (`m2-interface-and-process`) реализована (раунд R1); визуальная
-приёмка на Mac и iPad — по разделу 14 спецификации
-([docs/planning/M2-interface-and-process.md](docs/planning/M2-interface-and-process.md)),
-итог записывается в `docs/evidence/M2-acceptance.md`.
+Веха 2 (`m2-interface-and-process`) принята
+([docs/planning/M2-interface-and-process.md](docs/planning/M2-interface-and-process.md),
+[docs/evidence/M2-acceptance.md](docs/evidence/M2-acceptance.md)). Веха 3
+(`m3-fixes`, [docs/planning/M3-fixes.md](docs/planning/M3-fixes.md)) —
+раунды исправлений и дополнений, каждый заканчивается релизом.
 
 ## Требования
 

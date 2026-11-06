@@ -1,8 +1,8 @@
 # Workflow Kit — обзор архитектуры
 
-Состояние после вехи 2 (`m2-interface-and-process`, раунд R1: процесс
-Kit 2.2.2 в проектах, мастер, автопилот, новый интерфейс; визуальная
-приёмка на Mac и iPad впереди). Веха 1 (`m1-orchestrator-core`) — с
+Состояние: веха 2 (`m2-interface-and-process`: процесс Kit 2.2.2 в
+проектах, мастер, автопилот, новый интерфейс) принята; веха 3
+(`m3-fixes`) — раунды исправлений, R1: имена сессий в приложениях. Веха 1 (`m1-orchestrator-core`) — с
 исправлениями D1–D3 первой приёмки
 ([M1-acceptance.md](../evidence/M1-acceptance.md)). Документ
 поддерживает задача DOCS каждого раунда; подробности — в контрактах модулей
@@ -270,8 +270,8 @@ Linux `$XDG_CONFIG_HOME`, `$XDG_STATE_HOME`, `$XDG_DATA_HOME` +
 - Веха 2 проверена тестами на настоящем бандле Kit и подставных
   провайдерах; при приёмке проверяются: как приложения показывают
   удерживаемый `Stop`, формат `additionalContext` у Codex, набор первого
-  сообщения в TUI Claude, переименование сессий (Claude — только в Kit,
-  ChatGPT — `thread/name/set` для загруженного треда), автоматическое
+  сообщения в TUI Claude, имена сессий в приложениях (Claude — поле
+  `sessionTitle` ответа хука, ChatGPT — `thread/name/set`), автоматическое
   открытие чата на iPad (браузер может не дать открыть вкладку без
   нажатия — тогда кнопка «Открыть чат»). Функции ревью плана нет — только
   переключатель. «Перезапустить службу» и «Диагностика» в «Настройках»
@@ -280,6 +280,7 @@ Linux `$XDG_CONFIG_HOME`, `$XDG_STATE_HOME`, `$XDG_DATA_HOME` +
 ## Документы
 
 - Спецификация вехи 1: [docs/planning/M1-orchestrator-core.md](../planning/M1-orchestrator-core.md).
+- Спецификация вехи 3: [docs/planning/M3-fixes.md](../planning/M3-fixes.md).
 - Спецификация вехи 2: [docs/planning/M2-interface-and-process.md](../planning/M2-interface-and-process.md);
   макет: [docs/design/ui-mockup.html](../design/ui-mockup.html).
 - Контракт провайдера и факты о Claude и Codex: [docs/planning/M1-providers.md](../planning/M1-providers.md).

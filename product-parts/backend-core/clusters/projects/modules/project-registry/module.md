@@ -29,6 +29,11 @@
     сессии, окружение папки), ошибка `busy` с `details.blockers`;
   - `archive(id)` / `restore(id)` — поле `archivedAt` проекта ставится или
     снимается (папка не трогается; события `project.archived|restored`);
+  - `deleteFolder(id, confirm)` — удаляет с диска папку проекта из архива
+    (иначе `not-archived`, 409) и убирает его из списка; `confirm` — точное
+    имя проекта (иначе `confirm-mismatch`, 400); домашняя папка, папка для
+    проектов и всё вне домашней не удаляются (`invalid-path`); охранники
+    удаления (`busy`); событие `project.deleted`; `RegistryFs.rm`;
   - `setRoot(path)` — новая папка для проектов: абсолютная (`~` раскрывается),
     внутри домашней (иначе `outside-home`), создаётся при необходимости,
     сохраняется через `saveRoot`; `root` — текущее значение;
@@ -76,6 +81,7 @@
 | `POST /api/projects` `{name}` | 201 `{ project }` |
 | `POST /api/projects/open` `{path}` | 201 `{ project, existing: false }` или 200 `{ project, existing: true }` |
 | `DELETE /api/projects/:id` | `{ removed, folderKept: true }` |
+| `POST /api/projects/:id/delete-folder` `{confirm}` | `{ deleted }` (папка удалена) |
 
 Ошибки — `{ error: { code, message, ...details } }`: 400 `invalid-name`,
 `invalid-path`, `outside-home`, `not-directory`, `invalid-body`; 403

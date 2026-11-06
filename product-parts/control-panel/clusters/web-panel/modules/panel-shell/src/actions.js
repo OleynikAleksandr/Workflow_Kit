@@ -96,27 +96,12 @@ export function createActions(options) {
     },
     /** @param {{ id: string, name: string }} project */
     archiveProject(project) {
-      if (!window.confirm(`Убрать проект «${project.name}» в архив?\n\nПапка останется на диске; вернуть проект можно в «Архив проектов…».`)) return;
+      if (!window.confirm(`Убрать проект «${project.name}» в архив?\n\nПапка останется на диске; вернуть проект можно в «Настройки» → «Архив».`)) return;
       void act('Не удалось убрать проект в архив', async () => {
         await api('POST', `/api/projects/${encodeURIComponent(project.id)}/archive`);
         const now = current();
         if ((now.screen === 'project' || now.screen === 'session') && now.projectId === project.id) navigate({ screen: 'home' });
         say('ok', `Проект «${project.name}» в архиве`);
-      });
-    },
-    /** @param {{ id: string, name: string }} project */
-    restoreProject(project) {
-      void act('Не удалось вернуть проект', async () => {
-        await api('POST', `/api/projects/${encodeURIComponent(project.id)}/restore`);
-        say('ok', `Проект «${project.name}» снова в списке`);
-      });
-    },
-    /** @param {{ id: string, name: string, path: string }} project */
-    forgetProject(project) {
-      if (!window.confirm(`Убрать проект «${project.name}» из Workflow Kit?\n\nПапка останется на диске:\n${project.path}`)) return;
-      void act('Не удалось убрать проект', async () => {
-        await api('DELETE', `/api/projects/${encodeURIComponent(project.id)}`);
-        say('ok', `Проект «${project.name}» убран, папка осталась на месте`);
       });
     },
     /** @param {string} projectId @param {string} provider */
@@ -143,11 +128,59 @@ export function createActions(options) {
     },
     /** @param {string} projectId @param {SessionRow} session @param {boolean} archived */
     archiveSession(projectId, session, archived) {
-      if (archived && !window.confirm(`Убрать сессию «${session.name}» в архив?\n\nВ приложении ${session.providerLabel} она останется; вернуть её можно на экране проекта.`)) return;
+      if (archived && !window.confirm(`Убрать сессию «${session.name}» в архив?\n\nВ приложении ${session.providerLabel} она останется; вернуть её можно в «Настройки» → «Архив».`)) return;
       void act(archived ? 'Не удалось убрать сессию в архив' : 'Не удалось вернуть сессию', async () => {
         await api('POST', `/api/projects/${encodeURIComponent(projectId)}/sessions/${encodeURIComponent(session.key)}/archive`, { archived });
         const now = current();
       if (archived && now.screen === 'session' && now.key === session.key) navigate({ screen: 'project', projectId });
+      });
+    },
+    // The archive screen (archive.js): bulk actions on the selected rows.
+    /** @param {Array<{ id: string, name: string }>} projects */
+    async restoreProjects(projects) {
+      await act('Не удалось вернуть проекты', async () => {
+        for (const p of projects) await api('POST', `/api/projects/${encodeURIComponent(p.id)}/restore`);
+        say('ok', projects.length === 1 ? `Проект «${projects[0]?.name}» снова в списке` : `Вернулись проекты: ${projects.length}`);
+      });
+    },
+    /** @param {Array<{ id: string, name: string }>} projects */
+    async forgetProjects(projects) {
+      const names = projects.map((p) => `«${p.name}»`).join(', ');
+      if (!window.confirm(`Убрать из списка Workflow Kit: ${names}?
+
+Папки останутся на диске.`)) return;
+      await act('Не удалось убрать проекты из списка', async () => {
+        for (const p of projects) await api('DELETE', `/api/projects/${encodeURIComponent(p.id)}`);
+        say('ok', `Убраны из списка: ${names}; папки на месте`);
+      });
+    },
+    /** @param {{ id: string, name: string }} project @param {string} confirm @returns {Promise<boolean>} */
+    async deleteProject(project, confirm) {
+      let done = false;
+      await act('Не удалось удалить проект с диска', async () => {
+        await api('POST', `/api/projects/${encodeURIComponent(project.id)}/delete-folder`, { confirm });
+        done = true;
+        say('ok', `Проект «${project.name}» удалён с диска`);
+      });
+      return done;
+    },
+    /** @param {Array<{ projectId: string, key: string, name: string }>} sessions */
+    async restoreSessions(sessions) {
+      await act('Не удалось вернуть сессии', async () => {
+        for (const s of sessions) {
+          await api('POST', `/api/projects/${encodeURIComponent(s.projectId)}/sessions/${encodeURIComponent(s.key)}/archive`, { archived: false });
+        }
+        say('ok', sessions.length === 1 ? `Сессия «${sessions[0]?.name}» снова в дереве` : `Вернулись сессии: ${sessions.length}`);
+      });
+    },
+    /** @param {Array<{ projectId: string, key: string, name: string }>} sessions */
+    async forgetSessions(sessions) {
+      if (!window.confirm(`Убрать из списка Workflow Kit сессий: ${sessions.length}?
+
+Чаты в ChatGPT и Claude останутся.`)) return;
+      await act('Не удалось убрать сессии из списка', async () => {
+        for (const s of sessions) await api('POST', `/api/projects/${encodeURIComponent(s.projectId)}/sessions/${encodeURIComponent(s.key)}/forget`);
+        say('ok', `Убраны из списка сессий: ${sessions.length}`);
       });
     },
     /** @param {SessionRow} session */

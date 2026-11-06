@@ -6,6 +6,7 @@ import type { ControlTarget, StartResult } from './control.ts';
 import { copyApp, pruneVersions, readCurrent, readSourceVersion, saveProgramPaths, servicePort, writeCurrent } from './deploy.ts';
 import type { CurrentRecord } from './deploy.ts';
 import { checkConflicts, registerAutostart, removeIntegration, writeIcon, writeLauncher } from './integrate.ts';
+import type { IconResult } from './integrate.ts';
 import { autostartEntry, entryOf, serviceLayout, versionDir } from './layout.ts';
 import type { ServiceLayout } from './layout.ts';
 import { detectPrograms } from './programs.ts';
@@ -25,6 +26,8 @@ export interface InstallReport {
   loginPath: string;
   start: StartResult;
   removedVersions: string[];
+  /** What the icon is (macOS: the app or the browser-window script) and why, when it is not the app. */
+  icon: IconResult | null;
 }
 
 /** What uninstall did. */
@@ -101,9 +104,10 @@ export async function install(deps: ResolvedDeps): Promise<InstallReport> {
     launcher: null,
     icon: null,
   };
+  let icon: IconResult | null = null;
   if (integrated) {
     await writeLauncher(deps, layout, program);
-    await writeIcon(deps, layout, program, version);
+    icon = await writeIcon(deps, layout, program, version);
     const mechanism = await registerAutostart(deps, layout, program);
     record.mechanism = mechanism;
     record.autostartEntry = autostartEntry(layout, mechanism);
@@ -125,6 +129,7 @@ export async function install(deps: ResolvedDeps): Promise<InstallReport> {
     loginPath: detected.loginPath,
     start,
     removedVersions,
+    icon,
   };
 }
 

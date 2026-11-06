@@ -5,6 +5,7 @@ import {
   filterProjects,
   formatElapsed,
   indicators,
+  ownerObjective,
   parseRoute,
   projectLists,
   projectTree,
@@ -14,6 +15,7 @@ import {
   shortPath,
   statusLine,
   themeAttribute,
+  settingsExit,
 } from '../src/view-model.js';
 
 const NOW = Date.parse('2026-11-06T08:10:00Z');
@@ -83,6 +85,17 @@ test('the tree lists active projects by name with sessions newest first, names, 
   assert.equal(second!.note, 'ссылки нет');
 });
 
+test('the owner session of the active plan without its own name is named by the plan objective', () => {
+  const st = state();
+  st['titles'] = { projects: {} };
+  st['workflow'] = { projects: { p1: { scope: { objective: 'Склад: две команды' }, execution: { ownerSession: 't1' } } } };
+  const sessions = projectTree(st, { now: NOW, collapsed: new Set() })[0]!.sessions;
+  assert.equal(sessions.find((s) => s.key === 'codex:t1')!.name, 'Склад: две команды');
+  assert.equal(sessions.find((s) => s.key === 'claude:c1')!.name, 'Проверка');
+  assert.equal(ownerObjective(st, 'p1', 'c1'), null);
+  assert.equal(ownerObjective({}, 'p1', 't1'), null);
+});
+
 test('project lists split the archive; search matches the name or the path', () => {
   const lists = projectLists(state());
   assert.deepEqual(lists.active.map((p) => p.id), ['p1', 'p2']);
@@ -120,4 +133,27 @@ test('the chat link follows the device and refuses script-like schemes', () => {
   assert.equal(deviceLink(links, 5), 'https://chatgpt.com/t1');
   assert.equal(deviceLink({ desktop: 'javascript:alert(1)', web: 'https://x' }, 0), 'https://x');
   assert.equal(deviceLink({}, 0), null);
+});
+
+test('leaving the settings returns to the screen they were opened from, else home', () => {
+  assert.deepEqual(settingsExit({ screen: 'project', projectId: 'p1' }), { screen: 'project', projectId: 'p1' });
+  assert.deepEqual(settingsExit({ screen: 'settings' }), { screen: 'home' });
+  assert.deepEqual(settingsExit(null), { screen: 'home' });
+});
+
+test('the tree shows the project of the route, else the one chosen last, while it is active', async () => {
+  const { currentProjectId } = await import('../src/selection.js');
+  assert.equal(currentProjectId({ screen: 'project', projectId: 'a' }, 'b', ['a', 'b']), 'a');
+  assert.equal(currentProjectId({ screen: 'settings' }, 'b', ['a', 'b']), 'b');
+  assert.equal(currentProjectId({ screen: 'home' }, 'gone', ['a']), null);
+  assert.equal(currentProjectId({ screen: 'session', projectId: 'archived', key: 'k' }, 'a', ['a']), 'a');
+});
+
+test('archive rows are chosen like in Workflow Pilot: click, ⌘ toggle, Shift range', async () => {
+  const { selectRows } = await import('../src/selection.js');
+  const ids = ['a', 'b', 'c', 'd'];
+  assert.deepEqual(selectRows(ids, [], null, 'b', {}), { selected: ['b'], anchor: 'b' });
+  assert.deepEqual(selectRows(ids, ['b'], 'b', 'd', { range: true }).selected, ['b', 'c', 'd']);
+  assert.deepEqual(selectRows(ids, ['b'], 'b', 'd', { toggle: true }).selected, ['b', 'd']);
+  assert.deepEqual(selectRows(ids, ['b', 'd'], 'd', 'b', { toggle: true }).selected, ['d']);
 });

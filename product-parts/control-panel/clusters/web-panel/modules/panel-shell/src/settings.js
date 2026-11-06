@@ -1,6 +1,6 @@
 // @ts-check
 // «Настройки»: appearance (theme, folder for projects) and the service cards that used to fill the
-// main screen (system, structure, providers). The screen stays in the DOM, hidden when not shown,
+// main screen (the «Архив» card, the «Система» card). The screen stays in the DOM, hidden when not shown,
 // so cards keep their state between visits.
 import { api } from './api.js';
 import { code, h, notice } from './dom.js';
@@ -30,7 +30,7 @@ export function applyTheme() {
 }
 
 /**
- * @param {{ onRootChanged: () => void }} options
+ * @param {{ onRootChanged: () => void, onClose?: () => void, onArchive?: () => void }} options
  * @returns {{ element: HTMLElement, cards: HTMLElement, render: (root: string) => void }}
  */
 export function createSettings(options) {
@@ -90,9 +90,22 @@ export function createSettings(options) {
     message,
   ]);
   const cards = h('div', { class: 'cards', id: 'cards', 'aria-live': 'polite' });
+  const openArchive = h('button', { type: 'button', class: 'btn' }, ['Архив']);
+  openArchive.addEventListener('click', () => options.onArchive?.());
+  const archiveCard = h('div', { class: 'panel' }, [
+    h('h2', {}, ['Архив']),
+    h('p', { class: 'muted' }, ['Проекты и сессии, убранные в архив: вернуть, убрать из списка или удалить проект с диска.']),
+    openArchive,
+  ]);
+  const closeButton = h('button', { type: 'button', class: 'icon close', title: 'Закрыть настройки', 'aria-label': 'Закрыть настройки' }, ['✕']);
+  closeButton.addEventListener('click', () => options.onClose?.());
   const element = h('div', { class: 'screen' }, [
-    h('div', { class: 'screen-head' }, [h('h1', {}, ['Настройки']), h('div', { class: 'sub' }, ['Служебные сведения: нужны, когда что-то пошло не так.'])]),
+    h('div', { class: 'screen-head with-close' }, [
+      h('div', {}, [h('h1', {}, ['Настройки']), h('div', { class: 'sub' }, ['Служебные сведения: нужны, когда что-то пошло не так.'])]),
+      closeButton,
+    ]),
     appearance,
+    archiveCard,
     cards,
   ]);
   return {

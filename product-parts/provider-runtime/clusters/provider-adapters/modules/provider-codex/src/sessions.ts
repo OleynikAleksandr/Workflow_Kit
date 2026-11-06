@@ -42,6 +42,14 @@ export const RELEASE_WAIT_MS = 90_000;
 /** Interval of the thread/loaded/list polls while the daemon still holds the thread. */
 export const RELEASE_POLL_MS = 2_000;
 
+/**
+ * thread/archive unloads a loaded thread at once and thread/unarchive returns it to the lists
+ * without loading it again (verified 2026-11-06 on codex-cli 0.167.0: loaded/list is empty right
+ * after archive, the rollout and the name stay). createSession uses the pair instead of waiting
+ * out the daemon's idle minute; a daemon without thread/archive falls back to the wait.
+ */
+export const UNLOAD_METHODS = ['thread/archive', 'thread/unarchive'] as const;
+
 /** Note of a session whose thread the daemon still holds (no link until it is released). */
 export const RELEASING_NOTE = 'Codex ещё держит чат (до минуты после создания): ссылка появится, когда он его отпустит.';
 
@@ -108,6 +116,30 @@ interface Releasing {
 
 const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
 
+/**
+ * Unloads an idle thread now: thread/archive, then thread/unarchive (tried twice, so the chat does
+ * not stay in ChatGPT's archive). False when the daemon refused the archive (nothing changed).
+ */
+async function unloadNow(session: RpcSession, threadId: string, log: (line: string) => void): Promise<boolean> {
+  try {
+    await session.request(UNLOAD_METHODS[0], { threadId }, UNSUBSCRIBE_TIMEOUT_MS);
+  } catch (error) {
+    log(`codex: thread ${threadId} not unloaded by thread/archive: ${error instanceof Error ? error.message : String(error)}`);
+    return false;
+  }
+  for (let attempt = 1; ; attempt += 1) {
+    try {
+      await session.request(UNLOAD_METHODS[1], { threadId }, UNSUBSCRIBE_TIMEOUT_MS);
+      log(`codex: thread ${threadId} unloaded by thread/archive and thread/unarchive`);
+      return true;
+    } catch (error) {
+      if (attempt < 2) continue;
+      log(`codex: thread ${threadId} stays archived, thread/unarchive failed: ${error instanceof Error ? error.message : String(error)}`);
+      return true;
+    }
+  }
+}
+
 /** Whether thread/loaded/list (all pages) has the thread; null when the daemon did not answer. */
 async function isLoaded(session: RpcSession, threadId: string): Promise<boolean | null> {
   let cursor: string | null = null;
@@ -169,10 +201,11 @@ export function createSessionParts(rt: CodexRuntime, options: SessionOptions = {
     if (typeof threadId !== 'string' || threadId === '') throw new ProviderError('bad-answer', 'Codex не вернул id треда', { hint: 'Обновите Codex CLI.' });
     started.id = threadId;
     releasing.set(threadId, { projectId: project.id, projectPath: project.path, title, createdAt: context.now().toISOString() });
+    let completed = false;
     try {
       await session.request('thread/name/set', { threadId, name: title });
       await session.request('turn/start', { threadId, input: [{ type: 'text', text: firstMessage ?? serviceTurnText(project.name) }] });
-      await session.waitForNotification('turn/completed', firstMessage ? firstTurnWaitMs : turnWaitMs);
+      completed = (await session.waitForNotification('turn/completed', firstMessage ? firstTurnWaitMs : turnWaitMs)) !== undefined;
     } finally {
       // While this connection stays subscribed the daemon keeps the thread loaded and ChatGPT
       // says the chat is open in another app (D1): release it before the connection closes.
@@ -182,10 +215,17 @@ export function createSessionParts(rt: CodexRuntime, options: SessionOptions = {
       );
     }
     // The daemon unloads an idle thread only about a minute after the unsubscribe; until then
-    // ChatGPT cannot open it, so the session is handed out only once the thread is unloaded.
+    // ChatGPT cannot open it, so the session is handed out only once the thread is unloaded. A
+    // finished turn lets the thread be unloaded at once (UNLOAD_METHODS); a running one is never
+    // touched, the wait covers it.
     let held: boolean | null = true;
+    let forced = !completed;
     for (let waited = 0; ; waited += releasePollMs) {
       held = await isLoaded(session, threadId);
+      if (held === true && !forced) {
+        forced = true;
+        if (await unloadNow(session, threadId, context.log)) continue;
+      }
       if (held !== true || waited >= releaseWaitMs) break;
       await sleep(releasePollMs);
     }

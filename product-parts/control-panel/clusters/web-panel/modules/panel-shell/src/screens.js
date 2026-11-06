@@ -1,6 +1,6 @@
 // @ts-check
-// Screens of the main area that are rebuilt from the state: first start, project, session and the
-// project archive. Each function returns a fresh node; app.js redraws only when its data changed.
+// Screens of the main area that are rebuilt from the state: first start, project and session.
+// Each function returns a fresh node; app.js redraws only when its data changed.
 import { code, h } from './dom.js';
 import { providerLabel } from './view-model.js';
 
@@ -15,8 +15,6 @@ import { providerLabel } from './view-model.js';
  * @property {(route: Route) => void} navigate
  * @property {(projectId: string, provider: string) => void} newSession
  * @property {(session: SessionRow) => void} openChat
- * @property {(project: { id: string, name: string }) => void} restoreProject
- * @property {(project: { id: string, name: string, path: string }) => void} forgetProject
  * @property {(projectId: string, session: SessionRow, archived: boolean) => void} archiveSession
  */
 
@@ -133,25 +131,5 @@ export function sessionHeader(data) {
 export function missingScreen(text, handlers) {
   return h('div', { class: 'screen' }, [
     h('div', { class: 'panel' }, [h('h2', {}, [text]), h('div', { class: 'row' }, [button('На главный экран', () => handlers.navigate({ screen: 'home' }))])]),
-  ]);
-}
-
-/**
- * «Архив проектов»: return to the list or remove from Workflow Kit (folders stay on disk).
- * @param {Array<{ id: string, name: string, path: string, archivedAt?: string }>} archived
- * @param {ScreenHandlers} handlers
- * @returns {HTMLElement}
- */
-export function archiveScreen(archived, handlers) {
-  const rows = archived.map((project) =>
-    h('li', { class: 'archive-row' }, [
-      h('span', { class: 'grow' }, [h('b', {}, [project.name]), h('small', {}, [project.path])]),
-      button('Вернуть', () => handlers.restoreProject(project)),
-      button('Убрать из списка', () => handlers.forgetProject(project), 'btn quiet'),
-    ]),
-  );
-  return h('div', { class: 'screen' }, [
-    header('Архив проектов', ['Проекты в архиве не видны в дереве. Папки на диске не удаляются.']),
-    h('div', { class: 'panel' }, [rows.length === 0 ? h('p', {}, ['Архив пуст.']) : h('ul', { class: 'checks' }, rows)]),
   ]);
 }

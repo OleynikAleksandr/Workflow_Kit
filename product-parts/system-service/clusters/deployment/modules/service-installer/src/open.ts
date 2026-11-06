@@ -1,5 +1,7 @@
-// wfk open (and the icon): make sure the backend answers, then open the panel in an app
-// window of Chrome or Edge (--app=), otherwise in the default browser.
+// wfk open (and the icon): make sure the backend answers, then open the panel: on macOS in the
+// Workflow Kit app when install built it, else in an app window of Chrome or Edge (--app=),
+// otherwise in the default browser. `wfk open --url-only` (what the macOS app runs) only makes
+// sure the backend answers and prints the URL.
 import { cleanEnv } from '#process-supervisor';
 import { startService } from './control.ts';
 import type { StartResult } from './control.ts';
@@ -15,7 +17,7 @@ export interface BrowserPlan {
   args: string[];
   /** Started in the background (browsers that keep running) instead of waited for. */
   detached: boolean;
-  kind: 'app-window' | 'browser';
+  kind: 'mac-app' | 'app-window' | 'browser';
 }
 
 /** Inputs of browserPlan; exists and findInPath are injected for tests. */
@@ -27,6 +29,8 @@ export interface BrowserPlanInput {
   profileDir: string;
   exists: (file: string) => boolean;
   findInPath: (name: string) => string | null;
+  /** macOS: the Workflow Kit app built by install (opened instead of a browser), if any. */
+  macApp?: string | null;
 }
 
 /** Chromium-style flags of an app window with its own profile (works while the browser runs). */
@@ -48,6 +52,7 @@ export const LINUX_APP_BROWSERS: readonly string[] = [
 export function browserPlan(input: BrowserPlanInput): BrowserPlan {
   const args = appWindowArgs(input.url, input.profileDir);
   if (input.platform === 'darwin') {
+    if (input.macApp) return { command: '/usr/bin/open', args: [input.macApp], detached: false, kind: 'mac-app' };
     const p = pathApi('darwin');
     const apps = ['Google Chrome.app', 'Microsoft Edge.app', 'Chromium.app'].flatMap((name) => [
       p.join('/Applications', name),
@@ -77,20 +82,28 @@ export function browserPlan(input: BrowserPlanInput): BrowserPlan {
   return { command: input.findInPath('xdg-open') ?? 'xdg-open', args: [input.url], detached: true, kind: 'browser' };
 }
 
+/** True when the icon is the compiled app (its Info.plist names the installed entry). */
+async function isMacApp(deps: ResolvedDeps, icon: string): Promise<boolean> {
+  const info = await deps.fs.readText(pathApi('darwin').join(icon, 'Contents', 'Info.plist'));
+  return info !== undefined && info.includes('<key>WFKEntry</key>');
+}
+
 /** Result of openPanel. */
 export interface OpenResult {
   url: string;
   start: StartResult;
-  plan: BrowserPlan;
+  /** null with urlOnly: nothing was opened. */
+  plan: BrowserPlan | null;
 }
 
 /** Starts the backend when it does not answer, waits for it and opens the panel window. */
-export async function openPanel(deps: ResolvedDeps): Promise<OpenResult> {
+export async function openPanel(deps: ResolvedDeps, options: { urlOnly?: boolean } = {}): Promise<OpenResult> {
   const layout = layoutOf(deps);
   const current = await readCurrent(deps.fs, layout);
   const port = await servicePort(deps.fs, layout, deps.env);
   const start = await startService(deps, { layout, current, port });
   const url = `http://127.0.0.1:${port}/`;
+  if (options.urlOnly) return { url, start, plan: null };
   const plan = browserPlan({
     platform: deps.platform,
     env: deps.env,
@@ -98,6 +111,7 @@ export async function openPanel(deps: ResolvedDeps): Promise<OpenResult> {
     url,
     profileDir: layout.browserProfile,
     exists: (file) => deps.fs.existsSync(file),
+    macApp: deps.platform === 'darwin' && (await isMacApp(deps, layout.icon)) ? layout.icon : null,
     findInPath: (name) => findProgram(name, envPath(deps.env), { platform: deps.platform, env: deps.env, isExecutable: (file) => deps.fs.isExecutable(file) }),
   });
   const env = cleanEnv(deps.env, { platform: deps.platform });

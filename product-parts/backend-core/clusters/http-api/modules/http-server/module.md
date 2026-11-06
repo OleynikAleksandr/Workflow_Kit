@@ -72,8 +72,8 @@ HTTP-сервер бэкенда: фильтр доступа (D8), реестр
 
 - `cli` собирает сервер: `registerCoreRoutes`, разделы `system` и
   `operations`; статика передаётся через `staticMounts` — `panel-shell` под
-  `/`, `provider-cards` под `/provider-cards/` (`addStatic` сейчас никто не
-  вызывает).
+  `/`, `project-wizard` и `session-view` под своими префиксами
+  (`addStatic` сейчас никто не вызывает).
 - `project-registry` — `GET /api/folders`, `/api/projects`,
   `/api/projects/open`, `DELETE /api/projects/:id` и раздел `projects`.
 - `kit-structure` — `/api/projects/:id/structure` и раздел `structure`.

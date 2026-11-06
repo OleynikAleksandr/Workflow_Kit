@@ -42,7 +42,8 @@ const USAGE = `Использование: wfk <команда>
 
 Команды:
   serve                         запустить бэкенд и панель
-  open                          открыть панель (запустит службу при необходимости)
+  open [--url-only]             открыть панель (запустит службу при необходимости);
+                                --url-only — только запустить службу и вывести адрес
   install | uninstall           установить или снять службу и автозапуск
   service start|stop|status     управление службой
   doctor [--installed]          проверка установки
@@ -191,7 +192,11 @@ export async function main(argv: readonly string[], deps?: Partial<CliDeps>): Pr
         request: full.requestJson,
       });
     case 'open':
-      return printServiceResult(command, full);
+      if (rest.some((arg) => arg !== '--url-only')) {
+        full.stderr('Использование: wfk open [--url-only]\n');
+        return EXIT_USAGE;
+      }
+      return printServiceResult(command, full, rest);
     case 'doctor':
       if (rest.some((arg) => arg !== '--installed')) {
         full.stderr('Использование: wfk doctor [--installed]\n');

@@ -74,11 +74,14 @@ D5) и останавливает только по своим записям (D
   `.mcp.json`, команды `statusLine`, `apiKeyHelper`, …, чужие хуки
   `.codex/hooks.json`; нечитаемый JSON — точка `invalid`) и внешние импорты
   CLAUDE.md (`imports.ts`). Если внешние импорты есть, а в записи папки нет
-  `hasClaudeMdExternalIncludesWarningShown: true`, — обязательный выбор
-  `choices: [{ id: 'external-imports', options: allow | deny, required:
-  true }]` без ответа по умолчанию и ключи `hasClaudeMdExternalIncludesApproved`
-  (по выбору) и `hasClaudeMdExternalIncludesWarningShown` (`true`) в
-  `writes`; решённый раньше выбор — заметка «решение уже записано».
+  `hasClaudeMdExternalIncludesWarningShown: true`, — в `writes` ключи
+  `hasClaudeMdExternalIncludesApproved: true` и
+  `hasClaudeMdExternalIncludesWarningShown: true`: импорты разрешаются по
+  умолчанию, вопроса нет (`choices: []`; решение пользователя 2026-11-06 —
+  настройка принадлежит приложению Claude). Явный ответ
+  `{ 'external-imports': 'deny' }` в `grantTrust` по-прежнему запрещает их;
+  другой ответ — `invalid-choice`. Решённый раньше выбор — заметка
+  «решение уже записано».
   Токен (`claude:<id проекта>`) привязан к отпечатку: содержимое файлов
   автозапуска, тексты файлов памяти и импортов, список импортов, доверие и
   решение об импортах.
@@ -98,8 +101,8 @@ D5) и останавливает только по своим записям (D
   (400); записывать нечего — `{ trusted: true, note }`. Иначе: копия
   `~/.claude.json` (`backupFile`, `<backups>/.claude.json-<hash>/`), затем
   `patchProjectEntry` (`config-writer.ts`) сливает в
-  `projects["<папка>"]` ключи `hasTrustDialogAccepted: true` и (если был
-  выбор) `hasClaudeMdExternalIncludesApproved: <allow>`,
+  `projects["<папка>"]` ключи `hasTrustDialogAccepted: true` и (если
+  импорты ждали решения) `hasClaudeMdExternalIncludesApproved: <не deny>`,
   `hasClaudeMdExternalIncludesWarningShown: true`; остальное содержимое
   файла не меняется. Запись атомарна: временный файл рядом с теми же
   правами (новый файл — 0600), JSON с отступом 2, перед `rename` файл

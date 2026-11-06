@@ -27,6 +27,7 @@ import { filterProjects, shortPath } from './view-model.js';
 /**
  * @typedef {object} SidebarHandlers
  * @property {(route: Route) => void} navigate
+ * @property {() => void} toggleSettings opens the settings, or leaves them when they are open
  * @property {(projectId: string) => void} toggleProject
  * @property {(projectIds: string[]) => void} collapseAll
  * @property {() => void} refreshSessions
@@ -81,7 +82,8 @@ export function createSidebar(handlers) {
   const version = h('small', {}, ['']);
   const gear = iconButton('Настройки', 'icon ml');
   gear.append(icon(GEAR, 20));
-  gear.addEventListener('click', () => handlers.navigate({ screen: 'settings' }));
+  gear.setAttribute('aria-pressed', 'false');
+  gear.addEventListener('click', () => handlers.toggleSettings());
   const brand = h('div', { class: 'brand' }, [h('div', { class: 'logo', 'aria-hidden': 'true' }, ['W']), h('div', {}, [h('strong', {}, ['Workflow Kit']), version]), gear]);
 
   const statusText = h('span', {}, ['']);
@@ -114,7 +116,6 @@ export function createSidebar(handlers) {
     menuAction('📂  Открыть папку проекта', () => handlers.navigate({ screen: 'new', mode: 'open' })),
     h('hr'),
     menuAction('↻  Обновить сессии', handlers.refreshSessions),
-    menuAction('Архив проектов…', () => handlers.navigate({ screen: 'archive' })),
   ]);
   menu.hidden = true;
 
@@ -254,6 +255,10 @@ export function createSidebar(handlers) {
     render(model) {
       last = model;
       version.textContent = model.version;
+      const inSettings = model.route?.screen === 'settings';
+      gear.setAttribute('aria-pressed', String(inSettings));
+      gear.title = inSettings ? 'Закрыть настройки' : 'Настройки';
+      gear.setAttribute('aria-label', gear.title);
       status.hidden = !model.status;
       statusText.textContent = model.status?.text ?? '';
       statusTime.textContent = model.status?.elapsed ?? '';
@@ -262,7 +267,9 @@ export function createSidebar(handlers) {
         treeKey = key;
         closeMenu();
         tree.replaceChildren(
-          ...(model.tree.length === 0 ? [h('div', { class: 'tree-empty' }, ['Проектов пока нет'])] : model.tree.flatMap((p) => projectNodes(p, model.route))),
+          ...(model.tree.length === 0
+            ? [h('div', { class: 'tree-empty' }, [model.projects.length > 0 ? 'Выберите проект в «Ваши проекты»' : 'Проектов пока нет'])]
+            : model.tree.flatMap((p) => projectNodes(p, model.route))),
         );
       }
       if (!menu.hidden) renderMenuList();

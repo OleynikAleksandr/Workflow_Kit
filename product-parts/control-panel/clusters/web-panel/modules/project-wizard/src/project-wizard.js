@@ -176,12 +176,43 @@ function createWizard(shell, ctx) {
         return node;
       })),
       ...reasons.map((r) => h('p', { class: 'wizard-reason' }, [r])),
+      ...providerActions(buttons),
       h('p', {}, ['Проект будет создан, и сразу откроется чат. Модель выбирается внутри приложения. Больше вопросов не будет.']),
       button('Назад', () => {
         stage = 'name';
         draw();
       }, 'text-btn'),
     ].filter((n) => n !== null));
+  }
+
+  /**
+   * Actions of the providers whose button is off because the provider is not ready (for example
+   * «Запустить демон» of Codex): the settings have no provider cards any more.
+   * @param {Array<{ provider: string, enabled: boolean }>} buttons
+   */
+  function providerActions(buttons) {
+    const summaries = /** @type {any[]} */ (Array.isArray(/** @type {any} */ (state['providers'])?.providers) ? /** @type {any} */ (state['providers']).providers : []);
+    const off = new Set(buttons.filter((b) => !b.enabled).map((b) => b.provider));
+    return summaries
+      .filter((p) => off.has(p?.id) && Array.isArray(p.actions))
+      .flatMap((p) => p.actions.filter((/** @type {any} */ a) => a?.scope === 'provider' && a.enabled).map((/** @type {any} */ a) =>
+        button(`${p.title ?? p.id}: ${a.title}`, () => void runProviderAction(String(p.id), a), 'btn primary')));
+  }
+
+  /** @param {string} provider @param {{ id: string, title: string, confirm?: string }} action */
+  async function runProviderAction(provider, action) {
+    if (action.confirm && !window.confirm(action.confirm)) return;
+    try {
+      notice(message, 'muted', `${action.title}…`);
+      await shell.api('POST', `/api/providers/${encodeURIComponent(provider)}/actions/${encodeURIComponent(action.id)}`);
+      ctx.requestRefresh();
+      // The preview tells whether the provider is ready now.
+      setTimeout(() => {
+        if (request && stage === 'preview') void loadPreview(request).then(() => notice(message, 'muted', ''));
+      }, 3000);
+    } catch (error) {
+      fail(error);
+    }
   }
 
   /** @param {Record<string, any>} run */
@@ -198,19 +229,15 @@ function createWizard(shell, ctx) {
     if (!run) return h('div', { class: 'panel' }, [h('h2', {}, ['Готовим проект']), h('ul', { class: 'checks' }, [h('li', {}, [h('span', { class: 'spin' }), 'Запускаем подготовку…'])])]);
     const view = runView(run);
     const provider = run['provider'] === 'claude' ? 'Claude' : 'ChatGPT';
+    // The chat opens by itself in the app and the panel goes to the session screen as soon as the
+    // session is listed: no «Открыть чат» / «Перейти к сессии» (user decision 2026-11-06).
     if (view.status === 'succeeded' && !opened) {
       opened = true;
-      if (!openChat(run)) notice(message, 'muted', 'Браузер не открыл чат сам: нажмите «Открыть чат».');
+      openChat(run);
+      if (view.projectId) ctx.selectProject(view.projectId);
     }
     const actions = [];
     if (view.canCancel) actions.push(button('Отменить подготовку', () => void cancel()));
-    if (view.status === 'succeeded') {
-      actions.push(button('Открыть чат', () => openChat(run), 'btn primary'));
-      if (view.projectId && view.sessionKey) {
-        const target = { screen: /** @type {const} */ ('session'), projectId: view.projectId, key: view.sessionKey };
-        actions.push(button('Перейти к сессии', () => ctx.navigate(target)));
-      }
-    }
     if (view.status === 'failed' || view.status === 'cancelled') {
       actions.push(button('Повторить', () => request && void loadPreview(request), 'btn primary'));
       actions.push(button('Закрыть', () => ctx.navigate(view.projectId ? { screen: 'project', projectId: view.projectId } : { screen: 'home' })));

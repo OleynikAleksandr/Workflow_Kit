@@ -176,3 +176,24 @@ test('a permission error (macOS TCC) becomes access-denied with a hint', async (
   const registry = createProjectRegistry(options({ fs, platform: 'darwin', file: path.join(tmp, 'tcc.json') }));
   assert.equal(await code(registry.open(denied)), 'access-denied');
 });
+
+test('deleteFolder removes an archived project and its folder after the exact name, never home or the root', async () => {
+  const registry = createProjectRegistry(options());
+  const doomed = await registry.create('Doomed');
+  await writeFile(path.join(doomed.path, 'notes.md'), 'x');
+  assert.equal(await code(registry.deleteFolder(doomed.id, 'Doomed')), 'not-archived');
+  await registry.archive(doomed.id);
+  assert.equal(await code(registry.deleteFolder(doomed.id, 'doomed')), 'confirm-mismatch');
+  registry.addRemoveGuard((p) => (p.id === doomed.id ? ['сессия Claude abc'] : []));
+  assert.equal(await code(registry.deleteFolder(doomed.id, 'Doomed')), 'busy');
+  const fresh = createProjectRegistry(options());
+  assert.equal((await fresh.deleteFolder(doomed.id, 'Doomed')).id, doomed.id);
+  await assert.rejects(stat(doomed.path), 'the folder is gone');
+  assert.ok(!(await fresh.list()).some((p) => p.id === doomed.id));
+
+  const rootProject = (await fresh.open(fresh.root)).project;
+  await fresh.archive(rootProject.id);
+  assert.equal(await code(fresh.deleteFolder(rootProject.id, rootProject.name)), 'invalid-path');
+  assert.ok((await stat(fresh.root)).isDirectory(), 'the projects root stays');
+  await fresh.remove(rootProject.id);
+});

@@ -75,11 +75,32 @@ test('a failed thread/unsubscribe is logged and does not break session creation'
   assert.ok(log.some((line) => line.startsWith('codex: thread/unsubscribe thread-stuck failed:') && line.includes('boom')), log.join('\n'));
   const saved = JSON.parse(await readFile(providerSessionsFile(machine.dirs, 'codex'), 'utf8')) as { sessions: Array<{ threadId: string }> };
   assert.ok(saved.sessions.some((s) => s.threadId === 'thread-stuck'));
-  assert.deepEqual(await loadedThreads(daemon), ['thread-stuck'], 'the daemon still holds it: only the log tells');
+  assert.deepEqual(await loadedThreads(daemon), [], 'thread/archive unloads it all the same');
+  assert.ok(daemon.calls.some((c) => c.method === 'thread/archive'));
+});
+
+test('a held thread is unloaded at once by thread/archive and thread/unarchive after the turn', async () => {
+  const started = Date.now();
+  const { daemon, log, threadId, note } = await create({ threadId: 'thread-fast', idleUnloadPolls: 1_000 }, 'Release · 6', { releaseWaitMs: 60_000 });
+  assert.equal(note, undefined);
+  assert.ok(Date.now() - started < 5_000, 'no idle minute');
+  assert.ok(!daemon.loaded.has(threadId));
+  assert.ok(!daemon.archived.has(threadId), 'the chat is back in the lists');
+  const methods = daemon.calls.map((c) => c.method).filter((m) => m.startsWith('thread/'));
+  assert.deepEqual(methods.slice(-5), ['thread/unsubscribe', 'thread/loaded/list', 'thread/archive', 'thread/unarchive', 'thread/loaded/list']);
+  assert.ok(log.includes('codex: thread thread-fast unloaded by thread/archive and thread/unarchive'), log.join('\n'));
+  assert.ok(log.includes('codex: thread thread-fast released by the daemon'), log.join('\n'));
+});
+
+test('a turn that did not finish is never archived: only the wait releases the thread', async () => {
+  const { daemon, note } = await create({ threadId: 'thread-busy', silentTurn: true, idleUnloadPolls: 1_000 }, 'Release · 7', { releaseWaitMs: 50 });
+  assert.equal(note, HELD_NOTE);
+  assert.ok(!daemon.calls.some((c) => c.method === 'thread/archive'));
 });
 
 test('createSession waits until the daemon unloads the idle thread; meanwhile the session has no link', async () => {
-  const daemon = await machine.daemon({ threadId: 'thread-idle', idleUnloadPolls: 5 });
+  // A daemon without thread/archive: the provider falls back to the idle wait.
+  const daemon = await machine.daemon({ threadId: 'thread-idle', idleUnloadPolls: 5, archiveError: 'unknown method' });
   const log: string[] = [];
   const provider = createCodexProvider(machine.context({ log: (line: string) => log.push(line) }), { serviceTurnWaitMs: 100, daemonTtlMs: 0, releasePollMs: 20 });
   await provider.refresh!();
@@ -100,10 +121,11 @@ test('createSession waits until the daemon unloads the idle thread; meanwhile th
 });
 
 test('a thread still held when the wait ends gives the session with a note, not an error', async () => {
-  const { daemon, log, note } = await create({ threadId: 'thread-long', idleUnloadPolls: 1_000 }, 'Release · 5', { releaseWaitMs: 50 });
+  const { daemon, log, note } = await create({ threadId: 'thread-long', idleUnloadPolls: 1_000, archiveError: 'unknown method' }, 'Release · 5', { releaseWaitMs: 50 });
   assert.equal(note, HELD_NOTE);
   assert.ok(daemon.loaded.has('thread-long'));
   assert.ok(log.some((line) => line.startsWith('codex: thread thread-long still held by the daemon after')), log.join('\n'));
+  assert.ok(log.some((line) => line.startsWith('codex: thread thread-long not unloaded by thread/archive:')), log.join('\n'));
 });
 
 test('renameSession sets the name only while the daemon has the thread loaded', async () => {

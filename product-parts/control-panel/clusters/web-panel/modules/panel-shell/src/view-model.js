@@ -47,6 +47,15 @@ export function parseRoute(hash) {
 }
 
 /**
+ * Where leaving the settings goes: the screen the user came from, else home.
+ * @param {Route | null | undefined} before
+ * @returns {Route}
+ */
+export function settingsExit(before) {
+  return before && before.screen !== 'settings' ? before : { screen: 'home' };
+}
+
+/**
  * The hash of a route (inverse of parseRoute).
  * @param {Route} route
  * @returns {string}
@@ -204,6 +213,21 @@ export function filterProjects(projects, query) {
  */
 
 /**
+ * The plan objective when the session owns the project's active scope (spec section 11: the
+ * name after the manual one and the agent's topic); null otherwise.
+ * @param {Record<string, unknown>} state
+ * @param {string} projectId
+ * @param {unknown} localId
+ * @returns {string | null}
+ */
+export function ownerObjective(state, projectId, localId) {
+  const view = record(record(record(state['workflow'])['projects'])[projectId]);
+  const objective = record(view['scope'])['objective'];
+  const owner = record(view['execution'])['ownerSession'];
+  return typeof objective === 'string' && objective !== '' && typeof owner === 'string' && owner === localId ? objective : null;
+}
+
+/**
  * The tree "project → sessions" of the sidebar.
  * @param {Record<string, unknown>} state
  * @param {{ now: number, collapsed: ReadonlySet<string> }} ui
@@ -225,9 +249,11 @@ export function projectTree(state, ui) {
         const key = sessionKey(info);
         if (!key) continue;
         const title = record(record(titles[project.id])[key]);
+        // «Убрать из списка» in the archive: the session is gone from Workflow Kit for good.
+        if (title['forgottenAt']) continue;
         const act = activity.get(key);
         const created = Date.parse(info.createdAt);
-        const name = typeof title['name'] === 'string' && title['source'] !== 'default' ? title['name'] : info.title || DEFAULT_SESSION_NAME;
+        const name = typeof title['name'] === 'string' && title['source'] !== 'default' ? title['name'] : ownerObjective(state, project.id, info.localId) || info.title || DEFAULT_SESSION_NAME;
         (title['archivedAt'] ? archived : sessions).push({
           key,
           provider: info.provider,

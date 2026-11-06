@@ -20,7 +20,6 @@ import { createKitRunner, createWorkflowState } from '#kit-runner';
 import type { KitRunner, WorkflowState } from '#kit-runner';
 import { registerStructureRoutes } from '#kit-structure';
 import { panelShellMount } from '#panel-shell';
-import { providerCardsMount } from '#provider-cards';
 import { projectWizardMount } from '#project-wizard';
 import { sessionViewMount } from '#session-view';
 import { createProcessSupervisor, processesFile, runCommand } from '#process-supervisor';
@@ -143,7 +142,7 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
 
   const router = createRouter();
   const state = createStateRegistry();
-  const server = createHttpServer({ router, staticMounts: [panelShellMount(), providerCardsMount(), projectWizardMount(), sessionViewMount()], getInterfaces, log: options.log });
+  const server = createHttpServer({ router, staticMounts: [panelShellMount(), projectWizardMount(), sessionViewMount()], getInterfaces, log: options.log });
   const events = createEventLog({ file: eventsFile(dirs) });
   const mutex = createKeyedMutex();
   const homeScope = { homedir, platform };
@@ -268,6 +267,15 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
     listProjects: async () => (await projects.list()).map((project) => ({ id: project.id, path: project.path })),
     resolveProject: resolveFolderProject,
     sessions: () => channel.list(),
+    listed: async (id) => {
+      const project = await projects.get(id);
+      const keys = new Set<string>();
+      if (!project) return keys;
+      for (const provider of providers.list()) {
+        for (const info of await provider.listSessions(project).catch(() => [])) keys.add(`${info.provider}:${info.localId}`);
+      }
+      return keys;
+    },
     scope: (id) => {
       const view = workflow.get(id);
       return view?.scope ? { objective: view.scope.objective, ownerSession: view.execution?.ownerSession ?? null } : null;

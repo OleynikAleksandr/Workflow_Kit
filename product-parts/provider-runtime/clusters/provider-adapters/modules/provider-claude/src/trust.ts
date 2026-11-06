@@ -65,11 +65,20 @@ function importsChoice(imports: ImportScan): TrustChoice {
       { id: IMPORTS_ALLOW, title: 'Разрешить внешние импорты', description: 'Claude загрузит эти файлы в контекст каждой сессии папки.' },
       { id: IMPORTS_DENY, title: 'Запретить внешние импорты', description: 'Claude не будет загружать файлы вне папки проекта.' },
     ],
-    required: true,
+    required: false,
   };
 }
 
-function choicesOf(current: Situation): TrustChoice[] {
+/**
+ * Choices the preview shows: none. External imports are allowed by default (decision of the
+ * user, 2026-11-06: the setting belongs to the Claude app); the panel asks nothing.
+ */
+function choicesOf(_current: Situation): TrustChoice[] {
+  return [];
+}
+
+/** Answers grantTrust accepts: an explicit "deny" of the imports through the API still works. */
+function acceptedChoices(current: Situation): TrustChoice[] {
   return current.importsPending ? [importsChoice(current.imports)] : [];
 }
 
@@ -78,7 +87,7 @@ function writesOf(current: Situation, file: string, project: Project): TrustWrit
   const writes: TrustWrite[] = [];
   if (current.trust.trusted !== true) writes.push({ file, key: key(TRUST_KEY), value: true, description: 'доверие к папке: Remote Control проверяет именно этот ключ' });
   if (current.importsPending) {
-    writes.push({ file, key: key(IMPORTS_APPROVED_KEY), description: 'true или false — по вашему выбору о внешних импортах' });
+    writes.push({ file, key: key(IMPORTS_APPROVED_KEY), value: true, description: 'внешние импорты CLAUDE.md разрешены (по умолчанию; меняется в настройках Claude)' });
     writes.push({ file, key: key(IMPORTS_SHOWN_KEY), value: true, description: 'вопрос о внешних импортах решён: Claude не покажет диалог' });
   }
   return writes;
@@ -150,11 +159,11 @@ export async function grantTrust(rt: ClaudeRuntime, tokens: TokenStore, project:
   }
   const file = rt.claudeConfig.file;
   if (current.snapshot.error) throw new ProviderError('config-broken', `${file}: ${current.snapshot.error}`, { hint: 'Kit не пишет в битый файл: исправьте его вручную.' });
-  checkChoices(choicesOf(current), choices);
+  checkChoices(acceptedChoices(current), choices);
   const patch: Record<string, boolean> = {};
   if (current.trust.trusted !== true) patch[TRUST_KEY] = true;
   if (current.importsPending) {
-    patch[IMPORTS_APPROVED_KEY] = choices[IMPORTS_CHOICE] === IMPORTS_ALLOW;
+    patch[IMPORTS_APPROVED_KEY] = choices[IMPORTS_CHOICE] !== IMPORTS_DENY;
     patch[IMPORTS_SHOWN_KEY] = true;
   }
   if (Object.keys(patch).length === 0) return { trusted: true, note: 'папка уже доверена' };

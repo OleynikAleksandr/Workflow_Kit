@@ -1,5 +1,6 @@
 // wfk session title "<text>": the agent names its session once it understands the task (spec
-// section 11). The service finds the project by the folder and the session by its running turn.
+// section 11). The service finds the project by the folder and the session by the agent's id
+// from the environment, else by its running turn.
 import os from 'node:os';
 import { requestJson, serviceUrl } from './hook-service.ts';
 import type { RequestJson } from './hook-service.ts';
@@ -16,6 +17,18 @@ export interface SessionCommandDeps {
   request?: RequestJson;
 }
 
+/**
+ * The session that runs the command: Codex puts its thread id into CODEX_THREAD_ID and Claude
+ * Code its session id into CLAUDE_CODE_SESSION_ID for every command of the agent.
+ */
+export function callingSession(env: Readonly<Record<string, string | undefined>>): { client?: string; sessionId?: string } {
+  const codex = env['CODEX_THREAD_ID'];
+  if (codex) return { client: 'codex', sessionId: codex };
+  const claude = env['CLAUDE_CODE_SESSION_ID'];
+  if (claude) return { client: 'claude', sessionId: claude };
+  return {};
+}
+
 /** Runs `wfk session …`; 0 on success, 1 on a refusal, 64 on bad usage. */
 export async function runSessionCommand(args: readonly string[], deps: SessionCommandDeps): Promise<number> {
   const [sub, ...rest] = args;
@@ -28,7 +41,7 @@ export async function runSessionCommand(args: readonly string[], deps: SessionCo
     const base = await serviceUrl(deps.env, deps.homedir ?? os.homedir(), deps.platform ?? process.platform);
     const reply = await (deps.request ?? requestJson)(
       `${base}/api/sessions/title`,
-      { title, cwd: deps.cwd, projectDir: deps.env['CLAUDE_PROJECT_DIR'] ?? null },
+      { title, cwd: deps.cwd, projectDir: deps.env['CLAUDE_PROJECT_DIR'] ?? null, ...callingSession(deps.env) },
       10_000,
     );
     const body = (reply.body ?? {}) as { title?: { name?: string }; message?: string; error?: { message?: string } };

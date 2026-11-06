@@ -143,8 +143,17 @@ export async function readHookSessions(
     if (cache.size > CACHE_LIMIT) cache.delete(cache.keys().next().value!);
   }
   return entry.sessions
-    .filter((s) => s.client === client && (options.includeService || s.service === null))
+    .filter((s) => s.client === client && (options.includeService || s.service === null) && !isHelperFork(s))
     .map((s) => ({ ...s, sources: [...s.sources] }));
+}
+
+/**
+ * A hidden helper thread: Codex Desktop forks a thread it did not create when it opens it
+ * (verified 2026-11-06: SessionStart with source "fork", no transcript_path, one short turn, not
+ * shown in ChatGPT). It is not a session of the user, so lists leave it out.
+ */
+export function isHelperFork(session: Pick<HookSession, 'sources' | 'transcriptPath'>): boolean {
+  return session.transcriptPath === null && session.sources.length > 0 && session.sources.every((s) => s === 'fork');
 }
 
 /** Drops cached journals (POST /api/refresh). */

@@ -16,7 +16,11 @@ test('the panel files live in the module src directory', async () => {
     'system-card.js',
     'new-project.js',
     'folder-picker.js',
-    'structure-card.js',
+    'archive.js',
+    'selection.js',
+    'press.js',
+    'buttons.css',
+    'archive.css',
     'view-model.js',
     'sidebar.js',
     'menus.js',
@@ -104,16 +108,15 @@ test('the new project screen is loaded and text inputs disable iPad autocapitali
   assert.match(picker, /error\.hint/);
 });
 
-test('the structure card is loaded and installs through POST /api/projects/:id/structure', async () => {
+test('the settings have no structure or provider cards; the archive and the press feedback are loaded', async () => {
   const app = await readFile(path.join(PANEL_ASSETS_DIR, 'app.js'), 'utf8');
-  assert.match(app, /import '\.\/structure-card\.js';/);
-  const card = await readFile(path.join(PANEL_ASSETS_DIR, 'structure-card.js'), 'utf8');
-  assert.match(card, /\/structure`/);
-  assert.match(card, /state\['structure'\]/);
-  for (const label of ["label: 'ok'", "label: 'нет'", "label: 'modified'", "label: 'outdated'", "label: 'newer'", "'Установить'"]) {
-    assert.ok(card.includes(label), label);
-  }
-  assert.doesNotMatch(card, /innerHTML/);
+  assert.doesNotMatch(app, /structure-card|provider-cards/);
+  assert.match(app, /createArchiveScreen\(/);
+  assert.match(app, /installPressFeedback\(\);/);
+  const html = await readFile(path.join(PANEL_ASSETS_DIR, 'index.html'), 'utf8');
+  for (const css of ['buttons.css', 'archive.css']) assert.ok(html.includes(`href="${css}"`), css);
+  const buttons = await readFile(path.join(PANEL_ASSETS_DIR, 'buttons.css'), 'utf8');
+  for (const rule of ['.btn:hover:not(:disabled)', 'button.is-pressed', '.just-pressed', '@keyframes wfk-press-ring']) assert.ok(buttons.includes(rule), rule);
 });
 
 test('the System card shows the service from service-installer: instance, autostart, launcher, icon, programs', async () => {
@@ -165,7 +168,7 @@ test('card groups expand into one card per item, sorted by order with the plain 
 test('app.js loads panel extensions with the shell helpers and keeps card sections in order', async () => {
   const app = await readFile(path.join(PANEL_ASSETS_DIR, 'app.js'), 'utf8');
   assert.match(app, /export const PANEL_EXTENSIONS = \[/);
-  for (const url of ['/provider-cards/provider-cards.js', '/project-wizard/project-wizard.js', '/session-view/session-view.js']) assert.ok(app.includes(`'${url}'`), url);
+  for (const url of ['/project-wizard/project-wizard.js', '/session-view/session-view.js']) assert.ok(app.includes(`'${url}'`), url);
   assert.match(app, /registerSlot,/);
   assert.match(app, /extension\.install\(shell\)/);
   assert.match(app, /renderCards\(settings\.cards, state\)/);

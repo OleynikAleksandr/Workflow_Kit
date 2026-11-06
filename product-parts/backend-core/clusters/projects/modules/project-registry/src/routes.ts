@@ -28,7 +28,8 @@ function field(body: unknown, name: string): unknown {
  * Registers the project routes and the "projects" state section:
  * GET /api/folders?path=&hidden=1, GET /api/projects, POST /api/projects {name},
  * POST /api/projects/open {path}, POST /api/projects/:id/archive|restore,
- * POST /api/settings/projects-root {path}, DELETE /api/projects/:id (list only, the folder stays).
+ * POST /api/settings/projects-root {path}, DELETE /api/projects/:id (list only, the folder stays),
+ * POST /api/projects/:id/delete-folder {confirm} (an archived project and its folder).
  */
 export function registerProjectRoutes(router: Router, state: StateRegistry, registry: ProjectRegistry, scope: HomeScope): void {
   router.get('/api/folders', (ctx) =>
@@ -47,6 +48,9 @@ export function registerProjectRoutes(router: Router, state: StateRegistry, regi
   router.post('/api/projects/:id/archive', (ctx) => guarded(async () => ({ project: await registry.archive(ctx.params['id'] ?? '') })));
   router.post('/api/projects/:id/restore', (ctx) => guarded(async () => ({ project: await registry.restore(ctx.params['id'] ?? '') })));
   router.post('/api/settings/projects-root', (ctx) => guarded(async () => ({ root: await registry.setRoot(field(ctx.body, 'path')) })));
+  router.post('/api/projects/:id/delete-folder', (ctx) =>
+    guarded(async () => ({ deleted: await registry.deleteFolder(ctx.params['id'] ?? '', field(ctx.body, 'confirm')) })),
+  );
   router.delete('/api/projects/:id', (ctx) =>
     guarded(async () => ({ removed: await registry.remove(ctx.params['id'] ?? ''), folderKept: true })),
   );

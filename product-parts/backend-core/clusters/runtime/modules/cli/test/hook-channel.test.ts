@@ -127,3 +127,18 @@ test('wfk session title names the session whose turn is running', async () => {
   assert.equal(app.titles.name(project.id, 'codex:title-1').name, 'Анализ остатков');
   assert.equal((await run(['session', 'title'])).code, 64);
 });
+
+test('wfk session title names the calling session by CODEX_THREAD_ID even when other turns run', async () => {
+  let err = '';
+  await hook('prompt', { session_id: 'thread-a', cwd: folder, hook_event_name: 'UserPromptSubmit', prompt: 'задача' });
+  await hook('prompt', { session_id: 'helper-fork', cwd: folder, hook_event_name: 'UserPromptSubmit', prompt: 'служебный ход' });
+  const code = await main(['session', 'title', 'Склад:', 'анализ', 'остатков'], {
+    stdout: () => undefined,
+    stderr: (t) => (err += t),
+    app: { env: { ...env, CODEX_THREAD_ID: 'thread-a' }, homedir: tmp },
+    cwd: folder,
+  });
+  assert.equal(code, 0, err);
+  const project = (await app.projects.list())[0]!;
+  assert.equal(app.titles.name(project.id, 'codex:thread-a').name, 'Склад: анализ остатков');
+});

@@ -46,18 +46,13 @@ test('a trusted parent folder is a separate mark: Remote Control still needs the
   await assert.rejects(h.provider.createSession(alpha, { title: 'x' }), code('not-trusted'));
 });
 
-test('preview: imports of ~/CLAUDE.md need an answer; grant writes trust and the answer atomically', { skip }, async () => {
+test('preview: imports of ~/CLAUDE.md are allowed without a question; an explicit deny still works', { skip }, async () => {
   const { provider } = h;
   const preview = await provider.previewTrust(alpha);
   assert.equal(preview.trusted, false);
   assert.deepEqual(preview.inherited, { from: h.home, note: INHERITED_NOTE });
-  const choice = preview.choices?.[0];
-  assert.equal(preview.choices?.length, 1);
-  assert.equal(choice?.id, IMPORTS);
-  assert.equal(choice?.required, true);
-  assert.deepEqual(choice?.options.map((o) => o.id), ['allow', 'deny']);
-  assert.ok(choice?.description.includes(`${path.join(h.home, 'AGENTS.md')} (из ${path.join(h.home, 'CLAUDE.md')})`));
-  assert.ok(!choice?.description.includes('ignored'), 'imports inside code are not imports');
+  assert.deepEqual(preview.choices, [], 'the panel asks nothing');
+  assert.equal(preview.writes.find((w) => w.key?.endsWith('hasClaudeMdExternalIncludesApproved'))?.value, true);
   assert.deepEqual(preview.writes.map((w) => w.key?.replace(`projects["${alpha.path}"].`, '')), [
     'hasTrustDialogAccepted',
     'hasClaudeMdExternalIncludesApproved',
@@ -65,7 +60,6 @@ test('preview: imports of ~/CLAUDE.md need an answer; grant writes trust and the
   ]);
 
   await assert.rejects(provider.grantTrust(alpha, 'wrong', {}), code('invalid-token'));
-  await assert.rejects(provider.grantTrust(alpha, preview.token, {}), code('choice-required'));
   await assert.rejects(provider.grantTrust(alpha, (await provider.previewTrust(alpha)).token, { [IMPORTS]: 'maybe' }), code('invalid-choice'));
   const stale = await provider.previewTrust(alpha);
   await appendFile(path.join(h.home, 'CLAUDE.md'), '\n');
@@ -112,7 +106,8 @@ test('createSession stops at the external-imports dialog without a key; the prev
   const preview = await provider.previewTrust(beta);
   assert.equal(preview.trusted, true);
   assert.equal(preview.writes.length, 2);
-  const granted = await provider.grantTrust(beta, preview.token, { [IMPORTS]: 'allow' });
+  // No answer: the imports are allowed by default.
+  const granted = await provider.grantTrust(beta, preview.token, {});
   assert.match(granted.note ?? '', /разрешены/);
   assert.deepEqual((await h.readConfig()).projects[beta.path], {
     hasTrustDialogAccepted: true,

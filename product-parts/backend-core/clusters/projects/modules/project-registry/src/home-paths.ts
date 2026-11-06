@@ -1,5 +1,5 @@
 import type { Dirent, Stats } from 'node:fs';
-import { mkdir, readdir, realpath, stat } from 'node:fs/promises';
+import { mkdir, readdir, realpath, rm, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { ProjectError, fsError } from './errors.ts';
 
@@ -9,6 +9,8 @@ export interface RegistryFs {
   stat(target: string): Promise<Stats>;
   readdir(target: string): Promise<Dirent[]>;
   mkdir(target: string, options: { recursive: boolean }): Promise<unknown>;
+  /** Removes a folder with its contents (deleteFolder of an archived project). */
+  rm(target: string): Promise<void>;
 }
 
 /** Default file system calls (node:fs/promises). */
@@ -17,6 +19,7 @@ export const nodeFs: RegistryFs = {
   stat: (target) => stat(target),
   readdir: (target) => readdir(target, { withFileTypes: true }),
   mkdir: (target, options) => mkdir(target, options),
+  rm: (target) => rm(target, { recursive: true, force: true }),
 };
 
 /** Where projects may live: the home folder of the user, checked by realpath. */

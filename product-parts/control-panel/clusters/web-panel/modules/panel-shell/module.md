@@ -7,7 +7,8 @@
 Каркас веб-панели по согласованному макету (`docs/design/ui-mockup.html`,
 спецификация вехи 2, раздел 6): боковая панель и экран справа, маршруты в
 `location.hash`, опрос `GET /api/state` раз в 3 с, реестр служебных
-карточек и сами карточки «Система» и «Структура Kit» (в «Настройках»),
+карточек и карточка «Система» (в «Настройках»; карточек «Структура Kit» и
+провайдеров нет с 2026-11-06 — решение пользователя), архив,
 экран «Домой» iPad. Файлы панели — статические ES-модули без сборки (D3),
 лежат в `src/` и отдаются сервером в корне сайта.
 
@@ -29,31 +30,53 @@
   другом. Отступы учитывают safe-area (вырез, полоска «Домой» iPad). На
   сенсорных экранах кнопки и поля не ниже 44 px, шрифт поля 16 px (iPad не
   масштабирует страницу).
-- Боковая панель: логотип, версия, шестерёнка («Настройки»); строка
+- Боковая панель: логотип, версия, шестерёнка («Настройки»; на экране
+  «Настройки» она нажата и выводит из них, как и кнопка «✕» в шапке
+  «Настроек», — на экран, с которого их открыли, иначе на главный:
+  `settingsExit(before)` в `view-model.js`); строка
   подготовки (спиннер и таймер идущего мастера из раздела `setup`); меню
   «Ваши проекты» (поиск по имени и пути, список с «В архив», «Создать
   проект», «Открыть папку проекта», «Обновить сессии» — `POST
-  /api/refresh`, «Архив проектов…»); «Свернуть все»; дерево; «Ревью плана»
+  /api/refresh`); стрелка у «Ваши проекты» смотрит вверх, пока меню
+  открыто; «Свернуть все»; дерево; «Ревью плана»
   выбранной сессии (слот `sessionReview`); индикаторы связи (служба,
   ChatGPT, Claude — по `status.state` провайдера, iPad · Tailscale — есть
   ли адрес Tailscale).
-- Дерево: проект — имя, число сессий (или «папка не найдена»), свёртка
+- Дерево показывает только выбранный проект: проект маршрута, иначе
+  выбранный последним (`wfk.current-project` на устройстве; мастер
+  выбирает новый проект — `SlotContext.selectProject`), если он среди
+  активных (`currentProjectId` в `selection.js`); остальные — в меню
+  «Ваши проекты»; без выбранного — «Выберите проект в «Ваши проекты»».
+  Проект — имя, число сессий (или «папка не найдена»), свёртка
   (на устройстве, `wfk.tree.collapsed`), «⋯»: новая сессия ChatGPT /
   Claude, скопировать путь, в архив. Сессия — имя (из раздела `titles`, иначе
-  имя провайдера, иначе «Новая сессия»), время, «новая» (до часа после
+  цель плана у сессии-владельца, иначе имя провайдера, иначе «Новая сессия»), время, «новая» (до часа после
   создания, пока агент не закончил ход), метка ChatGPT / Claude, спиннер,
   пока агент работает (раздел `channel`, `working`); «⋯»: открыть чат,
   переименовать (`POST …/sessions/:key/title`), в архив (`POST
-  …/sessions/:key/archive`; сессии в архиве — на экране проекта с
-  «Вернуть»).
+  …/sessions/:key/archive`; сессии в архиве — в «Архиве» и на экране
+  проекта с «Вернуть»). Сессии с `forgottenAt` (раздел `titles`, «Убрать
+  из списка» в архиве) нигде не показываются.
 - Экраны: первый запуск и «выберите проект»; новый проект и «Открыть папку
   проекта» (слот `newProject` — мастер `project-wizard`; без него — простая
   форма `new-project.js`); проект (сессии, кнопки новой сессии, сессии в
   архиве); сессия (заголовок, проект, провайдер, время, «Открыть чат» по
   ссылке устройства; тело — слот `sessionBody`, модуль `session-view`;
-  узел тела постоянный, введённый текст переживает опрос); архив проектов (вернуть, убрать из
-  списка — папки остаются); «Настройки» (внешний вид, папка для проектов —
-  `POST /api/settings/projects-root`, и служебные карточки).
+  узел тела постоянный, введённый текст переживает опрос); «Настройки»
+  (внешний вид, папка для проектов — `POST /api/settings/projects-root`,
+  карточка «Архив» с одной кнопкой, служебная карточка «Система»);
+  «Архив» (`#/archive`, `archive.js`, по образцу Workflow Pilot): проекты и
+  сессии в двух колонках; щелчок выбирает строку, ⌘/Ctrl — добавляет,
+  Shift — диапазон (`selectRows`); проекты — «Вернуть в активные»
+  (`POST …/restore`), «Убрать из списка» (`DELETE /api/projects/:id`,
+  папка остаётся), «Удалить с диска…» (один проект, панель с вводом
+  точного имени, `POST /api/projects/:id/delete-folder`); сессии —
+  «Вернуть» (`…/archive { archived: false }`), «Убрать из списка»
+  (`…/forget`, чат в приложении остаётся); «✕» возвращает в «Настройки».
+- Кнопки: три состояния — обычное, наведение, нажатие (`buttons.css`);
+  `press.js` держит `.is-pressed` ещё 180 мс после отпускания и после
+  щелчка (и с клавиатуры) рисует кольцо `.just-pressed` 0,45 с; работает
+  для кнопок всех расширений через делегирование.
 - Экран «Домой» iPad: `manifest.webmanifest` (standalone, start_url `/`,
   значки 192 и 512, maskable), `apple-touch-icon` 180, тема строки
   состояния, `viewport-fit=cover`.
@@ -66,22 +89,26 @@
 | `styles.css` | токены темы (светлая, тёмная по системе и по `data-theme`), прежние имена токенов для карточек, базовый текст 13 px, стили служебных карточек |
 | `layout.css` | раскладка макета: боковая панель (бренд, строка подготовки, заголовок «Ваши проекты»), экраны, панели, сетка карточек «Настроек», перестройка уже 680 px, safe-area |
 | `tree.css` | меню «Ваши проекты» и «⋯», дерево проектов и сессий, метки провайдеров, индикаторы связи |
-| `controls.css` | кнопки и поля (44 px на сенсорных экранах), сообщения, выбор папки, карточка «Структура» |
-| `app.js` | состояние и маршрут, опрос `/api/state` (следующий запрос — через 3 с после ответа, таймаут 8 с, сразу при возврате на вкладку, тик таймера строки подготовки раз в секунду), экраны и слоты; загрузка расширений `PANEL_EXTENSIONS` (`/provider-cards/provider-cards.js`, `/project-wizard/project-wizard.js`, `/session-view/session-view.js`) до первого опроса: `install(shell)` с помощниками `registerCard`, `registerCardGroup`, `registerSlot`, `requestRefresh`, `api`, `ApiError`, `dom`, `createFolderPicker`, `showError` |
-| `actions.js` | `createActions({ navigate, render, route })` → `{ handlers, toast, say, collapsed }`: архив и возврат проектов, убрать из списка, новая сессия, обновить сессии, копировать путь, открыть чат, переименовать и архивировать сессию; сообщения над экраном; свёрнутые проекты |
-| `slots.js` | слоты раскладки для расширений: `registerSlot('newProject' \| 'sessionBody' \| 'sessionReview', definition)`, `slots`; типы `SlotContext` (`navigate`, `requestRefresh`, `say`), `SessionContext` (`project`, `session`, `link`) |
-| `view-model.js` | чистые модели без DOM: `parseRoute`/`routeHash` (`#/`, `#/settings`, `#/new`, `#/open`, `#/archive`, `#/p/<id>`, `#/s/<id>/<ключ>`), `projectLists`, `filterProjects`, `projectTree`, `sessionKey` (`<провайдер>:<localId>` — ключ разделов `channel`, `titles`, `review`), `indicators`, `statusLine`, `deviceLink`, `formatWhen`, `formatElapsed`, `sessionsLabel`, `shortPath`, `themeAttribute`, `PROVIDER_LABELS` |
+| `controls.css` | кнопки и поля (44 px на сенсорных экранах), сообщения, выбор папки |
+| `buttons.css` | состояния кнопок: наведение, нажатие, кольцо щелчка; стрелка «Ваши проекты» |
+| `archive.css` | экран «Архив» в две колонки, панель удаления с диска |
+| `archive.js` | `createArchiveScreen(handlers) → { element, render(projects, sessions, home) }` |
+| `selection.js` | чистые функции: `currentProjectId(route, remembered, activeIds)`, `archivedSessions(tree)`, `selectRows(ids, selected, anchor, id, mods)` |
+| `press.js` | `installPressFeedback()`, `STICKY_MS` (180), `RING_MS` (450) |
+| `app.js` | состояние и маршрут, опрос `/api/state` (следующий запрос — через 3 с после ответа, таймаут 8 с, сразу при возврате на вкладку, тик таймера строки подготовки раз в секунду), экраны и слоты; загрузка расширений `PANEL_EXTENSIONS` (`/project-wizard/project-wizard.js`, `/session-view/session-view.js`) до первого опроса: `install(shell)` с помощниками `registerCard`, `registerCardGroup`, `registerSlot`, `requestRefresh`, `api`, `ApiError`, `dom`, `createFolderPicker`, `showError` |
+| `actions.js` | `createActions({ navigate, render, route })` → `{ handlers, toast, say, collapsed }`: в архив; для «Архива» — `restoreProjects`, `forgetProjects`, `deleteProject`, `restoreSessions`, `forgetSessions`; новая сессия, обновить сессии, копировать путь, открыть чат, переименовать и архивировать сессию; сообщения над экраном; свёрнутые проекты |
+| `slots.js` | слоты раскладки для расширений: `registerSlot('newProject' \| 'sessionBody' \| 'sessionReview', definition)`, `slots`; типы `SlotContext` (`navigate`, `requestRefresh`, `say`, `selectProject`), `SessionContext` (`project`, `session`, `link`) |
+| `view-model.js` | чистые модели без DOM: `parseRoute`/`routeHash` (`#/`, `#/settings`, `#/new`, `#/open`, `#/archive`, `#/p/<id>`, `#/s/<id>/<ключ>`), `projectLists`, `filterProjects`, `projectTree`, `ownerObjective`, `sessionKey` (`<провайдер>:<localId>` — ключ разделов `channel`, `titles`, `review`), `indicators`, `statusLine`, `deviceLink`, `formatWhen`, `formatElapsed`, `sessionsLabel`, `shortPath`, `themeAttribute`, `PROVIDER_LABELS` |
 | `sidebar.js` | боковая панель: `createSidebar(handlers) → { element, render(model), setReview(node) }` |
 | `menus.js` | всплывающие меню «⋯»: `openMenu(anchor, items)`, `closeMenu()` |
-| `screens.js` | экраны из состояния: `homeScreen`, `projectScreen`, `sessionHeader`, `archiveScreen`, `missingScreen` |
+| `screens.js` | экраны из состояния: `homeScreen`, `projectScreen`, `sessionHeader`, `missingScreen` |
 | `new-project.js` | запасной экран «Новый проект» / «Открыть папку проекта», если мастер не загрузился |
-| `settings.js` | «Настройки»: внешний вид (`THEME_KEY`, `savedTheme`, `applyTheme`), папка для проектов, сетка служебных карточек |
+| `settings.js` | «Настройки»: внешний вид (`THEME_KEY`, `savedTheme`, `applyTheme`), папка для проектов, карточка «Архив» (`onArchive`), сетка служебных карточек |
 | `card-grid.js` | `renderCards(container, state)` — карточки и элементы групп по `order`, перерисовка только изменившихся |
 | `cards.js` | реестр карточек: `registerCard`, `registerCardGroup`, `expandCards(state)`, `requestRefresh()` |
 | `dom.js` | помощники `h`, `facts`, `pill`, `code`, `notice`, `plainInput`; текст только через `textContent` |
 | `api.js` | `api(method, url, body?)`, `apiGet(url)`, `ApiError` (`status`, `code`, `message`, `hint`, `blockers`) |
 | `folder-picker.js` | выбор папки внутри домашней (`GET /api/folders`); `pickLabel`, `idPrefix` |
-| `structure-card.js` | карточка «Структура Kit» (по проектам: статус, установка, обновление, перезапись) |
 | `system-card.js` | карточка «Система» (версия, ОС, служба, автозапуск, запускатель, значок, программы, адреса) |
 | `manifest.webmanifest`, `icons/` | экран «Домой»: `icon.svg` (источник) и `icon-180/192/512.png` |
 

@@ -12,23 +12,29 @@ ChatGPT) → «Новая сессия».
 ## Публичный интерфейс (`src/index.ts`)
 
 - `createSessionTitles({ listProjects, resolveProject, sessions, scope,
-  rename?, log? }) → SessionTitles`:
+  listed?, rename?, log? }) → SessionTitles`:
   - `load()` — читает имена из
     `<проект>/.workflow-kit/local/sessions/<client>.<id>.json` (поля
-    `title` — ручное, `topic` — тема агента, `synced`, `archivedAt`; другие поля файла,
+    `title` — ручное, `topic` — тема агента, `synced`, `archivedAt`, `forgottenAt`; другие поля файла,
     например `review`, сохраняются при записи);
   - `setManual(projectId, key, name)` — ручное имя; пустое удаляет его;
   - `setArchived(projectId, key, archived)` — сессия в архив (`archivedAt` —
     время) или обратно (`null`); сессия провайдера не трогается, панель
-    прячет её из дерева и показывает на экране проекта с «Вернуть»;
-  - `setTopic(folder, title)` — тема от агента: проект по папке, сессия —
-    единственная сессия проекта в состоянии `working` канала (ход идёт);
+    прячет её из дерева и показывает в «Архиве» и на экране проекта с
+    «Вернуть»;
+  - `setForgotten(projectId, key)` — «Убрать из списка» в «Архиве»:
+    `forgottenAt` — время; панель больше нигде не показывает сессию, чат в
+    приложении не трогается;
+  - `setTopic(folder, title, session?)` — тема от агента: проект по папке,
+    сессия — `session` (`{ client, id }` из окружения агента), иначе
+    единственная сессия проекта в состоянии `working` канала (ход идёт;
+    из нескольких — та, что есть в `listed(projectId)`, списке провайдеров);
     отказы `TitleError`: `no-running-turn`, `ambiguous` (несколько ходов —
     подсказка переименовать в панели), `already-set` (тема задаётся один
     раз), `project-not-found`, `bad-title` (длиннее 80 знаков или пусто);
   - `name(projectId, key, providerTitle?) → SessionTitle` (`name`,
     `source`: `manual` | `agent` | `scope` | `provider` | `default`,
-    `manual`, `topic`, `synced`, `note`, `archivedAt`);
+    `manual`, `topic`, `synced`, `note`, `archivedAt`, `forgottenAt`);
   - `onTurn(key)` — начало хода: повтор отложенного переименования;
   - `section()` — `{ projects: { <id>: { <key>: SessionTitle } } }`.
 - Синхронизация: для сессий Codex ручное имя и тема уходят в ChatGPT через
@@ -38,7 +44,8 @@ ChatGPT) → «Новая сессия».
 - `registerTitleRoutes({ router, state, titles })`:
   `POST /api/projects/:id/sessions/:sid/title { name }`,
   `POST /api/projects/:id/sessions/:sid/archive { archived }`,
-  `POST /api/sessions/title { title, cwd, projectDir }` (только loopback;
+  `POST /api/projects/:id/sessions/:sid/forget`,
+  `POST /api/sessions/title { title, cwd, projectDir, client?, sessionId? }` (только loopback;
   команда `wfk session title`), раздел `titles`.
 - `cleanTitle`, `titleFileName`, `DEFAULT_NAME`, `MAX_TITLE_LENGTH`,
   `SESSIONS_DIR`.

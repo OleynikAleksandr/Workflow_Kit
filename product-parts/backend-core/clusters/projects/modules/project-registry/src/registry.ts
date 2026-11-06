@@ -76,6 +76,12 @@ export interface ProjectRegistry {
   archive(id: string): Promise<Project>;
   /** Brings an archived project back. */
   restore(id: string): Promise<Project>;
+  /**
+   * Deletes the folder of an archived project from disk and removes the project from the list.
+   * `confirm` must be the exact project name; the home folder and the projects root are never
+   * deleted, and the remove guards (live sessions) apply.
+   */
+  deleteFolder(id: string, confirm: unknown): Promise<Project>;
   /** Changes the root for new projects: an absolute folder inside home, created when missing. */
   setRoot(folder: unknown): Promise<string>;
   addRemoveGuard(guard: RemoveGuard): void;
@@ -221,6 +227,31 @@ export function createProjectRegistry(options: ProjectRegistryOptions): ProjectR
     return project;
   }
 
+  async function deleteFolder(id: string, confirm: unknown): Promise<Project> {
+    const projects = await load();
+    const project = projects.find((p) => p.id === id);
+    if (!project) throw new ProjectError('not-found', `Проект не найден: ${id}`);
+    if (!project.archivedAt) throw new ProjectError('not-archived', 'С диска удаляется только проект из архива: сначала уберите его в архив');
+    if (confirm !== project.name) throw new ProjectError('confirm-mismatch', `Для удаления введите точное имя проекта: ${project.name}`);
+    const home = await realHome(options);
+    const protectedPaths = [home, root, options.homedir];
+    if (!isInside(project.path, home, options.platform) || protectedPaths.some((p) => samePath(p, project.path, options.platform))) {
+      throw new ProjectError('invalid-path', `Эту папку Workflow Kit не удаляет: ${project.path}`);
+    }
+    const blockers = (await Promise.all(guards.map((guard) => guard(project)))).flat();
+    if (blockers.length > 0) {
+      throw new ProjectError('busy', 'Проект занят: сначала остановите его сессии и окружения', { blockers });
+    }
+    try {
+      await fs.rm(project.path);
+    } catch (error) {
+      throw fsError(error, project.path, options.platform);
+    }
+    await save(projects.filter((p) => p.id !== id));
+    await log('project.deleted', project);
+    return project;
+  }
+
   async function setArchived(id: string, archived: boolean): Promise<Project> {
     const projects = await load();
     const index = projects.findIndex((p) => p.id === id);
@@ -271,6 +302,7 @@ export function createProjectRegistry(options: ProjectRegistryOptions): ProjectR
     remove: (id) => mutex.run('projects', () => remove(id)),
     archive: (id) => mutex.run('projects', () => setArchived(id, true)),
     restore: (id) => mutex.run('projects', () => setArchived(id, false)),
+    deleteFolder: (id, confirm) => mutex.run('projects', () => deleteFolder(id, confirm)),
     setRoot: (folder) => mutex.run('projects', () => setRoot(folder)),
     addRemoveGuard(guard) {
       guards.push(guard);

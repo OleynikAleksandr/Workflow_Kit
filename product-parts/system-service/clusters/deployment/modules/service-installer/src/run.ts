@@ -12,7 +12,7 @@ import { PROGRAMS } from './programs.ts';
 import { describeStatus } from './status.ts';
 import type { ResolvedDeps, ServiceCommand, ServiceCommandResult, ServiceDeps } from './types.ts';
 
-function installText(report: InstallReport): string {
+function installText(report: InstallReport, deps: ResolvedDeps): string {
   const kind =
     report.previousVersion === null
       ? 'новая установка'
@@ -26,7 +26,8 @@ function installText(report: InstallReport): string {
   } else {
     const record = report.record;
     lines.push(`запускатель: ${record.launcher ?? '—'}`);
-    lines.push(`значок: ${record.icon ?? '—'}`);
+    const how = report.icon?.kind === 'app' ? ' (приложение с окном панели)' : report.icon && deps.platform === 'darwin' ? ' (окно браузера)' : '';
+    lines.push(`значок: ${record.icon ?? '—'}${how}${report.icon?.note ? `; ${report.icon.note}` : ''}`);
     if (record.mechanism) lines.push(`автозапуск: ${mechanismLabel(record.mechanism)} (${record.autostartEntry ?? '—'})`);
   }
   const health = report.start.health;
@@ -51,7 +52,7 @@ async function control(deps: ResolvedDeps, command: 'start' | 'stop'): Promise<s
 async function dispatch(command: ServiceCommand, deps: ResolvedDeps, args: readonly string[]): Promise<ServiceCommandResult> {
   switch (command) {
     case 'install':
-      return { ok: true, exitCode: 0, message: installText(await install(deps)) };
+      return { ok: true, exitCode: 0, message: installText(await install(deps), deps) };
     case 'uninstall': {
       const report = await uninstall(deps);
       const lines = [report.removed.length > 0 ? `сняты: ${report.removed.join(', ')}` : 'снимать нечего'];
@@ -65,8 +66,10 @@ async function dispatch(command: ServiceCommand, deps: ResolvedDeps, args: reado
     case 'status':
       return { ok: true, exitCode: 0, message: (await describeStatus(deps)).text };
     case 'open': {
-      const result = await openPanel(deps);
-      const how = result.plan.kind === 'app-window' ? 'в окне приложения' : 'в браузере';
+      if (args.some((arg) => arg !== '--url-only')) throw new Error('Использование: wfk open [--url-only]');
+      const result = await openPanel(deps, { urlOnly: args.includes('--url-only') });
+      if (!result.plan) return { ok: true, exitCode: 0, message: `панель: ${result.url}` };
+      const how = result.plan.kind === 'mac-app' ? 'в приложении Workflow Kit' : result.plan.kind === 'app-window' ? 'в окне приложения' : 'в браузере';
       return { ok: true, exitCode: 0, message: `панель открыта ${how}: ${result.url}` };
     }
     case 'doctor': {

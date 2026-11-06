@@ -8,7 +8,9 @@ export type ProjectErrorCode =
   | 'access-denied'
   | 'exists'
   | 'registry-invalid'
-  | 'busy';
+  | 'busy'
+  | 'not-archived'
+  | 'confirm-mismatch';
 
 /** HTTP status for each error code. */
 export const PROJECT_ERROR_STATUS: Readonly<Record<ProjectErrorCode, number>> = {
@@ -21,6 +23,8 @@ export const PROJECT_ERROR_STATUS: Readonly<Record<ProjectErrorCode, number>> = 
   exists: 409,
   'registry-invalid': 409,
   busy: 409,
+  'not-archived': 409,
+  'confirm-mismatch': 400,
 };
 
 /** A user-facing failure of a registry or folder action; the message is shown in the panel. */

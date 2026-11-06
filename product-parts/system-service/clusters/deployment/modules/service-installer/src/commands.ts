@@ -10,6 +10,15 @@ export interface PlannedCommand {
 }
 
 const LAUNCHCTL = '/bin/launchctl';
+const LSREGISTER = '/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister';
+
+/** Building the macOS app: compile the Swift source, draw the icon, pack it, refresh the Dock. */
+export const macApp = {
+  compile: (source: string, executable: string): PlannedCommand => ({ command: '/usr/bin/xcrun', args: ['swiftc', '-O', '-o', executable, source] }),
+  iconset: (executable: string, dir: string): PlannedCommand => ({ command: executable, args: ['--make-iconset', dir] }),
+  iconutil: (dir: string, icns: string): PlannedCommand => ({ command: '/usr/bin/iconutil', args: ['-c', 'icns', '-o', icns, dir] }),
+  register: (app: string): PlannedCommand => ({ command: LSREGISTER, args: ['-f', app] }),
+};
 
 /** launchctl calls for the LaunchAgent in the GUI domain of a user. */
 export const launchctl = {

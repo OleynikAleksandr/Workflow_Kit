@@ -30,6 +30,8 @@ export interface FakeDaemonOptions {
    * loaded: it is unloaded only after this many thread/loaded/list calls (default 0: at once).
    */
   idleUnloadPolls?: number;
+  /** thread/archive answers with a JSON-RPC error with this message (a daemon without it). */
+  archiveError?: string;
 }
 
 /** A running fake daemon. */
@@ -39,6 +41,8 @@ export interface FakeDaemon {
   pongs: number;
   /** Thread ids currently loaded (what thread/loaded/list returns). */
   loaded: Set<string>;
+  /** Thread ids in the archive (thread/archive adds, thread/unarchive removes). */
+  archived: Set<string>;
   close(): Promise<void>;
 }
 
@@ -63,7 +67,8 @@ export async function startFakeDaemon(socketPath: string, options: FakeDaemonOpt
   const subscribers = new Map<string, Set<Socket>>();
   /** Idle threads without subscribers: loaded/list calls left before they unload. */
   const idle = new Map<string, number>();
-  const daemon: FakeDaemon = { socketPath, calls, pongs: 0, loaded, close: async () => undefined };
+  const archived = new Set<string>();
+  const daemon: FakeDaemon = { socketPath, calls, pongs: 0, loaded, archived, close: async () => undefined };
   const release = (threadId: string, socket: Socket): 'unsubscribed' | 'notSubscribed' | 'notLoaded' => {
     if (!loaded.has(threadId)) return 'notLoaded';
     const set = subscribers.get(threadId);
@@ -136,6 +141,21 @@ export async function startFakeDaemon(socketPath: string, options: FakeDaemonOpt
           const status = typeof id === 'string' ? release(id, socket) : 'notLoaded';
           answer(message.id, { status });
           if (typeof id === 'string' && status === 'unsubscribed' && !loaded.has(id)) sendJson(socket, { method: 'thread/closed', params: { threadId: id } }, tricky);
+        } else if (message.method === 'thread/archive' && options.archiveError) {
+          sendJson(socket, { jsonrpc: '2.0', id: message.id, error: { code: -32601, message: options.archiveError } }, tricky);
+        } else if (message.method === 'thread/archive' || message.method === 'thread/unarchive') {
+          // Like the real daemon: archive unloads the thread at once, unarchive does not load it.
+          const id = String((message.params as { threadId?: unknown } | undefined)?.threadId ?? '');
+          if (message.method === 'thread/archive') {
+            archived.add(id);
+            loaded.delete(id);
+            idle.delete(id);
+            subscribers.delete(id);
+            answer(message.id, {});
+          } else {
+            archived.delete(id);
+            answer(message.id, { thread: { id } });
+          }
         } else if (message.method === 'thread/loaded/list') {
           answer(message.id, { data: [...loaded], nextCursor: null });
           for (const [id, left] of idle) {

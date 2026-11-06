@@ -13,7 +13,6 @@
 | Модуль | Обязанность |
 | --- | --- |
 | [panel-shell](modules/panel-shell/module.md) | раскладка, маршруты, опрос состояния, дерево, экраны, «Настройки», реестр карточек, «Система», структура, экран «Домой» iPad |
-| [provider-cards](modules/provider-cards/module.md) | карточки провайдеров из контракта и операций («Настройки») |
 | [project-wizard](modules/project-wizard/module.md) | мастер проекта: предпросмотр, одно согласие, подготовка, открытие чата |
 | [session-view](modules/session-view/module.md) | экран сессии: активность агента, выбор пути, карточка плана, «Ревью плана» |
 
@@ -25,6 +24,6 @@
   (`registerCard`, `registerCardGroup`), мастер и экран сессии — через
   слоты раскладки (`registerSlot`: `newProject`, `sessionBody`,
   `sessionReview`). Сервер монтирует их каталоги под префиксами
-  `/provider-cards/`, `/project-wizard/`, `/session-view/`.
+  `/project-wizard/`, `/session-view/`.
 - Состояние только читается из `GET /api/state`; действия — через POST с
   `Content-Type: application/json` (Origin браузер ставит сам).

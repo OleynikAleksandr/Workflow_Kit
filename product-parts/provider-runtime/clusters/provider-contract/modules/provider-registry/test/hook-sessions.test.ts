@@ -10,6 +10,7 @@ import {
   createTokenStore,
   hookJournalFile,
   hookSessionInfo,
+  isHelperFork,
   parseHookJournal,
   readHookSessions,
 } from '../src/index.ts';
@@ -83,6 +84,26 @@ test('readHookSessions reads the journal written by the hook, per client, withou
   assert.equal(info.localId, 'desktop-1');
   assert.equal(info.cwd, project);
   assert.deepEqual(info.links, {});
+});
+
+test('readHookSessions leaves out the hidden helper fork of Codex Desktop', async () => {
+  const project = path.join(tmp, 'fork');
+  const file = hookJournalFile(project);
+  await mkdir(path.dirname(file), { recursive: true });
+  const rollout = '/home/u/.codex/sessions/rollout-1.jsonl';
+  await writeFile(
+    file,
+    [
+      line({ time: '2026-11-06T12:38:03.000Z', client: 'codex', session_id: 'thread', source: 'startup', transcript_path: rollout }),
+      line({ time: '2026-11-06T12:39:20.000Z', client: 'codex', session_id: 'helper', source: 'fork', transcript_path: null }),
+      line({ time: '2026-11-06T12:40:27.000Z', client: 'codex', session_id: 'thread', source: 'resume', transcript_path: rollout }),
+      line({ time: '2026-11-06T12:41:00.000Z', client: 'codex', session_id: 'user-fork', source: 'fork', transcript_path: '/home/u/.codex/sessions/rollout-2.jsonl' }),
+    ].join(''),
+  );
+  assert.deepEqual((await readHookSessions({ path: project }, 'codex')).map((s) => s.sessionId), ['user-fork', 'thread']);
+  assert.equal(isHelperFork({ sources: ['fork'], transcriptPath: null }), true);
+  assert.equal(isHelperFork({ sources: ['startup'], transcriptPath: null }), false);
+  assert.equal(isHelperFork({ sources: ['fork', 'resume'], transcriptPath: null }), false);
 });
 
 test('readHookSessions reads only the tail of a large journal', async () => {

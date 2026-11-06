@@ -70,6 +70,23 @@ test('the topic is set once, only for the single session with a running turn', a
   await assert.rejects(titles.setManual('p', 'claude:a', 'x'.repeat(81)), code('bad-title'));
 });
 
+test('the calling session gets the topic by its id; helper threads do not make the choice ambiguous', async () => {
+  const titles = createSessionTitles({ ...options(), listed: async () => new Set(['codex:thread']), rename: undefined });
+  const code = (expected: string) => (error: unknown) => error instanceof TitleError && error.code === expected;
+  // Codex Desktop's hidden helper fork also sent a prompt hook and looks like a running turn.
+  active = [
+    { key: 'codex:thread', projectId: 'p', state: 'working' },
+    { key: 'codex:helper', projectId: 'p', state: 'working' },
+  ];
+  const byList = await titles.setTopic(folder, 'Склад: анализ остатков');
+  assert.equal(byList.key, 'codex:thread');
+  const byId = await titles.setTopic(folder, 'Закупки', { client: 'claude', id: 'own-id' });
+  assert.equal(byId.key, 'claude:own-id', 'the id from the environment wins even without a running turn');
+  await assert.rejects(titles.setTopic(folder, 'Тема', { client: 'claude', id: 'bad id' }), code('bad-session'));
+  await assert.rejects(titles.setTopic(folder, 'Ещё', { client: 'claude', id: 'own-id' }), code('already-set'));
+  active = [];
+});
+
 test('Codex names go to ChatGPT; a rename that had to wait is retried when a turn starts', async () => {
   renames = [];
   loaded = false;
@@ -83,7 +100,7 @@ test('Codex names go to ChatGPT; a rename that had to wait is retried when a tur
   for (let i = 0; i < 50 && titles.name('p', 'codex:t1').synced !== true; i += 1) await new Promise((r) => setTimeout(r, 10));
   assert.equal(titles.name('p', 'codex:t1').synced, true);
   const file = JSON.parse(await readFile(path.join(folder, SESSIONS_DIR, 'codex.t1.json'), 'utf8'));
-  assert.deepEqual(file, { title: null, topic: 'Закупки', synced: true, archivedAt: null });
+  assert.deepEqual(file, { title: null, topic: 'Закупки', synced: true, archivedAt: null, forgottenAt: null });
 
   const restarted = createSessionTitles(options());
   await restarted.load();
@@ -104,4 +121,14 @@ test('a session goes into the archive and back; the flag survives a reload and k
   assert.equal((await reloaded.setArchived('p', 'claude:arch', false)).archivedAt, null);
   assert.equal(reloaded.name('p', 'claude:arch').name, 'Старая сессия');
   await assert.rejects(titles.setArchived('p', 'bad key', true), (error: unknown) => error instanceof TitleError && error.code === 'bad-session');
+});
+
+test('a session removed from the lists stays removed after a reload', async () => {
+  const titles = createSessionTitles({ ...options(), now: () => new Date('2026-11-06T10:00:00Z') });
+  await titles.setArchived('p', 'codex:gone', true);
+  assert.equal((await titles.setForgotten('p', 'codex:gone')).forgottenAt, '2026-11-06T10:00:00.000Z');
+  const reloaded = createSessionTitles(options());
+  await reloaded.load();
+  assert.equal(reloaded.section().projects['p']?.['codex:gone']?.forgottenAt, '2026-11-06T10:00:00.000Z');
+  await assert.rejects(titles.setForgotten('p', '../x'), (error: unknown) => error instanceof TitleError && error.code === 'bad-session');
 });

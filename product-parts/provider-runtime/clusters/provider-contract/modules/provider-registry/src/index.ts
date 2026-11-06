@@ -33,6 +33,7 @@ export {
   clearHookSessionsCache,
   hookJournalFile,
   hookSessionInfo,
+  isHelperFork,
   parseHookJournal,
   readHookSessions,
 } from './hook-sessions.ts';

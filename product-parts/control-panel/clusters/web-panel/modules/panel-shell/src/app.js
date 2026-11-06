@@ -2,25 +2,29 @@
 // Panel bootstrap: the sidebar and the main screen of the agreed layout, routes in location.hash,
 // polling of GET /api/state every 3 s; the service cards render inside «Настройки».
 import { createActions } from './actions.js';
+import { createArchiveScreen } from './archive.js';
+import { installPressFeedback } from './press.js';
 import { api, ApiError } from './api.js';
 import { registerCard, registerCardGroup, requestRefresh, setRefreshHandler } from './cards.js';
 import { renderCards } from './card-grid.js';
 import { code, facts, h, notice, pill, plainInput } from './dom.js';
 import { createFolderPicker, showError } from './folder-picker.js';
 import { createNewProjectScreen } from './new-project.js';
-import { archiveScreen, homeScreen, missingScreen, projectScreen, sessionHeader } from './screens.js';
+import { homeScreen, missingScreen, projectScreen, sessionHeader } from './screens.js';
+import { archivedSessions, currentProjectId } from './selection.js';
 import { applyTheme, createSettings } from './settings.js';
 import { createSidebar } from './sidebar.js';
 import { registerSlot, slots } from './slots.js';
-import { deviceLink, indicators, parseRoute, projectLists, projectTree, routeHash, shortPath, statusLine } from './view-model.js';
+import { deviceLink, indicators, parseRoute, projectLists, projectTree, routeHash, settingsExit, shortPath, statusLine } from './view-model.js';
 import './system-card.js';
-import './structure-card.js';
 
 /**
  * Panel extensions mounted by the backend under their own prefix; each exports install(shell).
  * They get the shell helpers injected instead of importing panel files by URL.
  */
-export const PANEL_EXTENSIONS = ['/provider-cards/provider-cards.js', '/project-wizard/project-wizard.js', '/session-view/session-view.js'];
+// The provider cards and «Структура Kit» are no longer in the settings (user decision 2026-11-06):
+// the archive covers what they repeated, provider actions are offered by the project wizard.
+export const PANEL_EXTENSIONS = ['/project-wizard/project-wizard.js', '/session-view/session-view.js'];
 
 /** Polling interval in milliseconds (D3). */
 const POLL_MS = 3000;
@@ -32,11 +36,37 @@ const TIMEOUT_MS = 8000;
 
 applyTheme();
 
+installPressFeedback();
+
 /** @type {Record<string, unknown>} */
 let state = {};
 let linked = false;
 /** @type {Route} */
 let route = parseRoute(location.hash);
+/** The screen the user opened the settings from: leaving them goes back there. */
+/** @type {Route | null} */
+let beforeSettings = null;
+/** localStorage key of the project the sidebar tree shows when the route has none. */
+const CURRENT_PROJECT_KEY = 'wfk.current-project';
+/** @type {string | null} */
+let rememberedProject = (() => {
+  try {
+    return localStorage.getItem(CURRENT_PROJECT_KEY);
+  } catch {
+    return null;
+  }
+})();
+/** @param {string | null | undefined} id */
+function rememberProject(id) {
+  if (!id || id === rememberedProject) return;
+  rememberedProject = id;
+  try {
+    localStorage.setItem(CURRENT_PROJECT_KEY, id);
+  } catch {
+    // Private mode: the choice lasts until reload.
+  }
+}
+if ('projectId' in route) rememberProject(route.projectId);
 /** @param {Route} next */
 function navigate(next) {
   const hash = routeHash(next);
@@ -47,9 +77,27 @@ function navigate(next) {
 const { handlers, toast, say, collapsed } = createActions({ navigate, render: () => render(), route: () => route });
 
 /** @type {import('./slots.js').SlotContext} */
-const slotContext = Object.freeze({ navigate, requestRefresh, say });
-const sidebar = createSidebar(handlers);
-const settings = createSettings({ onRootChanged: requestRefresh });
+const slotContext = Object.freeze({
+  navigate,
+  requestRefresh,
+  say,
+  /** @param {string} projectId */
+  selectProject(projectId) {
+    rememberProject(projectId);
+    render();
+  },
+});
+const leaveSettings = () => navigate(settingsExit(beforeSettings));
+const sidebar = createSidebar({ ...handlers, toggleSettings: () => (route.screen === 'settings' ? leaveSettings() : navigate({ screen: 'settings' })) });
+const settings = createSettings({ onRootChanged: requestRefresh, onClose: leaveSettings, onArchive: () => navigate({ screen: 'archive' }) });
+const archive = createArchiveScreen({
+  restoreProjects: handlers.restoreProjects,
+  forgetProjects: handlers.forgetProjects,
+  deleteProject: handlers.deleteProject,
+  restoreSessions: handlers.restoreSessions,
+  forgetSessions: handlers.forgetSessions,
+  close: () => navigate({ screen: 'settings' }),
+});
 const builtinNewProject = createNewProjectScreen({
   onDone(projectId) {
     requestRefresh();
@@ -70,7 +118,7 @@ const sessionScreen = h('div', { class: 'screen' }, [sessionHead, sessionBody]);
 let sessionHeadKey = '';
 let sessionBodyKey = '';
 let reviewKey = '';
-const main = h('main', { class: 'main', id: 'main' }, [toast, dynamic, newProjectHost, settings.element]);
+const main = h('main', { class: 'main', id: 'main' }, [toast, dynamic, newProjectHost, settings.element, archive.element]);
 document.body.prepend(h('div', { class: 'app' }, [sidebar.element, main]));
 
 /** Key of the last drawn dynamic screen, to skip redraws with unchanged data. */
@@ -80,6 +128,11 @@ function renderMain() {
   const now = Date.now();
   const tree = projectTree(state, { now, collapsed: new Set() });
   settings.element.hidden = route.screen !== 'settings';
+  archive.element.hidden = route.screen !== 'archive';
+  if (route.screen === 'archive') {
+    const lists = projectLists(state);
+    archive.render(lists.archived, archivedSessions(tree), lists.home);
+  }
   newProjectHost.hidden = route.screen !== 'new';
   if (route.screen === 'new') {
     if (slots.newProject && !wizard) wizard = slots.newProject.create(slotContext);
@@ -99,9 +152,6 @@ function renderMain() {
   if (r.screen === 'home') {
     const hasProjects = tree.length > 0;
     screen = ['home', hasProjects, () => homeScreen({ hasProjects }, handlers)];
-  } else if (r.screen === 'archive') {
-    const archived = projectLists(state).archived;
-    screen = ['archive', archived, () => archiveScreen(archived, handlers)];
   } else if (r.screen === 'project') {
     const project = tree.find((p) => p.id === r.projectId);
     const home = projectLists(state).home;
@@ -186,10 +236,12 @@ function renderSidebar() {
   const system = /** @type {{ version?: string }} */ (state['system'] ?? {});
   const tree = projectTree(state, { now: Date.now(), collapsed });
   renderReview(tree);
+  // Only the selected project is in the tree; the others are in the «Ваши проекты» menu.
+  const current = currentProjectId(route, rememberedProject, tree.map((p) => p.id));
   sidebar.render({
     version: system.version ?? '',
     status: statusLine(state, Date.now()),
-    tree,
+    tree: tree.filter((p) => p.id === current),
     projects: lists.active,
     home: lists.home,
     route,
@@ -278,7 +330,11 @@ async function loadExtensions(urls) {
 }
 
 window.addEventListener('hashchange', () => {
-  route = parseRoute(location.hash);
+  const next = parseRoute(location.hash);
+  // The archive is opened from the settings: leaving the settings never returns to it.
+  if (next.screen === 'settings' && route.screen !== 'settings' && route.screen !== 'archive') beforeSettings = route;
+  route = next;
+  if ('projectId' in route) rememberProject(route.projectId);
   notice(toast, 'muted', '');
   render();
   window.scrollTo({ top: 0 });

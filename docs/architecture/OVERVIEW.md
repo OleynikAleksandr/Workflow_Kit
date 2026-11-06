@@ -56,7 +56,6 @@ runtime-зависимостей) и веб-панель для Mac и iPad. С�
 | | | [plan-review](../../product-parts/workflow-engine/clusters/session-loop/modules/plan-review/module.md) | переключатель «Ревью плана» сессии (без самой функции ревью) |
 | | | [session-titles](../../product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md) | имена сессий (ручное, тема агента, цель плана), синхронизация с ChatGPT, архив сессий |
 | [control-panel](../../product-parts/control-panel/product-part.md) | [web-panel](../../product-parts/control-panel/clusters/web-panel/cluster.md) | [panel-shell](../../product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md) | раскладка по макету, маршруты, опрос, дерево проектов и сессий, «Настройки», слоты расширений, экран «Домой» iPad |
-| | | [provider-cards](../../product-parts/control-panel/clusters/web-panel/modules/provider-cards/module.md) | карточки провайдеров в «Настройках» только из контракта и операций |
 | | | [project-wizard](../../product-parts/control-panel/clusters/web-panel/modules/project-wizard/module.md) | мастер проекта в панели: предпросмотр, кнопки первой сессии, шаги подготовки, открытие чата |
 | | | [session-view](../../product-parts/control-panel/clusters/web-panel/modules/session-view/module.md) | экран сессии: активность агента, выбор пути, карточка плана, «Ревью плана» |
 | [system-service](../../product-parts/system-service/product-part.md) | [deployment](../../product-parts/system-service/clusters/deployment/cluster.md) | [service-installer](../../product-parts/system-service/clusters/deployment/modules/service-installer/module.md) | `install`/`uninstall`, автозапуск, запускатель и значок, `service`, `open`, `doctor`, статус службы |
@@ -203,10 +202,11 @@ loopback): `Stop` может держаться до 9 минут, пока по
 значки). Опрос `GET /api/state` раз в 3 с. Расширения других каталогов
 подключаются через `PANEL_EXTENSIONS` и `install(shell)`: карточки —
 `registerCard`/`registerCardGroup`, мастер и экран сессии — слоты
-`registerSlot`. Карточки провайдеров строятся только из контракта и
-раздела `operations`, без условий по id провайдера. Контракты —
+`registerSlot`. Карточек провайдеров и «Структуры Kit» в «Настройках»
+нет (решение пользователя 2026-11-06): архив проектов и сессий —
+карточка «Архив», действия провайдеров (например, «Запустить демон»)
+показывает мастер проекта. Контракты —
 [panel-shell/module.md](../../product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md),
-[provider-cards/module.md](../../product-parts/control-panel/clusters/web-panel/modules/provider-cards/module.md),
 [project-wizard/module.md](../../product-parts/control-panel/clusters/web-panel/modules/project-wizard/module.md),
 [session-view/module.md](../../product-parts/control-panel/clusters/web-panel/modules/session-view/module.md).
 

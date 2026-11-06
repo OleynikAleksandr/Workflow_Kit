@@ -38,7 +38,8 @@ login-shell (D12), запускатель `wfk`, значок «Workflow Kit», 
   Значение HKCU Run на Windows опрос не проверяет (это внешняя программа):
   его сверяет `doctor --installed`.
 - `autostartMechanism(platform)`, `serviceLayout({ platform, env, homedir })`
-  (все пути по ОС), `browserPlan(input)` (чистый выбор окна панели),
+  (все пути по ОС), `browserPlan(input)` (чистый выбор окна панели;
+  `input.macApp` — собранное приложение macOS, вид `mac-app`),
   `fetchHealth(port)`, `spawnDetachedProcess`, `nodeFs`, `ServiceError`,
   `NOT_IMPLEMENTED`, `PROGRAMS`, `APP_PARTS` (`bin`, `product-parts`,
   `package.json`), `COPY_EXCLUDED_DIRS` (`test`, `node_modules`, `.git`),
@@ -91,11 +92,27 @@ login-shell (D12), запускатель `wfk`, значок «Workflow Kit», 
    заменяется), значок, автозапуск:
    - macOS: LaunchAgent с `RunAtLoad`, `KeepAlive`, `AbandonProcessGroup`,
      `ThrottleInterval` 10, PATH из п. 3, абсолютный `node`, вывод в
-     `service.log`. Значок — минимальный бандл без Xcode: `Info.plist`
-     (`LSUIElement`) и исполняемый `/bin/sh`-скрипт
-     `Contents/MacOS/workflow-kit`, который запускает `wfk open`
-     установленной копии (вывод в `open.log`). Своя картинка значка в
-     вехе 1 не делается (стандартная иконка приложения).
+     `service.log`. Значок — приложение «Workflow Kit» (с вехи 2):
+     `/usr/bin/xcrun swiftc -O` собирает `assets/macos/WorkflowKitApp.swift`
+     установленной копии (`MAC_APP_SOURCE`) в
+     `Contents/MacOS/workflow-kit` (таймаут 5 мин). `Info.plist`
+     (`macAppInfoPlist`) — обычное приложение без `LSUIElement`, поэтому
+     оно видно в Dock и его можно закрепить; ключи `WFKNode` и `WFKEntry`
+     — установленные `node` и `bin/wfk.mjs`, `NSAllowsLocalNetworking`,
+     `CFBundleIconFile` `AppIcon`. Приложение открывает панель в своём
+     окне (WKWebView): запускает `wfk open --url-only`, грузит адрес;
+     ссылки вне панели (`codex://`, `claude://`, веб) отдаёт macOS; меню
+     «Правка» (копировать, вставить), ⌘R — обновить; закрытое окно
+     возвращается щелчком по значку. Картинка: `workflow-kit
+     --make-iconset <dir>` рисует левую половину значка установленного
+     Claude.app и правую — ChatGPT.app (без одного из них — «WK»),
+     `iconutil` собирает `AppIcon.icns`, `lsregister -f` обновляет
+     значок; неудача картинки не мешает (стандартная иконка, пояснение в
+     отчёте). Нет исходника или `swiftc` не собрал — прежний бандл:
+     `Info.plist` с `LSUIElement` и `/bin/sh`-скрипт, запускающий
+     `wfk open` (вывод в `open.log`); причина в строке «значок» отчёта
+     `install`. `writeIcon` возвращает `IconResult { kind: 'app' |
+     'script', note }`, отчёт — `InstallReport.icon`.
    - Linux: если `systemctl --user show-environment` отвечает — unit с
      `KillMode=process`, `Restart=on-failure`, `Environment="PATH=…"`,
      `daemon-reload`, `enable`; иначе XDG autostart
@@ -142,11 +159,16 @@ unit, `daemon-reload`; XDG-файл; `reg delete`, `.vbs`, PATH пользова
 - `status`: служба (`/api/health`, pid, версия, порт), установка,
   автозапуск, запускатель, значок, пути программ.
 - `open`: `start` при необходимости, затем окно панели
-  `http://127.0.0.1:<порт>/`: macOS — `open -na "<Chrome|Edge|Chromium>.app"
+  `http://127.0.0.1:<порт>/`: macOS — собранное приложение
+  (`/usr/bin/open <Workflow Kit.app>`, если его `Info.plist` содержит
+  `WFKEntry`), иначе `open -na "<Chrome|Edge|Chromium>.app"
   --args --app=… --user-data-dir=<состояние>/panel-browser`; Linux —
   первый из `google-chrome`, `microsoft-edge`, `chromium` в PATH; Windows —
   `msedge.exe` или `chrome.exe` из Program Files; иначе браузер по
   умолчанию (`open`, `xdg-open`, `rundll32 url.dll`). Порт 0 — отказ.
+  `open --url-only` (его вызывает приложение macOS) только запускает
+  службу при необходимости и выводит `панель: <адрес>`; другой аргумент —
+  ошибка.
 - `doctor`: Node 24+, каталог данных, `config.json`, программы,
   `/api/health` (предупреждение). `--installed` дополнительно:
   `current.json`, точка входа, `node` службы, запускатель указывает на
@@ -180,7 +202,7 @@ unit, `daemon-reload`; XDG-файл; `reg delete`, `.vbs`, PATH пользова
 
 - `cli` передаёт `runServiceCommand(command, { env, platform, homedir,
   ...deps.service }, args)` для `install`, `uninstall`,
-  `service start|stop|status`, `open` и `doctor [--installed]`; тесты
+  `service start|stop|status`, `open [--url-only]` и `doctor [--installed]`; тесты
   `cli` подставляют эффекты через `CliDeps.service`.
 - Раздел `system` бэкенда вызывает `getServiceStatus(platform, { env,
   homedir, serving: true })`.

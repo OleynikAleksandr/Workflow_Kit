@@ -14,6 +14,7 @@
  * @property {(route: Route) => void} navigate
  * @property {() => void} requestRefresh
  * @property {(tone: 'ok' | 'error' | 'muted', text: string, error?: unknown) => void} say
+ * @property {(projectId: string) => void} selectProject makes the project the one the sidebar tree shows
  */
 
 /**

@@ -10,6 +10,10 @@ export const DESKTOP_MARK = 'X-WorkflowKit-Managed=true';
 export const UNIT_MARK = '# Workflow Kit backend (written by wfk install)';
 /** Executable name inside the macOS icon bundle. */
 export const ICON_EXECUTABLE = 'workflow-kit';
+/** Swift source of the macOS app (panel window with its own Dock icon), relative to the copy. */
+export const MAC_APP_SOURCE = 'product-parts/system-service/clusters/deployment/modules/service-installer/assets/macos/WorkflowKitApp.swift';
+/** Icon file of the macOS app in Contents/Resources (CFBundleIconFile). */
+export const MAC_APP_ICON = 'AppIcon';
 
 /** What the service runs: an absolute node and the entry point of the installed copy. */
 export interface ServiceProgram {
@@ -174,6 +178,51 @@ export function macIconInfoPlist(version: string): string {
   <string>${xml(version)}</string>
   <key>LSUIElement</key>
   <true/>
+</dict>
+</plist>
+`;
+}
+
+/**
+ * Info.plist of the compiled macOS app: a regular app with a Dock icon (no LSUIElement); the
+ * executable reads WFKNode and WFKEntry to run `wfk open --url-only` of the installed copy.
+ */
+export function macAppInfoPlist(version: string, node: string, entry: string): string {
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleExecutable</key>
+  <string>${ICON_EXECUTABLE}</string>
+  <key>CFBundleIdentifier</key>
+  <string>${ICON_BUNDLE_ID}</string>
+  <key>CFBundleName</key>
+  <string>${ICON_NAME}</string>
+  <key>CFBundleDisplayName</key>
+  <string>${ICON_NAME}</string>
+  <key>CFBundleIconFile</key>
+  <string>${MAC_APP_ICON}</string>
+  <key>CFBundlePackageType</key>
+  <string>APPL</string>
+  <key>CFBundleInfoDictionaryVersion</key>
+  <string>6.0</string>
+  <key>CFBundleShortVersionString</key>
+  <string>${xml(version)}</string>
+  <key>CFBundleVersion</key>
+  <string>${xml(version)}</string>
+  <key>LSMinimumSystemVersion</key>
+  <string>12.0</string>
+  <key>NSHighResolutionCapable</key>
+  <true/>
+  <key>NSAppTransportSecurity</key>
+  <dict>
+    <key>NSAllowsLocalNetworking</key>
+    <true/>
+  </dict>
+  <key>WFKNode</key>
+  <string>${xml(node)}</string>
+  <key>WFKEntry</key>
+  <string>${xml(entry)}</string>
 </dict>
 </plist>
 `;

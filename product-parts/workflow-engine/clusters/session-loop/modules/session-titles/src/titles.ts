@@ -22,6 +22,8 @@ export interface SessionTitle {
   note: string | null;
   /** When the session was put into the archive (hidden in the tree); null when it is not. */
   archivedAt: string | null;
+  /** When the session was removed from Workflow Kit's lists for good (the chat stays in the app). */
+  forgottenAt: string | null;
 }
 
 /** A refused title change. */
@@ -51,6 +53,12 @@ export interface SessionTitlesOptions {
   sessions: () => ActiveSession[];
   /** Plan objective and owner session id of a project, when a scope is active. */
   scope: (projectId: string) => { objective: string; ownerSession: string | null } | null;
+  /**
+   * Keys of the sessions the providers list for a project. When several turns run in the
+   * project, the topic goes to the one that is a listed session (hidden helper threads of the
+   * apps also send hooks but are never listed).
+   */
+  listed?: (projectId: string) => Promise<ReadonlySet<string>>;
   /** Gives the name to the provider app; resolves { synced, note }. */
   rename?: (projectId: string, key: string, name: string) => Promise<{ synced: boolean; note?: string }>;
   now?: () => Date;
@@ -63,8 +71,13 @@ export interface SessionTitles {
   setManual(projectId: string, key: string, name: string): Promise<SessionTitle>;
   /** Puts the session into the archive or returns it (the provider session is not touched). */
   setArchived(projectId: string, key: string, archived: boolean): Promise<SessionTitle>;
-  /** `wfk session title`: the topic of the session whose turn is running in the folder's project. */
-  setTopic(folder: string, title: string): Promise<{ projectId: string; key: string; title: SessionTitle }>;
+  /** Removes the session from every list of Workflow Kit for good (the chat stays in the app). */
+  setForgotten(projectId: string, key: string): Promise<SessionTitle>;
+  /**
+   * `wfk session title`: the topic of the calling session (`session` from CODEX_THREAD_ID or
+   * CLAUDE_CODE_SESSION_ID), else of the session whose turn is running in the folder's project.
+   */
+  setTopic(folder: string, title: string, session?: { client: string; id: string } | null): Promise<{ projectId: string; key: string; title: SessionTitle }>;
   /** Name of a session (providerTitle: the provider's own name, if any). */
   name(projectId: string, key: string, providerTitle?: string | null): SessionTitle;
   /** A turn of the session started: retries a provider rename that had to wait. */
@@ -78,6 +91,7 @@ interface Stored {
   synced: boolean | null;
   note: string | null;
   archivedAt: string | null;
+  forgottenAt: string | null;
 }
 
 const KEY = /^(claude|codex):([A-Za-z0-9._-]{1,200})$/;
@@ -120,8 +134,8 @@ export function createSessionTitles(options: SessionTitlesOptions): SessionTitle
     const target = path.join(await folderOf(projectId), SESSIONS_DIR, file);
     const current = ((await readJsonFile(target).catch(() => undefined)) ?? {}) as Record<string, unknown>;
     const map = projectMap(projectId);
-    const next: Stored = { title: null, topic: null, synced: null, note: null, archivedAt: null, ...map.get(key), ...patch };
-    const fields = { title: next.title, topic: next.topic, synced: next.synced, archivedAt: next.archivedAt };
+    const next: Stored = { title: null, topic: null, synced: null, note: null, archivedAt: null, forgottenAt: null, ...map.get(key), ...patch };
+    const fields = { title: next.title, topic: next.topic, synced: next.synced, archivedAt: next.archivedAt, forgottenAt: next.forgottenAt };
     await writeJsonAtomic(target, { ...current, ...fields }, { mode: 0o600, dirMode: 0o700 });
     map.set(key, next);
     return next;
@@ -131,7 +145,7 @@ export function createSessionTitles(options: SessionTitlesOptions): SessionTitle
     const entry = stored.get(projectId)?.get(key);
     const manual = entry?.title ?? null;
     const topic = entry?.topic ?? null;
-    const base = { manual, topic, synced: entry?.synced ?? null, note: entry?.note ?? null, archivedAt: entry?.archivedAt ?? null };
+    const base = { manual, topic, synced: entry?.synced ?? null, note: entry?.note ?? null, archivedAt: entry?.archivedAt ?? null, forgottenAt: entry?.forgottenAt ?? null };
     if (manual) return { name: manual, source: 'manual', ...base };
     if (topic) return { name: topic, source: 'agent', ...base };
     const scope = options.scope(projectId);
@@ -156,6 +170,23 @@ export function createSessionTitles(options: SessionTitlesOptions): SessionTitle
     }
   }
 
+  /** The only session of the project with a running turn; hidden helper threads are skipped. */
+  async function runningKey(projectId: string): Promise<string> {
+    let running = options.sessions().filter((s) => s.projectId === projectId && s.state === 'working');
+    if (running.length > 1 && options.listed) {
+      const listed = await options.listed(projectId).catch(() => null);
+      const known = listed ? running.filter((s) => listed.has(s.key)) : [];
+      if (known.length > 0) running = known;
+    }
+    if (running.length === 0) {
+      throw new TitleError('no-running-turn', 'Не найдена сессия проекта с идущим ходом: служба не получила хук начала хода', 409);
+    }
+    if (running.length > 1) {
+      throw new TitleError('ambiguous', `В проекте идут ходы нескольких сессий (${running.length}): переименуйте сессию в панели Workflow Kit`, 409);
+    }
+    return running[0]!.key;
+  }
+
   return {
     async load() {
       for (const project of await options.listProjects()) {
@@ -178,6 +209,7 @@ export function createSessionTitles(options: SessionTitlesOptions): SessionTitle
             synced: typeof value['synced'] === 'boolean' ? value['synced'] : null,
             note: null,
             archivedAt: text('archivedAt'),
+            forgottenAt: text('forgottenAt'),
           });
         }
       }
@@ -192,19 +224,17 @@ export function createSessionTitles(options: SessionTitlesOptions): SessionTitle
       await save(projectId, key, { archivedAt: archived ? (options.now?.() ?? new Date()).toISOString() : null });
       return resolve(projectId, key);
     },
-    async setTopic(folder, raw) {
+    async setForgotten(projectId, key) {
+      await save(projectId, key, { forgottenAt: (options.now?.() ?? new Date()).toISOString() });
+      return resolve(projectId, key);
+    },
+    async setTopic(folder, raw, session) {
       const title = cleanTitle(raw);
       if (!title) throw new TitleError('bad-title', 'Пустая тема', 400);
       const project = await options.resolveProject(folder);
       if (!project) throw new TitleError('project-not-found', 'Папка не относится к проекту Workflow Kit', 404);
-      const running = options.sessions().filter((s) => s.projectId === project.id && s.state === 'working');
-      if (running.length === 0) {
-        throw new TitleError('no-running-turn', 'Не найдена сессия проекта с идущим ходом: служба не получила хук начала хода', 409);
-      }
-      if (running.length > 1) {
-        throw new TitleError('ambiguous', `В проекте идут ходы нескольких сессий (${running.length}): переименуйте сессию в панели Workflow Kit`, 409);
-      }
-      const key = running[0]!.key;
+      const key = session ? `${session.client}:${session.id}` : await runningKey(project.id);
+      if (!titleFileName(key)) throw new TitleError('bad-session', 'Неверный ключ сессии', 400);
       if (stored.get(project.id)?.get(key)?.topic) throw new TitleError('already-set', 'Тема этой сессии уже задана', 409);
       await save(project.id, key, { topic: title, synced: null, note: null });
       await sync(project.id, key);

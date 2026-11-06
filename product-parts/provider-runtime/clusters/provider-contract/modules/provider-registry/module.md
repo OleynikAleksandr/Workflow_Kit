@@ -88,6 +88,9 @@
   битые строки пропускаются; читается хвост до 4 МиБ
   (`HOOK_JOURNAL_MAX_BYTES`); результат кэшируется по mtime и размеру файла
   (D11), `clearHookSessionsCache()` сбрасывает кэш (`/api/refresh`).
+- `isHelperFork(session)` — скрытый служебный форк Codex Desktop
+  (`source` только `fork`, нет `transcript_path`); `readHookSessions` его
+  всегда пропускает.
 - `parseHookJournal(text)`, `hookJournalFile(projectPath)`.
 - `hookSessionInfo(provider, session, extra?) → SessionInfo` — `origin:
   'hook'`, `state: 'unknown'`, без ссылок; провайдер дополняет `remoteId`

@@ -27,6 +27,7 @@ app-server на весь Mac, доверие к папке, одобрение �
   UserPromptSubmit), `isExactKitCommand(command)`,
   `SERVICE_TURN_WAIT_MS` (15 с), `UNSUBSCRIBE_TIMEOUT_MS` (5 с),
   `RELEASE_WAIT_MS` (90 с), `RELEASE_POLL_MS` (2 с), `RELEASING_NOTE`,
+  `UNLOAD_METHODS` (`thread/archive`, `thread/unarchive`; в `sessions.ts`),
   `RENAME_LATER_NOTE`,
   `HELD_NOTE`; функции `serviceTurnText(name)`,
   `threadLinks(id)`, `parseRemoteControlStart(stdout)`.
@@ -145,8 +146,19 @@ app-server на весь Mac, доверие к папке, одобрение �
   через 60 с после `thread/unsubscribe`) и остаётся его единственным
   писателем: ChatGPT в это время получает «thread-store conflict: … already
   has an active writer» и пишет «Этот чат открыт в другом приложении».
-  Поэтому createSession в том же соединении опрашивает `thread/loaded/list`
-  (все страницы) каждые 2 с, пока тред не исчезнет, но не дольше 90 с, и
+  Поэтому, если ход завершился (`turn/completed`) и тред ещё загружен,
+  createSession сразу выгружает его: `thread/archive` (демон выгружает тред
+  мгновенно), затем `thread/unarchive` (тред возвращается в списки, не
+  загружаясь; при ошибке — вторая попытка). Проверено 2026-11-06 на
+  codex-cli 0.167.0: сразу после архивации `thread/loaded/list` пуст, файл
+  переписки и имя на месте; создание занимает секунды вместо минуты.
+  Журнал: `codex: thread <id> unloaded by thread/archive and
+  thread/unarchive`; при отказе архивации — `… not unloaded by
+  thread/archive: …`, при неудаче разархивации — `… stays archived, …`.
+  Незавершённый ход не архивируется. Без выгрузки (отказ демона, ход не
+  завершился) createSession в том же соединении опрашивает
+  `thread/loaded/list` (все страницы) каждые 2 с, пока тред не исчезнет,
+  но не дольше 90 с, и
   пишет в журнал `codex: thread <id> released by the daemon` или `… still
   held by the daemon after 90 s`. Пока тред удерживается, `listSessions`
   показывает сессию (`state: 'running'`) без ссылок и с пояснением
@@ -182,8 +194,10 @@ app-server на весь Mac, доверие к папке, одобрение �
   сообщения «Этот чат открыт в другом приложении»; в журнале службы —
   строка `codex: thread/unsubscribe <id>: unsubscribed`; настройки треда в
   ChatGPT — пользовательские.
-- Операция «Создать сессию» длится около минуты: служба ждёт, пока демон
-  выгрузит тред. Проверить: пока идёт операция, у сессии нет кнопки
+- Операция «Создать сессию» длится секунды (ход + выгрузка через
+  `thread/archive`/`thread/unarchive`); без `thread/archive` — около
+  минуты, служба ждёт, пока демон выгрузит тред. Проверить: пока идёт
+  операция, у сессии нет кнопки
   «Открыть» и есть пояснение «Codex ещё держит чат»; после конца операции
   ссылка открывает чат в ChatGPT на Mac и iPad без сообщения; в журнале
   службы — `codex: thread <id> released by the daemon`.
@@ -211,10 +225,14 @@ app-server на весь Mac, доверие к папке, одобрение �
   загруженных тредов: `thread/start` загружает, `thread/unsubscribe`
   последнего подписчика выгружает (с `idleUnloadPolls` — только через
   столько вызовов `thread/loaded/list`, как настоящий демон через минуту),
+  `thread/archive` выгружает сразу, `thread/unarchive` не загружает
+  (`archiveError` — демон без архивации),
   закрытие соединения — нет, как в D1; отвечает на `thread/loaded/list`);
   настоящий `~/.codex` не трогается.
 - После `createSession` тред не остаётся загруженным в демоне, а ссылка
-  появляется только после его выгрузки (`test/release.test.ts`).
+  появляется только после его выгрузки; после завершённого хода тред
+  выгружается архивацией без минутного ожидания и возвращается из архива,
+  незавершённый ход не архивируется (`test/release.test.ts`).
 
 ## Дальше
 

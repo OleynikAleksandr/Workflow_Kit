@@ -25,7 +25,6 @@
     "#process-supervisor": "./product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/src/index.ts",
     "#project-registry": "./product-parts/backend-core/clusters/projects/modules/project-registry/src/index.ts",
     "#project-setup": "./product-parts/backend-core/clusters/projects/modules/project-setup/src/index.ts",
-    "#provider-cards": "./product-parts/control-panel/clusters/web-panel/modules/provider-cards/src/index.ts",
     "#project-wizard": "./product-parts/control-panel/clusters/web-panel/modules/project-wizard/src/index.ts",
     "#session-view": "./product-parts/control-panel/clusters/web-panel/modules/session-view/src/index.ts",
     "#provider-claude": "./product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/index.ts",

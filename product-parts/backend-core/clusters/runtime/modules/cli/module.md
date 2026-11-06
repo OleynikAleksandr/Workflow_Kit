@@ -32,8 +32,8 @@ stripping).
   типы `LinkOptions`, `LinkResult`.
 - `createApp(options?) → Promise<App>` — сборка бэкенда: каталоги данных
   (создаются с правами 0700), конфиг, реестр маршрутов, реестр разделов
-  состояния, HTTP-сервер с панелью (`panelShellMount()` в корне и
-  `providerCardsMount()` под `/provider-cards/`, `projectWizardMount()` под
+  состояния, HTTP-сервер с панелью (`panelShellMount()` в корне,
+  `projectWizardMount()` под
   `/project-wizard/`, `sessionViewMount()` под `/session-view/`), журнал событий, мьютекс, реестр
   проектов, операции, учёт процессов и реестр провайдеров. `App`: `dirs`,
   `config`, `version`, `os`, `router`, `state`, `server`, `events`
@@ -61,11 +61,11 @@ stripping).
 | Команда | Поведение |
 | --- | --- |
 | `serve` | собирает приложение, слушает `config.port` (4747, `WFK_PORT`), печатает адреса панели, останавливается по SIGINT/SIGTERM |
-| `install`, `uninstall`, `service start/stop/status`, `open` | передаются в `runServiceCommand` из `service-installer` с контекстом `{ env, platform, homedir, ...deps.service }` (по умолчанию — текущий процесс и `os.homedir()`); сообщение — в stdout (успех) или stderr (ошибка), код выхода — из результата |
+| `install`, `uninstall`, `service start/stop/status`, `open [--url-only]` | передаются в `runServiceCommand` из `service-installer` с контекстом `{ env, platform, homedir, ...deps.service }` (по умолчанию — текущий процесс и `os.homedir()`); сообщение — в stdout (успех) или stderr (ошибка), код выхода — из результата |
 | `doctor [--installed]` | то же, `--installed` передаётся аргументом; другие аргументы — справка, код 64 |
 | `link [--force]` | пишет запускатель `~/.local/bin/wfk` (0755, `#!/bin/sh`, строка-метка `# Workflow Kit launcher`), который запускает `bin/wfk.mjs` этого клона абсолютным `node`; чужой файл заменяется только с `--force`; предупреждает, если каталога нет в PATH; на Windows — отказ, код 1 |
 | `hook session-start --client <claude\|codex>` | читает JSON хука из stdin (до 1 с, терминал — пусто) и передаёт `recordSessionStart` из `kit-structure`; весь бюджет 1,5 с; stdout пуст, код всегда 0; неизвестные подкоманды `hook` игнорируются |
-| `session title "<тема>"` | отправляет `{ title, cwd, projectDir }` на `POST /api/sessions/title`; успех — «Имя сессии в Workflow Kit: …», код 0; отказ службы — причина в stderr, код 1; без темы — справка, код 64 |
+| `session title "<тема>"` | отправляет `{ title, cwd, projectDir, client, sessionId }` на `POST /api/sessions/title` (id сессии — `CODEX_THREAD_ID` или `CLAUDE_CODE_SESSION_ID`, `callingSession`); успех — «Имя сессии в Workflow Kit: …», код 0; отказ службы — причина в stderr, код 1; без темы — справка, код 64 |
 | `hook stop\|prompt --client <claude\|codex>` | читает JSON хука из stdin и отправляет `{ client, input, projectDir }` (`projectDir` — `$CLAUDE_PROJECT_DIR`) на `POST /api/hooks/stop\|prompt` службы; печатает в stdout поле `answer` ответа (JSON для агента) или ничего; служба недоступна, вход не JSON — без вывода; код всегда 0; `WFK_HOOK_DEBUG` — причина в stderr |
 | `--help`, `--version` | справка и версия из `package.json` |
 
@@ -100,8 +100,6 @@ stripping).
   `log`); охранник удаления проекта `projects.addRemoveGuard` — живые сессии
   и `removeBlockers?` провайдеров.
 - `data-store` (T004): раздел `operations` (`operations.section()`).
-- `provider-cards` (T005): статика карточек провайдеров
-  (`providerCardsMount()`, префикс `/provider-cards/`).
 - `project-wizard`, `session-view` (веха 2, T008): статика мастера и экрана
   сессии (`projectWizardMount()`, `sessionViewMount()`).
 - `process-supervisor` (T004): `createProcessSupervisor` над
@@ -141,7 +139,7 @@ stripping).
 - Модули подключаются только через их `src/index.ts` (`#data-store`,
   `#agent-channel`, `#autopilot`, `#http-server`, `#plan-review`, `#project-setup`, `#session-titles`, `#kit-bundle`, `#kit-runner`, `#kit-structure`,
   `#panel-shell`, `#process-supervisor`,
-  `#provider-cards`, `#project-wizard`, `#session-view`,
+  `#project-wizard`, `#session-view`,
   `#project-registry`, `#provider-claude`, `#provider-codex`,
   `#provider-registry`, `#service-installer`).
 - Провайдер подключается фабрикой `createProvider` своего модуля; его

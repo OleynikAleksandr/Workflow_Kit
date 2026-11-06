@@ -5,6 +5,10 @@ Workflow Kit — оркестратор поверх родных приложе
 (по адресу Tailscale): реестр проектов, собственная структура Kit в папке
 проекта, провайдеры Claude и Codex с общим контрактом (доверие к папке,
 сессии, окружение Claude, демон и хуки Codex), установщик с автозапуском.
+С вехи 2 служба ведёт в проектах процесс Harness Workflow Kit 2.2.2: мастер
+проекта с одним согласием и первой сессией, карточки выбора пути и плана,
+автопилот через хуки агентов, имена сессий; панель — по согласованному
+макету (`docs/design/ui-mockup.html`), с экраном «Домой» на iPad.
 
 Веха 1 (`m1-orchestrator-core`) реализована; приёмка на устройстве —
 по разделу 11 спецификации
@@ -12,6 +16,11 @@ Workflow Kit — оркестратор поверх родных приложе
 Первый проход приёмки на Mac нашёл дефекты D1–D3
 ([docs/evidence/M1-acceptance.md](docs/evidence/M1-acceptance.md)); они
 исправлены раундом R2, повторная приёмка — после переустановки.
+
+Веха 2 (`m2-interface-and-process`) реализована (раунд R1); визуальная
+приёмка на Mac и iPad — по разделу 14 спецификации
+([docs/planning/M2-interface-and-process.md](docs/planning/M2-interface-and-process.md)),
+итог записывается в `docs/evidence/M2-acceptance.md`.
 
 ## Требования
 
@@ -70,6 +79,7 @@ LaunchAgents и порт 4747: подставные программы, HOME и 
 - Архитектура: [docs/architecture/OVERVIEW.md](docs/architecture/OVERVIEW.md)
   — части продукта, модули, контракты, матрица ОС, известные ограничения.
 - Контракты модулей: `product-parts/<часть>/clusters/<кластер>/modules/<модуль>/module.md`.
-- Спецификация вехи 1 и провайдеры (временные, до приёмки):
-  [docs/planning/](docs/planning/).
+- Спецификации вех 1 и 2 и провайдеры (временные, до приёмки):
+  [docs/planning/](docs/planning/); макет интерфейса —
+  [docs/design/ui-mockup.html](docs/design/ui-mockup.html).
 - Правила разработки (Workflow Kit): [AGENTS.md](AGENTS.md).

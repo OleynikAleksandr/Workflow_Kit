@@ -13,7 +13,7 @@
 | [agent-channel](modules/agent-channel/module.md) | приём хуков `Stop`/`UserPromptSubmit`, очередь сообщений агенту с однократной доставкой, удержание `Stop` до решения пользователя (до 9 минут), активность сессий |
 | [autopilot](modules/autopilot/module.md) | решение «продолжать, держать или отпустить» после хода и действия с планом из панели |
 | [plan-review](modules/plan-review/module.md) | переключатель «Ревью плана» сессии: хранение и видимость до выбора пути (самой функции ревью в вехе 2 нет) |
-| [session-titles](modules/session-titles/module.md) | имена сессий: ручное, тема агента, цель плана, имя провайдера; синхронизация с ChatGPT |
+| [session-titles](modules/session-titles/module.md) | имена сессий: ручное, тема агента, цель плана, имя провайдера; синхронизация с ChatGPT; архив сессий |
 
 ## Границы
 

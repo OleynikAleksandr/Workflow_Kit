@@ -10,10 +10,36 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 81,
+  "revision": 83,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "Структура Kit v2: хуки Stop и UserPromptSubmit (wfk hook stop|prompt), раздел AGENTS.md о панели",
+          "POST /api/hooks/stop|prompt (loopback) и разделы channel, autopilot; POST /api/projects/:id/workflow/choose|start|pause|resume|accept|close|fixes|confirm-delivery",
+          "POST /api/projects/:id/sessions/:key/review|title|archive, POST /api/sessions/title, разделы review и titles",
+          "POST /api/setup/preview|apply, POST /api/setup/:op/cancel, раздел setup; projects: archive, restore, projects-root",
+          "Provider.createSession(project, { title, firstMessage? }), renameSession?",
+          "Панель: registerSlot('newProject'|'sessionBody'|'sessionReview'), модули project-wizard и session-view"
+        ],
+        "decisions": [
+          "Функции ревью плана в вехе 2 нет: только переключатель по сессии; перекрёстное ревью другим вендором — отдельная работа другим подходом",
+          "Оркестрация с исполнителями предлагается только сессиям Claude",
+          "Структура проекта коммитится обычным git до установки Kit: docs:commit принимает только Markdown",
+          "Доверие выбранному провайдеру обязательно, другому — по возможности (пропуск с заметкой)",
+          "Мастер и экран сессии — расширения панели через слоты registerSlot",
+          "Задачу Kit запускают до правок: правки до task:start Kit исключает из коммита; код T007 вошёл в коммит T008"
+        ],
+        "references": [
+          "docs/planning/M2-interface-and-process.md",
+          "docs/design/ui-mockup.html",
+          "docs/architecture/OVERVIEW.md",
+          "product-parts/workflow-engine/product-part.md",
+          "product-parts/control-panel/clusters/web-panel/cluster.md",
+          "product-parts/backend-core/clusters/projects/modules/project-setup/module.md"
+        ],
+        "result": "Веха 2, R1: Kit 2.2.2 в проектах (бандл, команды, раздел workflow), хуки Stop/UserPromptSubmit и автопилот, «Ревью плана» (переключатель), имена и архив сессий, мастер проекта с одним согласием и первой сессией, интерфейс по макету: дерево, экран сессии с выбором пути и планом, «Настройки», экран «Домой» iPad. 286 тестов."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -566,7 +592,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -613,8 +639,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 8/10
-- Revision: 81
+- Progress: 9/10
+- Revision: 83
 
 ## Objective
 
@@ -660,7 +686,7 @@
   - Commit: feat: rebuild the panel layout, show the setup wizard and the session screen
   - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/control-panel/clusters/web-panel/modules/provider-cards, product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/control-panel/clusters/web-panel/modules/project-wizard, product-parts/control-panel/clusters/web-panel/cluster.md, product-parts/control-panel/product-part.md, product-parts/backend-core/clusters/http-api/modules/http-server, product-parts/workflow-engine/clusters/session-loop/modules/session-titles, product-parts/backend-core/clusters/runtime/modules/cli, package.json, product-parts/backend-core/clusters/projects/modules/project-setup, product-parts/backend-core/clusters/projects/modules/project-setup/module.md, product-parts/backend-core/clusters/projects/modules/project-setup/src/setup.ts, product-parts/backend-core/clusters/projects/modules/project-setup/test/setup.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/actions.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/card-grid.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/controls.css, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/folder-picker.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/icons/icon-180.png, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/icons/icon-192.png, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/icons/icon-512.png, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/icons/icon.svg, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/index.html, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/layout.css, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/manifest.webmanifest, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/menus.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/new-project.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/projects-card.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/screens.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/settings.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/sidebar.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/slots.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/styles.css, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/tree.css, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/view-model.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/panel-shell.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/project-wizard/module.md, product-parts/control-panel/clusters/web-panel/modules/project-wizard/src/index.ts, product-parts/control-panel/clusters/web-panel/modules/project-wizard/src/project-wizard.css, product-parts/control-panel/clusters/web-panel/modules/project-wizard/src/project-wizard.js, product-parts/control-panel/clusters/web-panel/modules/project-wizard/src/wizard-model.js, product-parts/control-panel/clusters/web-panel/modules/project-wizard/test/wizard-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/provider-cards/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/index.ts, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.css, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/titles.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/test/titles.test.ts
   - Depends on: T006, T007
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M2-interface-and-process.md, product-parts/workflow-engine/product-part.md, product-parts/workflow-engine/clusters/session-loop/cluster.md, product-parts/backend-core/clusters/projects/cluster.md, product-parts/control-panel/clusters/web-panel/cluster.md, product-parts/control-panel/product-part.md
   - Depends on: T001, T002, T003, T004, T005, T006, T007, T008
@@ -668,5 +694,7 @@
   - Commit: docs: record milestone 2 acceptance
   - Files: docs/evidence/M2-acceptance.md
   - Depends on: T008, DOCS-R1
+
+Digest: Веха 2, R1: Kit 2.2.2 в проектах (бандл, команды, раздел workflow), хуки Stop/UserPromptSubmit и автопилот, «Ревью плана» (переключатель), имена и архив сессий, мастер проекта с одним согласием и первой сессией, интерфейс по макету: дерево, экран сессии с выбором пути и планом, «Настройки», экран «Домой» iPad. 286 тестов.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

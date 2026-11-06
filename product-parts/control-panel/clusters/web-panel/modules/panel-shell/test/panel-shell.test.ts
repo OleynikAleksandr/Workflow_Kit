@@ -14,9 +14,24 @@ test('the panel files live in the module src directory', async () => {
     'dom.js',
     'api.js',
     'system-card.js',
-    'projects-card.js',
+    'new-project.js',
     'folder-picker.js',
     'structure-card.js',
+    'view-model.js',
+    'sidebar.js',
+    'menus.js',
+    'screens.js',
+    'settings.js',
+    'card-grid.js',
+    'slots.js',
+    'actions.js',
+    'layout.css',
+    'tree.css',
+    'manifest.webmanifest',
+    'icons/icon.svg',
+    'icons/icon-180.png',
+    'icons/icon-192.png',
+    'icons/icon-512.png',
   ];
   for (const name of files) {
     assert.ok((await stat(path.join(PANEL_ASSETS_DIR, name))).isFile(), name);
@@ -28,6 +43,7 @@ test('index.html loads the stylesheet and the app module without inline scripts'
   const html = await readFile(path.join(PANEL_ASSETS_DIR, 'index.html'), 'utf8');
   assert.match(html, /<link rel="stylesheet" href="styles.css"/);
   assert.match(html, /<link rel="stylesheet" href="controls.css"/);
+  assert.match(html, /<link rel="stylesheet" href="layout.css"/);
   assert.match(html, /<script type="module" src="app.js"><\/script>/);
   assert.doesNotMatch(html, /<script(?![^>]*src=)[^>]*>/);
   assert.doesNotMatch(html, /style="/);
@@ -40,20 +56,49 @@ test('app.js polls /api/state at the documented interval', async () => {
   assert.match(app, /fetch\('\/api\/state'/);
 });
 
-test('the projects card is loaded and text inputs disable iPad autocapitalization and autocorrection', async () => {
+test('the iPad home screen gets a manifest, icons and the standalone mode', async () => {
+  const html = await readFile(path.join(PANEL_ASSETS_DIR, 'index.html'), 'utf8');
+  assert.match(html, /<link rel="manifest" href="manifest.webmanifest"/);
+  assert.match(html, /<link rel="apple-touch-icon" href="icons\/icon-180.png"/);
+  assert.match(html, /name="apple-mobile-web-app-capable" content="yes"/);
+  assert.match(html, /viewport-fit=cover/);
+  const manifest = JSON.parse(await readFile(path.join(PANEL_ASSETS_DIR, 'manifest.webmanifest'), 'utf8')) as {
+    display: string;
+    start_url: string;
+    icons: Array<{ src: string; sizes: string }>;
+  };
+  assert.equal(manifest.display, 'standalone');
+  assert.equal(manifest.start_url, '/');
+  assert.deepEqual(manifest.icons.map((i) => i.sizes).sort(), ['192x192', '512x512', '512x512']);
+  for (const [name, size] of [['icon-180.png', 180], ['icon-192.png', 192], ['icon-512.png', 512]] as const) {
+    const png = await readFile(path.join(PANEL_ASSETS_DIR, 'icons', name));
+    assert.equal(png.subarray(1, 4).toString('latin1'), 'PNG', name);
+    assert.equal(png.readUInt32BE(16), size, `${name} width`);
+    assert.equal(png.readUInt32BE(20), size, `${name} height`);
+  }
+  const layout = await readFile(path.join(PANEL_ASSETS_DIR, 'layout.css'), 'utf8');
+  assert.match(layout, /grid-template-columns: 270px minmax\(0, 1fr\)/);
+  assert.match(layout, /@media \(max-width: 680px\)/);
+  assert.match(layout, /env\(safe-area-inset-bottom\)/);
+});
+
+test('the new project screen is loaded and text inputs disable iPad autocapitalization and autocorrection', async () => {
   const app = await readFile(path.join(PANEL_ASSETS_DIR, 'app.js'), 'utf8');
-  assert.match(app, /import '\.\/projects-card\.js';/);
+  assert.match(app, /from '\.\/new-project\.js';/);
   const dom = await readFile(path.join(PANEL_ASSETS_DIR, 'dom.js'), 'utf8');
   assert.match(dom, /autocapitalize: 'off'/);
   assert.match(dom, /autocorrect: 'off'/);
-  for (const name of ['projects-card.js', 'folder-picker.js']) {
+  for (const name of ['new-project.js', 'folder-picker.js', 'sidebar.js', 'screens.js', 'settings.js', 'menus.js', 'actions.js']) {
     const source = await readFile(path.join(PANEL_ASSETS_DIR, name), 'utf8');
     assert.doesNotMatch(source, /h\('input', \{ type: 'text'/, `${name} creates text inputs only via plainInput`);
     assert.doesNotMatch(source, /innerHTML/, name);
   }
-  const card = await readFile(path.join(PANEL_ASSETS_DIR, 'projects-card.js'), 'utf8');
+  const card = await readFile(path.join(PANEL_ASSETS_DIR, 'new-project.js'), 'utf8');
   assert.match(card, /'\/api\/projects\/open'/);
-  assert.match(card, /'DELETE'/);
+  const actions = await readFile(path.join(PANEL_ASSETS_DIR, 'actions.js'), 'utf8');
+  assert.match(actions, /'DELETE'/);
+  assert.match(actions, /\/archive`/);
+  assert.match(actions, /\/restore`/);
   const picker = await readFile(path.join(PANEL_ASSETS_DIR, 'folder-picker.js'), 'utf8');
   assert.match(picker, /\/api\/folders\?/);
   assert.match(picker, /error\.hint/);
@@ -120,7 +165,11 @@ test('card groups expand into one card per item, sorted by order with the plain 
 test('app.js loads panel extensions with the shell helpers and keeps card sections in order', async () => {
   const app = await readFile(path.join(PANEL_ASSETS_DIR, 'app.js'), 'utf8');
   assert.match(app, /export const PANEL_EXTENSIONS = \[/);
+  for (const url of ['/provider-cards/provider-cards.js', '/project-wizard/project-wizard.js', '/session-view/session-view.js']) assert.ok(app.includes(`'${url}'`), url);
+  assert.match(app, /registerSlot,/);
   assert.match(app, /extension\.install\(shell\)/);
-  assert.match(app, /expandCards\(state\)/);
-  assert.match(app, /node\.remove\(\)/);
+  assert.match(app, /renderCards\(settings\.cards, state\)/);
+  const grid = await readFile(path.join(PANEL_ASSETS_DIR, 'card-grid.js'), 'utf8');
+  assert.match(grid, /expandCards\(current\)/);
+  assert.match(grid, /node\.remove\(\)/);
 });

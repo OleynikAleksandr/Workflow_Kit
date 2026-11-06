@@ -33,7 +33,8 @@ stripping).
 - `createApp(options?) → Promise<App>` — сборка бэкенда: каталоги данных
   (создаются с правами 0700), конфиг, реестр маршрутов, реестр разделов
   состояния, HTTP-сервер с панелью (`panelShellMount()` в корне и
-  `providerCardsMount()` под `/provider-cards/`), журнал событий, мьютекс, реестр
+  `providerCardsMount()` под `/provider-cards/`, `projectWizardMount()` под
+  `/project-wizard/`, `sessionViewMount()` под `/session-view/`), журнал событий, мьютекс, реестр
   проектов, операции, учёт процессов и реестр провайдеров. `App`: `dirs`,
   `config`, `version`, `os`, `router`, `state`, `server`, `events`
   (`events.jsonl`), `mutex` (D10), `projects` (`ProjectRegistry`),
@@ -101,6 +102,8 @@ stripping).
 - `data-store` (T004): раздел `operations` (`operations.section()`).
 - `provider-cards` (T005): статика карточек провайдеров
   (`providerCardsMount()`, префикс `/provider-cards/`).
+- `project-wizard`, `session-view` (веха 2, T008): статика мастера и экрана
+  сессии (`projectWizardMount()`, `sessionViewMount()`).
 - `process-supervisor` (T004): `createProcessSupervisor` над
   `<state>/processes.json`, `runCommand`.
 - `agent-channel` (веха 2, T002): `createAgentChannel` (проект хука —
@@ -138,7 +141,7 @@ stripping).
 - Модули подключаются только через их `src/index.ts` (`#data-store`,
   `#agent-channel`, `#autopilot`, `#http-server`, `#plan-review`, `#project-setup`, `#session-titles`, `#kit-bundle`, `#kit-runner`, `#kit-structure`,
   `#panel-shell`, `#process-supervisor`,
-  `#provider-cards`,
+  `#provider-cards`, `#project-wizard`, `#session-view`,
   `#project-registry`, `#provider-claude`, `#provider-codex`,
   `#provider-registry`, `#service-installer`).
 - Провайдер подключается фабрикой `createProvider` своего модуля; его

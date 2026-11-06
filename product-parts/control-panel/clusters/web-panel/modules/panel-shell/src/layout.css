@@ -1,0 +1,384 @@
+/* Layout of the agreed mockup: sidebar 270px on the left, the screen on the right; below 680px the
+   columns stack. Safe-area insets keep the content clear of the iPad home indicator and notch. */
+.app {
+  display: grid;
+  grid-template-columns: 270px minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+.side {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: calc(18px + env(safe-area-inset-top)) 15px calc(18px + env(safe-area-inset-bottom)) max(15px, env(safe-area-inset-left));
+  background: var(--panel);
+  border-right: 1px solid var(--line);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.logo {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 33px;
+  height: 33px;
+  border-radius: 10px;
+  background: var(--logo);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 750;
+}
+
+.brand strong {
+  font-size: 15px;
+  letter-spacing: -0.3px;
+}
+
+.brand small {
+  margin-left: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.icon {
+  display: grid;
+  place-items: center;
+  min-width: 28px;
+  min-height: 28px;
+  padding: 4px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.icon:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
+.ml {
+  margin-left: auto;
+}
+
+.grow {
+  flex: 1;
+  min-width: 0;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 9px;
+  border: 1px solid var(--active-line);
+  border-radius: 9px;
+  background: var(--active);
+  color: var(--teal);
+  font-size: 12px;
+}
+
+.status .t {
+  margin-left: auto;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.spin {
+  display: inline-block;
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--teal);
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spin {
+    animation: none;
+    border-right-color: var(--teal);
+    opacity: 0.6;
+  }
+}
+
+.heading {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.projects-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: -6px;
+  padding: 4px 6px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.projects-btn:hover,
+.projects-btn.open {
+  background: var(--hover);
+  color: var(--text);
+}
+
+/* Main screen */
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  min-width: 0;
+  padding: calc(21px + env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) 24px;
+}
+
+.main > .notice {
+  max-width: 735px;
+  margin-top: 0;
+}
+
+.screen {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.screen-head h1 {
+  margin: 0;
+  font-size: 17px;
+  letter-spacing: -0.2px;
+}
+
+.sub {
+  margin-top: 3px;
+  color: var(--muted);
+}
+
+.chat-link {
+  color: var(--teal);
+}
+
+.panel {
+  max-width: 570px;
+  padding: 15px;
+  border: 1px solid var(--card-line);
+  border-radius: 12px;
+  background: var(--card);
+}
+
+.panel h2 {
+  margin: 0 0 4px;
+  font-size: 14px;
+}
+
+.panel p {
+  margin: 4px 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.panel-form {
+  max-width: 520px;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 10px 0;
+}
+
+.field label {
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.path-box {
+  padding: 9px 10px;
+  border-radius: 8px;
+  background: var(--hover);
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.text-btn {
+  display: block;
+  margin: 4px auto 0;
+  padding: 6px;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.eyebrow {
+  margin: 14px 0 6px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+.checks {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 8px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.checks li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.wait {
+  color: var(--muted);
+}
+
+.ok {
+  color: var(--ok);
+}
+
+.checks li small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.link-row {
+  padding: 6px;
+  border-radius: 7px;
+  cursor: pointer;
+}
+
+.link-row:hover {
+  background: var(--hover);
+}
+
+.archive-row {
+  align-items: center !important;
+}
+
+.archive-row small {
+  overflow-wrap: anywhere;
+}
+
+.session-start {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.prov {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.prov i {
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.prov i.codex {
+  background: #0f3d3b;
+  color: #7fd0cb;
+}
+
+.prov i.claude {
+  background: #3d2616;
+  color: #e0a57a;
+}
+
+.segmented {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.segmented button {
+  padding: 6px 10px;
+  border: 1px solid var(--card-line);
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.segmented button.on {
+  border-color: var(--teal);
+  background: var(--teal);
+  color: var(--on-teal);
+}
+
+/* Service cards inside «Настройки» */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr));
+  gap: 12px;
+  max-width: 1100px;
+}
+
+@media (max-width: 680px) {
+  .app {
+    grid-template-columns: minmax(0, 1fr);
+    align-content: start;
+  }
+
+  .side {
+    padding: calc(15px + env(safe-area-inset-top)) max(15px, env(safe-area-inset-right)) 15px max(15px, env(safe-area-inset-left));
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .foot {
+    margin-top: 4px;
+  }
+
+  .main {
+    padding: 15px max(12px, env(safe-area-inset-right)) calc(15px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+  }
+
+  .session-start {
+    grid-template-columns: 1fr;
+  }
+}

@@ -23,6 +23,8 @@ import { code, h, notice, plainInput } from './dom.js';
  * @typedef {object} FolderPickerOptions
  * @property {(path: string) => Promise<void>} onPick Called with the chosen folder; a rejection is shown in the picker.
  * @property {() => void} onClose Called by the "Cancel" button.
+ * @property {string} [pickLabel] Text of the pick button (default «Открыть эту папку как проект»).
+ * @property {string} [idPrefix] Prefix of the element ids, unique per picker on the page (default "picker").
  */
 
 /**
@@ -51,13 +53,14 @@ export function createFolderPicker(options) {
   const current = h('div', { class: 'picker-current' });
   const upButton = h('button', { type: 'button', class: 'btn' }, ['↑ Вверх']);
   const homeButton = h('button', { type: 'button', class: 'btn' }, ['Домой']);
-  const hidden = /** @type {HTMLInputElement} */ (h('input', { type: 'checkbox', id: 'picker-hidden' }));
-  const pathInput = plainInput({ id: 'picker-path', name: 'path', placeholder: '/Users/имя/папка', 'aria-label': 'Путь к папке' });
+  const prefix = options.idPrefix ?? 'picker';
+  const hidden = /** @type {HTMLInputElement} */ (h('input', { type: 'checkbox', id: `${prefix}-hidden` }));
+  const pathInput = plainInput({ id: `${prefix}-path`, name: 'path', placeholder: '/Users/имя/папка', 'aria-label': 'Путь к папке' });
   const goButton = h('button', { type: 'submit', class: 'btn' }, ['Перейти']);
   const list = h('ul', { class: 'folder-list', role: 'list' });
   const message = h('div', { class: 'notice', role: 'alert' });
   message.hidden = true;
-  const pickButton = h('button', { type: 'button', class: 'btn btn-primary' }, ['Открыть эту папку как проект']);
+  const pickButton = h('button', { type: 'button', class: 'btn btn-primary' }, [options.pickLabel ?? 'Открыть эту папку как проект']);
   const cancelButton = h('button', { type: 'button', class: 'btn' }, ['Отмена']);
   const pathForm = h('form', { class: 'inline-form' }, [pathInput, goButton]);
 

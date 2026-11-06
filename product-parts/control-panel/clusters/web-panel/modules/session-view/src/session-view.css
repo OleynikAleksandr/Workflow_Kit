@@ -1,0 +1,321 @@
+/* Cards of the session screen after the mockup (steps 5-10) and «Ревью плана» in the sidebar. */
+.sv {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.sv-activity {
+  max-width: 760px;
+}
+
+.sv-top {
+  margin-top: 0;
+}
+
+.sv-muted {
+  color: var(--muted);
+}
+
+.sv-gap {
+  margin-top: 12px;
+}
+
+.sv-warn {
+  color: var(--warn);
+}
+
+.sv-hold {
+  color: var(--warn);
+}
+
+.work {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 12px;
+  border: 1px solid var(--active-line);
+  border-radius: 10px;
+  background: var(--active);
+}
+
+.work b {
+  color: var(--text);
+}
+
+.work small {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 12px;
+}
+
+.choice {
+  max-width: 570px;
+  padding: 15px;
+  border: 2px solid var(--warn);
+  border-radius: 12px;
+  background: var(--warn-bg);
+}
+
+.choice .eyebrow {
+  margin-top: 0;
+  color: var(--warn);
+}
+
+.choice h2 {
+  margin: 0 0 6px;
+  font-size: 14px;
+}
+
+.choice p {
+  margin: 4px 0;
+}
+
+.opt {
+  margin-top: 8px;
+  padding: 10px;
+  border: 1px solid var(--card-line);
+  border-radius: 10px;
+  background: var(--card);
+}
+
+.opt b {
+  display: block;
+}
+
+.opt .rec {
+  color: var(--warn);
+  font-weight: 700;
+}
+
+.opt p {
+  margin: 4px 0 8px;
+  color: var(--muted);
+}
+
+.btn.warn {
+  border-color: var(--warn);
+  background: var(--warn);
+  color: #201509;
+}
+
+.btn.warn-o {
+  border-color: var(--warn);
+  background: transparent;
+  color: var(--text);
+}
+
+.choice textarea,
+.sv-form textarea {
+  width: 100%;
+  margin-top: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--card-line);
+  border-radius: 8px;
+  background: var(--input);
+  color: var(--text);
+  font: inherit;
+  resize: vertical;
+}
+
+.sv-form {
+  margin-top: 12px;
+}
+
+.sv-form label {
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.plan-card {
+  max-width: 570px;
+  padding: 15px;
+  border: 1px solid var(--card-line);
+  border-radius: 12px;
+  background: var(--card);
+}
+
+.plan-card .who {
+  color: var(--muted);
+  font-weight: 650;
+}
+
+.plan-card h2 {
+  margin: 4px 0 9px;
+  font-size: 14px;
+}
+
+.plan-card hr {
+  margin: 6px 0 12px;
+  border: 0;
+  border-top: 1px solid var(--line);
+}
+
+.plan-card .row {
+  margin-top: 0;
+}
+
+.bar {
+  height: 5px;
+  overflow: hidden;
+  border-radius: 74px;
+  background: var(--line);
+}
+
+.bar i {
+  display: block;
+  height: 100%;
+  border-radius: 74px;
+  background: var(--teal);
+}
+
+.count {
+  margin: 8px 0 4px;
+  font-weight: 650;
+}
+
+.tasks {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tasks li {
+  display: grid;
+  grid-template-columns: 16px 1fr;
+  gap: 3px 8px;
+  padding: 9px 3px;
+  border-radius: 7px;
+}
+
+.tasks li.cur {
+  background: var(--active);
+}
+
+.tasks .ic {
+  width: 11px;
+  height: 11px;
+  margin-top: 2px;
+  border: 2px solid var(--muted);
+  border-radius: 50%;
+}
+
+.tasks .ic.done {
+  position: relative;
+  border-color: var(--ok);
+  background: var(--ok);
+}
+
+.tasks .ic.done::after {
+  content: '✓';
+  position: absolute;
+  inset: -2px 0 0;
+  color: #10231a;
+  font-size: 10px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.tasks .ic.run {
+  border-color: var(--teal);
+  border-right-color: transparent;
+  animation: spin 0.9s linear infinite;
+}
+
+.tasks .tid {
+  margin-right: 6px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.tasks b {
+  font-weight: 650;
+}
+
+.tasks small {
+  grid-column: 2;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.tasks .st {
+  color: var(--text);
+}
+
+.tasks .st.done {
+  color: var(--ok);
+}
+
+.tasks .st.run {
+  color: var(--teal);
+}
+
+.cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  max-width: 900px;
+}
+
+.cols > .plan-card {
+  max-width: none;
+}
+
+@media (max-width: 1100px) {
+  .cols {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* «Ревью плана» in the sidebar */
+.review {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--muted);
+}
+
+.review small {
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sw {
+  position: relative;
+  width: 30px;
+  height: 16px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--line);
+  cursor: pointer;
+}
+
+.sw::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #aab5c0;
+  transition: left 0.15s;
+}
+
+.sw.on {
+  background: var(--active-line);
+}
+
+.sw.on::after {
+  left: 16px;
+  background: var(--teal);
+}

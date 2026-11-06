@@ -145,6 +145,27 @@ export function createProjectSetup(deps: SetupDeps): ProjectSetup {
     return { note };
   }
 
+  // Trust of the chosen provider is required; the other provider's trust is best effort: when it is
+  // unavailable or fails, the step is skipped with a note and can be repeated in «Настройки».
+  async function trustStep(
+    run: SetupRun,
+    project: Project,
+    id: SetupProvider,
+    choices: Record<string, string>,
+    preview: SetupPreview,
+  ): Promise<{ note?: string | null; skipped?: boolean }> {
+    if (id === run.provider) return trustProvider(run, project, id, choices);
+    const later = 'можно дать позже в «Настройках»';
+    if (!preview.providers[id].available) return { skipped: true, note: `${preview.providers[id].reason ?? 'провайдер недоступен'} — ${later}` };
+    try {
+      return await trustProvider(run, project, id, choices);
+    } catch (error) {
+      if (error instanceof Cancelled) throw error;
+      const message = (error instanceof Error ? error.message : String(error)).split('\n')[0]!.slice(0, 160);
+      return { skipped: true, note: `не получилось: ${message} — ${later}` };
+    }
+  }
+
   async function execute(run: SetupRun, input: PreviewInput, preview: SetupPreview, choices: Record<string, string>): Promise<SetupRun> {
     const project = (await step<Project>(run, 'project', async () => {
       const value = input.mode === 'create' ? await deps.projects.create(preview.name) : (await deps.projects.open(preview.path)).project;
@@ -179,8 +200,8 @@ export function createProjectSetup(deps: SetupDeps): ProjectSetup {
       void deps.workflow.refresh(project.id);
       return { note: `Kit ${outcome.result.version}` };
     });
-    await step(run, 'trust-claude', () => trustProvider(run, project, 'claude', choices));
-    await step(run, 'trust-codex', () => trustProvider(run, project, 'codex', choices));
+    await step(run, 'trust-claude', () => trustStep(run, project, 'claude', choices, preview));
+    await step(run, 'trust-codex', () => trustStep(run, project, 'codex', choices, preview));
     const session = await step<SessionInfo>(run, 'session', async () => {
       const provider = deps.providers.get(run.provider)!;
       const value = await provider.createSession(project, { title: project.name, firstMessage: firstMessage(project.name) });

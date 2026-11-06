@@ -20,6 +20,8 @@ export interface SessionTitle {
   /** True when the provider app shows the same name; false when it is only in Workflow Kit. */
   synced: boolean | null;
   note: string | null;
+  /** When the session was put into the archive (hidden in the tree); null when it is not. */
+  archivedAt: string | null;
 }
 
 /** A refused title change. */
@@ -51,6 +53,7 @@ export interface SessionTitlesOptions {
   scope: (projectId: string) => { objective: string; ownerSession: string | null } | null;
   /** Gives the name to the provider app; resolves { synced, note }. */
   rename?: (projectId: string, key: string, name: string) => Promise<{ synced: boolean; note?: string }>;
+  now?: () => Date;
   log?: (line: string) => void;
 }
 
@@ -58,6 +61,8 @@ export interface SessionTitles {
   load(): Promise<void>;
   /** Manual name from the panel; an empty name removes it. */
   setManual(projectId: string, key: string, name: string): Promise<SessionTitle>;
+  /** Puts the session into the archive or returns it (the provider session is not touched). */
+  setArchived(projectId: string, key: string, archived: boolean): Promise<SessionTitle>;
   /** `wfk session title`: the topic of the session whose turn is running in the folder's project. */
   setTopic(folder: string, title: string): Promise<{ projectId: string; key: string; title: SessionTitle }>;
   /** Name of a session (providerTitle: the provider's own name, if any). */
@@ -72,6 +77,7 @@ interface Stored {
   topic: string | null;
   synced: boolean | null;
   note: string | null;
+  archivedAt: string | null;
 }
 
 const KEY = /^(claude|codex):([A-Za-z0-9._-]{1,200})$/;
@@ -114,8 +120,9 @@ export function createSessionTitles(options: SessionTitlesOptions): SessionTitle
     const target = path.join(await folderOf(projectId), SESSIONS_DIR, file);
     const current = ((await readJsonFile(target).catch(() => undefined)) ?? {}) as Record<string, unknown>;
     const map = projectMap(projectId);
-    const next: Stored = { title: null, topic: null, synced: null, note: null, ...map.get(key), ...patch };
-    await writeJsonAtomic(target, { ...current, title: next.title, topic: next.topic, synced: next.synced }, { mode: 0o600, dirMode: 0o700 });
+    const next: Stored = { title: null, topic: null, synced: null, note: null, archivedAt: null, ...map.get(key), ...patch };
+    const fields = { title: next.title, topic: next.topic, synced: next.synced, archivedAt: next.archivedAt };
+    await writeJsonAtomic(target, { ...current, ...fields }, { mode: 0o600, dirMode: 0o700 });
     map.set(key, next);
     return next;
   }
@@ -124,7 +131,7 @@ export function createSessionTitles(options: SessionTitlesOptions): SessionTitle
     const entry = stored.get(projectId)?.get(key);
     const manual = entry?.title ?? null;
     const topic = entry?.topic ?? null;
-    const base = { manual, topic, synced: entry?.synced ?? null, note: entry?.note ?? null };
+    const base = { manual, topic, synced: entry?.synced ?? null, note: entry?.note ?? null, archivedAt: entry?.archivedAt ?? null };
     if (manual) return { name: manual, source: 'manual', ...base };
     if (topic) return { name: topic, source: 'agent', ...base };
     const scope = options.scope(projectId);
@@ -170,6 +177,7 @@ export function createSessionTitles(options: SessionTitlesOptions): SessionTitle
             topic: text('topic'),
             synced: typeof value['synced'] === 'boolean' ? value['synced'] : null,
             note: null,
+            archivedAt: text('archivedAt'),
           });
         }
       }
@@ -178,6 +186,10 @@ export function createSessionTitles(options: SessionTitlesOptions): SessionTitle
       const title = cleanTitle(name);
       await save(projectId, key, { title: title || null, synced: null, note: null });
       await sync(projectId, key);
+      return resolve(projectId, key);
+    },
+    async setArchived(projectId, key, archived) {
+      await save(projectId, key, { archivedAt: archived ? (options.now?.() ?? new Date()).toISOString() : null });
       return resolve(projectId, key);
     },
     async setTopic(folder, raw) {

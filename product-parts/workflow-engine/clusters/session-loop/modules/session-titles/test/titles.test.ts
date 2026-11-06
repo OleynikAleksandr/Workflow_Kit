@@ -83,9 +83,25 @@ test('Codex names go to ChatGPT; a rename that had to wait is retried when a tur
   for (let i = 0; i < 50 && titles.name('p', 'codex:t1').synced !== true; i += 1) await new Promise((r) => setTimeout(r, 10));
   assert.equal(titles.name('p', 'codex:t1').synced, true);
   const file = JSON.parse(await readFile(path.join(folder, SESSIONS_DIR, 'codex.t1.json'), 'utf8'));
-  assert.deepEqual(file, { title: null, topic: 'Закупки', synced: true });
+  assert.deepEqual(file, { title: null, topic: 'Закупки', synced: true, archivedAt: null });
 
   const restarted = createSessionTitles(options());
   await restarted.load();
   assert.deepEqual(restarted.section().projects['p']?.['codex:t1']?.name, 'Закупки');
+});
+
+test('a session goes into the archive and back; the flag survives a reload and keeps the name', async () => {
+  const titles = createSessionTitles({ ...options(), now: () => new Date('2026-11-06T09:00:00Z') });
+  await titles.setManual('p', 'claude:arch', 'Старая сессия');
+  const archived = await titles.setArchived('p', 'claude:arch', true);
+  assert.equal(archived.archivedAt, '2026-11-06T09:00:00.000Z');
+  assert.equal(archived.name, 'Старая сессия');
+  const file = JSON.parse(await readFile(path.join(folder, SESSIONS_DIR, 'claude.arch.json'), 'utf8')) as Record<string, unknown>;
+  assert.equal(file['archivedAt'], '2026-11-06T09:00:00.000Z');
+  const reloaded = createSessionTitles(options());
+  await reloaded.load();
+  assert.equal(reloaded.section().projects['p']?.['claude:arch']?.archivedAt, '2026-11-06T09:00:00.000Z');
+  assert.equal((await reloaded.setArchived('p', 'claude:arch', false)).archivedAt, null);
+  assert.equal(reloaded.name('p', 'claude:arch').name, 'Старая сессия');
+  await assert.rejects(titles.setArchived('p', 'bad key', true), (error: unknown) => error instanceof TitleError && error.code === 'bad-session');
 });

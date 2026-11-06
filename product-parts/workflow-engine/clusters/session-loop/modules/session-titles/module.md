@@ -15,9 +15,12 @@ ChatGPT) → «Новая сессия».
   rename?, log? }) → SessionTitles`:
   - `load()` — читает имена из
     `<проект>/.workflow-kit/local/sessions/<client>.<id>.json` (поля
-    `title` — ручное, `topic` — тема агента, `synced`; другие поля файла,
+    `title` — ручное, `topic` — тема агента, `synced`, `archivedAt`; другие поля файла,
     например `review`, сохраняются при записи);
   - `setManual(projectId, key, name)` — ручное имя; пустое удаляет его;
+  - `setArchived(projectId, key, archived)` — сессия в архив (`archivedAt` —
+    время) или обратно (`null`); сессия провайдера не трогается, панель
+    прячет её из дерева и показывает на экране проекта с «Вернуть»;
   - `setTopic(folder, title)` — тема от агента: проект по папке, сессия —
     единственная сессия проекта в состоянии `working` канала (ход идёт);
     отказы `TitleError`: `no-running-turn`, `ambiguous` (несколько ходов —
@@ -25,7 +28,7 @@ ChatGPT) → «Новая сессия».
     раз), `project-not-found`, `bad-title` (длиннее 80 знаков или пусто);
   - `name(projectId, key, providerTitle?) → SessionTitle` (`name`,
     `source`: `manual` | `agent` | `scope` | `provider` | `default`,
-    `manual`, `topic`, `synced`, `note`);
+    `manual`, `topic`, `synced`, `note`, `archivedAt`);
   - `onTurn(key)` — начало хода: повтор отложенного переименования;
   - `section()` — `{ projects: { <id>: { <key>: SessionTitle } } }`.
 - Синхронизация: для сессий Codex ручное имя и тема уходят в ChatGPT через
@@ -34,6 +37,7 @@ ChatGPT) → «Новая сессия».
   следующем ходе. Имена Claude хранятся только в Workflow Kit.
 - `registerTitleRoutes({ router, state, titles })`:
   `POST /api/projects/:id/sessions/:sid/title { name }`,
+  `POST /api/projects/:id/sessions/:sid/archive { archived }`,
   `POST /api/sessions/title { title, cwd, projectDir }` (только loopback;
   команда `wfk session title`), раздел `titles`.
 - `cleanTitle`, `titleFileName`, `DEFAULT_NAME`, `MAX_TITLE_LENGTH`,

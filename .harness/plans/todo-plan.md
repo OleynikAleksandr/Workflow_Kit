@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": "T008",
+  "currentTaskId": null,
   "lastClosed": {
     "closedAt": "2026-11-06T07:38:39.028Z",
     "scopeId": "m1-orchestrator-core"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 80,
+  "revision": 81,
   "rounds": [
     {
       "digest": null,
@@ -473,14 +473,61 @@
         "product-parts/workflow-engine/clusters/session-loop/modules/session-titles",
         "product-parts/backend-core/clusters/runtime/modules/cli",
         "package.json",
-        "product-parts/backend-core/clusters/projects/modules/project-setup"
+        "product-parts/backend-core/clusters/projects/modules/project-setup",
+        "product-parts/backend-core/clusters/projects/modules/project-setup/module.md",
+        "product-parts/backend-core/clusters/projects/modules/project-setup/src/setup.ts",
+        "product-parts/backend-core/clusters/projects/modules/project-setup/test/setup.test.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/actions.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/card-grid.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/controls.css",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/folder-picker.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/icons/icon-180.png",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/icons/icon-192.png",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/icons/icon-512.png",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/icons/icon.svg",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/index.html",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/layout.css",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/manifest.webmanifest",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/menus.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/new-project.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/projects-card.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/screens.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/settings.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/sidebar.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/slots.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/styles.css",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/tree.css",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/view-model.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/panel-shell.test.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/project-wizard/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/project-wizard/src/index.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/project-wizard/src/project-wizard.css",
+        "product-parts/control-panel/clusters/web-panel/modules/project-wizard/src/project-wizard.js",
+        "product-parts/control-panel/clusters/web-panel/modules/project-wizard/src/wizard-model.js",
+        "product-parts/control-panel/clusters/web-panel/modules/project-wizard/test/wizard-model.test.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/provider-cards/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/index.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.css",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/routes.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/titles.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/session-titles/test/titles.test.ts"
       ],
       "fixes": null,
       "id": "T008",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "title": "Мастер и экран сессии в интерфейсе",
       "why": "Пользователь проходит путь от проекта до приёмки плана в панели"
     },
@@ -565,9 +612,9 @@
 - Scope: m2-interface-and-process (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: T008
-- Progress: 7/10
-- Revision: 80
+- Current task: none
+- Progress: 8/10
+- Revision: 81
 
 ## Objective
 
@@ -609,9 +656,9 @@
 - [DONE] T007 — Каркас интерфейса, настройки и экран «Домой» iPad (work, parallel-safe)
   - Commit: feat: rebuild the panel layout after the agreed mockup
   - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/control-panel/clusters/web-panel/modules/provider-cards, product-parts/control-panel/clusters/web-panel/cluster.md, product-parts/control-panel/product-part.md
-- [IN_PROGRESS] T008 — Мастер и экран сессии в интерфейсе (work)
+- [DONE] T008 — Мастер и экран сессии в интерфейсе (work)
   - Commit: feat: rebuild the panel layout, show the setup wizard and the session screen
-  - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/control-panel/clusters/web-panel/modules/provider-cards, product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/control-panel/clusters/web-panel/modules/project-wizard, product-parts/control-panel/clusters/web-panel/cluster.md, product-parts/control-panel/product-part.md, product-parts/backend-core/clusters/http-api/modules/http-server, product-parts/workflow-engine/clusters/session-loop/modules/session-titles, product-parts/backend-core/clusters/runtime/modules/cli, package.json, product-parts/backend-core/clusters/projects/modules/project-setup
+  - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/control-panel/clusters/web-panel/modules/provider-cards, product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/control-panel/clusters/web-panel/modules/project-wizard, product-parts/control-panel/clusters/web-panel/cluster.md, product-parts/control-panel/product-part.md, product-parts/backend-core/clusters/http-api/modules/http-server, product-parts/workflow-engine/clusters/session-loop/modules/session-titles, product-parts/backend-core/clusters/runtime/modules/cli, package.json, product-parts/backend-core/clusters/projects/modules/project-setup, product-parts/backend-core/clusters/projects/modules/project-setup/module.md, product-parts/backend-core/clusters/projects/modules/project-setup/src/setup.ts, product-parts/backend-core/clusters/projects/modules/project-setup/test/setup.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/actions.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/card-grid.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/controls.css, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/folder-picker.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/icons/icon-180.png, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/icons/icon-192.png, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/icons/icon-512.png, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/icons/icon.svg, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/index.html, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/layout.css, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/manifest.webmanifest, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/menus.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/new-project.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/projects-card.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/screens.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/settings.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/sidebar.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/slots.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/styles.css, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/tree.css, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/view-model.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/panel-shell.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/project-wizard/module.md, product-parts/control-panel/clusters/web-panel/modules/project-wizard/src/index.ts, product-parts/control-panel/clusters/web-panel/modules/project-wizard/src/project-wizard.css, product-parts/control-panel/clusters/web-panel/modules/project-wizard/src/project-wizard.js, product-parts/control-panel/clusters/web-panel/modules/project-wizard/src/wizard-model.js, product-parts/control-panel/clusters/web-panel/modules/project-wizard/test/wizard-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/provider-cards/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/index.ts, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.css, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/titles.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/test/titles.test.ts
   - Depends on: T006, T007
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1

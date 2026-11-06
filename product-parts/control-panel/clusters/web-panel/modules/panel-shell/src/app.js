@@ -1,113 +1,205 @@
 // @ts-check
-// Panel bootstrap: polls GET /api/state every 3 s and renders the header and the registered cards.
+// Panel bootstrap: the sidebar and the main screen of the agreed layout, routes in location.hash,
+// polling of GET /api/state every 3 s; the service cards render inside «Настройки».
+import { createActions } from './actions.js';
 import { api, ApiError } from './api.js';
-import { expandCards, registerCard, registerCardGroup, requestRefresh, setRefreshHandler } from './cards.js';
+import { registerCard, registerCardGroup, requestRefresh, setRefreshHandler } from './cards.js';
+import { renderCards } from './card-grid.js';
 import { code, facts, h, notice, pill, plainInput } from './dom.js';
+import { createFolderPicker, showError } from './folder-picker.js';
+import { createNewProjectScreen } from './new-project.js';
+import { archiveScreen, homeScreen, missingScreen, projectScreen, sessionHeader } from './screens.js';
+import { applyTheme, createSettings } from './settings.js';
+import { createSidebar } from './sidebar.js';
+import { registerSlot, slots } from './slots.js';
+import { deviceLink, indicators, parseRoute, projectLists, projectTree, routeHash, shortPath, statusLine } from './view-model.js';
 import './system-card.js';
-import './projects-card.js';
 import './structure-card.js';
 
 /**
  * Panel extensions mounted by the backend under their own prefix; each exports install(shell).
  * They get the shell helpers injected instead of importing panel files by URL.
  */
-export const PANEL_EXTENSIONS = ['/provider-cards/provider-cards.js'];
+export const PANEL_EXTENSIONS = ['/provider-cards/provider-cards.js', '/project-wizard/project-wizard.js', '/session-view/session-view.js'];
 
 /** Polling interval in milliseconds (D3). */
 const POLL_MS = 3000;
 /** A request slower than this counts as failed. */
 const TIMEOUT_MS = 8000;
 
-/** @type {Map<string, string>} Last rendered selection per card, to skip unchanged cards. */
-const rendered = new Map();
-/** @type {ReturnType<typeof setTimeout> | undefined} */
-let timer;
+/** @typedef {import('./view-model.js').Route} Route */
+/** @typedef {import('./view-model.js').SessionRow} SessionRow */
 
-/**
- * @param {string} id
- * @returns {HTMLElement}
- */
-function byId(id) {
-  const node = document.getElementById(id);
-  if (!node) throw new Error(`Missing #${id}`);
-  return node;
+applyTheme();
+
+/** @type {Record<string, unknown>} */
+let state = {};
+let linked = false;
+/** @type {Route} */
+let route = parseRoute(location.hash);
+/** @param {Route} next */
+function navigate(next) {
+  const hash = routeHash(next);
+  if (location.hash !== hash) location.hash = hash;
+  else render();
 }
 
-/**
- * Shows the connection state in the header.
- * @param {'ok' | 'error' | 'pending'} state
- * @param {string} text
- */
-function setLink(state, text) {
-  const link = byId('link-status');
-  link.dataset['state'] = state;
-  const label = link.querySelector('.link-text');
-  if (label) label.textContent = text;
-}
+const { handlers, toast, say, collapsed } = createActions({ navigate, render: () => render(), route: () => route });
 
-/**
- * Updates the header badges from the "system" section.
- * @param {Record<string, unknown>} state
- */
-function renderHeader(state) {
-  const system = /** @type {{ version?: string, os?: { label?: string } } | undefined} */ (state['system']);
-  byId('meta-version').textContent = system?.version ? `v${system.version}` : '—';
-  byId('meta-os').textContent = system?.os?.label ?? '—';
-}
+/** @type {import('./slots.js').SlotContext} */
+const slotContext = Object.freeze({ navigate, requestRefresh, say });
+const sidebar = createSidebar(handlers);
+const settings = createSettings({ onRootChanged: requestRefresh });
+const builtinNewProject = createNewProjectScreen({
+  onDone(projectId) {
+    requestRefresh();
+    navigate(projectId ? { screen: 'project', projectId } : { screen: 'home' });
+  },
+  onCancel: () => navigate({ screen: 'home' }),
+});
+/** @type {{ element: HTMLElement, show: (mode: 'create' | 'open', state: Record<string, unknown>, entered: boolean) => void } | null} */
+let wizard = null;
+/** Hash of the new project route last shown, to tell the wizard that the user came to it anew. */
+let newShown = '';
+const newProjectHost = h('div', { class: 'new-project' });
+const dynamic = h('div', { class: 'dynamic' });
+// The session screen keeps its body node, so typed text in its cards survives polling.
+const sessionHead = h('div');
+const sessionBody = h('div', { class: 'session-body' });
+const sessionScreen = h('div', { class: 'screen' }, [sessionHead, sessionBody]);
+let sessionHeadKey = '';
+let sessionBodyKey = '';
+let reviewKey = '';
+const main = h('main', { class: 'main', id: 'main' }, [toast, dynamic, newProjectHost, settings.element]);
+document.body.prepend(h('div', { class: 'app' }, [sidebar.element, main]));
 
-/**
- * Renders every card (plain cards and card group items), re-rendering only those whose data
- * changed; keeps the sections in card order and removes the cards that disappeared.
- * @param {Record<string, unknown>} state
- */
-function renderCards(state) {
-  const container = byId('cards');
-  /** @type {HTMLElement[]} */
-  const sections = [];
-  for (const card of expandCards(state)) {
-    const domId = `card-${card.id}`;
-    let section = document.getElementById(domId);
-    if (!section) {
-      const cls = card.wide ? 'card card-wide' : 'card';
-      section = h('section', { class: cls, id: domId, 'data-card': card.id, 'aria-labelledby': `${domId}-title` }, [
-        h('h2', { id: `${domId}-title` }, [card.title]),
-        h('div', { class: 'card-body' }),
-      ]);
-    }
-    sections.push(section);
-    const heading = section.querySelector('h2');
-    if (heading && heading.textContent !== card.title) heading.textContent = card.title;
-    /** @type {unknown} */
-    let data;
-    let key;
-    try {
-      data = card.select(state);
-      key = JSON.stringify(data) ?? 'undefined';
-    } catch (error) {
-      data = undefined;
-      key = `select-error:${String(error)}`;
-    }
-    if (rendered.get(card.id) === key) continue;
-    rendered.set(card.id, key);
-    const body = section.querySelector('.card-body');
-    if (!body) continue;
-    try {
-      if (key.startsWith('select-error:')) throw new Error(key.slice('select-error:'.length));
-      const node = card.render(data, state);
-      if (body.childNodes.length !== 1 || body.firstChild !== node) body.replaceChildren(node);
-    } catch (error) {
-      body.replaceChildren(h('p', { class: 'error' }, [`Ошибка карточки: ${String(error)}`]));
-    }
+/** Key of the last drawn dynamic screen, to skip redraws with unchanged data. */
+let drawn = '';
+
+function renderMain() {
+  const now = Date.now();
+  const tree = projectTree(state, { now, collapsed: new Set() });
+  settings.element.hidden = route.screen !== 'settings';
+  newProjectHost.hidden = route.screen !== 'new';
+  if (route.screen === 'new') {
+    if (slots.newProject && !wizard) wizard = slots.newProject.create(slotContext);
+    const view = wizard ?? builtinNewProject;
+    if (newProjectHost.firstChild !== view.element) newProjectHost.replaceChildren(view.element);
+    const entered = newShown !== location.hash;
+    newShown = location.hash;
+    if (wizard) wizard.show(route.mode, state, entered);
+    else builtinNewProject.show(route.mode, projectLists(state).root);
+  } else {
+    newShown = '';
   }
-  const wanted = new Set(sections);
-  for (const node of Array.from(container.querySelectorAll(':scope > section[data-card]'))) {
-    if (wanted.has(/** @type {HTMLElement} */ (node))) continue;
-    rendered.delete(/** @type {HTMLElement} */ (node).dataset['card'] ?? '');
-    node.remove();
+  if (route.screen === 'settings') settings.render(projectLists(state).root);
+  /** @type {[string, unknown, () => Node] | null} */
+  let screen = null;
+  const r = route;
+  if (r.screen === 'home') {
+    const hasProjects = tree.length > 0;
+    screen = ['home', hasProjects, () => homeScreen({ hasProjects }, handlers)];
+  } else if (r.screen === 'archive') {
+    const archived = projectLists(state).archived;
+    screen = ['archive', archived, () => archiveScreen(archived, handlers)];
+  } else if (r.screen === 'project') {
+    const project = tree.find((p) => p.id === r.projectId);
+    const home = projectLists(state).home;
+    screen = ['project', project ?? null, () => (project ? projectScreen({ ...project, path: shortPath(project.path, home) }, handlers) : missingScreen('Проект не найден', handlers))];
+  } else if (r.screen === 'session') {
+    const project = tree.find((p) => p.id === r.projectId);
+    const session = project?.sessions.find((s) => s.key === r.key);
+    const link = session ? deviceLink(session.links, navigator.maxTouchPoints ?? 0) : null;
+    const data = project && session ? { project, session, link } : null;
+    if (data) {
+      renderSession(data);
+      dynamic.hidden = false;
+      drawn = '';
+      if (dynamic.firstChild !== sessionScreen) dynamic.replaceChildren(sessionScreen);
+      return;
+    }
+    screen = ['session', null, () => missingScreen('Сессия не найдена', handlers)];
   }
-  // Move sections only when the order differs, so focused controls are not detached needlessly.
-  const current = Array.from(container.querySelectorAll(':scope > section[data-card]'));
-  if (current.length !== sections.length || current.some((node, i) => node !== sections[i])) container.append(...sections);
+  dynamic.hidden = screen === null;
+  if (!screen) return;
+  const key = JSON.stringify([routeHash(route), screen[1]]);
+  if (key === drawn) return;
+  drawn = key;
+  dynamic.replaceChildren(screen[2]());
+}
+
+/**
+ * Header and slot body of the session screen, each redrawn only when its data changed.
+ * @param {import('./slots.js').SessionContext} data
+ */
+function renderSession(data) {
+  const headKey = JSON.stringify(data);
+  if (headKey !== sessionHeadKey) {
+    sessionHeadKey = headKey;
+    sessionHead.replaceChildren(sessionHeader(data));
+  }
+  const slot = slots.sessionBody;
+  if (!slot) return;
+  try {
+    const selected = slot.select(state, data);
+    const key = JSON.stringify([data.session.key, selected]);
+    if (key === sessionBodyKey) return;
+    sessionBodyKey = key;
+    const node = slot.render(selected, state, data, slotContext);
+    if (!node) sessionBody.replaceChildren();
+    else if (sessionBody.childNodes.length !== 1 || sessionBody.firstChild !== node) sessionBody.replaceChildren(node);
+  } catch (error) {
+    sessionBodyKey = '';
+    sessionBody.replaceChildren(h('p', { class: 'error' }, [`Ошибка экрана сессии: ${String(error)}`]));
+  }
+}
+
+/**
+ * «Ревью плана» of the selected session in the sidebar (the "sessionReview" slot).
+ * @param {import('./view-model.js').ProjectRow[]} tree
+ */
+function renderReview(tree) {
+  const r = route;
+  const slot = slots.sessionReview;
+  const project = r.screen === 'session' ? tree.find((p) => p.id === r.projectId) : undefined;
+  const session = r.screen === 'session' ? project?.sessions.find((s) => s.key === r.key) : undefined;
+  if (!slot || !project || !session) {
+    if (reviewKey !== '') sidebar.setReview(null);
+    reviewKey = '';
+    return;
+  }
+  const context = { project, session, link: null };
+  try {
+    const selected = slot.select(state, context);
+    const key = JSON.stringify([session.key, selected]);
+    if (key === reviewKey) return;
+    reviewKey = key;
+    sidebar.setReview(slot.render(selected, state, context, slotContext));
+  } catch (error) {
+    reviewKey = '';
+    sidebar.setReview(h('p', { class: 'error' }, [`Ошибка «Ревью плана»: ${String(error)}`]));
+  }
+}
+
+function renderSidebar() {
+  const lists = projectLists(state);
+  const system = /** @type {{ version?: string }} */ (state['system'] ?? {});
+  const tree = projectTree(state, { now: Date.now(), collapsed });
+  renderReview(tree);
+  sidebar.render({
+    version: system.version ?? '',
+    status: statusLine(state, Date.now()),
+    tree,
+    projects: lists.active,
+    home: lists.home,
+    route,
+    indicators: indicators(state, linked),
+  });
+}
+
+function render() {
+  renderSidebar();
+  renderMain();
 }
 
 /** Fetches the state once and renders it. */
@@ -117,21 +209,23 @@ async function refresh() {
   try {
     const response = await fetch('/api/state', { cache: 'no-store', signal: controller.signal });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const state = /** @type {Record<string, unknown>} */ (await response.json());
-    renderHeader(state);
-    renderCards(state);
-    setLink('ok', `обновлено ${new Date().toLocaleTimeString('ru-RU')}`);
-  } catch (error) {
-    setLink('error', `нет связи с бэкендом (${error instanceof Error ? error.message : String(error)})`);
+    state = /** @type {Record<string, unknown>} */ (await response.json());
+    linked = true;
+    renderCards(settings.cards, state);
+  } catch {
+    linked = false;
   } finally {
     clearTimeout(abort);
   }
+  render();
 }
 
 /** True while a poll is running. */
 let inFlight = false;
 /** Set when loop() is called during a poll; one more poll follows right after it. */
 let again = false;
+/** @type {ReturnType<typeof setTimeout> | undefined} */
+let timer;
 
 /** Polls forever; the next poll starts after the previous one finishes. */
 async function loop() {
@@ -158,10 +252,13 @@ setRefreshHandler(() => void loop());
 const shell = Object.freeze({
   registerCard,
   registerCardGroup,
+  registerSlot,
   requestRefresh,
   api,
   ApiError,
   dom: Object.freeze({ h, facts, pill, code, notice, plainInput }),
+  createFolderPicker,
+  showError,
 });
 
 /**
@@ -180,10 +277,20 @@ async function loadExtensions(urls) {
   }
 }
 
+window.addEventListener('hashchange', () => {
+  route = parseRoute(location.hash);
+  notice(toast, 'muted', '');
+  render();
+  window.scrollTo({ top: 0 });
+});
+
 await loadExtensions(PANEL_EXTENSIONS);
 
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') void loop();
 });
+
+// The status line timer ticks between polls.
+setInterval(renderSidebar, 1000);
 
 void loop();

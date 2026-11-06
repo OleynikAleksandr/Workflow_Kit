@@ -15,6 +15,7 @@ let home = '';
 let app: App;
 let base = '';
 const calls: string[] = [];
+let codexTrustFails = false;
 
 function fakeProvider(id: 'claude' | 'codex'): ProviderFactory {
   return () => {
@@ -34,6 +35,7 @@ function fakeProvider(id: 'claude' | 'codex'): ProviderFactory {
         expiresAt: new Date(Date.now() + 60_000).toISOString(),
       }),
       grantTrust: async (project, token) => {
+        if (id === 'codex' && codexTrustFails) throw new Error('connection: codex app-server exited (code 1)\nCODEX_HOME missing');
         calls.push(`${id}:grant:${token}`);
         trusted.add(project.path);
         return { trusted: true, backup: `/backups/${id}` };
@@ -195,4 +197,25 @@ test('projects: archive and restore keep the folder; the projects folder can cha
   assert.equal(config.projectsRoot, root.json['root']);
   const outside = await send('/api/settings/projects-root', { path: '/etc' });
   assert.equal(outside.status, 400);
+});
+
+test('the other provider\'s trust is best effort; the chosen provider\'s trust is required', async () => {
+  codexTrustFails = true;
+  try {
+    const preview = await send('/api/setup/preview', { mode: 'create', name: 'Пилот' });
+    const applied = await send('/api/setup/apply', { token: preview.json['token'], provider: 'claude' });
+    const operation = await app.operations.wait(applied.json['operationId']);
+    assert.equal(operation.status, 'succeeded', JSON.stringify(operation.error));
+    const step = app.setup.get(applied.json['operationId'])!.steps.find((s) => s.id === 'trust-codex')!;
+    assert.equal(step.status, 'skipped');
+    assert.equal(step.note, 'не получилось: connection: codex app-server exited (code 1) — можно дать позже в «Настройках»');
+
+    const second = await send('/api/setup/preview', { mode: 'create', name: 'Пилот2' });
+    const failed = await send('/api/setup/apply', { token: second.json['token'], provider: 'codex' });
+    const outcome = await app.operations.wait(failed.json['operationId']);
+    assert.equal(outcome.status, 'failed');
+    assert.equal(app.setup.get(failed.json['operationId'])!.steps.find((s) => s.id === 'trust-codex')!.status, 'failed');
+  } finally {
+    codexTrustFails = false;
+  }
 });

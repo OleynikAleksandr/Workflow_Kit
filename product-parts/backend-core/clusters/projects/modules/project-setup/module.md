@@ -40,7 +40,10 @@ ChatGPT / Claude», все шаги без вопросов — папка, git,
     коммитит только свои файлы) → `kit` (`install --host harness`,
     `--update` или пропуск) → `trust-claude` и `trust-codex` (свежий
     `previewTrust` и `grantTrust` с ответами пользователя; для Codex затем
-    `approveHooks` хука Kit по хешу из `hooks`, до 15 попыток) → `session`
+    `approveHooks` хука Kit по хешу из `hooks`, до 15 попыток; доверие
+    выбранному провайдеру обязательно, другому — по возможности: если он
+    недоступен или запись не удалась, шаг `skipped` с заметкой «можно дать
+    позже в «Настройках»») → `session`
     (`createSession` выбранного провайдера с `firstMessage`).
   - `cancel(operationId)` — остановка перед следующим шагом; операция
     завершается с кодом `cancelled`, сделанное остаётся.

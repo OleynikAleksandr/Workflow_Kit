@@ -21,7 +21,8 @@ Workflow Kit — оркестратор поверх родных приложе
 ([docs/planning/M2-interface-and-process.md](docs/planning/M2-interface-and-process.md),
 [docs/evidence/M2-acceptance.md](docs/evidence/M2-acceptance.md)). Веха 3
 (`m3-fixes`, [docs/planning/M3-fixes.md](docs/planning/M3-fixes.md)) —
-раунды исправлений и дополнений, каждый заканчивается релизом.
+раунды исправлений и дополнений, каждый заканчивается релизом с новой
+версией (`package.json`; веха 3 — `0.3.x`).
 
 ## Требования
 

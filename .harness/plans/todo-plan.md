@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 121,
+  "revision": 123,
   "rounds": [
     {
       "digest": {
@@ -77,7 +77,18 @@
       "title": "Fixes"
     },
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "panel-shell: homeScreen() без параметров — только приветствие"
+        ],
+        "decisions": [
+          "Каждый релиз повышает версию package.json; веха 3 начинается с 0.3.0"
+        ],
+        "references": [
+          "docs/planning/M3-fixes.md#8. Раунд 4: версия релиза и главный экран"
+        ],
+        "result": "Главный экран без карточки «Начните с проекта» (создание и выбор проекта — в меню «Ваши проекты»); принято правило: каждый релиз повышает версию, веха 3 — 0.3.x."
+      },
       "id": "R4",
       "kind": "fixes",
       "status": "OPEN",
@@ -535,7 +546,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R4",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -578,8 +589,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 12/14
-- Revision: 121
+- Progress: 13/14
+- Revision: 123
 
 ## Objective
 
@@ -653,7 +664,7 @@ Digest: Имя сессии Claude из Kit уходит в приложение
   - Commit: fix: drop the start card from the home screen
   - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/screens.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/panel-shell.test.ts
   - Fixes: T007
-- [TODO] DOCS-R4 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R4 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R4
   - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md
   - Depends on: T009
@@ -661,5 +672,7 @@ Digest: Имя сессии Claude из Kit уходит в приложение
   - Commit: chore: release 0.3.0
   - Files: package.json, package-lock.json, docs/evidence/M3-acceptance.md
   - Depends on: T009, DOCS-R4
+
+Digest: Главный экран без карточки «Начните с проекта» (создание и выбор проекта — в меню «Ваши проекты»); принято правило: каждый релиз повышает версию, веха 3 — 0.3.x.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

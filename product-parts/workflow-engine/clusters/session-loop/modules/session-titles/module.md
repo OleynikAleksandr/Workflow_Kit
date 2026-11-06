@@ -45,7 +45,8 @@ ChatGPT) → «Новая сессия».
 - Синхронизация: для сессий Codex ручное имя и тема уходят в ChatGPT через
   `rename` (провайдер `renameSession`: `thread/name/set` демона, тред не
   загружается); отказ — `synced: false` с причиной и повтор при следующем
-  ходе. Для сессий Claude имя ждёт хука `UserPromptSubmit` (`synced: false`,
+  ходе; при `load()` (запуск службы) имена Codex со `synced` не `true`
+  отправляются заново в фоне. Для сессий Claude имя ждёт хука `UserPromptSubmit` (`synced: false`,
   `CLAUDE_NEXT_NOTE` «Имя уйдёт в Claude со следующим сообщением»): `cli`
   добавляет его в ответ хука как `hookSpecificOutput.sessionTitle`.
 - `registerTitleRoutes({ router, state, titles })`:

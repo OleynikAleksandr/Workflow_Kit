@@ -108,6 +108,24 @@ test('Codex names go to ChatGPT; a rename that had to wait is retried when a tur
   assert.deepEqual(restarted.section().projects['p']?.['codex:t1']?.name, 'Закупки');
 });
 
+test('a Codex name that did not reach ChatGPT is sent again when the service starts', async () => {
+  renames = [];
+  loaded = false;
+  const titles = createSessionTitles(options());
+  await titles.load();
+  renames = [];
+  await titles.setManual('p', 'codex:t9', 'Отгрузки');
+  assert.equal(titles.name('p', 'codex:t9').synced, false);
+  renames = [];
+  loaded = true;
+  const restarted = createSessionTitles(options());
+  await restarted.load();
+  for (let i = 0; i < 50 && restarted.name('p', 'codex:t9').synced !== true; i += 1) await new Promise((r) => setTimeout(r, 10));
+  assert.equal(restarted.name('p', 'codex:t9').synced, true);
+  assert.ok(renames.some(([key, name]) => key === 'codex:t9' && name === 'Отгрузки'));
+  assert.ok(!renames.some(([key]) => key === 'codex:t1'), 'a synced name is not sent again');
+});
+
 test('a session goes into the archive and back; the flag survives a reload and keeps the name', async () => {
   const titles = createSessionTitles({ ...options(), now: () => new Date('2026-11-06T09:00:00Z') });
   await titles.setManual('p', 'claude:arch', 'Старая сессия');

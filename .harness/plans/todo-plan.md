@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 103,
+  "revision": 105,
   "rounds": [
     {
       "digest": {
@@ -245,7 +245,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Повтор неотправленных имён Codex при запуске службы",
       "why": "После перезапуска службы имя со synced: false ждало хода в этой сессии и не доходило до ChatGPT"
     },
@@ -313,8 +313,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 4/7
-- Revision: 103
+- Progress: 5/7
+- Revision: 105
 
 ## Objective
 
@@ -348,7 +348,7 @@ Digest: Имена сессий Workflow Kit уходят в приложени�
 
 ### R2 — Fixes (fixes, OPEN)
 
-- [TODO] T004 — Повтор неотправленных имён Codex при запуске службы (work)
+- [DONE] T004 — Повтор неотправленных имён Codex при запуске службы (work)
   - Commit: fix: retry unsynced Codex names when the service starts
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/titles.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/test/titles.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md
   - Fixes: T001

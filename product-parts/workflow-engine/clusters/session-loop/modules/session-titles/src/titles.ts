@@ -204,6 +204,7 @@ export function createSessionTitles(options: SessionTitlesOptions): SessionTitle
 
   return {
     async load() {
+      const unsynced: Array<[string, string]> = [];
       for (const project of await options.listProjects()) {
         let names: string[] = [];
         try {
@@ -218,16 +219,22 @@ export function createSessionTitles(options: SessionTitlesOptions): SessionTitle
           const value = (await readJsonFile(path.join(project.path, SESSIONS_DIR, name)).catch(() => undefined)) as Record<string, unknown> | undefined;
           if (!value) continue;
           const text = (field: string): string | null => (typeof value[field] === 'string' && value[field] !== '' ? (value[field] as string) : null);
-          map.set(`${match[1]}:${match[2]}`, {
+          const entry: Stored = {
             title: text('title'),
             topic: text('topic'),
             synced: typeof value['synced'] === 'boolean' ? value['synced'] : null,
             note: null,
             archivedAt: text('archivedAt'),
             forgottenAt: text('forgottenAt'),
-          });
+          };
+          const key = `${match[1]}:${match[2]}`;
+          map.set(key, entry);
+          if (match[1] === 'codex' && (entry.title || entry.topic) && entry.synced !== true && !entry.forgottenAt) unsynced.push([project.id, key]);
         }
       }
+      // A Codex name that did not reach ChatGPT before the restart is sent again now, not on the
+      // next turn of that session (the retry list lives in memory). In the background: no wait.
+      for (const [projectId, key] of unsynced) void sync(projectId, key);
     },
     async setManual(projectId, key, name) {
       const title = cleanTitle(name);

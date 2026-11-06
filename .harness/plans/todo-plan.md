@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T008",
   "lastClosed": {
     "closedAt": "2026-11-06T07:38:39.028Z",
     "scopeId": "m1-orchestrator-core"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 76,
+  "revision": 78,
   "rounds": [
     {
       "digest": null,
@@ -469,14 +469,16 @@
         "product-parts/control-panel/clusters/web-panel/modules/project-wizard",
         "product-parts/control-panel/clusters/web-panel/cluster.md",
         "product-parts/control-panel/product-part.md",
-        "product-parts/backend-core/clusters/http-api/modules/http-server"
+        "product-parts/backend-core/clusters/http-api/modules/http-server",
+        "product-parts/workflow-engine/clusters/session-loop/modules/session-titles",
+        "product-parts/backend-core/clusters/runtime/modules/cli"
       ],
       "fixes": null,
       "id": "T008",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "Мастер и экран сессии в интерфейсе",
       "why": "Пользователь проходит путь от проекта до приёмки плана в панели"
     },
@@ -561,9 +563,9 @@
 - Scope: m2-interface-and-process (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: none
+- Current task: T008
 - Progress: 7/10
-- Revision: 76
+- Revision: 78
 
 ## Objective
 
@@ -605,9 +607,9 @@
 - [DONE] T007 — Каркас интерфейса, настройки и экран «Домой» iPad (work, parallel-safe)
   - Commit: feat: rebuild the panel layout after the agreed mockup
   - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/control-panel/clusters/web-panel/modules/provider-cards, product-parts/control-panel/clusters/web-panel/cluster.md, product-parts/control-panel/product-part.md
-- [TODO] T008 — Мастер и экран сессии в интерфейсе (work)
+- [IN_PROGRESS] T008 — Мастер и экран сессии в интерфейсе (work)
   - Commit: feat: rebuild the panel layout, show the setup wizard and the session screen
-  - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/control-panel/clusters/web-panel/modules/provider-cards, product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/control-panel/clusters/web-panel/modules/project-wizard, product-parts/control-panel/clusters/web-panel/cluster.md, product-parts/control-panel/product-part.md, product-parts/backend-core/clusters/http-api/modules/http-server
+  - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/control-panel/clusters/web-panel/modules/provider-cards, product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/control-panel/clusters/web-panel/modules/project-wizard, product-parts/control-panel/clusters/web-panel/cluster.md, product-parts/control-panel/product-part.md, product-parts/backend-core/clusters/http-api/modules/http-server, product-parts/workflow-engine/clusters/session-loop/modules/session-titles, product-parts/backend-core/clusters/runtime/modules/cli
   - Depends on: T006, T007
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1

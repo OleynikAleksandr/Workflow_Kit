@@ -36,19 +36,22 @@ ChatGPT) → «Новая сессия».
     `source`: `manual` | `agent` | `scope` | `provider` | `default`,
     `manual`, `topic`, `synced`, `note`, `archivedAt`, `forgottenAt`);
   - `onTurn(key)` — начало хода: повтор отложенного переименования;
+  - `onStop(key)` — хук `Stop`: повтор переименования вне хода (Claude);
   - `appTitle(key, current) → Promise<string | null>` — хук `prompt`
     сессии Claude: ручное имя или тема агента, если оно отличается от
     `current` (`session_title` хука); одно имя отправляется один раз за
     работу службы (переименование в самом приложении не перебивается);
     совпадение `current` с именем — `synced: true`; для Codex — `null`;
   - `section()` — `{ projects: { <id>: { <key>: SessionTitle } } }`.
-- Синхронизация: для сессий Codex ручное имя и тема уходят в ChatGPT через
-  `rename` (провайдер `renameSession`: `thread/name/set` демона, тред не
-  загружается); отказ — `synced: false` с причиной и повтор при следующем
-  ходе; при `load()` (запуск службы) имена Codex со `synced` не `true`
-  отправляются заново в фоне. Для сессий Claude имя ждёт хука `UserPromptSubmit` (`synced: false`,
-  `CLAUDE_NEXT_NOTE` «Имя уйдёт в Claude со следующим сообщением»): `cli`
-  добавляет его в ответ хука как `hookSpecificOutput.sessionTitle`.
+- Синхронизация (`rename`, провайдер `renameSession`): Codex — сразу,
+  `thread/name/set` демона, тред не загружается; Claude — `/rename` в
+  терминале сессии панели, только вне хода (состояние канала не
+  `working`), иначе `synced: false`, `CLAUDE_NEXT_NOTE` и повтор в
+  `onStop(key)` (пришёл хук `Stop`: хода и диалогов нет). Отказ —
+  `synced: false` с причиной и повтор при следующем ходе или `Stop`; при
+  `load()` (запуск службы) неотправленные имена отправляются заново в фоне.
+  Запасной путь Claude (сессии, начатые не панелью) — `appTitle` для хука
+  `UserPromptSubmit` (`cli` кладёт имя в `hookSpecificOutput.sessionTitle`).
 - `registerTitleRoutes({ router, state, titles })`:
   `POST /api/projects/:id/sessions/:sid/title { name }`,
   `POST /api/projects/:id/sessions/:sid/archive { archived }`,

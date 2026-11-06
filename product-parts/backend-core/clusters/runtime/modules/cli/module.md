@@ -121,7 +121,7 @@ stripping).
   — тот же поиск, что у канала, с `realpath` ближайшей существующей
   папки; сессии — из канала; цель плана — из раздела `workflow`;
   переименование — `renameSession` провайдера по префиксу ключа сессии),
-  `load()` при `start()`, `onTurn` и `appTitle` (Claude) из хука `prompt`,
+  `load()` при `start()`, `onTurn` и `appTitle` (Claude) из хука `prompt`, `onStop` из хука `stop`,
   `registerTitleRoutes` — маршруты имён и раздел `titles`.
 - `autopilot` (веха 2, T003): `createAutopilot` — решатель `Stop` канала
   (`channel.setDecider`); маршруты хуков получают канал-обёртку, чей

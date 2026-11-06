@@ -243,9 +243,15 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
     log: options.log,
   });
   channel.setDecider((context) => autopilot.decide(context));
-  // The prompt hook tells the autopilot who started the turn: the user typing, or panel messages.
+  // The prompt hook tells the autopilot who started the turn: the user typing, or panel messages;
+  // the Stop hook lets a waiting Claude rename go.
   const observedChannel: AgentChannel = {
     ...channel,
+    // At Stop the agent is out of its turn: a waiting Claude name can be typed as /rename.
+    async stop(input, signal) {
+      titles.onStop(`${input.client}:${input.sessionId}`);
+      return channel.stop(input, signal);
+    },
     async prompt(input) {
       const reply = await channel.prompt(input);
       const key = `${input.client}:${input.sessionId}`;

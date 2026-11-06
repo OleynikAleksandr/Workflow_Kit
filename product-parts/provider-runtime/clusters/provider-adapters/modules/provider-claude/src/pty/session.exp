@@ -11,7 +11,11 @@
 #   SESSION_NOT_TRUSTED       the folder is not trusted (exit 5)
 #   SESSION_EXITED            claude exited before a link appeared (exit 4)
 #   DIALOG <kind>             claude showed a dialog; it was stopped, no key pressed (exit 6)
+#   RENAMED                   the name from <debug file>.rename was typed as /rename <name>
 # After the link the screen is no longer copied to the log; the session lives until claude exits.
+# Once a second the script looks for <debug file>.rename (written by the service only while the
+# session is not in a turn, so no dialog can take the keys): it reads one line, deletes the file
+# and types /rename <name> (an immediate command of Claude that also renames Remote Control).
 set timeout 90
 lassign $argv dir claude title debug resume
 # The first message is not passed on to claude's environment.
@@ -47,6 +51,29 @@ expect {
   eof { puts "\nSESSION_EXITED"; exit 4 }
 }
 log_user 0
-set timeout -1
-expect eof
+set control "$debug.rename"
+set timeout 1
+expect {
+  eof {}
+  timeout {
+    if {[file exists $control]} {
+      set name ""
+      catch {
+        set handle [open $control r]
+        fconfigure $handle -encoding utf-8
+        set name [string trim [read $handle]]
+        close $handle
+      }
+      file delete -force $control
+      regsub -all {\s+} $name { } name
+      if {$name ne ""} {
+        send -- "/rename $name"
+        after 300
+        send "\r"
+        puts "\nRENAMED"
+      }
+    }
+    exp_continue
+  }
+}
 puts "\nSESSION_ENDED"

@@ -1,8 +1,10 @@
 // Claude sessions: the list (hook journal + panel records, merged by local or Remote Control id),
-// creation and resumption under session.exp, and stopping only the panel's own processes (D9).
+// creation and resumption under session.exp, renaming through session.exp (/rename) and stopping
+// only the panel's own processes (D9).
+import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { ProviderError, hookSessionInfo, readHookSessions } from '#provider-registry';
-import type { HookSession, Project, SessionInfo } from '#provider-registry';
+import type { HookSession, Project, RenameResult, SessionInfo } from '#provider-registry';
 import { ProcessError } from '#process-supervisor';
 import { sessionLinks } from './links.ts';
 import { debugSessionId, dialogError, logTail, parseMarkers, poll, readText } from './pty.ts';
@@ -267,4 +269,31 @@ export async function stopSession(rt: ClaudeRuntime, project: Project, sid: stri
     const stored = records.sessions.find((r) => r.remoteId === record.remoteId && r.projectPath === record.projectPath);
     if (stored) Object.assign(stored, { processId: null, claudePid: null, stoppedAt: rt.context.now().toISOString() });
   });
+}
+
+/** How long renameSession waits for session.exp to type /rename (it looks once a second). */
+export const RENAME_WAIT_MS = 5000;
+/** A session Kit does not run: the name goes to Claude with the next prompt (the prompt hook). */
+export const RENAME_BY_HOOK_NOTE = 'Сессию запустила не панель: имя уйдёт в Claude со следующим сообщением';
+
+const renamedCount = (log: string): number => (log.match(/^RENAMED\s*$/gm) ?? []).length;
+
+/**
+ * Renames a session that runs under the panel's session.exp: writes <debug file>.rename, which the
+ * script types as /rename <name> (Claude also renames the Remote Control session). The caller
+ * makes sure the session is not in a turn, so the keys cannot answer a permission dialog.
+ */
+export async function renameSession(rt: ClaudeRuntime, project: Project, sid: string, name: string): Promise<RenameResult> {
+  const { record } = await findSession(rt, project, sid);
+  if (!record || !(await rt.isAlive(record.processId))) return { synced: false, note: RENAME_BY_HOOK_NOTE };
+  const clean = name.replace(/\s+/g, ' ').trim();
+  const before = renamedCount(await readText(record.logFile));
+  await writeFile(`${record.debugFile}.rename`, `${clean}\n`, 'utf8');
+  const done = await poll(async () => (renamedCount(await readText(record.logFile)) > before ? true : undefined), { timeoutMs: RENAME_WAIT_MS, pollMs: 200 });
+  if (!done) return { synced: false, note: 'Claude не подтвердил переименование' };
+  await rt.store.update((records) => {
+    const stored = records.sessions.find((r) => r.remoteId === record.remoteId && r.projectPath === record.projectPath);
+    if (stored) stored.title = clean;
+  });
+  return { synced: true };
 }

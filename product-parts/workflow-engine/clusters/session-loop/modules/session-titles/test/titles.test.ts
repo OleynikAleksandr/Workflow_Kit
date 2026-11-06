@@ -153,7 +153,7 @@ test('a session removed from the lists stays removed after a reload', async () =
 });
 
 test('a Claude name goes to the app through the prompt hook once per name; a matching title marks it synced', async () => {
-  const titles = createSessionTitles(options());
+  const titles = createSessionTitles({ ...options(), rename: undefined });
   await titles.load();
   assert.equal(await titles.appTitle('claude:hooked', 'Старое'), null, 'no Kit name, nothing to send');
   await titles.setManual('p', 'claude:hooked', 'Склад — остатки');
@@ -166,4 +166,23 @@ test('a Claude name goes to the app through the prompt hook once per name; a mat
   assert.equal(await titles.appTitle('claude:hooked', 'Склад — остатки'), 'Склад', 'a new name is sent again');
   await titles.setManual('p', 'codex:hooked', 'Codex');
   assert.equal(await titles.appTitle('codex:hooked', null), null, 'Codex names go through the daemon');
+});
+
+test('a Claude name is typed into the session only outside a turn; during a turn it waits for Stop', async () => {
+  renames = [];
+  loaded = true;
+  const titles = createSessionTitles(options());
+  active = [{ key: 'claude:busy', projectId: 'p', state: 'working' }];
+  await titles.setTopic(folder, 'Инвентаризация', { client: 'claude', id: 'busy' });
+  assert.deepEqual(renames, [], 'no keys during a turn');
+  assert.deepEqual([titles.name('p', 'claude:busy').synced, titles.name('p', 'claude:busy').note], [false, CLAUDE_NEXT_NOTE]);
+  titles.onTurn('claude:busy');
+  await new Promise((r) => setTimeout(r, 20));
+  assert.deepEqual(renames, [], 'still in a turn');
+  titles.onStop('claude:busy');
+  for (let i = 0; i < 50 && titles.name('p', 'claude:busy').synced !== true; i += 1) await new Promise((r) => setTimeout(r, 10));
+  assert.deepEqual(renames, [['claude:busy', 'Инвентаризация']]);
+  active = [];
+  await titles.setManual('p', 'claude:busy', 'Ревизия');
+  assert.deepEqual(renames.at(-1), ['claude:busy', 'Ревизия'], 'an idle session is renamed at once');
 });

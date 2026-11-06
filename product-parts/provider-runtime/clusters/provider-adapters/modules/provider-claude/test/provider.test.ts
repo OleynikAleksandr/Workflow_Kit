@@ -176,6 +176,20 @@ test('createSession with a first message types it into the session after the lin
   await provider.stopSession!(project, session.remoteId!);
 });
 
+test('renameSession types /rename into a panel session; a session the panel does not run is left to the hook', { skip }, async () => {
+  const session = await provider.createSession(project, { title: 'Rename me' });
+  const before = await readFile(`${h.fakeLog}.input`, 'utf8').catch(() => '');
+  assert.deepEqual(await provider.renameSession!(project, session.remoteId!, 'Склад:  ревизия'), { synced: true });
+  const input = (await readFile(`${h.fakeLog}.input`, 'utf8')).slice(before.length);
+  assert.equal(input, '/rename Склад: ревизия\r');
+  const records = JSON.parse(await readFile(providerSessionsFile(context.dirs, 'claude'), 'utf8'));
+  assert.equal(records.sessions.find((r: { remoteId: string }) => r.remoteId === session.remoteId).title, 'Склад: ревизия');
+  await provider.stopSession!(project, session.remoteId!);
+  const stopped = await provider.renameSession!(project, session.remoteId!, 'Другое');
+  assert.equal(stopped.synced, false);
+  assert.match(stopped.note ?? '', /следующим сообщением/);
+});
+
 test('folder environment: start and stop as project actions, state shown, removal blocked while it runs', { skip }, async () => {
   const startAction = (await provider.actions(project)).find((a) => a.id === ENVIRONMENT_START)!;
   assert.equal(startAction.enabled, true);

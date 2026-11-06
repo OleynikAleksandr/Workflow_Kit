@@ -159,4 +159,6 @@ test('the Claude prompt hook gives the Kit session name to the app, with queued 
   assert.deepEqual(JSON.parse(both.out), {
     hookSpecificOutput: { hookEventName: 'UserPromptSubmit', additionalContext: 'Workflow Kit: продолжай.', sessionTitle: 'Склад' },
   });
+  // Let the background rename retries of the turn finish before the folder is removed.
+  await new Promise((resolve) => setTimeout(resolve, 200));
 });

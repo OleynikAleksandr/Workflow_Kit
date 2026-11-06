@@ -5,13 +5,13 @@
 // sessions through the UserPromptSubmit hook answer (hookSpecificOutput.sessionTitle).
 import { readdir } from 'node:fs/promises';
 import path from 'node:path';
-import { readJsonFile, writeJsonAtomic } from '#data-store';
+import { createKeyedMutex, readJsonFile, writeJsonAtomic } from '#data-store';
 
 export const SESSIONS_DIR = '.workflow-kit/local/sessions';
 export const DEFAULT_NAME = 'Новая сессия';
 export const MAX_TITLE_LENGTH = 80;
 /** Note of a Claude session whose name waits for the next prompt hook. */
-export const CLAUDE_NEXT_NOTE = 'Имя уйдёт в Claude со следующим сообщением';
+export const CLAUDE_NEXT_NOTE = 'Имя уйдёт в Claude, когда агент закончит ход или со следующим сообщением';
 
 export type TitleSource = 'manual' | 'agent' | 'scope' | 'provider' | 'default';
 
@@ -85,6 +85,8 @@ export interface SessionTitles {
   name(projectId: string, key: string, providerTitle?: string | null): SessionTitle;
   /** A turn of the session started: retries a provider rename that had to wait. */
   onTurn(key: string): void;
+  /** The Stop hook of the session arrived (no turn, no dialog): retries a waiting rename. */
+  onStop(key: string): void;
   /**
    * Prompt hook of a Claude session: the Workflow Kit name to give the app (once per name and
    * service run) when it differs from `current`, the app's title; null otherwise. A matching
@@ -139,7 +141,13 @@ export function createSessionTitles(options: SessionTitlesOptions): SessionTitle
     return project.path;
   }
 
-  async function save(projectId: string, key: string, patch: Partial<Stored>): Promise<Stored> {
+  // Saves of one session file run one after another (a background rename and a hook may overlap).
+  const files = createKeyedMutex();
+  function save(projectId: string, key: string, patch: Partial<Stored>): Promise<Stored> {
+    return files.run(`${projectId}\u0000${key}`, () => saveNow(projectId, key, patch));
+  }
+
+  async function saveNow(projectId: string, key: string, patch: Partial<Stored>): Promise<Stored> {
     const file = titleFileName(key);
     if (!file) throw new TitleError('bad-session', 'Неверный ключ сессии', 400);
     const target = path.join(await folderOf(projectId), SESSIONS_DIR, file);
@@ -165,15 +173,31 @@ export function createSessionTitles(options: SessionTitlesOptions): SessionTitle
     return { name: DEFAULT_NAME, source: 'default', ...base };
   }
 
-  async function sync(projectId: string, key: string): Promise<void> {
+  /**
+   * Gives a manual name or topic to the provider app. A Claude session is renamed by typing
+   * /rename into its terminal, which is safe only outside a turn (a permission dialog could take
+   * the keys): during a turn the name waits for the Stop hook (`idle`: called from it).
+   */
+  async function sync(projectId: string, key: string, idle = false): Promise<void> {
     const title = resolve(projectId, key);
-    if (key.startsWith('claude:') && (title.source === 'manual' || title.source === 'agent')) {
-      await save(projectId, key, { synced: false, note: CLAUDE_NEXT_NOTE });
-      return;
-    }
-    if (!options.rename || !key.startsWith('codex:') || (title.source !== 'manual' && title.source !== 'agent')) return;
+    if (title.source !== 'manual' && title.source !== 'agent') return;
+    if (key.startsWith('claude:')) {
+      const inTurn = !idle && options.sessions().some((s) => s.key === key && s.state === 'working');
+      if (!options.rename || inTurn) {
+        if (options.rename) pending.set(key, { projectId, name: title.name });
+        await save(projectId, key, { synced: false, note: CLAUDE_NEXT_NOTE }).catch((error: unknown) => log(`titles: save ${key} failed: ${String(error)}`));
+        return;
+      }
+    } else if (!key.startsWith('codex:')) return;
+    if (!options.rename) return;
     try {
       const result = await options.rename(projectId, key, title.name);
+      // The prompt hook may have confirmed the same name meanwhile: a late refusal does not undo it.
+      const now = resolve(projectId, key);
+      if (!result.synced && now.synced === true && now.name === title.name) {
+        pending.delete(key);
+        return;
+      }
       await save(projectId, key, { synced: result.synced, note: result.note ?? null });
       if (result.synced) pending.delete(key);
       else pending.set(key, { projectId, name: title.name });
@@ -229,11 +253,11 @@ export function createSessionTitles(options: SessionTitlesOptions): SessionTitle
           };
           const key = `${match[1]}:${match[2]}`;
           map.set(key, entry);
-          if (match[1] === 'codex' && (entry.title || entry.topic) && entry.synced !== true && !entry.forgottenAt) unsynced.push([project.id, key]);
+          if ((entry.title || entry.topic) && entry.synced !== true && !entry.forgottenAt) unsynced.push([project.id, key]);
         }
       }
-      // A Codex name that did not reach ChatGPT before the restart is sent again now, not on the
-      // next turn of that session (the retry list lives in memory). In the background: no wait.
+      // A name that did not reach the app before the restart is sent again now, not on the next
+      // turn of that session (the retry list lives in memory). In the background: no wait.
       for (const [projectId, key] of unsynced) void sync(projectId, key);
     },
     async setManual(projectId, key, name) {
@@ -267,6 +291,10 @@ export function createSessionTitles(options: SessionTitlesOptions): SessionTitle
       const waiting = pending.get(key);
       if (waiting) void sync(waiting.projectId, key);
     },
+    onStop(key) {
+      const waiting = pending.get(key);
+      if (waiting) void sync(waiting.projectId, key, true);
+    },
     async appTitle(key, current) {
       if (!key.startsWith('claude:')) return null;
       for (const [projectId, map] of stored) {
@@ -274,6 +302,7 @@ export function createSessionTitles(options: SessionTitlesOptions): SessionTitle
         const title = resolve(projectId, key);
         if (title.source !== 'manual' && title.source !== 'agent') return null;
         if (current === title.name) {
+          pending.delete(key);
           if (title.synced !== true) await save(projectId, key, { synced: true, note: null }).catch(() => undefined);
           return null;
         }

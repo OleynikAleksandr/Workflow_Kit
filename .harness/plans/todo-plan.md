@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 79,
+  "revision": 80,
   "rounds": [
     {
       "digest": null,
@@ -472,7 +472,8 @@
         "product-parts/backend-core/clusters/http-api/modules/http-server",
         "product-parts/workflow-engine/clusters/session-loop/modules/session-titles",
         "product-parts/backend-core/clusters/runtime/modules/cli",
-        "package.json"
+        "package.json",
+        "product-parts/backend-core/clusters/projects/modules/project-setup"
       ],
       "fixes": null,
       "id": "T008",
@@ -566,7 +567,7 @@
 - Execution: sequential
 - Current task: T008
 - Progress: 7/10
-- Revision: 79
+- Revision: 80
 
 ## Objective
 
@@ -610,7 +611,7 @@
   - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/control-panel/clusters/web-panel/modules/provider-cards, product-parts/control-panel/clusters/web-panel/cluster.md, product-parts/control-panel/product-part.md
 - [IN_PROGRESS] T008 — Мастер и экран сессии в интерфейсе (work)
   - Commit: feat: rebuild the panel layout, show the setup wizard and the session screen
-  - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/control-panel/clusters/web-panel/modules/provider-cards, product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/control-panel/clusters/web-panel/modules/project-wizard, product-parts/control-panel/clusters/web-panel/cluster.md, product-parts/control-panel/product-part.md, product-parts/backend-core/clusters/http-api/modules/http-server, product-parts/workflow-engine/clusters/session-loop/modules/session-titles, product-parts/backend-core/clusters/runtime/modules/cli, package.json
+  - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/control-panel/clusters/web-panel/modules/provider-cards, product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/control-panel/clusters/web-panel/modules/project-wizard, product-parts/control-panel/clusters/web-panel/cluster.md, product-parts/control-panel/product-part.md, product-parts/backend-core/clusters/http-api/modules/http-server, product-parts/workflow-engine/clusters/session-loop/modules/session-titles, product-parts/backend-core/clusters/runtime/modules/cli, package.json, product-parts/backend-core/clusters/projects/modules/project-setup
   - Depends on: T006, T007
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1

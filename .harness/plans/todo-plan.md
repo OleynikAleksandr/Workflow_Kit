@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T014",
   "lastClosed": {
     "closedAt": "2026-11-06T17:23:09.352Z",
     "scopeId": "m2-interface-and-process"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 136,
+  "revision": 138,
   "rounds": [
     {
       "digest": {
@@ -760,6 +760,7 @@
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/files-hooks.test.ts",
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts",
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/helpers.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fixtures/fake-codex.mjs",
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md"
       ],
       "fixes": "T011",
@@ -767,7 +768,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R6",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "Перезапуск демона с устаревшим входом",
       "why": "После обновления входа приложением ChatGPT демон держит старый токен; подсказка codex login неверна"
     },
@@ -884,9 +885,9 @@
 - Scope: m3-fixes (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: none
+- Current task: T014
 - Progress: 18/22
-- Revision: 136
+- Revision: 138
 
 ## Objective
 
@@ -993,9 +994,9 @@ Digest: Состояние демона Codex согласовано: стату
 
 ### R6 — Fixes (fixes, OPEN)
 
-- [TODO] T014 — Перезапуск демона с устаревшим входом (work)
+- [IN_PROGRESS] T014 — Перезапуск демона с устаревшим входом (work)
   - Commit: fix: detect a Codex daemon holding a stale login and restart it
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/runtime.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/codex-files.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/files-hooks.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/helpers.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/runtime.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/codex-files.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/files-hooks.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/helpers.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fixtures/fake-codex.mjs, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md
   - Fixes: T011
 - [TODO] T015 — Тема сессии не задаётся в служебном ходе (work)
   - Commit: fix: refuse the session topic during the Workflow Kit service turn

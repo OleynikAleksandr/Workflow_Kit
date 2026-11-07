@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 181,
+  "revision": 183,
   "rounds": [
     {
       "digest": {
@@ -197,7 +197,21 @@
       "title": "Сессии удалённого проекта не переходят к новому с тем же путём"
     },
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "Provider.archiveSessions?/restoreSessions?; registry.setArchived",
+          "project-registry addArchivedHook; session-titles опция archived",
+          "resumeSession архивной сессии: archived, 409"
+        ],
+        "decisions": [
+          "Пометка archived в записи Claude: project или session; пишется до остановки",
+          "Архив в самом Claude Desktop Kit не видит"
+        ],
+        "references": [
+          "docs/planning/M3-fixes.md#12"
+        ],
+        "result": "Архив проекта или сессии в Kit останавливает сессии Claude и не даёт им подняться; удаление не блокируется; возврат из архива сразу поднимает их в тот же канал."
+      },
       "id": "R10",
       "kind": "fixes",
       "status": "OPEN",
@@ -1545,7 +1559,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R10",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -1587,8 +1601,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 37/39
-- Revision: 181
+- Progress: 38/39
+- Revision: 183
 
 ## Objective
 
@@ -1781,7 +1795,7 @@ Digest: Удалённый проект забирает записи своих
 - [DONE] T028 — Архив останавливает и поднимает сессии Claude (work)
   - Commit: fix: archive stops Claude sessions, restore brings them back
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/archive.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/records.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/registry.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/routes.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/fake-provider.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/backend-core/clusters/projects/modules/project-registry/src/registry.ts, product-parts/backend-core/clusters/projects/modules/project-registry/src/index.ts, product-parts/backend-core/clusters/projects/modules/project-registry/test/registry.test.ts, product-parts/backend-core/clusters/projects/modules/project-registry/module.md, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/titles.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/test/titles.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/provider-lifecycle.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/providers.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md
-- [TODO] DOCS-R10 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R10 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R10
   - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/backend-core/clusters/projects/modules/project-registry/module.md, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md
   - Depends on: T028
@@ -1789,5 +1803,7 @@ Digest: Удалённый проект забирает записи своих
   - Commit: chore: release 0.3.6
   - Files: package.json, package-lock.json, docs/evidence/M3-acceptance.md
   - Depends on: DOCS-R10
+
+Digest: Архив проекта или сессии в Kit останавливает сессии Claude и не даёт им подняться; удаление не блокируется; возврат из архива сразу поднимает их в тот же канал.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

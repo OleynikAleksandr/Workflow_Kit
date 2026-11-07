@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 201,
+  "revision": 202,
   "rounds": [
     {
       "digest": {
@@ -50,6 +50,13 @@
       "kind": "fixes",
       "status": "CLOSED",
       "title": "Удалённое управление у приложения ChatGPT"
+    },
+    {
+      "digest": null,
+      "id": "R3",
+      "kind": "fixes",
+      "status": "OPEN",
+      "title": "Создание сессии при соединении у приложения ChatGPT"
     }
   ],
   "schema": "harness-workflow-plan/1",
@@ -72,7 +79,7 @@
         "text": "Демон Codex запускается при каждом старте службы без согласий; при остановке службы не останавливается"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "IN_PROGRESS",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
@@ -274,6 +281,91 @@
       "status": "DONE",
       "title": "Релиз 0.3.8",
       "why": "Релиз 0.3.8"
+    },
+    {
+      "acceptance": [
+        "При remoteOwner app createSession не отказывает codex-login",
+        "Ошибка входа без remoteOwner app по-прежнему отказывает"
+      ],
+      "checks": [],
+      "commitMessage": "fix: create Codex sessions while the ChatGPT app holds remote control",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M3-autostart.md",
+          "heading": "5. Раунд 3: создание сессии при соединении у приложения ChatGPT",
+          "required": true
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/sessions.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md"
+      ],
+      "fixes": "T003",
+      "id": "T005",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R3",
+      "status": "TODO",
+      "title": "Сессия создаётся, когда соединение держит приложение ChatGPT",
+      "why": "Сессия создаётся, когда соединение держит приложение ChatGPT"
+    },
+    {
+      "acceptance": [
+        "Project-wide documents describe the round result",
+        "The round digest records result, decisions, contracts and references"
+      ],
+      "checks": [],
+      "commitMessage": "docs: reconcile documentation for R3",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T005"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/architecture/OVERVIEW.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md"
+      ],
+      "fixes": null,
+      "id": "DOCS-R3",
+      "iteration": 1,
+      "kind": "docs",
+      "roundId": "R3",
+      "status": "TODO",
+      "title": "Reconcile project documentation and write the round digest",
+      "why": "Keep the project context current for the next agent and close the round."
+    },
+    {
+      "acceptance": [
+        "Версия 0.3.9",
+        "install ставит app/0.3.9, wfk doctor --installed — всё в порядке"
+      ],
+      "checks": [],
+      "commitMessage": "chore: release 0.3.9",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "DOCS-R3"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "package.json",
+        "package-lock.json",
+        "docs/evidence/M3-acceptance.md"
+      ],
+      "fixes": null,
+      "id": "T006",
+      "iteration": 1,
+      "kind": "delivery",
+      "roundId": "R3",
+      "status": "TODO",
+      "title": "Релиз 0.3.9",
+      "why": "Релиз 0.3.9"
     }
   ]
 }
@@ -283,11 +375,11 @@
 ## State
 
 - Scope: m3-autostart (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 6/6
-- Revision: 201
+- Progress: 6/9
+- Revision: 202
 
 ## Objective
 
@@ -331,5 +423,20 @@ Digest: При старте службы демон Codex запускается
   - Depends on: DOCS-R2
 
 Digest: Соединение удалённого управления, занятое приложением ChatGPT (409 already online), — рабочее состояние: ChatGPT готов, сессии создаются.
+
+### R3 — Создание сессии при соединении у приложения ChatGPT (fixes, OPEN)
+
+- [TODO] T005 — Сессия создаётся, когда соединение держит приложение ChatGPT (work)
+  - Commit: fix: create Codex sessions while the ChatGPT app holds remote control
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md
+  - Fixes: T003
+- [TODO] DOCS-R3 — Reconcile project documentation and write the round digest (docs)
+  - Commit: docs: reconcile documentation for R3
+  - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md
+  - Depends on: T005
+- [TODO] T006 — Релиз 0.3.9 (delivery)
+  - Commit: chore: release 0.3.9
+  - Files: package.json, package-lock.json, docs/evidence/M3-acceptance.md
+  - Depends on: DOCS-R3
 
 State changes only through `scripts/workflow` commands. History lives in Git.

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 197,
+  "revision": 199,
   "rounds": [
     {
       "digest": {
@@ -34,7 +34,18 @@
       "title": "Implementation"
     },
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "DaemonState.remoteOwner 'app'; APP_OWNER_REASON; lastRemoteWarning, ALREADY_ONLINE"
+        ],
+        "decisions": [
+          "Признак — предупреждение процесса демона в logs_<N>.sqlite Codex, только чтение"
+        ],
+        "references": [
+          "docs/planning/M3-autostart.md#4"
+        ],
+        "result": "Соединение удалённого управления, занятое приложением ChatGPT (409 already online), — рабочее состояние: ChatGPT готов, сессии создаются."
+      },
       "id": "R2",
       "kind": "fixes",
       "status": "OPEN",
@@ -233,7 +244,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -275,8 +286,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 4/6
-- Revision: 197
+- Progress: 5/6
+- Revision: 199
 
 ## Objective
 
@@ -310,7 +321,7 @@ Digest: При старте службы демон Codex запускается
 - [DONE] T003 — Соединение, занятое приложением ChatGPT, — рабочее состояние (work)
   - Commit: fix: treat the remote control held by the ChatGPT app as a working state
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/runtime.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/codex-files.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/helpers.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts
-- [TODO] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R2
   - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md
   - Depends on: T003
@@ -318,5 +329,7 @@ Digest: При старте службы демон Codex запускается
   - Commit: chore: release 0.3.8
   - Files: package.json, package-lock.json, docs/evidence/M3-acceptance.md
   - Depends on: DOCS-R2
+
+Digest: Соединение удалённого управления, занятое приложением ChatGPT (409 already online), — рабочее состояние: ChatGPT готов, сессии создаются.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

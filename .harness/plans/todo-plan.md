@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T009",
   "lastClosed": {
     "closedAt": "2026-11-07T18:15:01.786Z",
     "scopeId": "m3-fixes"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 216,
+  "revision": 218,
   "rounds": [
     {
       "digest": {
@@ -519,14 +519,18 @@
         "product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts",
         "product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md",
         "product-parts/control-panel/clusters/web-panel/modules/project-wizard/src/project-wizard.js",
-        "product-parts/control-panel/clusters/web-panel/modules/project-wizard/module.md"
+        "product-parts/control-panel/clusters/web-panel/modules/project-wizard/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/open-link.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/open-link.test.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md"
       ],
       "fixes": null,
       "id": "T009",
       "iteration": 1,
       "kind": "work",
       "roundId": "R5",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "Новая сессия открывается сама",
       "why": "Новая сессия открывается сама"
     },
@@ -646,9 +650,9 @@
 - Scope: m3-autostart (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: none
+- Current task: T009
 - Progress: 12/16
-- Revision: 216
+- Revision: 218
 
 ## Objective
 
@@ -728,9 +732,9 @@ Digest: Щелчок по карточке сессии ChatGPT открывае
 
 ### R5 — Новая сессия открывается сама; удаление тредов ChatGPT (fixes, OPEN)
 
-- [TODO] T009 — Новая сессия открывается сама (work)
+- [IN_PROGRESS] T009 — Новая сессия открывается сама (work)
   - Commit: feat: a new session opens by itself, a ChatGPT one with its chat
-  - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/actions.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/slots.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/sidebar.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/view-model.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/project-wizard/src/project-wizard.js, product-parts/control-panel/clusters/web-panel/modules/project-wizard/module.md
+  - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/actions.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/slots.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/sidebar.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/view-model.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/project-wizard/src/project-wizard.js, product-parts/control-panel/clusters/web-panel/modules/project-wizard/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/open-link.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/open-link.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md
 - [TODO] T010 — Удаление проекта с диска удаляет треды ChatGPT (work)
   - Commit: feat: deleting a project from disk deletes its ChatGPT threads
   - Files: product-parts/backend-core/clusters/projects/modules/project-registry/src/registry.ts, product-parts/backend-core/clusters/projects/modules/project-registry/src/index.ts, product-parts/backend-core/clusters/projects/modules/project-registry/test/registry.test.ts, product-parts/backend-core/clusters/projects/modules/project-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/registry.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/routes.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/fake-provider.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/provider-lifecycle.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/providers.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md

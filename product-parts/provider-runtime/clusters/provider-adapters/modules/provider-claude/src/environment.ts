@@ -145,3 +145,14 @@ export async function stopEnvironment(rt: ClaudeRuntime, project: Project): Prom
 export async function environmentBlockers(rt: ClaudeRuntime, project: Project): Promise<string[]> {
   return (await environmentState(rt, project)).running ? ['работает окружение папки'] : [];
 }
+
+/**
+ * Start of the service (spec M3-autostart): an environment started by the project action and
+ * never stopped on purpose, whose process ended (a reboot, a crash), comes back. True when it did.
+ */
+export async function resumeEnvironment(rt: ClaudeRuntime, project: Project): Promise<boolean> {
+  const { record, running } = await environmentState(rt, project);
+  if (!record || running || record.processId === null || record.stoppedAt !== null) return false;
+  await startEnvironment(rt, project);
+  return true;
+}

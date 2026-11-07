@@ -284,3 +284,20 @@ test('folder environment: start and stop as project actions, state shown, remova
   assert.deepEqual(await provider.removeBlockers!(project), []);
   await assert.rejects(provider.runAction('nope', project), code('unknown-action'));
 });
+
+test('an interrupted folder environment comes back at resumeInterrupted; one stopped on purpose does not', { skip }, async () => {
+  await provider.runAction(ENVIRONMENT_START, project);
+  const pidOf = async (): Promise<number> => (await fakeCalls()).filter((c) => c.argv[0] === 'remote-control').at(-1)!.pid;
+  let pid = await pidOf();
+  process.kill(pid, 'SIGKILL');
+  for (let i = 0; i < 50 && alive(pid); i += 1) await new Promise((resolve) => setTimeout(resolve, 100));
+  assert.deepEqual(await provider.removeBlockers!(project), []);
+  assert.ok((await provider.resumeInterrupted!(project)).includes('environment'));
+  pid = await pidOf();
+  assert.equal(alive(pid), true);
+  assert.deepEqual(await provider.removeBlockers!(project), ['работает окружение папки']);
+  assert.ok(!(await provider.resumeInterrupted!(project)).includes('environment'), 'a running environment is left alone');
+  await provider.runAction(ENVIRONMENT_STOP, project);
+  assert.ok(!(await provider.resumeInterrupted!(project)).includes('environment'), 'stopped on purpose stays stopped');
+});
+

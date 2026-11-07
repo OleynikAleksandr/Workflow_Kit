@@ -40,6 +40,8 @@
   `archiveSessions?(project, sessionId | null)` / `restoreSessions?(…)` — архив
   проекта (`null`) или одной сессии в Kit: остановить и не поднимать / снять
   пометку и сразу поднять; ответ — id (раунд R10).
+  `autostart?()` — при старте службы поднять нужное на весь Mac (Codex — демон);
+  ответ — строка для журнала или `null` (скоуп M3-autostart).
   Методы чтения (`status`, `capabilities`, `trust`, `hooks`,
   `listSessions`, `actions`) обязаны быть дешёвыми и только читать: их
   вызывает каждый опрос `/api/state`.
@@ -141,6 +143,8 @@ project)`, `section(projects)`, `removeBlockers(project)` (живые сесси
 `setArchived(project, key | null, archived)` → `{ changed, errors }` — архив или
 возврат проекта (`null`: все провайдеры) или сессии (`'<провайдер>:<id>'`: только
 её провайдер) через `archiveSessions?` / `restoreSessions?`; ошибка — в `errors[id]`.
+`autostart()` → `{ started, errors }` — `autostart?` всех провайдеров; `started` —
+`'<провайдер>: <строка>'`, ошибка — в `errors[id]`.
 Каждое чтение ограничено `STATE_READ_TIMEOUT_MS` (3 с): упавшее или
 зависшее чтение попадает в `errors` (`timeout` и т. п.), остальные данные
 отдаются. `errorInfo(error)` — `{ code, message, hint? }`.

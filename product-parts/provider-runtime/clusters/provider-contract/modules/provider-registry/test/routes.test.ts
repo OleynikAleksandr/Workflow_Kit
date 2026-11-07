@@ -279,3 +279,14 @@ test('setArchived goes to every provider for a project and to the owner only for
   assert.deepEqual(keeper.calls, ['archive:*', 'restore:abc']);
   assert.deepEqual(broken.calls, ['archive:*']);
 });
+
+test('autostart collects the lines of the providers that started something; a failure stays with its provider', async () => {
+  const own = createProviderRegistry();
+  own.register(createFakeProvider('keeper'));
+  own.register(createFakeProvider('broken'));
+  own.register(createFakeProvider('quiet'));
+  own.register(createFakeProvider('plain', { withOptional: false }));
+  const result = await own.autostart();
+  assert.deepEqual(result.started, ['keeper: daemon started']);
+  assert.deepEqual(Object.keys(result.errors), ['broken']);
+});

@@ -264,6 +264,11 @@ export interface Provider {
    */
   resumeInterrupted?(project: Project): Promise<string[]>;
   /**
+   * Brings up at the start of the service what the provider needs for the whole Mac (Codex: the
+   * daemon). Resolves to a line for the log, or null when nothing had to be done.
+   */
+  autostart?(): Promise<string | null>;
+  /**
    * Archive of the project (sessionId null) or of one session in Workflow Kit: stops the running
    * or interrupted sessions and marks them, so nothing brings them back until a restore. Resolves
    * to the session ids stopped.

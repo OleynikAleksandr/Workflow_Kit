@@ -10,10 +10,12 @@ import { after, before, test } from 'node:test';
 import { recordSessionStart } from '#kit-structure';
 import type { Operation } from '#data-store';
 import type { CommandRunner } from '#process-supervisor';
-import { createStubProvider } from '#provider-registry';
+import { createProviderRegistry, createStubProvider } from '#provider-registry';
+import type { ProjectRegistry } from '#project-registry';
 import type { ProvidersSection } from '#provider-registry';
 import { DEFAULT_PROVIDERS, createApp } from '../src/index.ts';
 import type { App } from '../src/index.ts';
+import { AUTOSTART_ATTEMPTS, wireProviderLifecycle } from '../src/provider-lifecycle.ts';
 
 let tmp = '';
 let app: App;
@@ -198,5 +200,37 @@ test('an archive stops the sessions before a removal; a restore brings them back
   assert.deepEqual(calls.slice(2), ['archive:m1']);
   await custom.projects.archive(project.id);
   await custom.projects.remove(project.id);
+});
+
+test('the start of the service runs autostart and tries a failure again, at most AUTOSTART_ATTEMPTS times', async () => {
+  const projects = {
+    addRemoveGuard: () => undefined,
+    addRemovedHook: () => undefined,
+    addArchivedHook: () => undefined,
+    list: async () => [],
+    get: async () => undefined,
+  } as unknown as ProjectRegistry;
+  const run = async (failures: number): Promise<{ tries: number; lines: string[] }> => {
+    const providers = createProviderRegistry();
+    let tries = 0;
+    providers.register({
+      ...createStubProvider({ id: 'codex', title: 'Codex', task: 'T000' }),
+      autostart: async () => {
+        tries += 1;
+        if (tries <= failures) throw new Error('network is not ready');
+        return 'daemon started';
+      },
+    });
+    const lines: string[] = [];
+    wireProviderLifecycle({ projects, providers, log: (line) => void lines.push(line), autostartPauseMs: 5 });
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    return { tries, lines };
+  };
+  const recovered = await run(1);
+  assert.equal(recovered.tries, 2);
+  assert.ok(recovered.lines.includes('providers: autostart codex: daemon started'));
+  assert.ok(recovered.lines.some((l) => /codex could not autostart \(attempt 1 of 3\): network is not ready/.test(l)));
+  const failing = await run(10);
+  assert.equal(failing.tries, AUTOSTART_ATTEMPTS);
 });
 

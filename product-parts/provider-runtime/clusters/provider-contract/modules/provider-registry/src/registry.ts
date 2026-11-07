@@ -53,6 +53,8 @@ export interface ProviderRegistry {
    * in every provider that supports it; resolves to '<provider>:<id>' changed and errors per provider.
    */
   setArchived(project: Project, key: string | null, archived: boolean): Promise<{ changed: string[]; errors: Record<string, string> }>;
+  /** Start of the service: autostart? of every provider; started — '<provider>: <line>'. */
+  autostart(): Promise<{ started: string[]; errors: Record<string, string> }>;
 }
 
 const PROVIDER_ID = /^[a-z][a-z0-9-]{0,31}$/;
@@ -185,6 +187,20 @@ export function createProviderRegistry(options: { readTimeoutMs?: number } = {})
         }
       }
       return { changed, errors };
+    },
+    async autostart() {
+      const started: string[] = [];
+      const errors: Record<string, string> = {};
+      for (const provider of registry.list()) {
+        if (!provider.autostart) continue;
+        try {
+          const line = await provider.autostart();
+          if (line) started.push(`${provider.id}: ${line}`);
+        } catch (error) {
+          errors[provider.id] = error instanceof Error ? error.message : String(error);
+        }
+      }
+      return { started, errors };
     },
   };
   return registry;

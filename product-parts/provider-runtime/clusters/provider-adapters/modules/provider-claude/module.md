@@ -171,7 +171,10 @@ D5) и останавливает только по своим записям (D
 - `resumeInterrupted(project)` — поднимает прерванные сессии проекта:
   запись панели с `processId` и без `stoppedAt`, процесс не жив
   (перезагрузка, сбой); намеренно остановленные (`stoppedAt`) не трогает;
-  ответ — поднятые id, ошибка одной сессии пишется в журнал.
+  ответ — поднятые id, ошибка одной сессии пишется в журнал. Так же
+  поднимается прерванное окружение папки (`resumeEnvironment` в
+  `environment.ts`: запись с `processId`, без `stoppedAt`, процесс не жив) —
+  в ответе `environment` (скоуп M3-autostart).
 - `archiveSessions(project, sid | null)` / `restoreSessions(project, sid |
   null)` (`src/archive.ts`, раунд R10): архив проекта (`null`) останавливает
   его работающие и прерванные сессии и ставит записи `archived: 'project'`;

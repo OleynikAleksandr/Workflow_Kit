@@ -243,6 +243,20 @@ test('daemon start is a special action: codex remote-control start --json; an er
   await assert.rejects(local.runAction('nope', null), code('unknown-action'));
 });
 
+test('autostart starts a stopped daemon, leaves a connected one, and does nothing without codex', async () => {
+  const stopped = createCodexProvider(machine.context(), { isAlive: () => false });
+  const before = (await machine.calls()).filter((c) => c.argv?.[0] === 'remote-control').length;
+  assert.equal(await stopped.autostart!(), 'daemon started');
+  const starts = (await machine.calls()).filter((c) => c.argv?.[0] === 'remote-control');
+  assert.equal(starts.length, before + 1);
+  assert.deepEqual(starts.at(-1)?.argv, ['remote-control', 'start', '--json']);
+  const running = createCodexProvider(machine.context());
+  assert.equal(await running.autostart!(), null, 'a connected daemon is left alone');
+  const none = createCodexProvider(machine.context({ env: { PATH: '/nonexistent' } }), { isAlive: () => false });
+  assert.equal(await none.autostart!(), null);
+  assert.equal((await machine.calls()).filter((c) => c.argv?.[0] === 'remote-control').length, before + 1);
+});
+
 test('a write Codex did not record fails with the backup path', async () => {
   const other = await machine.project('Gamma');
   const local = createCodexProvider(machine.context({ env: { PATH: `${machine.bin}:/usr/bin:/bin`, FAKE_WRITE_IGNORED: '1' } }));

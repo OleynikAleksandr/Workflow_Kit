@@ -163,9 +163,20 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
     });
   };
 
+  // Start of the service (spec M3-autostart): the daemon comes up unless it already works or connects.
+  const autostart = async (): Promise<string | null> => {
+    if (context.platform === 'win32') return null;
+    if ((await rt.refreshProgram()).installed === false) return null;
+    const daemon = await rt.daemon(true);
+    if (daemon.running && (daemon.remoteControl === 'connected' || connecting(daemon))) return null;
+    await startDaemon();
+    return 'daemon started';
+  };
+
   return {
     id: PROVIDER_ID,
     title: PROVIDER_TITLE,
+    autostart,
     capabilities,
     async status() {
       return buildStatus(rt, await rt.daemon());

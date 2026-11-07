@@ -6,6 +6,7 @@ import path from 'node:path';
 import { ProviderError, hookSessionInfo, readHookSessions } from '#provider-registry';
 import type { HookSession, Project, RenameResult, SessionInfo } from '#provider-registry';
 import { ProcessError } from '#process-supervisor';
+import { resumeEnvironment } from './environment.ts';
 import { sessionLinks } from './links.ts';
 import { debugSessionId, dialogError, logTail, parseMarkers, poll, readText } from './pty.ts';
 import type { SessionRecord } from './records.ts';
@@ -341,8 +342,8 @@ function isInterrupted(record: SessionRecord): boolean {
 
 /**
  * Brings back the interrupted panel sessions of a project (start of the service after a reboot or
- * a crash) under their Remote Control ids. Resolves to the local ids resumed; a failure of one
- * session is logged and the others go on.
+ * a crash) under their Remote Control ids, and its interrupted folder environment ('environment').
+ * Resolves to the ids resumed; a failure of one is logged and the others go on.
  */
 export async function resumeInterrupted(rt: ClaudeRuntime, project: Project): Promise<string[]> {
   const records = (await rt.store.read()).sessions.filter((r) => r.projectId === project.id && isInterrupted(r));
@@ -356,6 +357,11 @@ export async function resumeInterrupted(rt: ClaudeRuntime, project: Project): Pr
     } catch (error) {
       rt.context.log(`claude: interrupted session ${sid} was not resumed: ${error instanceof Error ? error.message : String(error)}`);
     }
+  }
+  try {
+    if (await resumeEnvironment(rt, project)) resumed.push('environment');
+  } catch (error) {
+    rt.context.log(`claude: interrupted environment of ${project.name} was not resumed: ${error instanceof Error ? error.message : String(error)}`);
   }
   return resumed;
 }

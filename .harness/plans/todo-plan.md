@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 168,
+  "revision": 169,
   "rounds": [
     {
       "digest": {
@@ -176,6 +176,13 @@
       "kind": "fixes",
       "status": "CLOSED",
       "title": "Мастер с чистого листа и сообщение агенту из панели"
+    },
+    {
+      "digest": null,
+      "id": "R9",
+      "kind": "fixes",
+      "status": "OPEN",
+      "title": "Сессии удалённого проекта не переходят к новому с тем же путём"
     }
   ],
   "schema": "harness-workflow-plan/1",
@@ -207,7 +214,7 @@
         "text": "Claude: имя передаёт хук UserPromptSubmit полем hookSpecificOutput.sessionTitle"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "IN_PROGRESS",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cfa00ffe-c414-4ae6-9953-e3d2906b3705",
@@ -1273,6 +1280,96 @@
       "status": "DONE",
       "title": "Релиз 0.3.4",
       "why": "Релиз 0.3.4"
+    },
+    {
+      "acceptance": [
+        "У проекта, созданного панелью, нет сессий, начатых до его создания",
+        "У открытого проекта прежние сессии папки остаются",
+        "Старые сессии не мешают убрать проект из списка"
+      ],
+      "checks": [],
+      "commitMessage": "fix: hide sessions older than a created project",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M3-fixes.md",
+          "required": true,
+          "heading": "11. Раунд 9: чужие сессии у проекта с прежним путём"
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/registry.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/registry.test.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md"
+      ],
+      "fixes": null,
+      "id": "T025",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R9",
+      "status": "TODO",
+      "title": "Проект, созданный панелью, не видит сессий старше себя",
+      "why": "Проект, созданный панелью, не видит сессий старше себя"
+    },
+    {
+      "acceptance": [
+        "Project-wide documents describe the round result",
+        "The round digest records result, decisions, contracts and references"
+      ],
+      "checks": [],
+      "commitMessage": "docs: reconcile documentation for R9",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T025"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/architecture/OVERVIEW.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md"
+      ],
+      "fixes": null,
+      "id": "DOCS-R9",
+      "iteration": 1,
+      "kind": "docs",
+      "roundId": "R9",
+      "status": "TODO",
+      "title": "Reconcile project documentation and write the round digest",
+      "why": "Keep the project context current for the next agent and close the round."
+    },
+    {
+      "acceptance": [
+        "Версия 0.3.5",
+        "install ставит app/0.3.5, wfk doctor --installed — всё в порядке"
+      ],
+      "checks": [],
+      "commitMessage": "chore: release 0.3.5",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "DOCS-R9"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "package.json",
+        "package-lock.json",
+        "docs/evidence/M3-acceptance.md"
+      ],
+      "fixes": null,
+      "id": "T026",
+      "iteration": 1,
+      "kind": "delivery",
+      "roundId": "R9",
+      "status": "TODO",
+      "title": "Релиз 0.3.5",
+      "why": "Релиз 0.3.5"
     }
   ]
 }
@@ -1282,11 +1379,11 @@
 ## State
 
 - Scope: m3-fixes (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 32/32
-- Revision: 168
+- Progress: 32/35
+- Revision: 169
 
 ## Objective
 
@@ -1454,5 +1551,19 @@ Digest: Оркестрация встроенными подагентами д�
   - Depends on: DOCS-R8
 
 Digest: Мастер начинает каждый вход с чистого листа и переходит к сессии; на экране сессии есть «Сообщение агенту».
+
+### R9 — Сессии удалённого проекта не переходят к новому с тем же путём (fixes, OPEN)
+
+- [TODO] T025 — Проект, созданный панелью, не видит сессий старше себя (work)
+  - Commit: fix: hide sessions older than a created project
+  - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/registry.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/registry.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md
+- [TODO] DOCS-R9 — Reconcile project documentation and write the round digest (docs)
+  - Commit: docs: reconcile documentation for R9
+  - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md
+  - Depends on: T025
+- [TODO] T026 — Релиз 0.3.5 (delivery)
+  - Commit: chore: release 0.3.5
+  - Files: package.json, package-lock.json, docs/evidence/M3-acceptance.md
+  - Depends on: DOCS-R9
 
 State changes only through `scripts/workflow` commands. History lives in Git.

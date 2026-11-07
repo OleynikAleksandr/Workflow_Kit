@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 183,
+  "revision": 185,
   "rounds": [
     {
       "digest": {
@@ -214,7 +214,7 @@
       },
       "id": "R10",
       "kind": "fixes",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Архив останавливает сессии Claude"
     }
   ],
@@ -247,7 +247,7 @@
         "text": "Claude: имя передаёт хук UserPromptSubmit полем hookSpecificOutput.sessionTitle"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cfa00ffe-c414-4ae6-9953-e3d2906b3705",
@@ -1570,7 +1570,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: release 0.3.6",
-      "confirmation": null,
+      "confirmation": "Да, делай",
       "context": [],
       "dependencies": [
         "DOCS-R10"
@@ -1586,7 +1586,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R10",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Релиз 0.3.6",
       "why": "Релиз 0.3.6"
     }
@@ -1598,11 +1598,11 @@
 ## State
 
 - Scope: m3-fixes (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 38/39
-- Revision: 183
+- Progress: 39/39
+- Revision: 185
 
 ## Objective
 
@@ -1790,7 +1790,7 @@ Digest: Мастер начинает каждый вход с чистого л
 
 Digest: Удалённый проект забирает записи своих сессий; сессии Claude поднимаются сами в тот же канал Remote Control.
 
-### R10 — Архив останавливает сессии Claude (fixes, OPEN)
+### R10 — Архив останавливает сессии Claude (fixes, CLOSED)
 
 - [DONE] T028 — Архив останавливает и поднимает сессии Claude (work)
   - Commit: fix: archive stops Claude sessions, restore brings them back
@@ -1799,7 +1799,7 @@ Digest: Удалённый проект забирает записи своих
   - Commit: docs: reconcile documentation for R10
   - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/backend-core/clusters/projects/modules/project-registry/module.md, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md
   - Depends on: T028
-- [TODO] T029 — Релиз 0.3.6 (delivery)
+- [DONE] T029 — Релиз 0.3.6 (delivery)
   - Commit: chore: release 0.3.6
   - Files: package.json, package-lock.json, docs/evidence/M3-acceptance.md
   - Depends on: DOCS-R10

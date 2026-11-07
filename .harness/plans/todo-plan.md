@@ -10,10 +10,24 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 190,
+  "revision": 192,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "Provider.autostart?(); registry.autostart()",
+          "Claude resumeInterrupted поднимает и окружение ('environment')",
+          "cli: AUTOSTART_ATTEMPTS, AUTOSTART_PAUSE_MS"
+        ],
+        "decisions": [
+          "Демон Codex запускается при каждом старте службы без подтверждения",
+          "Подключённый или подключающийся демон не трогается"
+        ],
+        "references": [
+          "docs/planning/M3-autostart.md"
+        ],
+        "result": "При старте службы демон Codex запускается сам (3 попытки по 30 с), прерванные окружения Claude поднимаются; остановка службы их не трогает."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -122,7 +136,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -164,8 +178,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 1/3
-- Revision: 190
+- Progress: 2/3
+- Revision: 192
 
 ## Objective
 
@@ -183,7 +197,7 @@
 - [DONE] T001 — Автозапуск демона Codex и окружений Claude (work)
   - Commit: feat: start the Codex daemon and interrupted Claude environments with the service
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/environment.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/registry.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/routes.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/fake-provider.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/provider-lifecycle.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/providers.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M3-autostart.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md
   - Depends on: T001
@@ -191,5 +205,7 @@
   - Commit: chore: release 0.3.7
   - Files: package.json, package-lock.json, docs/evidence/M3-acceptance.md
   - Depends on: DOCS-R1
+
+Digest: При старте службы демон Codex запускается сам (3 попытки по 30 с), прерванные окружения Claude поднимаются; остановка службы их не трогает.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

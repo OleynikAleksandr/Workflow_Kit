@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { after, before, test } from 'node:test';
 import { installStructure, recordSessionStart } from '#kit-structure';
 import { providerSessionsFile } from '#provider-registry';
 import type { Project, Provider } from '#provider-registry';
-import { CONNECTING_REASON, KIT_HOOK_COMMAND, STALE_LOGIN_REASON, KIT_HOOK_COMMANDS, createCodexProvider } from '../src/index.ts';
+import { APP_OWNER_REASON, CONNECTING_REASON, KIT_HOOK_COMMAND, STALE_LOGIN_REASON, KIT_HOOK_COMMANDS, createCodexProvider } from '../src/index.ts';
 import type { FakeDaemon } from './fake-daemon.ts';
 import { fakeMachine } from './helpers.ts';
 import type { FakeMachine } from './helpers.ts';
@@ -255,6 +255,36 @@ test('autostart starts a stopped daemon, leaves a connected one, and does nothin
   const none = createCodexProvider(machine.context({ env: { PATH: '/nonexistent' } }), { isAlive: () => false });
   assert.equal(await none.autostart!(), null);
   assert.equal((await machine.calls()).filter((c) => c.argv?.[0] === 'remote-control').length, before + 1);
+});
+
+test('remote control held by the ChatGPT app (409 already online) is a working state, not a login error', async () => {
+  const held = await machine.daemon({ remoteControl: 'errored' });
+  const logs = path.join(machine.codexHome, 'logs_2.sqlite');
+  const { DatabaseSync } = await import('node:sqlite');
+  const db = new DatabaseSync(logs);
+  db.exec('CREATE TABLE logs (id INTEGER PRIMARY KEY, ts INTEGER NOT NULL, ts_nanos INTEGER NOT NULL, level TEXT NOT NULL, target TEXT NOT NULL, feedback_log_body TEXT, process_uuid TEXT)');
+  const insert = db.prepare('INSERT INTO logs (ts, ts_nanos, level, target, feedback_log_body, process_uuid) VALUES (?, 0, ?, ?, ?, ?)');
+  const target = 'codex_app_server_transport::transport::remote_control::websocket';
+  insert.run(1, 'WARN', target, 'failed to connect: HTTP error: 401 Unauthorized', `pid:${process.pid}:old`);
+  insert.run(2, 'WARN', target, 'failed to connect: HTTP error: 409 Conflict, body: {"detail":"Remote app server already online"}', `pid:${process.pid}:now`);
+  insert.run(3, 'WARN', target, 'failed to connect: 500', 'pid:1:other-process');
+  db.close();
+  try {
+    const local = createCodexProvider(machine.context());
+    await local.refresh!();
+    const status = await local.status();
+    assert.deepEqual([status.state, status.label], ['ready', 'через приложение ChatGPT']);
+    assert.equal((await local.capabilities())['createSession']?.available, true);
+    const [action] = await local.actions(null);
+    assert.deepEqual([action?.enabled, action?.reason], [false, APP_OWNER_REASON]);
+    const calls = (await machine.calls()).length;
+    assert.equal(await local.autostart!(), null, 'nothing to start while the app holds the link');
+    assert.equal((await machine.calls()).filter((c) => c.argv?.[0] === 'remote-control').length, (await machine.calls()).slice(0, calls).filter((c) => c.argv?.[0] === 'remote-control').length);
+  } finally {
+    await held.close();
+    await rm(logs, { force: true });
+    daemon = await machine.daemon();
+  }
 });
 
 test('a write Codex did not record fails with the backup path', async () => {

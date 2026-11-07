@@ -6,7 +6,7 @@ import path from 'node:path';
 import { cleanEnv } from '#process-supervisor';
 import { createTokenStore } from '#provider-registry';
 import type { ProviderContext, TokenStore } from '#provider-registry';
-import { cachedText, codexPaths, pidAlive, readDaemonPid, readTail, tokenErrorLine } from './codex-files.ts';
+import { ALREADY_ONLINE, cachedText, codexPaths, lastRemoteWarning, pidAlive, readDaemonPid, readTail, tokenErrorLine } from './codex-files.ts';
 import type { CodexPaths } from './codex-files.ts';
 import { createRpcSession, initializeSession } from './rpc.ts';
 import type { InitializeResult, RpcSession, RpcTransport } from './rpc.ts';
@@ -50,6 +50,11 @@ export interface DaemonState {
    * and the daemon reports 401: it holds the old token and needs a restart, not `codex login`.
    */
   staleLogin: boolean;
+  /**
+   * 'app': the daemon is not connected because another app-server of this installation (the
+   * ChatGPT app) holds remote control (409 "Remote app server already online" in Codex's log).
+   */
+  remoteOwner: 'app' | null;
   error: string | null;
   checkedAt: string;
 }
@@ -167,12 +172,12 @@ export function createCodexRuntime(context: ProviderContext, deps: CodexDeps = {
       const now = Date.now();
       if (!pid) {
         probe = null;
-        return { running: false, pid: null, remoteControl: null, serverName: null, userAgent: null, tokenError: null, staleLogin: false, error: null, checkedAt: context.now().toISOString() };
+        return { running: false, pid: null, remoteControl: null, serverName: null, userAgent: null, tokenError: null, staleLogin: false, remoteOwner: null, error: null, checkedAt: context.now().toISOString() };
       }
       if (!force && probe && probe.state.pid === pid && now - probe.at < ttl) return probe.state;
       const known = lastKnown && lastKnown.pid === pid ? lastKnown : null;
       inflight ??= (async (): Promise<DaemonState> => {
-        const state: DaemonState = { running: true, pid, remoteControl: null, serverName: null, userAgent: null, tokenError: null, staleLogin: false, error: null, checkedAt: context.now().toISOString() };
+        const state: DaemonState = { running: true, pid, remoteControl: null, serverName: null, userAgent: null, tokenError: null, staleLogin: false, remoteOwner: null, error: null, checkedAt: context.now().toISOString() };
         try {
           await runtime.withDaemon(async (session, init) => {
             state.userAgent = typeof init.userAgent === 'string' ? init.userAgent : null;
@@ -190,7 +195,10 @@ export function createCodexRuntime(context: ProviderContext, deps: CodexDeps = {
           state.serverName ??= known.serverName;
         }
         if (state.remoteControl !== null) lastKnown = { pid, remoteControl: state.remoteControl, serverName: state.serverName };
-        if (state.remoteControl !== 'connected') state.tokenError = tokenErrorLine(await readTail(paths.daemonStderr, 64 * 1024));
+        if (state.remoteControl !== 'connected') {
+          state.tokenError = tokenErrorLine(await readTail(paths.daemonStderr, 64 * 1024));
+          if ((await lastRemoteWarning(paths.home, pid))?.includes(ALREADY_ONLINE)) state.remoteOwner = 'app';
+        }
         if (state.tokenError && pidFile?.startMs) {
           const authAt = await stat(paths.auth).then((info) => info.mtimeMs).catch(() => null);
           state.staleLogin = authAt !== null && authAt > pidFile.startMs;

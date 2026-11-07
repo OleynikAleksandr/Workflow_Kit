@@ -50,8 +50,16 @@ export const STALE_LOGIN_REASON = 'Приложение ChatGPT обновило
 /** Text of a daemon that runs and is still connecting: nothing to do but wait. */
 export const CONNECTING_REASON = 'ChatGPT подключается к демону Codex — подождите несколько секунд';
 
+/** The ChatGPT app holds remote control of this installation; the daemon serves the panel. */
+export const APP_OWNER_REASON = 'удалённое управление держит приложение ChatGPT';
+
+/** Remote control is up: through the daemon, or through the ChatGPT app (spec M3-autostart 4). */
+function linked(daemon: DaemonState): boolean {
+  return daemon.running && !daemon.error && (daemon.remoteControl === 'connected' || daemon.remoteOwner === 'app');
+}
+
 function loginProblem(daemon: DaemonState): boolean {
-  return daemon.running && !daemon.staleLogin && (daemon.remoteControl === 'errored' || (daemon.remoteControl !== 'connected' && daemon.tokenError !== null));
+  return daemon.running && !daemon.staleLogin && daemon.remoteOwner !== 'app' && (daemon.remoteControl === 'errored' || (daemon.remoteControl !== 'connected' && daemon.tokenError !== null));
 }
 
 function buildStatus(rt: CodexRuntime, daemon: DaemonState): ProviderStatus {
@@ -71,8 +79,9 @@ function buildStatus(rt: CodexRuntime, daemon: DaemonState): ProviderStatus {
   }
   if (!daemon.running) return { ...base, state: 'unavailable', label: 'демон не запущен', note: 'Сессии создаются через демон: «Запустить демон».' };
   if (daemon.error) return { ...base, state: 'error', label: 'демон не отвечает', note: daemon.error };
-  if (daemon.remoteControl === 'connected') {
-    return { ...base, state: program.installed === null ? 'unknown' : 'ready', label: 'демон подключён', ...(program.error ? { note: program.error } : {}) };
+  if (linked(daemon)) {
+    const label = daemon.remoteControl === 'connected' ? 'демон подключён' : 'через приложение ChatGPT';
+    return { ...base, state: program.installed === null ? 'unknown' : 'ready', label, ...(program.error ? { note: program.error } : {}) };
   }
   if (connecting(daemon)) return { ...base, state: 'unavailable', label: 'подключается к ChatGPT', note: CONNECTING_REASON };
   return { ...base, state: 'unavailable', label: `связь с ChatGPT: ${daemon.remoteControl}`, note: 'Удалённое управление выключено; «Подключить к ChatGPT».' };
@@ -101,7 +110,7 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
     else if (!create && loginProblem(daemon)) create = `ошибка входа Codex — ${LOGIN_HINT}`;
     else if (!create && connecting(daemon)) create = CONNECTING_REASON;
     else if (!create && daemon.error) create = `демон Codex не отвечает: ${daemon.error}`;
-    else if (!create && daemon.remoteControl !== 'connected') create = 'демон Codex не подключён к ChatGPT — «Подключить к ChatGPT»';
+    else if (!create && !linked(daemon)) create = 'демон Codex не подключён к ChatGPT — «Подключить к ChatGPT»';
     const cap = (reason: string | null) => (reason ? { available: false, reason } : { available: true });
     return { trust: cap(missing), hooks: cap(missing), sessions: { available: true }, createSession: cap(create), daemon: cap(missing) };
   };
@@ -121,6 +130,7 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
     if (!daemon.running) return [action];
     // A running daemon: the action only makes sense when its link to ChatGPT is off or failed.
     if (daemon.remoteControl === 'connected') return [{ ...action, enabled: false, reason: 'демон работает и подключён к ChatGPT' }];
+    if (linked(daemon)) return [{ ...action, enabled: false, reason: APP_OWNER_REASON }];
     if (daemon.staleLogin) {
       return [{ ...action, title: 'Перезапустить демон', confirm: 'Перезапустить демон Codex, чтобы он перечитал вход (codex remote-control stop, затем start)? Чаты, открытые через демон на iPad, переподключатся.' }];
     }
@@ -151,7 +161,7 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
     if (result.startError) throw new ProviderError('start-failed', `codex не запустился: ${result.startError}`, { hint: 'Проверьте путь к codex и нажмите «Перепроверить».' });
     const parsed = parseRemoteControlStart(`${result.stdout}\n${result.stderr}`);
     const daemon = await rt.daemon(true);
-    if (parsed.status === 'connected' || (daemon.running && daemon.remoteControl === 'connected')) {
+    if (parsed.status === 'connected' || linked(daemon)) {
       context.log('codex: daemon started');
       return buildStatus(rt, daemon);
     }
@@ -168,7 +178,7 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
     if (context.platform === 'win32') return null;
     if ((await rt.refreshProgram()).installed === false) return null;
     const daemon = await rt.daemon(true);
-    if (daemon.running && (daemon.remoteControl === 'connected' || connecting(daemon))) return null;
+    if (linked(daemon) || connecting(daemon)) return null;
     await startDaemon();
     return 'daemon started';
   };

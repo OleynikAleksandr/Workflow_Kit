@@ -1,7 +1,7 @@
 // Codex's own files under $CODEX_HOME (default ~/.codex), read without external programs: the
 // daemon pid file, trust in config.toml, thread names in session_index.jsonl. Every reader is
 // tolerant to unknown fields (R1) and cached by mtime and size (D11).
-import { open, readFile, stat } from 'node:fs/promises';
+import { open, readdir, readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 
 /** Paths of the Codex files the provider reads. */
@@ -188,4 +188,31 @@ export function parseSessionIndex(text: string): Map<string, string> {
     }
   }
   return names;
+}
+
+/** What the Codex server says when another app-server of this installation holds remote control. */
+export const ALREADY_ONLINE = 'Remote app server already online';
+
+/**
+ * The newest remote-control warning that process <pid> wrote to Codex's log database
+ * (<home>/logs_<N>.sqlite, the newest N), read only; null when there is none or it cannot be read.
+ */
+export async function lastRemoteWarning(home: string, pid: number): Promise<string | null> {
+  try {
+    const names = (await readdir(home)).filter((name) => /^logs_\d+\.sqlite$/.test(name));
+    const newest = names.sort((a, b) => Number(/\d+/.exec(b)![0]) - Number(/\d+/.exec(a)![0]))[0];
+    if (!newest) return null;
+    const { DatabaseSync } = await import('node:sqlite');
+    const db = new DatabaseSync(path.join(home, newest), { readOnly: true });
+    try {
+      const row = db
+        .prepare("SELECT feedback_log_body AS body FROM logs WHERE process_uuid LIKE ? AND target LIKE '%remote_control%' AND level = 'WARN' ORDER BY ts DESC, ts_nanos DESC LIMIT 1")
+        .get(`pid:${pid}:%`) as { body?: unknown } | undefined;
+      return typeof row?.body === 'string' ? row.body : null;
+    } finally {
+      db.close();
+    }
+  } catch {
+    return null;
+  }
 }

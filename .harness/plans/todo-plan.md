@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 195,
+  "revision": 197,
   "rounds": [
     {
       "digest": {
@@ -198,14 +198,15 @@
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts",
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts",
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/helpers.ts",
-        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md"
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts"
       ],
       "fixes": null,
       "id": "T003",
       "iteration": 1,
       "kind": "work",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Соединение, занятое приложением ChatGPT, — рабочее состояние",
       "why": "Соединение, занятое приложением ChatGPT, — рабочее состояние"
     },
@@ -274,8 +275,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 3/6
-- Revision: 195
+- Progress: 4/6
+- Revision: 197
 
 ## Objective
 
@@ -306,9 +307,9 @@ Digest: При старте службы демон Codex запускается
 
 ### R2 — Удалённое управление у приложения ChatGPT (fixes, OPEN)
 
-- [TODO] T003 — Соединение, занятое приложением ChatGPT, — рабочее состояние (work)
+- [DONE] T003 — Соединение, занятое приложением ChatGPT, — рабочее состояние (work)
   - Commit: fix: treat the remote control held by the ChatGPT app as a working state
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/runtime.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/codex-files.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/helpers.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/runtime.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/codex-files.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/helpers.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts
 - [TODO] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R2
   - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md

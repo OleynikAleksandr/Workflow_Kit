@@ -119,12 +119,10 @@ export function choiceView(state, projectId, key) {
   if (typeof choice['generation'] !== 'number') return null;
   const holder = choiceHolder(state, projectId);
   if (holder && holder !== key) return null;
-  const codex = key.startsWith('codex:');
   return {
     generation: choice['generation'],
     reason: typeof choice['reason'] === 'string' ? choice['reason'] : '',
     options: array(choice['options'])
-      .filter((o) => !(codex && o.claudeOnly))
       .map((o) => ({ option: String(o.option), title: String(o.title), description: String(o.description ?? ''), recommended: Boolean(o.recommended) })),
   };
 }

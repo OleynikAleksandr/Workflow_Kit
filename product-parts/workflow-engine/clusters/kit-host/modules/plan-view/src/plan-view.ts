@@ -151,7 +151,6 @@ export interface ChoiceOptionView {
   description: string;
   recommended: boolean;
   /** Orchestration needs executor subagents in their own worktrees: Claude sessions only. */
-  claudeOnly: boolean;
 }
 
 /** The execution-mode choice card. */
@@ -198,7 +197,6 @@ export function buildChoiceCard(proposal: KitProposal | null): ChoiceCard | null
       option,
       ...OPTION_TEXT[option],
       recommended: option === proposal.recommended,
-      claudeOnly: option === 'orchestrated',
     }));
   return {
     generation: proposal.generation,
@@ -213,9 +211,9 @@ export function buildChoiceCard(proposal: KitProposal | null): ChoiceCard | null
 }
 
 /**
- * The options a session of a provider may choose: Codex sessions do not get orchestration (as in
- * Harness). When the recommended option is removed, nothing is marked recommended.
+ * The options a session of a provider may choose: all of them for both apps, orchestration runs
+ * with the app's own subagents (Claude: Agent tool, Codex: spawn_agent; M3 round 7).
  */
-export function choiceOptionsFor(card: ChoiceCard, provider: 'claude' | 'codex'): ChoiceOptionView[] {
-  return provider === 'claude' ? card.options : card.options.filter((option) => !option.claudeOnly);
+export function choiceOptionsFor(card: ChoiceCard, _provider: 'claude' | 'codex'): ChoiceOptionView[] {
+  return card.options;
 }

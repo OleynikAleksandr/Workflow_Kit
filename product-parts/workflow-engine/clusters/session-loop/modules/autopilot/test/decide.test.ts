@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { decideAutopilot, nextAutopilotState } from '../src/index.ts';
+import { decideAutopilot, executorHowto, nextAutopilotState } from '../src/index.ts';
 import type { AutopilotProjectStatus, AutopilotState, AutopilotTurn } from '../src/index.ts';
 
 const state: AutopilotState = { enabled: true, continues: 0, maxContinues: 40, orchestrationKey: null };
@@ -44,4 +44,11 @@ test('stops: no progress, limit, delivery, acceptance, paused, user message, pro
 test('a user message resets the continue counter', () => {
   const decision = decideAutopilot({ ...state, continues: 7 }, status(), turn({ userMessage: true }));
   assert.equal(nextAutopilotState({ ...state, continues: 7 }, decision).continues, 0);
+});
+
+test('orchestration runs with the subagents of the session app: Claude Agent with a worktree, Codex spawn_agent in a worktree it makes', () => {
+  assert.match(executorHowto('claude:s1'), /Agent tool and isolation: "worktree"/);
+  assert.match(executorHowto('codex:t1'), /git worktree add --detach \.workflow-kit\/local\/worktrees\/<assignment id> <baseCommit>/);
+  assert.match(executorHowto('codex:t1'), /spawn_agent/);
+  assert.match(executorHowto('codex:t1'), /integration:start/);
 });

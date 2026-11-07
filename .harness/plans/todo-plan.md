@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 151,
+  "revision": 153,
   "rounds": [
     {
       "digest": {
@@ -1021,7 +1021,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R7",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Оркестрация доступна сессиям ChatGPT",
       "why": "Пользователь: оркестрация встроенными подагентами и у Claude, и у ChatGPT"
     },
@@ -1128,8 +1128,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 24/28
-- Revision: 151
+- Progress: 25/28
+- Revision: 153
 
 ## Objective
 
@@ -1262,7 +1262,7 @@ Digest: Демон Codex с устаревшим входом распознаё
 
 ### R7 — Orchestration with built-in subagents (implementation, OPEN)
 
-- [TODO] T019 — Оркестрация доступна сессиям ChatGPT (work)
+- [DONE] T019 — Оркестрация доступна сессиям ChatGPT (work)
   - Commit: feat: offer orchestration with built-in subagents to ChatGPT sessions
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/texts.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/decide.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/autopilot.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/decide.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/flow.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/src/index.ts, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/src/kit-types.ts, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/src/plan-view.ts, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/test/plan-view.test.ts, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md
 - [TODO] T020 — Процедуры оркестратора в AGENTS.md (work)

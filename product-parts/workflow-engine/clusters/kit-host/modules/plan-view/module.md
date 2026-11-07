@@ -35,10 +35,9 @@
 - `buildChoiceCard(proposal) → ChoiceCard | null`: `generation`,
   `scopeId`, `objective`, `reason`, `recommended`, `hasParallelWork`,
   `refining`, `options` — рекомендованный первым, `refine` последним;
-  у варианта `title`, `description` (тексты макета), `recommended`,
-  `claudeOnly` (оркестрация).
-- `choiceOptionsFor(card, 'claude' | 'codex')` — варианты для сессии:
-  у Codex нет оркестрации (как в Harness).
+  у варианта `title`, `description` (тексты макета), `recommended`.
+- `choiceOptionsFor(card, 'claude' | 'codex')` — варианты для сессии: все,
+  оркестрация — встроенными подагентами приложения (веха 3, раунд 7).
 - Константы подписей `PHASE_LABELS`, `TASK_STATE_LABELS`, `MODE_LABELS`.
 
 ## Инварианты

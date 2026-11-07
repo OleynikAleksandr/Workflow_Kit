@@ -105,7 +105,7 @@ const proposal: KitProposal = {
   scopeId: 'demo',
 };
 
-test('choice card: recommended first, refine last, orchestration is Claude-only', () => {
+test('choice card: recommended first, refine last, orchestration for both apps', () => {
   assert.equal(buildChoiceCard(null), null);
   const card = buildChoiceCard(proposal)!;
   assert.deepEqual(card.options.map((o) => o.option), ['orchestrated', 'sequential', 'refine']);
@@ -113,7 +113,7 @@ test('choice card: recommended first, refine last, orchestration is Claude-only'
   assert.equal(card.options[0]!.title, 'Оркестрация с исполнителями');
   assert.equal(card.options[2]!.title, 'Сначала доработать спецификацию');
   assert.equal(card.generation, 2);
-  assert.deepEqual(choiceOptionsFor(card, 'codex').map((o) => o.option), ['sequential', 'refine']);
+  assert.deepEqual(choiceOptionsFor(card, 'codex').map((o) => o.option), ['orchestrated', 'sequential', 'refine']);
   assert.equal(choiceOptionsFor(card, 'claude').length, 3);
   const sequential = buildChoiceCard({ ...proposal, recommended: 'sequential' })!;
   assert.deepEqual(sequential.options.map((o) => o.option), ['sequential', 'orchestrated', 'refine']);

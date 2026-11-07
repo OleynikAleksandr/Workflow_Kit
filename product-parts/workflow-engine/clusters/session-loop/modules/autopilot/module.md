@@ -36,10 +36,15 @@
     сообщениями панели.
   - `choose(projectId, { session, generation, option })` —
     `scope:choose --generation --option --session <id сессии> --note
-    "Выбор пользователя в панели Workflow Kit: …"`; оркестрация только для
-    сессий Claude (`orchestrated-claude-only`, 400); агенту — «режим
+    "Выбор пользователя в панели Workflow Kit: …"`; оркестрация — для
+    сессий обоих приложений; агенту — «режим
     выбран, ждите кнопку запуска» или текст «доработать спецификацию».
-  - `start` (текст режима Harness: последовательно или оркестратор),
+  - `start` (текст режима Harness: последовательно или оркестратор; у
+    оркестратора — процедура исполнителя его приложения `executorHowto`:
+    Claude — Agent с `isolation: "worktree"`, Codex — `git worktree add
+    --detach .workflow-kit/local/worktrees/<id> <baseCommit>`, `spawn_agent`
+    с `workdir`, `wait_agent`, `integration:start`; продолжения автопилота
+    в оркестрации у Codex дополняются той же процедурой),
     `pause` (`pause:set --on`), `resume` (`pause:set --off` при паузе и
     «продолжай»), `accept` (`accept --note`, слова пользователя или текст по
     умолчанию), `close` (`close --scope <id> --note`), `fixes` (текст
@@ -59,7 +64,8 @@
   `note`, `text`); ошибки — `HttpError` с кодом Kit и `details.nextAction`;
   раздел `autopilot` в `/api/state`.
 - Тексты: `PREFIX` (`Workflow Kit:`), `CHOICE_NOTES`, `CHOSEN_WAIT`,
-  `START_MESSAGES`, `REFINE_MESSAGE`, `RESUME_MESSAGE`, `fixesMessage`,
+  `START_MESSAGES`, `CLAUDE_EXECUTOR_HOWTO`, `CODEX_EXECUTOR_HOWTO`,
+  `executorHowto(key)`, `REFINE_MESSAGE`, `RESUME_MESSAGE`, `fixesMessage`,
   `deliveryMessage`, `STOP_LABELS`.
 
 ## Инварианты

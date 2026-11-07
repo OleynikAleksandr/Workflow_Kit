@@ -13,7 +13,9 @@ import {
   PREFIX,
   REFINE_MESSAGE,
   RESUME_MESSAGE,
+  CODEX_EXECUTOR_HOWTO,
   START_MESSAGES,
+  executorHowto,
   STOP_LABELS,
   deliveryMessage,
   fixesMessage,
@@ -211,7 +213,8 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
         entry.origin = 'kit';
         note(entry, 'continue', null, `Продолжение: ${decision.taskId}`);
         log(`autopilot: ${context.key} continue ${decision.taskId}`);
-        return { kind: 'continue', text: `${PREFIX} autopilot. ${decision.text}` };
+        const howto = status.orchestration && clientOf(context.key) === 'codex' ? ` ${CODEX_EXECUTOR_HOWTO}` : '';
+        return { kind: 'continue', text: `${PREFIX} autopilot. ${decision.text}${howto}` };
       }
       entry.origin = null;
       // An accepted result waits only for «Закрыть»: nothing to deliver, the Stop is not held.
@@ -226,9 +229,6 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
     },
 
     async choose(projectId, request) {
-      if (request.option === 'orchestrated' && clientOf(request.session) !== 'claude') {
-        throw new WorkflowActionError('orchestrated-claude-only', 'Оркестрация доступна только сессиям Claude', 400);
-      }
       if (!Number.isSafeInteger(request.generation) || request.generation < 1) {
         throw new WorkflowActionError('bad-request', 'Нужно поколение предложения', 400);
       }
@@ -256,7 +256,9 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
 
     async start(projectId, session) {
       const key = await owner(projectId, session);
-      await enable(projectId, key, START_MESSAGES[await strategy(projectId)]);
+      const mode = await strategy(projectId);
+      // Orchestration runs with the subagents of the session's app: the procedure differs.
+      await enable(projectId, key, mode === 'orchestrated' ? `${START_MESSAGES.orchestrated} ${executorHowto(key)}` : START_MESSAGES[mode]);
       return { owner: key };
     },
 

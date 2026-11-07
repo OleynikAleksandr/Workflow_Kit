@@ -18,9 +18,31 @@ export const CHOSEN_WAIT: Readonly<Record<'sequential' | 'orchestrated', string>
   orchestrated: `${PREFIX} execution mode chosen: orchestrated. The user starts the plan with the "Начать выполнение плана" button in the panel; do not start tasks now, end your turn.`,
 };
 
+/**
+ * How a Codex orchestrator runs an executor: Kit prints the brief but makes no worktree (Claude's
+ * Agent tool makes one with isolation), so the orchestrator makes it (M3 orchestration, 2-3).
+ */
+export const CODEX_EXECUTOR_HOWTO =
+  'For each assignment: `git worktree add --detach .workflow-kit/local/worktrees/<assignment id> <baseCommit>` ' +
+  '(baseCommit from the assignment:create output); start a subagent with spawn_agent, give it the brief and the line ' +
+  '"Your worktree is <absolute path>; run every command with that workdir"; independent assignments may run in parallel ' +
+  '(up to maxWorkers); wait for the SHA (wait_agent), then `scripts/workflow integration:start --id <assignment id> --source <sha>`; ' +
+  'Kit removes the worktree after the integration.';
+
+/** How a Claude orchestrator runs an executor. */
+export const CLAUDE_EXECUTOR_HOWTO =
+  'For each assignment start a subagent with the Agent tool and isolation: "worktree", give it the brief from assignment:create; ' +
+  'independent assignments may run in parallel (up to maxWorkers); integrate the SHA it replies with ' +
+  '`scripts/workflow integration:start --id <assignment id> --source <sha>`.';
+
+/** The executor procedure of the app of a session key (claude:… or codex:…). */
+export function executorHowto(key: string): string {
+  return key.startsWith('codex:') ? CODEX_EXECUTOR_HOWTO : CLAUDE_EXECUTOR_HOWTO;
+}
+
 /** "Начать выполнение плана": the Harness mode texts. */
 export const START_MESSAGES: Readonly<Record<'sequential' | 'orchestrated', string>> = {
-  orchestrated: `${PREFIX} the user started the plan. Execution mode: orchestrated. You are the orchestrator: do not implement the tasks yourself. Hand out the tasks with \`scripts/workflow assignment:next\` and \`scripts/workflow assignment:create\` to Claude subagents started with isolation worktree, check their results and integrate them.`,
+  orchestrated: `${PREFIX} the user started the plan. Execution mode: orchestrated. You are the orchestrator: do not implement the work and DOCS tasks yourself (QUALITY and delivery tasks you run yourself in main). Hand out the tasks with \`scripts/workflow assignment:next\` and \`scripts/workflow assignment:create --task <ID>\` to subagents of your app, check their results and integrate them.`,
   sequential: `${PREFIX} the user started the plan. Execution mode: sequential. Execute the plan yourself task by task, starting now with the first task: run \`scripts/workflow task:start <ID>\`, implement it and commit with \`scripts/workflow commit --task <ID>\`.`,
 };
 

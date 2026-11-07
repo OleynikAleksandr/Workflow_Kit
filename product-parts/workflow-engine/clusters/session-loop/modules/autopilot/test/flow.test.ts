@@ -98,10 +98,6 @@ test('sequential: proposal → choice → start → tasks → ready for acceptan
   // The turn that proposed the plan ends: the Stop waits for the choice.
   let stop = channel.stop(stopInput());
   await holding('waiting-for-mode-choice');
-  await assert.rejects(
-    autopilot.choose('p', { session: 'codex:s-codex', generation: 1, option: 'orchestrated' }),
-    (error: unknown) => error instanceof WorkflowActionError && error.code === 'orchestrated-claude-only',
-  );
   await autopilot.choose('p', { session: KEY, generation: 1, option: 'sequential' });
   assert.match((await settle(stop)) ?? '', /execution mode chosen: sequential/);
 

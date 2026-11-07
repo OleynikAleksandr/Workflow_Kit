@@ -75,11 +75,11 @@ test('activity: working with the turn timer, holding with the reason, unknown se
   assert.equal(timer(null, 0), '');
 });
 
-test('the choice card goes to the holding session; Codex sessions get no orchestration', () => {
+test('the choice card goes to the holding session; Codex sessions get orchestration too', () => {
   const choice = choiceView(state(), 'p', 'codex:t1');
   assert.ok(choice);
   assert.equal(choice.generation, 2);
-  assert.deepEqual(choice.options.map((o) => o.option), ['sequential', 'refine']);
+  assert.deepEqual(choice.options.map((o) => o.option), ['orchestrated', 'sequential', 'refine']);
   assert.equal(choiceView(state(), 'p', 'claude:s1'), null, 'another session holds the choice');
   const free = state({ channel: { sessions: [] } });
   assert.deepEqual(choiceView(free, 'p', 'claude:s1')?.options.map((o) => o.option), ['orchestrated', 'sequential', 'refine']);

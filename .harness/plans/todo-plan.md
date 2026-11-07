@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 157,
+  "revision": 159,
   "rounds": [
     {
       "digest": {
@@ -156,7 +156,7 @@
       },
       "id": "R7",
       "kind": "implementation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Orchestration with built-in subagents"
     }
   ],
@@ -189,7 +189,7 @@
         "text": "Claude: имя передаёт хук UserPromptSubmit полем hookSpecificOutput.sessionTitle"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cfa00ffe-c414-4ae6-9953-e3d2906b3705",
@@ -1109,7 +1109,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: release 0.3.3",
-      "confirmation": null,
+      "confirmation": "Сразу вносить все исправления, необходимые для обсужденной оркестрации и у Cloud, и у ChatGPT, выпускать релиз 0.3.3",
       "context": [],
       "dependencies": [
         "T019",
@@ -1127,7 +1127,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R7",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Релиз 0.3.3",
       "why": "Релиз 0.3.3"
     }
@@ -1139,11 +1139,11 @@
 ## State
 
 - Scope: m3-fixes (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 27/28
-- Revision: 157
+- Progress: 28/28
+- Revision: 159
 
 ## Objective
 
@@ -1274,7 +1274,7 @@ Digest: Состояние демона Codex согласовано: стату
 
 Digest: Демон Codex с устаревшим входом распознаётся и перезапускается кнопкой; тема сессии не задаётся по служебному приветствию; при ожидании приёмки Stop удерживается, и «Нужны исправления» доходит сразу; спящая сессия Claude панели будится сообщением панели.
 
-### R7 — Orchestration with built-in subagents (implementation, OPEN)
+### R7 — Orchestration with built-in subagents (implementation, CLOSED)
 
 - [DONE] T019 — Оркестрация доступна сессиям ChatGPT (work)
   - Commit: feat: offer orchestration with built-in subagents to ChatGPT sessions
@@ -1286,7 +1286,7 @@ Digest: Демон Codex с устаревшим входом распознаё
   - Commit: docs: reconcile documentation for R7
   - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/backend-core/clusters/projects/modules/kit-structure/module.md
   - Depends on: T019, T020
-- [TODO] T021 — Релиз 0.3.3 (delivery)
+- [DONE] T021 — Релиз 0.3.3 (delivery)
   - Commit: chore: release 0.3.3
   - Files: package.json, package-lock.json, docs/evidence/M3-acceptance.md
   - Depends on: T019, T020, DOCS-R7

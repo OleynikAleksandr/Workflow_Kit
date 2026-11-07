@@ -137,3 +137,18 @@ ChatGPT» и активная «Запустить демон».
   «Перезапустить демон»; действие выполнено через API службы: новый
   демон (pid 36663, 09:29:23), «демон подключён», создание сессий ChatGPT
   доступно.
+
+## Раунд R7 — оркестрация встроенными подагентами (0.3.3)
+
+- Вариант «Оркестрация с исполнителями» предлагается сессиям и Claude, и ChatGPT;
+  отказ `orchestrated-claude-only` снят.
+- Стартовое сообщение и продолжения содержат процедуру исполнителя для приложения:
+  Claude — Agent с `isolation: "worktree"`; Codex — `git worktree add --detach
+  .workflow-kit/local/worktrees/<id> <baseCommit>`, затем `spawn_agent`/`wait_agent`.
+- Раздел AGENTS.md «Orchestration with your app's subagents» описывает обе процедуры;
+  у существующих проектов он обновится при обновлении структуры.
+- Проба процедуры Codex на временном репозитории: attach → commit → `integration:start`
+  в main, `cleanup: DONE`.
+- `node bin/wfk.mjs install` поставил 0.3.3 (удалена 0.3.1);
+  `wfk doctor --installed` — всё в порядке, `/api/health` — версия 0.3.3.
+- Проверка оркестраторов на тестовых проектах — у пользователя.

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 223,
+  "revision": 225,
   "rounds": [
     {
       "digest": {
@@ -105,7 +105,7 @@
       },
       "id": "R5",
       "kind": "fixes",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Новая сессия открывается сама; удаление тредов ChatGPT"
     }
   ],
@@ -129,7 +129,7 @@
         "text": "Демон Codex запускается при каждом старте службы без согласий; при остановке службы не останавливается"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
@@ -634,7 +634,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: release 0.3.11",
-      "confirmation": null,
+      "confirmation": "Да, все работает, только я бы этот щелчок сделал бы тоже автоматизированным. И попробуй найти способ при удалении проекта с сессий ChatGPT чтобы в самом ChatGPT она тоже удалялась.",
       "context": [],
       "dependencies": [
         "DOCS-R5"
@@ -650,7 +650,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R5",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Релиз 0.3.11",
       "why": "Релиз 0.3.11"
     }
@@ -662,11 +662,11 @@
 ## State
 
 - Scope: m3-autostart (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 15/16
-- Revision: 223
+- Progress: 16/16
+- Revision: 225
 
 ## Objective
 
@@ -744,7 +744,7 @@ Digest: Сессия ChatGPT создаётся и тогда, когда уда
 
 Digest: Щелчок по карточке сессии ChatGPT открывает её чат; «Открыть чат» убран с экрана и из меню, в заголовке — строка состояния.
 
-### R5 — Новая сессия открывается сама; удаление тредов ChatGPT (fixes, OPEN)
+### R5 — Новая сессия открывается сама; удаление тредов ChatGPT (fixes, CLOSED)
 
 - [DONE] T009 — Новая сессия открывается сама (work)
   - Commit: feat: a new session opens by itself, a ChatGPT one with its chat
@@ -756,7 +756,7 @@ Digest: Щелчок по карточке сессии ChatGPT открывае
   - Commit: docs: reconcile documentation for R5
   - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/project-wizard/module.md, product-parts/backend-core/clusters/projects/modules/project-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md
   - Depends on: T009, T010
-- [TODO] T011 — Релиз 0.3.11 (delivery)
+- [DONE] T011 — Релиз 0.3.11 (delivery)
   - Commit: chore: release 0.3.11
   - Files: package.json, package-lock.json, docs/evidence/M3-acceptance.md
   - Depends on: DOCS-R5

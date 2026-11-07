@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 215,
+  "revision": 216,
   "rounds": [
     {
       "digest": {
@@ -86,6 +86,13 @@
       "kind": "fixes",
       "status": "CLOSED",
       "title": "Щелчок по сессии ChatGPT открывает чат"
+    },
+    {
+      "digest": null,
+      "id": "R5",
+      "kind": "fixes",
+      "status": "OPEN",
+      "title": "Новая сессия открывается сама; удаление тредов ChatGPT"
     }
   ],
   "schema": "harness-workflow-plan/1",
@@ -108,7 +115,7 @@
         "text": "Демон Codex запускается при каждом старте службы без согласий; при остановке службы не останавливается"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "IN_PROGRESS",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
@@ -484,6 +491,150 @@
       "status": "DONE",
       "title": "Релиз 0.3.10",
       "why": "Релиз 0.3.10"
+    },
+    {
+      "acceptance": [
+        "Сессия из мастера и из «Новая сессия» открывается сама, когда появилась в дереве",
+        "У ChatGPT при этом открывается её чат в приложении",
+        "Ожидание новой сессии кончается через 3 минуты"
+      ],
+      "checks": [],
+      "commitMessage": "feat: a new session opens by itself, a ChatGPT one with its chat",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M3-autostart.md",
+          "heading": "7. Раунд 5: новая сессия открывается сама; удаление проекта удаляет треды ChatGPT",
+          "required": true
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/actions.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/slots.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/sidebar.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/view-model.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/project-wizard/src/project-wizard.js",
+        "product-parts/control-panel/clusters/web-panel/modules/project-wizard/module.md"
+      ],
+      "fixes": null,
+      "id": "T009",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R5",
+      "status": "TODO",
+      "title": "Новая сессия открывается сама",
+      "why": "Новая сессия открывается сама"
+    },
+    {
+      "acceptance": [
+        "Перед удалением папки каждому треду ChatGPT проекта уходит thread/delete",
+        "Неудача удаления треда пишется в журнал и не отменяет удаление проекта",
+        "Уборка проекта только из списка треды не трогает"
+      ],
+      "checks": [],
+      "commitMessage": "feat: deleting a project from disk deletes its ChatGPT threads",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M3-autostart.md",
+          "heading": "7. Раунд 5: новая сессия открывается сама; удаление проекта удаляет треды ChatGPT",
+          "required": true
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/backend-core/clusters/projects/modules/project-registry/src/registry.ts",
+        "product-parts/backend-core/clusters/projects/modules/project-registry/src/index.ts",
+        "product-parts/backend-core/clusters/projects/modules/project-registry/test/registry.test.ts",
+        "product-parts/backend-core/clusters/projects/modules/project-registry/module.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/registry.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/routes.test.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/fake-provider.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/sessions.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/provider-lifecycle.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/providers.test.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md"
+      ],
+      "fixes": null,
+      "id": "T010",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R5",
+      "status": "TODO",
+      "title": "Удаление проекта с диска удаляет треды ChatGPT",
+      "why": "Удаление проекта с диска удаляет треды ChatGPT"
+    },
+    {
+      "acceptance": [
+        "Project-wide documents describe the round result",
+        "The round digest records result, decisions, contracts and references"
+      ],
+      "checks": [],
+      "commitMessage": "docs: reconcile documentation for R5",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T009",
+        "T010"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/architecture/OVERVIEW.md",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/project-wizard/module.md",
+        "product-parts/backend-core/clusters/projects/modules/project-registry/module.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md"
+      ],
+      "fixes": null,
+      "id": "DOCS-R5",
+      "iteration": 1,
+      "kind": "docs",
+      "roundId": "R5",
+      "status": "TODO",
+      "title": "Reconcile project documentation and write the round digest",
+      "why": "Keep the project context current for the next agent and close the round."
+    },
+    {
+      "acceptance": [
+        "Версия 0.3.11",
+        "install ставит app/0.3.11, wfk doctor --installed — всё в порядке"
+      ],
+      "checks": [],
+      "commitMessage": "chore: release 0.3.11",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "DOCS-R5"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "package.json",
+        "package-lock.json",
+        "docs/evidence/M3-acceptance.md"
+      ],
+      "fixes": null,
+      "id": "T011",
+      "iteration": 1,
+      "kind": "delivery",
+      "roundId": "R5",
+      "status": "TODO",
+      "title": "Релиз 0.3.11",
+      "why": "Релиз 0.3.11"
     }
   ]
 }
@@ -493,11 +644,11 @@
 ## State
 
 - Scope: m3-autostart (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 12/12
-- Revision: 215
+- Progress: 12/16
+- Revision: 216
 
 ## Objective
 
@@ -574,5 +725,22 @@ Digest: Сессия ChatGPT создаётся и тогда, когда уда
   - Depends on: DOCS-R4
 
 Digest: Щелчок по карточке сессии ChatGPT открывает её чат; «Открыть чат» убран с экрана и из меню, в заголовке — строка состояния.
+
+### R5 — Новая сессия открывается сама; удаление тредов ChatGPT (fixes, OPEN)
+
+- [TODO] T009 — Новая сессия открывается сама (work)
+  - Commit: feat: a new session opens by itself, a ChatGPT one with its chat
+  - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/actions.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/slots.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/sidebar.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/view-model.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/project-wizard/src/project-wizard.js, product-parts/control-panel/clusters/web-panel/modules/project-wizard/module.md
+- [TODO] T010 — Удаление проекта с диска удаляет треды ChatGPT (work)
+  - Commit: feat: deleting a project from disk deletes its ChatGPT threads
+  - Files: product-parts/backend-core/clusters/projects/modules/project-registry/src/registry.ts, product-parts/backend-core/clusters/projects/modules/project-registry/src/index.ts, product-parts/backend-core/clusters/projects/modules/project-registry/test/registry.test.ts, product-parts/backend-core/clusters/projects/modules/project-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/registry.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/routes.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/fake-provider.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/provider-lifecycle.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/providers.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md
+- [TODO] DOCS-R5 — Reconcile project documentation and write the round digest (docs)
+  - Commit: docs: reconcile documentation for R5
+  - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/project-wizard/module.md, product-parts/backend-core/clusters/projects/modules/project-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md
+  - Depends on: T009, T010
+- [TODO] T011 — Релиз 0.3.11 (delivery)
+  - Commit: chore: release 0.3.11
+  - Files: package.json, package-lock.json, docs/evidence/M3-acceptance.md
+  - Depends on: DOCS-R5
 
 State changes only through `scripts/workflow` commands. History lives in Git.

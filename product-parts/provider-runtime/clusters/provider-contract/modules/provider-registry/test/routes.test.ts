@@ -263,3 +263,19 @@ test('resumeInterrupted collects resumed sessions per provider and project; a fa
   assert.deepEqual(result.resumed, [`keeper:${alpha.id}-s1`]);
   assert.deepEqual(Object.keys(result.errors), [`broken:${alpha.id}`]);
 });
+
+test('setArchived goes to every provider for a project and to the owner only for a session key', async () => {
+  const own = createProviderRegistry();
+  const keeper = createFakeProvider('keeper');
+  const broken = createFakeProvider('broken');
+  own.register(keeper);
+  own.register(broken);
+  own.register(createFakeProvider('plain', { withOptional: false }));
+  const project = await own.setArchived(alpha, null, true);
+  assert.deepEqual(project.changed, ['keeper:s1']);
+  assert.deepEqual(Object.keys(project.errors), ['broken']);
+  const session = await own.setArchived(alpha, 'keeper:abc', false);
+  assert.deepEqual(session, { changed: ['keeper:abc'], errors: {} });
+  assert.deepEqual(keeper.calls, ['archive:*', 'restore:abc']);
+  assert.deepEqual(broken.calls, ['archive:*']);
+});

@@ -263,6 +263,17 @@ export interface Provider {
    * crash); start of the service. Resolves to the session ids resumed.
    */
   resumeInterrupted?(project: Project): Promise<string[]>;
+  /**
+   * Archive of the project (sessionId null) or of one session in Workflow Kit: stops the running
+   * or interrupted sessions and marks them, so nothing brings them back until a restore. Resolves
+   * to the session ids stopped.
+   */
+  archiveSessions?(project: Project, sessionId: string | null): Promise<string[]>;
+  /**
+   * Restore of the project (sessionId null) or of one session: clears the archive mark and brings
+   * the sessions back at once. Resolves to the session ids resumed.
+   */
+  restoreSessions?(project: Project, sessionId: string | null): Promise<string[]>;
 }
 
 /** What the backend gives a provider factory; everything machine-specific is injectable. */

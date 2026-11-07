@@ -24,6 +24,11 @@ export interface SessionRecord {
   logFile: string;
   debugFile: string;
   stoppedAt: string | null;
+  /**
+   * Put into the archive in Workflow Kit with its project or alone: the process was stopped and
+   * nothing brings it back until a restore. Missing in records of earlier versions.
+   */
+  archived?: 'project' | 'session' | null;
 }
 
 /** The Remote Control environment of a project folder (one per project). */

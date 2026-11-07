@@ -37,6 +37,9 @@
   в `keep`; ответ — сколько записей стёрто (раунд R9).
   `resumeInterrupted?(project)` — поднять сессии, процесс которых завершился без намеренной
   остановки (перезагрузка, сбой); ответ — id поднятых (раунд R9, старт службы).
+  `archiveSessions?(project, sessionId | null)` / `restoreSessions?(…)` — архив
+  проекта (`null`) или одной сессии в Kit: остановить и не поднимать / снять
+  пометку и сразу поднять; ответ — id (раунд R10).
   Методы чтения (`status`, `capabilities`, `trust`, `hooks`,
   `listSessions`, `actions`) обязаны быть дешёвыми и только читать: их
   вызывает каждый опрос `/api/state`.
@@ -135,6 +138,9 @@ project)`, `section(projects)`, `removeBlockers(project)` (живые сесси
 провайдеров; ошибка одного попадает в `errors[id]`, остальные выполняются.
 `resumeInterrupted(projects)` → `{ resumed, errors }` — то же для `resumeInterrupted?`;
 `resumed` — `<провайдер>:<id сессии>`, ошибка — в `errors['<провайдер>:<проект>']`.
+`setArchived(project, key | null, archived)` → `{ changed, errors }` — архив или
+возврат проекта (`null`: все провайдеры) или сессии (`'<провайдер>:<id>'`: только
+её провайдер) через `archiveSessions?` / `restoreSessions?`; ошибка — в `errors[id]`.
 Каждое чтение ограничено `STATE_READ_TIMEOUT_MS` (3 с): упавшее или
 зависшее чтение попадает в `errors` (`timeout` и т. п.), остальные данные
 отдаются. `errorInfo(error)` — `{ code, message, hint? }`.

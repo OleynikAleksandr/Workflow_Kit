@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 179,
+  "revision": 181,
   "rounds": [
     {
       "digest": {
@@ -1514,7 +1514,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R10",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Архив останавливает и поднимает сессии Claude",
       "why": "Архив останавливает и поднимает сессии Claude"
     },
@@ -1587,8 +1587,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 36/39
-- Revision: 179
+- Progress: 37/39
+- Revision: 181
 
 ## Objective
 
@@ -1778,7 +1778,7 @@ Digest: Удалённый проект забирает записи своих
 
 ### R10 — Архив останавливает сессии Claude (fixes, OPEN)
 
-- [TODO] T028 — Архив останавливает и поднимает сессии Claude (work)
+- [DONE] T028 — Архив останавливает и поднимает сессии Claude (work)
   - Commit: fix: archive stops Claude sessions, restore brings them back
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/archive.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/records.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/registry.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/routes.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/fake-provider.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/backend-core/clusters/projects/modules/project-registry/src/registry.ts, product-parts/backend-core/clusters/projects/modules/project-registry/src/index.ts, product-parts/backend-core/clusters/projects/modules/project-registry/test/registry.test.ts, product-parts/backend-core/clusters/projects/modules/project-registry/module.md, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/titles.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/test/titles.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/provider-lifecycle.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/providers.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md
 - [TODO] DOCS-R10 — Reconcile project documentation and write the round digest (docs)

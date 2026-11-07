@@ -203,3 +203,18 @@ test('deleteFolder removes an archived project and its folder after the exact na
   assert.ok((await stat(fresh.root)).isDirectory(), 'the projects root stays');
   await fresh.remove(rootProject.id);
 });
+
+test('archive and restore call the archived hooks after the save; a failing hook does not undo them', async () => {
+  const registry = createProjectRegistry(options());
+  const [demo] = await registry.list();
+  assert.ok(demo);
+  const heard: Array<[string, boolean, boolean]> = [];
+  registry.addArchivedHook((p, archived) => void heard.push([p.id, archived, Boolean(p.archivedAt)]));
+  registry.addArchivedHook(() => {
+    throw new Error('a failing hook does not undo the archive');
+  });
+  await registry.archive(demo.id);
+  await registry.restore(demo.id);
+  assert.deepEqual(heard, [[demo.id, true, true], [demo.id, false, false]]);
+  assert.equal((await registry.get(demo.id))?.archivedAt, undefined);
+});

@@ -7,6 +7,6 @@ export type { HomeScope, RegistryFs } from './home-paths.ts';
 export { isInside, nodeFs, resolveInsideHome, samePath } from './home-paths.ts';
 export type { FolderEntry, FolderListing, ListFoldersOptions } from './folders.ts';
 export { FOLDER_LIST_LIMIT, listFolders } from './folders.ts';
-export type { Project, ProjectRegistry, ProjectRegistryOptions, ProjectView, ProjectsSection, RemoveGuard, RemovedHook } from './registry.ts';
+export type { Project, ProjectRegistry, ProjectRegistryOptions, ProjectView, ProjectsSection, RemoveGuard, RemovedHook, ArchivedHook } from './registry.ts';
 export { PROJECTS_FILE_VERSION, createProjectRegistry, expandHome, projectsFile } from './registry.ts';
 export { registerProjectRoutes } from './routes.ts';

@@ -142,6 +142,24 @@ test('a session goes into the archive and back; the flag survives a reload and k
   await assert.rejects(titles.setArchived('p', 'bad key', true), (error: unknown) => error instanceof TitleError && error.code === 'bad-session');
 });
 
+test('the archive of a session reaches the provider; a provider failure is logged, the flag stays', async () => {
+  const heard: Array<[string, string, boolean]> = [];
+  const lines: string[] = [];
+  const titles = createSessionTitles({
+    ...options(),
+    log: (line) => void lines.push(line),
+    archived: async (projectId, key, archived) => {
+      heard.push([projectId, key, archived]);
+      if (key === 'claude:fails') throw new Error('process did not stop');
+    },
+  });
+  await titles.setArchived('p', 'claude:ok', true);
+  await titles.setArchived('p', 'claude:ok', false);
+  assert.ok((await titles.setArchived('p', 'claude:fails', true)).archivedAt);
+  assert.deepEqual(heard, [['p', 'claude:ok', true], ['p', 'claude:ok', false], ['p', 'claude:fails', true]]);
+  assert.match(lines.join('\n'), /claude:fails archive in the provider failed: process did not stop/);
+});
+
 test('a session removed from the lists stays removed after a reload', async () => {
   const titles = createSessionTitles({ ...options(), now: () => new Date('2026-11-06T10:00:00Z') });
   await titles.setArchived('p', 'codex:gone', true);

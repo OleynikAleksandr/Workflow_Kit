@@ -48,6 +48,11 @@ export interface ProviderRegistry {
   forgetProjects(keep: ReadonlySet<string>): Promise<{ dropped: number; errors: Record<string, string> }>;
   /** Resumes interrupted sessions of the projects in every provider; failures stay per provider. */
   resumeInterrupted(projects: readonly Project[]): Promise<{ resumed: string[]; errors: Record<string, string> }>;
+  /**
+   * Archive (archived true) or restore of a project (key null) or of one session ('<provider>:<id>')
+   * in every provider that supports it; resolves to '<provider>:<id>' changed and errors per provider.
+   */
+  setArchived(project: Project, key: string | null, archived: boolean): Promise<{ changed: string[]; errors: Record<string, string> }>;
 }
 
 const PROVIDER_ID = /^[a-z][a-z0-9-]{0,31}$/;
@@ -163,6 +168,23 @@ export function createProviderRegistry(options: { readTimeoutMs?: number } = {})
         }
       }
       return { resumed, errors };
+    },
+    async setArchived(project, key, archived) {
+      const changed: string[] = [];
+      const errors: Record<string, string> = {};
+      const split = key === null ? null : key.indexOf(':');
+      for (const provider of registry.list()) {
+        if (split !== null && key!.slice(0, split) !== provider.id) continue;
+        const sid = split === null ? null : key!.slice(split + 1);
+        const change = archived ? provider.archiveSessions : provider.restoreSessions;
+        if (!change) continue;
+        try {
+          changed.push(...(await change.call(provider, project, sid)).map((id) => `${provider.id}:${id}`));
+        } catch (error) {
+          errors[provider.id] = error instanceof Error ? error.message : String(error);
+        }
+      }
+      return { changed, errors };
     },
   };
   return registry;

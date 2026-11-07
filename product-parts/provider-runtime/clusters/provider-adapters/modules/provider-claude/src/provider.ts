@@ -5,6 +5,7 @@ import path from 'node:path';
 import { ProviderError, createTokenStore } from '#provider-registry';
 import type { HookEntry, HookState, Project, ProjectProviderState, Provider, ProviderContext, ProviderStatus, TrustState } from '#provider-registry';
 import { findKitHook, isKitHookCommand, normalizeHook, sha256 } from '#kit-structure';
+import { archiveSessions, restoreSessions } from './archive.ts';
 import { ENVIRONMENT_START, ENVIRONMENT_STOP, environmentActions, environmentBlockers, startEnvironment, stopEnvironment } from './environment.ts';
 import { claudeCapabilities, ptyUnavailableReason } from './programs.ts';
 import { forgetProjects } from './records.ts';
@@ -139,6 +140,8 @@ export function createClaudeProvider(context: ProviderContext, options: ClaudePr
     removeBlockers: (project) => environmentBlockers(rt, project),
     forgetProjects: (keep) => forgetProjects(rt.store, keep),
     resumeInterrupted: (project) => resumeInterrupted(rt, project),
+    archiveSessions: (project, sid) => archiveSessions(rt, project, sid),
+    restoreSessions: (project, sid) => restoreSessions(rt, project, sid),
   };
 
   async function projectState(project: Project): Promise<ProjectProviderState> {

@@ -64,6 +64,11 @@ export interface SessionTitlesOptions {
   listed?: (projectId: string) => Promise<ReadonlySet<string>>;
   /** Gives the name to the provider app; resolves { synced, note }. */
   rename?: (projectId: string, key: string, name: string) => Promise<{ synced: boolean; note?: string }>;
+  /**
+   * Called after a session went into the archive or came back (the service stops it or brings it
+   * back); a failure is logged and does not undo the archive state.
+   */
+  archived?: (projectId: string, key: string, archived: boolean) => Promise<void>;
   now?: () => Date;
   log?: (line: string) => void;
 }
@@ -72,7 +77,7 @@ export interface SessionTitles {
   load(): Promise<void>;
   /** Manual name from the panel; an empty name removes it. */
   setManual(projectId: string, key: string, name: string): Promise<SessionTitle>;
-  /** Puts the session into the archive or returns it (the provider session is not touched). */
+  /** Puts the session into the archive or returns it; options.archived acts on the provider session. */
   setArchived(projectId: string, key: string, archived: boolean): Promise<SessionTitle>;
   /** Removes the session from every list of Workflow Kit for good (the chat stays in the app). */
   setForgotten(projectId: string, key: string): Promise<SessionTitle>;
@@ -275,6 +280,9 @@ export function createSessionTitles(options: SessionTitlesOptions): SessionTitle
     },
     async setArchived(projectId, key, archived) {
       await save(projectId, key, { archivedAt: archived ? (options.now?.() ?? new Date()).toISOString() : null });
+      await options.archived?.(projectId, key, archived).catch((error: unknown) => {
+        options.log?.(`titles: ${key} ${archived ? 'archive' : 'restore'} in the provider failed: ${error instanceof Error ? error.message : String(error)}`);
+      });
       return resolve(projectId, key);
     },
     async setForgotten(projectId, key) {

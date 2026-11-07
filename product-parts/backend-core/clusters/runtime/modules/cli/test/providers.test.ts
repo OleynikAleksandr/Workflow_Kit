@@ -163,3 +163,40 @@ test('injected providers replace the defaults; running sessions block removing a
     return Array.isArray(details?.blockers) && details.blockers[0] === 'Mock: работает сессия «Живая»';
   });
 });
+
+test('an archive stops the sessions before a removal; a restore brings them back; a session archive goes to its provider', async () => {
+  const calls: string[] = [];
+  let state: 'running' | 'stopped' = 'running';
+  const custom = await createApp({
+    env: { WFK_DATA_DIR: path.join(tmp, 'archive'), WFK_PORT: '0' },
+    homedir: tmp,
+    getInterfaces: () => ({}),
+    providers: [
+      () => ({
+        ...createStubProvider({ id: 'claude', title: 'Claude', task: 'T000' }),
+        listSessions: async () => [{ provider: 'claude', localId: 'm1', title: 'Живая', createdAt: '', origin: 'panel' as const, state, links: {} }],
+        archiveSessions: async (_project, sid) => {
+          calls.push(`archive:${sid ?? '*'}`);
+          state = 'stopped';
+          return ['m1'];
+        },
+        restoreSessions: async (_project, sid) => {
+          calls.push(`restore:${sid ?? '*'}`);
+          state = 'running';
+          return ['m1'];
+        },
+      }),
+    ],
+  });
+  const project = await custom.projects.create('Archived');
+  await custom.projects.archive(project.id);
+  assert.deepEqual(calls, ['archive:*'], 'the archive waits for the stop');
+  await custom.projects.restore(project.id);
+  for (let i = 0; i < 50 && calls.length < 2; i += 1) await new Promise((resolve) => setTimeout(resolve, 10));
+  assert.deepEqual(calls, ['archive:*', 'restore:*']);
+  await custom.titles.setArchived(project.id, 'claude:m1', true);
+  assert.deepEqual(calls.slice(2), ['archive:m1']);
+  await custom.projects.archive(project.id);
+  await custom.projects.remove(project.id);
+});
+

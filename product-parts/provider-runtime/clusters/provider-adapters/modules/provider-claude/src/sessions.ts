@@ -195,7 +195,7 @@ export async function createSession(rt: ClaudeRuntime, project: Project, title: 
 }
 
 /** Finds a session by the id the panel shows (local id or session_<X>). */
-async function findSession(rt: ClaudeRuntime, project: Project, sid: string): Promise<{ record?: SessionRecord; hook?: ResolvedHook }> {
+export async function findSession(rt: ClaudeRuntime, project: Project, sid: string): Promise<{ record?: SessionRecord; hook?: ResolvedHook }> {
   const [hooks, records] = await Promise.all([resolveHooks(rt, project), rt.store.read()]);
   const own = records.sessions.filter((r) => r.projectPath === project.path);
   let record = own.find((r) => r.localId === sid || r.remoteId === sid);
@@ -223,6 +223,9 @@ export async function resumeSession(rt: ClaudeRuntime, project: Project, sid: st
 
 async function resumeFound(rt: ClaudeRuntime, project: Project, sid: string, record: SessionRecord | undefined, hook: ResolvedHook | undefined): Promise<SessionInfo> {
   if (!record && !hook) throw new ProviderError('not-found', `Сессия ${sid} не найдена`, { status: 404 });
+  if (record?.archived) {
+    throw new ProviderError('archived', 'Сессия в архиве', { status: 409, hint: 'Верните её (или её проект) из архива: она поднимется сама.' });
+  }
   if (record && (await rt.isAlive(record.processId))) return recordInfo(record, true, hook?.hook);
   const localId = record?.localId ?? hook?.hook.sessionId ?? null;
   if (!localId) {

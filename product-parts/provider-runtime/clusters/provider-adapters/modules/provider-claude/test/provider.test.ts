@@ -230,6 +230,38 @@ test('an interrupted session comes back at resumeInterrupted and on wake; one st
   assert.equal(await provider.wakeSession!(project, sid), false);
 });
 
+test('archive stops sessions and keeps them down; a restore brings them back at once', { skip }, async () => {
+  const one = await provider.createSession(project, { title: 'ArchivedOne' });
+  const two = await provider.createSession(project, { title: 'ArchivedTwo' });
+  const local = async (remoteId: string): Promise<string> => (await provider.listSessions(project)).find((s) => s.remoteId === remoteId)!.localId;
+  const state = async (sid: string): Promise<string | undefined> => (await provider.listSessions(project)).find((s) => s.localId === sid)?.state;
+  const [a, b] = [await local(one.remoteId!), await local(two.remoteId!)];
+  // One session alone, then the whole project.
+  assert.deepEqual(await provider.archiveSessions!(project, a), [a]);
+  assert.equal(await state(a), 'stopped');
+  await assert.rejects(provider.resumeSession!(project, a), (error: ProviderError) => error.code === 'archived' && error.status === 409);
+  assert.equal(await provider.wakeSession!(project, a), false);
+  const stopped = await provider.archiveSessions!(project, null);
+  assert.ok(stopped.includes(b) && !stopped.includes(a), 'the project archive stops the running ones');
+  assert.equal(await state(b), 'stopped');
+  assert.deepEqual(await provider.removeBlockers!(project), []);
+  assert.deepEqual(await provider.resumeInterrupted!(project), [], 'archived sessions are not interrupted ones');
+  // Restoring a session while its project is archived waits for the project.
+  const archivedProject = { ...project, archivedAt: '2026-11-07T00:00:00.000Z' };
+  assert.deepEqual(await provider.restoreSessions!(archivedProject, a), []);
+  assert.equal(await state(a), 'stopped');
+  const back = await provider.restoreSessions!(project, null);
+  assert.ok(back.includes(a) && back.includes(b));
+  assert.equal(await state(a), 'running');
+  assert.equal(await state(b), 'running');
+  // A session restored alone comes back at once.
+  await provider.archiveSessions!(project, b);
+  assert.deepEqual(await provider.restoreSessions!(project, b), [b]);
+  assert.equal(await state(b), 'running');
+  await provider.stopSession!(project, a);
+  await provider.stopSession!(project, b);
+});
+
 test('folder environment: start and stop as project actions, state shown, removal blocked while it runs', { skip }, async () => {
   const startAction = (await provider.actions(project)).find((a) => a.id === ENVIRONMENT_START)!;
   assert.equal(startAction.enabled, true);

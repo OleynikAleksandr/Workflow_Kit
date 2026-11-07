@@ -51,6 +51,12 @@ export type RemoveGuard = (project: Project) => string[] | Promise<string[]>;
  */
 export type RemovedHook = (project: Project, remaining: readonly Project[]) => void | Promise<void>;
 
+/**
+ * Called after a project went into the archive (archived true) or came back from it; the service
+ * stops the project's sessions or brings them back.
+ */
+export type ArchivedHook = (project: Project, archived: boolean) => void | Promise<void>;
+
 /** Options of the registry; file system, clock and ids are injectable for tests. */
 export interface ProjectRegistryOptions extends HomeScope {
   /** projects.json path (see projectsFile). */
@@ -93,6 +99,8 @@ export interface ProjectRegistry {
   addRemoveGuard(guard: RemoveGuard): void;
   /** Runs after a project left the list; a failing hook does not undo the removal. */
   addRemovedHook(hook: RemovedHook): void;
+  /** Runs after an archive or a restore; a failing hook does not undo it. */
+  addArchivedHook(hook: ArchivedHook): void;
   section(): Promise<ProjectsSection>;
 }
 
@@ -135,6 +143,7 @@ export function createProjectRegistry(options: ProjectRegistryOptions): ProjectR
   let root = expandHome(options.projectsRoot, options.homedir);
   const guards: RemoveGuard[] = [];
   const removedHooks: RemovedHook[] = [];
+  const archivedHooks: ArchivedHook[] = [];
 
   async function removed(project: Project, remaining: Project[]): Promise<void> {
     for (const hook of removedHooks) {
@@ -285,6 +294,13 @@ export function createProjectRegistry(options: ProjectRegistryOptions): ProjectR
     next[index] = project;
     await save(next);
     await log(archived ? 'project.archived' : 'project.restored', project);
+    for (const hook of archivedHooks) {
+      try {
+        await hook(project, archived);
+      } catch {
+        // The archive state is saved; the hook reports its own failures.
+      }
+    }
     return project;
   }
 
@@ -332,6 +348,9 @@ export function createProjectRegistry(options: ProjectRegistryOptions): ProjectR
     },
     addRemovedHook(hook) {
       removedHooks.push(hook);
+    },
+    addArchivedHook(hook) {
+      archivedHooks.push(hook);
     },
     async section() {
       const base = { root, home: options.homedir };

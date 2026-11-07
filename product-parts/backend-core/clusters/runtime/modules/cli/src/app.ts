@@ -31,6 +31,7 @@ import type { ProviderContext, ProviderFactory, ProviderRegistry } from '#provid
 import { createProjectRegistry, isInside, projectsFile, registerProjectRoutes } from '#project-registry';
 import type { ProjectRegistry } from '#project-registry';
 import { getServiceStatus } from '#service-installer';
+import { wireProviderLifecycle } from './provider-lifecycle.ts';
 import { currentOsInput, detectOs, panelUrls, readPackageVersion } from './system-info.ts';
 import type { DetectOsInput, OsInfo } from './system-info.ts';
 
@@ -208,24 +209,7 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
     },
   });
   state.add('operations', () => operations.section());
-  projects.addRemoveGuard((project) => providers.removeBlockers(project));
-  // A removed project takes its records with it; leftovers of earlier versions or a failed hook are
-  // dropped at the start (archived projects are still in the list and keep theirs).
-  const forgetRemoved = async (remaining: readonly { id: string }[]): Promise<void> => {
-    const { dropped, errors } = await providers.forgetProjects(new Set(remaining.map((p) => p.id)));
-    if (dropped > 0) options.log?.(`providers: forgot ${dropped} record(s) of removed projects`);
-    for (const [id, message] of Object.entries(errors)) options.log?.(`providers: ${id} could not forget removed projects: ${message}`);
-  };
-  projects.addRemovedHook((_project, remaining) => forgetRemoved(remaining));
-  // At the start: drop leftovers of removed projects, then bring back the sessions a reboot or a
-  // crash interrupted (Claude: the same Remote Control channel), except in archived projects.
-  const resumeAtStart = async (list: Awaited<ReturnType<typeof projects.list>>): Promise<void> => {
-    await forgetRemoved(list).catch(() => undefined);
-    const { resumed, errors } = await providers.resumeInterrupted(list.filter((p) => !p.archivedAt));
-    if (resumed.length > 0) options.log?.(`providers: resumed interrupted sessions ${resumed.join(', ')}`);
-    for (const [where, message] of Object.entries(errors)) options.log?.(`providers: ${where} could not resume: ${message}`);
-  };
-  void projects.list().then(resumeAtStart).catch(() => undefined);
+  const lifecycle = wireProviderLifecycle({ projects, providers, log: options.log });
 
   const kitBundle = kitBundleProvider({ appDir: dirs.appDir });
   const kit = createKitRunner({
@@ -341,6 +325,7 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
       if (!project || !provider?.renameSession) return { synced: false, note: 'Имя хранится только в Workflow Kit' };
       return provider.renameSession(project, key.slice(key.indexOf(':') + 1), name);
     },
+    archived: (id, key, archived) => lifecycle.sessionArchived(id, key, archived),
     log: options.log,
   });
   registerTitleRoutes({ router, state, titles });

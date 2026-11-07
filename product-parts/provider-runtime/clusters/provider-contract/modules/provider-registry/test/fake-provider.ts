@@ -117,6 +117,15 @@ export function createFakeProvider(id = 'fake', options: { withOptional?: boolea
       if (id === 'broken') throw new Error('records are unreadable');
       return [`${project.id}-s1`];
     };
+    provider.archiveSessions = async (_project, sid) => {
+      provider.calls.push(`archive:${sid ?? '*'}`);
+      if (id === 'broken') throw new Error('records are unreadable');
+      return [sid ?? 's1'];
+    };
+    provider.restoreSessions = async (_project, sid) => {
+      provider.calls.push(`restore:${sid ?? '*'}`);
+      return [sid ?? 's1'];
+    };
   }
   return provider;
 }

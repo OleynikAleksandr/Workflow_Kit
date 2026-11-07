@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 148,
+  "revision": 150,
   "rounds": [
     {
       "digest": {
@@ -135,7 +135,7 @@
       },
       "id": "R6",
       "kind": "fixes",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Fixes"
     }
   ],
@@ -168,7 +168,7 @@
         "text": "Claude: имя передаёт хук UserPromptSubmit полем hookSpecificOutput.sessionTitle"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cfa00ffe-c414-4ae6-9953-e3d2906b3705",
@@ -951,7 +951,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: release 0.3.2",
-      "confirmation": null,
+      "confirmation": "Еще один баг… И последнее замечание… (исправить и собрать релиз)",
       "context": [],
       "dependencies": [
         "T014",
@@ -969,7 +969,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R6",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Релиз 0.3.2",
       "why": "Релиз 0.3.2"
     }
@@ -981,11 +981,11 @@
 ## State
 
 - Scope: m3-fixes (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 23/24
-- Revision: 148
+- Progress: 24/24
+- Revision: 150
 
 ## Objective
 
@@ -1090,7 +1090,7 @@ Digest: Главный экран без карточки «Начните с п
 
 Digest: Состояние демона Codex согласовано: статус связи ждётся до 3 с и не затирается неизвестным; «подключается» — ждать без действия; «Подключить к ChatGPT» только при выключенной связи. Мастер перечитывает предпросмотр, пока провайдер не готов, и не показывает ошибкой отказ ненужного действия.
 
-### R6 — Fixes (fixes, OPEN)
+### R6 — Fixes (fixes, CLOSED)
 
 - [DONE] T014 — Перезапуск демона с устаревшим входом (work)
   - Commit: fix: detect a Codex daemon holding a stale login and restart it
@@ -1109,7 +1109,7 @@ Digest: Состояние демона Codex согласовано: стату
   - Commit: docs: reconcile documentation for R6
   - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/backend-core/clusters/projects/modules/kit-structure/module.md, product-parts/backend-core/clusters/projects/modules/project-setup/module.md, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md
   - Depends on: T014, T015, T017, T018
-- [TODO] T016 — Релиз 0.3.2 (delivery)
+- [DONE] T016 — Релиз 0.3.2 (delivery)
   - Commit: chore: release 0.3.2
   - Files: package.json, package-lock.json, docs/evidence/M3-acceptance.md
   - Depends on: T014, T015, DOCS-R6

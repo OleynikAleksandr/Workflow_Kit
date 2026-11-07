@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 131,
+  "revision": 133,
   "rounds": [
     {
       "digest": {
@@ -95,7 +95,20 @@
       "title": "Fixes"
     },
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "provider-codex: CONNECTING_REASON, STATUS_WAIT_MS; действие «Подключить к ChatGPT» у работающего демона с выключенной связью",
+          "project-wizard: PREVIEW_RECHECK_MS, refreshPreview, action-disabled без ошибки"
+        ],
+        "decisions": [
+          "Неизвестный статус связи демона не означает «не подключён»: остаётся последний известный у того же процесса",
+          "Действие демона предлагается, только когда пользователю есть что сделать"
+        ],
+        "references": [
+          "docs/planning/M3-fixes.md#9. Раунд 5: состояние демона Codex в мастере"
+        ],
+        "result": "Состояние демона Codex согласовано: статус связи ждётся до 3 с и не затирается неизвестным; «подключается» — ждать без действия; «Подключить к ChatGPT» только при выключенной связи. Мастер перечитывает предпросмотр, пока провайдер не готов, и не показывает ошибкой отказ ненужного действия."
+      },
       "id": "R5",
       "kind": "fixes",
       "status": "OPEN",
@@ -680,7 +693,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R5",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -724,8 +737,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 16/18
-- Revision: 131
+- Progress: 17/18
+- Revision: 133
 
 ## Objective
 
@@ -819,7 +832,7 @@ Digest: Главный экран без карточки «Начните с п
 - [DONE] T012 — Мастер перечитывает готовность провайдера (work)
   - Commit: fix: keep provider readiness fresh in the project wizard
   - Files: product-parts/control-panel/clusters/web-panel/modules/project-wizard/src/wizard-model.js, product-parts/control-panel/clusters/web-panel/modules/project-wizard/src/project-wizard.css, product-parts/control-panel/clusters/web-panel/modules/project-wizard/src/project-wizard.js, product-parts/control-panel/clusters/web-panel/modules/project-wizard/src/index.ts, product-parts/control-panel/clusters/web-panel/modules/project-wizard/module.md, product-parts/control-panel/clusters/web-panel/modules/project-wizard/test/wizard-model.test.ts
-- [TODO] DOCS-R5 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R5 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R5
   - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/control-panel/clusters/web-panel/modules/project-wizard/module.md
   - Depends on: T011, T012
@@ -827,5 +840,7 @@ Digest: Главный экран без карточки «Начните с п
   - Commit: chore: release 0.3.1
   - Files: package.json, package-lock.json, docs/evidence/M3-acceptance.md
   - Depends on: T011, T012, DOCS-R5
+
+Digest: Состояние демона Codex согласовано: статус связи ждётся до 3 с и не затирается неизвестным; «подключается» — ждать без действия; «Подключить к ChatGPT» только при выключенной связи. Мастер перечитывает предпросмотр, пока провайдер не готов, и не показывает ошибкой отказ ненужного действия.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

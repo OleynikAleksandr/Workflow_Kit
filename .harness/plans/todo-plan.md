@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 192,
+  "revision": 194,
   "rounds": [
     {
       "digest": {
@@ -30,7 +30,7 @@
       },
       "id": "R1",
       "kind": "implementation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Implementation"
     }
   ],
@@ -54,7 +54,7 @@
         "text": "Демон Codex запускается при каждом старте службы без согласий; при остановке службы не останавливается"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
@@ -147,7 +147,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: release 0.3.7",
-      "confirmation": null,
+      "confirmation": "Ну, тогда все в порядке. Раз при инсталляции Workflow Kit мы ставим эту службу в автоматический запуск при старте операционной системы, то я проблем не вижу.",
       "context": [],
       "dependencies": [
         "DOCS-R1"
@@ -163,7 +163,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Релиз 0.3.7",
       "why": "Релиз 0.3.7"
     }
@@ -175,11 +175,11 @@
 ## State
 
 - Scope: m3-autostart (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 2/3
-- Revision: 192
+- Progress: 3/3
+- Revision: 194
 
 ## Objective
 
@@ -192,7 +192,7 @@
 
 ## Rounds
 
-### R1 — Implementation (implementation, OPEN)
+### R1 — Implementation (implementation, CLOSED)
 
 - [DONE] T001 — Автозапуск демона Codex и окружений Claude (work)
   - Commit: feat: start the Codex daemon and interrupted Claude environments with the service
@@ -201,7 +201,7 @@
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M3-autostart.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md
   - Depends on: T001
-- [TODO] T002 — Релиз 0.3.7 (delivery)
+- [DONE] T002 — Релиз 0.3.7 (delivery)
   - Commit: chore: release 0.3.7
   - Files: package.json, package-lock.json, docs/evidence/M3-acceptance.md
   - Depends on: DOCS-R1

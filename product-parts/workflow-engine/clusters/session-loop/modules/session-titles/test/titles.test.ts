@@ -186,3 +186,14 @@ test('a Claude name is typed into the session only outside a turn; during a turn
   await titles.setManual('p', 'claude:busy', 'Ревизия');
   assert.deepEqual(renames.at(-1), ['claude:busy', 'Ревизия'], 'an idle session is renamed at once');
 });
+
+test('no topic during the service greeting turn; the next turn with a task sets it', async () => {
+  const titles = createSessionTitles({ ...options(), rename: undefined });
+  active = [{ key: 'codex:greet', projectId: 'p', state: 'working' }];
+  titles.setServiceTurn('codex:greet', true);
+  await assert.rejects(titles.setTopic(folder, 'Подготовка проекта', { client: 'codex', id: 'greet' }), (error: unknown) => error instanceof TitleError && error.code === 'service-turn');
+  titles.setServiceTurn('codex:greet', false);
+  const set = await titles.setTopic(folder, 'Склад: анализ остатков', { client: 'codex', id: 'greet' });
+  assert.equal(set.title.name, 'Склад: анализ остатков');
+  active = [];
+});

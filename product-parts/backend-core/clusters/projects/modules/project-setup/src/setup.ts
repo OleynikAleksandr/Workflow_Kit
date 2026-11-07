@@ -71,10 +71,13 @@ const STEP_TITLES: Readonly<Record<StepId, string>> = {
   session: 'Первая сессия',
 };
 
+/** Part of the first message that marks the service turn (no session topic in it). */
+export const SERVICE_MESSAGE_MARK = 'создан панелью Workflow Kit';
+
 /** The first message to the agent instead of the provider's service turn (spec 7.5). */
 export function firstMessage(projectName: string): string {
   return (
-    `Проект «${projectName}» создан панелью Workflow Kit. Прочитай AGENTS.md и выполни ` +
+    `Проект «${projectName}» ${SERVICE_MESSAGE_MARK}. Прочитай AGENTS.md и выполни ` +
     '`scripts/workflow recover --format text`, затем коротко поздоровайся и спроси, какую задачу будем решать.'
   );
 }

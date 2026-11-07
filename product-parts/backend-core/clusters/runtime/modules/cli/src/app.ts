@@ -11,7 +11,7 @@ import { createAutopilot, registerAutopilotRoutes } from '#autopilot';
 import type { Autopilot } from '#autopilot';
 import { kitBundleProvider } from '#kit-bundle';
 import { createReviewToggles, registerReviewRoutes } from '#plan-review';
-import { createProjectSetup, registerSetupRoutes } from '#project-setup';
+import { createProjectSetup, registerSetupRoutes, SERVICE_MESSAGE_MARK } from '#project-setup';
 import type { ProjectSetup } from '#project-setup';
 import { createSessionTitles, registerTitleRoutes } from '#session-titles';
 import type { SessionTitles } from '#session-titles';
@@ -255,6 +255,8 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
     async prompt(input) {
       const reply = await channel.prompt(input);
       const key = `${input.client}:${input.sessionId}`;
+      // The panel's first message is a service greeting: no session topic is taken in that turn.
+      titles.setServiceTurn(key, input.prompt?.includes(SERVICE_MESSAGE_MARK) === true);
       autopilot.onPrompt(key, reply.answer !== null);
       titles.onTurn(key);
       // Claude takes the session name from the prompt hook answer (hookSpecificOutput.sessionTitle).

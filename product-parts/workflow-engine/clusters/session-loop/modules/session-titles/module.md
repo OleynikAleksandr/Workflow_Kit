@@ -31,12 +31,15 @@ ChatGPT) → «Новая сессия».
     из нескольких — та, что есть в `listed(projectId)`, списке провайдеров);
     отказы `TitleError`: `no-running-turn`, `ambiguous` (несколько ходов —
     подсказка переименовать в панели), `already-set` (тема задаётся один
-    раз), `project-not-found`, `bad-title` (длиннее 80 знаков или пусто);
+    раз), `service-turn`, `project-not-found`, `bad-title` (длиннее 80 знаков или пусто);
   - `name(projectId, key, providerTitle?) → SessionTitle` (`name`,
     `source`: `manual` | `agent` | `scope` | `provider` | `default`,
     `manual`, `topic`, `synced`, `note`, `archivedAt`, `forgottenAt`);
   - `onTurn(key)` — начало хода: повтор отложенного переименования;
   - `onStop(key)` — хук `Stop`: повтор переименования вне хода (Claude);
+  - `setServiceTurn(key, service)` — ход начат служебным приветствием панели
+    (`SERVICE_MESSAGE_MARK`) или нет; в служебном ходе `setTopic` отказывает
+    `service-turn` (тема — по задаче пользователя, не по приветствию);
   - `appTitle(key, current) → Promise<string | null>` — хук `prompt`
     сессии Claude: ручное имя или тема агента, если оно отличается от
     `current` (`session_title` хука); одно имя отправляется один раз за

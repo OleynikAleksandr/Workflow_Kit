@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 139,
+  "revision": 141,
   "rounds": [
     {
       "digest": {
@@ -810,7 +810,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R6",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Тема сессии не задаётся в служебном ходе",
       "why": "Агент назвал сессию по служебному приветствию, а не по задаче"
     },
@@ -886,8 +886,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 19/22
-- Revision: 139
+- Progress: 20/22
+- Revision: 141
 
 ## Objective
 
@@ -998,7 +998,7 @@ Digest: Состояние демона Codex согласовано: стату
   - Commit: fix: detect a Codex daemon holding a stale login and restart it
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/runtime.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/codex-files.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/files-hooks.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/helpers.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fixtures/fake-codex.mjs, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md
   - Fixes: T011
-- [TODO] T015 — Тема сессии не задаётся в служебном ходе (work)
+- [DONE] T015 — Тема сессии не задаётся в служебном ходе (work)
   - Commit: fix: refuse the session topic during the Workflow Kit service turn
   - Files: product-parts/backend-core/clusters/projects/modules/kit-structure/src/templates.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/module.md, product-parts/backend-core/clusters/projects/modules/kit-structure/test, product-parts/backend-core/clusters/projects/modules/project-setup/src/setup.ts, product-parts/backend-core/clusters/projects/modules/project-setup/src/index.ts, product-parts/backend-core/clusters/projects/modules/project-setup/module.md, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/titles.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/test/titles.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/hook-channel.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md
 - [TODO] DOCS-R6 — Reconcile project documentation and write the round digest (docs)

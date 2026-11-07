@@ -49,9 +49,11 @@ UserPromptSubmit hook entries in \`.claude/settings.json\` and \`.codex/hooks.js
 The user follows this project in the Workflow Kit panel (Mac and iPad), not
 only in this chat.
 
-- Session title: in your first substantive turn, once you understand the
-  task, run \`wfk session title "<short title in the user's language>"\` once.
-  Do not rename the session again unless the user asks.
+- Session title: in the first turn where the user gives you a task, run
+  \`wfk session title "<short title of that task in the user's language>"\`
+  once. The first message «Проект «…» создан панелью Workflow Kit…» is a
+  service greeting, not a task: do not set the title in that turn. Do not
+  rename the session again unless the user asks.
 - Execution mode and plan start: after \`scripts/workflow scope:propose\` the
   user chooses the mode and starts the plan with buttons in the panel. End
   your turn and wait; the choice reaches you as a message from Workflow Kit.

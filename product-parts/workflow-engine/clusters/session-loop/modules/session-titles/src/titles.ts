@@ -31,7 +31,7 @@ export interface SessionTitle {
 
 /** A refused title change. */
 export class TitleError extends Error {
-  readonly code: 'bad-title' | 'bad-session' | 'project-not-found' | 'no-running-turn' | 'ambiguous' | 'already-set';
+  readonly code: 'bad-title' | 'bad-session' | 'project-not-found' | 'no-running-turn' | 'ambiguous' | 'already-set' | 'service-turn';
   readonly status: number;
   constructor(code: TitleError['code'], message: string, status: number) {
     super(message);
@@ -88,6 +88,11 @@ export interface SessionTitles {
   /** The Stop hook of the session arrived (no turn, no dialog): retries a waiting rename. */
   onStop(key: string): void;
   /**
+   * A turn started with the panel's service greeting (`service`: true) or with anything else:
+   * no topic is taken during a service turn, it is not the user's task yet.
+   */
+  setServiceTurn(key: string, service: boolean): void;
+  /**
    * Prompt hook of a Claude session: the Workflow Kit name to give the app (once per name and
    * service run) when it differs from `current`, the app's title; null otherwise. A matching
    * title marks the name synced.
@@ -125,6 +130,8 @@ export function createSessionTitles(options: SessionTitlesOptions): SessionTitle
   const pending = new Map<string, { projectId: string; name: string }>();
   // Claude session key -> the name already sent through the prompt hook in this service run.
   const sentToApp = new Map<string, string>();
+  // Sessions whose current turn is the panel's service greeting.
+  const serviceTurns = new Set<string>();
 
   const projectMap = (projectId: string): Map<string, Stored> => {
     let map = stored.get(projectId);
@@ -281,6 +288,9 @@ export function createSessionTitles(options: SessionTitlesOptions): SessionTitle
       if (!project) throw new TitleError('project-not-found', 'Папка не относится к проекту Workflow Kit', 404);
       const key = session ? `${session.client}:${session.id}` : await runningKey(project.id);
       if (!titleFileName(key)) throw new TitleError('bad-session', 'Неверный ключ сессии', 400);
+      if (serviceTurns.has(key)) {
+        throw new TitleError('service-turn', 'Это служебное сообщение Workflow Kit, а не задача: задайте тему в ходе, где пользователь даст задачу', 409);
+      }
       if (stored.get(project.id)?.get(key)?.topic) throw new TitleError('already-set', 'Тема этой сессии уже задана', 409);
       await save(project.id, key, { topic: title, synced: null, note: null });
       await sync(project.id, key);
@@ -290,6 +300,10 @@ export function createSessionTitles(options: SessionTitlesOptions): SessionTitle
     onTurn(key) {
       const waiting = pending.get(key);
       if (waiting) void sync(waiting.projectId, key);
+    },
+    setServiceTurn(key, service) {
+      if (service) serviceTurns.add(key);
+      else serviceTurns.delete(key);
     },
     onStop(key) {
       const waiting = pending.get(key);

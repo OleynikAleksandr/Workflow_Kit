@@ -2,5 +2,5 @@
 export type { KitAction, PreviewDeps, PreviewInput, ProviderButton, SetupAction, SetupPreview, SetupProvider } from './preview.ts';
 export { IDENTITY_COMMANDS, KIT_INSTALL_FILES, PREVIEW_TTL_MS, SETUP_PROVIDERS, SetupError, buildPreview, draftProject, realFolder, resolveTarget } from './preview.ts';
 export type { ApplyInput, ProjectSetup, SetupDeps, SetupRun, SetupStep, StepId, StepStatus } from './setup.ts';
-export { createProjectSetup, firstMessage } from './setup.ts';
+export { SERVICE_MESSAGE_MARK, createProjectSetup, firstMessage } from './setup.ts';
 export { registerSetupRoutes } from './routes.ts';

@@ -51,6 +51,8 @@ ChatGPT / Claude», все шаги без вопросов — папка, git,
     `path`, `provider`, `projectId`, `status` (`running` | `succeeded` |
     `failed` | `cancelled`), `steps`, `session`, `links` (панель открывает
     ссылку своего устройства), `error`.
+- `SERVICE_MESSAGE_MARK` («создан панелью Workflow Kit») — метка служебного
+  первого хода (тема сессии в нём не задаётся).
 - `firstMessage(name)` — «Проект «…» создан панелью Workflow Kit. Прочитай
   AGENTS.md и выполни `scripts/workflow recover --format text`, затем
   коротко поздоровайся и спроси, какую задачу будем решать.»

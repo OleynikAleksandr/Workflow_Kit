@@ -162,3 +162,17 @@ test('the Claude prompt hook gives the Kit session name to the app, with queued 
   // Let the background rename retries of the turn finish before the folder is removed.
   await new Promise((resolve) => setTimeout(resolve, 200));
 });
+
+test('wfk session title is refused during the panel greeting turn', async () => {
+  await hook('prompt', { session_id: 'greeting', cwd: folder, hook_event_name: 'UserPromptSubmit', prompt: 'Проект «demo» создан панелью Workflow Kit. Прочитай AGENTS.md' });
+  let err = '';
+  const code = await main(['session', 'title', 'Подготовка'], {
+    stdout: () => undefined,
+    stderr: (t) => (err += t),
+    app: { env: { ...env, CODEX_THREAD_ID: 'greeting' }, homedir: tmp },
+    cwd: folder,
+  });
+  assert.equal(code, 1);
+  assert.match(err, /служебное сообщение/);
+  await hook('stop', { ...CODEX_STOP, session_id: 'greeting', cwd: folder });
+});

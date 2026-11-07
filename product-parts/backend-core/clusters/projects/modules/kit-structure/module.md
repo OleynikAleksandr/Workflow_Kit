@@ -14,7 +14,7 @@ SessionStart, Stop и UserPromptSubmit, приём хука SessionStart.
 
 | id | Файл | Как хранится |
 | --- | --- | --- |
-| `agents-section` | `AGENTS.md` | текст между `<!-- wfk:begin -->` и `<!-- wfk:end -->`: работа с панелью (тема сессии через `wfk session title`, выбор пути и запуск плана кнопками, сообщения `Workflow Kit:`) и соглашение product-parts |
+| `agents-section` | `AGENTS.md` | текст между `<!-- wfk:begin -->` и `<!-- wfk:end -->`: работа с панелью (тема сессии через `wfk session title` в первом ходе с задачей, не в служебном приветствии; выбор пути и запуск плана кнопками, сообщения `Workflow Kit:`) и соглашение product-parts |
 | `claude-md` | `CLAUDE.md` | `@AGENTS.md`, создаётся только если файла нет; не хешируется (дальше файл пользователя) |
 | `claude-hook` | `.claude/settings.json` | по группе в `hooks.SessionStart`, `hooks.Stop` (`timeout` 600 с) и `hooks.UserPromptSubmit` (`timeout` 30 с) |
 | `codex-hook` | `.codex/hooks.json` | то же, тайм-аут в поле `timeoutSec`; новая группа — только в конец списка события (одобрение Codex позиционное) |

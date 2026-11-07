@@ -1,6 +1,6 @@
 {
   "name": "workflow-kit",
-  "version": "0.3.7",
+  "version": "0.3.8",
   "private": true,
   "description": "Workflow Kit: an orchestrator over the native Claude and ChatGPT/Codex apps",
   "type": "module",

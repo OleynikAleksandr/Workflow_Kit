@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 199,
+  "revision": 201,
   "rounds": [
     {
       "digest": {
@@ -48,7 +48,7 @@
       },
       "id": "R2",
       "kind": "fixes",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Удалённое управление у приложения ChatGPT"
     }
   ],
@@ -72,7 +72,7 @@
         "text": "Демон Codex запускается при каждом старте службы без согласий; при остановке службы не останавливается"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
@@ -255,7 +255,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: release 0.3.8",
-      "confirmation": null,
+      "confirmation": "Ну, тогда все в порядке. Раз при инсталляции Workflow Kit мы ставим эту службу в автоматический запуск при старте операционной системы, то я проблем не вижу.",
       "context": [],
       "dependencies": [
         "DOCS-R2"
@@ -271,7 +271,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Релиз 0.3.8",
       "why": "Релиз 0.3.8"
     }
@@ -283,11 +283,11 @@
 ## State
 
 - Scope: m3-autostart (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 5/6
-- Revision: 199
+- Progress: 6/6
+- Revision: 201
 
 ## Objective
 
@@ -316,7 +316,7 @@
 
 Digest: При старте службы демон Codex запускается сам (3 попытки по 30 с), прерванные окружения Claude поднимаются; остановка службы их не трогает.
 
-### R2 — Удалённое управление у приложения ChatGPT (fixes, OPEN)
+### R2 — Удалённое управление у приложения ChatGPT (fixes, CLOSED)
 
 - [DONE] T003 — Соединение, занятое приложением ChatGPT, — рабочее состояние (work)
   - Commit: fix: treat the remote control held by the ChatGPT app as a working state
@@ -325,7 +325,7 @@ Digest: При старте службы демон Codex запускается
   - Commit: docs: reconcile documentation for R2
   - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md
   - Depends on: T003
-- [TODO] T004 — Релиз 0.3.8 (delivery)
+- [DONE] T004 — Релиз 0.3.8 (delivery)
   - Commit: chore: release 0.3.8
   - Files: package.json, package-lock.json, docs/evidence/M3-acceptance.md
   - Depends on: DOCS-R2

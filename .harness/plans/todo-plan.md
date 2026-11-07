@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 211,
+  "revision": 213,
   "rounds": [
     {
       "digest": {
@@ -70,7 +70,18 @@
       "title": "Создание сессии при соединении у приложения ChatGPT"
     },
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "panel-shell: chatStatus(session, link); sessionStatus для всех провайдеров"
+        ],
+        "decisions": [
+          "Чат открывается только щелчком по карточке, не при открытии экрана по адресу"
+        ],
+        "references": [
+          "docs/planning/M3-autostart.md#6"
+        ],
+        "result": "Щелчок по карточке сессии ChatGPT открывает её чат; «Открыть чат» убран с экрана и из меню, в заголовке — строка состояния."
+      },
       "id": "R4",
       "kind": "fixes",
       "status": "OPEN",
@@ -443,7 +454,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R4",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -485,8 +496,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 10/12
-- Revision: 211
+- Progress: 11/12
+- Revision: 213
 
 ## Objective
 
@@ -553,7 +564,7 @@ Digest: Сессия ChatGPT создаётся и тогда, когда уда
 - [DONE] T007 — Карточка сессии ChatGPT открывает чат (work)
   - Commit: feat: a click on a ChatGPT session card opens its chat
   - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/sidebar.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/actions.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/screens.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/view-model.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md
-- [TODO] DOCS-R4 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R4 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R4
   - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md
   - Depends on: T007
@@ -561,5 +572,7 @@ Digest: Сессия ChatGPT создаётся и тогда, когда уда
   - Commit: chore: release 0.3.10
   - Files: package.json, package-lock.json, docs/evidence/M3-acceptance.md
   - Depends on: DOCS-R4
+
+Digest: Щелчок по карточке сессии ChatGPT открывает её чат; «Открыть чат» убран с экрана и из меню, в заголовке — строка состояния.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

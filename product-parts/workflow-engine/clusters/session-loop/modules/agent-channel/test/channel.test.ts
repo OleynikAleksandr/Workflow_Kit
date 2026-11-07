@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { createAgentChannel, parseHookInput, sessionKey } from '../src/index.ts';
+import { MESSAGE_MAX_CHARS, createAgentChannel, parseHookInput, queueSessionMessage, sessionKey } from '../src/index.ts';
 import type { HookInput, StopDecision } from '../src/index.ts';
 
 // Inputs as Claude 2.1.318 and codex-cli 0.166.0 send them (spec section 3).
@@ -147,4 +147,20 @@ test('close releases every held Stop', async () => {
   await new Promise((resolve) => setTimeout(resolve, 10));
   ch.close();
   assert.equal((await pending).answer, null);
+});
+
+test('a panel message is queued only for a known session of the project, non-empty and not too long', async () => {
+  const c = channel();
+  const key = sessionKey('claude', CLAUDE_STOP.session_id);
+  assert.throws(() => queueSessionMessage(c, 'p1', key, 'hello'), { code: 'unknown-session' });
+  (await c.stop(input('claude', CLAUDE_STOP))).ack();
+  assert.throws(() => queueSessionMessage(c, 'p2', key, 'hello'), { code: 'unknown-session' });
+  assert.throws(() => queueSessionMessage(c, 'p1', key, '   '), { code: 'empty-message' });
+  assert.throws(() => queueSessionMessage(c, 'p1', key, 7), { code: 'empty-message' });
+  assert.throws(() => queueSessionMessage(c, 'p1', key, 'x'.repeat(MESSAGE_MAX_CHARS + 1)), { code: 'message-too-long' });
+  const message = queueSessionMessage(c, 'p1', key, '  do the task  ');
+  assert.equal(message.text, 'do the task');
+  assert.equal(message.source, 'panel');
+  assert.deepEqual(c.queued(key).map((m) => m.text), ['do the task']);
+  c.close();
 });

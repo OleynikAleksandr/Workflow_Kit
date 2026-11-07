@@ -50,6 +50,13 @@
   `bad-hook-input`); доставка подтверждается событием `finish` ответа,
   обрыв соединения — `nack` и конец удержания; раздел `channel`
   (`{ sessions: SessionActivity[] }`) в `/api/state`.
+  Опция `messages` — канал для сообщений панели (служба передаёт канал,
+  который ещё и будит ожидающую сессию Claude).
+- `POST /api/projects/:id/sessions/:sid/message { text }` → `{ queued }`:
+  сообщение панели в очередь сессии (`queueSessionMessage`). Текст
+  обрезается по краям, пустой — 400 `empty-message`, длиннее
+  `MESSAGE_MAX_CHARS` (4000) — 400 `message-too-long`; сессия, неизвестная
+  каналу или чужого проекта, — 404 `unknown-session`.
 
 ## Инварианты
 

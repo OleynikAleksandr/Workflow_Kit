@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 162,
+  "revision": 164,
   "rounds": [
     {
       "digest": {
@@ -1193,14 +1193,16 @@
         "product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts",
         "product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js",
         "product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.css",
-        "product-parts/control-panel/clusters/web-panel/modules/session-view/module.md"
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/index.ts"
       ],
       "fixes": null,
       "id": "T023",
       "iteration": 1,
       "kind": "work",
       "roundId": "R8",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Сообщение агенту из экрана сессии",
       "why": "Сообщение агенту из экрана сессии"
     },
@@ -1272,8 +1274,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 29/32
-- Revision: 162
+- Progress: 30/32
+- Revision: 164
 
 ## Objective
 
@@ -1428,9 +1430,9 @@ Digest: Оркестрация встроенными подагентами д�
 - [DONE] T022 — Мастер нового проекта начинает с чистого листа (work)
   - Commit: fix: start the project wizard from a clean state
   - Files: product-parts/control-panel/clusters/web-panel/modules/project-wizard/src/project-wizard.js, product-parts/control-panel/clusters/web-panel/modules/project-wizard/module.md
-- [TODO] T023 — Сообщение агенту из экрана сессии (work)
+- [DONE] T023 — Сообщение агенту из экрана сессии (work)
   - Commit: feat: send a message to the session agent from the panel
-  - Files: product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/channel.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.css, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/channel.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.css, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/index.ts
 - [TODO] DOCS-R8 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R8
   - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/control-panel/clusters/web-panel/modules/project-wizard/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md

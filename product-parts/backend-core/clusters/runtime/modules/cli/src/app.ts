@@ -286,7 +286,7 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
       return { ...reply, answer: { ...answer, hookSpecificOutput: { ...specific, hookEventName: 'UserPromptSubmit', sessionTitle: appTitle } } };
     },
   };
-  registerChannelRoutes({ router, state, channel: observedChannel });
+  registerChannelRoutes({ router, state, channel: observedChannel, messages: wakingChannel });
   registerAutopilotRoutes({ router, state, autopilot, mutex });
 
   const review = createReviewToggles({

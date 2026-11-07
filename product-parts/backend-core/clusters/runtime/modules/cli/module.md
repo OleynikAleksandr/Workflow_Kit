@@ -128,6 +128,8 @@ stripping).
   `wakeSession` провайдера; решатель `Stop` канала
   (`channel.setDecider`); маршруты хуков получают канал-обёртку, чей
   `prompt` сообщает автопилоту, кто начал ход (`onPrompt`);
+  сообщения панели (`POST …/sessions/:sid/message`) идут через ту же
+  будящую обёртку (опция `messages` маршрутов канала, раунд R8);
   `registerAutopilotRoutes` — `POST /api/projects/:id/workflow/…` и раздел
   `autopilot`.
 - `kit-bundle` и `kit-runner` (веха 2, T001): `kitBundleProvider` над

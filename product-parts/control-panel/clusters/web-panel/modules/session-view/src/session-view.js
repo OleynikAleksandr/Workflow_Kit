@@ -1,5 +1,6 @@
 // @ts-check
-// The session screen body (activity line, path choice, plan card, delivery confirmation) and
+// The session screen body (activity line, path choice, plan card, delivery confirmation, a message
+// to the agent) and
 // «Ревью плана» in the sidebar. Panel extension: install(shell) fills the "sessionBody" and
 // "sessionReview" slots of panel-shell. Typed text lives in inputs kept per session.
 import { activityView, choiceView, planView, reviewView, timer } from './session-model.js';
@@ -20,7 +21,7 @@ import { activityView, choiceView, planView, reviewView, timer } from './session
  */
 export function install(shell) {
   const { h } = shell.dom;
-  /** @type {Map<string, { fixes: HTMLTextAreaElement, delivery: HTMLTextAreaElement, fixesOpen: boolean }>} */
+  /** @type {Map<string, { fixes: HTMLTextAreaElement, delivery: HTMLTextAreaElement, message: HTMLTextAreaElement, fixesOpen: boolean }>} */
   const inputs = new Map();
   let busy = false;
 
@@ -29,7 +30,7 @@ export function install(shell) {
     let entry = inputs.get(key);
     if (!entry) {
       const area = (/** @type {string} */ label) => /** @type {HTMLTextAreaElement} */ (h('textarea', { rows: '3', 'aria-label': label, autocapitalize: 'sentences' }));
-      entry = { fixes: area('Что исправить'), delivery: area('Подтверждение выпуска'), fixesOpen: false };
+      entry = { fixes: area('Что исправить'), delivery: area('Подтверждение выпуска'), message: area('Сообщение агенту'), fixesOpen: false };
       inputs.set(key, entry);
     }
     return entry;
@@ -186,6 +187,38 @@ export function install(shell) {
     ]);
   }
 
+  /**
+   * «Сообщение агенту»: the text goes to the session queue; a waiting Claude session of the panel
+   * is woken, ChatGPT gets it with the next message in its chat.
+   * @param {SessionContext} session
+   * @param {SlotContext} ctx
+   */
+  function messageCard(session, ctx) {
+    const fields = inputsOf(session.session.key);
+    const chatgpt = session.session.key.startsWith('codex:');
+    return h('div', { class: 'panel sv-message' }, [
+      h('h2', {}, ['Сообщение агенту']),
+      fields.message,
+      h('p', { class: 'sv-muted' }, [chatgpt
+        ? 'Агент ChatGPT получит его со следующим сообщением в чате; работающему агенту — по окончании хода.'
+        : 'Ожидающий агент получит его сразу, работающий — по окончании хода.']),
+      button('Отправить агенту', async () => {
+        const text = fields.message.value.trim();
+        if (!text || busy) return;
+        busy = true;
+        try {
+          await shell.api('POST', `/api/projects/${encodeURIComponent(session.project.id)}/sessions/${encodeURIComponent(session.session.key)}/message`, { text });
+          fields.message.value = '';
+        } catch (error) {
+          ctx.say('error', 'Не удалось отправить сообщение агенту', error);
+        } finally {
+          busy = false;
+          ctx.requestRefresh();
+        }
+      }, 'btn primary'),
+    ]);
+  }
+
   shell.registerSlot('sessionBody', {
     select(state, session) {
       const { id } = session.project;
@@ -197,9 +230,10 @@ export function install(shell) {
       const cards = [];
       if (data.plan?.delivery) cards.push(deliveryCard(session, ctx));
       if (data.choice) cards.push(choiceCard(data.choice, session, ctx));
-      if (data.plan) return h('div', { class: 'sv' }, [...cards, h('div', { class: 'cols' }, [planCard(data.plan, session, ctx), activity])]);
+      if (data.plan) return h('div', { class: 'sv' }, [...cards, h('div', { class: 'cols' }, [planCard(data.plan, session, ctx), h('div', {}, [activity, messageCard(session, ctx)])])]);
       return h('div', { class: 'sv' }, [h('div', { class: 'sv-activity' }, [activity]), ...cards,
         data.choice ? null : h('div', { class: 'panel' }, [h('h2', {}, ['План сессии']), h('p', {}, ['Появится, когда агент предложит план: сначала спецификация, затем выбор пути.'])]),
+        messageCard(session, ctx),
       ].filter((n) => n !== null));
     },
   });

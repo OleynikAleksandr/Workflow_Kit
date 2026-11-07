@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 159,
+  "revision": 160,
   "rounds": [
     {
       "digest": {
@@ -158,6 +158,13 @@
       "kind": "implementation",
       "status": "CLOSED",
       "title": "Orchestration with built-in subagents"
+    },
+    {
+      "digest": null,
+      "id": "R8",
+      "kind": "fixes",
+      "status": "OPEN",
+      "title": "Мастер с чистого листа и сообщение агенту из панели"
     }
   ],
   "schema": "harness-workflow-plan/1",
@@ -189,7 +196,7 @@
         "text": "Claude: имя передаёт хук UserPromptSubmit полем hookSpecificOutput.sessionTitle"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "IN_PROGRESS",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cfa00ffe-c414-4ae6-9953-e3d2906b3705",
@@ -1130,6 +1137,129 @@
       "status": "DONE",
       "title": "Релиз 0.3.3",
       "why": "Релиз 0.3.3"
+    },
+    {
+      "acceptance": [
+        "При повторном входе в мастер поле имени пустое",
+        "После создания второго проекта панель открывает экран его сессии"
+      ],
+      "checks": [],
+      "commitMessage": "fix: start the project wizard from a clean state",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M3-orchestration.md",
+          "required": true,
+          "heading": "4. Проверка на тестовых проектах (2026-11-07) и раунд R8"
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/control-panel/clusters/web-panel/modules/project-wizard/src/project-wizard.js",
+        "product-parts/control-panel/clusters/web-panel/modules/project-wizard/module.md"
+      ],
+      "fixes": null,
+      "id": "T022",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R8",
+      "status": "TODO",
+      "title": "Мастер нового проекта начинает с чистого листа",
+      "why": "Мастер нового проекта начинает с чистого листа"
+    },
+    {
+      "acceptance": [
+        "На экране сессии есть поле «Сообщение агенту» и кнопка «Отправить агенту»",
+        "POST /api/projects/:id/sessions/:sid/message кладёт текст в очередь сессии; ожидающая сессия Claude будится",
+        "Пустой текст, длинный текст и чужая или неизвестная сессия отклоняются"
+      ],
+      "checks": [],
+      "commitMessage": "feat: send a message to the session agent from the panel",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M3-orchestration.md",
+          "required": true,
+          "heading": "4. Проверка на тестовых проектах (2026-11-07) и раунд R8"
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/routes.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/channel.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.css",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/module.md"
+      ],
+      "fixes": null,
+      "id": "T023",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R8",
+      "status": "TODO",
+      "title": "Сообщение агенту из экрана сессии",
+      "why": "Сообщение агенту из экрана сессии"
+    },
+    {
+      "acceptance": [
+        "Project-wide documents describe the round result",
+        "The round digest records result, decisions, contracts and references"
+      ],
+      "checks": [],
+      "commitMessage": "docs: reconcile documentation for R8",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T022",
+        "T023"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/architecture/OVERVIEW.md",
+        "product-parts/control-panel/clusters/web-panel/modules/project-wizard/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/module.md"
+      ],
+      "fixes": null,
+      "id": "DOCS-R8",
+      "iteration": 1,
+      "kind": "docs",
+      "roundId": "R8",
+      "status": "TODO",
+      "title": "Reconcile project documentation and write the round digest",
+      "why": "Keep the project context current for the next agent and close the round."
+    },
+    {
+      "acceptance": [
+        "Версия 0.3.4",
+        "install ставит app/0.3.4, wfk doctor --installed — всё в порядке"
+      ],
+      "checks": [],
+      "commitMessage": "chore: release 0.3.4",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "DOCS-R8"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "package.json",
+        "package-lock.json",
+        "docs/evidence/M3-acceptance.md"
+      ],
+      "fixes": null,
+      "id": "T024",
+      "iteration": 1,
+      "kind": "delivery",
+      "roundId": "R8",
+      "status": "TODO",
+      "title": "Релиз 0.3.4",
+      "why": "Релиз 0.3.4"
     }
   ]
 }
@@ -1139,11 +1269,11 @@
 ## State
 
 - Scope: m3-fixes (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 28/28
-- Revision: 159
+- Progress: 28/32
+- Revision: 160
 
 ## Objective
 
@@ -1292,5 +1422,22 @@ Digest: Демон Codex с устаревшим входом распознаё
   - Depends on: T019, T020, DOCS-R7
 
 Digest: Оркестрация встроенными подагентами доступна сессиям Claude и ChatGPT: оркестратор раздаёт назначения Kit подагентам своего приложения (Claude — Agent с worktree, Codex — свой git worktree и spawn_agent) и интегрирует их коммиты.
+
+### R8 — Мастер с чистого листа и сообщение агенту из панели (fixes, OPEN)
+
+- [TODO] T022 — Мастер нового проекта начинает с чистого листа (work)
+  - Commit: fix: start the project wizard from a clean state
+  - Files: product-parts/control-panel/clusters/web-panel/modules/project-wizard/src/project-wizard.js, product-parts/control-panel/clusters/web-panel/modules/project-wizard/module.md
+- [TODO] T023 — Сообщение агенту из экрана сессии (work)
+  - Commit: feat: send a message to the session agent from the panel
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/channel.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.css, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md
+- [TODO] DOCS-R8 — Reconcile project documentation and write the round digest (docs)
+  - Commit: docs: reconcile documentation for R8
+  - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/control-panel/clusters/web-panel/modules/project-wizard/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md
+  - Depends on: T022, T023
+- [TODO] T024 — Релиз 0.3.4 (delivery)
+  - Commit: chore: release 0.3.4
+  - Files: package.json, package-lock.json, docs/evidence/M3-acceptance.md
+  - Depends on: DOCS-R8
 
 State changes only through `scripts/workflow` commands. History lives in Git.

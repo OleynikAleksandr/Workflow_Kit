@@ -27,8 +27,10 @@
     сессии выключен и она владелец (`execution.ownerSession`) — держать
     (`waiting-for-plan-start`); автопилот выключен — отпустить; иначе
     `decideAutopilot` по `autopilot:status`: продолжение — ответ
-    `Workflow Kit: autopilot. <текст Harness>`; `delivery-confirmation` —
-    держать; остальные причины — отпустить. Ход считается ходом
+    `Workflow Kit: autopilot. <текст Harness>`; `delivery-confirmation` и
+    `ready-for-acceptance` (результат ждёт «Принять план» или «Нужны
+    исправления»; после принятия — уже нет) — держать, чтобы сообщения панели
+    дошли сразу; остальные причины — отпустить. Ход считается ходом
     пользователя (`user-message`), если он начался с его сообщения в чате.
   - `onPrompt(key, delivered)` — начало хода: от пользователя или с
     сообщениями панели.

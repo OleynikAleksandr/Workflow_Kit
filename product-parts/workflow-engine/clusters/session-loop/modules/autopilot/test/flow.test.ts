@@ -143,6 +143,7 @@ test('sequential: proposal → choice → start → tasks → ready for acceptan
   await kit('commit', '--task', 'DOCS-R1', '--digest', path.join(tmp, 'dg.json'));
   assert.equal(await settle(channel.stop(stopInput())), null);
   assert.equal(autopilot.get(KEY)?.last?.reason, 'ready-for-acceptance');
+  assert.equal(autopilot.get(KEY)?.last?.action, 'hold', 'the Stop waits for «Принять» or «Нужны исправления»');
   assert.equal((await workflow.refresh('p'))?.plan?.phase, 'acceptance');
 
   await autopilot.accept('p', 'Проверил, принимаю');

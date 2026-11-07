@@ -20,7 +20,7 @@ import {
 } from './texts.ts';
 
 /** Stops that wait for a user decision in the panel: the Stop hook is held. */
-const HOLDING: ReadonlySet<string> = new Set(['waiting-for-mode-choice', 'waiting-for-plan-start', 'delivery-confirmation']);
+const HOLDING: ReadonlySet<string> = new Set(['waiting-for-mode-choice', 'waiting-for-plan-start', 'delivery-confirmation', 'ready-for-acceptance']);
 
 export type AutopilotReason = StopReason | 'waiting-for-plan-start';
 
@@ -214,7 +214,9 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
         return { kind: 'continue', text: `${PREFIX} autopilot. ${decision.text}` };
       }
       entry.origin = null;
-      if (HOLDING.has(decision.reason)) return hold(decision.reason, decision.detail);
+      // An accepted result waits only for «Закрыть»: nothing to deliver, the Stop is not held.
+      const accepted = decision.reason === 'ready-for-acceptance' && status.delivery === 'ACCEPTED';
+      if (HOLDING.has(decision.reason) && !accepted) return hold(decision.reason, decision.detail);
       note(entry, 'release', decision.reason, decision.detail);
       return { kind: 'release' };
     },

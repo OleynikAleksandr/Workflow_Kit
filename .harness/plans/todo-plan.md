@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 142,
+  "revision": 144,
   "rounds": [
     {
       "digest": {
@@ -846,7 +846,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R6",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Удержание Stop при ожидании приёмки",
       "why": "«Нужны исправления» оставалось в очереди: при приёмке Stop отпускался"
     },
@@ -967,8 +967,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 20/24
-- Revision: 142
+- Progress: 21/24
+- Revision: 144
 
 ## Objective
 
@@ -1082,7 +1082,7 @@ Digest: Состояние демона Codex согласовано: стату
 - [DONE] T015 — Тема сессии не задаётся в служебном ходе (work)
   - Commit: fix: refuse the session topic during the Workflow Kit service turn
   - Files: product-parts/backend-core/clusters/projects/modules/kit-structure/src/templates.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/module.md, product-parts/backend-core/clusters/projects/modules/kit-structure/test, product-parts/backend-core/clusters/projects/modules/project-setup/src/setup.ts, product-parts/backend-core/clusters/projects/modules/project-setup/src/index.ts, product-parts/backend-core/clusters/projects/modules/project-setup/module.md, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/titles.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/test/titles.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/hook-channel.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md
-- [TODO] T017 — Удержание Stop при ожидании приёмки (work)
+- [DONE] T017 — Удержание Stop при ожидании приёмки (work)
   - Commit: fix: hold the Stop while the result waits for acceptance
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/autopilot.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/flow.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/decide.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts
 - [TODO] T018 — Будить спящую сессию Claude сообщением панели (work)

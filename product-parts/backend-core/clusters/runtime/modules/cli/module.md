@@ -123,7 +123,9 @@ stripping).
   переименование — `renameSession` провайдера по префиксу ключа сессии),
   `load()` при `start()`, `onTurn`, `setServiceTurn` (приветствие панели — `SERVICE_MESSAGE_MARK` из `#project-setup`) и `appTitle` (Claude) из хука `prompt`, `onStop` из хука `stop`,
   `registerTitleRoutes` — маршруты имён и раздел `titles`.
-- `autopilot` (веха 2, T003): `createAutopilot` — решатель `Stop` канала
+- `autopilot` (веха 2, T003): `createAutopilot` получает канал-обёртку,
+  чей `enqueue` будит простаивающую (`waiting`) сессию Claude через
+  `wakeSession` провайдера; решатель `Stop` канала
   (`channel.setDecider`); маршруты хуков получают канал-обёртку, чей
   `prompt` сообщает автопилоту, кто начал ход (`onPrompt`);
   `registerAutopilotRoutes` — `POST /api/projects/:id/workflow/…` и раздел

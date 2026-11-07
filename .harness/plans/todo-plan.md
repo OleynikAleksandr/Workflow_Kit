@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 144,
+  "revision": 146,
   "rounds": [
     {
       "digest": {
@@ -885,7 +885,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R6",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Будить спящую сессию Claude сообщением панели",
       "why": "После удержания Stop агент спит и не видит очередь"
     },
@@ -967,8 +967,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 21/24
-- Revision: 144
+- Progress: 22/24
+- Revision: 146
 
 ## Objective
 
@@ -1085,7 +1085,7 @@ Digest: Состояние демона Codex согласовано: стату
 - [DONE] T017 — Удержание Stop при ожидании приёмки (work)
   - Commit: fix: hold the Stop while the result waits for acceptance
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/autopilot.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/flow.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/decide.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts
-- [TODO] T018 — Будить спящую сессию Claude сообщением панели (work)
+- [DONE] T018 — Будить спящую сессию Claude сообщением панели (work)
   - Commit: feat: wake an idle panel Claude session when the panel queues a message
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/session.exp, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/hook-channel.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md
 - [TODO] DOCS-R6 — Reconcile project documentation and write the round digest (docs)

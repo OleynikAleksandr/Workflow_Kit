@@ -297,3 +297,15 @@ export async function renameSession(rt: ClaudeRuntime, project: Project, sid: st
   });
   return { synced: true };
 }
+
+/**
+ * Wakes an idle session that runs under the panel's session.exp: the script types a short prompt,
+ * and the prompt hook hands the panel's queued messages to the agent. False when the panel does
+ * not run the session (nothing to type into). The caller wakes only sessions out of a turn.
+ */
+export async function wakeSession(rt: ClaudeRuntime, project: Project, sid: string): Promise<boolean> {
+  const { record } = await findSession(rt, project, sid);
+  if (!record || !(await rt.isAlive(record.processId))) return false;
+  await writeFile(`${record.debugFile}.message`, 'wake\n', 'utf8');
+  return true;
+}

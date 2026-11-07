@@ -184,7 +184,16 @@ test('renameSession types /rename into a panel session; a session the panel does
   assert.equal(input, '/rename Склад: ревизия\r');
   const records = JSON.parse(await readFile(providerSessionsFile(context.dirs, 'claude'), 'utf8'));
   assert.equal(records.sessions.find((r: { remoteId: string }) => r.remoteId === session.remoteId).title, 'Склад: ревизия');
+  const beforeWake = await readFile(`${h.fakeLog}.input`, 'utf8');
+  assert.equal(await provider.wakeSession!(project, session.remoteId!), true);
+  let typed = '';
+  for (let i = 0; i < 60 && !typed.includes('\r'); i += 1) {
+    typed = (await readFile(`${h.fakeLog}.input`, 'utf8')).slice(beforeWake.length);
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  assert.equal(typed, 'Workflow Kit: новое сообщение из панели.\r');
   await provider.stopSession!(project, session.remoteId!);
+  assert.equal(await provider.wakeSession!(project, session.remoteId!), false, 'a stopped session cannot be woken');
   const stopped = await provider.renameSession!(project, session.remoteId!, 'Другое');
   assert.equal(stopped.synced, false);
   assert.match(stopped.note ?? '', /следующим сообщением/);

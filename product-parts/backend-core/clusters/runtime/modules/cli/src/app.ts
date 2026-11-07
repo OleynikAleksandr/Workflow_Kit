@@ -235,10 +235,29 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
     resolveProject: resolveFolderProject,
     log: options.log,
   });
+  // Panel messages for an idle agent wait for its next hook; a Claude session the panel runs is
+  // woken at once (session.exp types a short prompt, the prompt hook hands over the queue).
+  const wakeIdle = async (key: string): Promise<void> => {
+    const activity = channel.get(key);
+    if (!activity || activity.state !== 'waiting' || activity.client !== 'claude' || !activity.projectId) return;
+    const project = await projects.get(activity.projectId);
+    const provider = providers.get('claude');
+    if (!project || !provider?.wakeSession) return;
+    const woken = await provider.wakeSession(project, activity.sessionId).catch(() => false);
+    if (woken) options.log?.(`channel: woke ${key} for queued panel messages`);
+  };
+  const wakingChannel: AgentChannel = {
+    ...channel,
+    enqueue(key, text, source) {
+      const message = channel.enqueue(key, text, source);
+      void wakeIdle(key);
+      return message;
+    },
+  };
   const autopilot = createAutopilot({
     runner: kit,
     workflow,
-    channel,
+    channel: wakingChannel,
     projectPath: async (id) => (await projects.get(id))?.path,
     log: options.log,
   });

@@ -244,6 +244,11 @@ export interface Provider {
    * note when the name stays only in Workflow Kit (for now or for good).
    */
   renameSession?(project: Project, sessionId: string, name: string): Promise<RenameResult>;
+  /**
+   * Wakes an idle session so that it picks up messages the panel queued for it (the prompt hook
+   * delivers them). Resolves false when the provider cannot reach the session.
+   */
+  wakeSession?(project: Project, sessionId: string): Promise<boolean>;
   actions(project: Project | null): Promise<ProviderAction[]>;
   runAction(id: string, project: Project | null): Promise<ProviderStatus | ProjectProviderState>;
   /** Reasons the project cannot be removed (e.g. a running environment); live sessions are found by the registry. */

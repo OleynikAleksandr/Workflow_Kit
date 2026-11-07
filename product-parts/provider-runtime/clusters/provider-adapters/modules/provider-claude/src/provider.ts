@@ -9,7 +9,7 @@ import { ENVIRONMENT_START, ENVIRONMENT_STOP, environmentActions, environmentBlo
 import { claudeCapabilities, ptyUnavailableReason } from './programs.ts';
 import { PROVIDER_ID, createRuntime } from './runtime.ts';
 import type { ClaudeProviderOptions, ClaudeRuntime } from './runtime.ts';
-import { createSession, listSessions, renameSession, resumeSession, stopSession } from './sessions.ts';
+import { createSession, listSessions, renameSession, resumeSession, stopSession, wakeSession } from './sessions.ts';
 import { grantTrust, previewTrust, readTrust } from './trust.ts';
 
 /** Claude settings files whose hooks are listed (the Kit hook lives in the first one). */
@@ -125,6 +125,7 @@ export function createClaudeProvider(context: ProviderContext, options: ClaudePr
     resumeSession: (project, sid) => resumeSession(rt, project, sid),
     stopSession: (project, sid) => stopSession(rt, project, sid),
     renameSession: (project, sid, name) => renameSession(rt, project, sid, name),
+    wakeSession: (project, sid) => wakeSession(rt, project, sid),
     actions: async (project) => (project ? environmentActions(rt, project) : []),
     async runAction(id, project) {
       if (!project || (id !== ENVIRONMENT_START && id !== ENVIRONMENT_STOP)) {

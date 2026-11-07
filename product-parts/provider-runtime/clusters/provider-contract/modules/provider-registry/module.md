@@ -24,6 +24,9 @@
   `resumeSession?(project, sid)`, `stopSession?(project, sid)`,
   `renameSession?(project, sid, name) → RenameResult` (`synced`, `note?`:
   имя в приложении провайдера, если это безопасно сейчас; веха 2),
+  `wakeSession?(project, sid) → boolean` (разбудить простаивающую сессию,
+  чтобы хук отдал ей очередь панели; Claude — ввод в терминал сессии
+  панели; веха 3),
   `actions(project | null)`, `runAction(id, project | null)`,
   `removeBlockers?(project)`.
   Расширения раздела 1: `trust(project)` — текущее доверие для панели

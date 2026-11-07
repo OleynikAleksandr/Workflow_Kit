@@ -92,6 +92,8 @@ export interface SessionParts {
   records(): Promise<CodexRecord[]>;
   /** thread/name/set, only while the daemon has the thread loaded (an open chat or a turn). */
   renameSession(project: Project, threadId: string, name: string): Promise<RenameResult>;
+  /** Drops the panel records of projects not in keep; resolves to the number dropped. */
+  forgetProjects(keep: ReadonlySet<string>): Promise<number>;
 }
 
 /** Why a name stays only in Workflow Kit for now. */
@@ -235,6 +237,16 @@ export function createSessionParts(rt: CodexRuntime, options: SessionOptions = {
 
   return {
     records,
+
+    async forgetProjects(keep) {
+      for (const [threadId, held] of releasing) if (!keep.has(held.projectId)) releasing.delete(threadId);
+      const all = await records();
+      const kept = all.filter((r) => keep.has(r.projectId));
+      if (kept.length === all.length) return 0;
+      await writeJsonAtomic(file, { version: 1, sessions: kept });
+      context.log(`codex: forgot ${all.length - kept.length} session record(s) of removed projects`);
+      return all.length - kept.length;
+    },
 
     async listSessions(project) {
       const [journal, own, titles] = await Promise.all([readHookSessions(project, 'codex'), records(), threadNames()]);

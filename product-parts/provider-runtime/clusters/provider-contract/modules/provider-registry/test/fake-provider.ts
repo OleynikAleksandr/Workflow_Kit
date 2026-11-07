@@ -10,6 +10,8 @@ export interface FakeProvider extends Provider {
   release(): void;
   block(): void;
   sessions: SessionInfo[];
+  /** Project ids passed to forgetProjects, in call order. */
+  kept: string[][];
   failHooks: boolean;
   slow: boolean;
 }
@@ -30,6 +32,7 @@ export function createFakeProvider(id = 'fake', options: { withOptional?: boolea
     calls: [],
     choices: [],
     sessions: [],
+    kept: [],
     failHooks: false,
     slow: false,
     release: () => open(),
@@ -105,6 +108,11 @@ export function createFakeProvider(id = 'fake', options: { withOptional?: boolea
       if (found) found.state = 'stopped';
     };
     provider.removeBlockers = async () => ['работает окружение'];
+    provider.forgetProjects = async (keep) => {
+      provider.kept.push([...keep]);
+      if (id === 'broken') throw new Error('records are unreadable');
+      return 2;
+    };
   }
   return provider;
 }

@@ -45,6 +45,12 @@ export interface ProjectsSection {
 /** Reports why a project cannot be removed (live sessions, environments); empty when it can. */
 export type RemoveGuard = (project: Project) => string[] | Promise<string[]>;
 
+/**
+ * Called after a project left the list (removed or deleted from disk) with the projects that
+ * remain; the service drops every record of the project (its sessions in the providers).
+ */
+export type RemovedHook = (project: Project, remaining: readonly Project[]) => void | Promise<void>;
+
 /** Options of the registry; file system, clock and ids are injectable for tests. */
 export interface ProjectRegistryOptions extends HomeScope {
   /** projects.json path (see projectsFile). */
@@ -85,6 +91,8 @@ export interface ProjectRegistry {
   /** Changes the root for new projects: an absolute folder inside home, created when missing. */
   setRoot(folder: unknown): Promise<string>;
   addRemoveGuard(guard: RemoveGuard): void;
+  /** Runs after a project left the list; a failing hook does not undo the removal. */
+  addRemovedHook(hook: RemovedHook): void;
   section(): Promise<ProjectsSection>;
 }
 
@@ -126,6 +134,17 @@ export function createProjectRegistry(options: ProjectRegistryOptions): ProjectR
   const newId = options.newId ?? (() => randomBytes(6).toString('hex'));
   let root = expandHome(options.projectsRoot, options.homedir);
   const guards: RemoveGuard[] = [];
+  const removedHooks: RemovedHook[] = [];
+
+  async function removed(project: Project, remaining: Project[]): Promise<void> {
+    for (const hook of removedHooks) {
+      try {
+        await hook(project, remaining);
+      } catch {
+        // The project is already out of the list; leftovers are cleaned at the next start.
+      }
+    }
+  }
   let cache: Project[] | undefined;
 
   async function load(): Promise<Project[]> {
@@ -222,8 +241,10 @@ export function createProjectRegistry(options: ProjectRegistryOptions): ProjectR
     if (blockers.length > 0) {
       throw new ProjectError('busy', 'Проект занят: сначала остановите его сессии и окружения', { blockers });
     }
-    await save(projects.filter((p) => p.id !== id));
+    const remaining = projects.filter((p) => p.id !== id);
+    await save(remaining);
     await log('project.removed', project);
+    await removed(project, remaining);
     return project;
   }
 
@@ -247,8 +268,10 @@ export function createProjectRegistry(options: ProjectRegistryOptions): ProjectR
     } catch (error) {
       throw fsError(error, project.path, options.platform);
     }
-    await save(projects.filter((p) => p.id !== id));
+    const remaining = projects.filter((p) => p.id !== id);
+    await save(remaining);
     await log('project.deleted', project);
+    await removed(project, remaining);
     return project;
   }
 
@@ -306,6 +329,9 @@ export function createProjectRegistry(options: ProjectRegistryOptions): ProjectR
     setRoot: (folder) => mutex.run('projects', () => setRoot(folder)),
     addRemoveGuard(guard) {
       guards.push(guard);
+    },
+    addRemovedHook(hook) {
+      removedHooks.push(hook);
     },
     async section() {
       const base = { root, home: options.homedir };

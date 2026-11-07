@@ -209,6 +209,15 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
   });
   state.add('operations', () => operations.section());
   projects.addRemoveGuard((project) => providers.removeBlockers(project));
+  // A removed project takes its records with it; leftovers of earlier versions or a failed hook are
+  // dropped at the start (archived projects are still in the list and keep theirs).
+  const forgetRemoved = async (remaining: readonly { id: string }[]): Promise<void> => {
+    const result = await providers.forgetProjects(new Set(remaining.map((p) => p.id)));
+    if (result.dropped > 0) options.log?.(`providers: forgot ${result.dropped} record(s) of removed projects`);
+    for (const [id, message] of Object.entries(result.errors)) options.log?.(`providers: ${id} could not forget removed projects: ${message}`);
+  };
+  projects.addRemovedHook((_project, remaining) => forgetRemoved(remaining));
+  void projects.list().then(forgetRemoved).catch(() => undefined);
 
   const kitBundle = kitBundleProvider({ appDir: dirs.appDir });
   const kit = createKitRunner({

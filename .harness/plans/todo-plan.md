@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 169,
+  "revision": 171,
   "rounds": [
     {
       "digest": {
@@ -1305,14 +1305,30 @@
         "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/registry.test.ts",
         "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md",
         "product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts",
-        "product-parts/backend-core/clusters/runtime/modules/cli/module.md"
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "docs/planning/M3-fixes.md",
+        "product-parts/backend-core/clusters/projects/modules/project-registry/module.md",
+        "product-parts/backend-core/clusters/projects/modules/project-registry/src/index.ts",
+        "product-parts/backend-core/clusters/projects/modules/project-registry/src/registry.ts",
+        "product-parts/backend-core/clusters/projects/modules/project-registry/test/registry.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/provider.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/records.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parts.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/sessions.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/fake-provider.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/routes.test.ts"
       ],
       "fixes": null,
       "id": "T025",
       "iteration": 1,
       "kind": "work",
       "roundId": "R9",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Проект, созданный панелью, не видит сессий старше себя",
       "why": "Проект, созданный панелью, не видит сессий старше себя"
     },
@@ -1382,8 +1398,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 32/35
-- Revision: 169
+- Progress: 33/35
+- Revision: 171
 
 ## Objective
 
@@ -1554,9 +1570,9 @@ Digest: Мастер начинает каждый вход с чистого л
 
 ### R9 — Сессии удалённого проекта не переходят к новому с тем же путём (fixes, OPEN)
 
-- [TODO] T025 — Проект, созданный панелью, не видит сессий старше себя (work)
+- [DONE] T025 — Проект, созданный панелью, не видит сессий старше себя (work)
   - Commit: fix: hide sessions older than a created project
-  - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/registry.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/registry.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md
+  - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/registry.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/registry.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, docs/planning/M3-fixes.md, product-parts/backend-core/clusters/projects/modules/project-registry/module.md, product-parts/backend-core/clusters/projects/modules/project-registry/src/index.ts, product-parts/backend-core/clusters/projects/modules/project-registry/src/registry.ts, product-parts/backend-core/clusters/projects/modules/project-registry/test/registry.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/records.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parts.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/fake-provider.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/routes.test.ts
 - [TODO] DOCS-R9 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R9
   - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md

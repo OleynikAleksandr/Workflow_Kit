@@ -114,8 +114,14 @@ test('remove drops the project from the list only and honours guards', async () 
     return true;
   });
   const fresh = createProjectRegistry(options());
+  const heard: Array<[string, string[]]> = [];
+  fresh.addRemovedHook((p, remaining) => void heard.push([p.id, remaining.map((r) => r.name)]));
+  fresh.addRemovedHook(() => {
+    throw new Error('a failing hook does not undo the removal');
+  });
   const removed = await fresh.remove(demo.id);
   assert.equal(removed.id, demo.id);
+  assert.deepEqual(heard, [[demo.id, ['existing']]]);
   assert.ok((await stat(demo.path)).isDirectory(), 'the folder stays on disk');
   assert.deepEqual((await createProjectRegistry(options()).list()).map((p) => p.name), ['existing']);
   assert.equal(await code(fresh.remove('missing-id')), 'not-found');

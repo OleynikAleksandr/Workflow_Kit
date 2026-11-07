@@ -33,6 +33,8 @@
   (только чтение); `refresh?()` — перечитать версии и демоны внешними
   программами (старт службы и `POST /api/refresh`, D11);
   `removeBlockers?(project)` — причины не убирать проект (окружение).
+  `forgetProjects?(keep)` — стереть записи (сессии, окружения) проектов, чьих id нет
+  в `keep`; ответ — сколько записей стёрто (раунд R9).
   Методы чтения (`status`, `capabilities`, `trust`, `hooks`,
   `listSessions`, `actions`) обязаны быть дешёвыми и только читать: их
   вызывает каждый опрос `/api/state`.
@@ -127,6 +129,8 @@ undefined` — одноразово, с проверкой срока (`PREVIEW_
 `get`, `list`, `ids`, `summary(provider)`, `projectState(provider,
 project)`, `section(projects)`, `removeBlockers(project)` (живые сессии
 `state: 'running'` и `removeBlockers?` провайдера, с названием провайдера).
+`forgetProjects(keep)` → `{ dropped, errors }` — опрашивает `forgetProjects?` всех
+провайдеров; ошибка одного попадает в `errors[id]`, остальные выполняются.
 Каждое чтение ограничено `STATE_READ_TIMEOUT_MS` (3 с): упавшее или
 зависшее чтение попадает в `errors` (`timeout` и т. п.), остальные данные
 отдаются. `errorInfo(error)` — `{ code, message, hint? }`.

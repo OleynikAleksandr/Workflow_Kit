@@ -44,6 +44,8 @@ export interface ProviderRegistry {
   section(projects: readonly Project[]): Promise<ProvidersSection>;
   /** Why a project cannot be removed: running sessions and provider blockers (environments). */
   removeBlockers(project: Project): Promise<string[]>;
+  /** Drops the records of projects not in keep in every provider; failures stay per provider. */
+  forgetProjects(keep: ReadonlySet<string>): Promise<{ dropped: number; errors: Record<string, string> }>;
 }
 
 const PROVIDER_ID = /^[a-z][a-z0-9-]{0,31}$/;
@@ -131,6 +133,19 @@ export function createProviderRegistry(options: { readTimeoutMs?: number } = {})
         if (provider.removeBlockers) reasons.push(...(await provider.removeBlockers(project)).map((r) => `${provider.title}: ${r}`));
       }
       return reasons;
+    },
+    async forgetProjects(keep) {
+      let dropped = 0;
+      const errors: Record<string, string> = {};
+      for (const provider of registry.list()) {
+        if (!provider.forgetProjects) continue;
+        try {
+          dropped += await provider.forgetProjects(keep);
+        } catch (error) {
+          errors[provider.id] = error instanceof Error ? error.message : String(error);
+        }
+      }
+      return { dropped, errors };
     },
   };
   return registry;

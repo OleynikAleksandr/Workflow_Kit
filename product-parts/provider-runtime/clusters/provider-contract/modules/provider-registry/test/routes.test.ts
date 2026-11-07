@@ -239,3 +239,17 @@ test('removeBlockers lists running sessions and provider blockers', async () => 
   assert.throws(() => registry.register(createFakeProvider('fake')), /already registered/);
   assert.throws(() => registry.register(createFakeProvider('Bad Id')), /Invalid provider id/);
 });
+
+test('forgetProjects asks every provider that keeps records; a failure stays with its provider', async () => {
+  const own = createProviderRegistry();
+  const keeper = createFakeProvider('keeper');
+  const broken = createFakeProvider('broken');
+  const plain = createFakeProvider('plain', { withOptional: false });
+  own.register(keeper);
+  own.register(broken);
+  own.register(plain);
+  const result = await own.forgetProjects(new Set(['p1']));
+  assert.equal(result.dropped, 2);
+  assert.deepEqual(Object.keys(result.errors), ['broken']);
+  assert.deepEqual(keeper.kept, [['p1']]);
+});

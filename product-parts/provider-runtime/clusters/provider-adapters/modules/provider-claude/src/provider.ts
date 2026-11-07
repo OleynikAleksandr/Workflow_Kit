@@ -7,6 +7,7 @@ import type { HookEntry, HookState, Project, ProjectProviderState, Provider, Pro
 import { findKitHook, isKitHookCommand, normalizeHook, sha256 } from '#kit-structure';
 import { ENVIRONMENT_START, ENVIRONMENT_STOP, environmentActions, environmentBlockers, startEnvironment, stopEnvironment } from './environment.ts';
 import { claudeCapabilities, ptyUnavailableReason } from './programs.ts';
+import { forgetProjects } from './records.ts';
 import { PROVIDER_ID, createRuntime } from './runtime.ts';
 import type { ClaudeProviderOptions, ClaudeRuntime } from './runtime.ts';
 import { createSession, listSessions, renameSession, resumeSession, stopSession, wakeSession } from './sessions.ts';
@@ -136,6 +137,7 @@ export function createClaudeProvider(context: ProviderContext, options: ClaudePr
       return projectState(project);
     },
     removeBlockers: (project) => environmentBlockers(rt, project),
+    forgetProjects: (keep) => forgetProjects(rt.store, keep),
   };
 
   async function projectState(project: Project): Promise<ProjectProviderState> {

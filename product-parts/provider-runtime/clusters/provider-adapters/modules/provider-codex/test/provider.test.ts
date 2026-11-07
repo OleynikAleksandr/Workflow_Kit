@@ -274,3 +274,17 @@ test('without the CLI and on Windows the capabilities are unavailable with a rea
   assert.equal((await windows.actions(null))[0]?.enabled, false);
   assert.deepEqual((await windows.listSessions(project)).every((s) => Object.keys(s.links).length === 0), true);
 });
+
+test('forgetProjects drops the records of removed projects and keeps the others', async () => {
+  const file = providerSessionsFile(machine.dirs, 'codex');
+  const before = JSON.parse(await readFile(file, 'utf8')) as { sessions: Array<{ projectId: string }> };
+  assert.ok(before.sessions.some((r) => r.projectId === project.id));
+  const extra = { threadId: '01a1ffff-0000-7000-8000-000000000001', projectId: 'gone00000000', projectPath: project.path, title: 'old', createdAt: '2026-01-01T00:00:00.000Z' };
+  await writeFile(file, JSON.stringify({ version: 1, sessions: [...before.sessions, extra] }));
+  assert.ok((await provider.listSessions(project)).some((s) => s.localId === extra.threadId), 'a record of the same path is listed until forgotten');
+  assert.equal(await provider.forgetProjects!(new Set([project.id])), 1);
+  assert.equal(await provider.forgetProjects!(new Set([project.id])), 0);
+  const after = JSON.parse(await readFile(file, 'utf8')) as { sessions: Array<{ projectId: string }> };
+  assert.deepEqual(after.sessions.map((r) => r.projectId), before.sessions.map((r) => r.projectId));
+  assert.ok(!(await provider.listSessions(project)).some((s) => s.localId === extra.threadId));
+});

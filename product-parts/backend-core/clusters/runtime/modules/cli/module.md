@@ -130,6 +130,9 @@ stripping).
   `prompt` сообщает автопилоту, кто начал ход (`onPrompt`);
   сообщения панели (`POST …/sessions/:sid/message`) идут через ту же
   будящую обёртку (опция `messages` маршрутов канала, раунд R8);
+- удалённый проект забирает с собой записи (раунд R9): `addRemovedHook` реестра
+  проектов вызывает `providers.forgetProjects` с оставшимися проектами; при
+  запуске то же для всего списка (архивные проекты остаются в списке);
   `registerAutopilotRoutes` — `POST /api/projects/:id/workflow/…` и раздел
   `autopilot`.
 - `kit-bundle` и `kit-runner` (веха 2, T001): `kitBundleProvider` над

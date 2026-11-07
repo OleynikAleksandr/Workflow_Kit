@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { scanAutorun } from '../src/autorun.ts';
 import { INHERITED_NOTE, createClaudeConfigReader, parseClaudeConfig } from '../src/claude-config.ts';
 import { normalizeRemoteId, sessionLinks } from '../src/links.ts';
+import { createRecordStore, forgetProjects } from '../src/records.ts';
 import { claudeCapabilities, compareVersions, findProgram, parseVersion } from '../src/programs.ts';
 import { debugSessionId, dialogError, logTail, parseMarkers, stripAnsi } from '../src/pty.ts';
 import { bridgeIdOfLine, createBridgeReader } from '../src/transcripts.ts';
@@ -170,4 +171,19 @@ test('capabilities follow the OS, expect and the claude version', async () => {
   assert.equal(await findProgram('claude', { env: { PATH: `relative:${bin}` } }), path.join(bin, 'claude'));
   assert.equal(await findProgram('claude', { env: {}, configured: path.join(tmp, 'nope') }), null);
   assert.equal(await findProgram('claude', { env: {}, extraDirs: [bin] }), path.join(bin, 'claude'));
+});
+
+test('forgetProjects drops session and environment records of removed projects only', async () => {
+  const file = path.join(tmp, 'claude-records.json');
+  const session = (projectId: string, remoteId: string) => ({
+    localId: null, remoteId, title: remoteId, projectId, projectPath: '/p', origin: 'panel', createdAt: '2026-11-07T10:00:00.000Z',
+    startedAt: '2026-11-07T10:00:00.000Z', processId: null, claudePid: null, logFile: '', debugFile: '', stoppedAt: null,
+  });
+  await writeFile(file, JSON.stringify({ version: 1, sessions: [session('keep', 'session_a'), session('gone', 'session_b'), session('gone', 'session_c')], environments: [{ projectId: 'gone', projectPath: '/p' }] }));
+  const store = createRecordStore(file);
+  assert.equal(await forgetProjects(store, new Set(['keep'])), 3);
+  const left = await store.read();
+  assert.deepEqual(left.sessions.map((s) => s.remoteId), ['session_a']);
+  assert.deepEqual(left.environments, []);
+  assert.equal(await forgetProjects(store, new Set(['keep'])), 0);
 });

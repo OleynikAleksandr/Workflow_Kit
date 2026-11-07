@@ -253,6 +253,11 @@ export interface Provider {
   runAction(id: string, project: Project | null): Promise<ProviderStatus | ProjectProviderState>;
   /** Reasons the project cannot be removed (e.g. a running environment); live sessions are found by the registry. */
   removeBlockers?(project: Project): Promise<string[]>;
+  /**
+   * Drops the provider's records (sessions, environments) of projects whose ids are not in keep:
+   * a removed project takes its records with it. Resolves to the number of records dropped.
+   */
+  forgetProjects?(keep: ReadonlySet<string>): Promise<number>;
 }
 
 /** What the backend gives a provider factory; everything machine-specific is injectable. */

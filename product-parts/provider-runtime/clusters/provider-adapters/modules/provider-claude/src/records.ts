@@ -80,6 +80,22 @@ function prune(records: ClaudeRecords): void {
   records.sessions = records.sessions.filter((s) => !drop.has(s));
 }
 
+/**
+ * Drops the session and environment records of projects not in keep (a removed project takes its
+ * records with it). Resolves to the number of records dropped; the file is written only on change.
+ */
+export async function forgetProjects(store: RecordStore, keep: ReadonlySet<string>): Promise<number> {
+  const current = await store.read();
+  const stale = current.sessions.filter((s) => !keep.has(s.projectId)).length + current.environments.filter((e) => !keep.has(e.projectId)).length;
+  if (stale === 0) return 0;
+  return store.update((records) => {
+    const before = records.sessions.length + records.environments.length;
+    records.sessions = records.sessions.filter((s) => keep.has(s.projectId));
+    records.environments = records.environments.filter((e) => keep.has(e.projectId));
+    return before - records.sessions.length - records.environments.length;
+  });
+}
+
 /** Creates the store over file (providerSessionsFile(dirs, 'claude')). */
 export function createRecordStore(file: string): RecordStore {
   const lock = createKeyedMutex();

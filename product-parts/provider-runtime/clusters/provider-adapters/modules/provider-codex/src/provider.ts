@@ -182,6 +182,7 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
     hooks: (project) => trustParts.hooks(project),
     approveHooks: (project, expected) => trustParts.approveHooks(project, expected),
     listSessions: (project) => sessionParts.listSessions(project),
+    forgetProjects: (keep) => sessionParts.forgetProjects(keep),
     async createSession(project, opts) {
       requireCodex(rt);
       return sessionParts.createSession(project, opts);

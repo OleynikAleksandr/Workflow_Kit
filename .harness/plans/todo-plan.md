@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 146,
+  "revision": 148,
   "rounds": [
     {
       "digest": {
@@ -115,7 +115,24 @@
       "title": "Fixes"
     },
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "provider-codex: DaemonState.staleLogin, STALE_LOGIN_REASON, действие «Перезапустить демон»",
+          "session-titles: setServiceTurn, код service-turn; project-setup: SERVICE_MESSAGE_MARK",
+          "provider-registry: Provider.wakeSession?; provider-claude: wakeSession, session.exp <debug>.message",
+          "autopilot: ready-for-acceptance в удерживаемых причинах"
+        ],
+        "decisions": [
+          "Устаревший вход: 401 в журнале демона и auth.json новее старта — «Перезапустить демон», не codex login",
+          "Тема в служебном ходе отклоняется (service-turn)",
+          "ready-for-acceptance удерживает Stop, после принятия — нет",
+          "Спящий чат ChatGPT снаружи не будится: панель предупреждает"
+        ],
+        "references": [
+          "docs/planning/M3-fixes.md#10. Раунд 6: устаревший вход демона и тема служебного хода"
+        ],
+        "result": "Демон Codex с устаревшим входом распознаётся и перезапускается кнопкой; тема сессии не задаётся по служебному приветствию; при ожидании приёмки Stop удерживается, и «Нужны исправления» доходит сразу; спящая сессия Claude панели будится сообщением панели."
+      },
       "id": "R6",
       "kind": "fixes",
       "status": "OPEN",
@@ -923,7 +940,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R6",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -967,8 +984,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 22/24
-- Revision: 146
+- Progress: 23/24
+- Revision: 148
 
 ## Objective
 
@@ -1088,7 +1105,7 @@ Digest: Состояние демона Codex согласовано: стату
 - [DONE] T018 — Будить спящую сессию Claude сообщением панели (work)
   - Commit: feat: wake an idle panel Claude session when the panel queues a message
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/session.exp, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/hook-channel.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md
-- [TODO] DOCS-R6 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R6 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R6
   - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/backend-core/clusters/projects/modules/kit-structure/module.md, product-parts/backend-core/clusters/projects/modules/project-setup/module.md, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md
   - Depends on: T014, T015, T017, T018
@@ -1096,5 +1113,7 @@ Digest: Состояние демона Codex согласовано: стату
   - Commit: chore: release 0.3.2
   - Files: package.json, package-lock.json, docs/evidence/M3-acceptance.md
   - Depends on: T014, T015, DOCS-R6
+
+Digest: Демон Codex с устаревшим входом распознаётся и перезапускается кнопкой; тема сессии не задаётся по служебному приветствию; при ожидании приёмки Stop удерживается, и «Нужны исправления» доходит сразу; спящая сессия Claude панели будится сообщением панели.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

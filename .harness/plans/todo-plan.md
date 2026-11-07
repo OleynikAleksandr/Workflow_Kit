@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T011",
   "lastClosed": {
     "closedAt": "2026-11-06T17:23:09.352Z",
     "scopeId": "m2-interface-and-process"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 126,
+  "revision": 128,
   "rounds": [
     {
       "digest": {
@@ -606,6 +606,7 @@
       "files": [
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/runtime.ts",
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts",
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts",
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts",
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/helpers.ts",
@@ -616,7 +617,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R5",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "Согласованное состояние демона Codex",
       "why": "Короткое ожидание статуса связи давало «не подключён» и включало «Запустить демон» при работающем демоне"
     },
@@ -722,9 +723,9 @@
 - Scope: m3-fixes (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: none
+- Current task: T011
 - Progress: 14/18
-- Revision: 126
+- Revision: 128
 
 ## Objective
 
@@ -811,9 +812,9 @@ Digest: Главный экран без карточки «Начните с п
 
 ### R5 — Fixes (fixes, OPEN)
 
-- [TODO] T011 — Согласованное состояние демона Codex (work)
+- [IN_PROGRESS] T011 — Согласованное состояние демона Codex (work)
   - Commit: fix: report the Codex daemon connection consistently
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/runtime.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/helpers.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/runtime.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/helpers.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md
   - Fixes: T001
 - [TODO] T012 — Мастер перечитывает готовность провайдера (work)
   - Commit: fix: keep provider readiness fresh in the project wizard

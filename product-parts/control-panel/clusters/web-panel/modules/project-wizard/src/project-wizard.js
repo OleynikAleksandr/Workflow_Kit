@@ -251,13 +251,11 @@ function createWizard(shell, ctx) {
     }
   }
 
-  /** @param {Record<string, any>} run */
+  /** An https link opens in a new tab; an app link (ChatGPT) with the session (ctx.openSession). @param {Record<string, any>} run */
   function openChat(run) {
     const target = chatTarget(run['links'] ?? {}, navigator.maxTouchPoints ?? 0);
-    if (!target) return false;
-    if (target.newTab) return window.open(target.href, '_blank', 'noopener') !== null;
-    window.location.assign(target.href);
-    return true;
+    if (target?.newTab) window.open(target.href, '_blank', 'noopener');
+    else if (target && !ctx.openSession) window.location.assign(target.href);
   }
 
   function runPanel() {
@@ -366,7 +364,8 @@ function createWizard(shell, ctx) {
       const view = run ? runView(run) : null;
       if (view?.status === 'succeeded' && view.projectId && view.sessionKey && !navigated && sessionListed(nextState, view.projectId, view.sessionKey)) {
         navigated = true;
-        ctx.navigate({ screen: 'session', projectId: view.projectId, key: view.sessionKey });
+        // Like a click on its card (ChatGPT: also its chat in the app).
+        (ctx.openSession ?? ((projectId, key) => ctx.navigate({ screen: 'session', projectId, key })))(view.projectId, view.sessionKey);
         return;
       }
       const key = JSON.stringify(run);

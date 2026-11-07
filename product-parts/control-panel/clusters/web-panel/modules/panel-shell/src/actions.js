@@ -4,7 +4,7 @@
 import { api, ApiError } from './api.js';
 import { requestRefresh } from './cards.js';
 import { h, notice } from './dom.js';
-import { chatStatus, deviceLink } from './view-model.js';
+import { ARRIVAL_WAIT_MS, arrivedSession, chatStatus, deviceLink } from './view-model.js';
 
 /** localStorage key of the collapsed projects of the tree (per device). */
 const COLLAPSED_KEY = 'wfk.tree.collapsed';
@@ -23,6 +23,11 @@ export function createActions(options) {
   const current = options.route;
   /** @type {Set<string>} */
   const collapsed = new Set(readCollapsed());
+  /**
+   * A new session the panel opens by itself once it appears in the tree (spec M3-autostart 7).
+   * @type {import('./view-model.js').PendingSession | null}
+   */
+  let pending = null;
 
   /** @returns {string[]} */
   function readCollapsed() {
@@ -150,8 +155,10 @@ export function createActions(options) {
     /** @param {string} projectId @param {string} provider */
     newSession(projectId, provider) {
       void act('Не удалось создать сессию', async () => {
+        const since = Date.now();
         await api('POST', `/api/projects/${encodeURIComponent(projectId)}/providers/${encodeURIComponent(provider)}/sessions`, {});
-        say('ok', 'Сессия создаётся — она появится в дереве');
+        pending = { projectId, key: null, provider, since };
+        say('ok', 'Сессия создаётся — она откроется сама');
         navigate({ screen: 'project', projectId });
       });
     },
@@ -226,11 +233,48 @@ export function createActions(options) {
         say('ok', `Убраны из списка сессий: ${sessions.length}`);
       });
     },
-    /** @param {SessionRow} session */
-    openChat(session) {
+    /**
+     * Opens the chat of a session in its app. auto: no click of the user (a new session), which a
+     * window may refuse to open by itself — on the Mac the service opens it (POST /api/open-link),
+     * elsewhere (or when the service cannot) a navigation to the link.
+     * @param {SessionRow} session @param {boolean} [auto]
+     */
+    openChat(session, auto = false) {
+      const touch = (navigator.maxTouchPoints ?? 0) > 1;
       const link = deviceLink(session.links, navigator.maxTouchPoints ?? 0);
-      if (link) window.open(link, '_blank', 'noopener');
-      else say('muted', session.note ?? 'У этой сессии нет ссылки');
+      if (!link) say('muted', session.note ?? 'У этой сессии нет ссылки');
+      else if (!auto) window.open(link, '_blank', 'noopener');
+      else if (touch) window.location.assign(link);
+      else api('POST', '/api/open-link', { url: link }).catch(() => window.location.assign(link));
+    },
+    /**
+     * What a click on the session card does: the session screen and, for ChatGPT, its chat (a
+     * Claude session comes back by itself when it is opened and has no chat link).
+     * @param {string} projectId @param {SessionRow} session @param {boolean} [auto]
+     */
+    openSession(projectId, session, auto = false) {
+      navigate({ screen: 'session', projectId, key: session.key });
+      if (session.provider !== 'claude') handlers.openChat(session, auto);
+    },
+    /** The wizard created the session: open it once it is in the tree. @param {string} projectId @param {string} key */
+    expectSession(projectId, key) {
+      pending = { projectId, key, provider: null, since: Date.now() };
+    },
+    /**
+     * Called with every tree: opens the awaited session when it has appeared; the wait ends after
+     * ARRIVAL_WAIT_MS. @param {import('./view-model.js').ProjectRow[]} tree
+     */
+    openArrived(tree) {
+      if (!pending) return;
+      if (Date.now() - pending.since > ARRIVAL_WAIT_MS) {
+        pending = null;
+        return;
+      }
+      const found = arrivedSession(tree, pending);
+      if (!found) return;
+      pending = null;
+      // Out of the render that found it: navigating inside a render would draw re-entrantly.
+      setTimeout(() => handlers.openSession(found.projectId, found.session, true), 0);
     },
   };
 

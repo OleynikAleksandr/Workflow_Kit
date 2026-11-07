@@ -86,6 +86,12 @@ const slotContext = Object.freeze({
     rememberProject(projectId);
     render();
   },
+  /** @param {string} projectId @param {string} key */
+  openSession(projectId, key) {
+    handlers.expectSession(projectId, key);
+    // The wizard calls it while it is drawn: the next render (out of this one) opens the session.
+    setTimeout(render, 0);
+  },
 });
 const leaveSettings = () => navigate(settingsExit(beforeSettings));
 const sidebar = createSidebar({ ...handlers, toggleSettings: () => (route.screen === 'settings' ? leaveSettings() : navigate({ screen: 'settings' })) });
@@ -127,6 +133,9 @@ let drawn = '';
 function renderMain() {
   const now = Date.now();
   const tree = projectTree(state, { now, collapsed: new Set() });
+  // A session the panel asked for opens by itself once it is in the tree (it navigates; the
+  // render that follows draws its screen).
+  handlers.openArrived(tree);
   settings.element.hidden = route.screen !== 'settings';
   archive.element.hidden = route.screen !== 'archive';
   if (route.screen === 'archive') {

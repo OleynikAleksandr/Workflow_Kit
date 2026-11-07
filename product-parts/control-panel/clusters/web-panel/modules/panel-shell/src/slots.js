@@ -15,6 +15,8 @@
  * @property {() => void} requestRefresh
  * @property {(tone: 'ok' | 'error' | 'muted', text: string, error?: unknown) => void} say
  * @property {(projectId: string) => void} selectProject makes the project the one the sidebar tree shows
+ * @property {(projectId: string, key: string) => void} [openSession] opens a just created session
+ *   by itself once it is in the tree (the screen and, for ChatGPT, its chat)
  */
 
 /**

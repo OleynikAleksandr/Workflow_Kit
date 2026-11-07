@@ -350,6 +350,33 @@ export function deviceLink(links, maxTouchPoints) {
   return null;
 }
 
+/** How long the panel waits for a session it asked for to appear in the tree. */
+export const ARRIVAL_WAIT_MS = 180_000;
+
+/**
+ * @typedef {object} PendingSession A session the panel asked for and opens when it appears.
+ * @property {string} projectId
+ * @property {string | null} key the session key when known (the wizard), else any new one
+ * @property {string | null} provider the provider of «Новая сессия»
+ * @property {number} since when it was asked for (ms)
+ */
+
+/**
+ * The asked-for session once it is in the tree: by its key, or the newest session of the provider
+ * created not earlier than the request (a little clock slack). Null while it is not there yet.
+ * @param {ProjectRow[]} tree
+ * @param {PendingSession} pending
+ * @returns {{ projectId: string, session: SessionRow } | null}
+ */
+export function arrivedSession(tree, pending) {
+  const project = tree.find((p) => p.id === pending.projectId);
+  if (!project) return null;
+  const session = pending.key
+    ? project.sessions.find((s) => s.key === pending.key)
+    : project.sessions.find((s) => s.provider === pending.provider && Date.parse(s.createdAt) >= pending.since - 5000);
+  return session ? { projectId: project.id, session } : null;
+}
+
 /**
  * Header line of a session whose chat opens from its card (ChatGPT) instead of «Открыть чат».
  * @param {{ note?: string | null }} session

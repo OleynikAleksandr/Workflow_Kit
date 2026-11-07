@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
+  arrivedSession,
   chatStatus,
   deviceLink,
   filterProjects,
@@ -165,5 +166,16 @@ test('a ChatGPT session header says the chat opens from the card; without a link
   assert.deepEqual(chatStatus({}, 'codex://threads/t1'), { text: 'чат открывается щелчком по карточке сессии', tone: 'muted' });
   assert.deepEqual(chatStatus({ note: 'без ссылки' }, null), { text: 'без ссылки', tone: 'muted' });
   assert.deepEqual(chatStatus({}, null), { text: 'ссылки нет', tone: 'muted' });
+});
+
+test('an awaited session is found by its key, or as the newest of the provider created after the request', () => {
+  const row = (key: string, provider: string, createdAt: string) => ({ key, provider, createdAt }) as never;
+  const tree = [{ id: 'p1', sessions: [row('codex:new', 'codex', '2026-11-07T19:00:10Z'), row('claude:a', 'claude', '2026-11-07T19:00:20Z'), row('codex:old', 'codex', '2026-11-07T18:00:00Z')] }] as never;
+  const since = Date.parse('2026-11-07T19:00:00Z');
+  assert.equal(arrivedSession(tree, { projectId: 'p1', key: 'claude:a', provider: null, since })?.session.key, 'claude:a');
+  assert.equal(arrivedSession(tree, { projectId: 'p1', key: null, provider: 'codex', since })?.session.key, 'codex:new');
+  assert.equal(arrivedSession(tree, { projectId: 'p1', key: null, provider: 'codex', since: since + 60_000 }), null, 'older sessions do not count');
+  assert.equal(arrivedSession(tree, { projectId: 'p1', key: 'codex:missing', provider: null, since }), null);
+  assert.equal(arrivedSession(tree, { projectId: 'other', key: 'claude:a', provider: null, since }), null);
 });
 

@@ -35,6 +35,7 @@ import { filterProjects, shortPath } from './view-model.js';
  * @property {(projectId: string, provider: string) => void} newSession
  * @property {(text: string) => void} copyText
  * @property {(session: SessionRow) => void} openChat
+ * @property {(projectId: string, session: SessionRow, auto?: boolean) => void} openSession
  * @property {(projectId: string, session: SessionRow) => void} renameSession
  * @property {(projectId: string, session: SessionRow, archived: boolean) => void} archiveSession
  */
@@ -237,12 +238,8 @@ export function createSidebar(handlers) {
       h('small', {}, [meta]),
       h('span', { class: `badge ${session.provider}` }, [session.providerLabel]),
     ]);
-    // A click on the card opens the session; a ChatGPT session also opens its chat in the app (a
-    // Claude session comes back by itself when it is opened and has no chat link).
-    const go = () => {
-      handlers.navigate({ screen: 'session', projectId, key: session.key });
-      if (session.provider !== 'claude') handlers.openChat(session);
-    };
+    // A click on the card opens the session and, for ChatGPT, its chat in the app.
+    const go = () => handlers.openSession(projectId, session);
     node.addEventListener('click', go);
     node.addEventListener('keydown', (event) => {
       if (event.key === 'Enter') go();

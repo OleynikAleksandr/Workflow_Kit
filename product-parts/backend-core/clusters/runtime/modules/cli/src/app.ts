@@ -31,6 +31,7 @@ import type { ProviderContext, ProviderFactory, ProviderRegistry } from '#provid
 import { createProjectRegistry, isInside, projectsFile, registerProjectRoutes } from '#project-registry';
 import type { ProjectRegistry } from '#project-registry';
 import { getServiceStatus } from '#service-installer';
+import { registerOpenLinkRoute } from './open-link.ts';
 import { wireProviderLifecycle } from './provider-lifecycle.ts';
 import { currentOsInput, detectOs, panelUrls, readPackageVersion } from './system-info.ts';
 import type { DetectOsInput, OsInfo } from './system-info.ts';
@@ -162,6 +163,7 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
   });
 
   registerCoreRoutes(router, state, () => ({ version, pid: process.pid, startedAt }));
+  registerOpenLinkRoute({ router, runCommand: options.runCommand ?? runCommand, platform, log: options.log });
   state.add('system', (): SystemSection => ({
     version,
     os: osInfo,

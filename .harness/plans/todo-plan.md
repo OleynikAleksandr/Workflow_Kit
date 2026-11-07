@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": "T009",
+  "currentTaskId": null,
   "lastClosed": {
     "closedAt": "2026-11-07T18:15:01.786Z",
     "scopeId": "m3-fixes"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 218,
+  "revision": 219,
   "rounds": [
     {
       "digest": {
@@ -530,7 +530,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R5",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "title": "Новая сессия открывается сама",
       "why": "Новая сессия открывается сама"
     },
@@ -650,9 +650,9 @@
 - Scope: m3-autostart (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: T009
-- Progress: 12/16
-- Revision: 218
+- Current task: none
+- Progress: 13/16
+- Revision: 219
 
 ## Objective
 
@@ -732,7 +732,7 @@ Digest: Щелчок по карточке сессии ChatGPT открывае
 
 ### R5 — Новая сессия открывается сама; удаление тредов ChatGPT (fixes, OPEN)
 
-- [IN_PROGRESS] T009 — Новая сессия открывается сама (work)
+- [DONE] T009 — Новая сессия открывается сама (work)
   - Commit: feat: a new session opens by itself, a ChatGPT one with its chat
   - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/actions.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/slots.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/sidebar.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/view-model.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/project-wizard/src/project-wizard.js, product-parts/control-panel/clusters/web-panel/modules/project-wizard/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/open-link.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/open-link.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md
 - [TODO] T010 — Удаление проекта с диска удаляет треды ChatGPT (work)

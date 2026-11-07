@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 185,
+  "revision": 186,
   "rounds": [
     {
       "digest": {
@@ -224,7 +224,10 @@
       "Имя сессии, заданное в Workflow Kit, видно в ChatGPT и в Claude",
       "Новый релиз установлен, wfk doctor --installed — всё в порядке"
     ],
-    "acceptanceNote": null,
+    "acceptanceNote": {
+      "at": "2026-11-07T18:14:49.187Z",
+      "text": "Да, круто. Теперь работает все именно так, как и должно, как и ожидает пользователь. Принимаю этот скоп, можешь закрывать план."
+    },
     "approval": {
       "at": "2026-11-06T17:27:53.577Z",
       "text": "Пользователь: «И открыть следующий по дальнейшим исправлениям, корректировкам, дополнениям. … возможность переименования в самих десктопах. Сессий. … разберись, сделай, и собери новый релиз.» | Execution mode chosen by the user: sequential: Последовательно"
@@ -247,7 +250,7 @@
         "text": "Claude: имя передаёт хук UserPromptSubmit полем hookSpecificOutput.sessionTitle"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "ACCEPTED",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cfa00ffe-c414-4ae6-9953-e3d2906b3705",
@@ -1598,11 +1601,11 @@
 ## State
 
 - Scope: m3-fixes (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: ACCEPTED
 - Execution: sequential
 - Current task: none
 - Progress: 39/39
-- Revision: 185
+- Revision: 186
 
 ## Objective
 

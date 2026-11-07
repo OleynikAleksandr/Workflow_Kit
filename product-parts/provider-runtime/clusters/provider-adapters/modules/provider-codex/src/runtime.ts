@@ -1,6 +1,6 @@
 // Shared state of the Codex provider: program path and version (read on refresh, D11), the daemon
 // probe with a short cache, connections to the app-server (stdio) and to the daemon (WebSocket).
-import { access, realpath } from 'node:fs/promises';
+import { access, realpath, stat } from 'node:fs/promises';
 import { constants } from 'node:fs';
 import path from 'node:path';
 import { cleanEnv } from '#process-supervisor';
@@ -45,6 +45,11 @@ export interface DaemonState {
   userAgent: string | null;
   /** Newest "401 / token expired" line of daemon.stderr.log while the connection is not up. */
   tokenError: string | null;
+  /**
+   * The login was refreshed (auth.json, for example by the ChatGPT app) after the daemon started
+   * and the daemon reports 401: it holds the old token and needs a restart, not `codex login`.
+   */
+  staleLogin: boolean;
   error: string | null;
   checkedAt: string;
 }
@@ -162,12 +167,12 @@ export function createCodexRuntime(context: ProviderContext, deps: CodexDeps = {
       const now = Date.now();
       if (!pid) {
         probe = null;
-        return { running: false, pid: null, remoteControl: null, serverName: null, userAgent: null, tokenError: null, error: null, checkedAt: context.now().toISOString() };
+        return { running: false, pid: null, remoteControl: null, serverName: null, userAgent: null, tokenError: null, staleLogin: false, error: null, checkedAt: context.now().toISOString() };
       }
       if (!force && probe && probe.state.pid === pid && now - probe.at < ttl) return probe.state;
       const known = lastKnown && lastKnown.pid === pid ? lastKnown : null;
       inflight ??= (async (): Promise<DaemonState> => {
-        const state: DaemonState = { running: true, pid, remoteControl: null, serverName: null, userAgent: null, tokenError: null, error: null, checkedAt: context.now().toISOString() };
+        const state: DaemonState = { running: true, pid, remoteControl: null, serverName: null, userAgent: null, tokenError: null, staleLogin: false, error: null, checkedAt: context.now().toISOString() };
         try {
           await runtime.withDaemon(async (session, init) => {
             state.userAgent = typeof init.userAgent === 'string' ? init.userAgent : null;
@@ -186,6 +191,10 @@ export function createCodexRuntime(context: ProviderContext, deps: CodexDeps = {
         }
         if (state.remoteControl !== null) lastKnown = { pid, remoteControl: state.remoteControl, serverName: state.serverName };
         if (state.remoteControl !== 'connected') state.tokenError = tokenErrorLine(await readTail(paths.daemonStderr, 64 * 1024));
+        if (state.tokenError && pidFile?.startMs) {
+          const authAt = await stat(paths.auth).then((info) => info.mtimeMs).catch(() => null);
+          state.staleLogin = authAt !== null && authAt > pidFile.startMs;
+        }
         probe = { state, at: Date.now() };
         return state;
       })().finally(() => {

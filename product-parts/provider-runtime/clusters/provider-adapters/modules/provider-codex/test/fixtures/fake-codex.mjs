@@ -2,6 +2,7 @@
 //   fake-codex app-server              JSON-RPC over stdio: initialize, hooks/list, config/value/write
 //   fake-codex --version               prints a version
 //   fake-codex remote-control start    prints FAKE_RC_OUTPUT
+//   fake-codex remote-control stop     exits 0
 // State lives in $CODEX_HOME (config.toml) and every request is appended to $CODEX_HOME/calls.jsonl.
 import { createHash } from 'node:crypto';
 import { appendFileSync, existsSync, readFileSync } from 'node:fs';
@@ -22,6 +23,10 @@ if (command === '--version') {
 if (command === 'remote-control' && sub === 'start') {
   log({ argv: process.argv.slice(2) });
   process.stdout.write((process.env.FAKE_RC_OUTPUT ?? '{"mode":"daemon","status":"connected"}') + '\n');
+  process.exit(0);
+}
+if (command === 'remote-control' && sub === 'stop') {
+  log({ argv: process.argv.slice(2) });
   process.exit(0);
 }
 if (command !== 'app-server') process.exit(2);

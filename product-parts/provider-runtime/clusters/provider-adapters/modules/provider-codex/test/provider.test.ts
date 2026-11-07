@@ -6,7 +6,7 @@ import { after, before, test } from 'node:test';
 import { installStructure, recordSessionStart } from '#kit-structure';
 import { providerSessionsFile } from '#provider-registry';
 import type { Project, Provider } from '#provider-registry';
-import { CONNECTING_REASON, KIT_HOOK_COMMAND, KIT_HOOK_COMMANDS, createCodexProvider } from '../src/index.ts';
+import { CONNECTING_REASON, KIT_HOOK_COMMAND, STALE_LOGIN_REASON, KIT_HOOK_COMMANDS, createCodexProvider } from '../src/index.ts';
 import type { FakeDaemon } from './fake-daemon.ts';
 import { fakeMachine } from './helpers.ts';
 import type { FakeMachine } from './helpers.ts';
@@ -174,6 +174,33 @@ test('a daemon that is connecting asks to wait; a silent probe keeps the known s
     assert.match((await provider2.capabilities())['createSession']?.reason ?? '', /Подключить к ChatGPT/);
   } finally {
     await local.close();
+    daemon = await machine.daemon();
+  }
+});
+
+test('a daemon that holds a login refreshed after its start is restarted, not sent to codex login; MCP 401 lines are ignored', async () => {
+  const stale = await machine.daemon({ remoteControl: 'disabled' });
+  const daemonDir = path.join(machine.codexHome, 'app-server-daemon');
+  try {
+    const startSeconds = Math.floor(Date.now() / 1000) - 3600;
+    await writeFile(path.join(daemonDir, 'daemon.pid'), JSON.stringify({ pid: process.pid, processStartTime: 'earlier', processIdentity: { startSeconds } }));
+    await writeFile(path.join(daemonDir, 'daemon.stderr.log'), 'ERROR rmcp::transport::worker: HTTP 401 Unauthorized token\n');
+    await writeFile(path.join(machine.codexHome, 'auth.json'), '{}');
+    const local = createCodexProvider(machine.context());
+    await local.refresh!();
+    assert.notEqual((await local.status()).label, 'ошибка входа', 'an MCP server 401 is not the ChatGPT login');
+    await writeFile(path.join(daemonDir, 'daemon.stderr.log'), 'ERROR codex_models_manager: unexpected status 401 Unauthorized: Encountered invalidated oauth token\n');
+    await local.refresh!();
+    const status = await local.status();
+    assert.deepEqual([status.state, status.label, status.note], ['error', 'демон держит устаревший вход', STALE_LOGIN_REASON]);
+    assert.equal((await local.capabilities())['createSession']?.reason, STALE_LOGIN_REASON);
+    const [action] = await local.actions(null);
+    assert.deepEqual([action?.title, action?.enabled], ['Перезапустить демон', true]);
+    await local.runAction('daemon-start', null);
+    const argvs = (await machine.calls()).filter((c) => c.argv).map((c) => c.argv!.join(' '));
+    assert.deepEqual(argvs.slice(-2), ['remote-control stop', 'remote-control start --json']);
+  } finally {
+    await stale.close();
     daemon = await machine.daemon();
   }
 });

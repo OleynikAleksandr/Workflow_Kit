@@ -4,7 +4,7 @@
 import type { Provider, ProviderContext, ProviderFactory } from '#provider-registry';
 import { createCodexProvider } from './provider.ts';
 
-export { CONNECTING_REASON, DAEMON_START_ACTION, LOGIN_HINT, PROVIDER_ID, PROVIDER_TITLE, createCodexProvider, parseRemoteControlStart } from './provider.ts';
+export { CONNECTING_REASON, DAEMON_START_ACTION, STALE_LOGIN_REASON, LOGIN_HINT, PROVIDER_ID, PROVIDER_TITLE, createCodexProvider, parseRemoteControlStart } from './provider.ts';
 export type { CodexDeps, DaemonOpener, DaemonState, ProgramState } from './runtime.ts';
 export type { AppServerOpener, AppServerSpec } from './stdio.ts';
 export type { RpcTransport } from './rpc.ts';

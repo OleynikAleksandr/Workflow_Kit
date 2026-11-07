@@ -44,11 +44,14 @@ function connecting(daemon: DaemonState): boolean {
   return daemon.running && !daemon.error && (daemon.remoteControl === null || daemon.remoteControl === 'connecting');
 }
 
+/** Text of a daemon that holds a login the ChatGPT app has refreshed meanwhile. */
+export const STALE_LOGIN_REASON = 'Приложение ChatGPT обновило вход после запуска демона — «Перезапустить демон»';
+
 /** Text of a daemon that runs and is still connecting: nothing to do but wait. */
 export const CONNECTING_REASON = 'ChatGPT подключается к демону Codex — подождите несколько секунд';
 
 function loginProblem(daemon: DaemonState): boolean {
-  return daemon.running && (daemon.remoteControl === 'errored' || (daemon.remoteControl !== 'connected' && daemon.tokenError !== null));
+  return daemon.running && !daemon.staleLogin && (daemon.remoteControl === 'errored' || (daemon.remoteControl !== 'connected' && daemon.tokenError !== null));
 }
 
 function buildStatus(rt: CodexRuntime, daemon: DaemonState): ProviderStatus {
@@ -60,6 +63,9 @@ function buildStatus(rt: CodexRuntime, daemon: DaemonState): ProviderStatus {
   const base = { implemented: true, installed: program.installed, version: program.version, path: program.path, checkedAt: program.checkedAt, details };
   if (rt.context.platform === 'win32') return { ...base, state: 'unavailable', label: 'Windows: недоступно', note: WINDOWS_REASON };
   if (program.installed === false) return { ...base, state: 'not-installed', label: 'не установлен', note: program.error ?? 'codex не найден' };
+  if (daemon.running && daemon.staleLogin && daemon.remoteControl !== 'connected') {
+    return { ...base, state: 'error', label: 'демон держит устаревший вход', note: STALE_LOGIN_REASON };
+  }
   if (loginProblem(daemon)) {
     return { ...base, state: 'error', label: 'ошибка входа', note: `${daemon.tokenError ?? 'соединение с ChatGPT в ошибке'}. ${LOGIN_HINT}` };
   }
@@ -91,6 +97,7 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
     const daemon = await rt.daemon();
     let create: string | null = missing;
     if (!create && !daemon.running) create = 'демон Codex не запущен — «Запустить демон»';
+    else if (!create && daemon.staleLogin && daemon.remoteControl !== 'connected') create = STALE_LOGIN_REASON;
     else if (!create && loginProblem(daemon)) create = `ошибка входа Codex — ${LOGIN_HINT}`;
     else if (!create && connecting(daemon)) create = CONNECTING_REASON;
     else if (!create && daemon.error) create = `демон Codex не отвечает: ${daemon.error}`;
@@ -114,12 +121,27 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
     if (!daemon.running) return [action];
     // A running daemon: the action only makes sense when its link to ChatGPT is off or failed.
     if (daemon.remoteControl === 'connected') return [{ ...action, enabled: false, reason: 'демон работает и подключён к ChatGPT' }];
+    if (daemon.staleLogin) {
+      return [{ ...action, title: 'Перезапустить демон', confirm: 'Перезапустить демон Codex, чтобы он перечитал вход (codex remote-control stop, затем start)? Чаты, открытые через демон на iPad, переподключатся.' }];
+    }
     if (connecting(daemon)) return [{ ...action, enabled: false, reason: CONNECTING_REASON }];
     return [{ ...action, title: 'Подключить к ChatGPT', confirm: 'Подключить работающий демон Codex к ChatGPT (codex remote-control start)?' }];
   };
 
   const startDaemon = async (): Promise<ProviderStatus> => {
     requireCodex(rt);
+    // A daemon with a stale login keeps it until it restarts: stop it first.
+    const before = await rt.daemon(true);
+    if (before.running && before.staleLogin) {
+      const stopped = await context.runCommand(rt.command(), ['remote-control', 'stop'], { cwd: context.homedir, env: rt.childEnv(), timeoutMs: 30_000 });
+      rt.forgetDaemon();
+      if (stopped.startError || stopped.code !== 0) {
+        throw new ProviderError('daemon-stop-failed', `Демон Codex не остановился: ${stopped.startError ?? (stopped.stderr.trim().slice(0, 200) || `код ${stopped.code}`)}`, {
+          hint: 'Выполните codex remote-control stop в Терминале, затем «Запустить демон».',
+        });
+      }
+      context.log('codex: daemon stopped to reload a refreshed login');
+    }
     const result = await context.runCommand(rt.command(), ['remote-control', 'start', '--json'], {
       cwd: context.homedir,
       env: rt.childEnv(),

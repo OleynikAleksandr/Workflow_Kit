@@ -22,6 +22,7 @@ app-server на весь Mac, доверие к папке, одобрение �
   `releaseWaitMs` и `releasePollMs` (ожидание выгрузки треда демоном).
 - Константы: `PROVIDER_ID` = `codex`, `PROVIDER_TITLE`,
   `DAEMON_START_ACTION` = `daemon-start`, `LOGIN_HINT`, `CONNECTING_REASON`,
+  `STALE_LOGIN_REASON`,
   `KIT_HOOK_COMMAND` (= `hookCommand('codex')` из `kit-structure`),
   `KIT_HOOK_COMMANDS` (команды всех хуков Kit v2: SessionStart, Stop,
   UserPromptSubmit), `isExactKitCommand(command)`,
@@ -75,7 +76,11 @@ app-server на весь Mac, доверие к папке, одобрение �
   подключён». Состояния: `ready` «демон подключён»; `unavailable` «демон не
   запущен», «подключается к ChatGPT» (`connecting` или статуса ещё не было;
   причина `CONNECTING_REASON` — подождать) и «связь с ChatGPT: disabled»;
-  `error` «ошибка
+  `error` «демон держит устаревший вход» (`staleLogin`: в журнале демона
+  строка 401 и `~/.codex/auth.json` новее старта демона —
+  `processIdentity.startSeconds` в `daemon.pid`; приложение ChatGPT
+  обновило вход, демон держит старый токен; причина `STALE_LOGIN_REASON`);
+  строки MCP-серверов (`rmcp::`) ошибкой входа не считаются; `error` «ошибка
   входа» с заметкой «… Выполните codex login в Терминале, затем «Запустить
   демон»» (статус `errored` или строка 401 в журнале демона); `error`
   «демон не отвечает»; `not-installed`. `details`: `daemon { running,
@@ -85,7 +90,9 @@ app-server на весь Mac, доверие к папке, одобрение �
   --json` (таймаут 90 с), затем проверка сокета. `errored` —
   `ProviderError('codex-login')` с подсказкой `codex login`. У работающего
   демона действие нужно только при выключенной или упавшей связи — тогда
-  оно называется «Подключить к ChatGPT»; пока связь подключается или
+  оно называется «Подключить к ChatGPT»; при `staleLogin` — «Перезапустить
+  демон»: `codex remote-control stop` (ошибка — `daemon-stop-failed`),
+  затем `start`; пока связь подключается или
   подключена, оно выключено с причиной. Проектных действий нет.
 - **Доверие** (D7): `trust(project)` читает `trust_level` из `config.toml`
   (доверие к `/` или к домашней папке не считается). `previewTrust`

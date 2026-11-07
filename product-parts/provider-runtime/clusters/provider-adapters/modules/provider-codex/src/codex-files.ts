@@ -10,6 +10,8 @@ export interface CodexPaths {
   config: string;
   daemonPid: string;
   daemonStderr: string;
+  /** Login of the CLI and the apps (ChatGPT refreshes it). */
+  auth: string;
   controlSocket: string;
   sessionIndex: string;
 }
@@ -23,6 +25,7 @@ export function codexPaths(homedir: string, env: Readonly<Record<string, string 
     config: path.join(home, 'config.toml'),
     daemonPid: path.join(home, 'app-server-daemon', 'daemon.pid'),
     daemonStderr: path.join(home, 'app-server-daemon', 'daemon.stderr.log'),
+    auth: path.join(home, 'auth.json'),
     controlSocket: path.join(home, 'app-server-control', 'app-server-control.sock'),
     sessionIndex: path.join(home, 'session_index.jsonl'),
   };
@@ -113,13 +116,15 @@ export function cachedText(): (file: string) => Promise<string | null> {
 }
 
 /** Daemon pid file contents: { pid, processStartTime, … }; null when missing or unreadable. */
-export async function readDaemonPid(file: string): Promise<{ pid: number; startedAt: string | null } | null> {
+export async function readDaemonPid(file: string): Promise<{ pid: number; startedAt: string | null; startMs: number | null } | null> {
   try {
     const value = JSON.parse(await readFile(file, 'utf8')) as Record<string, unknown>;
     const pid = value['pid'];
     if (typeof pid !== 'number' || !Number.isInteger(pid) || pid <= 0) return null;
     const started = value['processStartTime'];
-    return { pid, startedAt: typeof started === 'string' ? started : null };
+    const identity = value['processIdentity'] as Record<string, unknown> | undefined;
+    const seconds = identity && typeof identity['startSeconds'] === 'number' ? identity['startSeconds'] : null;
+    return { pid, startedAt: typeof started === 'string' ? started : null, startMs: seconds === null ? null : seconds * 1000 };
   } catch {
     return null;
   }
@@ -160,6 +165,8 @@ export function tokenErrorLine(stderrTail: string): string | null {
   const lines = stderrTail.replace(/\u001b\[[0-9;]*m/g, '').split('\n');
   for (let i = lines.length - 1; i >= 0; i -= 1) {
     const line = lines[i]!;
+    // An MCP server's own 401 (rmcp transport) is about that server, not the ChatGPT login.
+    if (/\brmcp::/.test(line)) continue;
     if (/\b401\b/.test(line) && /token|unauthori[sz]ed/i.test(line)) return line.trim().slice(0, 300);
     if (/token (?:has )?expired|refresh token/i.test(line)) return line.trim().slice(0, 300);
   }

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 133,
+  "revision": 135,
   "rounds": [
     {
       "digest": {
@@ -111,7 +111,7 @@
       },
       "id": "R5",
       "kind": "fixes",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Fixes"
     }
   ],
@@ -144,7 +144,7 @@
         "text": "Claude: имя передаёт хук UserPromptSubmit полем hookSpecificOutput.sessionTitle"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cfa00ffe-c414-4ae6-9953-e3d2906b3705",
@@ -704,7 +704,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: release 0.3.1",
-      "confirmation": null,
+      "confirmation": "Объясни мне, пожалуйста, вот эти противоречивые надписи… все это создает полное непонимание пользователя, что ему делать.",
       "context": [],
       "dependencies": [
         "T011",
@@ -722,7 +722,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R5",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Релиз 0.3.1",
       "why": "Релиз 0.3.1"
     }
@@ -734,11 +734,11 @@
 ## State
 
 - Scope: m3-fixes (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 17/18
-- Revision: 133
+- Progress: 18/18
+- Revision: 135
 
 ## Objective
 
@@ -823,7 +823,7 @@ Digest: Имя сессии Claude из Kit уходит в приложение
 
 Digest: Главный экран без карточки «Начните с проекта» (создание и выбор проекта — в меню «Ваши проекты»); принято правило: каждый релиз повышает версию, веха 3 — 0.3.x.
 
-### R5 — Fixes (fixes, OPEN)
+### R5 — Fixes (fixes, CLOSED)
 
 - [DONE] T011 — Согласованное состояние демона Codex (work)
   - Commit: fix: report the Codex daemon connection consistently
@@ -836,7 +836,7 @@ Digest: Главный экран без карточки «Начните с п
   - Commit: docs: reconcile documentation for R5
   - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/control-panel/clusters/web-panel/modules/project-wizard/module.md
   - Depends on: T011, T012
-- [TODO] T013 — Релиз 0.3.1 (delivery)
+- [DONE] T013 — Релиз 0.3.1 (delivery)
   - Commit: chore: release 0.3.1
   - Files: package.json, package-lock.json, docs/evidence/M3-acceptance.md
   - Depends on: T011, T012, DOCS-R5

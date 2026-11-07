@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 166,
+  "revision": 168,
   "rounds": [
     {
       "digest": {
@@ -174,7 +174,7 @@
       },
       "id": "R8",
       "kind": "fixes",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Мастер с чистого листа и сообщение агенту из панели"
     }
   ],
@@ -207,7 +207,7 @@
         "text": "Claude: имя передаёт хук UserPromptSubmit полем hookSpecificOutput.sessionTitle"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cfa00ffe-c414-4ae6-9953-e3d2906b3705",
@@ -1254,7 +1254,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: release 0.3.4",
-      "confirmation": null,
+      "confirmation": "Ладно. Закрой всё и внеси исправлени которые ты уже обнаружил и собери новый релиз",
       "context": [],
       "dependencies": [
         "DOCS-R8"
@@ -1270,7 +1270,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R8",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Релиз 0.3.4",
       "why": "Релиз 0.3.4"
     }
@@ -1282,11 +1282,11 @@
 ## State
 
 - Scope: m3-fixes (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 31/32
-- Revision: 166
+- Progress: 32/32
+- Revision: 168
 
 ## Objective
 
@@ -1436,7 +1436,7 @@ Digest: Демон Codex с устаревшим входом распознаё
 
 Digest: Оркестрация встроенными подагентами доступна сессиям Claude и ChatGPT: оркестратор раздаёт назначения Kit подагентам своего приложения (Claude — Agent с worktree, Codex — свой git worktree и spawn_agent) и интегрирует их коммиты.
 
-### R8 — Мастер с чистого листа и сообщение агенту из панели (fixes, OPEN)
+### R8 — Мастер с чистого листа и сообщение агенту из панели (fixes, CLOSED)
 
 - [DONE] T022 — Мастер нового проекта начинает с чистого листа (work)
   - Commit: fix: start the project wizard from a clean state
@@ -1448,7 +1448,7 @@ Digest: Оркестрация встроенными подагентами д�
   - Commit: docs: reconcile documentation for R8
   - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/control-panel/clusters/web-panel/modules/project-wizard/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md
   - Depends on: T022, T023
-- [TODO] T024 — Релиз 0.3.4 (delivery)
+- [DONE] T024 — Релиз 0.3.4 (delivery)
   - Commit: chore: release 0.3.4
   - Files: package.json, package-lock.json, docs/evidence/M3-acceptance.md
   - Depends on: DOCS-R8

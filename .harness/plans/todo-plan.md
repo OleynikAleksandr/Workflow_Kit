@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 164,
+  "revision": 166,
   "rounds": [
     {
       "digest": {
@@ -160,7 +160,18 @@
       "title": "Orchestration with built-in subagents"
     },
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "agent-channel: POST /api/projects/:id/sessions/:sid/message { text }"
+        ],
+        "decisions": [
+          "Сообщение панели идёт через очередь канала; ожидающая сессия Claude будится"
+        ],
+        "references": [
+          "docs/planning/M3-orchestration.md"
+        ],
+        "result": "Мастер начинает каждый вход с чистого листа и переходит к сессии; на экране сессии есть «Сообщение агенту»."
+      },
       "id": "R8",
       "kind": "fixes",
       "status": "OPEN",
@@ -1232,7 +1243,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R8",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -1274,8 +1285,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 30/32
-- Revision: 164
+- Progress: 31/32
+- Revision: 166
 
 ## Objective
 
@@ -1433,7 +1444,7 @@ Digest: Оркестрация встроенными подагентами д�
 - [DONE] T023 — Сообщение агенту из экрана сессии (work)
   - Commit: feat: send a message to the session agent from the panel
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/channel.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.css, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/index.ts
-- [TODO] DOCS-R8 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R8 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R8
   - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/control-panel/clusters/web-panel/modules/project-wizard/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md
   - Depends on: T022, T023
@@ -1441,5 +1452,7 @@ Digest: Оркестрация встроенными подагентами д�
   - Commit: chore: release 0.3.4
   - Files: package.json, package-lock.json, docs/evidence/M3-acceptance.md
   - Depends on: DOCS-R8
+
+Digest: Мастер начинает каждый вход с чистого листа и переходит к сессии; на экране сессии есть «Сообщение агенту».
 
 State changes only through `scripts/workflow` commands. History lives in Git.

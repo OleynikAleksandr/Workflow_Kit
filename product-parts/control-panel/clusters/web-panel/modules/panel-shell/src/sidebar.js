@@ -226,8 +226,6 @@ export function createSidebar(handlers) {
     more.addEventListener('click', (event) => {
       event.stopPropagation();
       openMenu(more, [
-        // A Claude session comes back by itself when it is opened: its chat link could lead to an archived channel.
-        ...(session.provider === 'claude' ? [] : [{ label: 'Открыть чат', onSelect: () => handlers.openChat(session) }]),
         { label: 'Переименовать', onSelect: () => handlers.renameSession(projectId, session) },
         { label: 'В архив', hint: 'сессия в приложении не удаляется', onSelect: () => handlers.archiveSession(projectId, session, true) },
       ]);
@@ -239,7 +237,12 @@ export function createSidebar(handlers) {
       h('small', {}, [meta]),
       h('span', { class: `badge ${session.provider}` }, [session.providerLabel]),
     ]);
-    const go = () => handlers.navigate({ screen: 'session', projectId, key: session.key });
+    // A click on the card opens the session; a ChatGPT session also opens its chat in the app (a
+    // Claude session comes back by itself when it is opened and has no chat link).
+    const go = () => {
+      handlers.navigate({ screen: 'session', projectId, key: session.key });
+      if (session.provider !== 'claude') handlers.openChat(session);
+    };
     node.addEventListener('click', go);
     node.addEventListener('keydown', (event) => {
       if (event.key === 'Enter') go();

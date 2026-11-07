@@ -4,7 +4,7 @@
 import { api, ApiError } from './api.js';
 import { requestRefresh } from './cards.js';
 import { h, notice } from './dom.js';
-import { deviceLink } from './view-model.js';
+import { chatStatus, deviceLink } from './view-model.js';
 
 /** localStorage key of the collapsed projects of the tree (per device). */
 const COLLAPSED_KEY = 'wfk.tree.collapsed';
@@ -102,12 +102,13 @@ export function createActions(options) {
       );
     },
     /**
-     * State line of a Claude session instead of «Открыть чат»; null for other providers.
+     * State line of the session screen instead of «Открыть чат»: the Claude process state, or
+     * for ChatGPT that the chat opens from the session card.
      * @param {SessionRow} session
-     * @returns {{ text: string, tone: 'ok' | 'muted' | 'error' } | null}
+     * @returns {{ text: string, tone: 'ok' | 'muted' | 'error' }}
      */
     sessionStatus(session) {
-      if (session.provider !== 'claude') return null;
+      if (session.provider !== 'claude') return chatStatus(session, deviceLink(session.links, navigator.maxTouchPoints ?? 0));
       if (session.state === 'running') return { text: 'открыта в Claude — группа Remote Control', tone: 'ok' };
       const error = reviving.get(session.key)?.error;
       if (error) return { text: `не удалось поднять сессию: ${error}`, tone: 'error' };

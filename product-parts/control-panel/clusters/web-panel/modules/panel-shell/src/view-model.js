@@ -351,6 +351,16 @@ export function deviceLink(links, maxTouchPoints) {
 }
 
 /**
+ * Header line of a session whose chat opens from its card (ChatGPT) instead of «Открыть чат».
+ * @param {{ note?: string | null }} session
+ * @param {string | null} link the chat link for this device
+ * @returns {{ text: string, tone: 'muted' }}
+ */
+export function chatStatus(session, link) {
+  return { text: link ? 'чат открывается щелчком по карточке сессии' : (session.note ?? 'ссылки нет'), tone: 'muted' };
+}
+
+/**
  * Theme attribute for the root element: undefined follows the system.
  * @param {string | null} saved
  * @returns {'light' | 'dark' | undefined}

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 209,
+  "revision": 211,
   "rounds": [
     {
       "digest": {
@@ -416,7 +416,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R4",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Карточка сессии ChatGPT открывает чат",
       "why": "Карточка сессии ChatGPT открывает чат"
     },
@@ -485,8 +485,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 9/12
-- Revision: 209
+- Progress: 10/12
+- Revision: 211
 
 ## Objective
 
@@ -550,7 +550,7 @@ Digest: Сессия ChatGPT создаётся и тогда, когда уда
 
 ### R4 — Щелчок по сессии ChatGPT открывает чат (fixes, OPEN)
 
-- [TODO] T007 — Карточка сессии ChatGPT открывает чат (work)
+- [DONE] T007 — Карточка сессии ChatGPT открывает чат (work)
   - Commit: feat: a click on a ChatGPT session card opens its chat
   - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/sidebar.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/actions.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/screens.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/view-model.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md
 - [TODO] DOCS-R4 — Reconcile project documentation and write the round digest (docs)

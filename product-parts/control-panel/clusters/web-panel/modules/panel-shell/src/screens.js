@@ -102,8 +102,8 @@ export function projectScreen(project, handlers) {
 }
 
 /**
- * Header of the session screen: name, project, provider, start time and «Открыть чат» (ChatGPT) or
- * the state of the session process (Claude: the session is revived, no chat link). The body
+ * Header of the session screen: name, project, provider, start time and a state line (Claude: the
+ * session process, it is revived; ChatGPT: the chat opens from the session card). The body
  * (activity, choice and plan cards) comes from the "sessionBody" slot.
  * @param {{ project: ProjectRow, session: SessionRow, link: string | null, status?: { text: string, tone: string } | null }} data
  * @returns {HTMLElement}
@@ -112,9 +112,7 @@ export function sessionHeader(data) {
   const { project, session } = data;
   const open = data.status
     ? h('span', { class: data.status.tone === 'error' ? 'error' : data.status.tone === 'ok' ? 'ok' : 'muted' }, [data.status.text])
-    : data.link
-      ? h('a', { href: data.link, class: 'chat-link', target: '_blank', rel: 'noopener' }, ['Открыть чат'])
-      : h('span', { class: 'muted' }, [session.note ?? 'ссылки нет']);
+    : h('span', { class: 'muted' }, [session.note ?? 'ссылки нет']);
   return header(session.name, [`${project.name} · ${session.providerLabel} · начата ${session.when} · `, open]);
 }
 

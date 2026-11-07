@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
+  chatStatus,
   deviceLink,
   filterProjects,
   formatElapsed,
@@ -159,3 +160,10 @@ test('archive rows are chosen like in Workflow Pilot: click, ⌘ toggle, Shift r
   assert.deepEqual(selectRows(ids, ['b'], 'b', 'd', { toggle: true }).selected, ['b', 'd']);
   assert.deepEqual(selectRows(ids, ['b', 'd'], 'd', 'b', { toggle: true }).selected, ['d']);
 });
+
+test('a ChatGPT session header says the chat opens from the card; without a link it shows the note', () => {
+  assert.deepEqual(chatStatus({}, 'codex://threads/t1'), { text: 'чат открывается щелчком по карточке сессии', tone: 'muted' });
+  assert.deepEqual(chatStatus({ note: 'без ссылки' }, null), { text: 'без ссылки', tone: 'muted' });
+  assert.deepEqual(chatStatus({}, null), { text: 'ссылки нет', tone: 'muted' });
+});
+

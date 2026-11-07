@@ -25,6 +25,9 @@ export function install(shell) {
   shell.registerSlot('newProject', { create: (ctx) => createWizard(shell, ctx) });
 }
 
+/** How often a preview with a provider that is not ready is read again. */
+const PREVIEW_RECHECK_MS = 5000;
+
 /**
  * @param {Shell} shell
  * @param {SlotContext} ctx
@@ -50,6 +53,10 @@ function createWizard(shell, ctx) {
   let runKey = '';
   /** @type {Record<string, unknown>} */
   let state = {};
+  /** When the preview was last read: a provider that is not ready is re-checked every few seconds. */
+  let previewAt = 0;
+  /** Provider actions last drawn under the provider buttons. */
+  let actionKey = '';
 
   const message = h('div', { class: 'notice', role: 'alert' });
   message.hidden = true;
@@ -97,6 +104,7 @@ function createWizard(shell, ctx) {
     notice(message, 'muted', '');
     try {
       preview = await shell.api('POST', '/api/setup/preview', input);
+      previewAt = Date.now();
       request = input;
       answers = {};
       stage = 'preview';
@@ -106,6 +114,27 @@ function createWizard(shell, ctx) {
     } finally {
       busy = false;
       next.disabled = false;
+    }
+  }
+
+  /**
+   * Re-reads the preview of the same request without touching the answers: the readiness of the
+   * provider buttons and the provider actions then come from the same moment.
+   */
+  async function refreshPreview() {
+    if (busy || stage !== 'preview' || !request) return;
+    busy = true;
+    previewAt = Date.now();
+    try {
+      const fresh = await shell.api('POST', '/api/setup/preview', request);
+      if (stage !== 'preview' || !preview) return;
+      const before = JSON.stringify(buttonViews(preview, answers));
+      preview = fresh;
+      if (JSON.stringify(buttonViews(fresh, answers)) !== before) draw();
+    } catch {
+      // The next state update tries again.
+    } finally {
+      busy = false;
     }
   }
 
@@ -208,9 +237,16 @@ function createWizard(shell, ctx) {
       ctx.requestRefresh();
       // The preview tells whether the provider is ready now.
       setTimeout(() => {
-        if (request && stage === 'preview') void loadPreview(request).then(() => notice(message, 'muted', ''));
+        void refreshPreview().then(() => notice(message, 'muted', ''));
       }, 3000);
     } catch (error) {
+      // Not needed any more (for example the daemon connected meanwhile): no error, just re-check.
+      if (error instanceof shell.ApiError && error.code === 'action-disabled') {
+        notice(message, 'muted', '');
+        ctx.requestRefresh();
+        void refreshPreview();
+        return;
+      }
       fail(error);
     }
   }
@@ -305,6 +341,17 @@ function createWizard(shell, ctx) {
         else nameInput.focus();
         return;
       }
+      if (stage === 'preview' && preview) {
+        const waiting = buttonViews(preview, answers).some((b) => !b.enabled);
+        if (waiting && Date.now() - previewAt > PREVIEW_RECHECK_MS) void refreshPreview();
+        // The provider actions follow the providers section of the new state (redrawn only on change).
+        const key = waiting ? actionsKey(nextState) : '';
+        if (key !== actionKey) {
+          actionKey = key;
+          draw();
+        }
+        return;
+      }
       if (stage !== 'run' || !operationId) return;
       const run = findRun(nextState, operationId);
       const key = JSON.stringify(run);
@@ -318,6 +365,15 @@ function createWizard(shell, ctx) {
       }
     },
   };
+}
+
+/**
+ * The provider-level actions of the state, as a key that changes when any of them changes.
+ * @param {Record<string, unknown>} state
+ */
+function actionsKey(state) {
+  const providers = /** @type {{ providers?: Array<{ id?: unknown, actions?: unknown }> }} */ (state['providers'] ?? {}).providers ?? [];
+  return JSON.stringify(providers.map((p) => [p.id, p.actions]));
 }
 
 /**

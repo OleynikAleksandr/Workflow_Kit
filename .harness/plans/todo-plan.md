@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 129,
+  "revision": 131,
   "rounds": [
     {
       "digest": {
@@ -651,7 +651,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R5",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Мастер перечитывает готовность провайдера",
       "why": "Причина у кнопки провайдера и список действий были из разных моментов"
     },
@@ -724,8 +724,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 15/18
-- Revision: 129
+- Progress: 16/18
+- Revision: 131
 
 ## Objective
 
@@ -816,7 +816,7 @@ Digest: Главный экран без карточки «Начните с п
   - Commit: fix: report the Codex daemon connection consistently
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/runtime.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/helpers.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md
   - Fixes: T001
-- [TODO] T012 — Мастер перечитывает готовность провайдера (work)
+- [DONE] T012 — Мастер перечитывает готовность провайдера (work)
   - Commit: fix: keep provider readiness fresh in the project wizard
   - Files: product-parts/control-panel/clusters/web-panel/modules/project-wizard/src/wizard-model.js, product-parts/control-panel/clusters/web-panel/modules/project-wizard/src/project-wizard.css, product-parts/control-panel/clusters/web-panel/modules/project-wizard/src/project-wizard.js, product-parts/control-panel/clusters/web-panel/modules/project-wizard/src/index.ts, product-parts/control-panel/clusters/web-panel/modules/project-wizard/module.md, product-parts/control-panel/clusters/web-panel/modules/project-wizard/test/wizard-model.test.ts
 - [TODO] DOCS-R5 — Reconcile project documentation and write the round digest (docs)

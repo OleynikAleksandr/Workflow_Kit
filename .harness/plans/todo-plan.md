@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 153,
+  "revision": 155,
   "rounds": [
     {
       "digest": {
@@ -1053,7 +1053,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R7",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Процедуры оркестратора в AGENTS.md",
       "why": "Агент должен знать, как раздавать назначения встроенным подагентам своего приложения"
     },
@@ -1128,8 +1128,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 25/28
-- Revision: 153
+- Progress: 26/28
+- Revision: 155
 
 ## Objective
 
@@ -1265,7 +1265,7 @@ Digest: Демон Codex с устаревшим входом распознаё
 - [DONE] T019 — Оркестрация доступна сессиям ChatGPT (work)
   - Commit: feat: offer orchestration with built-in subagents to ChatGPT sessions
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/texts.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/decide.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/autopilot.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/decide.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/flow.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/src/index.ts, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/src/kit-types.ts, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/src/plan-view.ts, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/test/plan-view.test.ts, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md
-- [TODO] T020 — Процедуры оркестратора в AGENTS.md (work)
+- [DONE] T020 — Процедуры оркестратора в AGENTS.md (work)
   - Commit: docs: describe the orchestrator procedure for Claude and Codex in the Kit section
   - Files: product-parts/backend-core/clusters/projects/modules/kit-structure/src/templates.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/module.md, product-parts/backend-core/clusters/projects/modules/kit-structure/test/markers.test.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/test/structure.test.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/test/session-hook.test.ts
 - [TODO] DOCS-R7 — Reconcile project documentation and write the round digest (docs)

@@ -61,6 +61,27 @@ only in this chat.
   the user (the Stop and UserPromptSubmit hooks deliver them). Follow them
   as the user's instructions.
 
+### Orchestration with your app's subagents
+
+In the orchestrated mode this session is the orchestrator: it does not
+implement work or DOCS tasks itself (QUALITY and delivery tasks it runs in
+main). For each ready task run \`scripts/workflow assignment:create --task <ID>\`
+and give the printed brief to a subagent of your app; independent
+assignments may run in parallel, up to \`maxWorkers\` of the plan. Integrate
+the SHA the subagent replies with:
+\`scripts/workflow integration:start --id <assignment id> --source <sha>\`
+(on CONFLICT or CHECKS_FAILED fix within the task files, then
+\`integration:continue\`).
+
+- Claude: start the subagent with the Agent tool and \`isolation: "worktree"\`;
+  the worktree is made for it.
+- ChatGPT (Codex): Kit makes no worktree for a Codex subagent. Make it
+  yourself: \`git worktree add --detach .workflow-kit/local/worktrees/<assignment id> <baseCommit>\`
+  (\`baseCommit\` from the assignment:create output), start the subagent
+  with \`spawn_agent\`, give it the brief and the line "Your worktree is
+  <absolute path>; run every command with that workdir", and wait for its
+  SHA with \`wait_agent\`. Kit removes the worktree after the integration.
+
 ### Architecture: product-parts
 
 Code is organized as a tree of product parts, clusters and modules:

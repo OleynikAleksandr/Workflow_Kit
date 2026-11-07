@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 174,
+  "revision": 176,
   "rounds": [
     {
       "digest": {
@@ -178,7 +178,19 @@
       "title": "Мастер с чистого листа и сообщение агенту из панели"
     },
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "Provider: forgetProjects?, resumeInterrupted?; project-registry: addRemovedHook"
+        ],
+        "decisions": [
+          "Сессии Claude остаются на Remote Control: --resume возвращается в тот же канал после перезагрузки",
+          "Импорт в Desktop не используется: второй клиент ведёт к ветвлению переписки"
+        ],
+        "references": [
+          "docs/planning/M3-fixes.md"
+        ],
+        "result": "Удалённый проект забирает записи своих сессий; сессии Claude поднимаются сами в тот же канал Remote Control."
+      },
       "id": "R9",
       "kind": "fixes",
       "status": "OPEN",
@@ -1416,7 +1428,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R9",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -1458,8 +1470,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 34/36
-- Revision: 174
+- Progress: 35/36
+- Revision: 176
 
 ## Objective
 
@@ -1636,7 +1648,7 @@ Digest: Мастер начинает каждый вход с чистого л
 - [DONE] T027 — Сессии Claude поднимаются сами (work)
   - Commit: feat: revive stopped Claude sessions on open, at start and for panel messages
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/registry.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/routes.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/fake-provider.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/channel.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/channel.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/actions.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/screens.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/sidebar.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/view-model.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/slots.js
-- [TODO] DOCS-R9 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R9 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R9
   - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, docs/planning/M3-fixes.md, product-parts/backend-core/clusters/projects/modules/project-registry/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md
   - Depends on: T025, T027
@@ -1644,5 +1656,7 @@ Digest: Мастер начинает каждый вход с чистого л
   - Commit: chore: release 0.3.5
   - Files: package.json, package-lock.json, docs/evidence/M3-acceptance.md
   - Depends on: DOCS-R9
+
+Digest: Удалённый проект забирает записи своих сессий; сессии Claude поднимаются сами в тот же канал Remote Control.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

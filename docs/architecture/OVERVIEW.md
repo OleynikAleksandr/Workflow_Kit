@@ -2,8 +2,8 @@
 
 Состояние: веха 2 (`m2-interface-and-process`: процесс Kit 2.2.2 в
 проектах, мастер, автопилот, новый интерфейс) принята; веха 3
-(`m3-fixes`) — раунды исправлений; R7 — оркестрация подагентами
-Claude и ChatGPT, R8 — «Сообщение агенту»
+(`m3-fixes`) — раунды исправлений; R7 — подагенты,
+R8 — «Сообщение агенту», R9 — подъём сессий Claude
 ([M3-orchestration.md](../planning/M3-orchestration.md)). Веха 1 (`m1-orchestrator-core`) — с
 исправлениями D1–D3 первой приёмки
 ([M1-acceptance.md](../evidence/M1-acceptance.md)). Документ

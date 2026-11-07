@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 221,
+  "revision": 223,
   "rounds": [
     {
       "digest": {
@@ -88,7 +88,21 @@
       "title": "Щелчок по сессии ChatGPT открывает чат"
     },
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "POST /api/open-link (loopback, macOS, codex://threads)",
+          "SlotContext.openSession; arrivedSession, ARRIVAL_WAIT_MS",
+          "addBeforeDeleteHook; Provider.deleteSessions?; registry.deleteSessions"
+        ],
+        "decisions": [
+          "Чат новой сессии на Mac открывает служба (open), окно без щелчка может ссылку не открыть",
+          "Уборка проекта только из списка треды не трогает"
+        ],
+        "references": [
+          "docs/planning/M3-autostart.md#7"
+        ],
+        "result": "Новая сессия открывается сама, у ChatGPT — с чатом в приложении (на Mac ссылку открывает служба); удаление проекта с диска удаляет его треды ChatGPT."
+      },
       "id": "R5",
       "kind": "fixes",
       "status": "OPEN",
@@ -609,7 +623,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R5",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -651,8 +665,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 14/16
-- Revision: 221
+- Progress: 15/16
+- Revision: 223
 
 ## Objective
 
@@ -738,7 +752,7 @@ Digest: Щелчок по карточке сессии ChatGPT открывае
 - [DONE] T010 — Удаление проекта с диска удаляет треды ChatGPT (work)
   - Commit: feat: deleting a project from disk deletes its ChatGPT threads
   - Files: product-parts/backend-core/clusters/projects/modules/project-registry/src/registry.ts, product-parts/backend-core/clusters/projects/modules/project-registry/src/index.ts, product-parts/backend-core/clusters/projects/modules/project-registry/test/registry.test.ts, product-parts/backend-core/clusters/projects/modules/project-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/registry.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/routes.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/fake-provider.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/provider-lifecycle.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/providers.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md
-- [TODO] DOCS-R5 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R5 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R5
   - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/project-wizard/module.md, product-parts/backend-core/clusters/projects/modules/project-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md
   - Depends on: T009, T010
@@ -746,5 +760,7 @@ Digest: Щелчок по карточке сессии ChatGPT открывае
   - Commit: chore: release 0.3.11
   - Files: package.json, package-lock.json, docs/evidence/M3-acceptance.md
   - Depends on: DOCS-R5
+
+Digest: Новая сессия открывается сама, у ChatGPT — с чатом в приложении (на Mac ссылку открывает служба); удаление проекта с диска удаляет его треды ChatGPT.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

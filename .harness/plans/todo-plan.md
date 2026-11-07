@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 178,
+  "revision": 179,
   "rounds": [
     {
       "digest": {
@@ -195,6 +195,13 @@
       "kind": "fixes",
       "status": "CLOSED",
       "title": "Сессии удалённого проекта не переходят к новому с тем же путём"
+    },
+    {
+      "digest": null,
+      "id": "R10",
+      "kind": "fixes",
+      "status": "OPEN",
+      "title": "Архив останавливает сессии Claude"
     }
   ],
   "schema": "harness-workflow-plan/1",
@@ -226,7 +233,7 @@
         "text": "Claude: имя передаёт хук UserPromptSubmit полем hookSpecificOutput.sessionTitle"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "IN_PROGRESS",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cfa00ffe-c414-4ae6-9953-e3d2906b3705",
@@ -1458,6 +1465,116 @@
       "status": "DONE",
       "title": "Релиз 0.3.5",
       "why": "Релиз 0.3.5"
+    },
+    {
+      "acceptance": [
+        "Архив проекта останавливает его сессии Claude, удаление проекта больше не блокируется ими",
+        "Архив одной сессии в панели останавливает её",
+        "Сессия в архиве не поднимается при старте службы, при пробуждении и по запросу подъёма (archived, 409)",
+        "Возврат проекта или сессии из архива сразу поднимает её в тот же канал"
+      ],
+      "checks": [],
+      "commitMessage": "fix: archive stops Claude sessions, restore brings them back",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M3-fixes.md",
+          "heading": "12. Раунд 10: архив останавливает сессии Claude",
+          "required": true
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/archive.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/sessions.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/records.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/provider.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/provider.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/registry.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/routes.test.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/fake-provider.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md",
+        "product-parts/backend-core/clusters/projects/modules/project-registry/src/registry.ts",
+        "product-parts/backend-core/clusters/projects/modules/project-registry/src/index.ts",
+        "product-parts/backend-core/clusters/projects/modules/project-registry/test/registry.test.ts",
+        "product-parts/backend-core/clusters/projects/modules/project-registry/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/titles.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/session-titles/test/titles.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/provider-lifecycle.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/providers.test.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md"
+      ],
+      "fixes": null,
+      "id": "T028",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R10",
+      "status": "TODO",
+      "title": "Архив останавливает и поднимает сессии Claude",
+      "why": "Архив останавливает и поднимает сессии Claude"
+    },
+    {
+      "acceptance": [
+        "Project-wide documents describe the round result",
+        "The round digest records result, decisions, contracts and references"
+      ],
+      "checks": [],
+      "commitMessage": "docs: reconcile documentation for R10",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T028"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/architecture/OVERVIEW.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md",
+        "product-parts/backend-core/clusters/projects/modules/project-registry/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md"
+      ],
+      "fixes": null,
+      "id": "DOCS-R10",
+      "iteration": 1,
+      "kind": "docs",
+      "roundId": "R10",
+      "status": "TODO",
+      "title": "Reconcile project documentation and write the round digest",
+      "why": "Keep the project context current for the next agent and close the round."
+    },
+    {
+      "acceptance": [
+        "Версия 0.3.6",
+        "install ставит app/0.3.6, wfk doctor --installed — всё в порядке"
+      ],
+      "checks": [],
+      "commitMessage": "chore: release 0.3.6",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "DOCS-R10"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "package.json",
+        "package-lock.json",
+        "docs/evidence/M3-acceptance.md"
+      ],
+      "fixes": null,
+      "id": "T029",
+      "iteration": 1,
+      "kind": "delivery",
+      "roundId": "R10",
+      "status": "TODO",
+      "title": "Релиз 0.3.6",
+      "why": "Релиз 0.3.6"
     }
   ]
 }
@@ -1467,11 +1584,11 @@
 ## State
 
 - Scope: m3-fixes (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 36/36
-- Revision: 178
+- Progress: 36/39
+- Revision: 179
 
 ## Objective
 
@@ -1658,5 +1775,19 @@ Digest: Мастер начинает каждый вход с чистого л
   - Depends on: DOCS-R9
 
 Digest: Удалённый проект забирает записи своих сессий; сессии Claude поднимаются сами в тот же канал Remote Control.
+
+### R10 — Архив останавливает сессии Claude (fixes, OPEN)
+
+- [TODO] T028 — Архив останавливает и поднимает сессии Claude (work)
+  - Commit: fix: archive stops Claude sessions, restore brings them back
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/archive.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/records.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/registry.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/routes.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/fake-provider.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/backend-core/clusters/projects/modules/project-registry/src/registry.ts, product-parts/backend-core/clusters/projects/modules/project-registry/src/index.ts, product-parts/backend-core/clusters/projects/modules/project-registry/test/registry.test.ts, product-parts/backend-core/clusters/projects/modules/project-registry/module.md, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/titles.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/test/titles.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/provider-lifecycle.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/providers.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md
+- [TODO] DOCS-R10 — Reconcile project documentation and write the round digest (docs)
+  - Commit: docs: reconcile documentation for R10
+  - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/backend-core/clusters/projects/modules/project-registry/module.md, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md
+  - Depends on: T028
+- [TODO] T029 — Релиз 0.3.6 (delivery)
+  - Commit: chore: release 0.3.6
+  - Files: package.json, package-lock.json, docs/evidence/M3-acceptance.md
+  - Depends on: DOCS-R10
 
 State changes only through `scripts/workflow` commands. History lives in Git.

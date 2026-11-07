@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 204,
+  "revision": 206,
   "rounds": [
     {
       "digest": {
@@ -52,7 +52,18 @@
       "title": "Удалённое управление у приложения ChatGPT"
     },
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "provider-codex createSession: проверка соединения учитывает remoteOwner"
+        ],
+        "decisions": [
+          "createSession отказывает codex-login только без remoteOwner app"
+        ],
+        "references": [
+          "docs/planning/M3-autostart.md#5"
+        ],
+        "result": "Сессия ChatGPT создаётся и тогда, когда удалённое управление держит приложение ChatGPT."
+      },
       "id": "R3",
       "kind": "fixes",
       "status": "OPEN",
@@ -336,7 +347,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R3",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -378,8 +389,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 7/9
-- Revision: 204
+- Progress: 8/9
+- Revision: 206
 
 ## Objective
 
@@ -430,7 +441,7 @@ Digest: Соединение удалённого управления, заня
   - Commit: fix: create Codex sessions while the ChatGPT app holds remote control
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md
   - Fixes: T003
-- [TODO] DOCS-R3 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R3 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R3
   - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md
   - Depends on: T005
@@ -438,5 +449,7 @@ Digest: Соединение удалённого управления, заня
   - Commit: chore: release 0.3.9
   - Files: package.json, package-lock.json, docs/evidence/M3-acceptance.md
   - Depends on: DOCS-R3
+
+Digest: Сессия ChatGPT создаётся и тогда, когда удалённое управление держит приложение ChatGPT.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

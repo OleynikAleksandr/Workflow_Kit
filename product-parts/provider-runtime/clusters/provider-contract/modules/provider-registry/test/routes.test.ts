@@ -253,3 +253,13 @@ test('forgetProjects asks every provider that keeps records; a failure stays wit
   assert.deepEqual(Object.keys(result.errors), ['broken']);
   assert.deepEqual(keeper.kept, [['p1']]);
 });
+
+test('resumeInterrupted collects resumed sessions per provider and project; a failure stays local', async () => {
+  const own = createProviderRegistry();
+  own.register(createFakeProvider('keeper'));
+  own.register(createFakeProvider('broken'));
+  own.register(createFakeProvider('plain', { withOptional: false }));
+  const result = await own.resumeInterrupted([alpha]);
+  assert.deepEqual(result.resumed, [`keeper:${alpha.id}-s1`]);
+  assert.deepEqual(Object.keys(result.errors), [`broken:${alpha.id}`]);
+});

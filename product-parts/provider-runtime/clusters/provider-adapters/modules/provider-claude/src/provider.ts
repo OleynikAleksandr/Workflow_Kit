@@ -10,7 +10,7 @@ import { claudeCapabilities, ptyUnavailableReason } from './programs.ts';
 import { forgetProjects } from './records.ts';
 import { PROVIDER_ID, createRuntime } from './runtime.ts';
 import type { ClaudeProviderOptions, ClaudeRuntime } from './runtime.ts';
-import { createSession, listSessions, renameSession, resumeSession, stopSession, wakeSession } from './sessions.ts';
+import { createSession, listSessions, renameSession, resumeInterrupted, resumeSession, stopSession, wakeSession } from './sessions.ts';
 import { grantTrust, previewTrust, readTrust } from './trust.ts';
 
 /** Claude settings files whose hooks are listed (the Kit hook lives in the first one). */
@@ -138,6 +138,7 @@ export function createClaudeProvider(context: ProviderContext, options: ClaudePr
     },
     removeBlockers: (project) => environmentBlockers(rt, project),
     forgetProjects: (keep) => forgetProjects(rt.store, keep),
+    resumeInterrupted: (project) => resumeInterrupted(rt, project),
   };
 
   async function projectState(project: Project): Promise<ProjectProviderState> {

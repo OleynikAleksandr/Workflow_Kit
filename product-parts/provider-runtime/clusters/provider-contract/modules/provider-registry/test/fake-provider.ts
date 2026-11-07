@@ -113,6 +113,10 @@ export function createFakeProvider(id = 'fake', options: { withOptional?: boolea
       if (id === 'broken') throw new Error('records are unreadable');
       return 2;
     };
+    provider.resumeInterrupted = async (project) => {
+      if (id === 'broken') throw new Error('records are unreadable');
+      return [`${project.id}-s1`];
+    };
   }
   return provider;
 }

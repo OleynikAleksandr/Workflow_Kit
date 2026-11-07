@@ -35,6 +35,8 @@
   `removeBlockers?(project)` — причины не убирать проект (окружение).
   `forgetProjects?(keep)` — стереть записи (сессии, окружения) проектов, чьих id нет
   в `keep`; ответ — сколько записей стёрто (раунд R9).
+  `resumeInterrupted?(project)` — поднять сессии, процесс которых завершился без намеренной
+  остановки (перезагрузка, сбой); ответ — id поднятых (раунд R9, старт службы).
   Методы чтения (`status`, `capabilities`, `trust`, `hooks`,
   `listSessions`, `actions`) обязаны быть дешёвыми и только читать: их
   вызывает каждый опрос `/api/state`.
@@ -131,6 +133,8 @@ project)`, `section(projects)`, `removeBlockers(project)` (живые сесси
 `state: 'running'` и `removeBlockers?` провайдера, с названием провайдера).
 `forgetProjects(keep)` → `{ dropped, errors }` — опрашивает `forgetProjects?` всех
 провайдеров; ошибка одного попадает в `errors[id]`, остальные выполняются.
+`resumeInterrupted(projects)` → `{ resumed, errors }` — то же для `resumeInterrupted?`;
+`resumed` — `<провайдер>:<id сессии>`, ошибка — в `errors['<провайдер>:<проект>']`.
 Каждое чтение ограничено `STATE_READ_TIMEOUT_MS` (3 с): упавшее или
 зависшее чтение попадает в `errors` (`timeout` и т. п.), остальные данные
 отдаются. `errorInfo(error)` — `{ code, message, hint? }`.

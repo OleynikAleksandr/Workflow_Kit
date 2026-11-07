@@ -164,3 +164,15 @@ test('a panel message is queued only for a known session of the project, non-emp
   assert.deepEqual(c.queued(key).map((m) => m.text), ['do the task']);
   c.close();
 });
+
+test('a session the channel has not seen yet takes a panel message when the provider lists it for the project', () => {
+  const c = channel();
+  const key = sessionKey('claude', 'after-restart');
+  assert.throws(() => queueSessionMessage(c, 'p1', key, 'hello'), { code: 'unknown-session' });
+  const message = queueSessionMessage(c, 'p1', key, 'hello', true);
+  assert.equal(message.text, 'hello');
+  assert.equal(c.get(key)!.projectId, 'p1', 'the new slot belongs to the project');
+  assert.equal(c.get(key)!.state, 'waiting');
+  assert.throws(() => queueSessionMessage(c, 'p2', key, 'other', false), { code: 'unknown-session' });
+  c.close();
+});

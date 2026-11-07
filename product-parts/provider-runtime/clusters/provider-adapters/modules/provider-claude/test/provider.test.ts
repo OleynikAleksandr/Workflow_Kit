@@ -199,6 +199,37 @@ test('renameSession types /rename into a panel session; a session the panel does
   assert.match(stopped.note ?? '', /следующим сообщением/);
 });
 
+test('an interrupted session comes back at resumeInterrupted and on wake; one stopped on purpose does not; resumes are not doubled', { skip }, async () => {
+  const session = await provider.createSession(project, { title: 'Interrupted' });
+  const claudePid = async (): Promise<number> =>
+    (await fakeCalls()).filter((c) => c.argv.includes('--remote-control') && c.argv.includes('Interrupted')).at(-1)!.pid;
+  const waitDead = async (pid: number): Promise<void> => {
+    for (let i = 0; i < 50 && alive(pid); i += 1) await new Promise((resolve) => setTimeout(resolve, 100));
+  };
+  const sid = (await provider.listSessions(project)).find((s) => s.remoteId === session.remoteId)!.localId;
+  // A reboot: the process ends without stopSession.
+  let pid = await claudePid();
+  process.kill(pid, 'SIGKILL');
+  await waitDead(pid);
+  assert.equal((await provider.listSessions(project)).find((s) => s.localId === sid)?.state, 'stopped');
+  const [first, second] = await Promise.all([provider.resumeSession!(project, sid), provider.resumeSession!(project, sid)]);
+  assert.equal(first, second, 'a second resume waits for the first one');
+  assert.equal((await fakeCalls()).filter((c) => c.argv.includes('--resume') && c.argv.includes('Interrupted')).length, 1);
+  pid = await claudePid();
+  process.kill(pid, 'SIGKILL');
+  await waitDead(pid);
+  assert.deepEqual(await provider.resumeInterrupted!(project), [sid]);
+  assert.deepEqual(await provider.resumeInterrupted!(project), [], 'a running session is left alone');
+  pid = await claudePid();
+  process.kill(pid, 'SIGKILL');
+  await waitDead(pid);
+  assert.equal(await provider.wakeSession!(project, sid), true, 'wake brings an interrupted session back');
+  assert.equal((await provider.listSessions(project)).find((s) => s.localId === sid)?.state, 'running');
+  await provider.stopSession!(project, sid);
+  assert.deepEqual(await provider.resumeInterrupted!(project), [], 'a session stopped on purpose stays stopped');
+  assert.equal(await provider.wakeSession!(project, sid), false);
+});
+
 test('folder environment: start and stop as project actions, state shown, removal blocked while it runs', { skip }, async () => {
   const startAction = (await provider.actions(project)).find((a) => a.id === ENVIRONMENT_START)!;
   assert.equal(startAction.enabled, true);

@@ -258,6 +258,11 @@ export interface Provider {
    * a removed project takes its records with it. Resolves to the number of records dropped.
    */
   forgetProjects?(keep: ReadonlySet<string>): Promise<number>;
+  /**
+   * Brings back the project's sessions whose process ended without a stop on purpose (a reboot, a
+   * crash); start of the service. Resolves to the session ids resumed.
+   */
+  resumeInterrupted?(project: Project): Promise<string[]>;
 }
 
 /** What the backend gives a provider factory; everything machine-specific is injectable. */

@@ -205,9 +205,23 @@ async function findSession(rt: ClaudeRuntime, project: Project, sid: string): Pr
   return { ...(record ? { record } : {}), ...(hook ? { hook } : {}) };
 }
 
+/** Resumes in flight per runtime and local id: a second call waits for the first process. */
+const resuming = new WeakMap<ClaudeRuntime, Map<string, Promise<SessionInfo>>>();
+
 /** Resumes a session under the same Remote Control id (claude --resume <localId> --remote-control). */
 export async function resumeSession(rt: ClaudeRuntime, project: Project, sid: string): Promise<SessionInfo> {
   const { record, hook } = await findSession(rt, project, sid);
+  const key = record?.localId ?? hook?.hook.sessionId ?? record?.remoteId ?? sid;
+  let inFlight = resuming.get(rt);
+  if (!inFlight) resuming.set(rt, (inFlight = new Map()));
+  const running = inFlight.get(key);
+  if (running) return running;
+  const started = resumeFound(rt, project, sid, record, hook).finally(() => inFlight.delete(key));
+  inFlight.set(key, started);
+  return started;
+}
+
+async function resumeFound(rt: ClaudeRuntime, project: Project, sid: string, record: SessionRecord | undefined, hook: ResolvedHook | undefined): Promise<SessionInfo> {
   if (!record && !hook) throw new ProviderError('not-found', `Сессия ${sid} не найдена`, { status: 404 });
   if (record && (await rt.isAlive(record.processId))) return recordInfo(record, true, hook?.hook);
   const localId = record?.localId ?? hook?.hook.sessionId ?? null;
@@ -304,8 +318,41 @@ export async function renameSession(rt: ClaudeRuntime, project: Project, sid: st
  * not run the session (nothing to type into). The caller wakes only sessions out of a turn.
  */
 export async function wakeSession(rt: ClaudeRuntime, project: Project, sid: string): Promise<boolean> {
-  const { record } = await findSession(rt, project, sid);
-  if (!record || !(await rt.isAlive(record.processId))) return false;
+  let { record } = await findSession(rt, project, sid);
+  if (!record) return false;
+  if (!(await rt.isAlive(record.processId))) {
+    // An interrupted session (reboot, crash) comes back first; one stopped on purpose stays stopped.
+    if (!isInterrupted(record)) return false;
+    await resumeSession(rt, project, sid);
+    ({ record } = await findSession(rt, project, sid));
+    if (!record || !(await rt.isAlive(record.processId))) return false;
+  }
   await writeFile(`${record.debugFile}.message`, 'wake\n', 'utf8');
   return true;
+}
+
+/** Started by the panel and never stopped on purpose: its process ended on its own. */
+function isInterrupted(record: SessionRecord): boolean {
+  return record.processId !== null && record.stoppedAt === null;
+}
+
+/**
+ * Brings back the interrupted panel sessions of a project (start of the service after a reboot or
+ * a crash) under their Remote Control ids. Resolves to the local ids resumed; a failure of one
+ * session is logged and the others go on.
+ */
+export async function resumeInterrupted(rt: ClaudeRuntime, project: Project): Promise<string[]> {
+  const records = (await rt.store.read()).sessions.filter((r) => r.projectId === project.id && isInterrupted(r));
+  const resumed: string[] = [];
+  for (const record of records) {
+    if (await rt.isAlive(record.processId)) continue;
+    const sid = record.localId ?? record.remoteId;
+    try {
+      await resumeSession(rt, project, sid);
+      resumed.push(sid);
+    } catch (error) {
+      rt.context.log(`claude: interrupted session ${sid} was not resumed: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+  return resumed;
 }

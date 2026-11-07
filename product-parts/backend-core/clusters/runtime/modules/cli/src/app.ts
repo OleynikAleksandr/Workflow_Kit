@@ -212,12 +212,20 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
   // A removed project takes its records with it; leftovers of earlier versions or a failed hook are
   // dropped at the start (archived projects are still in the list and keep theirs).
   const forgetRemoved = async (remaining: readonly { id: string }[]): Promise<void> => {
-    const result = await providers.forgetProjects(new Set(remaining.map((p) => p.id)));
-    if (result.dropped > 0) options.log?.(`providers: forgot ${result.dropped} record(s) of removed projects`);
-    for (const [id, message] of Object.entries(result.errors)) options.log?.(`providers: ${id} could not forget removed projects: ${message}`);
+    const { dropped, errors } = await providers.forgetProjects(new Set(remaining.map((p) => p.id)));
+    if (dropped > 0) options.log?.(`providers: forgot ${dropped} record(s) of removed projects`);
+    for (const [id, message] of Object.entries(errors)) options.log?.(`providers: ${id} could not forget removed projects: ${message}`);
   };
   projects.addRemovedHook((_project, remaining) => forgetRemoved(remaining));
-  void projects.list().then(forgetRemoved).catch(() => undefined);
+  // At the start: drop leftovers of removed projects, then bring back the sessions a reboot or a
+  // crash interrupted (Claude: the same Remote Control channel), except in archived projects.
+  const resumeAtStart = async (list: Awaited<ReturnType<typeof projects.list>>): Promise<void> => {
+    await forgetRemoved(list).catch(() => undefined);
+    const { resumed, errors } = await providers.resumeInterrupted(list.filter((p) => !p.archivedAt));
+    if (resumed.length > 0) options.log?.(`providers: resumed interrupted sessions ${resumed.join(', ')}`);
+    for (const [where, message] of Object.entries(errors)) options.log?.(`providers: ${where} could not resume: ${message}`);
+  };
+  void projects.list().then(resumeAtStart).catch(() => undefined);
 
   const kitBundle = kitBundleProvider({ appDir: dirs.appDir });
   const kit = createKitRunner({
@@ -295,7 +303,13 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
       return { ...reply, answer: { ...answer, hookSpecificOutput: { ...specific, hookEventName: 'UserPromptSubmit', sessionTitle: appTitle } } };
     },
   };
-  registerChannelRoutes({ router, state, channel: observedChannel, messages: wakingChannel });
+  // A session the channel has not seen since the start belongs to the project when its provider lists it.
+  const ownsSession = async (projectId: string, key: string): Promise<boolean> => {
+    const project = await projects.get(projectId);
+    const lists = project ? await Promise.all(providers.list().map((p) => p.listSessions(project).catch(() => []))) : [];
+    return lists.flat().some((info) => `${info.provider}:${info.localId}` === key);
+  };
+  registerChannelRoutes({ router, state, channel: observedChannel, messages: wakingChannel, owns: ownsSession });
   registerAutopilotRoutes({ router, state, autopilot, mutex });
 
   const review = createReviewToggles({

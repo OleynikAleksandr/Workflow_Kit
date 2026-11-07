@@ -12,6 +12,9 @@ const COLLAPSED_KEY = 'wfk.tree.collapsed';
 /** @typedef {import('./view-model.js').Route} Route */
 /** @typedef {import('./view-model.js').SessionRow} SessionRow */
 
+/** How long a resume of a Claude session is not repeated (a failed one is retried after it). */
+const REVIVE_RETRY_MS = 30_000;
+
 /**
  * @param {{ navigate: (route: Route) => void, render: () => void, route: () => Route }} options
  */
@@ -69,8 +72,47 @@ export function createActions(options) {
     requestRefresh();
   }
 
+  /** Claude sessions being revived: when the resume started and its error, if any. */
+  /** @type {Map<string, { at: number, error: string | null }>} */
+  const reviving = new Map();
+
   const handlers = {
     navigate,
+    /**
+     * Brings back a Claude session that has no live process (opening its screen is the intent to
+     * work in it): the service resumes it under the same Remote Control channel. A failed resume
+     * is retried after REVIVE_RETRY_MS, a pending one is not repeated.
+     * @param {string} projectId @param {SessionRow} session
+     */
+    reviveSession(projectId, session) {
+      if (session.provider !== 'claude' || session.state === 'running') {
+        reviving.delete(session.key);
+        return;
+      }
+      const entry = reviving.get(session.key);
+      if (entry && Date.now() - entry.at < REVIVE_RETRY_MS) return;
+      reviving.set(session.key, { at: Date.now(), error: null });
+      const sid = session.key.slice(session.key.indexOf(':') + 1);
+      api('POST', `/api/projects/${encodeURIComponent(projectId)}/providers/claude/sessions/${encodeURIComponent(sid)}/resume`, {}).then(
+        () => requestRefresh(),
+        (error) => {
+          reviving.set(session.key, { at: Date.now(), error: error instanceof Error ? error.message : String(error) });
+          render();
+        },
+      );
+    },
+    /**
+     * State line of a Claude session instead of «Открыть чат»; null for other providers.
+     * @param {SessionRow} session
+     * @returns {{ text: string, tone: 'ok' | 'muted' | 'error' } | null}
+     */
+    sessionStatus(session) {
+      if (session.provider !== 'claude') return null;
+      if (session.state === 'running') return { text: 'открыта в Claude — группа Remote Control', tone: 'ok' };
+      const error = reviving.get(session.key)?.error;
+      if (error) return { text: `не удалось поднять сессию: ${error}`, tone: 'error' };
+      return { text: 'поднимаем сессию…', tone: 'muted' };
+    },
     /** @param {string} id */
     toggleProject(id) {
       if (collapsed.has(id)) collapsed.delete(id);

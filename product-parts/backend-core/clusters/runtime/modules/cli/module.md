@@ -133,6 +133,12 @@ stripping).
 - удалённый проект забирает с собой записи (раунд R9): `addRemovedHook` реестра
   проектов вызывает `providers.forgetProjects` с оставшимися проектами; при
   запуске то же для всего списка (архивные проекты остаются в списке);
+- при запуске служба поднимает прерванные сессии проектов не из архива
+  (`providers.resumeInterrupted`; Claude — в тот же канал Remote Control);
+  маршрут сообщений панели получает `owns`: сессия, которую канал ещё не
+  видел, принимает сообщение, если провайдер числит её за проектом, а
+  будящая обёртка через `wakeSession` поднимает прерванную сессию Claude
+  (раунд R9);
   `registerAutopilotRoutes` — `POST /api/projects/:id/workflow/…` и раздел
   `autopilot`.
 - `kit-bundle` и `kit-runner` (веха 2, T001): `kitBundleProvider` над

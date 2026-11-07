@@ -46,6 +46,8 @@ export interface ProviderRegistry {
   removeBlockers(project: Project): Promise<string[]>;
   /** Drops the records of projects not in keep in every provider; failures stay per provider. */
   forgetProjects(keep: ReadonlySet<string>): Promise<{ dropped: number; errors: Record<string, string> }>;
+  /** Resumes interrupted sessions of the projects in every provider; failures stay per provider. */
+  resumeInterrupted(projects: readonly Project[]): Promise<{ resumed: string[]; errors: Record<string, string> }>;
 }
 
 const PROVIDER_ID = /^[a-z][a-z0-9-]{0,31}$/;
@@ -146,6 +148,21 @@ export function createProviderRegistry(options: { readTimeoutMs?: number } = {})
         }
       }
       return { dropped, errors };
+    },
+    async resumeInterrupted(projects) {
+      const resumed: string[] = [];
+      const errors: Record<string, string> = {};
+      for (const provider of registry.list()) {
+        if (!provider.resumeInterrupted) continue;
+        for (const project of projects) {
+          try {
+            resumed.push(...(await provider.resumeInterrupted(project)).map((id) => `${provider.id}:${id}`));
+          } catch (error) {
+            errors[`${provider.id}:${project.id}`] = error instanceof Error ? error.message : String(error);
+          }
+        }
+      }
+      return { resumed, errors };
     },
   };
   return registry;

@@ -226,7 +226,8 @@ export function createSidebar(handlers) {
     more.addEventListener('click', (event) => {
       event.stopPropagation();
       openMenu(more, [
-        { label: 'Открыть чат', onSelect: () => handlers.openChat(session) },
+        // A Claude session comes back by itself when it is opened: its chat link could lead to an archived channel.
+        ...(session.provider === 'claude' ? [] : [{ label: 'Открыть чат', onSelect: () => handlers.openChat(session) }]),
         { label: 'Переименовать', onSelect: () => handlers.renameSession(projectId, session) },
         { label: 'В архив', hint: 'сессия в приложении не удаляется', onSelect: () => handlers.archiveSession(projectId, session, true) },
       ]);

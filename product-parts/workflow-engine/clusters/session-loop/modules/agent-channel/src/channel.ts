@@ -83,8 +83,11 @@ export interface AgentChannelOptions {
 export interface AgentChannel {
   stop(input: HookInput, signal?: AbortSignal): Promise<HookReply>;
   prompt(input: HookInput): Promise<HookReply>;
-  /** Queues a message for a session and wakes its held Stop. */
-  enqueue(key: string, text: string, source?: string): QueuedMessage;
+  /**
+   * Queues a message for a session and wakes its held Stop. projectId names the project of a
+   * session the channel has not seen yet (after a restart of the service).
+   */
+  enqueue(key: string, text: string, source?: string, projectId?: string): QueuedMessage;
   /** Asks the decider again for a held Stop (for example after a plan change). */
   wake(key: string): void;
   setDecider(decide: StopDecider): void;
@@ -262,7 +265,7 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
       setState(slot, 'working', { turnStartedAt: iso() });
       return empty();
     },
-    enqueue(key, text, source = 'panel') {
+    enqueue(key, text, source = 'panel', projectId) {
       const message: QueuedMessage = { id: randomUUID(), text, source, createdAt: iso() };
       let slot = slots.get(key);
       if (!slot) {
@@ -272,7 +275,7 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
             key,
             client: client === 'codex' ? 'codex' : 'claude',
             sessionId: rest.join(':'),
-            projectId: null,
+            projectId: projectId ?? null,
             state: 'waiting',
             since: iso(),
             turnStartedAt: null,
@@ -287,6 +290,7 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
         };
         slots.set(key, slot);
       }
+      if (projectId && !slot.activity.projectId) slot.activity.projectId = projectId;
       slot.queue.push(message);
       slot.activity.pending = slot.queue.length;
       changed(key);

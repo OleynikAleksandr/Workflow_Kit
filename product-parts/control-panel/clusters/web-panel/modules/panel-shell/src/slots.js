@@ -23,6 +23,8 @@
  * @property {ProjectRow} project
  * @property {SessionRow} session
  * @property {string | null} link Chat link for this device.
+ * @property {{ text: string, tone: 'ok' | 'muted' | 'error' } | null} [status] Claude: the session
+ *   process instead of a chat link (it is revived when the screen opens).
  */
 
 /**

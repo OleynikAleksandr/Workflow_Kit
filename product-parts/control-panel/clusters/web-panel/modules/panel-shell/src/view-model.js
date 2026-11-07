@@ -198,6 +198,7 @@ export function filterProjects(projects, query) {
  * @property {Record<string, string>} links
  * @property {string | null} note
  * @property {string} createdAt
+ * @property {string} state process state from the provider: running, stopped or unknown
  */
 
 /**
@@ -266,6 +267,7 @@ export function projectTree(state, ui) {
           links: record(info.links),
           note: typeof info.note === 'string' ? info.note : null,
           createdAt: String(info.createdAt ?? ''),
+          state: typeof info.state === 'string' ? info.state : 'unknown',
         });
       }
     }

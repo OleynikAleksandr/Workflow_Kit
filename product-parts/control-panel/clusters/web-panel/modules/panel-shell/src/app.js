@@ -160,7 +160,9 @@ function renderMain() {
     const project = tree.find((p) => p.id === r.projectId);
     const session = project?.sessions.find((s) => s.key === r.key);
     const link = session ? deviceLink(session.links, navigator.maxTouchPoints ?? 0) : null;
-    const data = project && session ? { project, session, link } : null;
+    // Opening a Claude session brings back its process; the header shows its state instead of a link.
+    if (project && session) handlers.reviveSession(project.id, session);
+    const data = project && session ? { project, session, link, status: handlers.sessionStatus(session) } : null;
     if (data) {
       renderSession(data);
       dynamic.hidden = false;

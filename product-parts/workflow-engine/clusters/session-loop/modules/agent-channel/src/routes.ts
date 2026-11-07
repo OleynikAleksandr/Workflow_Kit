@@ -12,6 +12,11 @@ export interface ChannelRoutesOptions {
   channel: AgentChannel;
   /** Where panel messages are queued (the service passes a channel that also wakes the session). */
   messages?: Pick<AgentChannel, 'enqueue' | 'get'>;
+  /**
+   * Whether a session the channel has not seen belongs to the project (the provider lists it):
+   * after a restart of the service its agent has not run a hook yet.
+   */
+  owns?: (projectId: string, key: string) => Promise<boolean>;
 }
 
 /** Longest panel message, in characters. */
@@ -19,22 +24,25 @@ export const MESSAGE_MAX_CHARS = 4000;
 
 /**
  * Queues a message from the panel for a session of the project. The session must be known to the
- * channel (it ran a hook) and belong to the project; the text is non-empty and not too long.
+ * channel (it ran a hook) and belong to the project, or be owned by the project as the provider
+ * lists it (owned); the text is non-empty and not too long.
  */
 export function queueSessionMessage(
   channel: Pick<AgentChannel, 'enqueue' | 'get'>,
   projectId: string,
   key: string,
   text: unknown,
+  owned = false,
 ): QueuedMessage {
   const clean = typeof text === 'string' ? text.trim() : '';
   if (!clean) throw new HttpError(400, 'empty-message', 'Напишите сообщение агенту');
   if (clean.length > MESSAGE_MAX_CHARS) throw new HttpError(400, 'message-too-long', `Сообщение длиннее ${MESSAGE_MAX_CHARS} символов`);
   const activity = channel.get(key);
-  if (!activity || activity.projectId !== projectId) {
+  const known = activity ? activity.projectId === projectId || (owned && activity.projectId === null) : owned;
+  if (!known) {
     throw new HttpError(404, 'unknown-session', 'Сессия не найдена', { hint: 'Агент этой сессии ещё не отвечал панели: дождитесь его первого ответа.' });
   }
-  return channel.enqueue(key, clean, 'panel');
+  return channel.enqueue(key, clean, 'panel', projectId);
 }
 
 function hookBody(body: unknown): { client: unknown; input: unknown; projectDir: unknown } {
@@ -80,9 +88,13 @@ export function registerChannelRoutes(options: ChannelRoutesOptions): void {
     });
   }
   const messages = options.messages ?? channel;
-  router.post('/api/projects/:id/sessions/:sid/message', ({ params, body }) => {
+  router.post('/api/projects/:id/sessions/:sid/message', async ({ params, body }) => {
     const text = typeof body === 'object' && body !== null ? (body as Record<string, unknown>)['text'] : undefined;
-    const message = queueSessionMessage(messages, params['id']!, params['sid']!, text);
+    const projectId = params['id']!;
+    const key = params['sid']!;
+    const activity = messages.get(key);
+    const owned = activity?.projectId === projectId ? false : ((await options.owns?.(projectId, key).catch(() => false)) ?? false);
+    const message = queueSessionMessage(messages, projectId, key, text, owned);
     return { queued: message.id };
   });
   options.state.add('channel', () => channel.section());

@@ -40,7 +40,7 @@ function state(): Record<string, unknown> {
       projects: {
         p1: {
           codex: { sessions: [{ provider: 'codex', localId: 't1', title: 'Новая сессия', createdAt: '2026-11-06T08:07:00Z', links: { desktop: 'codex://t1' } }] },
-          claude: { sessions: [{ provider: 'claude', localId: 'c1', title: 'Проверка', createdAt: '2026-11-05T17:40:00Z', links: {}, note: 'ссылки нет' }] },
+          claude: { sessions: [{ provider: 'claude', localId: 'c1', title: 'Проверка', createdAt: '2026-11-05T17:40:00Z', links: {}, note: 'ссылки нет', state: 'stopped' }] },
         },
       },
     },
@@ -83,6 +83,8 @@ test('the tree lists active projects by name with sessions newest first, names, 
   assert.equal(second!.isNew, false);
   assert.equal(second!.working, false);
   assert.equal(second!.note, 'ссылки нет');
+  assert.equal(second!.state, 'stopped');
+  assert.equal(first!.state, 'unknown', 'a provider without a process state');
 });
 
 test('the owner session of the active plan without its own name is named by the plan objective', () => {

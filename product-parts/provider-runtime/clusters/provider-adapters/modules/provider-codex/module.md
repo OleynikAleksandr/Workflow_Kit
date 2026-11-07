@@ -21,7 +21,7 @@ app-server на весь Mac, доверие к папке, одобрение �
   `serviceTurnWaitMs` (ожидание `turn/completed` служебного хода),
   `releaseWaitMs` и `releasePollMs` (ожидание выгрузки треда демоном).
 - Константы: `PROVIDER_ID` = `codex`, `PROVIDER_TITLE`,
-  `DAEMON_START_ACTION` = `daemon-start`, `LOGIN_HINT`,
+  `DAEMON_START_ACTION` = `daemon-start`, `LOGIN_HINT`, `CONNECTING_REASON`,
   `KIT_HOOK_COMMAND` (= `hookCommand('codex')` из `kit-structure`),
   `KIT_HOOK_COMMANDS` (команды всех хуков Kit v2: SessionStart, Stop,
   UserPromptSubmit), `isExactKitCommand(command)`,
@@ -68,9 +68,14 @@ app-server на весь Mac, доверие к папке, одобрение �
   версия и путь CLI — из кэша `refresh()` (`codex --version`, поиск в PATH
   службы или `config.programs.codex`); демон — pid-файл на каждый опрос и
   `initialize` по сокету с кэшем 15 с (`DAEMON_TTL_MS`), после него
-  ждётся уведомление `remoteControl/status/changed` (`disabled |
-  connecting | connected | errored`, `serverName`). Состояния: `ready`
-  «демон подключён»; `unavailable` «демон не запущен»; `error` «ошибка
+  ждётся уведомление `remoteControl/status/changed` до 3 с
+  (`STATUS_WAIT_MS`; `disabled | connecting | connected | errored`,
+  `serverName`). Не пришло — остаётся последний статус того же процесса
+  демона (`refresh()` его не сбрасывает): неизвестное не читается как «не
+  подключён». Состояния: `ready` «демон подключён»; `unavailable` «демон не
+  запущен», «подключается к ChatGPT» (`connecting` или статуса ещё не было;
+  причина `CONNECTING_REASON` — подождать) и «связь с ChatGPT: disabled»;
+  `error` «ошибка
   входа» с заметкой «… Выполните codex login в Терминале, затем «Запустить
   демон»» (статус `errored` или строка 401 в журнале демона); `error`
   «демон не отвечает»; `not-installed`. `details`: `daemon { running,
@@ -78,8 +83,10 @@ app-server на весь Mac, доверие к папке, одобрение �
 - **Запуск демона** — особое действие провайдера `daemon-start`
   («Запустить демон», с подтверждением): `codex remote-control start
   --json` (таймаут 90 с), затем проверка сокета. `errored` —
-  `ProviderError('codex-login')` с подсказкой `codex login`. Выключено,
-  пока демон подключён. Проектных действий нет.
+  `ProviderError('codex-login')` с подсказкой `codex login`. У работающего
+  демона действие нужно только при выключенной или упавшей связи — тогда
+  оно называется «Подключить к ChatGPT»; пока связь подключается или
+  подключена, оно выключено с причиной. Проектных действий нет.
 - **Доверие** (D7): `trust(project)` читает `trust_level` из `config.toml`
   (доверие к `/` или к домашней папке не считается). `previewTrust`
   показывает ключ `projects."<путь>".trust_level = "trusted"`, точки

@@ -14,8 +14,10 @@ export interface DaemonCall {
 
 /** Options of the fake daemon. */
 export interface FakeDaemonOptions {
-  /** remoteControl/status/changed sent after initialize (default "connected"). */
+  /** remoteControl/status/changed sent after initialize (default "connected"); read on every connection. */
   remoteControl?: string;
+  /** No remoteControl/status/changed at all (a daemon that says nothing in time). */
+  silentStatus?: boolean;
   threadId?: string;
   /** Sends a ping before the first answer and splits answers into fragments (protocol coverage). */
   tricky?: boolean;
@@ -126,7 +128,7 @@ export async function startFakeDaemon(socketPath: string, options: FakeDaemonOpt
         const threadId = options.threadId ?? '019a0000-0000-7000-8000-000000000001';
         if (message.method === 'initialize') {
           answer(message.id, { userAgent: 'fake-daemon/9.9.9', codexHome: '/fake', platformOs: 'macos' });
-          sendJson(socket, { method: 'remoteControl/status/changed', params: { status: options.remoteControl ?? 'connected', serverName: 'fake-mac' } }, tricky);
+          if (!options.silentStatus) sendJson(socket, { method: 'remoteControl/status/changed', params: { status: options.remoteControl ?? 'connected', serverName: 'fake-mac' } }, tricky);
         } else if (message.method === 'thread/start') {
           loaded.add(threadId);
           subscribers.set(threadId, new Set([...(subscribers.get(threadId) ?? []), socket]));

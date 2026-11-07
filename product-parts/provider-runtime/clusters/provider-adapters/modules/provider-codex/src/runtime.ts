@@ -60,7 +60,9 @@ export interface ProgramState {
 
 /** Default reuse time of a daemon probe. */
 export const DAEMON_TTL_MS = 15_000;
-const PROBE_TIMEOUT_MS = 2000;
+const PROBE_TIMEOUT_MS = 4000;
+/** How long a probe waits for remoteControl/status/changed after initialize. */
+export const STATUS_WAIT_MS = 3000;
 
 /** Finds an executable by name in PATH (absolute names are checked as is). */
 export async function findProgram(name: string, env: Readonly<Record<string, string | undefined>>, platform: NodeJS.Platform): Promise<string | null> {
@@ -108,6 +110,8 @@ export function createCodexRuntime(context: ProviderContext, deps: CodexDeps = {
   const isAlive = deps.isAlive ?? pidAlive;
   const ttl = deps.daemonTtlMs ?? DAEMON_TTL_MS;
   let probe: { state: DaemonState; at: number } | null = null;
+  // The last status a daemon process reported; refresh() drops the cache but not this.
+  let lastKnown: { pid: number; remoteControl: string; serverName: string | null } | null = null;
   let inflight: Promise<DaemonState> | null = null;
 
   const socketPath = async (): Promise<string> => {
@@ -161,18 +165,26 @@ export function createCodexRuntime(context: ProviderContext, deps: CodexDeps = {
         return { running: false, pid: null, remoteControl: null, serverName: null, userAgent: null, tokenError: null, error: null, checkedAt: context.now().toISOString() };
       }
       if (!force && probe && probe.state.pid === pid && now - probe.at < ttl) return probe.state;
+      const known = lastKnown && lastKnown.pid === pid ? lastKnown : null;
       inflight ??= (async (): Promise<DaemonState> => {
         const state: DaemonState = { running: true, pid, remoteControl: null, serverName: null, userAgent: null, tokenError: null, error: null, checkedAt: context.now().toISOString() };
         try {
           await runtime.withDaemon(async (session, init) => {
             state.userAgent = typeof init.userAgent === 'string' ? init.userAgent : null;
-            const rc = (await session.waitForNotification('remoteControl/status/changed', 500)) as Record<string, unknown> | undefined;
+            const rc = (await session.waitForNotification('remoteControl/status/changed', STATUS_WAIT_MS)) as Record<string, unknown> | undefined;
             if (rc && typeof rc['status'] === 'string') state.remoteControl = rc['status'];
             if (rc && typeof rc['serverName'] === 'string') state.serverName = rc['serverName'];
           }, PROBE_TIMEOUT_MS);
         } catch (error) {
           state.error = (error as Error).message;
         }
+        // No status in time: the daemon did not say anything new, keep what this process said before
+        // (an unknown status must not read as "not connected").
+        if (state.remoteControl === null && !state.error && known?.remoteControl) {
+          state.remoteControl = known.remoteControl;
+          state.serverName ??= known.serverName;
+        }
+        if (state.remoteControl !== null) lastKnown = { pid, remoteControl: state.remoteControl, serverName: state.serverName };
         if (state.remoteControl !== 'connected') state.tokenError = tokenErrorLine(await readTail(paths.daemonStderr, 64 * 1024));
         probe = { state, at: Date.now() };
         return state;

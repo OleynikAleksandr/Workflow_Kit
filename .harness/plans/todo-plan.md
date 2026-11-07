@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": "T011",
+  "currentTaskId": null,
   "lastClosed": {
     "closedAt": "2026-11-06T17:23:09.352Z",
     "scopeId": "m2-interface-and-process"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 128,
+  "revision": 129,
   "rounds": [
     {
       "digest": {
@@ -617,7 +617,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R5",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "title": "Согласованное состояние демона Codex",
       "why": "Короткое ожидание статуса связи давало «не подключён» и включало «Запустить демон» при работающем демоне"
     },
@@ -723,9 +723,9 @@
 - Scope: m3-fixes (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: T011
-- Progress: 14/18
-- Revision: 128
+- Current task: none
+- Progress: 15/18
+- Revision: 129
 
 ## Objective
 
@@ -812,7 +812,7 @@ Digest: Главный экран без карточки «Начните с п
 
 ### R5 — Fixes (fixes, OPEN)
 
-- [IN_PROGRESS] T011 — Согласованное состояние демона Codex (work)
+- [DONE] T011 — Согласованное состояние демона Codex (work)
   - Commit: fix: report the Codex daemon connection consistently
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/runtime.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/helpers.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md
   - Fixes: T001

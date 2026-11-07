@@ -6,7 +6,7 @@ import { after, before, test } from 'node:test';
 import { installStructure, recordSessionStart } from '#kit-structure';
 import { providerSessionsFile } from '#provider-registry';
 import type { Project, Provider } from '#provider-registry';
-import { KIT_HOOK_COMMAND, KIT_HOOK_COMMANDS, createCodexProvider } from '../src/index.ts';
+import { CONNECTING_REASON, KIT_HOOK_COMMAND, KIT_HOOK_COMMANDS, createCodexProvider } from '../src/index.ts';
 import type { FakeDaemon } from './fake-daemon.ts';
 import { fakeMachine } from './helpers.ts';
 import type { FakeMachine } from './helpers.ts';
@@ -48,7 +48,7 @@ test('status: CLI version and path, daemon connected over the socket; daemon sta
   assert.equal(daemon.calls.filter((c) => c.method === 'initialize').length, initializes, 'the probe is cached');
   assert.equal((await provider.capabilities())['createSession']?.available, true);
   const [action] = await provider.actions(null);
-  assert.deepEqual([action?.id, action?.enabled, action?.reason], ['daemon-start', false, 'демон уже работает']);
+  assert.deepEqual([action?.id, action?.enabled, action?.reason], ['daemon-start', false, 'демон работает и подключён к ChatGPT']);
   assert.deepEqual(await provider.actions(project), []);
 });
 
@@ -149,6 +149,33 @@ test('listSessions: hook journal plus panel records, names from session_index.js
   assert.equal(sessions.find((s) => s.origin === 'panel')?.model, 'gpt-5');
   const other = await machine.project('Beta');
   assert.deepEqual(await provider.listSessions(other), [], 'records of other projects are not listed');
+});
+
+test('a daemon that is connecting asks to wait; a silent probe keeps the known status; an off link offers «Подключить к ChatGPT»', async () => {
+  const options: { remoteControl: string; silentStatus?: boolean } = { remoteControl: 'connecting' };
+  const local = await machine.daemon(options);
+  try {
+    const provider2 = createCodexProvider(machine.context());
+    await provider2.refresh!();
+    assert.equal((await provider2.status()).label, 'подключается к ChatGPT');
+    assert.equal((await provider2.capabilities())['createSession']?.reason, CONNECTING_REASON);
+    assert.deepEqual((await provider2.actions(null)).map((a) => [a.enabled, a.reason]), [[false, CONNECTING_REASON]]);
+    options.remoteControl = 'connected';
+    await provider2.refresh!();
+    options.silentStatus = true;
+    const silent = await provider2.refresh!();
+    assert.equal(silent.label, 'демон подключён', 'no status in time keeps the last known one');
+    assert.equal((await provider2.capabilities())['createSession']?.available, true);
+    options.silentStatus = false;
+    options.remoteControl = 'disabled';
+    await provider2.refresh!();
+    const [action] = await provider2.actions(null);
+    assert.deepEqual([action?.title, action?.enabled], ['Подключить к ChatGPT', true]);
+    assert.match((await provider2.capabilities())['createSession']?.reason ?? '', /Подключить к ChatGPT/);
+  } finally {
+    await local.close();
+    daemon = await machine.daemon();
+  }
 });
 
 test('an expired login is shown with the hint «codex login»; session creation is refused', async () => {

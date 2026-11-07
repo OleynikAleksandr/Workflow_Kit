@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 213,
+  "revision": 215,
   "rounds": [
     {
       "digest": {
@@ -84,7 +84,7 @@
       },
       "id": "R4",
       "kind": "fixes",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Щелчок по сессии ChatGPT открывает чат"
     }
   ],
@@ -108,7 +108,7 @@
         "text": "Демон Codex запускается при каждом старте службы без согласий; при остановке службы не останавливается"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
@@ -465,7 +465,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: release 0.3.10",
-      "confirmation": null,
+      "confirmation": "Нужно, чтобы эта кнопка была на самой карточке сессии.",
       "context": [],
       "dependencies": [
         "DOCS-R4"
@@ -481,7 +481,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R4",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Релиз 0.3.10",
       "why": "Релиз 0.3.10"
     }
@@ -493,11 +493,11 @@
 ## State
 
 - Scope: m3-autostart (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 11/12
-- Revision: 213
+- Progress: 12/12
+- Revision: 215
 
 ## Objective
 
@@ -559,7 +559,7 @@ Digest: Соединение удалённого управления, заня
 
 Digest: Сессия ChatGPT создаётся и тогда, когда удалённое управление держит приложение ChatGPT.
 
-### R4 — Щелчок по сессии ChatGPT открывает чат (fixes, OPEN)
+### R4 — Щелчок по сессии ChatGPT открывает чат (fixes, CLOSED)
 
 - [DONE] T007 — Карточка сессии ChatGPT открывает чат (work)
   - Commit: feat: a click on a ChatGPT session card opens its chat
@@ -568,7 +568,7 @@ Digest: Сессия ChatGPT создаётся и тогда, когда уда
   - Commit: docs: reconcile documentation for R4
   - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md
   - Depends on: T007
-- [TODO] T008 — Релиз 0.3.10 (delivery)
+- [DONE] T008 — Релиз 0.3.10 (delivery)
   - Commit: chore: release 0.3.10
   - Files: package.json, package-lock.json, docs/evidence/M3-acceptance.md
   - Depends on: DOCS-R4

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 176,
+  "revision": 178,
   "rounds": [
     {
       "digest": {
@@ -193,7 +193,7 @@
       },
       "id": "R9",
       "kind": "fixes",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Сессии удалённого проекта не переходят к новому с тем же путём"
     }
   ],
@@ -226,7 +226,7 @@
         "text": "Claude: имя передаёт хук UserPromptSubmit полем hookSpecificOutput.sessionTitle"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cfa00ffe-c414-4ae6-9953-e3d2906b3705",
@@ -1439,7 +1439,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: release 0.3.5",
-      "confirmation": null,
+      "confirmation": "Полностью подходит. Делай и собирай новый релиз. Будем проверять с перезагрузкой Мака.",
       "context": [],
       "dependencies": [
         "DOCS-R9"
@@ -1455,7 +1455,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R9",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Релиз 0.3.5",
       "why": "Релиз 0.3.5"
     }
@@ -1467,11 +1467,11 @@
 ## State
 
 - Scope: m3-fixes (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 35/36
-- Revision: 176
+- Progress: 36/36
+- Revision: 178
 
 ## Objective
 
@@ -1640,7 +1640,7 @@ Digest: Оркестрация встроенными подагентами д�
 
 Digest: Мастер начинает каждый вход с чистого листа и переходит к сессии; на экране сессии есть «Сообщение агенту».
 
-### R9 — Сессии удалённого проекта не переходят к новому с тем же путём (fixes, OPEN)
+### R9 — Сессии удалённого проекта не переходят к новому с тем же путём (fixes, CLOSED)
 
 - [DONE] T025 — Проект, созданный панелью, не видит сессий старше себя (work)
   - Commit: fix: hide sessions older than a created project
@@ -1652,7 +1652,7 @@ Digest: Мастер начинает каждый вход с чистого л
   - Commit: docs: reconcile documentation for R9
   - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, docs/planning/M3-fixes.md, product-parts/backend-core/clusters/projects/modules/project-registry/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md
   - Depends on: T025, T027
-- [TODO] T026 — Релиз 0.3.5 (delivery)
+- [DONE] T026 — Релиз 0.3.5 (delivery)
   - Commit: chore: release 0.3.5
   - Files: package.json, package-lock.json, docs/evidence/M3-acceptance.md
   - Depends on: DOCS-R9

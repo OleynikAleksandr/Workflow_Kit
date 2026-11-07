@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 135,
+  "revision": 136,
   "rounds": [
     {
       "digest": {
@@ -113,6 +113,13 @@
       "kind": "fixes",
       "status": "CLOSED",
       "title": "Fixes"
+    },
+    {
+      "digest": null,
+      "id": "R6",
+      "kind": "fixes",
+      "status": "OPEN",
+      "title": "Fixes"
     }
   ],
   "schema": "harness-workflow-plan/1",
@@ -144,7 +151,7 @@
         "text": "Claude: имя передаёт хук UserPromptSubmit полем hookSpecificOutput.sessionTitle"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "IN_PROGRESS",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cfa00ffe-c414-4ae6-9953-e3d2906b3705",
@@ -725,6 +732,147 @@
       "status": "DONE",
       "title": "Релиз 0.3.1",
       "why": "Релиз 0.3.1"
+    },
+    {
+      "acceptance": [
+        "401 в журнале и auth.json новее старта демона — состояние «демон держит устаревший вход», причина у создания сессии",
+        "Действие «Перезапустить демон»: codex remote-control stop, затем start",
+        "Строки rmcp:: не считаются ошибкой входа"
+      ],
+      "checks": [],
+      "commitMessage": "fix: detect a Codex daemon holding a stale login and restart it",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M3-fixes.md",
+          "heading": "10. Раунд 6: устаревший вход демона и тема служебного хода",
+          "required": true
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/runtime.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/codex-files.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/files-hooks.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/helpers.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md"
+      ],
+      "fixes": "T011",
+      "id": "T014",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R6",
+      "status": "TODO",
+      "title": "Перезапуск демона с устаревшим входом",
+      "why": "После обновления входа приложением ChatGPT демон держит старый токен; подсказка codex login неверна"
+    },
+    {
+      "acceptance": [
+        "Инструкция агенту: служебное первое сообщение не задаёт тему",
+        "wfk session title во время служебного хода отклоняется с объяснением service-turn",
+        "После хода с задачей тема задаётся как раньше"
+      ],
+      "checks": [],
+      "commitMessage": "fix: refuse the session topic during the Workflow Kit service turn",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M3-fixes.md",
+          "heading": "10. Раунд 6: устаревший вход демона и тема служебного хода",
+          "required": true
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/src/templates.ts",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/module.md",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/test",
+        "product-parts/backend-core/clusters/projects/modules/project-setup/src/setup.ts",
+        "product-parts/backend-core/clusters/projects/modules/project-setup/src/index.ts",
+        "product-parts/backend-core/clusters/projects/modules/project-setup/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/titles.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/routes.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/session-titles/test/titles.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/hook-channel.test.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md"
+      ],
+      "fixes": null,
+      "id": "T015",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R6",
+      "status": "TODO",
+      "title": "Тема сессии не задаётся в служебном ходе",
+      "why": "Агент назвал сессию по служебному приветствию, а не по задаче"
+    },
+    {
+      "acceptance": [
+        "Project-wide documents describe the round result",
+        "The round digest records result, decisions, contracts and references"
+      ],
+      "checks": [],
+      "commitMessage": "docs: reconcile documentation for R6",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T014",
+        "T015"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/architecture/OVERVIEW.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/module.md",
+        "product-parts/backend-core/clusters/projects/modules/project-setup/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md"
+      ],
+      "fixes": null,
+      "id": "DOCS-R6",
+      "iteration": 1,
+      "kind": "docs",
+      "roundId": "R6",
+      "status": "TODO",
+      "title": "Reconcile project documentation and write the round digest",
+      "why": "Keep the project context current for the next agent and close the round."
+    },
+    {
+      "acceptance": [
+        "Версия 0.3.2",
+        "install ставит app/0.3.2, wfk doctor --installed — всё в порядке"
+      ],
+      "checks": [],
+      "commitMessage": "chore: release 0.3.2",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T014",
+        "T015",
+        "DOCS-R6"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "package.json",
+        "package-lock.json",
+        "docs/evidence/M3-acceptance.md"
+      ],
+      "fixes": null,
+      "id": "T016",
+      "iteration": 1,
+      "kind": "delivery",
+      "roundId": "R6",
+      "status": "TODO",
+      "title": "Релиз 0.3.2",
+      "why": "Релиз 0.3.2"
     }
   ]
 }
@@ -734,11 +882,11 @@
 ## State
 
 - Scope: m3-fixes (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 18/18
-- Revision: 135
+- Progress: 18/22
+- Revision: 136
 
 ## Objective
 
@@ -842,5 +990,23 @@ Digest: Главный экран без карточки «Начните с п
   - Depends on: T011, T012, DOCS-R5
 
 Digest: Состояние демона Codex согласовано: статус связи ждётся до 3 с и не затирается неизвестным; «подключается» — ждать без действия; «Подключить к ChatGPT» только при выключенной связи. Мастер перечитывает предпросмотр, пока провайдер не готов, и не показывает ошибкой отказ ненужного действия.
+
+### R6 — Fixes (fixes, OPEN)
+
+- [TODO] T014 — Перезапуск демона с устаревшим входом (work)
+  - Commit: fix: detect a Codex daemon holding a stale login and restart it
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/runtime.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/codex-files.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/files-hooks.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/helpers.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md
+  - Fixes: T011
+- [TODO] T015 — Тема сессии не задаётся в служебном ходе (work)
+  - Commit: fix: refuse the session topic during the Workflow Kit service turn
+  - Files: product-parts/backend-core/clusters/projects/modules/kit-structure/src/templates.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/module.md, product-parts/backend-core/clusters/projects/modules/kit-structure/test, product-parts/backend-core/clusters/projects/modules/project-setup/src/setup.ts, product-parts/backend-core/clusters/projects/modules/project-setup/src/index.ts, product-parts/backend-core/clusters/projects/modules/project-setup/module.md, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/titles.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/test/titles.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/hook-channel.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md
+- [TODO] DOCS-R6 — Reconcile project documentation and write the round digest (docs)
+  - Commit: docs: reconcile documentation for R6
+  - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/backend-core/clusters/projects/modules/kit-structure/module.md, product-parts/backend-core/clusters/projects/modules/project-setup/module.md, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md
+  - Depends on: T014, T015
+- [TODO] T016 — Релиз 0.3.2 (delivery)
+  - Commit: chore: release 0.3.2
+  - Files: package.json, package-lock.json, docs/evidence/M3-acceptance.md
+  - Depends on: T014, T015, DOCS-R6
 
 State changes only through `scripts/workflow` commands. History lives in Git.

@@ -331,10 +331,18 @@ function createWizard(shell, ctx) {
       const root = /** @type {{ root?: string }} */ (nextState['projects'] ?? {}).root ?? '';
       rootLine.replaceChildren('Папка для проектов: ', root ? code(root) : '—');
       if (entered || nextMode !== mode) {
+        // Every entry starts from a clean slate: no name, answers or flags of an earlier run.
         mode = nextMode;
         stage = 'name';
         preview = null;
+        request = null;
+        answers = {};
         operationId = null;
+        opened = false;
+        navigated = false;
+        runKey = '';
+        actionKey = '';
+        nameInput.value = '';
         notice(message, 'muted', '');
         draw();
         if (mode === 'open') void picker.open().catch(fail);
@@ -354,15 +362,17 @@ function createWizard(shell, ctx) {
       }
       if (stage !== 'run' || !operationId) return;
       const run = findRun(nextState, operationId);
-      const key = JSON.stringify(run);
-      if (key === runKey) return;
-      runKey = key;
-      draw();
+      // The session may be listed after the run stopped changing: the check runs on every state.
       const view = run ? runView(run) : null;
       if (view?.status === 'succeeded' && view.projectId && view.sessionKey && !navigated && sessionListed(nextState, view.projectId, view.sessionKey)) {
         navigated = true;
         ctx.navigate({ screen: 'session', projectId: view.projectId, key: view.sessionKey });
+        return;
       }
+      const key = JSON.stringify(run);
+      if (key === runKey) return;
+      runKey = key;
+      draw();
     },
   };
 }

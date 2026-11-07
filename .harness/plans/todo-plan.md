@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 160,
+  "revision": 162,
   "rounds": [
     {
       "digest": {
@@ -1164,7 +1164,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R8",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Мастер нового проекта начинает с чистого листа",
       "why": "Мастер нового проекта начинает с чистого листа"
     },
@@ -1272,8 +1272,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 28/32
-- Revision: 160
+- Progress: 29/32
+- Revision: 162
 
 ## Objective
 
@@ -1425,7 +1425,7 @@ Digest: Оркестрация встроенными подагентами д�
 
 ### R8 — Мастер с чистого листа и сообщение агенту из панели (fixes, OPEN)
 
-- [TODO] T022 — Мастер нового проекта начинает с чистого листа (work)
+- [DONE] T022 — Мастер нового проекта начинает с чистого листа (work)
   - Commit: fix: start the project wizard from a clean state
   - Files: product-parts/control-panel/clusters/web-panel/modules/project-wizard/src/project-wizard.js, product-parts/control-panel/clusters/web-panel/modules/project-wizard/module.md
 - [TODO] T023 — Сообщение агенту из экрана сессии (work)

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 202,
+  "revision": 204,
   "rounds": [
     {
       "digest": {
@@ -309,7 +309,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R3",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Сессия создаётся, когда соединение держит приложение ChatGPT",
       "why": "Сессия создаётся, когда соединение держит приложение ChatGPT"
     },
@@ -378,8 +378,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 6/9
-- Revision: 202
+- Progress: 7/9
+- Revision: 204
 
 ## Objective
 
@@ -426,7 +426,7 @@ Digest: Соединение удалённого управления, заня
 
 ### R3 — Создание сессии при соединении у приложения ChatGPT (fixes, OPEN)
 
-- [TODO] T005 — Сессия создаётся, когда соединение держит приложение ChatGPT (work)
+- [DONE] T005 — Сессия создаётся, когда соединение держит приложение ChatGPT (work)
   - Commit: fix: create Codex sessions while the ChatGPT app holds remote control
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md
   - Fixes: T003

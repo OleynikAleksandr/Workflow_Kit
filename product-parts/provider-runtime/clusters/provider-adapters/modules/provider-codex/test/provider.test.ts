@@ -279,6 +279,8 @@ test('remote control held by the ChatGPT app (409 already online) is a working s
     assert.deepEqual([action?.enabled, action?.reason], [false, APP_OWNER_REASON]);
     const calls = (await machine.calls()).length;
     assert.equal(await local.autostart!(), null, 'nothing to start while the app holds the link');
+    const session = await local.createSession(project, { title: 'Held by the app' });
+    assert.ok(session.localId, 'a session is created through the daemon while the app holds the link');
     assert.equal((await machine.calls()).filter((c) => c.argv?.[0] === 'remote-control').length, (await machine.calls()).slice(0, calls).filter((c) => c.argv?.[0] === 'remote-control').length);
   } finally {
     await held.close();

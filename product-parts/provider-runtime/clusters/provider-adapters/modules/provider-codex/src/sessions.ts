@@ -298,7 +298,8 @@ export function createSessionParts(rt: CodexRuntime, options: SessionOptions = {
       if (!daemon.running) {
         throw new ProviderError('daemon-not-running', 'Демон Codex не запущен', { hint: 'Нажмите «Запустить демон» в карточке Codex.' });
       }
-      if (daemon.remoteControl === 'errored') {
+      // The ChatGPT app holding remote control is fine: the daemon still serves the panel (M3-autostart 4).
+      if (daemon.remoteControl === 'errored' && daemon.remoteOwner !== 'app') {
         throw new ProviderError('codex-login', 'Демон Codex не подключён к ChatGPT', { hint: 'Выполните codex login в Терминале, затем «Запустить демон».' });
       }
       const config = await rt.readText(paths.config);

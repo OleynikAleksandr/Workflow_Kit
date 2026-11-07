@@ -102,7 +102,9 @@ app-server на весь Mac, доверие к папке, одобрение �
   только чтение, `node:sqlite`; `lastRemoteWarning`, `ALREADY_ONLINE`) и ставит
   `DaemonState.remoteOwner = 'app'`. Это рабочее состояние: `ready`, подпись
   «через приложение ChatGPT», создание сессий доступно, действие демона
-  выключено (`APP_OWNER_REASON`), не ошибка входа, автозапуск — `null`.
+  выключено (`APP_OWNER_REASON`), не ошибка входа, автозапуск — `null`;
+  `createSession` при `errored` отказывает `codex-login` только без
+  `remoteOwner: 'app'` (раунд R3).
 - **Автозапуск** (`autostart()`, скоуп M3-autostart): при старте службы,
   без подтверждения — перечитать путь к codex; codex не найден или Windows —
   `null`; демон подключён или подключается — `null`; иначе тот же запуск,

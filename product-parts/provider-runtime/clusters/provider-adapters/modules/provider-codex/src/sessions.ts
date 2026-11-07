@@ -94,6 +94,8 @@ export interface SessionParts {
   renameSession(project: Project, threadId: string, name: string): Promise<RenameResult>;
   /** Drops the panel records of projects not in keep; resolves to the number dropped. */
   forgetProjects(keep: ReadonlySet<string>): Promise<number>;
+  /** thread/delete for every thread of the project (panel records and hook journal); ids deleted. */
+  deleteSessions(project: Project): Promise<string[]>;
 }
 
 /** Why a name stays only in Workflow Kit for now. */
@@ -238,6 +240,25 @@ export function createSessionParts(rt: CodexRuntime, options: SessionOptions = {
   return {
     records,
 
+    async deleteSessions(project) {
+      const threads = [...new Set((await this.listSessions(project)).map((s) => s.localId).filter((id) => /^[A-Za-z0-9_-]{1,128}$/.test(id)))];
+      if (threads.length === 0) return [];
+      if (!(await rt.daemon(true)).running) throw new ProviderError('daemon-not-running', 'Демон Codex не запущен: треды ChatGPT не удалены');
+      const deleted: string[] = [];
+      await rt.withDaemon(async (session) => {
+        for (const threadId of threads) {
+          try {
+            await session.request('thread/delete', { threadId });
+            deleted.push(threadId);
+            releasing.delete(threadId);
+          } catch (error) {
+            context.log(`codex: thread ${threadId} of ${project.name} was not deleted: ${error instanceof Error ? error.message : String(error)}`);
+          }
+        }
+      });
+      if (deleted.length > 0) context.log(`codex: deleted ${deleted.length} thread(s) of ${project.name}`);
+      return deleted;
+    },
     async forgetProjects(keep) {
       for (const [threadId, held] of releasing) if (!keep.has(held.projectId)) releasing.delete(threadId);
       const all = await records();

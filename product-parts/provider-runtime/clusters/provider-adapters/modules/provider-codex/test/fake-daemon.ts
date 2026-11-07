@@ -36,6 +36,8 @@ export interface FakeDaemonOptions {
   archiveError?: string;
   /** thread/name/set answers with this error. */
   nameError?: string;
+  /** thread/delete of this thread id answers with a JSON-RPC error. */
+  deleteRefuse?: string;
 }
 
 /** A running fake daemon. */
@@ -161,6 +163,13 @@ export async function startFakeDaemon(socketPath: string, options: FakeDaemonOpt
           } else {
             archived.delete(id);
             answer(message.id, { thread: { id } });
+          }
+        } else if (message.method === 'thread/delete') {
+          const id = String((message.params as { threadId?: unknown } | undefined)?.threadId ?? '');
+          if (id === options.deleteRefuse) sendJson(socket, { jsonrpc: '2.0', id: message.id, error: { code: -32000, message: 'thread is busy' } }, tricky);
+          else {
+            loaded.delete(id);
+            answer(message.id, {});
           }
         } else if (message.method === 'thread/loaded/list') {
           answer(message.id, { data: [...loaded], nextCursor: null });

@@ -122,6 +122,10 @@ export function createFakeProvider(id = 'fake', options: { withOptional?: boolea
       if (id === 'broken') throw new Error('records are unreadable');
       return [sid ?? 's1'];
     };
+    provider.deleteSessions = async (project) => {
+      if (id === 'broken') throw new Error('no daemon');
+      return [`${project.id}-t1`];
+    };
     provider.autostart = async () => {
       if (id === 'broken') throw new Error('daemon did not start');
       return id === 'keeper' ? 'daemon started' : null;

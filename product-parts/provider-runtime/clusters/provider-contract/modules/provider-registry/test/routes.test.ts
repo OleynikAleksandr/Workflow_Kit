@@ -290,3 +290,14 @@ test('autostart collects the lines of the providers that started something; a fa
   assert.deepEqual(result.started, ['keeper: daemon started']);
   assert.deepEqual(Object.keys(result.errors), ['broken']);
 });
+
+test('deleteSessions collects the deleted sessions per provider; a failure stays with its provider', async () => {
+  const own = createProviderRegistry();
+  own.register(createFakeProvider('keeper'));
+  own.register(createFakeProvider('broken'));
+  own.register(createFakeProvider('plain', { withOptional: false }));
+  const result = await own.deleteSessions(alpha);
+  assert.deepEqual(result.deleted, [`keeper:${alpha.id}-t1`]);
+  assert.deepEqual(Object.keys(result.errors), ['broken']);
+});
+

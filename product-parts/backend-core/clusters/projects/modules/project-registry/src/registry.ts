@@ -55,6 +55,12 @@ export type RemovedHook = (project: Project, remaining: readonly Project[]) => v
  * Called after a project went into the archive (archived true) or came back from it; the service
  * stops the project's sessions or brings them back.
  */
+/**
+ * Called before the folder of a project is deleted from disk (the guards passed): the service
+ * deletes the project's sessions in the provider apps, which it finds partly in the folder.
+ */
+export type BeforeDeleteHook = (project: Project) => void | Promise<void>;
+
 export type ArchivedHook = (project: Project, archived: boolean) => void | Promise<void>;
 
 /** Options of the registry; file system, clock and ids are injectable for tests. */
@@ -101,6 +107,8 @@ export interface ProjectRegistry {
   addRemovedHook(hook: RemovedHook): void;
   /** Runs after an archive or a restore; a failing hook does not undo it. */
   addArchivedHook(hook: ArchivedHook): void;
+  /** Runs before deleteFolder removes the folder; a failing hook does not stop the deletion. */
+  addBeforeDeleteHook(hook: BeforeDeleteHook): void;
   section(): Promise<ProjectsSection>;
 }
 
@@ -144,6 +152,7 @@ export function createProjectRegistry(options: ProjectRegistryOptions): ProjectR
   const guards: RemoveGuard[] = [];
   const removedHooks: RemovedHook[] = [];
   const archivedHooks: ArchivedHook[] = [];
+  const beforeDeleteHooks: BeforeDeleteHook[] = [];
 
   async function removed(project: Project, remaining: Project[]): Promise<void> {
     for (const hook of removedHooks) {
@@ -272,6 +281,13 @@ export function createProjectRegistry(options: ProjectRegistryOptions): ProjectR
     if (blockers.length > 0) {
       throw new ProjectError('busy', 'Проект занят: сначала остановите его сессии и окружения', { blockers });
     }
+    for (const hook of beforeDeleteHooks) {
+      try {
+        await hook(project);
+      } catch {
+        // The hook reports its own failures; the folder is deleted anyway.
+      }
+    }
     try {
       await fs.rm(project.path);
     } catch (error) {
@@ -351,6 +367,9 @@ export function createProjectRegistry(options: ProjectRegistryOptions): ProjectR
     },
     addArchivedHook(hook) {
       archivedHooks.push(hook);
+    },
+    addBeforeDeleteHook(hook) {
+      beforeDeleteHooks.push(hook);
     },
     async section() {
       const base = { root, home: options.homedir };

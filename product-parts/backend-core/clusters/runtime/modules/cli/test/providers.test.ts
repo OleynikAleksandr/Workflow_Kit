@@ -207,6 +207,7 @@ test('the start of the service runs autostart and tries a failure again, at most
     addRemoveGuard: () => undefined,
     addRemovedHook: () => undefined,
     addArchivedHook: () => undefined,
+    addBeforeDeleteHook: () => undefined,
     list: async () => [],
     get: async () => undefined,
   } as unknown as ProjectRegistry;
@@ -232,5 +233,29 @@ test('the start of the service runs autostart and tries a failure again, at most
   assert.ok(recovered.lines.some((l) => /codex could not autostart \(attempt 1 of 3\): network is not ready/.test(l)));
   const failing = await run(10);
   assert.equal(failing.tries, AUTOSTART_ATTEMPTS);
+});
+
+test('deleting a project from disk deletes its provider sessions first; removing it from the list does not', async () => {
+  const deleted: string[] = [];
+  const custom = await createApp({
+    env: { WFK_DATA_DIR: path.join(tmp, 'delete'), WFK_PORT: '0' },
+    homedir: tmp,
+    getInterfaces: () => ({}),
+    providers: [
+      () => ({
+        ...createStubProvider({ id: 'codex', title: 'Codex', task: 'T000' }),
+        deleteSessions: async (project) => {
+          deleted.push(project.name);
+          return ['t1'];
+        },
+      }),
+    ],
+  });
+  const gone = await custom.projects.create('GoneFromDisk');
+  const listed = await custom.projects.create('OnlyFromList');
+  await custom.projects.remove(listed.id);
+  await custom.projects.archive(gone.id);
+  await custom.projects.deleteFolder(gone.id, 'GoneFromDisk');
+  assert.deepEqual(deleted, ['GoneFromDisk']);
 });
 

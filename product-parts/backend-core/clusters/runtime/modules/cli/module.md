@@ -139,7 +139,9 @@ stripping).
   (`wireProviderLifecycle`): проверки удаления, хуки удаления и архива, подъём при
   запуске; архив проекта или сессии (`addArchivedHook`, опция `archived` заголовков)
   ждёт остановки сессий через `providers.setArchived`, возврат поднимает их в фоне
-  (раунд R10); при запуске `providers.autostart()` (демон Codex) — до
+  (раунд R10); перед удалением папки проекта (`addBeforeDeleteHook`) —
+  `providers.deleteSessions` (треды ChatGPT, M3-autostart R5), неудача — в журнал;
+  при запуске `providers.autostart()` (демон Codex) — до
   `AUTOSTART_ATTEMPTS` (3) попыток с паузой `AUTOSTART_PAUSE_MS` (30 с), каждая
   неудача — в журнал; при остановке службы демон и процессы Claude не трогаются
   (скоуп M3-autostart);

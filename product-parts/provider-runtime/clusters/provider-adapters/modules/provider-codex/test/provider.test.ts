@@ -334,3 +334,23 @@ test('forgetProjects drops the records of removed projects and keeps the others'
   assert.deepEqual(after.sessions.map((r) => r.projectId), before.sessions.map((r) => r.projectId));
   assert.ok(!(await provider.listSessions(project)).some((s) => s.localId === extra.threadId));
 });
+
+test('deleteSessions sends thread/delete for every thread of the project; a refused one is logged, no daemon throws', async () => {
+  const threads = (await provider.listSessions(project)).map((s) => s.localId);
+  assert.ok(threads.length > 0);
+  const refuse = threads[0]!;
+  const local = await machine.daemon({ deleteRefuse: refuse });
+  try {
+    const own = createCodexProvider(machine.context());
+    const deleted = await own.deleteSessions!(project);
+    assert.deepEqual(new Set(deleted), new Set(threads.slice(1)));
+    const asked = local.calls.filter((c) => c.method === 'thread/delete').map((c) => (c.params as { threadId: string }).threadId);
+    assert.deepEqual(new Set(asked), new Set(threads));
+    const stopped = createCodexProvider(machine.context(), { isAlive: () => false });
+    await assert.rejects(stopped.deleteSessions!(project), code('daemon-not-running'));
+  } finally {
+    await local.close();
+    daemon = await machine.daemon();
+  }
+});
+

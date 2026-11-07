@@ -36,6 +36,13 @@ export function wireProviderLifecycle(options: {
     report('forget removed projects', errors);
   };
   projects.addRemovedHook((_project, remaining) => forgetRemoved(remaining));
+  // Deleting the folder deletes the project's sessions in the apps first (ChatGPT threads; the
+  // hook journal with their ids is in the folder). A failure does not stop the deletion.
+  projects.addBeforeDeleteHook(async (project) => {
+    const { deleted, errors } = await providers.deleteSessions(project);
+    if (deleted.length > 0) log(`providers: deleted sessions of ${project.name}: ${deleted.join(', ')}`);
+    report(`delete the sessions of ${project.name}`, errors);
+  });
 
   // An archive waits for the stops (a removal right after it is not blocked by them); a restore
   // brings the sessions back in the background.

@@ -218,3 +218,22 @@ test('archive and restore call the archived hooks after the save; a failing hook
   assert.deepEqual(heard, [[demo.id, true, true], [demo.id, false, false]]);
   assert.equal((await registry.get(demo.id))?.archivedAt, undefined);
 });
+
+test('the before-delete hooks run while the folder is still there, only for a deletion from disk; a failing one does not stop it', async () => {
+  const registry = createProjectRegistry(options());
+  const doomed = await registry.create('Hooked');
+  const kept = await registry.create('KeptFolder');
+  const seen: Array<[string, boolean]> = [];
+  registry.addBeforeDeleteHook(async (p) => {
+    seen.push([p.name, await stat(p.path).then(() => true, () => false)]);
+  });
+  registry.addBeforeDeleteHook(() => {
+    throw new Error('the app did not answer');
+  });
+  await registry.archive(doomed.id);
+  await registry.deleteFolder(doomed.id, 'Hooked');
+  await assert.rejects(stat(doomed.path), 'the folder is gone');
+  await registry.remove(kept.id);
+  assert.deepEqual(seen, [['Hooked', true]], 'a removal from the list only does not call them');
+});
+

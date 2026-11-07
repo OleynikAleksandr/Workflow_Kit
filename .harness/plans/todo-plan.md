@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 125,
+  "revision": 126,
   "rounds": [
     {
       "digest": {
@@ -93,6 +93,13 @@
       "kind": "fixes",
       "status": "CLOSED",
       "title": "Fixes"
+    },
+    {
+      "digest": null,
+      "id": "R5",
+      "kind": "fixes",
+      "status": "OPEN",
+      "title": "Fixes"
     }
   ],
   "schema": "harness-workflow-plan/1",
@@ -124,7 +131,7 @@
         "text": "Claude: имя передаёт хук UserPromptSubmit полем hookSpecificOutput.sessionTitle"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "IN_PROGRESS",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cfa00ffe-c414-4ae6-9953-e3d2906b3705",
@@ -577,6 +584,133 @@
       "status": "DONE",
       "title": "Релиз 0.3.0",
       "why": "Релиз 0.3.0"
+    },
+    {
+      "acceptance": [
+        "Опрос ждёт статус до 3 с; неизвестный статус не затирает известный у того же pid",
+        "connecting или неизвестно — причина «ChatGPT подключается к демону — подождите несколько секунд», действия нет",
+        "disabled/errored без ошибки входа — действие «Подключить к ChatGPT»; не запущен — «Запустить демон»; подключён — действия нет"
+      ],
+      "checks": [],
+      "commitMessage": "fix: report the Codex daemon connection consistently",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M3-fixes.md",
+          "heading": "9. Раунд 5: состояние демона Codex в мастере",
+          "required": true
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/runtime.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/helpers.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md"
+      ],
+      "fixes": "T001",
+      "id": "T011",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R5",
+      "status": "TODO",
+      "title": "Согласованное состояние демона Codex",
+      "why": "Короткое ожидание статуса связи давало «не подключён» и включало «Запустить демон» при работающем демоне"
+    },
+    {
+      "acceptance": [
+        "Пока кнопка провайдера выключена, предпросмотр перечитывается раз в 5 с",
+        "Отказ action-disabled не показывается ошибкой, мастер перечитывает предпросмотр"
+      ],
+      "checks": [],
+      "commitMessage": "fix: keep provider readiness fresh in the project wizard",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M3-fixes.md",
+          "heading": "9. Раунд 5: состояние демона Codex в мастере",
+          "required": true
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/control-panel/clusters/web-panel/modules/project-wizard/src/wizard-model.js",
+        "product-parts/control-panel/clusters/web-panel/modules/project-wizard/src/project-wizard.css",
+        "product-parts/control-panel/clusters/web-panel/modules/project-wizard/src/project-wizard.js",
+        "product-parts/control-panel/clusters/web-panel/modules/project-wizard/src/index.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/project-wizard/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/project-wizard/test/wizard-model.test.ts"
+      ],
+      "fixes": null,
+      "id": "T012",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R5",
+      "status": "TODO",
+      "title": "Мастер перечитывает готовность провайдера",
+      "why": "Причина у кнопки провайдера и список действий были из разных моментов"
+    },
+    {
+      "acceptance": [
+        "Project-wide documents describe the round result",
+        "The round digest records result, decisions, contracts and references"
+      ],
+      "checks": [],
+      "commitMessage": "docs: reconcile documentation for R5",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T011",
+        "T012"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/architecture/OVERVIEW.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/project-wizard/module.md"
+      ],
+      "fixes": null,
+      "id": "DOCS-R5",
+      "iteration": 1,
+      "kind": "docs",
+      "roundId": "R5",
+      "status": "TODO",
+      "title": "Reconcile project documentation and write the round digest",
+      "why": "Keep the project context current for the next agent and close the round."
+    },
+    {
+      "acceptance": [
+        "Версия 0.3.1 в package.json и package-lock.json",
+        "install ставит app/0.3.1, wfk doctor --installed — всё в порядке"
+      ],
+      "checks": [],
+      "commitMessage": "chore: release 0.3.1",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T011",
+        "T012",
+        "DOCS-R5"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "package.json",
+        "package-lock.json",
+        "docs/evidence/M3-acceptance.md"
+      ],
+      "fixes": null,
+      "id": "T013",
+      "iteration": 1,
+      "kind": "delivery",
+      "roundId": "R5",
+      "status": "TODO",
+      "title": "Релиз 0.3.1",
+      "why": "Релиз 0.3.1"
     }
   ]
 }
@@ -586,11 +720,11 @@
 ## State
 
 - Scope: m3-fixes (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 14/14
-- Revision: 125
+- Progress: 14/18
+- Revision: 126
 
 ## Objective
 
@@ -674,5 +808,23 @@ Digest: Имя сессии Claude из Kit уходит в приложение
   - Depends on: T009, DOCS-R4
 
 Digest: Главный экран без карточки «Начните с проекта» (создание и выбор проекта — в меню «Ваши проекты»); принято правило: каждый релиз повышает версию, веха 3 — 0.3.x.
+
+### R5 — Fixes (fixes, OPEN)
+
+- [TODO] T011 — Согласованное состояние демона Codex (work)
+  - Commit: fix: report the Codex daemon connection consistently
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/runtime.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/helpers.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md
+  - Fixes: T001
+- [TODO] T012 — Мастер перечитывает готовность провайдера (work)
+  - Commit: fix: keep provider readiness fresh in the project wizard
+  - Files: product-parts/control-panel/clusters/web-panel/modules/project-wizard/src/wizard-model.js, product-parts/control-panel/clusters/web-panel/modules/project-wizard/src/project-wizard.css, product-parts/control-panel/clusters/web-panel/modules/project-wizard/src/project-wizard.js, product-parts/control-panel/clusters/web-panel/modules/project-wizard/src/index.ts, product-parts/control-panel/clusters/web-panel/modules/project-wizard/module.md, product-parts/control-panel/clusters/web-panel/modules/project-wizard/test/wizard-model.test.ts
+- [TODO] DOCS-R5 — Reconcile project documentation and write the round digest (docs)
+  - Commit: docs: reconcile documentation for R5
+  - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/control-panel/clusters/web-panel/modules/project-wizard/module.md
+  - Depends on: T011, T012
+- [TODO] T013 — Релиз 0.3.1 (delivery)
+  - Commit: chore: release 0.3.1
+  - Files: package.json, package-lock.json, docs/evidence/M3-acceptance.md
+  - Depends on: T011, T012, DOCS-R5
 
 State changes only through `scripts/workflow` commands. History lives in Git.

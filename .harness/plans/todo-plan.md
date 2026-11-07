@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 155,
+  "revision": 157,
   "rounds": [
     {
       "digest": {
@@ -139,7 +139,21 @@
       "title": "Fixes"
     },
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "plan-view: ChoiceOptionView без claudeOnly; choiceOptionsFor отдаёт все варианты",
+          "autopilot: executorHowto, CLAUDE_EXECUTOR_HOWTO, CODEX_EXECUTOR_HOWTO; orchestrated-claude-only снят",
+          "kit-structure: раздел «Orchestration with your app's subagents» в AGENTS.md"
+        ],
+        "decisions": [
+          "Kit 2.2.2 не создаёт рабочую копию исполнителю; оркестратор Codex создаёт её сам в .workflow-kit/local/worktrees/<id> от baseCommit (проверено пробой)",
+          "Оркестрация силами Workflow Kit с любым CLI-подагентом — следующий этап"
+        ],
+        "references": [
+          "docs/planning/M3-orchestration.md"
+        ],
+        "result": "Оркестрация встроенными подагентами доступна сессиям Claude и ChatGPT: оркестратор раздаёт назначения Kit подагентам своего приложения (Claude — Agent с worktree, Codex — свой git worktree и spawn_agent) и интегрирует их коммиты."
+      },
       "id": "R7",
       "kind": "implementation",
       "status": "OPEN",
@@ -1084,7 +1098,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R7",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -1128,8 +1142,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 26/28
-- Revision: 155
+- Progress: 27/28
+- Revision: 157
 
 ## Objective
 
@@ -1268,7 +1282,7 @@ Digest: Демон Codex с устаревшим входом распознаё
 - [DONE] T020 — Процедуры оркестратора в AGENTS.md (work)
   - Commit: docs: describe the orchestrator procedure for Claude and Codex in the Kit section
   - Files: product-parts/backend-core/clusters/projects/modules/kit-structure/src/templates.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/module.md, product-parts/backend-core/clusters/projects/modules/kit-structure/test/markers.test.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/test/structure.test.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/test/session-hook.test.ts
-- [TODO] DOCS-R7 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R7 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R7
   - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/backend-core/clusters/projects/modules/kit-structure/module.md
   - Depends on: T019, T020
@@ -1276,5 +1290,7 @@ Digest: Демон Codex с устаревшим входом распознаё
   - Commit: chore: release 0.3.3
   - Files: package.json, package-lock.json, docs/evidence/M3-acceptance.md
   - Depends on: T019, T020, DOCS-R7
+
+Digest: Оркестрация встроенными подагентами доступна сессиям Claude и ChatGPT: оркестратор раздаёт назначения Kit подагентам своего приложения (Claude — Agent с worktree, Codex — свой git worktree и spawn_agent) и интегрирует их коммиты.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

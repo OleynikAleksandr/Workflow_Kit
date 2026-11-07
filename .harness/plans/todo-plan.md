@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 208,
+  "revision": 209,
   "rounds": [
     {
       "digest": {
@@ -68,6 +68,13 @@
       "kind": "fixes",
       "status": "CLOSED",
       "title": "Создание сессии при соединении у приложения ChatGPT"
+    },
+    {
+      "digest": null,
+      "id": "R4",
+      "kind": "fixes",
+      "status": "OPEN",
+      "title": "Щелчок по сессии ChatGPT открывает чат"
     }
   ],
   "schema": "harness-workflow-plan/1",
@@ -90,7 +97,7 @@
         "text": "Демон Codex запускается при каждом старте службы без согласий; при остановке службы не останавливается"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "IN_PROGRESS",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
@@ -377,6 +384,95 @@
       "status": "DONE",
       "title": "Релиз 0.3.9",
       "why": "Релиз 0.3.9"
+    },
+    {
+      "acceptance": [
+        "Щелчок по карточке сессии ChatGPT открывает её чат и экран сессии",
+        "«Открыть чат» нет ни на экране сессии, ни в меню; в заголовке — строка состояния",
+        "Открытие экрана сессии без щелчка чат не открывает"
+      ],
+      "checks": [],
+      "commitMessage": "feat: a click on a ChatGPT session card opens its chat",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M3-autostart.md",
+          "heading": "6. Раунд 4: щелчок по карточке сессии ChatGPT открывает чат",
+          "required": true
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/sidebar.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/actions.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/screens.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/view-model.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md"
+      ],
+      "fixes": null,
+      "id": "T007",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R4",
+      "status": "TODO",
+      "title": "Карточка сессии ChatGPT открывает чат",
+      "why": "Карточка сессии ChatGPT открывает чат"
+    },
+    {
+      "acceptance": [
+        "Project-wide documents describe the round result",
+        "The round digest records result, decisions, contracts and references"
+      ],
+      "checks": [],
+      "commitMessage": "docs: reconcile documentation for R4",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T007"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/architecture/OVERVIEW.md",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md"
+      ],
+      "fixes": null,
+      "id": "DOCS-R4",
+      "iteration": 1,
+      "kind": "docs",
+      "roundId": "R4",
+      "status": "TODO",
+      "title": "Reconcile project documentation and write the round digest",
+      "why": "Keep the project context current for the next agent and close the round."
+    },
+    {
+      "acceptance": [
+        "Версия 0.3.10",
+        "install ставит app/0.3.10, wfk doctor --installed — всё в порядке"
+      ],
+      "checks": [],
+      "commitMessage": "chore: release 0.3.10",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "DOCS-R4"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "package.json",
+        "package-lock.json",
+        "docs/evidence/M3-acceptance.md"
+      ],
+      "fixes": null,
+      "id": "T008",
+      "iteration": 1,
+      "kind": "delivery",
+      "roundId": "R4",
+      "status": "TODO",
+      "title": "Релиз 0.3.10",
+      "why": "Релиз 0.3.10"
     }
   ]
 }
@@ -386,11 +482,11 @@
 ## State
 
 - Scope: m3-autostart (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 9/9
-- Revision: 208
+- Progress: 9/12
+- Revision: 209
 
 ## Objective
 
@@ -451,5 +547,19 @@ Digest: Соединение удалённого управления, заня
   - Depends on: DOCS-R3
 
 Digest: Сессия ChatGPT создаётся и тогда, когда удалённое управление держит приложение ChatGPT.
+
+### R4 — Щелчок по сессии ChatGPT открывает чат (fixes, OPEN)
+
+- [TODO] T007 — Карточка сессии ChatGPT открывает чат (work)
+  - Commit: feat: a click on a ChatGPT session card opens its chat
+  - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/sidebar.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/actions.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/screens.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/view-model.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md
+- [TODO] DOCS-R4 — Reconcile project documentation and write the round digest (docs)
+  - Commit: docs: reconcile documentation for R4
+  - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md
+  - Depends on: T007
+- [TODO] T008 — Релиз 0.3.10 (delivery)
+  - Commit: chore: release 0.3.10
+  - Files: package.json, package-lock.json, docs/evidence/M3-acceptance.md
+  - Depends on: DOCS-R4
 
 State changes only through `scripts/workflow` commands. History lives in Git.

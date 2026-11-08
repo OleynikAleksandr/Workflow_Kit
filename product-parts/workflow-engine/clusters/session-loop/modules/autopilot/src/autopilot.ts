@@ -24,7 +24,7 @@ import {
 /** Stops that wait for a user decision in the panel: the Stop hook is held. */
 const HOLDING: ReadonlySet<string> = new Set(['waiting-for-mode-choice', 'waiting-for-plan-start', 'delivery-confirmation', 'ready-for-acceptance']);
 
-export type AutopilotReason = StopReason | 'waiting-for-plan-start' | 'waiting-for-review' | 'waiting-for-main';
+export type AutopilotReason = StopReason | 'waiting-for-plan-start' | 'waiting-for-review' | 'waiting-for-main' | 'waiting-for-plan-decision';
 
 /**
  * The cross review (M4): its Stop decision comes before the autopilot's. canStart — the session
@@ -193,7 +193,7 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
       };
       const other = options.channel
         .list()
-        .some((a) => a.key !== context.key && a.projectId === context.projectId && (a.holdReason === 'waiting-for-mode-choice' || a.holdReason === 'waiting-for-review'));
+        .some((a) => a.key !== context.key && a.projectId === context.projectId && (a.holdReason === 'waiting-for-mode-choice' || a.holdReason === 'waiting-for-review' || a.holdReason === 'waiting-for-plan-decision'));
       if (options.review) {
         const reviewer = options.review.isReviewer(context.key);
         const reviewed = await options.review.decide(context, status.proposalPending && !other && !reviewer);

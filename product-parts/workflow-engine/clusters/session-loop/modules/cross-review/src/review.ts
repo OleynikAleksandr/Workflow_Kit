@@ -9,6 +9,7 @@ import {
   FINISHED_FOR_REVIEWER,
   MAX_ROUNDS,
   PLAN_REQUEST,
+  QUESTION_REMINDER,
   REMINDER,
   SOURCE,
   STATUS_LABELS,
@@ -21,7 +22,8 @@ import {
 import type { ReviewProvider } from './texts.ts';
 
 export const CHOICE_WAITS_REVIEW = 'Идёт ревью плана: путь выбирается после согласия ревьюера и агента';
-export const CHOICE_WAITS_TURN = 'Сначала ревью плана: оно начнётся, когда агент закончит ход';
+export const CHOICE_WAITS_TURN = 'Сначала ревью плана: оно (или вопрос о нём) появится, когда агент закончит ход';
+export const CHOICE_WAITS_QUESTION = 'Сначала ответьте на вопрос о плане в сессии агента';
 
 /** A review without progress this long is given up (the reviewer does not answer). */
 export const REVIEW_STALL_MS = 60 * 60_000;
@@ -41,6 +43,14 @@ export interface CrossReviewDeps {
   /** The open plan proposal of a project, or null. */
   proposal(projectId: string): Promise<{ generation: number; scopeId: string | null } | null>;
   sessionTitle(projectId: string, key: string): string | null;
+  /** The session has an open plan question (spec M4 12): its Stop waits for the answer. */
+  question?(projectId: string, key: string): boolean;
+  /** Any open plan question in the project. */
+  asking?(projectId: string): boolean;
+  /** The session has a review decision (an answer to the question). */
+  decided?(projectId: string, key: string): boolean;
+  /** Asks the proposal question of a session without a decision (spec M4 12.2). */
+  askProposal?(projectId: string, key: string): Promise<void>;
   now?: () => Date;
   log?: (line: string) => void;
 }
@@ -288,6 +298,7 @@ export function createCrossReview(deps: CrossReviewDeps): CrossReview {
         await work.get(mainKey);
         return active(reviews.get(mainKey)) ? hold('waiting-for-main') : { kind: 'release' };
       }
+      if (deps.question?.(context.projectId, context.key)) return { kind: 'hold', reason: 'waiting-for-plan-decision', timeoutAnswer: QUESTION_REMINDER };
       const own = reviews.get(context.key);
       if (own) await work.get(context.key);
       if (own && active(own)) {
@@ -310,7 +321,14 @@ export function createCrossReview(deps: CrossReviewDeps): CrossReview {
         tentative.add(context.key);
         return { kind: 'hold', reason: 'waiting-for-main' };
       }
-      if (!canStart || !deps.toggle(context.projectId, context.key)) return null;
+      if (!canStart) return null;
+      if (deps.decided && deps.askProposal && !deps.decided(context.projectId, context.key)) {
+        // A plan came without a decision about its review: the user decides now (spec M4 12.2).
+        if (!(await deps.proposal(context.projectId))) return null;
+        await deps.askProposal(context.projectId, context.key);
+        return { kind: 'hold', reason: 'waiting-for-plan-decision', timeoutAnswer: QUESTION_REMINDER };
+      }
+      if (!deps.toggle(context.projectId, context.key)) return null;
       const proposal = await deps.proposal(context.projectId);
       if (!proposal) return null;
       if (own && own.scopeId === proposal.scopeId) return null;
@@ -319,8 +337,10 @@ export function createCrossReview(deps: CrossReviewDeps): CrossReview {
       return { kind: 'continue', text: PLAN_REQUEST };
     },
     async choiceBlocked(projectId, working) {
+      if (deps.asking?.(projectId)) return CHOICE_WAITS_QUESTION;
       if ([...reviews.values()].some((r) => r.projectId === projectId && active(r))) return CHOICE_WAITS_REVIEW;
-      const candidates = working.filter((key) => !reviewers.has(key) && deps.toggle(projectId, key));
+      const undecided = (key: string): boolean => (deps.decided ? !deps.decided(projectId, key) : false);
+      const candidates = working.filter((key) => !reviewers.has(key) && (deps.toggle(projectId, key) || undecided(key)));
       if (candidates.length === 0) return null;
       const proposal = await deps.proposal(projectId);
       if (!proposal) return null;

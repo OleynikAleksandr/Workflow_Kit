@@ -7,6 +7,7 @@ import { FINISHED, createCrossReview, registerCrossReviewRoutes } from '#cross-r
 import type { CrossReview } from '#cross-review';
 import type { WorkflowState } from '#kit-runner';
 import type { Router, StateRegistry } from '#http-server';
+import { ANSWER_MESSAGES, registerPlanQuestionRoute } from '#plan-review';
 import type { ReviewToggles } from '#plan-review';
 import type { ProjectRegistry } from '#project-registry';
 import type { ProviderRegistry } from '#provider-registry';
@@ -78,7 +79,24 @@ export function wireCrossReview(options: {
       return proposal && !view?.execution ? { generation: proposal.generation, scopeId: proposal.scopeId } : null;
     },
     sessionTitle: (projectId, key) => options.titles.name(projectId, key).name || null,
+    question: (projectId, key) => options.toggles.question(projectId, key) !== null,
+    asking: (projectId) => options.toggles.asking(projectId),
+    decided: (projectId, key) => options.toggles.decided(projectId, key),
+    askProposal: async (projectId, key) => void (await options.toggles.ask(projectId, key, 'proposal', '')),
     log: options.log,
+  });
+  // The plan question (spec M4 12): `wfk session plan` opens it, the answer reaches the agent.
+  registerPlanQuestionRoute({
+    router: options.router,
+    toggles: options.toggles,
+    resolveProject: async (folder) => {
+      const clean = folder.replace(/\/+$/, '');
+      return (await projects.list()).find((p) => clean === p.path || clean.startsWith(`${p.path}/`)) ?? null;
+    },
+  });
+  options.toggles.onAnswer((projectId, key, choice, question) => {
+    if (question.kind === 'agent') void options.messages.enqueue(key, ANSWER_MESSAGES[choice], 'panel', projectId);
+    options.channel.wake(key);
   });
   options.channel.onStop((event) => review.onStop(event));
   registerCrossReviewRoutes({ router: options.router, state: options.state, review });

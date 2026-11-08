@@ -11,6 +11,7 @@ import { createStubProvider } from '#provider-registry';
 import { createApp } from '../src/index.ts';
 import type { App } from '../src/index.ts';
 import { lateReviewDecider, toggleLock } from '../src/review-wiring.ts';
+import { PLAN_ASKED, runSessionCommand } from '../src/session-command.ts';
 
 let tmp = '';
 let app: App;
@@ -65,4 +66,26 @@ test('the toggle is locked while a review runs and for the plan it reviewed, not
   assert.equal(toggleLock(cross, workflow, 'p', 'k'), null);
   review = null;
   assert.equal(toggleLock(cross, workflow, 'p', 'k'), null);
+});
+
+test('wfk session plan posts the question of the calling session; the route checks the session and the folder (M4 12)', async () => {
+  const calls: Array<{ url: string; body: unknown }> = [];
+  const out: string[] = [];
+  const code = await runSessionCommand(['plan', 'Склад:', 'две', 'команды'], {
+    stdout: (t) => void out.push(t),
+    stderr: (t) => void out.push(t),
+    env: { WFK_DATA_DIR: path.join(tmp, 'data'), CODEX_THREAD_ID: 't-1' },
+    cwd: '/work/sklad',
+    homedir: tmp,
+    request: async (url, body) => (calls.push({ url, body }), { status: 200, body: {} }),
+  });
+  assert.equal(code, 0);
+  assert.match(calls[0]!.url, /\/api\/sessions\/plan$/);
+  assert.deepEqual(calls[0]!.body, { summary: 'Склад: две команды', cwd: '/work/sklad', projectDir: null, client: 'codex', sessionId: 't-1' });
+  assert.equal(out.join(''), PLAN_ASKED);
+  const H = { Origin: base, 'Content-Type': 'application/json' };
+  const post = (body: unknown) => fetch(`${base}/api/sessions/plan`, { method: 'POST', headers: H, body: JSON.stringify(body) });
+  assert.equal((await post({ summary: 'x', cwd: tmp })).status, 400, 'no session id');
+  assert.equal((await post({ summary: 'x', cwd: tmp, client: 'claude', sessionId: 's1' })).status, 404, 'not a project folder');
+  assert.equal((await fetch(`${base}/api/projects/p1/sessions/claude:s1/plan-decision`, { method: 'POST', headers: H, body: JSON.stringify({ choice: 'review' }) })).status, 404);
 });

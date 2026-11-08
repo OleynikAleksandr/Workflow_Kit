@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
 import type { StopContext, StopEvent, TurnOrigin } from '#agent-channel';
-import { CHOICE_WAITS_REVIEW, CHOICE_WAITS_TURN, PLAN_REQUEST, createCrossReview, readReviews } from '../src/index.ts';
+import { CHOICE_WAITS_QUESTION, CHOICE_WAITS_REVIEW, CHOICE_WAITS_TURN, PLAN_REQUEST, QUESTION_REMINDER, createCrossReview, readReviews } from '../src/index.ts';
 import type { CrossReviewDeps, ReviewProvider } from '../src/index.ts';
 
 const MAIN = 'claude:main-1';
@@ -180,14 +180,16 @@ test('the section gives summaries with short texts', async () => {
 });
 
 test('a reviewer that ends its first turn before its creation returns is held, then taken', async () => {
-  let release: (value: { localId: string | null; remoteId: string | null }) => void = () => undefined;
+  let release: ((value: { localId: string | null; remoteId: string | null }) => void) | null = null;
   const t = await setup({ createSession: () => new Promise((resolve) => (release = resolve)) });
   await t.review.decide(t.ctx(MAIN), true);
   t.stop(MAIN, 'план', 'decider', []);
-  await new Promise((resolve) => setTimeout(resolve, 10));
+  // Wait for the creation itself, not for a fixed time: a busy machine may take longer.
+  for (let i = 0; i < 500 && !release; i += 1) await new Promise((resolve) => setTimeout(resolve, 2));
+  assert.ok(release, 'the reviewer is being created');
   t.stop('codex:t1', 'ранние замечания', 'user', []);
   assert.deepEqual(await t.review.decide(t.ctx('codex:t1')), { kind: 'hold', reason: 'waiting-for-main' });
-  release({ localId: 't1', remoteId: null });
+  release!({ localId: 't1', remoteId: null });
   await t.settle();
   assert.ok(t.woken.includes('codex:t1'));
   assert.equal(t.sent.at(-1)!.key, MAIN);
@@ -233,5 +235,31 @@ test('the mode choice waits while a working session with the toggle on has not r
   assert.equal(await t.review.choiceBlocked('p1', [MAIN]), null, 'this scope was reviewed');
   t.setProposal(null);
   assert.equal(await t.review.choiceBlocked('p1', [MAIN]), null);
+  await t.cleanup();
+});
+
+test('an open plan question holds the Stop; a proposal without a decision asks it first (M4 12)', async () => {
+  const questions = new Set<string>();
+  const decided = new Set<string>();
+  const t = await setup({
+    question: (_p, key) => questions.has(key),
+    asking: () => questions.size > 0,
+    decided: (_p, key) => decided.has(key),
+    askProposal: async (_p, key) => void questions.add(key),
+  });
+  questions.add(MAIN);
+  assert.deepEqual(await t.review.decide(t.ctx(MAIN)), { kind: 'hold', reason: 'waiting-for-plan-decision', timeoutAnswer: QUESTION_REMINDER });
+  assert.equal(await t.review.choiceBlocked('p1', []), CHOICE_WAITS_QUESTION);
+  questions.clear();
+  assert.equal(await t.review.choiceBlocked('p1', [MAIN]), CHOICE_WAITS_TURN, 'an undecided working session will be asked');
+  const asked = await t.review.decide(t.ctx(MAIN), true);
+  assert.equal(asked?.kind === 'hold' && asked.reason, 'waiting-for-plan-decision');
+  assert.ok(questions.has(MAIN), 'the proposal question is open');
+  assert.equal(t.created.length, 0);
+  // The user answered «С ревью»: the decision exists, the toggle is on, the review starts.
+  questions.clear();
+  decided.add(MAIN);
+  await t.begin();
+  assert.equal(t.created.length, 1);
   await t.cleanup();
 });

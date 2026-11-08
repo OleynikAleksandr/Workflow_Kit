@@ -17,7 +17,9 @@ ChatGPT — Claude) и пересылает законченные ходы ст
   `resolveReviewer(projectId, provider, ref)` (ключ канала созданной сессии: у Claude id хука
   известен не сразу), `enqueue(key, text, projectId)` (очередь и пробуждение), `wake(key)`
   (переспросить удержанный `Stop`), `toggle(projectId, key)`, `proposal(projectId)` (открытое
-  предложение `{ generation, scopeId }` или `null`), `sessionTitle`, `now`, `log`.
+  предложение `{ generation, scopeId }` или `null`), `sessionTitle`, вопрос о плане (M4,
+  раздел 12, необязательные) — `question(projectId, key)`, `asking(projectId)`,
+  `decided(projectId, key)`, `askProposal(projectId, key)`, `now`, `log`.
 - `CrossReview`:
   - `load()` — ревью проектов из `.workflow-kit/local/reviews/<client>.<id>.json`.
   - `onStop(event)` — слушатель канала: в `preparing` любой законченный ход основной —
@@ -37,11 +39,13 @@ ChatGPT — Claude) и пересылает законченные ходы ст
     Неизвестная сессия провайдера ревьюера при `starting` узнаётся через `resolveReviewer`.
     Пока ревьюер создаётся (`createSession` не вернулась), такая сессия держится
     (`waiting-for-main`); после создания она переспрашивается (`wake`).
+    Открытый вопрос о плане (не у ревьюера) — держать `waiting-for-plan-decision` с
+    `QUESTION_REMINDER`; `canStart` без решения о ревью — `askProposal` и то же удержание.
     Остальное — `null` (решает автопилот).
   - `toggled(projectId, key, on)` — включение будит удержанный `Stop` (старт), выключение
     отменяет; `choiceBlocked(projectId, working)` — почему выбор пути ждёт ревью
-    (`CHOICE_WAITS_REVIEW` — ревью идёт; `CHOICE_WAITS_TURN` — работающая сессия с включённым
-    переключателем ещё не проходила ревью открытого предложения; раздел 11.3) или `null`;
+    (`CHOICE_WAITS_QUESTION` — открыт вопрос о плане; `CHOICE_WAITS_REVIEW` — ревью идёт; `CHOICE_WAITS_TURN` — работающая сессия с включённым
+    переключателем или без решения ещё не проходила ревью открытого предложения; раздел 11.3) или `null`;
     `cancel(projectId, key, reason)`; `isReviewer(key)`; `get(projectId, key)` —
     ревью сессии как основной или ревьюера; `section()` — `{ projects: { [id]:
     ReviewSummary[] } }` (тексты журнала до 400 знаков, `statusLabel`, `active`).

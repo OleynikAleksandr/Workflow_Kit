@@ -74,6 +74,7 @@ export const STOP_LABELS: Readonly<Record<string, string>> = {
   'waiting-for-executors': 'Ждёт исполнителей',
   'waiting-for-mode-choice': 'Ждёт выбора пути',
   'waiting-for-plan-start': 'Ждёт «Начать выполнение плана»',
+  'waiting-for-plan-decision': 'Ждёт решения о спецификации и плане',
   'waiting-for-review': 'Ревью плана: ждёт ответа ревьюера',
   'waiting-for-main': 'Ревью плана: ждёт ответа основного агента',
 };

@@ -25,8 +25,9 @@
     или Kit — отпустить; опция `review` (`ReviewDecider`, M4) спрашивается
     первой: `decide(context, canStart)` (`canStart` — открыто предложение,
     сессия ревьюером не является и никто в проекте не держится
-    `waiting-for-mode-choice`/`waiting-for-review`); её решение
-    (`waiting-for-review`, `waiting-for-main`, отпустить) — окончательное,
+    `waiting-for-mode-choice`/`waiting-for-review`/`waiting-for-plan-decision`); её решение
+    (`waiting-for-review`, `waiting-for-main`, `waiting-for-plan-decision` — вопрос о
+    плане, M4 раздел 12, отпустить) — окончательное,
     сессия ревьюера без решения ревью отпускается; открыто предложение плана — держать
     (`waiting-for-mode-choice`, одна сессия проекта); план готов, автопилот
     сессии выключен и она владелец (`execution.ownerSession`) — держать

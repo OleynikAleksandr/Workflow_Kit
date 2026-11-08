@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 290,
+  "revision": 292,
   "rounds": [
     {
       "digest": {
@@ -521,14 +521,26 @@
         "product-parts/backend-core/clusters/runtime/modules/cli/src/session-command.ts",
         "product-parts/backend-core/clusters/runtime/modules/cli/src/commands.ts",
         "product-parts/backend-core/clusters/runtime/modules/cli/test",
-        "product-parts/backend-core/clusters/runtime/modules/cli/module.md"
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/review.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/index.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/review.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/texts.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test/review.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/plan-review/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/plan-review/src/index.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/plan-review/src/routes.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/plan-review/src/texts.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/plan-review/src/toggles.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/plan-review/test/toggles.test.ts"
       ],
       "fixes": null,
       "id": "T011",
       "iteration": 1,
       "kind": "work",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Plan question in the service",
       "why": "The user decides about a plan and its review at the moment the agent recognises a development task"
     },
@@ -671,8 +683,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 10/15
-- Revision: 290
+- Progress: 11/15
+- Revision: 292
 
 ## Objective
 
@@ -735,9 +747,9 @@ Digest: Перекрёстное ревью плана: при включённ�
   - Commit: fix: keep the mode choice until the plan review starts
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/review.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test/review.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/autopilot.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/flow.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/review-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/index.ts
   - Fixes: T004
-- [TODO] T011 — Plan question in the service (work)
+- [DONE] T011 — Plan question in the service (work)
   - Commit: feat: ask the user about the specification and plan
-  - Files: product-parts/workflow-engine/clusters/session-loop/modules/plan-review, product-parts/workflow-engine/clusters/session-loop/modules/cross-review, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/autopilot.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/texts.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/review-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/session-command.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/commands.ts, product-parts/backend-core/clusters/runtime/modules/cli/test, product-parts/backend-core/clusters/runtime/modules/cli/module.md
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/plan-review, product-parts/workflow-engine/clusters/session-loop/modules/cross-review, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/autopilot.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/texts.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/review-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/session-command.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/commands.ts, product-parts/backend-core/clusters/runtime/modules/cli/test, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/test/review.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/review.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/texts.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test/review.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/module.md, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/src/texts.ts, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/src/toggles.ts, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/test/toggles.test.ts
 - [TODO] T012 — Plan question card in the panel (work)
   - Commit: feat: show the plan question card instead of the review toggle
   - Files: product-parts/control-panel/clusters/web-panel/modules/session-view

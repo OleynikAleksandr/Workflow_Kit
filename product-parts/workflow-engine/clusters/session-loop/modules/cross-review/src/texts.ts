@@ -73,6 +73,10 @@ export function toReviewer(main: ReviewProvider, round: number, text: string): s
   return `Workflow Kit: ответ основного агента (${PROVIDER_NAMES[main]}) на круг ${round} из ${MAX_ROUNDS}:\n\n${clip(text)}\n\nПроверь исправления (изменённые документы; новый состав задач, если план менялся, — в ответе выше) и ответь так же: замечания и последняя строка \`REVIEW: APPROVED\` или \`REVIEW: CHANGES\`.`;
 }
 
+/** Reminder of a session whose plan question is still open (spec M4 12.1). */
+export const QUESTION_REMINDER =
+  'Workflow Kit: пользователь ещё не ответил на вопрос о спецификации и плане в панели. Ничего не делай, коротко подтверди и закончи ход — ответ придёт сюда.';
+
 export const REMINDER =
   'Workflow Kit: ревью плана идёт, ответ другой стороны ещё не пришёл. Ничего не делай, коротко подтверди и закончи ход — ответ придёт сюда.';
 

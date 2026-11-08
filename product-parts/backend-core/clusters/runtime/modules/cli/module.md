@@ -66,6 +66,7 @@ stripping).
 | `link [--force]` | пишет запускатель `~/.local/bin/wfk` (0755, `#!/bin/sh`, строка-метка `# Workflow Kit launcher`), который запускает `bin/wfk.mjs` этого клона абсолютным `node`; чужой файл заменяется только с `--force`; предупреждает, если каталога нет в PATH; на Windows — отказ, код 1 |
 | `hook session-start --client <claude\|codex>` | читает JSON хука из stdin (до 1 с, терминал — пусто) и передаёт `recordSessionStart` из `kit-structure`; весь бюджет 1,5 с; stdout пуст, код всегда 0; неизвестные подкоманды `hook` игнорируются |
 | `session title "<тема>"` | отправляет `{ title, cwd, projectDir, client, sessionId }` на `POST /api/sessions/title` (id сессии — `CODEX_THREAD_ID` или `CLAUDE_CODE_SESSION_ID`, `callingSession`); успех — «Имя сессии в Workflow Kit: …», код 0; отказ службы — причина в stderr, код 1; без темы — справка, код 64 |
+| `session plan "<что делаем>"` | вопрос о спецификации и плане (M4, раздел 12): `{ summary, cwd, projectDir, client, sessionId }` на `POST /api/sessions/plan`; успех — `PLAN_ASKED` («вопрос показан… закончи ход»), код 0; отказ — stderr, код 1; без текста — справка, код 64 |
 | `hook stop\|prompt --client <claude\|codex>` | читает JSON хука из stdin и отправляет `{ client, input, projectDir }` (`projectDir` — `$CLAUDE_PROJECT_DIR`) на `POST /api/hooks/stop\|prompt` службы; печатает в stdout поле `answer` ответа (JSON для агента) или ничего; ответ `prompt` сессии Claude несёт `hookSpecificOutput.sessionTitle` из `titles.appTitle` — имя Workflow Kit уходит в Claude; служба недоступна, вход не JSON — без вывода; код всегда 0; `WFK_HOOK_DEBUG` — причина в stderr |
 | `--help`, `--version` | справка и версия из `package.json` |
 
@@ -139,7 +140,10 @@ stripping).
 - перекрёстное ревью плана (M4) собрано в `src/review-wiring.ts`:
   `lateReviewDecider()` — решатель ревью для автопилота (подключается после
   создания; передаёт и `choiceBlocked`), `wireCrossReview({ router, state, channel, messages, projects,
-  providers, workflow, toggles, titles, log })` — `createCrossReview`
+  providers, workflow, toggles, titles, log })` — `createCrossReview` (с вопросом о плане:
+  `question`, `asking`, `decided`, `askProposal` из `toggles`; маршрут
+  `registerPlanQuestionRoute` с проектом по папке; ответ — `ANSWER_MESSAGES` агенту через
+  будящий канал и `wake`)
   (ревьюер — `createSession` провайдера с первым сообщением и `detached`, поиск по
   `listSessions`: `remoteId` или `localId`; сообщения — через будящий канал с
   источником `review`; открытое предложение — `workflow.proposal` без

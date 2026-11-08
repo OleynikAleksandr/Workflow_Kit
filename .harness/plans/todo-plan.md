@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 307,
+  "revision": 309,
   "rounds": [
     {
       "digest": {
@@ -85,7 +85,7 @@
       },
       "id": "R3",
       "kind": "fixes",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Review failures"
     }
   ],
@@ -129,7 +129,7 @@
         "text": "Ревьюер только читает и пишет замечания"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
@@ -828,7 +828,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: release 0.4.2",
-      "confirmation": null,
+      "confirmation": "Да, исправляй (ответ на «Исправить оба дефекта и собрать 0.4.2?»)",
       "context": [],
       "dependencies": [
         "T015",
@@ -845,7 +845,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R3",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Release 0.4.2",
       "why": "Release 0.4.2"
     }
@@ -857,11 +857,11 @@
 ## State
 
 - Scope: m4-plan-review (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 18/19
-- Revision: 307
+- Progress: 19/19
+- Revision: 309
 
 ## Objective
 
@@ -945,7 +945,7 @@ Digest: Перекрёстное ревью плана: при включённ�
 
 Digest: Fixes after the live review check: the ChatGPT reviewer starts at once (detached createSession), the main agent describes the plan for the reviewer (preparing), the mode choice waits for the review, and the always-on toggle gives way to the plan question asked by the agent (wfk session plan) or at a proposal without a decision.
 
-### R3 — Review failures (fixes, OPEN)
+### R3 — Review failures (fixes, CLOSED)
 
 - [DONE] T014 — Codex creates sessions while the ChatGPT app holds remote control (work)
   - Commit: fix: refuse a Codex session only on a real login problem
@@ -959,7 +959,7 @@ Digest: Fixes after the live review check: the ChatGPT reviewer starts at once (
   - Commit: docs: reconcile documentation for R3
   - Files: README.md, docs/architecture/OVERVIEW.md
   - Depends on: T014, T015
-- [TODO] T016 — Release 0.4.2 (delivery)
+- [DONE] T016 — Release 0.4.2 (delivery)
   - Commit: chore: release 0.4.2
   - Files: package.json, package-lock.json, docs/evidence/M4-acceptance.md
   - Depends on: T015, DOCS-R3

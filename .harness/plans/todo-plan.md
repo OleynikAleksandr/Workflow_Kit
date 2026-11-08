@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 305,
+  "revision": 307,
   "rounds": [
     {
       "digest": {
@@ -67,7 +67,22 @@
       "title": "Fixes after the live review check"
     },
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "heldByApp(warning) in provider-codex",
+          "CrossReview.retry; POST /api/projects/:id/reviews/:key/retry (409 review-not-failed)",
+          "choiceView.failedReview"
+        ],
+        "decisions": [
+          "createSession of Codex refuses codex-login only on a login error in the daemon log",
+          "A bare 409 Conflict of remote control means the ChatGPT app holds it",
+          "A failed review never vanishes silently: the choice card shows its reason; the path without review is a conscious choice"
+        ],
+        "references": [
+          "docs/planning/M4-plan-review.md#13. Ревью не должно молча пропадать (раунд R3)"
+        ],
+        "result": "Review failures: Codex creates a reviewer while the ChatGPT app holds remote control (409 Conflict counts as the app owner; only a real login error refuses), and a failed review stays visible on the choice card with «Повторить ревью»."
+      },
       "id": "R3",
       "kind": "fixes",
       "status": "OPEN",
@@ -802,7 +817,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R3",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -845,8 +860,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 17/19
-- Revision: 305
+- Progress: 18/19
+- Revision: 307
 
 ## Objective
 
@@ -940,7 +955,7 @@ Digest: Fixes after the live review check: the ChatGPT reviewer starts at once (
   - Commit: fix: show a failed plan review and let the user retry it
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/cross-review, product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/review.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test/review.test.ts
   - Fixes: T008
-- [TODO] DOCS-R3 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R3 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R3
   - Files: README.md, docs/architecture/OVERVIEW.md
   - Depends on: T014, T015
@@ -948,5 +963,7 @@ Digest: Fixes after the live review check: the ChatGPT reviewer starts at once (
   - Commit: chore: release 0.4.2
   - Files: package.json, package-lock.json, docs/evidence/M4-acceptance.md
   - Depends on: T015, DOCS-R3
+
+Digest: Review failures: Codex creates a reviewer while the ChatGPT app holds remote control (409 Conflict counts as the app owner; only a real login error refuses), and a failed review stays visible on the choice card with «Повторить ревью».
 
 State changes only through `scripts/workflow` commands. History lives in Git.

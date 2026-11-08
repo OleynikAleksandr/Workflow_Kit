@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
 import type { StopContext, StopEvent, TurnOrigin } from '#agent-channel';
-import { createCrossReview, readReviews } from '../src/index.ts';
+import { PLAN_REQUEST, createCrossReview, readReviews } from '../src/index.ts';
 import type { CrossReviewDeps, ReviewProvider } from '../src/index.ts';
 
 const MAIN = 'claude:main-1';
@@ -42,8 +42,15 @@ async function setup(over: Partial<CrossReviewDeps> = {}) {
     review.onStop(event);
     return event;
   };
+  /** Starts the review: the main turn continues with the plan request, then describes the plan. */
+  const begin = async (key = MAIN, plan = 'Спецификация docs/spec.md; T001 «Склад», файлы src/store.ts') => {
+    assert.deepEqual(await review.decide(ctx(key), true), { kind: 'continue', text: PLAN_REQUEST });
+    assert.equal(review.get('p1', key)!.status, 'preparing');
+    stop(key, plan, 'decider', []);
+    await settle();
+  };
   return {
-    folder, review, sent, woken, created, settle, ctx, stop,
+    folder, review, sent, woken, created, settle, ctx, stop, begin,
     setToggle: (on: boolean) => void (toggle = on),
     setProposal: (value: typeof proposal) => void (proposal = value),
     cleanup: () => rm(folder, { recursive: true, force: true }),
@@ -53,12 +60,12 @@ async function setup(over: Partial<CrossReviewDeps> = {}) {
 test('a proposal with the toggle on starts a ChatGPT reviewer and the ping-pong ends in agreement', async () => {
   const t = await setup();
   assert.equal(await t.review.decide(t.ctx(MAIN)), null, 'no start without canStart');
-  const first = await t.review.decide(t.ctx(MAIN), true);
-  assert.deepEqual(first, { kind: 'hold', reason: 'waiting-for-review', timeoutAnswer: first && 'timeoutAnswer' in first ? first.timeoutAnswer : '' });
-  await t.settle();
+  await t.begin();
+  assert.equal(t.review.get('p1', MAIN)!.entries[0]!.from, 'main', 'the plan description is in the journal');
+  assert.equal((await t.review.decide(t.ctx(MAIN)))?.kind, 'hold', 'then the main agent waits for the review');
   assert.equal(t.created[0]!.provider, 'codex');
   assert.equal(t.created[0]!.title, 'План склада — ревью');
-  assert.match(t.created[0]!.firstMessage, /ревьюер плана/);
+  assert.match(t.created[0]!.firstMessage, /ревьюер плана[\s\S]*T001 «Склад», файлы src\/store.ts/);
   assert.equal(t.created[0]!.detached, true, 'the reviewer is never waited for (M4 11.1)');
   assert.ok(t.review.isReviewer('codex:t1'));
   t.stop('codex:t1', '1. Нет критериев.\nREVIEW: CHANGES', 'user', []);
@@ -90,8 +97,7 @@ test('a proposal with the toggle on starts a ChatGPT reviewer and the ping-pong 
 
 test('after the last round without agreement the review ends as disagreed', async () => {
   const t = await setup();
-  await t.review.decide(t.ctx(MAIN), true);
-  await t.settle();
+  await t.begin();
   t.stop('codex:t1', 'замечание', 'user', []);
   await t.settle();
   for (let round = 1; round <= 5; round += 1) {
@@ -110,8 +116,7 @@ test('after the last round without agreement the review ends as disagreed', asyn
 
 test('a failed start is visible and frees the main session', async () => {
   const t = await setup({ createSession: async () => { throw new Error('демон ChatGPT не на связи'); } });
-  await t.review.decide(t.ctx(MAIN), true);
-  await t.settle();
+  await t.begin();
   const review = t.review.get('p1', MAIN)!;
   assert.equal(review.status, 'failed');
   assert.match(review.reason!, /демон/);
@@ -123,8 +128,7 @@ test('a failed start is visible and frees the main session', async () => {
 test('a Claude reviewer is recognised by its Remote Control id when its first Stop arrives', async () => {
   const t = await setup({ resolveReviewer: async (_p, _provider, ref) => (ref.remoteId === 'session_R' ? 'claude:hook-9' : null) });
   const codexMain = 'codex:main-2';
-  await t.review.decide(t.ctx(codexMain), true);
-  await t.settle();
+  await t.begin(codexMain);
   assert.equal(t.created[0]!.provider, 'claude');
   t.stop('claude:hook-9', 'REVIEW: APPROVED', 'user', []);
   const decision = await t.review.decide(t.ctx('claude:hook-9'));
@@ -137,8 +141,7 @@ test('a Claude reviewer is recognised by its Remote Control id when its first St
 
 test('the toggle off or a closed proposal cancels the review; a restart keeps it', async () => {
   const t = await setup();
-  await t.review.decide(t.ctx(MAIN), true);
-  await t.settle();
+  await t.begin();
   const again = createCrossReview({
     listProjects: async () => [{ id: 'p1', name: 'Склад', path: t.folder }],
     createSession: async () => ({ localId: null, remoteId: null }),
@@ -157,8 +160,7 @@ test('the toggle off or a closed proposal cancels the review; a restart keeps it
   assert.equal(t.review.get('p1', MAIN)!.status, 'cancelled');
   assert.match(t.sent.at(-1)!.text, /остановлено/);
   t.setProposal({ generation: 2, scopeId: 's2' });
-  await t.review.decide(t.ctx(MAIN), true);
-  await t.settle();
+  await t.begin();
   t.setProposal(null);
   assert.equal(await t.review.decide(t.ctx(MAIN)), null);
   assert.equal(t.review.get('p1', MAIN)!.reason, 'предложение плана закрыто');
@@ -167,8 +169,7 @@ test('the toggle off or a closed proposal cancels the review; a restart keeps it
 
 test('the section gives summaries with short texts', async () => {
   const t = await setup();
-  await t.review.decide(t.ctx(MAIN), true);
-  await t.settle();
+  await t.begin();
   t.stop('codex:t1', 'x'.repeat(1000), 'user', []);
   await t.settle();
   const [summary] = t.review.section().projects['p1']!;
@@ -182,6 +183,8 @@ test('a reviewer that ends its first turn before its creation returns is held, t
   let release: (value: { localId: string | null; remoteId: string | null }) => void = () => undefined;
   const t = await setup({ createSession: () => new Promise((resolve) => (release = resolve)) });
   await t.review.decide(t.ctx(MAIN), true);
+  t.stop(MAIN, 'план', 'decider', []);
+  await new Promise((resolve) => setTimeout(resolve, 10));
   t.stop('codex:t1', 'ранние замечания', 'user', []);
   assert.deepEqual(await t.review.decide(t.ctx('codex:t1')), { kind: 'hold', reason: 'waiting-for-main' });
   release({ localId: 't1', remoteId: null });
@@ -190,5 +193,25 @@ test('a reviewer that ends its first turn before its creation returns is held, t
   assert.equal(t.sent.at(-1)!.key, MAIN);
   assert.match(t.sent.at(-1)!.text, /ранние замечания/);
   assert.equal((await t.review.decide(t.ctx('codex:t1')))?.kind, 'hold');
+  await t.cleanup();
+});
+
+test('an empty plan description still starts the reviewer, asked to request the plan', async () => {
+  const t = await setup();
+  await t.begin(MAIN, '');
+  assert.match(t.created[0]!.firstMessage, /не описал состав плана/);
+  assert.equal(t.review.get('p1', MAIN)!.entries[0]!.text, '(агент не описал план)');
+  await t.cleanup();
+});
+
+test('cancel during the preparation stops the review before any reviewer exists', async () => {
+  const t = await setup();
+  await t.review.decide(t.ctx(MAIN), true);
+  await t.review.toggled('p1', MAIN, false);
+  assert.equal(t.review.get('p1', MAIN)!.status, 'cancelled');
+  t.stop(MAIN, 'план', 'decider', []);
+  await t.settle();
+  assert.equal(t.created.length, 0);
+  assert.equal(await t.review.decide(t.ctx(MAIN)), null);
   await t.cleanup();
 });

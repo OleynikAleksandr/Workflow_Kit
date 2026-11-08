@@ -33,14 +33,26 @@ export interface BriefInput {
   projectPath: string;
   mainProvider: ReviewProvider;
   mainTitle: string;
+  /** The main agent's description of the proposed plan (spec M4 section 11.2); '' when none. */
+  plan: string;
 }
+
+/**
+ * Continues the main turn when the review starts: scope:proposal does not show the plan's tasks,
+ * so the main agent describes them for the reviewer (spec M4 section 11.2).
+ */
+export const PLAN_REQUEST =
+  'Workflow Kit: включено «Ревью плана» — план проверит сессия другого провайдера. Она не видит задачи предложения через `scope:proposal`. Ответь одним сообщением, только описанием предложенного плана: путь к спецификации; задачи по порядку (id, название, файлы, критерии приёмки, зависимости); рекомендованный режим и причина. Ничего не меняй — ответ уйдёт ревьюеру.';
 
 /** The first message of the reviewer session. */
 export function reviewerBrief(input: BriefInput): string {
   return [
     `Ты — ревьюер плана в проекте «${input.projectName}» (${input.projectPath}). Основной агент — ${PROVIDER_NAMES[input.mainProvider]}, сессия «${input.mainTitle}»; он написал спецификацию и предложил план.`,
     'Задача: проверить спецификацию и план до начала работы — полнота относительно запроса пользователя, противоречия, риски, порядок и размер задач, критерии приёмки, проверяемость.',
-    'Контекст: `scripts/workflow recover --format text`, предложение плана — `scripts/workflow scope:proposal --format text`, документы — `scripts/workflow context <путь>` (спецификация названа в предложении).',
+    'Контекст: `scripts/workflow recover --format text`, предложение плана (режим и причина, без задач) — `scripts/workflow scope:proposal --format text`, документы — `scripts/workflow context <путь>`.',
+    input.plan
+      ? `План, как его описал основной агент:\n\n${clip(input.plan)}`
+      : 'Основной агент не описал состав плана: первым замечанием попроси перечислить задачи.',
     'Правила: только читай. Не меняй файлы, не выполняй команды Kit, которые меняют план или репозиторий, не коммить.',
     `Ответ — одним сообщением: замечания по пунктам (что, где, почему, как исправить). Последняя строка — \`REVIEW: APPROVED\`, если документы готовы, иначе \`REVIEW: CHANGES\`. Твои ответы Workflow Kit пересылает основному агенту, его — тебе; не больше ${MAX_ROUNDS} кругов.`,
   ].join('\n\n');
@@ -51,14 +63,14 @@ export function toMain(reviewer: ReviewProvider, round: number, text: string): s
   const head = `Workflow Kit: ревью плана, ревьюер — ${PROVIDER_NAMES[reviewer]}, круг ${round} из ${MAX_ROUNDS}. Замечания ревьюера:`;
   const rules =
     round === 1
-      ? '\n\nИсправь то, с чем согласен (при изменении плана снова `scope:propose`), с остальным аргументированно не соглашайся. Ответь одним сообщением: что исправил, с чем не согласен и почему, ссылки на изменённые документы. Когда ревьюер написал `REVIEW: APPROVED` и ты согласен, закончи ответ строкой `REVIEW: AGREED`.'
+      ? '\n\nИсправь то, с чем согласен (при изменении плана снова `scope:propose` и новый состав задач в ответе — ревьюер видит план только из твоих сообщений), с остальным аргументированно не соглашайся. Ответь одним сообщением: что исправил, с чем не согласен и почему, ссылки на изменённые документы. Когда ревьюер написал `REVIEW: APPROVED` и ты согласен, закончи ответ строкой `REVIEW: AGREED`.'
       : '\n\nОтветь так же одним сообщением; если ревьюер одобрил и ты согласен — строкой `REVIEW: AGREED`.';
   return `${head}\n\n${clip(text)}${rules}`;
 }
 
 /** The main agent's answer for the reviewer. */
 export function toReviewer(main: ReviewProvider, round: number, text: string): string {
-  return `Workflow Kit: ответ основного агента (${PROVIDER_NAMES[main]}) на круг ${round} из ${MAX_ROUNDS}:\n\n${clip(text)}\n\nПроверь исправления (\`scripts/workflow scope:proposal --format text\`, изменённые документы) и ответь так же: замечания и последняя строка \`REVIEW: APPROVED\` или \`REVIEW: CHANGES\`.`;
+  return `Workflow Kit: ответ основного агента (${PROVIDER_NAMES[main]}) на круг ${round} из ${MAX_ROUNDS}:\n\n${clip(text)}\n\nПроверь исправления (изменённые документы; новый состав задач, если план менялся, — в ответе выше) и ответь так же: замечания и последняя строка \`REVIEW: APPROVED\` или \`REVIEW: CHANGES\`.`;
 }
 
 export const REMINDER =
@@ -71,6 +83,7 @@ export const FINISHED_FOR_REVIEWER: Record<'agreed' | 'disagreed' | 'cancelled',
 };
 
 export const STATUS_LABELS: Record<string, string> = {
+  preparing: 'агент описывает план для ревьюера',
   starting: 'запускаем ревьюера',
   reviewing: 'ревьюер смотрит',
   answering: 'агент отвечает на замечания',

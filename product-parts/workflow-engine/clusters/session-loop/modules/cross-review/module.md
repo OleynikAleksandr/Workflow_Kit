@@ -20,7 +20,9 @@ ChatGPT — Claude) и пересылает законченные ходы ст
   предложение `{ generation, scopeId }` или `null`), `sessionTitle`, `now`, `log`.
 - `CrossReview`:
   - `load()` — ревью проектов из `.workflow-kit/local/reviews/<client>.<id>.json`.
-  - `onStop(event)` — слушатель канала: ход ревьюера пересылается основной, если ревью
+  - `onStop(event)` — слушатель канала: в `preparing` любой законченный ход основной —
+    описание плана (запись `main` круга 0), затем `starting` и создание ревьюера с этим
+    описанием в первом сообщении; ход ревьюера пересылается основной, если ревью
     `starting` (первый ход) или `reviewing` и ход начат доставкой ревью (`origin: delivery`,
     источник `review`); ход основной — ревьюеру, если ревью `answering` и ход начат доставкой
     ревью. Напоминания и ходы пользователя не пересылаются.
@@ -29,7 +31,9 @@ ChatGPT — Claude) и пересылает законченные ходы ст
     `waiting-for-review`; предложение закрыто — `cancelled`; нет движения дольше
     `REVIEW_STALL_MS` (60 мин) — `failed`. Удержания — с напоминанием `REMINDER` по таймауту.
     `canStart` (сессия иначе ждала бы выбора режима): переключатель включён, ревью этого
-    scope ещё не было, другого активного ревью в проекте нет → старт и `waiting-for-review`.
+    scope ещё не было, другого активного ревью в проекте нет → старт (`preparing`) и
+    `continue` с `PLAN_REQUEST`: основная одним сообщением описывает план (спецификация,
+    задачи, режим), потому что `scope:proposal` задач не показывает (раздел 11.2).
     Неизвестная сессия провайдера ревьюера при `starting` узнаётся через `resolveReviewer`.
     Пока ревьюер создаётся (`createSession` не вернулась), такая сессия держится
     (`waiting-for-main`); после создания она переспрашивается (`wake`).
@@ -38,13 +42,14 @@ ChatGPT — Claude) и пересылает законченные ходы ст
     отменяет; `cancel(projectId, key, reason)`; `isReviewer(key)`; `get(projectId, key)` —
     ревью сессии как основной или ревьюера; `section()` — `{ projects: { [id]:
     ReviewSummary[] } }` (тексты журнала до 400 знаков, `statusLabel`, `active`).
-- Состояния: `starting` → `answering` ↔ `reviewing` → `agreed` | `disagreed` | `failed` |
+- Состояния: `preparing` → `starting` → `answering` ↔ `reviewing` → `agreed` | `disagreed` | `failed` |
   `cancelled` (`FINISHED`). Круг — замечания ревьюера (`round` +1) и ответ основной. Согласие —
   последний ответ ревьюера с `REVIEW: APPROVED` и ответ основной с `REVIEW: AGREED`; после
   `MAX_ROUNDS` (5) ответов без согласия — `disagreed`. По окончании ревьюер получает
   заключительное сообщение, основная будится (`wake`).
-- Тексты (`texts.ts`): `reviewerBrief` (роль, правила «только читай», команды контекста
-  `recover`, `scope:proposal`, `context`, формат ответа), `toMain`, `toReviewer` (пересылаемый
+- Тексты (`texts.ts`): `PLAN_REQUEST`, `reviewerBrief` (роль, описание плана от основной или
+  просьба запросить его, правила «только читай», команды контекста `recover`,
+  `scope:proposal`, `context`, формат ответа), `toMain`, `toReviewer` (пересылаемый
   текст до 12000 знаков), `REMINDER`, `STATUS_LABELS`, `PROVIDER_NAMES`.
 - `registerCrossReviewRoutes({ router, state, review })`: раздел `reviews` в `/api/state`,
   `GET /api/projects/:id/reviews/:key` (полное ревью, 404 `review-not-found`),

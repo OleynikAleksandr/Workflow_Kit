@@ -248,13 +248,13 @@ export function crossReviewView(state, projectId, key) {
   const reviewerName = PROVIDER_NAMES[/** @type {'claude' | 'codex'} */ (found.reviewerProvider)] ?? 'ревьюер';
   const mainName = PROVIDER_NAMES[/** @type {'claude' | 'codex'} */ (found.mainProvider)] ?? 'агент';
   const who = (/** @type {string} */ from) => (from === 'reviewer' ? `Ревьюер (${reviewerName})` : from === 'main' ? `Агент (${mainName})` : 'Workflow Kit');
-  const turn = { starting: `${reviewerName} запускается`, reviewing: `отвечает ревьюер (${reviewerName})`, answering: `отвечает агент (${mainName})` };
+  const turn = { preparing: `агент (${mainName}) описывает план`, starting: `${reviewerName} запускается`, reviewing: `отвечает ревьюер (${reviewerName})`, answering: `отвечает агент (${mainName})` };
   return {
     role: found.mainKey === key ? 'main' : 'reviewer',
     active: found.active === true,
     status: String(found.status),
     statusLabel: String(found.statusLabel ?? found.status),
-    turn: turn[/** @type {'starting' | 'reviewing' | 'answering'} */ (found.status)] ?? '',
+    turn: turn[/** @type {'preparing' | 'starting' | 'reviewing' | 'answering'} */ (found.status)] ?? '',
     round: Number(found.round) || 0,
     maxRounds: Number(found.maxRounds) || 5,
     reviewerName,

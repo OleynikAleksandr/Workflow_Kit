@@ -133,6 +133,9 @@ test('the cross review: card data for both sides; the choice and the toggle hide
   assert.equal(main.reviewerName, 'ChatGPT');
   assert.deepEqual(main.entries.map((e) => e.who), ['Ревьюер (ChatGPT)', 'Агент (Claude)', 'Ревьюер (ChatGPT)']);
   assert.equal(crossReviewView(st, 'p', 'codex:r1')!.role, 'reviewer');
+  const preparing = { ...st, reviews: { projects: { p: [{ ...review, status: 'preparing', reviewerKey: null, round: 0, entries: [] }] } } };
+  assert.equal(crossReviewView(preparing, 'p', 'claude:s1')!.turn, 'агент (Claude) описывает план', 'M4 11.2');
+  assert.equal(choiceView(preparing, 'p', 'claude:s1'), null, 'no mode choice while the plan is described');
   assert.equal(crossReviewView(st, 'p', 'claude:other'), null);
   assert.equal(choiceView(st, 'p', 'claude:s1'), null, 'no mode choice while the review runs');
   assert.equal(reviewView(st, 'p', 'claude:s1'), null, 'the toggle is gone while the review runs');

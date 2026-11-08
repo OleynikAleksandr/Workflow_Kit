@@ -7,7 +7,7 @@ import type { ReviewProvider } from './texts.ts';
 
 export const REVIEWS_DIR = '.workflow-kit/local/reviews';
 
-export type ReviewStatus = 'starting' | 'reviewing' | 'answering' | 'agreed' | 'disagreed' | 'failed' | 'cancelled';
+export type ReviewStatus = 'preparing' | 'starting' | 'reviewing' | 'answering' | 'agreed' | 'disagreed' | 'failed' | 'cancelled';
 
 export interface ReviewEntry {
   from: 'reviewer' | 'main' | 'kit';

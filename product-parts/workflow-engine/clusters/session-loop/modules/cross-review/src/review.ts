@@ -8,6 +8,7 @@ import type { Review, ReviewStatus } from './store.ts';
 import {
   FINISHED_FOR_REVIEWER,
   MAX_ROUNDS,
+  PLAN_REQUEST,
   REMINDER,
   SOURCE,
   STATUS_LABELS,
@@ -140,8 +141,17 @@ export function createCrossReview(deps: CrossReviewDeps): CrossReview {
     deps.enqueue(review.mainKey, toMain(review.reviewerProvider, review.round, text), review.projectId);
   }
 
-  /** A finished turn of the main agent: agreement, the end of the rounds, or the next round. */
+  /** A finished turn of the main agent: the plan description, agreement, the end of the rounds, or the next round. */
   async function fromMain(review: Review, event: StopEvent): Promise<void> {
+    if (review.status === 'preparing') {
+      // Any finished turn ends the preparation: the service continued it with PLAN_REQUEST.
+      const plan = event.lastAssistantMessage?.trim() ?? '';
+      review.entries.push({ from: 'main', round: 0, text: plan || '(агент не описал план)', at: iso() });
+      review.status = 'starting';
+      await save(review);
+      launch(review, plan);
+      return;
+    }
     if (review.status !== 'answering' || event.origin !== 'delivery' || !event.sources.includes(SOURCE)) return;
     const text = event.lastAssistantMessage?.trim() || '(агент ответил без текста)';
     review.entries.push({ from: 'main', round: review.round, text, at: iso() });
@@ -167,7 +177,7 @@ export function createCrossReview(deps: CrossReviewDeps): CrossReview {
       reviewerKey: null,
       reviewerRef: null,
       reviewerTitle: `${mainTitle} — ревью`,
-      status: 'starting',
+      status: 'preparing',
       round: 0,
       maxRounds: MAX_ROUNDS,
       generation: proposal.generation,
@@ -181,12 +191,19 @@ export function createCrossReview(deps: CrossReviewDeps): CrossReview {
     if (old?.reviewerKey) reviewers.delete(old.reviewerKey);
     reviews.set(mainKey, review);
     await save(review);
-    log(`review: ${mainKey} starts, reviewer ${review.reviewerProvider}`);
+    log(`review: ${mainKey} starts, reviewer ${review.reviewerProvider}; the main agent describes the plan first`);
+    return review;
+  }
+
+  /** Creates the reviewer session with the brief and the main agent's plan description. */
+  function launch(review: Review, plan: string): void {
+    const { projectId, mainKey, mainProvider, mainTitle } = review;
     void queue(mainKey, async () => {
       try {
+        const project = (await deps.listProjects()).find((p) => p.id === projectId);
         const ref = await deps.createSession(projectId, review.reviewerProvider, {
           title: review.reviewerTitle,
-          firstMessage: reviewerBrief({ projectName: project?.name ?? projectId, projectPath: project?.path ?? '', mainProvider, mainTitle }),
+          firstMessage: reviewerBrief({ projectName: project?.name ?? projectId, projectPath: project?.path ?? '', mainProvider, mainTitle, plan }),
           // The review itself holds the reviewer's first turn: never wait for it (M4 11.1).
           detached: true,
         });
@@ -205,7 +222,6 @@ export function createCrossReview(deps: CrossReviewDeps): CrossReview {
         if (review.status === 'starting') await finish(review, 'failed', error instanceof Error ? error.message : String(error));
       }
     });
-    return review;
   }
 
   /** A Stop of an unknown session while a review of its project waits for the reviewer. */
@@ -292,7 +308,7 @@ export function createCrossReview(deps: CrossReviewDeps): CrossReview {
       if (own && own.scopeId === proposal.scopeId) return null;
       if ([...reviews.values()].some((r) => r.projectId === context.projectId && active(r))) return null;
       await start(context.projectId, context.key, proposal);
-      return hold('waiting-for-review');
+      return { kind: 'continue', text: PLAN_REQUEST };
     },
     async toggled(projectId, key, on) {
       if (on) deps.wake(key);

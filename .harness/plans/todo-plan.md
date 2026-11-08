@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 284,
+  "revision": 286,
   "rounds": [
     {
       "digest": {
@@ -432,14 +432,19 @@
         "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md",
         "product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js",
         "product-parts/control-panel/clusters/web-panel/modules/session-view/test",
-        "product-parts/control-panel/clusters/web-panel/modules/session-view/module.md"
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/index.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/review.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/store.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/texts.ts"
       ],
       "fixes": "T003",
       "id": "T008",
       "iteration": 1,
       "kind": "work",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Main agent describes the plan for the reviewer",
       "why": "scope:proposal does not show the plan's tasks to the reviewer"
     },
@@ -514,8 +519,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 8/11
-- Revision: 284
+- Progress: 9/11
+- Revision: 286
 
 ## Objective
 
@@ -569,9 +574,9 @@ Digest: Перекрёстное ревью плана: при включённ�
   - Commit: fix: start the reviewer session without waiting for its turn
   - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/release.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/review.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test/review.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/review-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md
   - Fixes: T003
-- [TODO] T008 — Main agent describes the plan for the reviewer (work)
+- [DONE] T008 — Main agent describes the plan for the reviewer (work)
   - Commit: fix: give the reviewer the proposed plan from the main agent
-  - Files: product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test/review.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/test, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test/review.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/test, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/review.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/store.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/texts.ts
   - Depends on: T007
   - Fixes: T003
 - [TODO] DOCS-R2 — Reconcile project documentation and write the round digest (docs)

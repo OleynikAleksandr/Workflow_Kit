@@ -83,6 +83,8 @@ export function createCrossReview(deps: CrossReviewDeps): CrossReview {
   const events = new Map<string, StopEvent>();
   /** Serialized work per main key. */
   const work = new Map<string, Promise<void>>();
+  /** Sessions held while their review still creates the reviewer (maybe it is one of them). */
+  const tentative = new Set<string>();
 
   const active = (review: Review | undefined): boolean => !!review && !FINISHED.has(review.status);
 
@@ -192,6 +194,11 @@ export function createCrossReview(deps: CrossReviewDeps): CrossReview {
         await save(review);
         const early = review.reviewerKey ? events.get(review.reviewerKey) : undefined;
         if (early) await fromReviewer(review, early);
+        // A held early Stop asks again: the reviewer stays held, any other session is let go.
+        for (const key of [...tentative]) {
+          tentative.delete(key);
+          deps.wake(key);
+        }
       } catch (error) {
         if (review.status === 'starting') await finish(review, 'failed', error instanceof Error ? error.message : String(error));
       }
@@ -270,6 +277,13 @@ export function createCrossReview(deps: CrossReviewDeps): CrossReview {
       }
       const adopted = await adopt(context);
       if (adopted) return active(adopted) ? hold('waiting-for-main') : { kind: 'release' };
+      const creating = [...reviews.values()].some(
+        (r) => r.status === 'starting' && !r.reviewerRef && r.projectId === context.projectId && r.reviewerProvider === context.client,
+      );
+      if (creating) {
+        tentative.add(context.key);
+        return { kind: 'hold', reason: 'waiting-for-main' };
+      }
       if (!canStart || !deps.toggle(context.projectId, context.key)) return null;
       const proposal = await deps.proposal(context.projectId);
       if (!proposal) return null;

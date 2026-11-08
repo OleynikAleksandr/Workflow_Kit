@@ -16,6 +16,7 @@ import type { ProjectSetup } from '#project-setup';
 import { createSessionTitles, registerTitleRoutes } from '#session-titles';
 import type { SessionTitles } from '#session-titles';
 import type { ReviewToggles } from '#plan-review';
+import { lateReviewDecider, toggleLock, wireCrossReview } from './review-wiring.ts';
 import { createKitRunner, createWorkflowState } from '#kit-runner';
 import type { KitRunner, WorkflowState } from '#kit-runner';
 import { registerStructureRoutes } from '#kit-structure';
@@ -251,16 +252,18 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
   };
   const wakingChannel: AgentChannel = {
     ...channel,
-    enqueue(key, text, source) {
-      const message = channel.enqueue(key, text, source);
+    enqueue(key, text, source, projectId) {
+      const message = channel.enqueue(key, text, source, projectId);
       void wakeIdle(key);
       return message;
     },
   };
+  const reviewDecider = lateReviewDecider();
   const autopilot = createAutopilot({
     runner: kit,
     workflow,
     channel: wakingChannel,
+    review: reviewDecider,
     projectPath: async (id) => (await projects.get(id))?.path,
     log: options.log,
   });
@@ -301,6 +304,8 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
   const review = createReviewToggles({
     listProjects: async () => (await projects.list()).map((project) => ({ id: project.id, path: project.path })),
     pathChosen: (id) => Boolean(workflow.get(id)?.execution),
+    locked: (id, key) => toggleLock(crossReview, workflow, id, key),
+    onChange: (id, key, on) => crossReview.toggled(id, key, on),
   });
   registerReviewRoutes({ router, state, toggles: review });
 
@@ -331,6 +336,8 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
     log: options.log,
   });
   registerTitleRoutes({ router, state, titles });
+  const crossReview = wireCrossReview({ router, state, channel, messages: wakingChannel, projects, providers, workflow, toggles: review, titles, log: options.log });
+  reviewDecider.attach(crossReview);
 
   const setup = createProjectSetup({
     projects,
@@ -375,6 +382,7 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
       providerRoutes.refresh();
       void workflow.start();
       await review.load().catch(() => undefined);
+      await crossReview.load().catch(() => undefined);
       await titles.load().catch(() => undefined);
       return { ...bound, urls: panelUrls(bound.port, getInterfaces()) };
     },

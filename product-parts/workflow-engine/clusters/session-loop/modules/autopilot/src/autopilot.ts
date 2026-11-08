@@ -24,7 +24,16 @@ import {
 /** Stops that wait for a user decision in the panel: the Stop hook is held. */
 const HOLDING: ReadonlySet<string> = new Set(['waiting-for-mode-choice', 'waiting-for-plan-start', 'delivery-confirmation', 'ready-for-acceptance']);
 
-export type AutopilotReason = StopReason | 'waiting-for-plan-start';
+export type AutopilotReason = StopReason | 'waiting-for-plan-start' | 'waiting-for-review' | 'waiting-for-main';
+
+/**
+ * The cross review (M4): its Stop decision comes before the autopilot's. canStart — the session
+ * would now wait for the mode choice of an open proposal.
+ */
+export interface ReviewDecider {
+  decide(context: StopContext, canStart?: boolean): Promise<StopDecision | null>;
+  isReviewer(key: string): boolean;
+}
 
 /** Autopilot state of one session, shown in the panel. */
 export interface SessionAutopilot {
@@ -60,6 +69,7 @@ export interface AutopilotOptions {
   workflow: WorkflowState;
   channel: AgentChannel;
   projectPath: (projectId: string) => Promise<string | undefined>;
+  review?: ReviewDecider;
   maxContinues?: number;
   now?: () => Date;
   log?: (line: string) => void;
@@ -179,12 +189,20 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
         note(entry, 'hold', reason, detail);
         return { kind: 'hold', reason };
       };
-      if (status.proposalPending) {
-        const other = options.channel
-          .list()
-          .some((a) => a.key !== context.key && a.projectId === context.projectId && a.holdReason === 'waiting-for-mode-choice');
-        if (!other) return hold('waiting-for-mode-choice', 'План предложен: выберите путь в панели');
+      const other = options.channel
+        .list()
+        .some((a) => a.key !== context.key && a.projectId === context.projectId && (a.holdReason === 'waiting-for-mode-choice' || a.holdReason === 'waiting-for-review'));
+      if (options.review) {
+        const reviewer = options.review.isReviewer(context.key);
+        const reviewed = await options.review.decide(context, status.proposalPending && !other && !reviewer);
+        if (reviewed || reviewer) {
+          const decision = reviewed ?? { kind: 'release' as const };
+          const reason = decision.kind === 'hold' ? (decision.reason as AutopilotReason) : null;
+          note(entry, decision.kind === 'hold' ? 'hold' : 'release', reason, reason ? (STOP_LABELS[reason] ?? reason) : 'Ревью плана закончено');
+          return decision;
+        }
       }
+      if (status.proposalPending && !other) return hold('waiting-for-mode-choice', 'План предложен: выберите путь в панели');
       const view = (await options.workflow.refresh(context.projectId)) ?? options.workflow.get(context.projectId);
       const plan = view?.plan ?? null;
       if (plan && !entry.enabled && plan.phase === 'ready' && plan.ownerSession === context.sessionId) {

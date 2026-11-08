@@ -176,3 +176,18 @@ test('the section gives summaries with short texts', async () => {
   assert.ok(summary!.entries[0]!.text.length < 410);
   await t.cleanup();
 });
+
+test('a reviewer that ends its first turn before its creation returns is held, then taken', async () => {
+  let release: (value: { localId: string | null; remoteId: string | null }) => void = () => undefined;
+  const t = await setup({ createSession: () => new Promise((resolve) => (release = resolve)) });
+  await t.review.decide(t.ctx(MAIN), true);
+  t.stop('codex:t1', 'ранние замечания', 'user', []);
+  assert.deepEqual(await t.review.decide(t.ctx('codex:t1')), { kind: 'hold', reason: 'waiting-for-main' });
+  release({ localId: 't1', remoteId: null });
+  await t.settle();
+  assert.ok(t.woken.includes('codex:t1'));
+  assert.equal(t.sent.at(-1)!.key, MAIN);
+  assert.match(t.sent.at(-1)!.text, /ранние замечания/);
+  assert.equal((await t.review.decide(t.ctx('codex:t1')))?.kind, 'hold');
+  await t.cleanup();
+});

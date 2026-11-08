@@ -22,7 +22,7 @@ export interface ReviewSection {
 
 /** The toggle can no longer change (the path is chosen) or the session key is invalid. */
 export class ReviewToggleError extends Error {
-  readonly code: 'review-closed' | 'bad-session' | 'project-not-found';
+  readonly code: 'review-closed' | 'review-locked' | 'bad-session' | 'project-not-found';
   readonly status: number;
   constructor(code: ReviewToggleError['code'], message: string, status: number) {
     super(message);
@@ -36,6 +36,10 @@ export interface ReviewTogglesOptions {
   listProjects: () => Promise<Array<{ id: string; path: string }>>;
   /** True when the project's execution path is already chosen. */
   pathChosen: (projectId: string) => boolean;
+  /** Why the toggle of a session can no longer change (its review ran or runs), else null (M4). */
+  locked?: (projectId: string, key: string) => string | null;
+  /** After a stored change: the cross review starts or stops (M4 section 10). */
+  onChange?: (projectId: string, key: string, on: boolean) => Promise<void>;
 }
 
 export interface ReviewToggles {
@@ -103,12 +107,15 @@ export function createReviewToggles(options: ReviewTogglesOptions): ReviewToggle
       if (options.pathChosen(projectId)) {
         throw new ReviewToggleError('review-closed', 'Путь выполнения уже выбран: переключатель ревью больше не меняется', 409);
       }
+      const locked = options.locked?.(projectId, key) ?? null;
+      if (locked) throw new ReviewToggleError('review-locked', locked, 409);
       const target = path.join(project.path, SESSIONS_DIR, file);
       const current = ((await readJsonFile(target).catch(() => undefined)) ?? {}) as Record<string, unknown>;
       await writeJsonAtomic(target, { ...current, review: on }, { mode: 0o600, dirMode: 0o700 });
       const map = values.get(projectId) ?? new Map<string, boolean>();
       map.set(key, on);
       values.set(projectId, map);
+      await options.onChange?.(projectId, key, on);
       return view(projectId);
     },
     section() {

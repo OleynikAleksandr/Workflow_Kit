@@ -7,7 +7,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { after, before, test } from 'node:test';
 import { createAgentChannel, parseHookInput } from '#agent-channel';
-import type { AgentChannel, HookReply } from '#agent-channel';
+import type { AgentChannel, HookReply, StopContext, StopDecision } from '#agent-channel';
 import { ensureKitBundle } from '#kit-bundle';
 import { createKitRunner, createWorkflowState } from '#kit-runner';
 import type { KitRunner, WorkflowState } from '#kit-runner';
@@ -23,6 +23,16 @@ let workflow: WorkflowState;
 let channel: AgentChannel;
 let autopilot: Autopilot;
 const KEY = 'claude:s-claude';
+/** A fake cross review (M4): what it answers and with which canStart it was asked. */
+const fakeReview = {
+  next: null as StopDecision | null,
+  asked: [] as Array<[string, boolean]>,
+  decide: async (context: StopContext, canStart = false) => {
+    fakeReview.asked.push([context.key, canStart]);
+    return fakeReview.next;
+  },
+  isReviewer: (key: string) => key === 'codex:reviewer',
+};
 
 function git(...args: string[]): void {
   execFileSync('git', args, { cwd: root, env: env as NodeJS.ProcessEnv });
@@ -73,7 +83,7 @@ before(async () => {
   workflow = createWorkflowState({ runner, listProjects: async () => [{ id: 'p', path: root }], watch: () => null, syncMs: 0 });
   await workflow.start();
   channel = createAgentChannel({ resolveProject: async (folder) => (folder.startsWith(root) ? { id: 'p' } : undefined), holdMs: 20_000 });
-  autopilot = createAutopilot({ runner, workflow, channel, projectPath: async (id) => (id === 'p' ? root : undefined) });
+  autopilot = createAutopilot({ runner, workflow, channel, projectPath: async (id) => (id === 'p' ? root : undefined), review: fakeReview });
   channel.setDecider((context) => autopilot.decide(context));
 });
 
@@ -98,6 +108,7 @@ test('sequential: proposal → choice → start → tasks → ready for acceptan
   // The turn that proposed the plan ends: the Stop waits for the choice.
   let stop = channel.stop(stopInput());
   await holding('waiting-for-mode-choice');
+  assert.deepEqual(fakeReview.asked.at(-1), [KEY, true], 'the review may start for the proposing session');
   await autopilot.choose('p', { session: KEY, generation: 1, option: 'sequential' });
   assert.match((await settle(stop)) ?? '', /execution mode chosen: sequential/);
 
@@ -146,4 +157,21 @@ test('sequential: proposal → choice → start → tasks → ready for acceptan
   assert.equal((await workflow.refresh('p'))?.plan?.phase, 'accepted');
   await autopilot.close('p');
   assert.equal((await workflow.refresh('p'))?.plan, null);
+});
+
+test('a cross review holds the proposing session first; a reviewer session is decided by the review only', async () => {
+  const plan = { id: 'demo2', objective: 'Демо 2', acceptance: ['Есть второй файл'], approval: 'User: implement now', spec: 'docs/spec.md', tasks: [{ id: 'T001', title: 'Файл 2', commitMessage: 'feat: add file 2', acceptance: ['b'], files: ['src/b.txt'] }] };
+  await writeFile(path.join(tmp, 'plan2.json'), JSON.stringify(plan));
+  await kit('scope:propose', '--input', path.join(tmp, 'plan2.json'), '--recommended', 'sequential', '--reason', 'Одна задача');
+  fakeReview.next = { kind: 'hold', reason: 'waiting-for-review' };
+  const stop = channel.stop(stopInput());
+  await holding('waiting-for-review');
+  assert.equal(autopilot.get(KEY)?.last?.label, 'Ревью плана: ждёт ответа ревьюера');
+  fakeReview.next = null;
+  assert.equal(await settle(channel.stop(stopInput('reviewer', 'codex'))), null, 'a reviewer without a review decision is let go');
+  assert.deepEqual(fakeReview.asked.at(-1), ['codex:reviewer', false]);
+  channel.wake(KEY);
+  await holding('waiting-for-mode-choice');
+  await autopilot.choose('p', { session: KEY, generation: 1, option: 'sequential' });
+  assert.match((await settle(stop)) ?? '', /execution mode chosen: sequential/);
 });

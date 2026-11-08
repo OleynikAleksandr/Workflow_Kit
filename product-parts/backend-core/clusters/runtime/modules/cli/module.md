@@ -136,6 +136,16 @@ stripping).
   только с этого компьютера (loopback, иначе 403), только macOS (иначе 501); другая
   ссылка — 400 без запуска, неудача `open` — 502 и строка в журнале. Панель зовёт его для
   новой сессии: окно без щелчка пользователя ссылку приложения может не открыть;
+- перекрёстное ревью плана (M4) собрано в `src/review-wiring.ts`:
+  `lateReviewDecider()` — решатель ревью для автопилота (подключается после
+  создания), `wireCrossReview({ router, state, channel, messages, projects,
+  providers, workflow, toggles, titles, log })` — `createCrossReview`
+  (ревьюер — `createSession` провайдера с первым сообщением, поиск по
+  `listSessions`: `remoteId` или `localId`; сообщения — через будящий канал с
+  источником `review`; открытое предложение — `workflow.proposal` без
+  `execution`), слушатель `channel.onStop`, маршруты ревью; `toggleLock` —
+  блокировка переключателя (ревью идёт или открытый план уже прошёл ревью);
+  переключатель (`locked`, `onChange`) вызывает `crossReview.toggled`;
 - жизненный цикл сессий провайдеров собран в `src/provider-lifecycle.ts`
   (`wireProviderLifecycle`): проверки удаления, хуки удаления и архива, подъём при
   запуске; архив проекта или сессии (`addArchivedHook`, опция `archived` заголовков)

@@ -55,3 +55,15 @@ test('invalid session keys and unknown projects are refused', async () => {
   await assert.rejects(toggles.set('p', 'claude:../x', true), { code: 'bad-session' });
   await assert.rejects(toggles.set('nope', 'claude:s1', true), { code: 'project-not-found' });
 });
+
+test('a change reaches the cross review; a locked toggle refuses (M4 section 10)', async () => {
+  const changes: Array<[string, boolean]> = [];
+  let lock: string | null = null;
+  const toggles = createReviewToggles({ ...options(), locked: () => lock, onChange: async (_p, key, on) => void changes.push([key, on]) });
+  await toggles.load();
+  await toggles.set('p', 'claude:s9', true);
+  assert.deepEqual(changes, [['claude:s9', true]]);
+  lock = 'Ревью плана этой сессии идёт';
+  await assert.rejects(toggles.set('p', 'claude:s9', false), (error: unknown) => error instanceof ReviewToggleError && error.code === 'review-locked' && error.status === 409);
+  assert.equal(toggles.get('p', 'claude:s9'), true);
+});

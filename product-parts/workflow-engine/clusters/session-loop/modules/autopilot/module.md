@@ -22,7 +22,12 @@
 - `createAutopilot({ runner, workflow, channel, projectPath, maxContinues?,
   now?, log? }) → Autopilot`:
   - `decide(context)` — решатель `Stop` для канала. Порядок: нет проекта
-    или Kit — отпустить; открыто предложение плана — держать
+    или Kit — отпустить; опция `review` (`ReviewDecider`, M4) спрашивается
+    первой: `decide(context, canStart)` (`canStart` — открыто предложение,
+    сессия ревьюером не является и никто в проекте не держится
+    `waiting-for-mode-choice`/`waiting-for-review`); её решение
+    (`waiting-for-review`, `waiting-for-main`, отпустить) — окончательное,
+    сессия ревьюера без решения ревью отпускается; открыто предложение плана — держать
     (`waiting-for-mode-choice`, одна сессия проекта); план готов, автопилот
     сессии выключен и она владелец (`execution.ownerSession`) — держать
     (`waiting-for-plan-start`); автопилот выключен — отпустить; иначе

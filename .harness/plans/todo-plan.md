@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 247,
+  "revision": 249,
   "rounds": [
     {
       "digest": {
@@ -161,7 +161,7 @@
       },
       "id": "R8",
       "kind": "fixes",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Без карточки «Сообщение агенту»"
     }
   ],
@@ -185,7 +185,7 @@
         "text": "Демон Codex запускается при каждом старте службы без согласий; при остановке службы не останавливается"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
@@ -991,7 +991,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: release 0.3.14",
-      "confirmation": null,
+      "confirmation": "Понял, спасибо. Смотри, пока не забыл, удали, пожалуйста, эту карточку. Она бессмысленна. И пересобери релиз.",
       "context": [],
       "dependencies": [
         "DOCS-R8"
@@ -1007,7 +1007,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R8",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Релиз 0.3.14",
       "why": "Релиз 0.3.14"
     }
@@ -1019,11 +1019,11 @@
 ## State
 
 - Scope: m3-autostart (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 25/26
-- Revision: 247
+- Progress: 26/26
+- Revision: 249
 
 ## Objective
 
@@ -1157,7 +1157,7 @@ Digest: Тред ChatGPT, который приложение держит от�
 
 Digest: Удаление проекта с диска убирает тред и из каталога приложения ChatGPT (codex.db, с копией и проверкой) и стирает данные проекта Claude Code через claude purge.
 
-### R8 — Без карточки «Сообщение агенту» (fixes, OPEN)
+### R8 — Без карточки «Сообщение агенту» (fixes, CLOSED)
 
 - [DONE] T017 — Убрать карточку «Сообщение агенту» (work)
   - Commit: fix: remove the agent message card from the session screen
@@ -1166,7 +1166,7 @@ Digest: Удаление проекта с диска убирает тред и
   - Commit: docs: reconcile documentation for R8
   - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md
   - Depends on: T017
-- [TODO] T018 — Релиз 0.3.14 (delivery)
+- [DONE] T018 — Релиз 0.3.14 (delivery)
   - Commit: chore: release 0.3.14
   - Files: package.json, package-lock.json, docs/evidence/M3-acceptance.md
   - Depends on: DOCS-R8

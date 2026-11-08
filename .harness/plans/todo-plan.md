@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 279,
+  "revision": 281,
   "rounds": [
     {
       "digest": {
@@ -36,7 +36,7 @@
       },
       "id": "R1",
       "kind": "implementation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Implementation"
     }
   ],
@@ -80,7 +80,7 @@
         "text": "Ревьюер только читает и пишет замечания"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
@@ -336,7 +336,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: release 0.4.0",
-      "confirmation": null,
+      "confirmation": "Продолжай без остановки вплоть до сборки нового релиза и удали потом все свои пробы",
       "context": [],
       "dependencies": [
         "T005",
@@ -353,7 +353,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Релиз 0.4.0",
       "why": "Релиз 0.4.0"
     }
@@ -365,11 +365,11 @@
 ## State
 
 - Scope: m4-plan-review (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 6/7
-- Revision: 279
+- Progress: 7/7
+- Revision: 281
 
 ## Objective
 
@@ -385,7 +385,7 @@
 
 ## Rounds
 
-### R1 — Implementation (implementation, OPEN)
+### R1 — Implementation (implementation, CLOSED)
 
 - [DONE] T001 — Проба: ревьюер в другой сессии получает и отдаёт сообщения через хук Stop (work)
   - Commit: docs: record the cross review probe
@@ -410,7 +410,7 @@
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M4-plan-review.md, docs/evidence/M4-review-probe.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/workflow-engine/clusters/session-loop/cluster.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md
   - Depends on: T001, T002, T003, T004, T005
-- [TODO] T006 — Релиз 0.4.0 (delivery)
+- [DONE] T006 — Релиз 0.4.0 (delivery)
   - Commit: chore: release 0.4.0
   - Files: package.json, package-lock.json, docs/evidence/M4-acceptance.md
   - Depends on: T005, DOCS-R1

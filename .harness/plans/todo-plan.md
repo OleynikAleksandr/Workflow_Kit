@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 340,
+  "revision": 342,
   "rounds": [
     {
       "digest": {
@@ -166,7 +166,7 @@
       },
       "id": "R7",
       "kind": "fixes",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Activity line"
     }
   ],
@@ -210,7 +210,7 @@
         "text": "Ревьюер только читает и пишет замечания"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
@@ -1333,7 +1333,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: release 0.4.6",
-      "confirmation": null,
+      "confirmation": "Да, собирай 0.4.6",
       "context": [],
       "dependencies": [
         "T025",
@@ -1350,7 +1350,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R7",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Release 0.4.6",
       "why": "Release 0.4.6"
     }
@@ -1362,11 +1362,11 @@
 ## State
 
 - Scope: m4-plan-review (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 32/33
-- Revision: 340
+- Progress: 33/33
+- Revision: 342
 
 ## Objective
 
@@ -1530,7 +1530,7 @@ Digest: The panel window reloads itself once the service runs a new version, and
 
 Digest: The review journal on the review card shows whole answers of the reviewer and the agent (up to 12000 characters) and each entry scrolls inside a limited height.
 
-### R7 — Activity line (fixes, OPEN)
+### R7 — Activity line (fixes, CLOSED)
 
 - [DONE] T025 — The activity line tells what really happens (work)
   - Commit: fix: describe the review and real waits in the activity line
@@ -1540,7 +1540,7 @@ Digest: The review journal on the review card shows whole answers of the reviewe
   - Commit: docs: reconcile documentation for R7
   - Files: README.md, docs/architecture/OVERVIEW.md
   - Depends on: T025
-- [TODO] T026 — Release 0.4.6 (delivery)
+- [DONE] T026 — Release 0.4.6 (delivery)
   - Commit: chore: release 0.4.6
   - Files: package.json, package-lock.json, docs/evidence/M4-acceptance.md
   - Depends on: T025, DOCS-R7

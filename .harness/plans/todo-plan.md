@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 270,
+  "revision": 272,
   "rounds": [
     {
       "digest": null,
@@ -162,14 +162,21 @@
       "files": [
         "product-parts/workflow-engine/clusters/session-loop/modules/cross-review",
         "package.json",
-        "product-parts/workflow-engine/clusters/session-loop/cluster.md"
+        "product-parts/workflow-engine/clusters/session-loop/cluster.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/index.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/review.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/routes.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/store.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/texts.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test/review.test.ts"
       ],
       "fixes": null,
       "id": "T003",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Модуль cross-review: машина состояний, тексты, хранение",
       "why": "Модуль cross-review: машина состояний, тексты, хранение"
     },
@@ -337,8 +344,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 2/7
-- Revision: 270
+- Progress: 3/7
+- Revision: 272
 
 ## Objective
 
@@ -363,9 +370,9 @@
   - Commit: feat: hold a stop hook with a reminder and report finished turns
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/channel.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/channel.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md
   - Depends on: T001
-- [TODO] T003 — Модуль cross-review: машина состояний, тексты, хранение (work)
+- [DONE] T003 — Модуль cross-review: машина состояний, тексты, хранение (work)
   - Commit: feat: add the cross review state machine
-  - Files: product-parts/workflow-engine/clusters/session-loop/modules/cross-review, package.json, product-parts/workflow-engine/clusters/session-loop/cluster.md
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/cross-review, package.json, product-parts/workflow-engine/clusters/session-loop/cluster.md, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/review.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/store.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/texts.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test/review.test.ts
   - Depends on: T002
 - [TODO] T004 — Подключить ревью к автопилоту, переключателю и службе (work)
   - Commit: feat: run the cross review after a plan proposal

@@ -1,0 +1,178 @@
+import assert from 'node:assert/strict';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import { test } from 'node:test';
+import type { StopContext, StopEvent, TurnOrigin } from '#agent-channel';
+import { createCrossReview, readReviews } from '../src/index.ts';
+import type { CrossReviewDeps, ReviewProvider } from '../src/index.ts';
+
+const MAIN = 'claude:main-1';
+
+async function setup(over: Partial<CrossReviewDeps> = {}) {
+  const folder = await mkdtemp(path.join(tmpdir(), 'wfk-review-'));
+  const sent: Array<{ key: string; text: string }> = [];
+  const woken: string[] = [];
+  const created: Array<{ provider: ReviewProvider; title: string; firstMessage: string }> = [];
+  let toggle = true;
+  let proposal: { generation: number; scopeId: string | null } | null = { generation: 1, scopeId: 's1' };
+  const deps: CrossReviewDeps = {
+    listProjects: async () => [{ id: 'p1', name: 'Склад', path: folder }],
+    createSession: async (_p, provider, opts) => {
+      created.push({ provider, ...opts });
+      return { localId: provider === 'codex' ? 't1' : null, remoteId: provider === 'claude' ? 'session_R' : null };
+    },
+    resolveReviewer: async () => null,
+    enqueue: (key, text) => void sent.push({ key, text }),
+    wake: (key) => void woken.push(key),
+    toggle: () => toggle,
+    proposal: async () => proposal,
+    sessionTitle: (_p, key) => (key === MAIN ? 'План склада' : null),
+    ...over,
+  };
+  const review = createCrossReview(deps);
+  await review.load();
+  const settle = async () => {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await review.idle();
+  };
+  const ctx = (key: string): StopContext => ({ key, client: key.startsWith('codex:') ? 'codex' : 'claude', sessionId: key.split(':')[1]!, projectId: 'p1', stopHookActive: false, lastAssistantMessage: null, woken: false });
+  const stop = (key: string, text: string, origin: TurnOrigin = 'delivery', sources = ['review']): StopEvent => {
+    const event: StopEvent = { key, client: ctx(key).client, sessionId: ctx(key).sessionId, projectId: 'p1', lastAssistantMessage: text, origin, sources };
+    review.onStop(event);
+    return event;
+  };
+  return {
+    folder, review, sent, woken, created, settle, ctx, stop,
+    setToggle: (on: boolean) => void (toggle = on),
+    setProposal: (value: typeof proposal) => void (proposal = value),
+    cleanup: () => rm(folder, { recursive: true, force: true }),
+  };
+}
+
+test('a proposal with the toggle on starts a ChatGPT reviewer and the ping-pong ends in agreement', async () => {
+  const t = await setup();
+  assert.equal(await t.review.decide(t.ctx(MAIN)), null, 'no start without canStart');
+  const first = await t.review.decide(t.ctx(MAIN), true);
+  assert.deepEqual(first, { kind: 'hold', reason: 'waiting-for-review', timeoutAnswer: first && 'timeoutAnswer' in first ? first.timeoutAnswer : '' });
+  await t.settle();
+  assert.equal(t.created[0]!.provider, 'codex');
+  assert.equal(t.created[0]!.title, 'План склада — ревью');
+  assert.match(t.created[0]!.firstMessage, /ревьюер плана/);
+  assert.ok(t.review.isReviewer('codex:t1'));
+  t.stop('codex:t1', '1. Нет критериев.\nREVIEW: CHANGES', 'user', []);
+  await t.settle();
+  assert.equal(t.sent.at(-1)!.key, MAIN);
+  assert.match(t.sent.at(-1)!.text, /круг 1 из 5[\s\S]*Нет критериев[\s\S]*REVIEW: AGREED/);
+  assert.deepEqual(await t.review.decide(t.ctx('codex:t1')), { kind: 'hold', reason: 'waiting-for-main', timeoutAnswer: (await t.review.decide(t.ctx('codex:t1')) as { timeoutAnswer: string }).timeoutAnswer });
+  t.stop(MAIN, 'жду', 'reminder', []);
+  t.stop(MAIN, 'Исправил критерии, docs/spec.md');
+  await t.settle();
+  assert.equal(t.sent.at(-1)!.key, 'codex:t1');
+  assert.match(t.sent.at(-1)!.text, /Исправил критерии/);
+  assert.equal(t.sent.length, 2, 'the reminder turn was not forwarded');
+  t.stop('codex:t1', 'Всё хорошо.\nREVIEW: APPROVED');
+  await t.settle();
+  t.stop(MAIN, 'Согласен.\nREVIEW: AGREED');
+  await t.settle();
+  const done = t.review.get('p1', MAIN)!;
+  assert.equal(done.status, 'agreed');
+  assert.equal(done.round, 2);
+  assert.match(t.sent.at(-1)!.text, /ревью закончено/);
+  assert.ok(t.woken.includes(MAIN));
+  assert.equal(await t.review.decide(t.ctx(MAIN), true), null, 'no second review of the same scope');
+  assert.deepEqual(await t.review.decide(t.ctx('codex:t1')), { kind: 'release' });
+  const stored = await readReviews(t.folder);
+  assert.equal(stored[0]!.status, 'agreed');
+  await t.cleanup();
+});
+
+test('after the last round without agreement the review ends as disagreed', async () => {
+  const t = await setup();
+  await t.review.decide(t.ctx(MAIN), true);
+  await t.settle();
+  t.stop('codex:t1', 'замечание', 'user', []);
+  await t.settle();
+  for (let round = 1; round <= 5; round += 1) {
+    t.stop(MAIN, `ответ ${round}`);
+    await t.settle();
+    if (round < 5) {
+      t.stop('codex:t1', `замечание ${round + 1}\nREVIEW: CHANGES`);
+      await t.settle();
+    }
+  }
+  const review = t.review.get('p1', MAIN)!;
+  assert.equal(review.status, 'disagreed');
+  assert.equal(review.round, 5);
+  await t.cleanup();
+});
+
+test('a failed start is visible and frees the main session', async () => {
+  const t = await setup({ createSession: async () => { throw new Error('демон ChatGPT не на связи'); } });
+  await t.review.decide(t.ctx(MAIN), true);
+  await t.settle();
+  const review = t.review.get('p1', MAIN)!;
+  assert.equal(review.status, 'failed');
+  assert.match(review.reason!, /демон/);
+  assert.ok(t.woken.includes(MAIN));
+  assert.equal(await t.review.decide(t.ctx(MAIN), true), null);
+  await t.cleanup();
+});
+
+test('a Claude reviewer is recognised by its Remote Control id when its first Stop arrives', async () => {
+  const t = await setup({ resolveReviewer: async (_p, _provider, ref) => (ref.remoteId === 'session_R' ? 'claude:hook-9' : null) });
+  const codexMain = 'codex:main-2';
+  await t.review.decide(t.ctx(codexMain), true);
+  await t.settle();
+  assert.equal(t.created[0]!.provider, 'claude');
+  t.stop('claude:hook-9', 'REVIEW: APPROVED', 'user', []);
+  const decision = await t.review.decide(t.ctx('claude:hook-9'));
+  assert.equal(decision?.kind, 'hold');
+  await t.settle();
+  assert.equal(t.sent.at(-1)!.key, codexMain);
+  assert.equal(t.review.get('p1', 'claude:hook-9')!.round, 1);
+  await t.cleanup();
+});
+
+test('the toggle off or a closed proposal cancels the review; a restart keeps it', async () => {
+  const t = await setup();
+  await t.review.decide(t.ctx(MAIN), true);
+  await t.settle();
+  const again = createCrossReview({
+    listProjects: async () => [{ id: 'p1', name: 'Склад', path: t.folder }],
+    createSession: async () => ({ localId: null, remoteId: null }),
+    resolveReviewer: async () => null,
+    enqueue: () => undefined,
+    wake: () => undefined,
+    toggle: () => true,
+    proposal: async () => ({ generation: 1, scopeId: 's1' }),
+    sessionTitle: () => null,
+  });
+  await t.review.idle();
+  await again.load();
+  assert.equal(again.get('p1', MAIN)!.status, 'starting');
+  assert.ok(again.isReviewer('codex:t1'));
+  await t.review.toggled('p1', MAIN, false);
+  assert.equal(t.review.get('p1', MAIN)!.status, 'cancelled');
+  assert.match(t.sent.at(-1)!.text, /остановлено/);
+  t.setProposal({ generation: 2, scopeId: 's2' });
+  await t.review.decide(t.ctx(MAIN), true);
+  await t.settle();
+  t.setProposal(null);
+  assert.equal(await t.review.decide(t.ctx(MAIN)), null);
+  assert.equal(t.review.get('p1', MAIN)!.reason, 'предложение плана закрыто');
+  await t.cleanup();
+});
+
+test('the section gives summaries with short texts', async () => {
+  const t = await setup();
+  await t.review.decide(t.ctx(MAIN), true);
+  await t.settle();
+  t.stop('codex:t1', 'x'.repeat(1000), 'user', []);
+  await t.settle();
+  const [summary] = t.review.section().projects['p1']!;
+  assert.equal(summary!.active, true);
+  assert.equal(summary!.statusLabel, 'агент отвечает на замечания');
+  assert.ok(summary!.entries[0]!.text.length < 410);
+  await t.cleanup();
+});

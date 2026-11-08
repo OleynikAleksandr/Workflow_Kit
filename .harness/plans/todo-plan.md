@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 238,
+  "revision": 240,
   "rounds": [
     {
       "digest": {
@@ -127,7 +127,20 @@
       "title": "Отложенное удаление тредов ChatGPT"
     },
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "provider-codex app-catalog.ts: forgetInAppCatalog, CATALOG_TABLES, CATALOG_BACKUPS_KEPT",
+          "provider-claude purge.ts: deleteSessions → claude purge <папка> -y"
+        ],
+        "decisions": [
+          "Отдельные папки настроек ChatGPT/Claude на проект отклонены",
+          "Запись в codex.db приложения — с согласия пользователя, копия до записи, 5 последних копий"
+        ],
+        "references": [
+          "docs/planning/M3-autostart.md#9"
+        ],
+        "result": "Удаление проекта с диска убирает тред и из каталога приложения ChatGPT (codex.db, с копией и проверкой) и стирает данные проекта Claude Code через claude purge."
+      },
       "id": "R7",
       "kind": "fixes",
       "status": "OPEN",
@@ -871,7 +884,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R7",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -913,8 +926,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 21/23
-- Revision: 238
+- Progress: 22/23
+- Revision: 240
 
 ## Objective
 
@@ -1037,7 +1050,7 @@ Digest: Тред ChatGPT, который приложение держит от�
 - [DONE] T015 — claude purge при удалении проекта (work)
   - Commit: feat: purge the Claude Code data of a project deleted from disk
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/purge.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/fixtures/fake-claude.mjs, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md
-- [TODO] DOCS-R7 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R7 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R7
   - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md
   - Depends on: T014, T015
@@ -1045,5 +1058,7 @@ Digest: Тред ChatGPT, который приложение держит от�
   - Commit: chore: release 0.3.13
   - Files: package.json, package-lock.json, docs/evidence/M3-acceptance.md
   - Depends on: DOCS-R7
+
+Digest: Удаление проекта с диска убирает тред и из каталога приложения ChatGPT (codex.db, с копией и проверкой) и стирает данные проекта Claude Code через claude purge.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

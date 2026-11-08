@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 324,
+  "revision": 326,
   "rounds": [
     {
       "digest": {
@@ -109,7 +109,21 @@
       "title": "Review card"
     },
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "panel-shell reload.js shouldReload(loaded, current, reloadedFor)",
+          "session-view DECIDING_MS; choiceView.waiting covers the deciding gap"
+        ],
+        "decisions": [
+          "An open panel takes the new code by itself after a release; no manual reload",
+          "The choice waits for a session that stopped after the proposal for up to 15 s while the service decides"
+        ],
+        "references": [
+          "docs/planning/M4-review-failures.md#13.5. Окно панели обновляется само после нового релиза (раунд R5)",
+          "docs/planning/M4-review-failures.md#13.6. Карточка выбора пути не мигает (раунд R5)"
+        ],
+        "result": "The panel window reloads itself once the service runs a new version, and the mode choice card no longer flashes between the end of the agent's turn and the review decision."
+      },
       "id": "R5",
       "kind": "fixes",
       "status": "OPEN",
@@ -1090,7 +1104,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R5",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -1133,8 +1147,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 25/27
-- Revision: 324
+- Progress: 26/27
+- Revision: 326
 
 ## Objective
 
@@ -1270,7 +1284,7 @@ Digest: The review asks nothing of the user: the review card says the review run
   - Commit: fix: keep the mode choice hidden until the review decides
   - Files: product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts
   - Fixes: T010
-- [TODO] DOCS-R5 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R5 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R5
   - Files: README.md, docs/architecture/OVERVIEW.md
   - Depends on: T020, T021
@@ -1278,5 +1292,7 @@ Digest: The review asks nothing of the user: the review card says the review run
   - Commit: chore: release 0.4.4
   - Files: package.json, package-lock.json, docs/evidence/M4-acceptance.md
   - Depends on: T021, DOCS-R5
+
+Digest: The panel window reloads itself once the service runs a new version, and the mode choice card no longer flashes between the end of the agent's turn and the review decision.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 252,
+  "revision": 254,
   "rounds": [
     {
       "digest": {
@@ -165,7 +165,20 @@
       "title": "Без карточки «Сообщение агенту»"
     },
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "POST /api/open-link принимает codex://threads/<id> и claude://claude.ai/code/session_<id> (OPENABLE_LINK)",
+          "panel-shell: PendingSession.shown, openInDesktop(session)"
+        ],
+        "decisions": [
+          "Ссылка claude:// открывается только на Mac; на сенсорных устройствах Claude сам не открывается, чтобы не увести панель",
+          "Неудача открытия молчаливая: сессия и так есть в группе Remote Control"
+        ],
+        "references": [
+          "docs/planning/M3-autostart.md#11. Раунд 9: новая сессия Claude открывается в Claude Desktop сама"
+        ],
+        "result": "Новая сессия Claude, созданная из панели на Mac, открывается в Claude Desktop сама: панель сразу показывает экран сессии, а когда появилась ссылка Remote Control, служба открывает claude://claude.ai/code/session_<id> через POST /api/open-link."
+      },
       "id": "R9",
       "kind": "fixes",
       "status": "OPEN",
@@ -1072,7 +1085,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R9",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -1113,8 +1126,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 27/29
-- Revision: 252
+- Progress: 28/29
+- Revision: 254
 
 ## Objective
 
@@ -1269,7 +1282,7 @@ Digest: С экрана сессии убрана карточка «Сообщ�
 - [DONE] T019 — Открывать новую сессию Claude в Claude Desktop (work)
   - Commit: feat: open a new Claude session in Claude Desktop
   - Files: product-parts/backend-core/clusters/runtime/modules/cli/src/open-link.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/open-link.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/actions.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/view-model.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md
-- [TODO] DOCS-R9 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R9 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R9
   - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md
   - Depends on: T019
@@ -1277,5 +1290,7 @@ Digest: С экрана сессии убрана карточка «Сообщ�
   - Commit: chore: release 0.3.15
   - Files: package.json, package-lock.json, docs/evidence/M3-acceptance.md
   - Depends on: DOCS-R9
+
+Digest: Новая сессия Claude, созданная из панели на Mac, открывается в Claude Desktop сама: панель сразу показывает экран сессии, а когда появилась ссылка Remote Control, служба открывает claude://claude.ai/code/session_<id> через POST /api/open-link.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

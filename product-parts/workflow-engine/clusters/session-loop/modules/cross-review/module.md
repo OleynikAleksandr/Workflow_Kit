@@ -51,7 +51,7 @@ ChatGPT — Claude) и пересылает законченные ходы ст
     переспрашивается (`wake`) и ревью этого же scope начинается заново, иначе `false`
     (M4, раздел 13.2); `isReviewer(key)`; `get(projectId, key)` —
     ревью сессии как основной или ревьюера; `section()` — `{ projects: { [id]:
-    ReviewSummary[] } }` (тексты журнала до 400 знаков, `statusLabel`, `active`).
+    ReviewSummary[] } }` (тексты журнала целиком до `FORWARD_MAX_CHARS` — 12000 знаков, длиннее с пометкой, M4 13.7; `statusLabel`, `active`).
 - Состояния: `preparing` → `starting` → `answering` ↔ `reviewing` → `agreed` | `disagreed` | `failed` |
   `cancelled` (`FINISHED`). Круг — замечания ревьюера (`round` +1) и ответ основной. Согласие —
   последний ответ ревьюера с `REVIEW: APPROVED` и ответ основной с `REVIEW: AGREED`; после

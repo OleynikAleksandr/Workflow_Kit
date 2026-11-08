@@ -9,6 +9,7 @@ import {
   FINISHED_FOR_REVIEWER,
   MAX_ROUNDS,
   PLAN_REQUEST,
+  clip,
   QUESTION_REMINDER,
   REMINDER,
   SOURCE,
@@ -27,7 +28,6 @@ export const CHOICE_WAITS_QUESTION = 'Сначала ответьте на во�
 
 /** A review without progress this long is given up (the reviewer does not answer). */
 export const REVIEW_STALL_MS = 60 * 60_000;
-const SUMMARY_CHARS = 400;
 
 export interface CrossReviewDeps {
   listProjects(): Promise<Array<{ id: string; name: string; path: string }>>;
@@ -388,7 +388,8 @@ export function createCrossReview(deps: CrossReviewDeps): CrossReview {
           ...review,
           statusLabel: STATUS_LABELS[review.status] ?? review.status,
           active: active(review),
-          entries: review.entries.map((entry) => ({ ...entry, text: entry.text.length > SUMMARY_CHARS ? `${entry.text.slice(0, SUMMARY_CHARS)}…` : entry.text })),
+          // Whole texts up to the forwarding limit (spec M4 13.7): the journal scrolls in the panel.
+          entries: review.entries.map((entry) => ({ ...entry, text: clip(entry.text) })),
         };
         (projects[review.projectId] ??= []).push(summary);
       }

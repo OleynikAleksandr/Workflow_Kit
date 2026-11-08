@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 329,
+  "revision": 331,
   "rounds": [
     {
       "digest": {
@@ -1162,14 +1162,19 @@
       "docsWaiver": null,
       "files": [
         "product-parts/workflow-engine/clusters/session-loop/modules/cross-review",
-        "product-parts/control-panel/clusters/web-panel/modules/session-view"
+        "product-parts/control-panel/clusters/web-panel/modules/session-view",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.css",
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/review.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test/review.test.ts"
       ],
       "fixes": "T017",
       "id": "T023",
       "iteration": 1,
       "kind": "work",
       "roundId": "R6",
-      "status": "TODO",
+      "status": "DONE",
       "title": "The review journal shows whole answers",
       "why": "The journal on the review card cut the texts at 400 characters"
     },
@@ -1238,8 +1243,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 27/30
-- Revision: 329
+- Progress: 28/30
+- Revision: 331
 
 ## Objective
 
@@ -1388,9 +1393,9 @@ Digest: The panel window reloads itself once the service runs a new version, and
 
 ### R6 — Review journal texts (fixes, OPEN)
 
-- [TODO] T023 — The review journal shows whole answers (work)
+- [DONE] T023 — The review journal shows whole answers (work)
   - Commit: fix: show whole review answers in the journal
-  - Files: product-parts/workflow-engine/clusters/session-loop/modules/cross-review, product-parts/control-panel/clusters/web-panel/modules/session-view
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/cross-review, product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.css, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/review.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test/review.test.ts
   - Fixes: T017
 - [TODO] DOCS-R6 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R6

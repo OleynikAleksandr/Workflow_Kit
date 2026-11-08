@@ -167,15 +167,19 @@ test('the toggle off or a closed proposal cancels the review; a restart keeps it
   await t.cleanup();
 });
 
-test('the section gives summaries with short texts', async () => {
+test('the section gives whole texts up to the forwarding limit (M4 13.7)', async () => {
   const t = await setup();
   await t.begin();
   t.stop('codex:t1', 'x'.repeat(1000), 'user', []);
   await t.settle();
+  t.stop(MAIN, 'y'.repeat(20000));
+  await t.settle();
   const [summary] = t.review.section().projects['p1']!;
   assert.equal(summary!.active, true);
-  assert.equal(summary!.statusLabel, 'агент отвечает на замечания');
-  assert.ok(summary!.entries[0]!.text.length < 410);
+  assert.equal(summary!.statusLabel, 'ревьюер смотрит');
+  assert.equal(summary!.entries[1]!.text, 'x'.repeat(1000), 'a long answer is whole');
+  assert.ok(summary!.entries[2]!.text.length < 12100);
+  assert.match(summary!.entries[2]!.text, /обрезано, полный текст — в чате отправителя/);
   await t.cleanup();
 });
 

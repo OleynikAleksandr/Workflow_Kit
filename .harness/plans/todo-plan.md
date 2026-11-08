@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 292,
+  "revision": 294,
   "rounds": [
     {
       "digest": {
@@ -566,14 +566,18 @@
       ],
       "docsWaiver": null,
       "files": [
-        "product-parts/control-panel/clusters/web-panel/modules/session-view"
+        "product-parts/control-panel/clusters/web-panel/modules/session-view",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts"
       ],
       "fixes": null,
       "id": "T012",
       "iteration": 1,
       "kind": "work",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Plan question card in the panel",
       "why": "The user answers the agent's question with a card; the always-clickable toggle goes away"
     },
@@ -683,8 +687,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 11/15
-- Revision: 292
+- Progress: 12/15
+- Revision: 294
 
 ## Objective
 
@@ -750,9 +754,9 @@ Digest: Перекрёстное ревью плана: при включённ�
 - [DONE] T011 — Plan question in the service (work)
   - Commit: feat: ask the user about the specification and plan
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/plan-review, product-parts/workflow-engine/clusters/session-loop/modules/cross-review, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/autopilot.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/texts.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/review-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/session-command.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/commands.ts, product-parts/backend-core/clusters/runtime/modules/cli/test, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/test/review.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/review.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/texts.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test/review.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/module.md, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/src/texts.ts, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/src/toggles.ts, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/test/toggles.test.ts
-- [TODO] T012 — Plan question card in the panel (work)
+- [DONE] T012 — Plan question card in the panel (work)
   - Commit: feat: show the plan question card instead of the review toggle
-  - Files: product-parts/control-panel/clusters/web-panel/modules/session-view
+  - Files: product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts
   - Depends on: T011
 - [TODO] T013 — Agent instruction for the plan question (work)
   - Commit: feat: tell the agent to ask before a specification and plan

@@ -2,7 +2,7 @@
 // The session screen body (activity line, path choice, plan card, delivery confirmation) and
 // «Ревью плана» in the sidebar. Panel extension: install(shell) fills the "sessionBody" and
 // "sessionReview" slots of panel-shell. Typed text lives in inputs kept per session.
-import { activityView, choiceView, crossReviewView, planView, reviewView, timer } from './session-model.js';
+import { activityView, choiceView, crossReviewView, planQuestionView, planView, reviewView, timer } from './session-model.js';
 
 /**
  * Helpers the panel shell gives to extensions (see panel-shell app.js).
@@ -102,6 +102,40 @@ export function install(shell) {
         ]),
       ),
       h('p', { class: 'sv-muted sv-gap' }, ['или напишите ответ в чат своими словами']),
+    ].filter((n) => n !== null));
+  }
+
+  /**
+   * The plan question of the session (spec M4 section 12): shown first, answered with a button.
+   * @param {NonNullable<ReturnType<typeof planQuestionView>>} question
+   * @param {SessionContext} session
+   * @param {SlotContext} ctx
+   */
+  function questionCard(question, session, ctx) {
+    const answer = async (/** @type {string} */ choice) => {
+      if (busy) return;
+      busy = true;
+      try {
+        await shell.api('POST', `/api/projects/${encodeURIComponent(session.project.id)}/sessions/${encodeURIComponent(session.session.key)}/plan-decision`, { choice });
+      } catch (error) {
+        ctx.say('error', 'Не удалось передать ответ агенту', error);
+      } finally {
+        busy = false;
+        ctx.requestRefresh();
+      }
+    };
+    return h('div', { class: 'choice sv-question' }, [
+      h('div', { class: 'eyebrow' }, ['Вопрос агента']),
+      h('h2', {}, [question.heading]),
+      question.summary ? h('p', {}, [question.summary]) : null,
+      ...question.options.map((o) =>
+        h('div', { class: 'opt' }, [
+          h('b', {}, [o.label]),
+          h('p', {}, [o.description]),
+          button('Выбрать', () => void answer(o.choice), o.primary ? 'btn warn' : 'btn warn-o'),
+        ]),
+      ),
+      h('p', { class: 'sv-muted sv-gap' }, ['Агент ждёт ответа: ответ уйдёт ему сообщением Workflow Kit.']),
     ].filter((n) => n !== null));
   }
 
@@ -233,37 +267,28 @@ export function install(shell) {
     select(state, session) {
       const { id } = session.project;
       const { key } = session.session;
-      return { activity: activityView(state, id, key), choice: choiceView(state, id, key), plan: planView(state, id, key), review: crossReviewView(state, id, key), name: session.session.name };
+      return { activity: activityView(state, id, key), question: planQuestionView(state, id, key), choice: choiceView(state, id, key), plan: planView(state, id, key), review: crossReviewView(state, id, key), name: session.session.name };
     },
     render(data, _state, session, ctx) {
       const activity = activityBlock(data.activity);
       const cards = [];
+      if (data.question) cards.push(questionCard(data.question, session, ctx));
       if (data.review && (data.review.active || data.review.role === 'reviewer' || !data.plan)) cards.push(crossReviewCard(data.review, session, ctx));
       if (data.plan?.delivery) cards.push(deliveryCard(session, ctx));
       if (data.choice) cards.push(choiceCard(data.choice, session, ctx));
       if (data.plan) return h('div', { class: 'sv' }, [...cards, h('div', { class: 'cols' }, [planCard(data.plan, session, ctx), h('div', {}, [activity])])]);
       return h('div', { class: 'sv' }, [h('div', { class: 'sv-activity' }, [activity]), ...cards,
-        data.choice || data.review ? null : h('div', { class: 'panel' }, [h('h2', {}, ['План сессии']), h('p', {}, ['Появится, когда агент предложит план: сначала спецификация, затем выбор пути.'])]),
+        data.choice || data.review || data.question ? null : h('div', { class: 'panel' }, [h('h2', {}, ['План сессии']), h('p', {}, ['Появится, когда агент предложит план: сначала спецификация, затем выбор пути.'])]),
       ].filter((n) => n !== null));
     },
   });
 
+  // M4 12.3: the review decision is read-only; the answer to the plan question sets it.
   shell.registerSlot('sessionReview', {
     select: (state, session) => reviewView(state, session.project.id, session.session.key),
-    render(data, _state, session, ctx) {
+    render(data) {
       if (!data) return null;
-      const toggle = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: `sw${data.on ? ' on' : ''}`, role: 'switch', 'aria-checked': String(data.on), 'aria-label': 'Ревью плана' }));
-      toggle.addEventListener('click', async () => {
-        toggle.disabled = true;
-        try {
-          await shell.api('POST', `/api/projects/${encodeURIComponent(session.project.id)}/sessions/${encodeURIComponent(session.session.key)}/review`, { on: !data.on });
-        } catch (error) {
-          ctx.say('error', 'Не удалось переключить «Ревью плана»', error);
-        } finally {
-          ctx.requestRefresh();
-        }
-      });
-      return h('div', { class: 'review' }, [h('div', { class: 'toggle' }, ['Ревью плана', toggle]), h('small', {}, [data.hint])]);
+      return h('div', { class: 'review' }, [h('div', { class: 'toggle' }, [`Ревью плана: ${data.on ? 'да' : 'нет'}`]), h('small', {}, [data.hint])]);
     },
   });
 

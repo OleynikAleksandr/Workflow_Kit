@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { test } from 'node:test';
 import { SESSION_VIEW_ASSETS_DIR, SESSION_VIEW_PREFIX, sessionViewMount } from '../src/index.ts';
-import { activityView, choiceView, crossReviewView, planView, reviewView, timer } from '../src/session-model.js';
+import { activityView, choiceView, crossReviewView, planQuestionView, planView, reviewView, timer } from '../src/session-model.js';
 
 function state(extra: Record<string, unknown> = {}): Record<string, unknown> {
   return {
@@ -58,7 +58,7 @@ test('the mount serves the session view under /session-view/', async () => {
   assert.match(source, /registerSlot\('sessionBody'/);
   assert.match(source, /registerSlot\('sessionReview'/);
   assert.match(source, /\/workflow\/\$\{route\}/);
-  assert.match(source, /\/review`/);
+  assert.match(source, /\/plan-decision`/);
   assert.doesNotMatch(source, /innerHTML/);
 });
 
@@ -105,14 +105,14 @@ test('the plan card belongs to the owner session and draws the actions of the ph
   assert.equal(planView(state(), 'p', 'claude:s1'), null, 'no plan yet');
 });
 
-test('«Ревью плана» shows the session value until the path is chosen', () => {
+test('«Ревью плана» shows the decided value until the path is chosen; undecided shows nothing', () => {
   assert.equal(reviewView(state(), 'p', 'claude:s1')?.on, true);
-  assert.equal(reviewView(state(), 'p', 'codex:t1')?.on, false);
+  assert.equal(reviewView(state(), 'p', 'codex:t1'), null, 'no decision yet');
   assert.equal(reviewView(state({ review: { projects: { p: { visible: false, sessions: {} } } } }), 'p', 'claude:s1'), null);
   const chosen = state();
   (chosen['workflow'] as any).projects.p.execution = { strategy: 'sequential' };
   assert.equal(reviewView(chosen, 'p', 'claude:s1'), null);
-  assert.equal(reviewView({}, 'p', 'claude:s1')?.on, false);
+  assert.equal(reviewView({}, 'p', 'claude:s1'), null);
 });
 
 test('the cross review: card data for both sides; the choice and the toggle hide while it runs (M4)', () => {
@@ -163,5 +163,24 @@ test('the choice card waits for the plan review while the toggled session still 
   assert.equal(choiceView(off, 'p', 'claude:s1')!.waiting, null);
   const reviewed = { ...st, reviews: { projects: { p: [{ mainKey: 'claude:s1', scopeId: 's1', status: 'agreed', active: false }] } } };
   assert.equal(choiceView(reviewed, 'p', 'claude:s1')!.waiting, null);
+});
+
+test('the plan question card: agent question with three answers, proposal question with two; the choice waits (M4 12)', () => {
+  const st = {
+    workflow: { projects: { p: { choice: { generation: 1, reason: 'r', options: [{ option: 'sequential', title: 'Сам', description: '' }] }, proposal: { scopeId: 's1' } } } },
+    review: { projects: { p: { visible: true, sessions: {}, questions: { 'claude:s1': { kind: 'agent', summary: 'Склад: две команды', askedAt: '2026-11-08T12:00:00Z' } } } } },
+    channel: { sessions: [] },
+    reviews: { projects: { p: [] } },
+  };
+  const card = planQuestionView(st, 'p', 'claude:s1')!;
+  assert.equal(card.heading, 'Агент предлагает спецификацию и план');
+  assert.equal(card.summary, 'Склад: две команды');
+  assert.deepEqual(card.options.map((o) => o.choice), ['review', 'plan', 'talk']);
+  assert.equal(planQuestionView(st, 'p', 'claude:other'), null);
+  assert.equal(choiceView(st, 'p', 'claude:s1'), null, 'the mode choice waits for the answer');
+  const proposal = { ...st, review: { projects: { p: { visible: true, sessions: {}, questions: { 'claude:s1': { kind: 'proposal', summary: '', askedAt: 'x' } } } } } };
+  assert.deepEqual(planQuestionView(proposal, 'p', 'claude:s1')!.options.map((o) => o.choice), ['review', 'plan']);
+  const undecided = { ...st, review: { projects: { p: { visible: true, sessions: {}, questions: {} } } }, channel: { sessions: [{ key: 'claude:s1', projectId: 'p', state: 'working' }] } };
+  assert.match(choiceView(undecided, 'p', 'claude:s1')!.waiting ?? '', /Сначала ревью/, 'an undecided working session will be asked at its Stop');
 });
 

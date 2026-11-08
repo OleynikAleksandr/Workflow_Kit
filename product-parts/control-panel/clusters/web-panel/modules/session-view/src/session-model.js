@@ -18,6 +18,7 @@ export const REASON_LABELS = Object.freeze({
   'waiting-for-executors': 'Ждёт исполнителей',
   'waiting-for-mode-choice': 'Ждёт выбора пути',
   'waiting-for-plan-start': 'Ждёт «Начать выполнение плана»',
+  'waiting-for-plan-decision': 'Ждёт ответа на вопрос о плане',
   'waiting-for-review': 'Ревью плана: ждёт ответа ревьюера',
   'waiting-for-main': 'Ревью плана: ждёт ответа основного агента',
 });
@@ -112,8 +113,9 @@ function choiceHolder(state, projectId) {
  */
 
 /**
- * A working session with «Ревью плана» on that has not reviewed the open proposal: its review
- * starts when its turn ends, so the mode choice waits (spec M4 section 11.3).
+ * A working session with the review on, or without a decision, that has not reviewed the open
+ * proposal: its review (or the question about it) comes when its turn ends, so the mode choice
+ * waits (spec M4 sections 11.3 and 12.3).
  * @param {Record<string, unknown>} state
  * @param {string} projectId
  * @returns {boolean}
@@ -123,7 +125,7 @@ function reviewComing(state, projectId) {
   const toggles = record(record(record(record(state['review'])['projects'])[projectId])['sessions']);
   const reviews = projectReviews(state, projectId);
   return array(record(state['channel'])['sessions']).some((s) =>
-    s && s.projectId === projectId && s.state === 'working' && toggles[String(s.key)] === true &&
+    s && s.projectId === projectId && s.state === 'working' && toggles[String(s.key)] !== false &&
     !reviews.some((r) => r.reviewerKey === s.key) &&
     !reviews.some((r) => r.mainKey === s.key && r.scopeId === scopeId));
 }
@@ -142,6 +144,8 @@ export function choiceView(state, projectId, key) {
   const holder = choiceHolder(state, projectId);
   if (holder && holder !== key) return null;
   if (projectReviews(state, projectId).some((r) => r.active || r.reviewerKey === key)) return null;
+  // M4 12.3: an open plan question comes first.
+  if (Object.keys(projectQuestions(state, projectId)).length > 0) return null;
   return {
     generation: choice['generation'],
     waiting: reviewComing(state, projectId) ? 'Сначала ревью плана: оно начнётся, когда агент закончит ход' : null,
@@ -205,8 +209,51 @@ export function planView(state, projectId, key) {
   };
 }
 
+/** @param {Record<string, unknown>} state @param {string} projectId @returns {Record<string, Record<string, any>>} */
+function projectQuestions(state, projectId) {
+  return /** @type {Record<string, Record<string, any>>} */ (record(record(record(record(state['review'])['projects'])[projectId])['questions']));
+}
+
 /**
- * «Ревью плана» of a session: visible until the path is chosen; off unless the session turned it on.
+ * @typedef {object} PlanQuestionView
+ * @property {'agent' | 'proposal'} kind
+ * @property {string} heading
+ * @property {string} summary
+ * @property {string | null} askedAt
+ * @property {Array<{ choice: 'review' | 'plan' | 'talk', label: string, description: string, primary: boolean }>} options
+ */
+
+/**
+ * The open plan question of a session (spec M4 section 12): the agent's question before a
+ * specification, or the service's question about the review of a proposed plan.
+ * @param {Record<string, unknown>} state
+ * @param {string} projectId
+ * @param {string} key
+ * @returns {PlanQuestionView | null}
+ */
+export function planQuestionView(state, projectId, key) {
+  const question = projectQuestions(state, projectId)[key];
+  if (!question || typeof question !== 'object') return null;
+  const proposal = question['kind'] === 'proposal';
+  /** @type {PlanQuestionView['options']} */
+  const options = [
+    { choice: 'review', label: 'С ревью', description: 'Спецификацию и план проверит сессия другого провайдера, пока они не договорятся.', primary: true },
+    { choice: 'plan', label: 'Без ревью', description: proposal ? 'Сразу к выбору способа выполнения.' : 'Спецификация и план без проверки.', primary: false },
+  ];
+  if (!proposal) options.push({ choice: 'talk', label: 'Просто обсуждаем', description: 'Без спецификации и плана: разговор или исследование.', primary: false });
+  return {
+    kind: proposal ? 'proposal' : 'agent',
+    heading: proposal ? 'План предложен. Проверить его ревьюером?' : 'Агент предлагает спецификацию и план',
+    summary: typeof question['summary'] === 'string' ? question['summary'] : '',
+    askedAt: typeof question['askedAt'] === 'string' ? question['askedAt'] : null,
+    options,
+  };
+}
+
+/**
+ * The review decision of a session, read-only (spec M4 section 12.3: the always-clickable
+ * toggle is gone; the answer to the plan question decides): only once decided, until the path
+ * is chosen.
  * @param {Record<string, unknown>} state
  * @param {string} projectId
  * @param {string} key
@@ -220,12 +267,13 @@ export function reviewView(state, projectId, key) {
   const review = crossReviewView(state, projectId, key);
   const open = record(record(record(record(state['workflow'])['projects'])[projectId])['proposal'])['scopeId'];
   if (review && (review.role === 'reviewer' || review.active || (typeof open === 'string' && review.scopeId === open))) return null;
-  const on = record(project['sessions'])[key] === true;
+  const value = record(project['sessions'])[key];
+  if (typeof value !== 'boolean') return null;
   return {
-    on,
-    hint: on
-      ? 'Своё для этой сессии. Агент отдаст спецификацию и план на ревью и учтёт замечания.'
-      : 'Своё для этой сессии. Выключено: спецификация и план без ревью. Можно включить, пока не выбран способ выполнения.',
+    on: value,
+    hint: value
+      ? 'Решено ответом на вопрос о плане: спецификацию и план проверит ревьюер.'
+      : 'Решено ответом на вопрос о плане: без ревью. Агент спросит снова перед следующим планом.',
   };
 }
 

@@ -10,10 +10,30 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 277,
+  "revision": 279,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "agent-channel: hold.timeoutAnswer, onStop/StopEvent",
+          "cross-review: createCrossReview, раздел reviews, GET/POST …/reviews/:key",
+          "autopilot: опция review (ReviewDecider)",
+          "plan-review: locked, onChange",
+          "cli: src/review-wiring.ts"
+        ],
+        "decisions": [
+          "Ревью запускается после предложения плана; карточка выбора — после окончания",
+          "Не больше 5 кругов",
+          "Сессия ревьюера остаётся с меткой «Ревью»",
+          "Ревьюер только читает",
+          "Переключатель исчезает, пока ревью идёт и для плана, прошедшего ревью"
+        ],
+        "references": [
+          "docs/planning/M4-plan-review.md",
+          "docs/evidence/M4-review-probe.md"
+        ],
+        "result": "Перекрёстное ревью плана: при включённом «Ревью плана» после scope:propose служба создаёт сессию другого провайдера ревьюером и пересылает ходы сторон через хук Stop до REVIEW: APPROVED + REVIEW: AGREED или 5 кругов; панель показывает карточку ревью и метку «Ревью»."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -305,7 +325,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -348,8 +368,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 5/7
-- Revision: 277
+- Progress: 6/7
+- Revision: 279
 
 ## Objective
 
@@ -386,7 +406,7 @@
   - Commit: feat: show the cross review in the panel
   - Files: product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.css, product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/sidebar.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/view-model.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/tree.css, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md
   - Depends on: T004
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M4-plan-review.md, docs/evidence/M4-review-probe.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/workflow-engine/clusters/session-loop/cluster.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md
   - Depends on: T001, T002, T003, T004, T005
@@ -394,5 +414,7 @@
   - Commit: chore: release 0.4.0
   - Files: package.json, package-lock.json, docs/evidence/M4-acceptance.md
   - Depends on: T005, DOCS-R1
+
+Digest: Перекрёстное ревью плана: при включённом «Ревью плана» после scope:propose служба создаёт сессию другого провайдера ревьюером и пересылает ходы сторон через хук Stop до REVIEW: APPROVED + REVIEW: AGREED или 5 кругов; панель показывает карточку ревью и метку «Ревью».
 
 State changes only through `scripts/workflow` commands. History lives in Git.

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 286,
+  "revision": 287,
   "rounds": [
     {
       "digest": {
@@ -450,6 +450,48 @@
     },
     {
       "acceptance": [
+        "While a working session with the review toggle on has not reviewed the open proposal, the choice card shows no buttons and explains that the review comes first",
+        "The service refuses sequential and orchestrated with 409 review-pending in the same case; refine is allowed",
+        "With the toggle off or after the review the choice works as before",
+        "Tests cover the panel model and the refusal"
+      ],
+      "checks": [],
+      "commitMessage": "fix: keep the mode choice until the plan review starts",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M4-plan-review.md",
+          "heading": "11.3. Выбор пути не обгоняет ревью",
+          "required": true
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/review.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test/review.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/autopilot.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/flow.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/review-wiring.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/module.md"
+      ],
+      "fixes": "T004",
+      "id": "T010",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Mode choice waits for the plan review",
+      "why": "The user chose the mode while the agent still worked after scope:propose, so the review never started"
+    },
+    {
+      "acceptance": [
         "Project-wide documents describe the round result",
         "The round digest records result, decisions, contracts and references"
       ],
@@ -459,7 +501,8 @@
       "context": [],
       "dependencies": [
         "T007",
-        "T008"
+        "T008",
+        "T010"
       ],
       "docsWaiver": null,
       "files": [
@@ -469,7 +512,8 @@
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md",
         "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md",
         "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
-        "product-parts/control-panel/clusters/web-panel/modules/session-view/module.md"
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md"
       ],
       "fixes": null,
       "id": "DOCS-R2",
@@ -519,8 +563,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 9/11
-- Revision: 286
+- Progress: 9/12
+- Revision: 287
 
 ## Objective
 
@@ -579,10 +623,14 @@ Digest: Перекрёстное ревью плана: при включённ�
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test/review.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/test, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/review.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/store.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/texts.ts
   - Depends on: T007
   - Fixes: T003
+- [TODO] T010 — Mode choice waits for the plan review (work)
+  - Commit: fix: keep the mode choice until the plan review starts
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/review.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test/review.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/autopilot.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/flow.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/review-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md
+  - Fixes: T004
 - [TODO] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R2
-  - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md
-  - Depends on: T007, T008
+  - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md
+  - Depends on: T007, T008, T010
 - [TODO] T009 — Release 0.4.1 (delivery)
   - Commit: chore: release 0.4.1
   - Files: package.json, package-lock.json, docs/evidence/M4-acceptance.md

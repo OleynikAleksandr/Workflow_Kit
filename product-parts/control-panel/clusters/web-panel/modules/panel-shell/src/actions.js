@@ -248,7 +248,7 @@ export function createActions(options) {
       else api('POST', '/api/open-link', { url: link }).catch(() => window.location.assign(link));
     },
     /**
-     * A new Claude session on the Mac: the service switches Claude Desktop to it (claude:// link).
+     * A Claude session on the Mac: the service switches Claude Desktop to it (claude:// link).
      * A failure stays silent — the session is in the Remote Control group anyway.
      * @param {SessionRow} session
      */
@@ -257,13 +257,16 @@ export function createActions(options) {
       if (link) api('POST', '/api/open-link', { url: link }).catch(() => {});
     },
     /**
-     * What a click on the session card does: the session screen and, for ChatGPT, its chat (a
-     * Claude session comes back by itself when it is opened and has no chat link).
+     * What a click on the session card does: the session screen and the chat in its app — ChatGPT
+     * by its link, Claude in Claude Desktop on the Mac, the Claude app on a touch device by a click
+     * only (a sleeping Claude session comes back by itself when its screen is open).
      * @param {string} projectId @param {SessionRow} session @param {boolean} [auto]
      */
     openSession(projectId, session, auto = false) {
       navigate({ screen: 'session', projectId, key: session.key });
       if (session.provider !== 'claude') handlers.openChat(session, auto);
+      else if ((navigator.maxTouchPoints ?? 0) <= 1) handlers.openInDesktop(session);
+      else if (!auto && session.links?.mobile) handlers.openChat(session);
     },
     /** The wizard created the session: open it once it is in the tree. @param {string} projectId @param {string} key */
     expectSession(projectId, key) {
@@ -294,7 +297,7 @@ export function createActions(options) {
       // Out of the render that found it: navigating inside a render would draw re-entrantly.
       setTimeout(() => {
         if (!shown) handlers.openSession(projectId, session, true);
-        if (desktop) handlers.openInDesktop(session);
+        else if (desktop) handlers.openInDesktop(session);
       }, 0);
     },
   };

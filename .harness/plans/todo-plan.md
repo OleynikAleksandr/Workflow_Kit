@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 257,
+  "revision": 259,
   "rounds": [
     {
       "digest": {
@@ -1142,7 +1142,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R10",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Щелчок по карточке Claude открывает сессию в Claude Desktop",
       "why": "Щелчок по карточке Claude открывает сессию в Claude Desktop"
     },
@@ -1210,8 +1210,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 29/32
-- Revision: 257
+- Progress: 30/32
+- Revision: 259
 
 ## Objective
 
@@ -1379,7 +1379,7 @@ Digest: Новая сессия Claude, созданная из панели н�
 
 ### R10 — Щелчок по карточке Claude открывает Desktop (fixes, OPEN)
 
-- [TODO] T021 — Щелчок по карточке Claude открывает сессию в Claude Desktop (work)
+- [DONE] T021 — Щелчок по карточке Claude открывает сессию в Claude Desktop (work)
   - Commit: feat: open a Claude session in Claude Desktop on a card click
   - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/actions.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md
 - [TODO] DOCS-R10 — Reconcile project documentation and write the round digest (docs)

@@ -46,7 +46,10 @@ ChatGPT — Claude) и пересылает законченные ходы ст
     отменяет; `choiceBlocked(projectId, working)` — почему выбор пути ждёт ревью
     (`CHOICE_WAITS_QUESTION` — открыт вопрос о плане; `CHOICE_WAITS_REVIEW` — ревью идёт; `CHOICE_WAITS_TURN` — работающая сессия с включённым
     переключателем или без решения ещё не проходила ревью открытого предложения; раздел 11.3) или `null`;
-    `cancel(projectId, key, reason)`; `isReviewer(key)`; `get(projectId, key)` —
+    `cancel(projectId, key, reason)`; `retry(projectId, key)` — «Повторить ревью»: последнее
+    ревью сессии `failed` и относится к открытому предложению → удержанный `Stop`
+    переспрашивается (`wake`) и ревью этого же scope начинается заново, иначе `false`
+    (M4, раздел 13.2); `isReviewer(key)`; `get(projectId, key)` —
     ревью сессии как основной или ревьюера; `section()` — `{ projects: { [id]:
     ReviewSummary[] } }` (тексты журнала до 400 знаков, `statusLabel`, `active`).
 - Состояния: `preparing` → `starting` → `answering` ↔ `reviewing` → `agreed` | `disagreed` | `failed` |
@@ -60,14 +63,15 @@ ChatGPT — Claude) и пересылает законченные ходы ст
   текст до 12000 знаков), `REMINDER`, `STATUS_LABELS`, `PROVIDER_NAMES`.
 - `registerCrossReviewRoutes({ router, state, review })`: раздел `reviews` в `/api/state`,
   `GET /api/projects/:id/reviews/:key` (полное ревью, 404 `review-not-found`),
-  `POST /api/projects/:id/reviews/:key/cancel` («Прервать ревью», 409 `review-not-active`).
+  `POST /api/projects/:id/reviews/:key/cancel` («Прервать ревью», 409 `review-not-active`),
+  `POST /api/projects/:id/reviews/:key/retry` («Повторить ревью», 409 `review-not-failed`).
 
 ## Инварианты
 
 - Работа одного ревью выполняется по очереди (`queue`), решение `Stop` ждёт её.
 - Ревьюер файлы не меняет — это правило его первого сообщения; служба ничего не пишет в
   репозиторий, кроме файла ревью в `.workflow-kit/local`.
-- Второе ревью того же scope не запускается.
+- Второе ревью того же scope не запускается само; только «Повторить ревью» после `failed`.
 
 ## Зависимости
 

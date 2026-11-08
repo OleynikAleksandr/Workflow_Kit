@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 303,
+  "revision": 305,
   "rounds": [
     {
       "digest": {
@@ -760,14 +760,22 @@
       "docsWaiver": null,
       "files": [
         "product-parts/workflow-engine/clusters/session-loop/modules/cross-review",
-        "product-parts/control-panel/clusters/web-panel/modules/session-view"
+        "product-parts/control-panel/clusters/web-panel/modules/session-view",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/review.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/routes.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test/review.test.ts"
       ],
       "fixes": "T008",
       "id": "T015",
       "iteration": 1,
       "kind": "work",
       "roundId": "R3",
-      "status": "TODO",
+      "status": "DONE",
       "title": "A failed review is visible and can be retried",
       "why": "The failed review vanished and the plan went on without the user knowing"
     },
@@ -837,8 +845,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 16/19
-- Revision: 303
+- Progress: 17/19
+- Revision: 305
 
 ## Objective
 
@@ -928,9 +936,9 @@ Digest: Fixes after the live review check: the ChatGPT reviewer starts at once (
   - Commit: fix: refuse a Codex session only on a real login problem
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/codex-files.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/runtime.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts
   - Fixes: T007
-- [TODO] T015 — A failed review is visible and can be retried (work)
+- [DONE] T015 — A failed review is visible and can be retried (work)
   - Commit: fix: show a failed plan review and let the user retry it
-  - Files: product-parts/workflow-engine/clusters/session-loop/modules/cross-review, product-parts/control-panel/clusters/web-panel/modules/session-view
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/cross-review, product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/review.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test/review.test.ts
   - Fixes: T008
 - [TODO] DOCS-R3 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R3

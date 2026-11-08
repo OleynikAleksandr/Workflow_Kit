@@ -110,6 +110,7 @@ function choiceHolder(state, projectId) {
  * @property {string} reason
  * @property {Array<{ option: string, title: string, description: string, recommended: boolean }>} options
  * @property {string | null} waiting why the choice waits for the plan review (spec M4 11.3)
+ * @property {string | null} failedReview why this session's review of the open plan did not run (spec M4 13.2)
  */
 
 /**
@@ -149,6 +150,7 @@ export function choiceView(state, projectId, key) {
   return {
     generation: choice['generation'],
     waiting: reviewComing(state, projectId) ? 'Сначала ревью плана: оно начнётся, когда агент закончит ход' : null,
+    failedReview: failedReview(state, projectId, key),
     reason: typeof choice['reason'] === 'string' ? choice['reason'] : '',
     options: array(choice['options'])
       .map((o) => ({ option: String(o.option), title: String(o.title), description: String(o.description ?? ''), recommended: Boolean(o.recommended) })),
@@ -207,6 +209,22 @@ export function planView(state, projectId, key) {
       .map(([action, b]) => ({ action, label: b.label, route: b.route, primary: b.primary })),
     delivery,
   };
+}
+
+/**
+ * The reason of a failed review of the open proposal by this session, or null (spec M4 13.2).
+ * @param {Record<string, unknown>} state
+ * @param {string} projectId
+ * @param {string} key
+ * @returns {string | null}
+ */
+function failedReview(state, projectId, key) {
+  const scopeId = record(record(record(record(state['workflow'])['projects'])[projectId])['proposal'])['scopeId'] ?? null;
+  const latest = projectReviews(state, projectId)
+    .filter((r) => r && r.mainKey === key && r.scopeId === scopeId)
+    .sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt)))[0];
+  if (!latest || latest.status !== 'failed') return null;
+  return typeof latest.reason === 'string' && latest.reason ? latest.reason : 'причина не записана';
 }
 
 /** @param {Record<string, unknown>} state @param {string} projectId @returns {Record<string, Record<string, any>>} */

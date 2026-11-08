@@ -184,3 +184,15 @@ test('the plan question card: agent question with three answers, proposal questi
   assert.match(choiceView(undecided, 'p', 'claude:s1')!.waiting ?? '', /Сначала ревью/, 'an undecided working session will be asked at its Stop');
 });
 
+test('a failed review of the open plan shows its reason on the choice card (M4 13.2)', () => {
+  const st = {
+    workflow: { projects: { p: { choice: { generation: 1, reason: 'r', options: [{ option: 'sequential', title: 'Сам', description: '' }] }, proposal: { scopeId: 's1' } } } },
+    review: { projects: { p: { visible: true, sessions: { 'claude:s1': true }, questions: {} } } },
+    channel: { sessions: [{ key: 'claude:s1', projectId: 'p', state: 'holding', holdReason: 'waiting-for-mode-choice' }] },
+    reviews: { projects: { p: [{ mainKey: 'claude:s1', scopeId: 's1', status: 'failed', active: false, reason: 'Демон Codex не подключён к ChatGPT', updatedAt: 'b' }] } },
+  };
+  assert.equal(choiceView(st, 'p', 'claude:s1')!.failedReview, 'Демон Codex не подключён к ChatGPT');
+  const other = { ...st, workflow: { projects: { p: { ...st.workflow.projects.p, proposal: { scopeId: 's2' } } } } };
+  assert.equal(choiceView(other, 'p', 'claude:s1')!.failedReview, null, 'a failure of an earlier plan is not shown');
+});
+

@@ -78,6 +78,11 @@ export interface CrossReview {
   /** The toggle changed: on asks the held Stop again (starts the review), off cancels it. */
   toggled(projectId: string, key: string, on: boolean): Promise<void>;
   cancel(projectId: string, key: string, reason: string): Promise<Review | null>;
+  /**
+   * «Повторить ревью» (spec M4 13.2): the session's review of the open proposal failed — its held
+   * Stop is asked again and the review starts anew. False when there is nothing to retry.
+   */
+  retry(projectId: string, key: string): Promise<boolean>;
   isReviewer(key: string): boolean;
   /** The review of a session as main or reviewer. */
   get(projectId: string, key: string): Review | null;
@@ -102,6 +107,8 @@ export function createCrossReview(deps: CrossReviewDeps): CrossReview {
   const events = new Map<string, StopEvent>();
   /** Serialized work per main key. */
   const work = new Map<string, Promise<void>>();
+  /** Main sessions whose failed review the user asked to start again. */
+  const retries = new Set<string>();
   /** Sessions held while their review still creates the reviewer (maybe it is one of them). */
   const tentative = new Set<string>();
 
@@ -331,7 +338,8 @@ export function createCrossReview(deps: CrossReviewDeps): CrossReview {
       if (!deps.toggle(context.projectId, context.key)) return null;
       const proposal = await deps.proposal(context.projectId);
       if (!proposal) return null;
-      if (own && own.scopeId === proposal.scopeId) return null;
+      if (own && own.scopeId === proposal.scopeId && !(own.status === 'failed' && retries.has(context.key))) return null;
+      retries.delete(context.key);
       if ([...reviews.values()].some((r) => r.projectId === context.projectId && active(r))) return null;
       await start(context.projectId, context.key, proposal);
       return { kind: 'continue', text: PLAN_REQUEST };
@@ -351,6 +359,16 @@ export function createCrossReview(deps: CrossReviewDeps): CrossReview {
       else await cancel(projectId, key, 'переключатель «Ревью плана» выключен');
     },
     cancel,
+    async retry(projectId, key) {
+      const review = reviews.get(key);
+      if (!review || review.projectId !== projectId || review.status !== 'failed') return false;
+      const proposal = await deps.proposal(projectId);
+      if (!proposal || proposal.scopeId !== review.scopeId) return false;
+      retries.add(key);
+      log(`review: ${key} retry requested`);
+      deps.wake(key);
+      return true;
+    },
     isReviewer: (key) => reviewers.has(key),
     async idle() {
       for (;;) {

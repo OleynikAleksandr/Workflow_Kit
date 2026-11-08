@@ -263,3 +263,27 @@ test('an open plan question holds the Stop; a proposal without a decision asks i
   assert.equal(t.created.length, 1);
   await t.cleanup();
 });
+
+test('«Повторить ревью» starts a failed review of the open plan again (M4 13.2)', async () => {
+  let fail = true;
+  const t = await setup({
+    createSession: async (_p, provider) => {
+      if (fail) throw new Error('Демон Codex не подключён к ChatGPT');
+      return { localId: provider === 'codex' ? 't1' : null, remoteId: null };
+    },
+  });
+  await t.begin();
+  assert.equal(t.review.get('p1', MAIN)!.status, 'failed');
+  assert.equal(await t.review.decide(t.ctx(MAIN), true), null, 'no restart by itself');
+  assert.equal(await t.review.retry('p1', 'claude:nobody'), false);
+  fail = false;
+  assert.equal(await t.review.retry('p1', MAIN), true);
+  assert.ok(t.woken.includes(MAIN), 'the held Stop is asked again');
+  await t.begin();
+  assert.equal(t.review.get('p1', MAIN)!.status, 'starting');
+  assert.ok(t.review.isReviewer('codex:t1'));
+  assert.equal(await t.review.retry('p1', MAIN), false, 'nothing to retry while it runs');
+  t.setProposal(null);
+  await t.cleanup();
+});
+

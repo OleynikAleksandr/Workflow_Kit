@@ -94,6 +94,13 @@ export function install(shell) {
       h('h2', {}, ['Как составить и выполнить план этой сессии?']),
       choice.reason ? h('p', { class: 'sv-muted' }, [`Почему рекомендует агент: ${choice.reason}`]) : null,
       choice.waiting ? h('p', { class: 'sv-gap' }, [choice.waiting]) : null,
+      choice.failedReview
+        ? h('div', { class: 'opt sv-review-failed' }, [
+            h('b', {}, ['Ревью не запустилось']),
+            h('p', {}, [`${choice.failedReview}. Повторите ревью или выберите путь без него.`]),
+            button('Повторить ревью', () => void retryReview(session, ctx), 'btn warn'),
+          ])
+        : null,
       ...(choice.waiting ? [] : choice.options).map((o) =>
         h('div', { class: 'opt' }, [
           h('b', {}, [o.title, o.recommended ? h('span', { class: 'rec' }, [' (рекомендую)']) : null]),
@@ -103,6 +110,24 @@ export function install(shell) {
       ),
       h('p', { class: 'sv-muted sv-gap' }, ['или напишите ответ в чат своими словами']),
     ].filter((n) => n !== null));
+  }
+
+  /**
+   * «Повторить ревью» of a failed review of the open plan (spec M4 section 13.2).
+   * @param {SessionContext} session
+   * @param {SlotContext} ctx
+   */
+  async function retryReview(session, ctx) {
+    if (busy) return;
+    busy = true;
+    try {
+      await shell.api('POST', `/api/projects/${encodeURIComponent(session.project.id)}/reviews/${encodeURIComponent(session.session.key)}/retry`, {});
+    } catch (error) {
+      ctx.say('error', 'Не удалось повторить ревью', error);
+    } finally {
+      busy = false;
+      ctx.requestRefresh();
+    }
   }
 
   /**

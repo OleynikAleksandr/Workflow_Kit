@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 309,
+  "revision": 310,
   "rounds": [
     {
       "digest": {
@@ -87,6 +87,13 @@
       "kind": "fixes",
       "status": "CLOSED",
       "title": "Review failures"
+    },
+    {
+      "digest": null,
+      "id": "R4",
+      "kind": "fixes",
+      "status": "OPEN",
+      "title": "Review card"
     }
   ],
   "schema": "harness-workflow-plan/1",
@@ -129,7 +136,7 @@
         "text": "Ревьюер только читает и пишет замечания"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "IN_PROGRESS",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
@@ -848,6 +855,90 @@
       "status": "DONE",
       "title": "Release 0.4.2",
       "why": "Release 0.4.2"
+    },
+    {
+      "acceptance": [
+        "The active review card says the review runs by itself and the journal holds the remarks",
+        "No «Открыть сессию ревьюера» while a ChatGPT reviewer works; a note says the chat opens after the review",
+        "The newest journal entry is open",
+        "Tests cover the model"
+      ],
+      "checks": [],
+      "commitMessage": "fix: keep the review card informative without needless buttons",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M4-review-failures.md",
+          "required": true
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/control-panel/clusters/web-panel/modules/session-view"
+      ],
+      "fixes": "T015",
+      "id": "T017",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R4",
+      "status": "TODO",
+      "title": "The review card asks for nothing",
+      "why": "The user took «Открыть сессию ревьюера» for a required step and hit the locked ChatGPT chat"
+    },
+    {
+      "acceptance": [
+        "Project-wide documents describe the round result",
+        "The round digest records result, decisions, contracts and references"
+      ],
+      "checks": [],
+      "commitMessage": "docs: reconcile documentation for R4",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T017"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/architecture/OVERVIEW.md"
+      ],
+      "fixes": null,
+      "id": "DOCS-R4",
+      "iteration": 1,
+      "kind": "docs",
+      "roundId": "R4",
+      "status": "TODO",
+      "title": "Reconcile project documentation and write the round digest",
+      "why": "Keep the project context current for the next agent and close the round."
+    },
+    {
+      "acceptance": [
+        "Version 0.4.3 is installed and wfk doctor --installed is ok",
+        "The panel shows the new review card"
+      ],
+      "checks": [],
+      "commitMessage": "chore: release 0.4.3",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T017",
+        "DOCS-R4"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "package.json",
+        "package-lock.json",
+        "docs/evidence/M4-acceptance.md"
+      ],
+      "fixes": null,
+      "id": "T018",
+      "iteration": 1,
+      "kind": "delivery",
+      "roundId": "R4",
+      "status": "TODO",
+      "title": "Release 0.4.3",
+      "why": "Release 0.4.3"
     }
   ]
 }
@@ -857,11 +948,11 @@
 ## State
 
 - Scope: m4-plan-review (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 19/19
-- Revision: 309
+- Progress: 19/22
+- Revision: 310
 
 ## Objective
 
@@ -965,5 +1056,20 @@ Digest: Fixes after the live review check: the ChatGPT reviewer starts at once (
   - Depends on: T015, DOCS-R3
 
 Digest: Review failures: Codex creates a reviewer while the ChatGPT app holds remote control (409 Conflict counts as the app owner; only a real login error refuses), and a failed review stays visible on the choice card with «Повторить ревью».
+
+### R4 — Review card (fixes, OPEN)
+
+- [TODO] T017 — The review card asks for nothing (work)
+  - Commit: fix: keep the review card informative without needless buttons
+  - Files: product-parts/control-panel/clusters/web-panel/modules/session-view
+  - Fixes: T015
+- [TODO] DOCS-R4 — Reconcile project documentation and write the round digest (docs)
+  - Commit: docs: reconcile documentation for R4
+  - Files: README.md, docs/architecture/OVERVIEW.md
+  - Depends on: T017
+- [TODO] T018 — Release 0.4.3 (delivery)
+  - Commit: chore: release 0.4.3
+  - Files: package.json, package-lock.json, docs/evidence/M4-acceptance.md
+  - Depends on: T017, DOCS-R4
 
 State changes only through `scripts/workflow` commands. History lives in Git.

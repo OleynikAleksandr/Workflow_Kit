@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 298,
+  "revision": 300,
   "rounds": [
     {
       "digest": {
@@ -63,7 +63,7 @@
       },
       "id": "R2",
       "kind": "fixes",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Fixes after the live review check"
     }
   ],
@@ -107,7 +107,7 @@
         "text": "Ревьюер только читает и пишет замечания"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
@@ -677,7 +677,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: release 0.4.1",
-      "confirmation": null,
+      "confirmation": "Да, собирай 0.4.1",
       "context": [],
       "dependencies": [
         "T008",
@@ -694,7 +694,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Release 0.4.1",
       "why": "Release 0.4.1"
     }
@@ -706,11 +706,11 @@
 ## State
 
 - Scope: m4-plan-review (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 14/15
-- Revision: 298
+- Progress: 15/15
+- Revision: 300
 
 ## Objective
 
@@ -758,7 +758,7 @@
 
 Digest: Перекрёстное ревью плана: при включённом «Ревью плана» после scope:propose служба создаёт сессию другого провайдера ревьюером и пересылает ходы сторон через хук Stop до REVIEW: APPROVED + REVIEW: AGREED или 5 кругов; панель показывает карточку ревью и метку «Ревью».
 
-### R2 — Fixes after the live review check (fixes, OPEN)
+### R2 — Fixes after the live review check (fixes, CLOSED)
 
 - [DONE] T007 — Reviewer session starts without waiting for its turn (work)
   - Commit: fix: start the reviewer session without waiting for its turn
@@ -787,7 +787,7 @@ Digest: Перекрёстное ревью плана: при включённ�
   - Commit: docs: reconcile documentation for R2
   - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md
   - Depends on: T007, T008, T010, T011, T012, T013
-- [TODO] T009 — Release 0.4.1 (delivery)
+- [DONE] T009 — Release 0.4.1 (delivery)
   - Commit: chore: release 0.4.1
   - Files: package.json, package-lock.json, docs/evidence/M4-acceptance.md
   - Depends on: T008, DOCS-R2

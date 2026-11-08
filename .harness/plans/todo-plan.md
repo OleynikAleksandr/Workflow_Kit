@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 232,
+  "revision": 233,
   "rounds": [
     {
       "digest": {
@@ -125,6 +125,13 @@
       "kind": "fixes",
       "status": "CLOSED",
       "title": "Отложенное удаление тредов ChatGPT"
+    },
+    {
+      "digest": null,
+      "id": "R7",
+      "kind": "fixes",
+      "status": "OPEN",
+      "title": "Следы проекта в ChatGPT и Claude"
     }
   ],
   "schema": "harness-workflow-plan/1",
@@ -147,7 +154,7 @@
         "text": "Демон Codex запускается при каждом старте службы без согласий; при остановке службы не останавливается"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "IN_PROGRESS",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
@@ -770,6 +777,128 @@
       "status": "DONE",
       "title": "Релиз 0.3.12",
       "why": "Релиз 0.3.12"
+    },
+    {
+      "acceptance": [
+        "Удалённый тред убирается из трёх таблиц codex.db приложения с копией базы и проверкой",
+        "Без базы или записей ничего не пишется; ошибка не мешает удалению проекта",
+        "Хранятся 5 последних копий"
+      ],
+      "checks": [],
+      "commitMessage": "feat: remove deleted threads from the ChatGPT app catalog",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M3-autostart.md",
+          "heading": "9. Раунд 7: удаление проекта убирает его следы в ChatGPT и Claude на Mac",
+          "required": true
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/app-catalog.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/deleting.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md"
+      ],
+      "fixes": "T012",
+      "id": "T014",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R7",
+      "status": "TODO",
+      "title": "Тред уходит из каталога приложения ChatGPT",
+      "why": "Тред уходит из каталога приложения ChatGPT"
+    },
+    {
+      "acceptance": [
+        "Удаление проекта с диска выполняет claude purge <папка> -y",
+        "Ошибка purge пишется в журнал и не мешает удалению"
+      ],
+      "checks": [],
+      "commitMessage": "feat: purge the Claude Code data of a project deleted from disk",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M3-autostart.md",
+          "heading": "9. Раунд 7: удаление проекта убирает его следы в ChatGPT и Claude на Mac",
+          "required": true
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/purge.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/provider.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/provider.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/fixtures/fake-claude.mjs",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md"
+      ],
+      "fixes": null,
+      "id": "T015",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R7",
+      "status": "TODO",
+      "title": "claude purge при удалении проекта",
+      "why": "claude purge при удалении проекта"
+    },
+    {
+      "acceptance": [
+        "Project-wide documents describe the round result",
+        "The round digest records result, decisions, contracts and references"
+      ],
+      "checks": [],
+      "commitMessage": "docs: reconcile documentation for R7",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T014",
+        "T015"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/architecture/OVERVIEW.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md"
+      ],
+      "fixes": null,
+      "id": "DOCS-R7",
+      "iteration": 1,
+      "kind": "docs",
+      "roundId": "R7",
+      "status": "TODO",
+      "title": "Reconcile project documentation and write the round digest",
+      "why": "Keep the project context current for the next agent and close the round."
+    },
+    {
+      "acceptance": [
+        "Версия 0.3.13",
+        "install ставит app/0.3.13, wfk doctor --installed — всё в порядке"
+      ],
+      "checks": [],
+      "commitMessage": "chore: release 0.3.13",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "DOCS-R7"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "package.json",
+        "package-lock.json",
+        "docs/evidence/M3-acceptance.md"
+      ],
+      "fixes": null,
+      "id": "T016",
+      "iteration": 1,
+      "kind": "delivery",
+      "roundId": "R7",
+      "status": "TODO",
+      "title": "Релиз 0.3.13",
+      "why": "Релиз 0.3.13"
     }
   ]
 }
@@ -779,11 +908,11 @@
 ## State
 
 - Scope: m3-autostart (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 19/19
-- Revision: 232
+- Progress: 19/23
+- Revision: 233
 
 ## Objective
 
@@ -896,5 +1025,23 @@ Digest: Новая сессия открывается сама, у ChatGPT — 
   - Depends on: DOCS-R6
 
 Digest: Тред ChatGPT, который приложение держит открытым, ждёт в очереди удаления и удаляется повтором раз в минуту; «no rollout found» считается удалением.
+
+### R7 — Следы проекта в ChatGPT и Claude (fixes, OPEN)
+
+- [TODO] T014 — Тред уходит из каталога приложения ChatGPT (work)
+  - Commit: feat: remove deleted threads from the ChatGPT app catalog
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/app-catalog.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/deleting.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md
+  - Fixes: T012
+- [TODO] T015 — claude purge при удалении проекта (work)
+  - Commit: feat: purge the Claude Code data of a project deleted from disk
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/purge.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/fixtures/fake-claude.mjs, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md
+- [TODO] DOCS-R7 — Reconcile project documentation and write the round digest (docs)
+  - Commit: docs: reconcile documentation for R7
+  - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md
+  - Depends on: T014, T015
+- [TODO] T016 — Релиз 0.3.13 (delivery)
+  - Commit: chore: release 0.3.13
+  - Files: package.json, package-lock.json, docs/evidence/M3-acceptance.md
+  - Depends on: DOCS-R7
 
 State changes only through `scripts/workflow` commands. History lives in Git.

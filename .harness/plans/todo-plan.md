@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 242,
+  "revision": 243,
   "rounds": [
     {
       "digest": {
@@ -145,6 +145,13 @@
       "kind": "fixes",
       "status": "CLOSED",
       "title": "Следы проекта в ChatGPT и Claude"
+    },
+    {
+      "digest": null,
+      "id": "R8",
+      "kind": "fixes",
+      "status": "OPEN",
+      "title": "Без карточки «Сообщение агенту»"
     }
   ],
   "schema": "harness-workflow-plan/1",
@@ -167,7 +174,7 @@
         "text": "Демон Codex запускается при каждом старте службы без согласий; при остановке службы не останавливается"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "IN_PROGRESS",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
@@ -914,6 +921,84 @@
       "status": "DONE",
       "title": "Релиз 0.3.13",
       "why": "Релиз 0.3.13"
+    },
+    {
+      "acceptance": [
+        "На экране сессии нет карточки «Сообщение агенту»",
+        "Проверки проходят"
+      ],
+      "checks": [],
+      "commitMessage": "fix: remove the agent message card from the session screen",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.css",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/module.md"
+      ],
+      "fixes": null,
+      "id": "T017",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R8",
+      "status": "TODO",
+      "title": "Убрать карточку «Сообщение агенту»",
+      "why": "Убрать карточку «Сообщение агенту»"
+    },
+    {
+      "acceptance": [
+        "Project-wide documents describe the round result",
+        "The round digest records result, decisions, contracts and references"
+      ],
+      "checks": [],
+      "commitMessage": "docs: reconcile documentation for R8",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T017"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/architecture/OVERVIEW.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/module.md"
+      ],
+      "fixes": null,
+      "id": "DOCS-R8",
+      "iteration": 1,
+      "kind": "docs",
+      "roundId": "R8",
+      "status": "TODO",
+      "title": "Reconcile project documentation and write the round digest",
+      "why": "Keep the project context current for the next agent and close the round."
+    },
+    {
+      "acceptance": [
+        "0.3.14 установлен, wfk doctor --installed — всё в порядке"
+      ],
+      "checks": [],
+      "commitMessage": "chore: release 0.3.14",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "DOCS-R8"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "package.json",
+        "package-lock.json",
+        "docs/evidence/M3-acceptance.md"
+      ],
+      "fixes": null,
+      "id": "T018",
+      "iteration": 1,
+      "kind": "delivery",
+      "roundId": "R8",
+      "status": "TODO",
+      "title": "Релиз 0.3.14",
+      "why": "Релиз 0.3.14"
     }
   ]
 }
@@ -923,11 +1008,11 @@
 ## State
 
 - Scope: m3-autostart (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 23/23
-- Revision: 242
+- Progress: 23/26
+- Revision: 243
 
 ## Objective
 
@@ -1060,5 +1145,19 @@ Digest: Тред ChatGPT, который приложение держит от�
   - Depends on: DOCS-R7
 
 Digest: Удаление проекта с диска убирает тред и из каталога приложения ChatGPT (codex.db, с копией и проверкой) и стирает данные проекта Claude Code через claude purge.
+
+### R8 — Без карточки «Сообщение агенту» (fixes, OPEN)
+
+- [TODO] T017 — Убрать карточку «Сообщение агенту» (work)
+  - Commit: fix: remove the agent message card from the session screen
+  - Files: product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.css, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md
+- [TODO] DOCS-R8 — Reconcile project documentation and write the round digest (docs)
+  - Commit: docs: reconcile documentation for R8
+  - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md
+  - Depends on: T017
+- [TODO] T018 — Релиз 0.3.14 (delivery)
+  - Commit: chore: release 0.3.14
+  - Files: package.json, package-lock.json, docs/evidence/M3-acceptance.md
+  - Depends on: DOCS-R8
 
 State changes only through `scripts/workflow` commands. History lives in Git.

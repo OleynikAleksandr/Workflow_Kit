@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 228,
+  "revision": 230,
   "rounds": [
     {
       "digest": {
@@ -109,7 +109,18 @@
       "title": "Новая сессия открывается сама; удаление тредов ChatGPT"
     },
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "Provider.retryDeletes?; registry.retryDeletes; DELETE_RETRY_MS; deleting.ts THREAD_GONE, DELETE_KEEP_MS"
+        ],
+        "decisions": [
+          "Очередь — sessions/codex-deleting.json, срок попыток 7 дней"
+        ],
+        "references": [
+          "docs/planning/M3-autostart.md#8"
+        ],
+        "result": "Тред ChatGPT, который приложение держит открытым, ждёт в очереди удаления и удаляется повтором раз в минуту; «no rollout found» считается удалением."
+      },
       "id": "R6",
       "kind": "fixes",
       "status": "OPEN",
@@ -729,7 +740,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R6",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -771,8 +782,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 17/19
-- Revision: 228
+- Progress: 18/19
+- Revision: 230
 
 ## Objective
 
@@ -875,7 +886,7 @@ Digest: Новая сессия открывается сама, у ChatGPT — 
   - Commit: fix: retry deleting ChatGPT threads the app still holds
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/deleting.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/registry.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/routes.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/fake-provider.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/provider-lifecycle.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/providers.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md
   - Fixes: T010
-- [TODO] DOCS-R6 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R6 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R6
   - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md
   - Depends on: T012
@@ -883,5 +894,7 @@ Digest: Новая сессия открывается сама, у ChatGPT — 
   - Commit: chore: release 0.3.12
   - Files: package.json, package-lock.json, docs/evidence/M3-acceptance.md
   - Depends on: DOCS-R6
+
+Digest: Тред ChatGPT, который приложение держит открытым, ждёт в очереди удаления и удаляется повтором раз в минуту; «no rollout found» считается удалением.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

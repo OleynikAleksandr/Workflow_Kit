@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 342,
+  "revision": 343,
   "rounds": [
     {
       "digest": {
@@ -179,7 +179,10 @@
       "Выключение переключателя останавливает ревью; ошибка запуска ревьюера видна и не блокирует выбор",
       "Новый релиз установлен, wfk doctor --installed — всё в порядке"
     ],
-    "acceptanceNote": null,
+    "acceptanceNote": {
+      "at": "2026-11-08T17:17:20.643Z",
+      "text": "Да, теперь все вроде бы выглядит адекватно. ... думаю, что можно скоп с исправлениями закрыть."
+    },
     "approval": {
       "at": "2026-11-08T09:15:09.241Z",
       "text": "Пользователь 2026-11-08: «Давай теперь реализуем функционал Ревью плана! Claude Должен запускать в качестве ревьюера ChatGPT и наоборот… пока они оба не придут к соглашению, что документы готовы»; ответы: после предложения плана, 5 кругов, сессию ревьюера оставить с меткой «Ревью», ревьюер только читает | Execution mode chosen by the user: sequential: Последовательно"
@@ -210,7 +213,7 @@
         "text": "Ревьюер только читает и пишет замечания"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "ACCEPTED",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
@@ -1362,11 +1365,11 @@
 ## State
 
 - Scope: m4-plan-review (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: ACCEPTED
 - Execution: sequential
 - Current task: none
 - Progress: 33/33
-- Revision: 342
+- Revision: 343
 
 ## Objective
 

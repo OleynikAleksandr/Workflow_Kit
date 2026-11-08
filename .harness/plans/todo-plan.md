@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 256,
+  "revision": 257,
   "rounds": [
     {
       "digest": {
@@ -183,6 +183,13 @@
       "kind": "fixes",
       "status": "CLOSED",
       "title": "Новая сессия Claude открывается в Desktop"
+    },
+    {
+      "digest": null,
+      "id": "R10",
+      "kind": "fixes",
+      "status": "OPEN",
+      "title": "Щелчок по карточке Claude открывает Desktop"
     }
   ],
   "schema": "harness-workflow-plan/1",
@@ -205,7 +212,7 @@
         "text": "Демон Codex запускается при каждом старте службы без согласий; при остановке службы не останавливается"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "IN_PROGRESS",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
@@ -1114,6 +1121,83 @@
       "status": "DONE",
       "title": "Релиз 0.3.15",
       "why": "Релиз 0.3.15"
+    },
+    {
+      "acceptance": [
+        "Щелчок по карточке сессии Claude на Mac переключает Claude Desktop на неё",
+        "Проверки проходят"
+      ],
+      "checks": [],
+      "commitMessage": "feat: open a Claude session in Claude Desktop on a card click",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/actions.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md"
+      ],
+      "fixes": null,
+      "id": "T021",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R10",
+      "status": "TODO",
+      "title": "Щелчок по карточке Claude открывает сессию в Claude Desktop",
+      "why": "Щелчок по карточке Claude открывает сессию в Claude Desktop"
+    },
+    {
+      "acceptance": [
+        "Project-wide documents describe the round result",
+        "The round digest records result, decisions, contracts and references"
+      ],
+      "checks": [],
+      "commitMessage": "docs: reconcile documentation for R10",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T021"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/architecture/OVERVIEW.md",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md"
+      ],
+      "fixes": null,
+      "id": "DOCS-R10",
+      "iteration": 1,
+      "kind": "docs",
+      "roundId": "R10",
+      "status": "TODO",
+      "title": "Reconcile project documentation and write the round digest",
+      "why": "Keep the project context current for the next agent and close the round."
+    },
+    {
+      "acceptance": [
+        "0.3.16 установлен, wfk doctor --installed — всё в порядке"
+      ],
+      "checks": [],
+      "commitMessage": "chore: release 0.3.16",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "DOCS-R10"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "package.json",
+        "package-lock.json",
+        "docs/evidence/M3-acceptance.md"
+      ],
+      "fixes": null,
+      "id": "T022",
+      "iteration": 1,
+      "kind": "delivery",
+      "roundId": "R10",
+      "status": "TODO",
+      "title": "Релиз 0.3.16",
+      "why": "Релиз 0.3.16"
     }
   ]
 }
@@ -1123,11 +1207,11 @@
 ## State
 
 - Scope: m3-autostart (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 29/29
-- Revision: 256
+- Progress: 29/32
+- Revision: 257
 
 ## Objective
 
@@ -1292,5 +1376,19 @@ Digest: С экрана сессии убрана карточка «Сообщ�
   - Depends on: DOCS-R9
 
 Digest: Новая сессия Claude, созданная из панели на Mac, открывается в Claude Desktop сама: панель сразу показывает экран сессии, а когда появилась ссылка Remote Control, служба открывает claude://claude.ai/code/session_<id> через POST /api/open-link.
+
+### R10 — Щелчок по карточке Claude открывает Desktop (fixes, OPEN)
+
+- [TODO] T021 — Щелчок по карточке Claude открывает сессию в Claude Desktop (work)
+  - Commit: feat: open a Claude session in Claude Desktop on a card click
+  - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/actions.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md
+- [TODO] DOCS-R10 — Reconcile project documentation and write the round digest (docs)
+  - Commit: docs: reconcile documentation for R10
+  - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md
+  - Depends on: T021
+- [TODO] T022 — Релиз 0.3.16 (delivery)
+  - Commit: chore: release 0.3.16
+  - Files: package.json, package-lock.json, docs/evidence/M3-acceptance.md
+  - Depends on: DOCS-R10
 
 State changes only through `scripts/workflow` commands. History lives in Git.

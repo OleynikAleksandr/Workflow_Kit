@@ -261,3 +261,14 @@ ChatGPT» и активная «Запустить демон».
 - `node bin/wfk.mjs install` — служба работает, версия 0.3.14, старая 0.3.12 удалена.
 - `wfk doctor --installed` — «итог: всё в порядке».
 - В установленном `app/0.3.14/.../session-view.js` строк «Сообщение агенту» и `messageCard` нет.
+
+## Релиз 0.3.15 (2026-11-08, раунд R9 `m3-autostart`)
+
+- Новая сессия Claude, созданная из панели на Mac, открывается в Claude Desktop сама: когда у неё
+  появилась ссылка Remote Control, служба открывает `claude://claude.ai/code/session_<id>`.
+- Проверено вручную до выпуска: `open claude://claude.ai/code/session_01Ey…` переключил Claude
+  Desktop на эту сессию (подтверждение пользователя).
+- `npx tsc --noEmit -p .`, тесты `open-link` и `panel-shell` — без ошибок.
+- `node bin/wfk.mjs install` — служба работает, версия 0.3.15, старая 0.3.13 удалена;
+  `wfk doctor --installed` — «итог: всё в порядке».
+- Установленная служба отклоняет чужую ссылку `claude://evil.com/x` (400).

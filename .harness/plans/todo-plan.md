@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 254,
+  "revision": 256,
   "rounds": [
     {
       "digest": {
@@ -181,7 +181,7 @@
       },
       "id": "R9",
       "kind": "fixes",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Новая сессия Claude открывается в Desktop"
     }
   ],
@@ -205,7 +205,7 @@
         "text": "Демон Codex запускается при каждом старте службы без согласий; при остановке службы не останавливается"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
@@ -1095,7 +1095,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: release 0.3.15",
-      "confirmation": null,
+      "confirmation": "Да, собери релиз",
       "context": [],
       "dependencies": [
         "DOCS-R9"
@@ -1111,7 +1111,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R9",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Релиз 0.3.15",
       "why": "Релиз 0.3.15"
     }
@@ -1123,11 +1123,11 @@
 ## State
 
 - Scope: m3-autostart (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 28/29
-- Revision: 254
+- Progress: 29/29
+- Revision: 256
 
 ## Objective
 
@@ -1277,7 +1277,7 @@ Digest: Удаление проекта с диска убирает тред и
 
 Digest: С экрана сессии убрана карточка «Сообщение агенту»: агенту пишут в самом чате Claude или ChatGPT. Маршрут службы POST …/sessions/:key/message остаётся, панель его не вызывает.
 
-### R9 — Новая сессия Claude открывается в Desktop (fixes, OPEN)
+### R9 — Новая сессия Claude открывается в Desktop (fixes, CLOSED)
 
 - [DONE] T019 — Открывать новую сессию Claude в Claude Desktop (work)
   - Commit: feat: open a new Claude session in Claude Desktop
@@ -1286,7 +1286,7 @@ Digest: С экрана сессии убрана карточка «Сообщ�
   - Commit: docs: reconcile documentation for R9
   - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md
   - Depends on: T019
-- [TODO] T020 — Релиз 0.3.15 (delivery)
+- [DONE] T020 — Релиз 0.3.15 (delivery)
   - Commit: chore: release 0.3.15
   - Files: package.json, package-lock.json, docs/evidence/M3-acceptance.md
   - Depends on: DOCS-R9

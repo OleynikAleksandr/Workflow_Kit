@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 312,
+  "revision": 313,
   "rounds": [
     {
       "digest": {
@@ -892,6 +892,36 @@
     },
     {
       "acceptance": [
+        "Reviewer sessions of either provider are absent from the project tree and the session count",
+        "The review card offers no «Открыть сессию ревьюера» and says the review runs by itself",
+        "Tests cover the tree and the card model"
+      ],
+      "checks": [],
+      "commitMessage": "fix: hide reviewer sessions from the project tree",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M4-review-failures.md",
+          "required": true
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view"
+      ],
+      "fixes": "T017",
+      "id": "T019",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R4",
+      "status": "TODO",
+      "title": "Reviewer sessions stay out of the panel",
+      "why": "The user decided the reviewer chat is not to be opened or listed: the review journal is enough"
+    },
+    {
+      "acceptance": [
         "Project-wide documents describe the round result",
         "The round digest records result, decisions, contracts and references"
       ],
@@ -900,12 +930,14 @@
       "confirmation": null,
       "context": [],
       "dependencies": [
-        "T017"
+        "T017",
+        "T019"
       ],
       "docsWaiver": null,
       "files": [
         "README.md",
-        "docs/architecture/OVERVIEW.md"
+        "docs/architecture/OVERVIEW.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/module.md"
       ],
       "fixes": null,
       "id": "DOCS-R4",
@@ -955,8 +987,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 20/22
-- Revision: 312
+- Progress: 20/23
+- Revision: 313
 
 ## Objective
 
@@ -1067,10 +1099,14 @@ Digest: Review failures: Codex creates a reviewer while the ChatGPT app holds re
   - Commit: fix: keep the review card informative without needless buttons
   - Files: product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts
   - Fixes: T015
+- [TODO] T019 — Reviewer sessions stay out of the panel (work)
+  - Commit: fix: hide reviewer sessions from the project tree
+  - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/control-panel/clusters/web-panel/modules/session-view
+  - Fixes: T017
 - [TODO] DOCS-R4 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R4
-  - Files: README.md, docs/architecture/OVERVIEW.md
-  - Depends on: T017
+  - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md
+  - Depends on: T017, T019
 - [TODO] T018 — Release 0.4.3 (delivery)
   - Commit: chore: release 0.4.3
   - Files: package.json, package-lock.json, docs/evidence/M4-acceptance.md

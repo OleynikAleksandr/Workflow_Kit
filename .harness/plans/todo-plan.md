@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 240,
+  "revision": 242,
   "rounds": [
     {
       "digest": {
@@ -143,7 +143,7 @@
       },
       "id": "R7",
       "kind": "fixes",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Следы проекта в ChatGPT и Claude"
     }
   ],
@@ -167,7 +167,7 @@
         "text": "Демон Codex запускается при каждом старте службы без согласий; при остановке службы не останавливается"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
@@ -895,7 +895,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: release 0.3.13",
-      "confirmation": null,
+      "confirmation": "Понял, хорошо. Делай тогда так. Как предлагаешь. Собери новый релиз, будем тестировать.",
       "context": [],
       "dependencies": [
         "DOCS-R7"
@@ -911,7 +911,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R7",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Релиз 0.3.13",
       "why": "Релиз 0.3.13"
     }
@@ -923,11 +923,11 @@
 ## State
 
 - Scope: m3-autostart (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 22/23
-- Revision: 240
+- Progress: 23/23
+- Revision: 242
 
 ## Objective
 
@@ -1041,7 +1041,7 @@ Digest: Новая сессия открывается сама, у ChatGPT — 
 
 Digest: Тред ChatGPT, который приложение держит открытым, ждёт в очереди удаления и удаляется повтором раз в минуту; «no rollout found» считается удалением.
 
-### R7 — Следы проекта в ChatGPT и Claude (fixes, OPEN)
+### R7 — Следы проекта в ChatGPT и Claude (fixes, CLOSED)
 
 - [DONE] T014 — Тред уходит из каталога приложения ChatGPT (work)
   - Commit: feat: remove deleted threads from the ChatGPT app catalog
@@ -1054,7 +1054,7 @@ Digest: Тред ChatGPT, который приложение держит от�
   - Commit: docs: reconcile documentation for R7
   - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md
   - Depends on: T014, T015
-- [TODO] T016 — Релиз 0.3.13 (delivery)
+- [DONE] T016 — Релиз 0.3.13 (delivery)
   - Commit: chore: release 0.3.13
   - Files: package.json, package-lock.json, docs/evidence/M3-acceptance.md
   - Depends on: DOCS-R7

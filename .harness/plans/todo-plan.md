@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 266,
+  "revision": 268,
   "rounds": [
     {
       "digest": null,
@@ -91,14 +91,15 @@
       "dependencies": [],
       "docsWaiver": null,
       "files": [
-        "docs/evidence/M4-review-probe.md"
+        "docs/evidence/M4-review-probe.md",
+        "docs/planning/M4-plan-review.md"
       ],
       "fixes": null,
       "id": "T001",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Проба: ревьюер в другой сессии получает и отдаёт сообщения через хук Stop",
       "why": "Не проверено, что сессия ChatGPT, созданная службой, держит хук Stop и продолжает ход по ответу block"
     },
@@ -336,8 +337,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 0/7
-- Revision: 266
+- Progress: 1/7
+- Revision: 268
 
 ## Objective
 
@@ -355,9 +356,9 @@
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T001 — Проба: ревьюер в другой сессии получает и отдаёт сообщения через хук Stop (work)
+- [DONE] T001 — Проба: ревьюер в другой сессии получает и отдаёт сообщения через хук Stop (work)
   - Commit: docs: record the cross review probe
-  - Files: docs/evidence/M4-review-probe.md
+  - Files: docs/evidence/M4-review-probe.md, docs/planning/M4-plan-review.md
 - [TODO] T002 — Канал: удержание с напоминанием и наблюдатель Stop (work)
   - Commit: feat: hold a stop hook with a reminder and report finished turns
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/channel.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/channel.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md

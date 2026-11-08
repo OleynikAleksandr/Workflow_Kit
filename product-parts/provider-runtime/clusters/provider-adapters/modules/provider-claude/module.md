@@ -175,6 +175,11 @@ D5) и останавливает только по своим записям (D
   поднимается прерванное окружение папки (`resumeEnvironment` в
   `environment.ts`: запись с `processId`, без `stoppedAt`, процесс не жив) —
   в ответе `environment` (скоуп M3-autostart).
+- `deleteSessions(project)` (`src/purge.ts`, M3-autostart раунд R7) — удаление проекта
+  с диска: `claude purge <папка> -y` (транскрипты, память, история ввода, запись проекта в
+  `~/.claude.json` — только на этом Mac; сессии claude.ai остаются); ответ `['local-data']`
+  (`PURGED`); без claude — `not-installed`, неудача — `purge-failed` с причиной (служба
+  пишет её в журнал, удаление идёт дальше).
 - `archiveSessions(project, sid | null)` / `restoreSessions(project, sid |
   null)` (`src/archive.ts`, раунд R10): архив проекта (`null`) останавливает
   его работающие и прерванные сессии и ставит записи `archived: 'project'`;

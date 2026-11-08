@@ -301,3 +301,11 @@ test('an interrupted folder environment comes back at resumeInterrupted; one sto
   assert.ok(!(await provider.resumeInterrupted!(project)).includes('environment'), 'stopped on purpose stays stopped');
 });
 
+test('deleting a project from disk runs claude purge <folder> -y; a failing purge is an error with the reason', { skip }, async () => {
+  assert.deepEqual(await provider.deleteSessions!(project), ['local-data']);
+  const call = (await fakeCalls()).filter((c) => c.argv[0] === 'purge').at(-1);
+  assert.deepEqual(call?.argv, ['purge', project.path, '-y']);
+  const failing = h.withEnv({ FAKE_CLAUDE_PURGE_FAIL: '1' });
+  await assert.rejects(failing.deleteSessions!(project), (error: ProviderError) => error.code === 'purge-failed' && /cannot purge/.test(error.message));
+});
+

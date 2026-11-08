@@ -8,6 +8,7 @@ import { findKitHook, isKitHookCommand, normalizeHook, sha256 } from '#kit-struc
 import { archiveSessions, restoreSessions } from './archive.ts';
 import { ENVIRONMENT_START, ENVIRONMENT_STOP, environmentActions, environmentBlockers, startEnvironment, stopEnvironment } from './environment.ts';
 import { claudeCapabilities, ptyUnavailableReason } from './programs.ts';
+import { purgeProject } from './purge.ts';
 import { forgetProjects } from './records.ts';
 import { PROVIDER_ID, createRuntime } from './runtime.ts';
 import type { ClaudeProviderOptions, ClaudeRuntime } from './runtime.ts';
@@ -140,6 +141,7 @@ export function createClaudeProvider(context: ProviderContext, options: ClaudePr
     removeBlockers: (project) => environmentBlockers(rt, project),
     forgetProjects: (keep) => forgetProjects(rt.store, keep),
     resumeInterrupted: (project) => resumeInterrupted(rt, project),
+    deleteSessions: (project) => purgeProject(rt, project),
     archiveSessions: (project, sid) => archiveSessions(rt, project, sid),
     restoreSessions: (project, sid) => restoreSessions(rt, project, sid),
   };

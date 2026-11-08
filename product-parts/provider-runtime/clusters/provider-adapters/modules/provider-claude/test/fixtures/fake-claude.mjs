@@ -122,6 +122,15 @@ function importsDialog(file) {
 
 const UNKNOWN_DIALOG = ['New MCP server found in .mcp.json: late', '❯ 1. Use this and all future MCP servers in this project', '  2. Continue without using this MCP server', 'Enter to confirm · Esc to cancel'];
 
+if (argv[0] === 'purge') {
+  if (process.env.FAKE_CLAUDE_PURGE_FAIL) {
+    process.stderr.write('Error: cannot purge\n');
+    process.exit(1);
+  }
+  process.stdout.write(`Purged ${argv[1]}\n`);
+  process.exit(0);
+}
+
 if (argv[0] === '--version') {
   process.stdout.write('2.1.318 (Claude Code)\n');
   process.exit(0);

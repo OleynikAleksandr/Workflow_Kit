@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 236,
+  "revision": 238,
   "rounds": [
     {
       "digest": {
@@ -842,7 +842,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R7",
-      "status": "TODO",
+      "status": "DONE",
       "title": "claude purge при удалении проекта",
       "why": "claude purge при удалении проекта"
     },
@@ -913,8 +913,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 20/23
-- Revision: 236
+- Progress: 21/23
+- Revision: 238
 
 ## Objective
 
@@ -1034,7 +1034,7 @@ Digest: Тред ChatGPT, который приложение держит от�
   - Commit: feat: remove deleted threads from the ChatGPT app catalog
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/app-catalog.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/deleting.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/app-catalog.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/catalog-fixture.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md
   - Fixes: T012
-- [TODO] T015 — claude purge при удалении проекта (work)
+- [DONE] T015 — claude purge при удалении проекта (work)
   - Commit: feat: purge the Claude Code data of a project deleted from disk
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/purge.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/fixtures/fake-claude.mjs, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md
 - [TODO] DOCS-R7 — Reconcile project documentation and write the round digest (docs)

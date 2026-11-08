@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 338,
+  "revision": 340,
   "rounds": [
     {
       "digest": {
@@ -149,7 +149,21 @@
       "title": "Review journal texts"
     },
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "session-view: activityView(state, projectId, key) в activity-model.js, повторно экспортируется из session-model.js вместе с timer и REASON_LABELS"
+        ],
+        "decisions": [
+          "Удержание пользователя называет действие (USER_ACTIONS), служебное — ожидание (SERVICE_WAITS), прочее — «остановлен»",
+          "Метка автопилота у работающего агента показывается только если ход начат решением continue",
+          "Строка активности вынесена в activity-model.js из-за лимита 400 строк"
+        ],
+        "references": [
+          "docs/planning/M4-review-failures.md",
+          "product-parts/control-panel/clusters/web-panel/modules/session-view/module.md"
+        ],
+        "result": "Строка активности сессии говорит, что происходит на самом деле: во время ревью — шаг ревью с кругом, при удержании — точное действие пользователя («ждёт, когда вы нажмёте «Начать выполнение плана»») или служебное ожидание («ждёт ответа ревьюера»)."
+      },
       "id": "R7",
       "kind": "fixes",
       "status": "OPEN",
@@ -1308,7 +1322,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R7",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -1351,8 +1365,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 31/33
-- Revision: 338
+- Progress: 32/33
+- Revision: 340
 
 ## Objective
 
@@ -1522,7 +1536,7 @@ Digest: The review journal on the review card shows whole answers of the reviewe
   - Commit: fix: describe the review and real waits in the activity line
   - Files: product-parts/control-panel/clusters/web-panel/modules/session-view, docs/planning/M4-review-failures.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/activity-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts
   - Fixes: T012
-- [TODO] DOCS-R7 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R7 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R7
   - Files: README.md, docs/architecture/OVERVIEW.md
   - Depends on: T025
@@ -1530,5 +1544,7 @@ Digest: The review journal on the review card shows whole answers of the reviewe
   - Commit: chore: release 0.4.6
   - Files: package.json, package-lock.json, docs/evidence/M4-acceptance.md
   - Depends on: T025, DOCS-R7
+
+Digest: Строка активности сессии говорит, что происходит на самом деле: во время ревью — шаг ревью с кругом, при удержании — точное действие пользователя («ждёт, когда вы нажмёте «Начать выполнение плана»») или служебное ожидание («ждёт ответа ревьюера»).
 
 State changes only through `scripts/workflow` commands. History lives in Git.

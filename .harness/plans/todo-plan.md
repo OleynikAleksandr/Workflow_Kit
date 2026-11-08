@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 315,
+  "revision": 317,
   "rounds": [
     {
       "digest": {
@@ -89,7 +89,20 @@
       "title": "Review failures"
     },
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "projectTree skips reviewer sessions; SessionRow.reviewer removed",
+          "crossReviewView.note and canOpenOther (reviewer role only)"
+        ],
+        "decisions": [
+          "Reviewer sessions are hidden from the panel tree for both providers (as in Workflow Pilot)",
+          "The review journal on the main session is the only view of the reviewer's work"
+        ],
+        "references": [
+          "docs/planning/M4-review-failures.md#13.4. Сессия ревьюера не показывается (раунд R4, решение пользователя)"
+        ],
+        "result": "The review asks nothing of the user: the review card says the review runs by itself and shows the journal (newest entry open); reviewer sessions of both providers are not listed in the project tree and no «Открыть сессию ревьюера» is offered."
+      },
       "id": "R4",
       "kind": "fixes",
       "status": "OPEN",
@@ -952,7 +965,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R4",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -995,8 +1008,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 21/23
-- Revision: 315
+- Progress: 22/23
+- Revision: 317
 
 ## Objective
 
@@ -1111,7 +1124,7 @@ Digest: Review failures: Codex creates a reviewer while the ChatGPT app holds re
   - Commit: fix: hide reviewer sessions from the project tree
   - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/sidebar.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/tree.css, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/view-model.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts
   - Fixes: T017
-- [TODO] DOCS-R4 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R4 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R4
   - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md
   - Depends on: T017, T019
@@ -1119,5 +1132,7 @@ Digest: Review failures: Codex creates a reviewer while the ChatGPT app holds re
   - Commit: chore: release 0.4.3
   - Files: package.json, package-lock.json, docs/evidence/M4-acceptance.md
   - Depends on: T017, DOCS-R4
+
+Digest: The review asks nothing of the user: the review card says the review runs by itself and shows the journal (newest entry open); reviewer sessions of both providers are not listed in the project tree and no «Открыть сессию ревьюера» is offered.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

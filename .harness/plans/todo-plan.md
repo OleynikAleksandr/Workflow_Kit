@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 326,
+  "revision": 328,
   "rounds": [
     {
       "digest": {
@@ -126,7 +126,7 @@
       },
       "id": "R5",
       "kind": "fixes",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Panel refresh and choice flicker"
     }
   ],
@@ -170,7 +170,7 @@
         "text": "Ревьюер только читает и пишет замечания"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
@@ -1115,7 +1115,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: release 0.4.4",
-      "confirmation": null,
+      "confirmation": "Да, доделай R5 (ответ на «Доделать раунд R5 и собрать 0.4.4?»)",
       "context": [],
       "dependencies": [
         "T021",
@@ -1132,7 +1132,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R5",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Release 0.4.4",
       "why": "Release 0.4.4"
     }
@@ -1144,11 +1144,11 @@
 ## State
 
 - Scope: m4-plan-review (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 26/27
-- Revision: 326
+- Progress: 27/27
+- Revision: 328
 
 ## Objective
 
@@ -1274,7 +1274,7 @@ Digest: Review failures: Codex creates a reviewer while the ChatGPT app holds re
 
 Digest: The review asks nothing of the user: the review card says the review runs by itself and shows the journal (newest entry open); reviewer sessions of both providers are not listed in the project tree and no «Открыть сессию ревьюера» is offered.
 
-### R5 — Panel refresh and choice flicker (fixes, OPEN)
+### R5 — Panel refresh and choice flicker (fixes, CLOSED)
 
 - [DONE] T020 — The panel reloads itself after a new release (work)
   - Commit: fix: reload the panel when the service version changes
@@ -1288,7 +1288,7 @@ Digest: The review asks nothing of the user: the review card says the review run
   - Commit: docs: reconcile documentation for R5
   - Files: README.md, docs/architecture/OVERVIEW.md
   - Depends on: T020, T021
-- [TODO] T022 — Release 0.4.4 (delivery)
+- [DONE] T022 — Release 0.4.4 (delivery)
   - Commit: chore: release 0.4.4
   - Files: package.json, package-lock.json, docs/evidence/M4-acceptance.md
   - Depends on: T021, DOCS-R5

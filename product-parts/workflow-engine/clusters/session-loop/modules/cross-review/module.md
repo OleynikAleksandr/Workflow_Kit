@@ -39,7 +39,10 @@ ChatGPT — Claude) и пересылает законченные ходы ст
     (`waiting-for-main`); после создания она переспрашивается (`wake`).
     Остальное — `null` (решает автопилот).
   - `toggled(projectId, key, on)` — включение будит удержанный `Stop` (старт), выключение
-    отменяет; `cancel(projectId, key, reason)`; `isReviewer(key)`; `get(projectId, key)` —
+    отменяет; `choiceBlocked(projectId, working)` — почему выбор пути ждёт ревью
+    (`CHOICE_WAITS_REVIEW` — ревью идёт; `CHOICE_WAITS_TURN` — работающая сессия с включённым
+    переключателем ещё не проходила ревью открытого предложения; раздел 11.3) или `null`;
+    `cancel(projectId, key, reason)`; `isReviewer(key)`; `get(projectId, key)` —
     ревью сессии как основной или ревьюера; `section()` — `{ projects: { [id]:
     ReviewSummary[] } }` (тексты журнала до 400 знаков, `statusLabel`, `active`).
 - Состояния: `preparing` → `starting` → `answering` ↔ `reviewing` → `agreed` | `disagreed` | `failed` |

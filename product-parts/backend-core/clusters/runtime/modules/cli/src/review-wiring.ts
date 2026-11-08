@@ -19,6 +19,7 @@ export function lateReviewDecider(): ReviewDecider & { attach(review: CrossRevie
     attach: (review) => void (target = review),
     decide: async (context, canStart) => (target ? target.decide(context, canStart) : null),
     isReviewer: (key) => target?.isReviewer(key) ?? false,
+    choiceBlocked: async (projectId, working) => (target ? target.choiceBlocked(projectId, working) : null),
   };
 }
 

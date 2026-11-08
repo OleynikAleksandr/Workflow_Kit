@@ -20,6 +20,9 @@ import {
 } from './texts.ts';
 import type { ReviewProvider } from './texts.ts';
 
+export const CHOICE_WAITS_REVIEW = 'Идёт ревью плана: путь выбирается после согласия ревьюера и агента';
+export const CHOICE_WAITS_TURN = 'Сначала ревью плана: оно начнётся, когда агент закончит ход';
+
 /** A review without progress this long is given up (the reviewer does not answer). */
 export const REVIEW_STALL_MS = 60 * 60_000;
 const SUMMARY_CHARS = 400;
@@ -57,6 +60,11 @@ export interface CrossReview {
    * the mode choice of an open proposal — with the toggle on, its review starts here.
    */
   decide(context: StopContext, canStart?: boolean): Promise<StopDecision | null>;
+  /**
+   * Why the mode choice must wait (spec M4 section 11.3), or null: a review runs, or one of the
+   * working sessions has the toggle on and has not reviewed the open proposal yet.
+   */
+  choiceBlocked(projectId: string, working: readonly string[]): Promise<string | null>;
   /** The toggle changed: on asks the held Stop again (starts the review), off cancels it. */
   toggled(projectId: string, key: string, on: boolean): Promise<void>;
   cancel(projectId: string, key: string, reason: string): Promise<Review | null>;
@@ -309,6 +317,14 @@ export function createCrossReview(deps: CrossReviewDeps): CrossReview {
       if ([...reviews.values()].some((r) => r.projectId === context.projectId && active(r))) return null;
       await start(context.projectId, context.key, proposal);
       return { kind: 'continue', text: PLAN_REQUEST };
+    },
+    async choiceBlocked(projectId, working) {
+      if ([...reviews.values()].some((r) => r.projectId === projectId && active(r))) return CHOICE_WAITS_REVIEW;
+      const candidates = working.filter((key) => !reviewers.has(key) && deps.toggle(projectId, key));
+      if (candidates.length === 0) return null;
+      const proposal = await deps.proposal(projectId);
+      if (!proposal) return null;
+      return candidates.some((key) => reviews.get(key)?.scopeId !== proposal.scopeId) ? CHOICE_WAITS_TURN : null;
     },
     async toggled(projectId, key, on) {
       if (on) deps.wake(key);

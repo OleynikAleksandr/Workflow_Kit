@@ -138,7 +138,7 @@ stripping).
   новой сессии: окно без щелчка пользователя ссылку приложения может не открыть;
 - перекрёстное ревью плана (M4) собрано в `src/review-wiring.ts`:
   `lateReviewDecider()` — решатель ревью для автопилота (подключается после
-  создания), `wireCrossReview({ router, state, channel, messages, projects,
+  создания; передаёт и `choiceBlocked`), `wireCrossReview({ router, state, channel, messages, projects,
   providers, workflow, toggles, titles, log })` — `createCrossReview`
   (ревьюер — `createSession` провайдера с первым сообщением и `detached`, поиск по
   `listSessions`: `remoteId` или `localId`; сообщения — через будящий канал с

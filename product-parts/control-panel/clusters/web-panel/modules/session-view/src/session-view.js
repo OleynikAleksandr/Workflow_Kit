@@ -93,7 +93,8 @@ export function install(shell) {
       h('div', { class: 'eyebrow' }, ['Выбор пользователя']),
       h('h2', {}, ['Как составить и выполнить план этой сессии?']),
       choice.reason ? h('p', { class: 'sv-muted' }, [`Почему рекомендует агент: ${choice.reason}`]) : null,
-      ...choice.options.map((o) =>
+      choice.waiting ? h('p', { class: 'sv-gap' }, [choice.waiting]) : null,
+      ...(choice.waiting ? [] : choice.options).map((o) =>
         h('div', { class: 'opt' }, [
           h('b', {}, [o.title, o.recommended ? h('span', { class: 'rec' }, [' (рекомендую)']) : null]),
           h('p', {}, [o.description]),

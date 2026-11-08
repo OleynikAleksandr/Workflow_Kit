@@ -32,6 +32,8 @@ const fakeReview = {
     return fakeReview.next;
   },
   isReviewer: (key: string) => key === 'codex:reviewer',
+  blocked: null as string | null,
+  choiceBlocked: async (_projectId: string, _working: readonly string[]) => fakeReview.blocked,
 };
 
 function git(...args: string[]): void {
@@ -172,6 +174,9 @@ test('a cross review holds the proposing session first; a reviewer session is de
   assert.deepEqual(fakeReview.asked.at(-1), ['codex:reviewer', false]);
   channel.wake(KEY);
   await holding('waiting-for-mode-choice');
+  fakeReview.blocked = 'Сначала ревью плана';
+  await assert.rejects(autopilot.choose('p', { session: KEY, generation: 1, option: 'sequential' }), (error: { code?: string; status?: number }) => error.code === 'review-pending' && error.status === 409);
+  fakeReview.blocked = null;
   await autopilot.choose('p', { session: KEY, generation: 1, option: 'sequential' });
   assert.match((await settle(stop)) ?? '', /execution mode chosen: sequential/);
 });

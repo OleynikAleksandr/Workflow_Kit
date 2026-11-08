@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
 import type { StopContext, StopEvent, TurnOrigin } from '#agent-channel';
-import { PLAN_REQUEST, createCrossReview, readReviews } from '../src/index.ts';
+import { CHOICE_WAITS_REVIEW, CHOICE_WAITS_TURN, PLAN_REQUEST, createCrossReview, readReviews } from '../src/index.ts';
 import type { CrossReviewDeps, ReviewProvider } from '../src/index.ts';
 
 const MAIN = 'claude:main-1';
@@ -213,5 +213,25 @@ test('cancel during the preparation stops the review before any reviewer exists'
   await t.settle();
   assert.equal(t.created.length, 0);
   assert.equal(await t.review.decide(t.ctx(MAIN)), null);
+  await t.cleanup();
+});
+
+test('the mode choice waits while a working session with the toggle on has not reviewed the proposal (M4 11.3)', async () => {
+  const t = await setup();
+  assert.equal(await t.review.choiceBlocked('p1', [MAIN]), CHOICE_WAITS_TURN);
+  assert.equal(await t.review.choiceBlocked('p1', []), null, 'nobody works: the review will not come');
+  t.setToggle(false);
+  assert.equal(await t.review.choiceBlocked('p1', [MAIN]), null);
+  t.setToggle(true);
+  await t.begin();
+  assert.equal(await t.review.choiceBlocked('p1', []), CHOICE_WAITS_REVIEW);
+  t.stop('codex:t1', 'ок\nREVIEW: APPROVED', 'user', []);
+  await t.settle();
+  t.stop(MAIN, 'REVIEW: AGREED');
+  await t.settle();
+  assert.equal(t.review.get('p1', MAIN)!.status, 'agreed');
+  assert.equal(await t.review.choiceBlocked('p1', [MAIN]), null, 'this scope was reviewed');
+  t.setProposal(null);
+  assert.equal(await t.review.choiceBlocked('p1', [MAIN]), null);
   await t.cleanup();
 });

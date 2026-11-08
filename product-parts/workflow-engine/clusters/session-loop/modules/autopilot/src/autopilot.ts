@@ -33,6 +33,8 @@ export type AutopilotReason = StopReason | 'waiting-for-plan-start' | 'waiting-f
 export interface ReviewDecider {
   decide(context: StopContext, canStart?: boolean): Promise<StopDecision | null>;
   isReviewer(key: string): boolean;
+  /** Why sequential/orchestrated must wait for the plan review (spec M4 11.3), or null. */
+  choiceBlocked?(projectId: string, working: readonly string[]): Promise<string | null>;
 }
 
 /** Autopilot state of one session, shown in the panel. */
@@ -249,6 +251,11 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
     async choose(projectId, request) {
       if (!Number.isSafeInteger(request.generation) || request.generation < 1) {
         throw new WorkflowActionError('bad-request', 'Нужно поколение предложения', 400);
+      }
+      if (request.option !== 'refine' && options.review?.choiceBlocked) {
+        const working = options.channel.list().filter((a) => a.projectId === projectId && a.state === 'working').map((a) => a.key);
+        const blocked = await options.review.choiceBlocked(projectId, working);
+        if (blocked) throw new WorkflowActionError('review-pending', blocked, 409, 'Дождитесь ревью плана: карточка выбора вернётся после него.');
       }
       await kit(projectId, [
         'scope:choose',

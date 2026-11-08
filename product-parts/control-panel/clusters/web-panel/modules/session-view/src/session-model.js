@@ -108,7 +108,25 @@ function choiceHolder(state, projectId) {
  * @property {number} generation
  * @property {string} reason
  * @property {Array<{ option: string, title: string, description: string, recommended: boolean }>} options
+ * @property {string | null} waiting why the choice waits for the plan review (spec M4 11.3)
  */
+
+/**
+ * A working session with «Ревью плана» on that has not reviewed the open proposal: its review
+ * starts when its turn ends, so the mode choice waits (spec M4 section 11.3).
+ * @param {Record<string, unknown>} state
+ * @param {string} projectId
+ * @returns {boolean}
+ */
+function reviewComing(state, projectId) {
+  const scopeId = record(record(record(record(state['workflow'])['projects'])[projectId])['proposal'])['scopeId'] ?? null;
+  const toggles = record(record(record(record(state['review'])['projects'])[projectId])['sessions']);
+  const reviews = projectReviews(state, projectId);
+  return array(record(state['channel'])['sessions']).some((s) =>
+    s && s.projectId === projectId && s.state === 'working' && toggles[String(s.key)] === true &&
+    !reviews.some((r) => r.reviewerKey === s.key) &&
+    !reviews.some((r) => r.mainKey === s.key && r.scopeId === scopeId));
+}
 
 /**
  * The path choice card for a session: the session holding the choice (or any session of the
@@ -126,6 +144,7 @@ export function choiceView(state, projectId, key) {
   if (projectReviews(state, projectId).some((r) => r.active || r.reviewerKey === key)) return null;
   return {
     generation: choice['generation'],
+    waiting: reviewComing(state, projectId) ? 'Сначала ревью плана: оно начнётся, когда агент закончит ход' : null,
     reason: typeof choice['reason'] === 'string' ? choice['reason'] : '',
     options: array(choice['options'])
       .map((o) => ({ option: String(o.option), title: String(o.title), description: String(o.description ?? ''), recommended: Boolean(o.recommended) })),

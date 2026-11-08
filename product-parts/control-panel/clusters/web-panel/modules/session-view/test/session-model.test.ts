@@ -148,3 +148,20 @@ test('the cross review: card data for both sides; the choice and the toggle hide
   assert.ok(reviewView(later, 'p', 'claude:s1'), 'a later plan shows the toggle again');
   assert.ok(reviewView(base, 'p', 'claude:s1'));
 });
+
+test('the choice card waits for the plan review while the toggled session still works (M4 11.3)', () => {
+  const st = {
+    workflow: { projects: { p: { choice: { generation: 1, reason: 'r', options: [{ option: 'sequential', title: 'Сам', description: '' }] }, proposal: { scopeId: 's1' } } } },
+    review: { projects: { p: { visible: true, sessions: { 'claude:s1': true } } } },
+    channel: { sessions: [{ key: 'claude:s1', projectId: 'p', state: 'working' }] },
+    reviews: { projects: { p: [] } },
+  };
+  assert.match(choiceView(st, 'p', 'claude:s1')!.waiting ?? '', /Сначала ревью плана/);
+  const idle = { ...st, channel: { sessions: [{ key: 'claude:s1', projectId: 'p', state: 'waiting' }] } };
+  assert.equal(choiceView(idle, 'p', 'claude:s1')!.waiting, null);
+  const off = { ...st, review: { projects: { p: { visible: true, sessions: { 'claude:s1': false } } } } };
+  assert.equal(choiceView(off, 'p', 'claude:s1')!.waiting, null);
+  const reviewed = { ...st, reviews: { projects: { p: [{ mainKey: 'claude:s1', scopeId: 's1', status: 'agreed', active: false }] } } };
+  assert.equal(choiceView(reviewed, 'p', 'claude:s1')!.waiting, null);
+});
+

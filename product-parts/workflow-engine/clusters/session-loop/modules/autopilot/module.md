@@ -39,7 +39,9 @@
     пользователя (`user-message`), если он начался с его сообщения в чате.
   - `onPrompt(key, delivered)` — начало хода: от пользователя или с
     сообщениями панели.
-  - `choose(projectId, { session, generation, option })` —
+  - `choose(projectId, { session, generation, option })` — `sequential`/`orchestrated`
+    отказывают 409 `review-pending`, если `review.choiceBlocked(projectId, работающие
+    сессии)` назвал причину (M4, раздел 11.3; `refine` не блокируется);
     `scope:choose --generation --option --session <id сессии> --note
     "Выбор пользователя в панели Workflow Kit: …"`; оркестрация — для
     сессий обоих приложений; агенту — «режим

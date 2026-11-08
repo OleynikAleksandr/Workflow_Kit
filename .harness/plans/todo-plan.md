@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 328,
+  "revision": 329,
   "rounds": [
     {
       "digest": {
@@ -128,6 +128,13 @@
       "kind": "fixes",
       "status": "CLOSED",
       "title": "Panel refresh and choice flicker"
+    },
+    {
+      "digest": null,
+      "id": "R6",
+      "kind": "fixes",
+      "status": "OPEN",
+      "title": "Review journal texts"
     }
   ],
   "schema": "harness-workflow-plan/1",
@@ -170,7 +177,7 @@
         "text": "Ревьюер только читает и пишет замечания"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "IN_PROGRESS",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
@@ -1135,6 +1142,90 @@
       "status": "DONE",
       "title": "Release 0.4.4",
       "why": "Release 0.4.4"
+    },
+    {
+      "acceptance": [
+        "The reviews section gives each entry's text whole up to 12000 characters, longer ones clipped with a note",
+        "A journal entry scrolls inside a limited height",
+        "Tests cover the section texts"
+      ],
+      "checks": [],
+      "commitMessage": "fix: show whole review answers in the journal",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M4-review-failures.md",
+          "required": true
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view"
+      ],
+      "fixes": "T017",
+      "id": "T023",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R6",
+      "status": "TODO",
+      "title": "The review journal shows whole answers",
+      "why": "The journal on the review card cut the texts at 400 characters"
+    },
+    {
+      "acceptance": [
+        "Project-wide documents describe the round result",
+        "The round digest records result, decisions, contracts and references"
+      ],
+      "checks": [],
+      "commitMessage": "docs: reconcile documentation for R6",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T023"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/architecture/OVERVIEW.md"
+      ],
+      "fixes": null,
+      "id": "DOCS-R6",
+      "iteration": 1,
+      "kind": "docs",
+      "roundId": "R6",
+      "status": "TODO",
+      "title": "Reconcile project documentation and write the round digest",
+      "why": "Keep the project context current for the next agent and close the round."
+    },
+    {
+      "acceptance": [
+        "Version 0.4.5 is installed and wfk doctor --installed is ok",
+        "The review card shows whole answers with scrolling"
+      ],
+      "checks": [],
+      "commitMessage": "chore: release 0.4.5",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T023",
+        "DOCS-R6"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "package.json",
+        "package-lock.json",
+        "docs/evidence/M4-acceptance.md"
+      ],
+      "fixes": null,
+      "id": "T024",
+      "iteration": 1,
+      "kind": "delivery",
+      "roundId": "R6",
+      "status": "TODO",
+      "title": "Release 0.4.5",
+      "why": "Release 0.4.5"
     }
   ]
 }
@@ -1144,11 +1235,11 @@
 ## State
 
 - Scope: m4-plan-review (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 27/27
-- Revision: 328
+- Progress: 27/30
+- Revision: 329
 
 ## Objective
 
@@ -1294,5 +1385,20 @@ Digest: The review asks nothing of the user: the review card says the review run
   - Depends on: T021, DOCS-R5
 
 Digest: The panel window reloads itself once the service runs a new version, and the mode choice card no longer flashes between the end of the agent's turn and the review decision.
+
+### R6 — Review journal texts (fixes, OPEN)
+
+- [TODO] T023 — The review journal shows whole answers (work)
+  - Commit: fix: show whole review answers in the journal
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/cross-review, product-parts/control-panel/clusters/web-panel/modules/session-view
+  - Fixes: T017
+- [TODO] DOCS-R6 — Reconcile project documentation and write the round digest (docs)
+  - Commit: docs: reconcile documentation for R6
+  - Files: README.md, docs/architecture/OVERVIEW.md
+  - Depends on: T023
+- [TODO] T024 — Release 0.4.5 (delivery)
+  - Commit: chore: release 0.4.5
+  - Files: package.json, package-lock.json, docs/evidence/M4-acceptance.md
+  - Depends on: T023, DOCS-R6
 
 State changes only through `scripts/workflow` commands. History lives in Git.

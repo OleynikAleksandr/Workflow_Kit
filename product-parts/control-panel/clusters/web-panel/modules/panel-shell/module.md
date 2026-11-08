@@ -75,7 +75,9 @@
   по ключу (`SlotContext.openSession`); ожидание — `ARRIVAL_WAIT_MS` (3 мин),
   поиск — `arrivedSession(tree, pending)`; чат без щелчка на Mac открывает
   служба (`POST /api/open-link`), на сенсорном устройстве или при отказе —
-  переход по ссылке; тело — слот `sessionBody`, модуль `session-view`;
+  переход по ссылке; новую сессию Claude на Mac служба открывает в Claude
+  Desktop (`claude://…`, `openInDesktop`), когда у неё появилась ссылка
+  (экран сессии — сразу, `PendingSession.shown`), M3-autostart R9; тело — слот `sessionBody`, модуль `session-view`;
   узел тела постоянный, введённый текст переживает опрос); «Настройки»
   (внешний вид, папка для проектов — `POST /api/settings/projects-root`,
   карточка «Архив» с одной кнопкой, служебная карточка «Система»);

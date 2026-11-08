@@ -359,6 +359,7 @@ export const ARRIVAL_WAIT_MS = 180_000;
  * @property {string | null} key the session key when known (the wizard), else any new one
  * @property {string | null} provider the provider of «Новая сессия»
  * @property {number} since when it was asked for (ms)
+ * @property {boolean} [shown] its screen is open, a Claude session still waits for its link
  */
 
 /**

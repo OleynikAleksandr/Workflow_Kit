@@ -46,14 +46,16 @@ async function post(url: unknown): Promise<{ status: number; json: Record<string
   return { status: response.status, json: (await response.json()) as Record<string, unknown> };
 }
 
-test('a ChatGPT thread link is opened with open; other links are refused without running anything', async () => {
+test('ChatGPT thread and Claude Desktop session links are opened with open; other links are refused without running anything', async () => {
   const ok = await post('codex://threads/01a1b764-2649-72d2-b2fe-e8d1d0ca6305');
   assert.deepEqual([ok.status, ok.json], [200, { opened: true }]);
   assert.deepEqual(calls.filter(([command]) => command === 'open'), [['open', ['codex://threads/01a1b764-2649-72d2-b2fe-e8d1d0ca6305']]]);
-  for (const bad of ['https://example.com', 'codex://threads/../x', 'file:///etc/passwd', 42]) {
+  const claude = await post('claude://claude.ai/code/session_01EyVab6pTtGf9vTbJfcu4Qx');
+  assert.equal(claude.status, 200);
+  for (const bad of ['https://example.com', 'codex://threads/../x', 'claude://claude.ai/code/session_x/../y', 'claude://evil.com/code/session_1', 'file:///etc/passwd', 42]) {
     assert.equal((await post(bad)).status, 400);
   }
-  assert.equal(calls.filter(([command]) => command === 'open').length, 1);
+  assert.equal(calls.filter(([command]) => command === 'open').length, 2);
   fail = true;
   const failed = await post('codex://threads/abc');
   assert.equal(failed.status, 502);

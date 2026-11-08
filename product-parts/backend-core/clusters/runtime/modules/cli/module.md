@@ -131,7 +131,8 @@ stripping).
   сообщения панели (`POST …/sessions/:sid/message`) идут через ту же
   будящую обёртку (опция `messages` маршрутов канала, раунд R8);
 - `POST /api/open-link { url }` (`src/open-link.ts`, M3-autostart раздел 7): служба
-  открывает ссылку чата ChatGPT (`codex://threads/<id>`, `OPENABLE_LINK`) командой `open` —
+  открывает ссылку чата ChatGPT (`codex://threads/<id>`) или сессии Claude Desktop
+  (`claude://claude.ai/code/session_<id>`, раздел 11), `OPENABLE_LINK`, командой `open` —
   только с этого компьютера (loopback, иначе 403), только macOS (иначе 501); другая
   ссылка — 400 без запуска, неудача `open` — 502 и строка в журнале. Панель зовёт его для
   новой сессии: окно без щелчка пользователя ссылку приложения может не открыть;

@@ -248,6 +248,15 @@ export function createActions(options) {
       else api('POST', '/api/open-link', { url: link }).catch(() => window.location.assign(link));
     },
     /**
+     * A new Claude session on the Mac: the service switches Claude Desktop to it (claude:// link).
+     * A failure stays silent — the session is in the Remote Control group anyway.
+     * @param {SessionRow} session
+     */
+    openInDesktop(session) {
+      const link = session.links?.desktop;
+      if (link) api('POST', '/api/open-link', { url: link }).catch(() => {});
+    },
+    /**
      * What a click on the session card does: the session screen and, for ChatGPT, its chat (a
      * Claude session comes back by itself when it is opened and has no chat link).
      * @param {string} projectId @param {SessionRow} session @param {boolean} [auto]
@@ -272,9 +281,21 @@ export function createActions(options) {
       }
       const found = arrivedSession(tree, pending);
       if (!found) return;
+      const { projectId, session } = found;
+      const desktop = session.provider === 'claude' && (navigator.maxTouchPoints ?? 0) <= 1;
+      const shown = pending.shown === true;
+      if (desktop && !session.links?.desktop) {
+        // The Remote Control link comes later: show the screen now, open Desktop once it is there.
+        if (!shown) setTimeout(() => handlers.openSession(projectId, session, true), 0);
+        pending.shown = true;
+        return;
+      }
       pending = null;
       // Out of the render that found it: navigating inside a render would draw re-entrantly.
-      setTimeout(() => handlers.openSession(found.projectId, found.session, true), 0);
+      setTimeout(() => {
+        if (!shown) handlers.openSession(projectId, session, true);
+        if (desktop) handlers.openInDesktop(session);
+      }, 0);
     },
   };
 

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 250,
+  "revision": 252,
   "rounds": [
     {
       "digest": {
@@ -1044,7 +1044,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R9",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Открывать новую сессию Claude в Claude Desktop",
       "why": "Открывать новую сессию Claude в Claude Desktop"
     },
@@ -1113,8 +1113,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 26/29
-- Revision: 250
+- Progress: 27/29
+- Revision: 252
 
 ## Objective
 
@@ -1266,7 +1266,7 @@ Digest: С экрана сессии убрана карточка «Сообщ�
 
 ### R9 — Новая сессия Claude открывается в Desktop (fixes, OPEN)
 
-- [TODO] T019 — Открывать новую сессию Claude в Claude Desktop (work)
+- [DONE] T019 — Открывать новую сессию Claude в Claude Desktop (work)
   - Commit: feat: open a new Claude session in Claude Desktop
   - Files: product-parts/backend-core/clusters/runtime/modules/cli/src/open-link.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/open-link.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/actions.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/view-model.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md
 - [TODO] DOCS-R9 — Reconcile project documentation and write the round digest (docs)

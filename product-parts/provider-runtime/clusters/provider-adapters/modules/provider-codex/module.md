@@ -107,8 +107,12 @@ app-server на весь Mac, доверие к папке, одобрение �
   `remoteOwner: 'app'` (раунд R3).
 - **Удаление тредов** (`deleteSessions(project)`, M3-autostart R5): при удалении
   проекта с диска — `thread/delete { threadId }` каждому треду проекта (записи панели
-  и журнал хуков, до удаления папки); отказ одного треда — строка в журнале, демон не
-  запущен — `daemon-not-running`; ответ — удалённые id.
+  и журнал хуков, до удаления папки); ответ — удалённые id. `src/deleting.ts`
+  (раунд R6): «no rollout found» — тред уже удалён (`THREAD_GONE`); другой отказ
+  (файл треда держит приложение ChatGPT: «active writer») или демон не запущен —
+  тред ждёт в `<state>/sessions/codex-deleting.json` (`{ threadId, project, since }`);
+  `retryDeletes()` повторяет `thread/delete`, удалённые и исчезнувшие уходят из очереди,
+  через `DELETE_KEEP_MS` (7 дней) — тоже, со строкой в журнале.
 - **Автозапуск** (`autostart()`, скоуп M3-autostart): при старте службы,
   без подтверждения — перечитать путь к codex; codex не найден или Windows —
   `null`; демон подключён или подключается — `null`; иначе тот же запуск,

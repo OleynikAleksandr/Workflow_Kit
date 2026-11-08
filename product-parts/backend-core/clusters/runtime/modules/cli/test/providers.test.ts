@@ -259,3 +259,26 @@ test('deleting a project from disk deletes its provider sessions first; removing
   assert.deepEqual(deleted, ['GoneFromDisk']);
 });
 
+test('refused deletions are tried again at the start and then on an interval', async () => {
+  const projects = {
+    addRemoveGuard: () => undefined,
+    addRemovedHook: () => undefined,
+    addArchivedHook: () => undefined,
+    addBeforeDeleteHook: () => undefined,
+    list: async () => [],
+    get: async () => undefined,
+  } as unknown as ProjectRegistry;
+  const providers = createProviderRegistry();
+  let retries = 0;
+  providers.register({
+    ...createStubProvider({ id: 'codex', title: 'Codex', task: 'T000' }),
+    retryDeletes: async () => {
+      retries += 1;
+      return [];
+    },
+  });
+  wireProviderLifecycle({ projects, providers, deleteRetryMs: 10 });
+  await new Promise((resolve) => setTimeout(resolve, 60));
+  assert.ok(retries >= 3, `retries: ${retries}`);
+});
+

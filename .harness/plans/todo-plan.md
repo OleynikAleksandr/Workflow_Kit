@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 226,
+  "revision": 228,
   "rounds": [
     {
       "digest": {
@@ -700,7 +700,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R6",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Очередь удаления тредов ChatGPT",
       "why": "Очередь удаления тредов ChatGPT"
     },
@@ -771,8 +771,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 16/19
-- Revision: 226
+- Progress: 17/19
+- Revision: 228
 
 ## Objective
 
@@ -871,7 +871,7 @@ Digest: Новая сессия открывается сама, у ChatGPT — 
 
 ### R6 — Отложенное удаление тредов ChatGPT (fixes, OPEN)
 
-- [TODO] T012 — Очередь удаления тредов ChatGPT (work)
+- [DONE] T012 — Очередь удаления тредов ChatGPT (work)
   - Commit: fix: retry deleting ChatGPT threads the app still holds
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/deleting.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/registry.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/routes.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/fake-provider.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/provider-lifecycle.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/providers.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md
   - Fixes: T010

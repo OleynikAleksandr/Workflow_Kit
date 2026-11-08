@@ -57,6 +57,8 @@ export interface ProviderRegistry {
   autostart(): Promise<{ started: string[]; errors: Record<string, string> }>;
   /** Deletion from disk: deleteSessions? of every provider; deleted — '<provider>:<id>'. */
   deleteSessions(project: Project): Promise<{ deleted: string[]; errors: Record<string, string> }>;
+  /** retryDeletes? of every provider; deleted — '<provider>:<id>'. */
+  retryDeletes(): Promise<{ deleted: string[]; errors: Record<string, string> }>;
 }
 
 const PROVIDER_ID = /^[a-z][a-z0-9-]{0,31}$/;
@@ -211,6 +213,19 @@ export function createProviderRegistry(options: { readTimeoutMs?: number } = {})
         if (!provider.deleteSessions) continue;
         try {
           deleted.push(...(await provider.deleteSessions(project)).map((id) => `${provider.id}:${id}`));
+        } catch (error) {
+          errors[provider.id] = error instanceof Error ? error.message : String(error);
+        }
+      }
+      return { deleted, errors };
+    },
+    async retryDeletes() {
+      const deleted: string[] = [];
+      const errors: Record<string, string> = {};
+      for (const provider of registry.list()) {
+        if (!provider.retryDeletes) continue;
+        try {
+          deleted.push(...(await provider.retryDeletes()).map((id) => `${provider.id}:${id}`));
         } catch (error) {
           errors[provider.id] = error instanceof Error ? error.message : String(error);
         }

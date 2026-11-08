@@ -36,8 +36,10 @@ export interface FakeDaemonOptions {
   archiveError?: string;
   /** thread/name/set answers with this error. */
   nameError?: string;
-  /** thread/delete of this thread id answers with a JSON-RPC error. */
+  /** thread/delete of this thread id answers with a JSON-RPC error (another writer holds it). */
   deleteRefuse?: string;
+  /** thread/delete of this thread id answers «no rollout found» (the thread is gone already). */
+  deleteGone?: string;
 }
 
 /** A running fake daemon. */
@@ -166,7 +168,8 @@ export async function startFakeDaemon(socketPath: string, options: FakeDaemonOpt
           }
         } else if (message.method === 'thread/delete') {
           const id = String((message.params as { threadId?: unknown } | undefined)?.threadId ?? '');
-          if (id === options.deleteRefuse) sendJson(socket, { jsonrpc: '2.0', id: message.id, error: { code: -32000, message: 'thread is busy' } }, tricky);
+          if (id === options.deleteRefuse) sendJson(socket, { jsonrpc: '2.0', id: message.id, error: { code: -32000, message: `thread ${id} already has an active writer` } }, tricky);
+          else if (id === options.deleteGone) sendJson(socket, { jsonrpc: '2.0', id: message.id, error: { code: -32600, message: `no rollout found for thread id ${id}` } }, tricky);
           else {
             loaded.delete(id);
             answer(message.id, {});

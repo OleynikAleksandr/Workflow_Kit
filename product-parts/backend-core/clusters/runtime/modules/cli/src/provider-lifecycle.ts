@@ -13,6 +13,8 @@ export interface ProviderLifecycle {
 /** Attempts of the autostart at the start of the service and the pause between them. */
 export const AUTOSTART_ATTEMPTS = 3;
 export const AUTOSTART_PAUSE_MS = 30_000;
+/** Interval of the retries of deletions an app refused. */
+export const DELETE_RETRY_MS = 60_000;
 
 export function wireProviderLifecycle(options: {
   projects: ProjectRegistry;
@@ -20,6 +22,8 @@ export function wireProviderLifecycle(options: {
   log?: (line: string) => void;
   /** Pause between autostart attempts (tests shorten it). */
   autostartPauseMs?: number;
+  /** Interval of the retries of refused deletions (tests shorten it). */
+  deleteRetryMs?: number;
 }): ProviderLifecycle {
   const { projects, providers } = options;
   const log = (line: string): void => options.log?.(line);
@@ -43,6 +47,11 @@ export function wireProviderLifecycle(options: {
     if (deleted.length > 0) log(`providers: deleted sessions of ${project.name}: ${deleted.join(', ')}`);
     report(`delete the sessions of ${project.name}`, errors);
   });
+  // Sessions an app refused to delete (its chat still open) are tried again every minute and at
+  // the start (spec M3-autostart section 8); the providers log what they deleted.
+  const retryDeletes = (): void => void providers.retryDeletes().then(({ errors }) => report('retry deletions', errors), () => undefined);
+  setInterval(retryDeletes, options.deleteRetryMs ?? DELETE_RETRY_MS).unref?.();
+  retryDeletes();
 
   // An archive waits for the stops (a removal right after it is not blocked by them); a restore
   // brings the sessions back in the background.

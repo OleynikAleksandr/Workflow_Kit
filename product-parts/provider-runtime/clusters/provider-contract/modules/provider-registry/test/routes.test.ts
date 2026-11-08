@@ -301,3 +301,13 @@ test('deleteSessions collects the deleted sessions per provider; a failure stays
   assert.deepEqual(Object.keys(result.errors), ['broken']);
 });
 
+test('retryDeletes collects what every provider deleted now; a failure stays with its provider', async () => {
+  const own = createProviderRegistry();
+  own.register(createFakeProvider('keeper'));
+  own.register(createFakeProvider('broken'));
+  own.register(createFakeProvider('plain', { withOptional: false }));
+  const result = await own.retryDeletes();
+  assert.deepEqual(result.deleted, ['keeper:t9']);
+  assert.deepEqual(Object.keys(result.errors), ['broken']);
+});
+

@@ -270,10 +270,11 @@ export interface Provider {
   autostart?(): Promise<string | null>;
   /**
    * Deletion of the project from disk: deletes its sessions in the provider app (Codex:
-   * thread/delete). Resolves to the ids deleted; a failure of one session is logged, a failure of
-   * all (no daemon) throws.
+   * thread/delete). Resolves to the ids deleted; the ones the app refuses wait for retryDeletes.
    */
   deleteSessions?(project: Project): Promise<string[]>;
+  /** Tries again the deletions the app refused (a chat still open); resolves to the ids deleted now. */
+  retryDeletes?(): Promise<string[]>;
   /**
    * Archive of the project (sessionId null) or of one session in Workflow Kit: stops the running
    * or interrupted sessions and marks them, so nothing brings them back until a restore. Resolves

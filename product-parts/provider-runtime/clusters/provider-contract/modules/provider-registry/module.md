@@ -41,7 +41,8 @@
   проекта (`null`) или одной сессии в Kit: остановить и не поднимать / снять
   пометку и сразу поднять; ответ — id (раунд R10).
   `deleteSessions?(project)` — удаление проекта с диска: удалить его сессии в приложении
-  (Codex — `thread/delete`); ответ — удалённые id (M3-autostart R5).
+  (Codex — `thread/delete`); ответ — удалённые id (M3-autostart R5); отказанные
+  приложением ждут `retryDeletes?()` — повтор, ответ — удалённые сейчас id (R6).
   `autostart?()` — при старте службы поднять нужное на весь Mac (Codex — демон);
   ответ — строка для журнала или `null` (скоуп M3-autostart).
   Методы чтения (`status`, `capabilities`, `trust`, `hooks`,
@@ -146,7 +147,8 @@ project)`, `section(projects)`, `removeBlockers(project)` (живые сесси
 возврат проекта (`null`: все провайдеры) или сессии (`'<провайдер>:<id>'`: только
 её провайдер) через `archiveSessions?` / `restoreSessions?`; ошибка — в `errors[id]`.
 `deleteSessions(project)` → `{ deleted, errors }` — `deleteSessions?` всех провайдеров;
-`deleted` — `'<провайдер>:<id>'`, ошибка — в `errors[id]`.
+`deleted` — `'<провайдер>:<id>'`, ошибка — в `errors[id]`; `retryDeletes()` — то же
+для `retryDeletes?`.
 `autostart()` → `{ started, errors }` — `autostart?` всех провайдеров; `started` —
 `'<провайдер>: <строка>'`, ошибка — в `errors[id]`.
 Каждое чтение ограничено `STATE_READ_TIMEOUT_MS` (3 с): упавшее или

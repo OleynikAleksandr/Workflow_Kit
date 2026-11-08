@@ -5,6 +5,7 @@ import { readJsonFile, writeJsonAtomic } from '#data-store';
 import { ProviderError, hookSessionInfo, providerSessionsFile, readHookSessions } from '#provider-registry';
 import type { Project, RenameResult, SessionInfo, SessionLinks } from '#provider-registry';
 import { parseSessionIndex, projectTrustLevel } from './codex-files.ts';
+import { createDeleteQueue } from './deleting.ts';
 import type { RpcSession } from './rpc.ts';
 import type { CodexRuntime } from './runtime.ts';
 
@@ -94,8 +95,13 @@ export interface SessionParts {
   renameSession(project: Project, threadId: string, name: string): Promise<RenameResult>;
   /** Drops the panel records of projects not in keep; resolves to the number dropped. */
   forgetProjects(keep: ReadonlySet<string>): Promise<number>;
-  /** thread/delete for every thread of the project (panel records and hook journal); ids deleted. */
+  /**
+   * thread/delete for every thread of the project (panel records and hook journal); a refused one
+   * waits in the deletion queue (deleting.ts). Resolves to the ids gone.
+   */
   deleteSessions(project: Project): Promise<string[]>;
+  /** Tries the waiting deletions again; resolves to the ids gone now. */
+  retryDeletes(): Promise<string[]>;
 }
 
 /** Why a name stays only in Workflow Kit for now. */
@@ -169,6 +175,7 @@ export function createSessionParts(rt: CodexRuntime, options: SessionOptions = {
   const releaseWaitMs = options.releaseWaitMs ?? RELEASE_WAIT_MS;
   const releasePollMs = options.releasePollMs ?? RELEASE_POLL_MS;
   const releasing = new Map<string, Releasing>();
+  const deletes = createDeleteQueue(rt);
   const file = providerSessionsFile(context.dirs, 'codex');
   let names: { text: string | null; map: Map<string, string> } = { text: null, map: new Map() };
 
@@ -242,23 +249,10 @@ export function createSessionParts(rt: CodexRuntime, options: SessionOptions = {
 
     async deleteSessions(project) {
       const threads = [...new Set((await this.listSessions(project)).map((s) => s.localId).filter((id) => /^[A-Za-z0-9_-]{1,128}$/.test(id)))];
-      if (threads.length === 0) return [];
-      if (!(await rt.daemon(true)).running) throw new ProviderError('daemon-not-running', 'Демон Codex не запущен: треды ChatGPT не удалены');
-      const deleted: string[] = [];
-      await rt.withDaemon(async (session) => {
-        for (const threadId of threads) {
-          try {
-            await session.request('thread/delete', { threadId });
-            deleted.push(threadId);
-            releasing.delete(threadId);
-          } catch (error) {
-            context.log(`codex: thread ${threadId} of ${project.name} was not deleted: ${error instanceof Error ? error.message : String(error)}`);
-          }
-        }
-      });
-      if (deleted.length > 0) context.log(`codex: deleted ${deleted.length} thread(s) of ${project.name}`);
-      return deleted;
+      for (const threadId of threads) releasing.delete(threadId);
+      return deletes.deleteThreads(threads, project.name);
     },
+    retryDeletes: () => deletes.retry(),
     async forgetProjects(keep) {
       for (const [threadId, held] of releasing) if (!keep.has(held.projectId)) releasing.delete(threadId);
       const all = await records();

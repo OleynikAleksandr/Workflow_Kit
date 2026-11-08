@@ -335,22 +335,34 @@ test('forgetProjects drops the records of removed projects and keeps the others'
   assert.ok(!(await provider.listSessions(project)).some((s) => s.localId === extra.threadId));
 });
 
-test('deleteSessions sends thread/delete for every thread of the project; a refused one is logged, no daemon throws', async () => {
+test('deleteSessions: a thread held by another writer waits and is deleted by retryDeletes; a gone one counts as deleted', async () => {
   const threads = (await provider.listSessions(project)).map((s) => s.localId);
-  assert.ok(threads.length > 0);
-  const refuse = threads[0]!;
-  const local = await machine.daemon({ deleteRefuse: refuse });
+  assert.ok(threads.length > 1);
+  const [held, gone] = [threads[0]!, threads[1]!];
+  const queueFile = path.join(path.dirname(providerSessionsFile(machine.dirs, 'codex')), 'codex-deleting.json');
+  let local = await machine.daemon({ deleteRefuse: held, deleteGone: gone });
   try {
     const own = createCodexProvider(machine.context());
     const deleted = await own.deleteSessions!(project);
-    assert.deepEqual(new Set(deleted), new Set(threads.slice(1)));
+    assert.deepEqual(new Set(deleted), new Set(threads.slice(1)), 'the gone thread counts as deleted');
     const asked = local.calls.filter((c) => c.method === 'thread/delete').map((c) => (c.params as { threadId: string }).threadId);
     assert.deepEqual(new Set(asked), new Set(threads));
+    const queued = JSON.parse(await readFile(queueFile, 'utf8')) as { threads: Array<{ threadId: string; project: string }> };
+    assert.deepEqual(queued.threads.map((t) => [t.threadId, t.project]), [[held, 'Alpha']]);
+    assert.deepEqual(await own.retryDeletes!(), [], 'still held');
+    await local.close();
+    local = await machine.daemon();
+    assert.deepEqual(await own.retryDeletes!(), [held]);
+    assert.deepEqual((JSON.parse(await readFile(queueFile, 'utf8')) as { threads: unknown[] }).threads, []);
+    // Without a daemon every thread waits; a thread that waited 7 days is dropped.
     const stopped = createCodexProvider(machine.context(), { isAlive: () => false });
-    await assert.rejects(stopped.deleteSessions!(project), code('daemon-not-running'));
+    assert.deepEqual(await stopped.deleteSessions!(project), []);
+    assert.equal((JSON.parse(await readFile(queueFile, 'utf8')) as { threads: unknown[] }).threads.length, threads.length);
+    await writeFile(queueFile, JSON.stringify({ version: 1, threads: [{ threadId: held, project: 'Alpha', since: '2020-01-01T00:00:00.000Z' }] }));
+    assert.deepEqual(await stopped.retryDeletes!(), []);
+    assert.deepEqual((JSON.parse(await readFile(queueFile, 'utf8')) as { threads: unknown[] }).threads, [], 'expired');
   } finally {
     await local.close();
     daemon = await machine.daemon();
   }
 });
-

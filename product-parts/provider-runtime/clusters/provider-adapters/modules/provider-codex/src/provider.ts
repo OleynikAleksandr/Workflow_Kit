@@ -205,6 +205,7 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
     listSessions: (project) => sessionParts.listSessions(project),
     forgetProjects: (keep) => sessionParts.forgetProjects(keep),
     deleteSessions: (project) => sessionParts.deleteSessions(project),
+    retryDeletes: () => sessionParts.retryDeletes(),
     async createSession(project, opts) {
       requireCodex(rt);
       return sessionParts.createSession(project, opts);

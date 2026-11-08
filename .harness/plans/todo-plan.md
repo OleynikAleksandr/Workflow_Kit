@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 225,
+  "revision": 226,
   "rounds": [
     {
       "digest": {
@@ -107,6 +107,13 @@
       "kind": "fixes",
       "status": "CLOSED",
       "title": "Новая сессия открывается сама; удаление тредов ChatGPT"
+    },
+    {
+      "digest": null,
+      "id": "R6",
+      "kind": "fixes",
+      "status": "OPEN",
+      "title": "Отложенное удаление тредов ChatGPT"
     }
   ],
   "schema": "harness-workflow-plan/1",
@@ -129,7 +136,7 @@
         "text": "Демон Codex запускается при каждом старте службы без согласий; при остановке службы не останавливается"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "IN_PROGRESS",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
@@ -653,6 +660,105 @@
       "status": "DONE",
       "title": "Релиз 0.3.11",
       "why": "Релиз 0.3.11"
+    },
+    {
+      "acceptance": [
+        "«no rollout found» считается удалением",
+        "Тред с отказом попадает в очередь и удаляется повтором раз в минуту и при старте",
+        "Через 7 дней тред уходит из очереди со строкой в журнале"
+      ],
+      "checks": [],
+      "commitMessage": "fix: retry deleting ChatGPT threads the app still holds",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M3-autostart.md",
+          "heading": "8. Раунд 6: тред, занятый приложением ChatGPT, удаляется позже",
+          "required": true
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/sessions.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/deleting.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/registry.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/routes.test.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/fake-provider.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/provider-lifecycle.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/providers.test.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md"
+      ],
+      "fixes": "T010",
+      "id": "T012",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R6",
+      "status": "TODO",
+      "title": "Очередь удаления тредов ChatGPT",
+      "why": "Очередь удаления тредов ChatGPT"
+    },
+    {
+      "acceptance": [
+        "Project-wide documents describe the round result",
+        "The round digest records result, decisions, contracts and references"
+      ],
+      "checks": [],
+      "commitMessage": "docs: reconcile documentation for R6",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T012"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/architecture/OVERVIEW.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md"
+      ],
+      "fixes": null,
+      "id": "DOCS-R6",
+      "iteration": 1,
+      "kind": "docs",
+      "roundId": "R6",
+      "status": "TODO",
+      "title": "Reconcile project documentation and write the round digest",
+      "why": "Keep the project context current for the next agent and close the round."
+    },
+    {
+      "acceptance": [
+        "Версия 0.3.12",
+        "install ставит app/0.3.12, wfk doctor --installed — всё в порядке"
+      ],
+      "checks": [],
+      "commitMessage": "chore: release 0.3.12",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "DOCS-R6"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "package.json",
+        "package-lock.json",
+        "docs/evidence/M3-acceptance.md"
+      ],
+      "fixes": null,
+      "id": "T013",
+      "iteration": 1,
+      "kind": "delivery",
+      "roundId": "R6",
+      "status": "TODO",
+      "title": "Релиз 0.3.12",
+      "why": "Релиз 0.3.12"
     }
   ]
 }
@@ -662,11 +768,11 @@
 ## State
 
 - Scope: m3-autostart (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 16/16
-- Revision: 225
+- Progress: 16/19
+- Revision: 226
 
 ## Objective
 
@@ -762,5 +868,20 @@ Digest: Щелчок по карточке сессии ChatGPT открывае
   - Depends on: DOCS-R5
 
 Digest: Новая сессия открывается сама, у ChatGPT — с чатом в приложении (на Mac ссылку открывает служба); удаление проекта с диска удаляет его треды ChatGPT.
+
+### R6 — Отложенное удаление тредов ChatGPT (fixes, OPEN)
+
+- [TODO] T012 — Очередь удаления тредов ChatGPT (work)
+  - Commit: fix: retry deleting ChatGPT threads the app still holds
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/deleting.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/registry.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/routes.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/fake-provider.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/provider-lifecycle.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/providers.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md
+  - Fixes: T010
+- [TODO] DOCS-R6 — Reconcile project documentation and write the round digest (docs)
+  - Commit: docs: reconcile documentation for R6
+  - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md
+  - Depends on: T012
+- [TODO] T013 — Релиз 0.3.12 (delivery)
+  - Commit: chore: release 0.3.12
+  - Files: package.json, package-lock.json, docs/evidence/M3-acceptance.md
+  - Depends on: DOCS-R6
 
 State changes only through `scripts/workflow` commands. History lives in Git.

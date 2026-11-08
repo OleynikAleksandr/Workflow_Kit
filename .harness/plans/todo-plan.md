@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 294,
+  "revision": 296,
   "rounds": [
     {
       "digest": {
@@ -600,14 +600,16 @@
       "docsWaiver": null,
       "files": [
         "product-parts/backend-core/clusters/projects/modules/kit-structure",
-        "product-parts/backend-core/clusters/projects/modules/project-setup/test"
+        "product-parts/backend-core/clusters/projects/modules/project-setup/test",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/module.md",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/src/templates.ts"
       ],
       "fixes": null,
       "id": "T013",
       "iteration": 1,
       "kind": "work",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Agent instruction for the plan question",
       "why": "The agent must know when to ask and when not to"
     },
@@ -687,8 +689,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 12/15
-- Revision: 294
+- Progress: 13/15
+- Revision: 296
 
 ## Objective
 
@@ -758,9 +760,9 @@ Digest: Перекрёстное ревью плана: при включённ�
   - Commit: feat: show the plan question card instead of the review toggle
   - Files: product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts
   - Depends on: T011
-- [TODO] T013 — Agent instruction for the plan question (work)
+- [DONE] T013 — Agent instruction for the plan question (work)
   - Commit: feat: tell the agent to ask before a specification and plan
-  - Files: product-parts/backend-core/clusters/projects/modules/kit-structure, product-parts/backend-core/clusters/projects/modules/project-setup/test
+  - Files: product-parts/backend-core/clusters/projects/modules/kit-structure, product-parts/backend-core/clusters/projects/modules/project-setup/test, product-parts/backend-core/clusters/projects/modules/kit-structure/module.md, product-parts/backend-core/clusters/projects/modules/kit-structure/src/templates.ts
 - [TODO] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R2
   - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md

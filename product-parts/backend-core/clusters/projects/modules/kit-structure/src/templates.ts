@@ -54,6 +54,15 @@ only in this chat.
   once. The first message «Проект «…» создан панелью Workflow Kit…» is a
   service greeting, not a task: do not set the title in that turn. Do not
   rename the session again unless the user asks.
+- Plan question: when the user's request is a software development task (a
+  new product or a change to this one) that you would answer with a
+  specification and a Workflow Kit plan, first run
+  \`wfk session plan "<one line: what you are going to build>"\` and end your
+  turn without writing the specification or any files. The user answers in
+  the panel: specification and plan with a cross review, without it, or just
+  talk; the answer reaches you as a \`Workflow Kit:\` message. Do not run it
+  for discussion, research, explanations or everyday questions, and do not
+  run it again for the same task unless the user asks for a plan anew.
 - Execution mode and plan start: after \`scripts/workflow scope:propose\` the
   user chooses the mode and starts the plan with buttons in the panel. End
   your turn and wait; the choice reaches you as a message from Workflow Kit.

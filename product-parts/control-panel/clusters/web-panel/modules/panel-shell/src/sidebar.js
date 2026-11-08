@@ -234,7 +234,11 @@ export function createSidebar(handlers) {
     const meta = [session.when, session.isNew ? 'новая' : null].filter(Boolean).join(' · ');
     const node = h('div', { class: `session${active ? ' active' : ''}`, role: 'button', tabindex: '0' }, [
       more,
-      h('div', { class: 'title' }, [h('span', {}, [session.name]), session.working ? h('span', { class: 'spin', title: 'Агент работает' }) : null]),
+      h('div', { class: 'title' }, [
+        h('span', {}, [session.name]),
+        session.reviewer ? h('span', { class: 'tag-review', title: 'Ревьюер плана другой сессии' }, ['Ревью']) : null,
+        session.working ? h('span', { class: 'spin', title: 'Агент работает' }) : null,
+      ]),
       h('small', {}, [meta]),
       h('span', { class: `badge ${session.provider}` }, [session.providerLabel]),
     ]);

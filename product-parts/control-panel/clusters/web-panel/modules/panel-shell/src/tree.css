@@ -275,3 +275,15 @@
 .dot.off {
   background: var(--warn);
 }
+
+/* A reviewer session (M4): the label next to its name. */
+.tag-review {
+  flex: none;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border: 1px solid var(--card-line);
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+}

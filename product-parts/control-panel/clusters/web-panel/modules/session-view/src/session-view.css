@@ -320,3 +320,46 @@
   background: var(--teal);
 }
 
+
+/* «Ревью плана» (M4): the reviewer, the round, the journal of both sides. */
+.sv-xreview .sv-xr-state {
+  color: var(--muted);
+}
+
+.sv-xreview.ok .sv-xr-state {
+  color: var(--ok, var(--teal));
+}
+
+.sv-xr-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.sv-xr-journal {
+  margin-top: 12px;
+  display: grid;
+  gap: 6px;
+}
+
+.sv-xr-entry {
+  border: 1px solid var(--card-line);
+  border-radius: 8px;
+  padding: 6px 10px;
+}
+
+.sv-xr-entry summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.sv-xr-entry p {
+  margin: 6px 0 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.sv-xr-entry.kit summary {
+  color: var(--muted);
+}

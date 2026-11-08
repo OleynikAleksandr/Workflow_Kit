@@ -79,7 +79,8 @@
   Desktop (`claude://…`, `openInDesktop`), когда у неё появилась ссылка
   (экран сессии — сразу, `PendingSession.shown`), M3-autostart R9; щелчок по
   карточке Claude тоже открывает её в Claude Desktop, на сенсорном устройстве —
-  https-ссылку в новой вкладке (R10); тело — слот `sessionBody`, модуль `session-view`;
+  https-ссылку в новой вкладке (R10); сессия-ревьюер (раздел `reviews`, M4)
+  помечена «Ревью» рядом с именем (`SessionRow.reviewer`, `.tag-review`); тело — слот `sessionBody`, модуль `session-view`;
   узел тела постоянный, введённый текст переживает опрос); «Настройки»
   (внешний вид, папка для проектов — `POST /api/settings/projects-root`,
   карточка «Архив» с одной кнопкой, служебная карточка «Система»);

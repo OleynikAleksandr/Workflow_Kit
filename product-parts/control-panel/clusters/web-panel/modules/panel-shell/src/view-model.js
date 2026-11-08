@@ -199,6 +199,7 @@ export function filterProjects(projects, query) {
  * @property {string | null} note
  * @property {string} createdAt
  * @property {string} state process state from the provider: running, stopped or unknown
+ * @property {boolean} reviewer the session reviews the plan of another one (M4, label «Ревью»)
  */
 
 /**
@@ -240,11 +241,10 @@ export function projectTree(state, ui) {
   const channel = Array.isArray(record(state['channel'])['sessions']) ? record(state['channel'])['sessions'] : [];
   /** @type {Map<string, any>} */
   const activity = new Map(channel.map((/** @type {any} */ a) => [a.key, a]));
+  const reviewers = new Set(Object.values(record(record(state['reviews'])['projects'])).flatMap((list) => (Array.isArray(list) ? list.map((r) => r?.reviewerKey) : [])));
   return projectLists(state).active.map((project) => {
-    /** @type {SessionRow[]} */
-    const sessions = [];
-    /** @type {SessionRow[]} */
-    const archived = [];
+    const sessions = /** @type {SessionRow[]} */ ([]);
+    const archived = /** @type {SessionRow[]} */ ([]);
     for (const providerState of Object.values(record(providerProjects[project.id]))) {
       for (const info of Array.isArray(providerState?.sessions) ? providerState.sessions : []) {
         const key = sessionKey(info);
@@ -268,6 +268,7 @@ export function projectTree(state, ui) {
           note: typeof info.note === 'string' ? info.note : null,
           createdAt: String(info.createdAt ?? ''),
           state: typeof info.state === 'string' ? info.state : 'unknown',
+          reviewer: reviewers.has(key),
         });
       }
     }

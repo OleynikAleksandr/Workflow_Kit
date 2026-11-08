@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { test } from 'node:test';
 import { SESSION_VIEW_ASSETS_DIR, SESSION_VIEW_PREFIX, sessionViewMount } from '../src/index.ts';
-import { activityView, choiceView, planView, reviewView, timer } from '../src/session-model.js';
+import { activityView, choiceView, crossReviewView, planView, reviewView, timer } from '../src/session-model.js';
 
 function state(extra: Record<string, unknown> = {}): Record<string, unknown> {
   return {
@@ -113,4 +113,35 @@ test('«Ревью плана» shows the session value until the path is chosen
   (chosen['workflow'] as any).projects.p.execution = { strategy: 'sequential' };
   assert.equal(reviewView(chosen, 'p', 'claude:s1'), null);
   assert.equal(reviewView({}, 'p', 'claude:s1')?.on, false);
+});
+
+test('the cross review: card data for both sides; the choice and the toggle hide while it runs (M4)', () => {
+  const review = {
+    mainKey: 'claude:s1', reviewerKey: 'codex:r1', mainProvider: 'claude', reviewerProvider: 'codex', mainTitle: 'План склада', scopeId: 's1',
+    status: 'answering', statusLabel: 'агент отвечает на замечания', active: true, round: 2, maxRounds: 5, reason: null, updatedAt: '2026-11-08T10:00:00Z',
+    entries: [{ from: 'reviewer', round: 1, text: 'замечание', at: 'a' }, { from: 'main', round: 1, text: 'исправил', at: 'b' }, { from: 'reviewer', round: 2, text: 'ещё', at: 'c' }],
+  };
+  const base = {
+    workflow: { projects: { p: { choice: { generation: 1, reason: 'r', options: [{ option: 'sequential', title: 'Сам', description: '' }] }, proposal: { scopeId: 's1' } } } },
+    review: { projects: { p: { visible: true, sessions: { 'claude:s1': true } } } },
+    channel: { sessions: [] },
+  };
+  const st = { ...base, reviews: { projects: { p: [review] } } };
+  const main = crossReviewView(st, 'p', 'claude:s1')!;
+  assert.equal(main.role, 'main');
+  assert.equal(main.turn, 'отвечает агент (Claude)');
+  assert.equal(main.reviewerName, 'ChatGPT');
+  assert.deepEqual(main.entries.map((e) => e.who), ['Ревьюер (ChatGPT)', 'Агент (Claude)', 'Ревьюер (ChatGPT)']);
+  assert.equal(crossReviewView(st, 'p', 'codex:r1')!.role, 'reviewer');
+  assert.equal(crossReviewView(st, 'p', 'claude:other'), null);
+  assert.equal(choiceView(st, 'p', 'claude:s1'), null, 'no mode choice while the review runs');
+  assert.equal(reviewView(st, 'p', 'claude:s1'), null, 'the toggle is gone while the review runs');
+  assert.equal(reviewView(st, 'p', 'codex:r1'), null, 'a reviewer has no toggle');
+  const done = { ...st, reviews: { projects: { p: [{ ...review, status: 'agreed', statusLabel: 'ревьюер и агент согласны', active: false }] } } };
+  assert.ok(choiceView(done, 'p', 'claude:s1'), 'the choice comes after the agreement');
+  assert.equal(reviewView(done, 'p', 'claude:s1'), null, 'the reviewed plan keeps no toggle');
+  assert.equal(choiceView(done, 'p', 'codex:r1'), null, 'the reviewer gets no choice card');
+  const later = { ...done, workflow: { projects: { p: { proposal: { scopeId: 's2' } } } } };
+  assert.ok(reviewView(later, 'p', 'claude:s1'), 'a later plan shows the toggle again');
+  assert.ok(reviewView(base, 'p', 'claude:s1'));
 });

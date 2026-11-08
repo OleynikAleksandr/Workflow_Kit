@@ -18,7 +18,11 @@ export const REASON_LABELS = Object.freeze({
   'waiting-for-executors': 'Ждёт исполнителей',
   'waiting-for-mode-choice': 'Ждёт выбора пути',
   'waiting-for-plan-start': 'Ждёт «Начать выполнение плана»',
+  'waiting-for-review': 'Ревью плана: ждёт ответа ревьюера',
+  'waiting-for-main': 'Ревью плана: ждёт ответа основного агента',
 });
+
+const PROVIDER_NAMES = Object.freeze({ claude: 'Claude', codex: 'ChatGPT' });
 
 /** Plan card buttons in the order they are drawn. */
 export const ACTION_BUTTONS = Object.freeze({
@@ -119,6 +123,7 @@ export function choiceView(state, projectId, key) {
   if (typeof choice['generation'] !== 'number') return null;
   const holder = choiceHolder(state, projectId);
   if (holder && holder !== key) return null;
+  if (projectReviews(state, projectId).some((r) => r.active || r.reviewerKey === key)) return null;
   return {
     generation: choice['generation'],
     reason: typeof choice['reason'] === 'string' ? choice['reason'] : '',
@@ -192,12 +197,75 @@ export function reviewView(state, projectId, key) {
   const project = record(record(record(state['review'])['projects'])[projectId]);
   const execution = record(record(record(state['workflow'])['projects'])[projectId])['execution'];
   if (project['visible'] === false || (execution && typeof execution === 'object')) return null;
+  // M4 section 10: gone while its review runs, for the plan it reviewed and for a reviewer.
+  const review = crossReviewView(state, projectId, key);
+  const open = record(record(record(record(state['workflow'])['projects'])[projectId])['proposal'])['scopeId'];
+  if (review && (review.role === 'reviewer' || review.active || (typeof open === 'string' && review.scopeId === open))) return null;
   const on = record(project['sessions'])[key] === true;
   return {
     on,
     hint: on
       ? 'Своё для этой сессии. Агент отдаст спецификацию и план на ревью и учтёт замечания.'
       : 'Своё для этой сессии. Выключено: спецификация и план без ревью. Можно включить, пока не выбран способ выполнения.',
+  };
+}
+
+/** @param {Record<string, unknown>} state @param {string} projectId @returns {Array<Record<string, any>>} */
+function projectReviews(state, projectId) {
+  return array(record(record(state['reviews'])['projects'])[projectId]);
+}
+
+/**
+ * @typedef {object} CrossReviewView
+ * @property {'main' | 'reviewer'} role the session is the reviewed one or the reviewer
+ * @property {boolean} active
+ * @property {string} status
+ * @property {string} statusLabel
+ * @property {string} turn who answers now ("" when finished)
+ * @property {number} round
+ * @property {number} maxRounds
+ * @property {string} reviewerName provider of the reviewer
+ * @property {string | null} reviewerKey
+ * @property {string} mainKey
+ * @property {string} mainTitle
+ * @property {string | null} scopeId
+ * @property {string | null} reason
+ * @property {Array<{ from: string, who: string, round: number, text: string, at: string }>} entries newest first
+ */
+
+/**
+ * The cross review of a session as the main one or the reviewer (spec M4 section 6); the newest.
+ * @param {Record<string, unknown>} state
+ * @param {string} projectId
+ * @param {string} key
+ * @returns {CrossReviewView | null}
+ */
+export function crossReviewView(state, projectId, key) {
+  const found = projectReviews(state, projectId)
+    .filter((r) => r && (r.mainKey === key || r.reviewerKey === key))
+    .sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt)))[0];
+  if (!found) return null;
+  const reviewerName = PROVIDER_NAMES[/** @type {'claude' | 'codex'} */ (found.reviewerProvider)] ?? 'ревьюер';
+  const mainName = PROVIDER_NAMES[/** @type {'claude' | 'codex'} */ (found.mainProvider)] ?? 'агент';
+  const who = (/** @type {string} */ from) => (from === 'reviewer' ? `Ревьюер (${reviewerName})` : from === 'main' ? `Агент (${mainName})` : 'Workflow Kit');
+  const turn = { starting: `${reviewerName} запускается`, reviewing: `отвечает ревьюер (${reviewerName})`, answering: `отвечает агент (${mainName})` };
+  return {
+    role: found.mainKey === key ? 'main' : 'reviewer',
+    active: found.active === true,
+    status: String(found.status),
+    statusLabel: String(found.statusLabel ?? found.status),
+    turn: turn[/** @type {'starting' | 'reviewing' | 'answering'} */ (found.status)] ?? '',
+    round: Number(found.round) || 0,
+    maxRounds: Number(found.maxRounds) || 5,
+    reviewerName,
+    reviewerKey: typeof found.reviewerKey === 'string' ? found.reviewerKey : null,
+    mainKey: String(found.mainKey),
+    mainTitle: String(found.mainTitle ?? ''),
+    scopeId: typeof found.scopeId === 'string' ? found.scopeId : null,
+    reason: typeof found.reason === 'string' ? found.reason : null,
+    entries: array(found.entries)
+      .map((e) => ({ from: String(e.from), who: who(String(e.from)), round: Number(e.round) || 0, text: String(e.text ?? ''), at: String(e.at ?? '') }))
+      .reverse(),
   };
 }
 

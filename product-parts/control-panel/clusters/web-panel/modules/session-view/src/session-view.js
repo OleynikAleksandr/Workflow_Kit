@@ -2,7 +2,7 @@
 // The session screen body (activity line, path choice, plan card, delivery confirmation) and
 // «Ревью плана» in the sidebar. Panel extension: install(shell) fills the "sessionBody" and
 // "sessionReview" slots of panel-shell. Typed text lives in inputs kept per session.
-import { activityView, choiceView, planView, reviewView, timer } from './session-model.js';
+import { activityView, choiceView, crossReviewView, planView, reviewView, timer } from './session-model.js';
 
 /**
  * Helpers the panel shell gives to extensions (see panel-shell app.js).
@@ -186,20 +186,63 @@ export function install(shell) {
     ]);
   }
 
+  /**
+   * «Ревью плана» (spec M4 section 6): the reviewer, the round, who answers, the journal; the
+   * reviewer's screen points to the reviewed session.
+   * @param {NonNullable<ReturnType<typeof crossReviewView>>} review
+   * @param {SessionContext} session
+   * @param {SlotContext} ctx
+   */
+  function crossReviewCard(review, session, ctx) {
+    const projectId = session.project.id;
+    const open = (/** @type {string} */ key) => (ctx.openSession ? ctx.openSession(projectId, key) : ctx.navigate({ screen: 'session', projectId, key }));
+    const other = review.role === 'main' ? review.reviewerKey : review.mainKey;
+    const head = review.role === 'main' ? `Ревьюер — ${review.reviewerName}` : `Эта сессия — ревьюер плана сессии «${review.mainTitle}»`;
+    const state = review.active
+      ? `Круг ${Math.max(review.round, 1)} из ${review.maxRounds} · ${review.turn}`
+      : `${review.statusLabel}${review.reason ? `: ${review.reason}` : ''}`;
+    const buttons = [
+      other ? button(review.role === 'main' ? 'Открыть сессию ревьюера' : 'Открыть основную сессию', () => open(other), 'btn') : null,
+      review.active && review.role === 'main'
+        ? button('Прервать ревью', async () => {
+            try {
+              await shell.api('POST', `/api/projects/${encodeURIComponent(projectId)}/reviews/${encodeURIComponent(review.mainKey)}/cancel`);
+            } catch (error) {
+              ctx.say('error', 'Не удалось прервать ревью', error);
+            } finally {
+              ctx.requestRefresh();
+            }
+          }, 'btn')
+        : null,
+    ].filter((n) => n !== null);
+    const journal = review.entries.map((entry) =>
+      h('details', { class: `sv-xr-entry ${entry.from}` }, [h('summary', {}, [`${entry.who}${entry.round ? ` · круг ${entry.round}` : ''}`]), h('p', {}, [entry.text])]),
+    );
+    const tone = review.status === 'agreed' ? ' ok' : review.active ? '' : ' muted';
+    return h('div', { class: `panel sv-xreview${tone}` }, [
+      h('h2', {}, ['Ревью плана']),
+      h('p', {}, [head]),
+      h('p', { class: 'sv-xr-state' }, [state]),
+      buttons.length ? h('div', { class: 'sv-xr-buttons' }, buttons) : null,
+      journal.length ? h('div', { class: 'sv-xr-journal' }, journal) : null,
+    ].filter((n) => n !== null));
+  }
+
   shell.registerSlot('sessionBody', {
     select(state, session) {
       const { id } = session.project;
       const { key } = session.session;
-      return { activity: activityView(state, id, key), choice: choiceView(state, id, key), plan: planView(state, id, key), name: session.session.name };
+      return { activity: activityView(state, id, key), choice: choiceView(state, id, key), plan: planView(state, id, key), review: crossReviewView(state, id, key), name: session.session.name };
     },
     render(data, _state, session, ctx) {
       const activity = activityBlock(data.activity);
       const cards = [];
+      if (data.review && (data.review.active || data.review.role === 'reviewer' || !data.plan)) cards.push(crossReviewCard(data.review, session, ctx));
       if (data.plan?.delivery) cards.push(deliveryCard(session, ctx));
       if (data.choice) cards.push(choiceCard(data.choice, session, ctx));
       if (data.plan) return h('div', { class: 'sv' }, [...cards, h('div', { class: 'cols' }, [planCard(data.plan, session, ctx), h('div', {}, [activity])])]);
       return h('div', { class: 'sv' }, [h('div', { class: 'sv-activity' }, [activity]), ...cards,
-        data.choice ? null : h('div', { class: 'panel' }, [h('h2', {}, ['План сессии']), h('p', {}, ['Появится, когда агент предложит план: сначала спецификация, затем выбор пути.'])]),
+        data.choice || data.review ? null : h('div', { class: 'panel' }, [h('h2', {}, ['План сессии']), h('p', {}, ['Появится, когда агент предложит план: сначала спецификация, затем выбор пути.'])]),
       ].filter((n) => n !== null));
     },
   });

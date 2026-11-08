@@ -179,3 +179,9 @@ test('an awaited session is found by its key, or as the newest of the provider c
   assert.equal(arrivedSession(tree, { projectId: 'other', key: 'claude:a', provider: null, since }), null);
 });
 
+
+test('a reviewer session is marked for the label «Ревью» (M4)', () => {
+  const st = { ...state(), reviews: { projects: { p1: [{ mainKey: 'claude:c1', reviewerKey: 'codex:t1', status: 'reviewing' }] } } };
+  const sessions = projectTree(st, { now: NOW, collapsed: new Set() }).find((p) => p.id === 'p1')!.sessions;
+  assert.deepEqual(sessions.map((s) => [s.key, s.reviewer]), [['codex:t1', true], ['claude:c1', false]]);
+});

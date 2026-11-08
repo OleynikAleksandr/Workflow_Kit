@@ -113,6 +113,9 @@ function choiceHolder(state, projectId) {
  * @property {string | null} failedReview why this session's review of the open plan did not run (spec M4 13.2)
  */
 
+/** How long after a Stop the service may still be deciding about the review (spec M4 13.6). */
+export const DECIDING_MS = 15_000;
+
 /**
  * A working session with the review on, or without a decision, that has not reviewed the open
  * proposal: its review (or the question about it) comes when its turn ends, so the mode choice
@@ -122,11 +125,25 @@ function choiceHolder(state, projectId) {
  * @returns {boolean}
  */
 function reviewComing(state, projectId) {
-  const scopeId = record(record(record(record(state['workflow'])['projects'])[projectId])['proposal'])['scopeId'] ?? null;
+  const proposal = record(record(record(record(state['workflow'])['projects'])[projectId])['proposal']);
+  const scopeId = proposal['scopeId'] ?? null;
+  const proposedAt = Date.parse(String(proposal['createdAt'] ?? ''));
+  const now = Date.parse(String(state['generatedAt'] ?? '')) || Date.now();
+  /**
+   * The session works, waits for the review or a question, or has just ended a turn after the
+   * proposal and the service is still deciding (spec M4 13.6: no flash of the choice card).
+   * @param {Record<string, any>} s
+   */
+  const pending = (s) => {
+    if (s.state === 'working') return true;
+    if (s.state === 'holding') return s.holdReason !== 'waiting-for-mode-choice';
+    const stoppedAt = Date.parse(String(s.lastStopAt ?? ''));
+    return Number.isFinite(stoppedAt) && Number.isFinite(proposedAt) && stoppedAt >= proposedAt && now - stoppedAt < DECIDING_MS;
+  };
   const toggles = record(record(record(record(state['review'])['projects'])[projectId])['sessions']);
   const reviews = projectReviews(state, projectId);
   return array(record(state['channel'])['sessions']).some((s) =>
-    s && s.projectId === projectId && s.state === 'working' && toggles[String(s.key)] !== false &&
+    s && s.projectId === projectId && pending(s) && toggles[String(s.key)] !== false &&
     !reviews.some((r) => r.reviewerKey === s.key) &&
     !reviews.some((r) => r.mainKey === s.key && r.scopeId === scopeId));
 }

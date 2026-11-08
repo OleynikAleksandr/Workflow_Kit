@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 322,
+  "revision": 324,
   "rounds": [
     {
       "digest": {
@@ -1053,14 +1053,17 @@
       "dependencies": [],
       "docsWaiver": null,
       "files": [
-        "product-parts/control-panel/clusters/web-panel/modules/session-view"
+        "product-parts/control-panel/clusters/web-panel/modules/session-view",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts"
       ],
       "fixes": "T010",
       "id": "T021",
       "iteration": 1,
       "kind": "work",
       "roundId": "R5",
-      "status": "TODO",
+      "status": "DONE",
       "title": "The mode choice card does not flicker",
       "why": "The choice card flashed between the end of the agent's turn and the start of the review"
     },
@@ -1130,8 +1133,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 24/27
-- Revision: 322
+- Progress: 25/27
+- Revision: 324
 
 ## Objective
 
@@ -1263,9 +1266,9 @@ Digest: The review asks nothing of the user: the review card says the review run
   - Commit: fix: reload the panel when the service version changes
   - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/reload.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts
   - Fixes: T019
-- [TODO] T021 — The mode choice card does not flicker (work)
+- [DONE] T021 — The mode choice card does not flicker (work)
   - Commit: fix: keep the mode choice hidden until the review decides
-  - Files: product-parts/control-panel/clusters/web-panel/modules/session-view
+  - Files: product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts
   - Fixes: T010
 - [TODO] DOCS-R5 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R5

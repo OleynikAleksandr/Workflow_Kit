@@ -199,3 +199,22 @@ test('a failed review of the open plan shows its reason on the choice card (M4 1
   assert.equal(choiceView(other, 'p', 'claude:s1')!.failedReview, null, 'a failure of an earlier plan is not shown');
 });
 
+test('the choice card does not flash between the Stop and the review decision (M4 13.6)', () => {
+  const base = {
+    generatedAt: '2026-11-08T17:00:05Z',
+    workflow: { projects: { p: { choice: { generation: 1, reason: 'r', options: [{ option: 'sequential', title: 'Сам', description: '' }] }, proposal: { scopeId: 's1', createdAt: '2026-11-08T16:59:50Z' } } } },
+    review: { projects: { p: { visible: true, sessions: { 'claude:s1': true }, questions: {} } } },
+    reviews: { projects: { p: [] } },
+  };
+  const deciding = { ...base, channel: { sessions: [{ key: 'claude:s1', projectId: 'p', state: 'waiting', lastStopAt: '2026-11-08T17:00:03Z' }] } };
+  assert.ok(choiceView(deciding, 'p', 'claude:s1')!.waiting, 'the service is deciding: no buttons');
+  const later = { ...deciding, generatedAt: '2026-11-08T17:01:00Z' };
+  assert.equal(choiceView(later, 'p', 'claude:s1')!.waiting, null, 'no decision came: the buttons return');
+  const asked = { ...base, channel: { sessions: [{ key: 'claude:s1', projectId: 'p', state: 'holding', holdReason: 'waiting-for-plan-decision', lastStopAt: '2026-11-08T17:00:03Z' }] } };
+  assert.ok(choiceView(asked, 'p', 'claude:s1')!.waiting);
+  const choosing = { ...base, channel: { sessions: [{ key: 'claude:s1', projectId: 'p', state: 'holding', holdReason: 'waiting-for-mode-choice', lastStopAt: '2026-11-08T17:00:03Z' }] } };
+  assert.equal(choiceView(choosing, 'p', 'claude:s1')!.waiting, null, 'the service holds for the choice: buttons');
+  const before = { ...deciding, channel: { sessions: [{ key: 'claude:s1', projectId: 'p', state: 'waiting', lastStopAt: '2026-11-08T16:59:40Z' }] } };
+  assert.equal(choiceView(before, 'p', 'claude:s1')!.waiting, null, 'a Stop before the proposal does not count');
+});
+

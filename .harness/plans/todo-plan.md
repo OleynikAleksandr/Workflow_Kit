@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 336,
+  "revision": 338,
   "rounds": [
     {
       "digest": {
@@ -1270,14 +1270,19 @@
       "dependencies": [],
       "docsWaiver": null,
       "files": [
-        "product-parts/control-panel/clusters/web-panel/modules/session-view"
+        "product-parts/control-panel/clusters/web-panel/modules/session-view",
+        "docs/planning/M4-review-failures.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/activity-model.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts"
       ],
       "fixes": "T012",
       "id": "T025",
       "iteration": 1,
       "kind": "work",
       "roundId": "R7",
-      "status": "TODO",
+      "status": "DONE",
       "title": "The activity line tells what really happens",
       "why": "During the review the activity line said the agent waited for the user and kept a stale autopilot label"
     },
@@ -1346,8 +1351,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 30/33
-- Revision: 336
+- Progress: 31/33
+- Revision: 338
 
 ## Objective
 
@@ -1513,9 +1518,9 @@ Digest: The review journal on the review card shows whole answers of the reviewe
 
 ### R7 — Activity line (fixes, OPEN)
 
-- [TODO] T025 — The activity line tells what really happens (work)
+- [DONE] T025 — The activity line tells what really happens (work)
   - Commit: fix: describe the review and real waits in the activity line
-  - Files: product-parts/control-panel/clusters/web-panel/modules/session-view
+  - Files: product-parts/control-panel/clusters/web-panel/modules/session-view, docs/planning/M4-review-failures.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/activity-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts
   - Fixes: T012
 - [TODO] DOCS-R7 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R7

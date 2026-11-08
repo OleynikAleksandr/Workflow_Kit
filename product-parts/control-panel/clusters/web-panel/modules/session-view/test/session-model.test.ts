@@ -64,9 +64,9 @@ test('the mount serves the session view under /session-view/', async () => {
 
 test('activity: working with the turn timer, holding with the reason, unknown sessions', () => {
   const working = activityView(state(), 'p', 'claude:s1');
-  assert.deepEqual([working.state, working.who, working.text, working.since, working.detail], ['working', 'Агент', 'работает над ответом', '2026-11-06T08:09:45Z', 'Пауза']);
+  assert.deepEqual([working.state, working.who, working.text, working.since, working.detail], ['working', 'Агент', 'работает над ответом', '2026-11-06T08:09:45Z', null], 'a stale autopilot label is not shown');
   const holding = activityView(state(), 'p', 'codex:t1');
-  assert.deepEqual([holding.state, holding.text, holding.detail, holding.pending], ['holding', 'ждёт вашего решения в панели', 'Ждёт выбора пути', 1]);
+  assert.deepEqual([holding.state, holding.text, holding.detail, holding.pending], ['holding', 'ждёт, когда вы выберете путь в карточке выше', null, 1]);
   assert.equal(activityView(state(), 'p', 'claude:zz').state, 'unknown');
   const orchestrated = state();
   (orchestrated['workflow'] as any).projects.p.plan = plan;
@@ -218,3 +218,27 @@ test('the choice card does not flash between the Stop and the review decision (M
   assert.equal(choiceView(before, 'p', 'claude:s1')!.waiting, null, 'a Stop before the proposal does not count');
 });
 
+
+test('activity during a review tells its step; service waits are not the user\'s decision (M4 13.8)', () => {
+  const st = state();
+  (st['channel'] as any).sessions = [
+    { key: 'claude:s1', state: 'holding', holdReason: 'waiting-for-review', since: '2026-11-06T08:09:00Z', pending: 0 },
+    { key: 'codex:t1', state: 'working', turnStartedAt: '2026-11-06T08:09:30Z', pending: 0 },
+  ];
+  st['reviews'] = { projects: { p: [{ mainKey: 'claude:s1', reviewerKey: 'codex:t1', reviewerProvider: 'codex', mainProvider: 'claude', status: 'reviewing', active: true, round: 2, maxRounds: 5, entries: [] }] } };
+  const main = activityView(st, 'p', 'claude:s1');
+  assert.deepEqual([main.state, main.who, main.text, main.detail], ['working', 'Ревьюер ChatGPT', 'проверяет план', 'Ревью плана · круг 2 из 5']);
+  (st['reviews'] as any).projects.p[0].status = 'answering';
+  assert.equal(activityView(st, 'p', 'claude:s1').text, 'отвечает на замечания ревьюера');
+  (st['reviews'] as any).projects.p[0].status = 'preparing';
+  assert.equal(activityView(st, 'p', 'claude:s1').text, 'описывает план для ревьюера');
+  (st['reviews'] as any).projects.p[0].active = false;
+  const after = activityView(st, 'p', 'claude:s1');
+  assert.deepEqual([after.state, after.text, after.detail], ['holding', 'ждёт ответа ревьюера', null]);
+  (st['channel'] as any).sessions[0].holdReason = 'waiting-for-mode-choice';
+  assert.equal(activityView(st, 'p', 'claude:s1').text, 'ждёт, когда вы выберете путь в карточке выше');
+  (st['channel'] as any).sessions[0].holdReason = 'waiting-for-plan-start';
+  assert.equal(activityView(st, 'p', 'claude:s1').text, 'ждёт, когда вы нажмёте «Начать выполнение плана»');
+  (st['channel'] as any).sessions[0].holdReason = 'paused';
+  assert.deepEqual([activityView(st, 'p', 'claude:s1').text, activityView(st, 'p', 'claude:s1').detail], ['остановлен', 'Пауза']);
+});

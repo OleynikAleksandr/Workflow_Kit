@@ -1,29 +1,10 @@
 // @ts-check
-// Pure models of the session screen (spec sections 6, 8.3, 9.3, 10): the agent activity line, the
+// Pure models of the session screen (spec sections 6, 8.3, 9.3, 10): the
 // path choice card, the plan card with its buttons and «Ревью плана». No DOM; node --test.
 
-/** Why a Stop is held or the autopilot stopped, for the user (autopilot STOP_LABELS). */
-export const REASON_LABELS = Object.freeze({
-  blocked: 'План остановлен',
-  'delivery-confirmation': 'Ждёт подтверждения выпуска',
-  disabled: 'Автопилот выключен',
-  limit: 'Достигнут предел в 40 продолжений подряд',
-  'no-progress': 'Ход не изменил ни план, ни историю',
-  'no-scope': 'Нет активного плана',
-  paused: 'Пауза',
-  'ready-for-acceptance': 'Ждёт приёмки',
-  'transaction-pending': 'Незавершённая транзакция или проверка Kit',
-  'turn-error': 'Ход прерван',
-  'user-message': 'Вы написали в чат — автопилот уступил ход',
-  'waiting-for-executors': 'Ждёт исполнителей',
-  'waiting-for-mode-choice': 'Ждёт выбора пути',
-  'waiting-for-plan-start': 'Ждёт «Начать выполнение плана»',
-  'waiting-for-plan-decision': 'Ждёт ответа на вопрос о плане',
-  'waiting-for-review': 'Ревью плана: ждёт ответа ревьюера',
-  'waiting-for-main': 'Ревью плана: ждёт ответа основного агента',
-});
-
 const PROVIDER_NAMES = Object.freeze({ claude: 'Claude', codex: 'ChatGPT' });
+
+export { REASON_LABELS, activityView, timer } from './activity-model.js';
 
 /** Plan card buttons in the order they are drawn. */
 export const ACTION_BUTTONS = Object.freeze({
@@ -57,40 +38,6 @@ function array(list) {
  */
 export function sessionId(key) {
   return key.slice(key.indexOf(':') + 1);
-}
-
-/**
- * @typedef {object} ActivityView
- * @property {'working' | 'waiting' | 'holding' | 'unknown'} state
- * @property {string} who «Агент», or «Оркестратор» for the owner of an orchestrated plan
- * @property {string} text
- * @property {string | null} since ISO time the timer counts from
- * @property {string | null} detail reason of the last autopilot decision or of the hold
- * @property {number} pending messages waiting for delivery
- */
-
-/**
- * @param {Record<string, unknown>} state
- * @param {string} projectId
- * @param {string} key
- * @returns {ActivityView}
- */
-export function activityView(state, projectId, key) {
-  const channel = array(record(state['channel'])['sessions']).find((s) => s && s.key === key);
-  const pilot = array(record(state['autopilot'])['sessions']).find((s) => s && s.key === key);
-  const plan = record(record(record(record(state['workflow'])['projects'])[projectId])['plan']);
-  const orchestrator = plan['mode'] === 'orchestrated' && typeof plan['ownerSession'] === 'string' && plan['ownerSession'] === sessionId(key);
-  const who = orchestrator ? 'Оркестратор' : 'Агент';
-  const last = record(pilot?.last);
-  const lastLabel = typeof last['label'] === 'string' ? last['label'] : null;
-  if (!channel) return { state: 'unknown', who, text: 'ещё не присылал хуков в службу', since: null, detail: lastLabel, pending: 0 };
-  const pending = typeof channel.pending === 'number' ? channel.pending : 0;
-  if (channel.state === 'working') return { state: 'working', who, text: 'работает над ответом', since: channel.turnStartedAt ?? channel.since ?? null, detail: lastLabel, pending };
-  if (channel.state === 'holding') {
-    const reason = /** @type {Record<string, string>} */ (REASON_LABELS)[channel.holdReason] ?? channel.holdReason ?? null;
-    return { state: 'holding', who, text: 'ждёт вашего решения в панели', since: channel.since ?? null, detail: reason, pending };
-  }
-  return { state: 'waiting', who, text: 'ждёт вашего сообщения', since: channel.since ?? null, detail: lastLabel, pending };
 }
 
 /**
@@ -378,20 +325,4 @@ export function crossReviewView(state, projectId, key) {
       .map((e) => ({ from: String(e.from), who: who(String(e.from)), round: Number(e.round) || 0, text: String(e.text ?? ''), at: String(e.at ?? '') }))
       .reverse(),
   };
-}
-
-/**
- * "0:15", "12:04", "1:02:03" since an ISO time.
- * @param {string | null} since
- * @param {number} now
- * @returns {string}
- */
-export function timer(since, now) {
-  const start = since ? Date.parse(since) : NaN;
-  if (!Number.isFinite(start)) return '';
-  const total = Math.max(0, Math.floor((now - start) / 1000));
-  const h = Math.floor(total / 3600);
-  const m = Math.floor((total % 3600) / 60);
-  const s = String(total % 60).padStart(2, '0');
-  return h > 0 ? `${h}:${String(m).padStart(2, '0')}:${s}` : `${m}:${s}`;
 }

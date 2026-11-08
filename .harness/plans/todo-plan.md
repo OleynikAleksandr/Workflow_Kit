@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 281,
+  "revision": 282,
   "rounds": [
     {
       "digest": {
@@ -38,6 +38,13 @@
       "kind": "implementation",
       "status": "CLOSED",
       "title": "Implementation"
+    },
+    {
+      "digest": null,
+      "id": "R2",
+      "kind": "fixes",
+      "status": "OPEN",
+      "title": "Fixes after the live review check"
     }
   ],
   "schema": "harness-workflow-plan/1",
@@ -80,7 +87,7 @@
         "text": "Ревьюер только читает и пишет замечания"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "IN_PROGRESS",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
@@ -356,6 +363,145 @@
       "status": "DONE",
       "title": "Релиз 0.4.0",
       "why": "Релиз 0.4.0"
+    },
+    {
+      "acceptance": [
+        "createSession with detached returns a Codex session right after turn/start, without waiting for turn/completed or the release",
+        "Without detached the Codex createSession behaves as before",
+        "The cross review creates every reviewer with detached; Claude ignores the option",
+        "Tests cover both Codex paths"
+      ],
+      "checks": [],
+      "commitMessage": "fix: start the reviewer session without waiting for its turn",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M4-plan-review.md",
+          "heading": "11. Исправления после живой проверки (раунд R2)",
+          "required": true
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/sessions.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/release.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/review.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test/review.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/review-wiring.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md"
+      ],
+      "fixes": "T003",
+      "id": "T007",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Reviewer session starts without waiting for its turn",
+      "why": "A ChatGPT reviewer took 4.5 minutes to start: createSession waited for a turn the review itself holds"
+    },
+    {
+      "acceptance": [
+        "A starting review first continues the main turn with the plan request (state preparing)",
+        "The main answer goes to the journal and into the reviewer's first message; only then the reviewer is created",
+        "An empty answer still starts the reviewer, which is asked to request the plan",
+        "Cancel and the toggle work in preparing; the panel shows the new state",
+        "Tests cover the preparing flow"
+      ],
+      "checks": [],
+      "commitMessage": "fix: give the reviewer the proposed plan from the main agent",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M4-plan-review.md",
+          "heading": "11. Исправления после живой проверки (раунд R2)",
+          "required": true
+        }
+      ],
+      "dependencies": [
+        "T007"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src",
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test/review.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/test",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/module.md"
+      ],
+      "fixes": "T003",
+      "id": "T008",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Main agent describes the plan for the reviewer",
+      "why": "scope:proposal does not show the plan's tasks to the reviewer"
+    },
+    {
+      "acceptance": [
+        "Project-wide documents describe the round result",
+        "The round digest records result, decisions, contracts and references"
+      ],
+      "checks": [],
+      "commitMessage": "docs: reconcile documentation for R2",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T007",
+        "T008"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/architecture/OVERVIEW.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/module.md"
+      ],
+      "fixes": null,
+      "id": "DOCS-R2",
+      "iteration": 1,
+      "kind": "docs",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Reconcile project documentation and write the round digest",
+      "why": "Keep the project context current for the next agent and close the round."
+    },
+    {
+      "acceptance": [
+        "Version 0.4.1 is installed and wfk doctor --installed is ok",
+        "A live review with a ChatGPT reviewer gets its first remarks within about a minute and the reviewer sees the plan's tasks"
+      ],
+      "checks": [],
+      "commitMessage": "chore: release 0.4.1",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T008",
+        "DOCS-R2"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "package.json",
+        "package-lock.json",
+        "docs/evidence/M4-acceptance.md"
+      ],
+      "fixes": null,
+      "id": "T009",
+      "iteration": 1,
+      "kind": "delivery",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Release 0.4.1",
+      "why": "Release 0.4.1"
     }
   ]
 }
@@ -365,11 +511,11 @@
 ## State
 
 - Scope: m4-plan-review (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 7/7
-- Revision: 281
+- Progress: 7/11
+- Revision: 282
 
 ## Objective
 
@@ -416,5 +562,25 @@
   - Depends on: T005, DOCS-R1
 
 Digest: Перекрёстное ревью плана: при включённом «Ревью плана» после scope:propose служба создаёт сессию другого провайдера ревьюером и пересылает ходы сторон через хук Stop до REVIEW: APPROVED + REVIEW: AGREED или 5 кругов; панель показывает карточку ревью и метку «Ревью».
+
+### R2 — Fixes after the live review check (fixes, OPEN)
+
+- [TODO] T007 — Reviewer session starts without waiting for its turn (work)
+  - Commit: fix: start the reviewer session without waiting for its turn
+  - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/release.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/review.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test/review.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/review-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md
+  - Fixes: T003
+- [TODO] T008 — Main agent describes the plan for the reviewer (work)
+  - Commit: fix: give the reviewer the proposed plan from the main agent
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test/review.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/test, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md
+  - Depends on: T007
+  - Fixes: T003
+- [TODO] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
+  - Commit: docs: reconcile documentation for R2
+  - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md
+  - Depends on: T007, T008
+- [TODO] T009 — Release 0.4.1 (delivery)
+  - Commit: chore: release 0.4.1
+  - Files: package.json, package-lock.json, docs/evidence/M4-acceptance.md
+  - Depends on: T008, DOCS-R2
 
 State changes only through `scripts/workflow` commands. History lives in Git.

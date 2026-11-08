@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 333,
+  "revision": 335,
   "rounds": [
     {
       "digest": {
@@ -145,7 +145,7 @@
       },
       "id": "R6",
       "kind": "fixes",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Review journal texts"
     }
   ],
@@ -189,7 +189,7 @@
         "text": "Ревьюер только читает и пишет замечания"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
@@ -1223,7 +1223,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: release 0.4.5",
-      "confirmation": null,
+      "confirmation": "Да, собирай 0.4.5",
       "context": [],
       "dependencies": [
         "T023",
@@ -1240,7 +1240,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R6",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Release 0.4.5",
       "why": "Release 0.4.5"
     }
@@ -1252,11 +1252,11 @@
 ## State
 
 - Scope: m4-plan-review (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 29/30
-- Revision: 333
+- Progress: 30/30
+- Revision: 335
 
 ## Objective
 
@@ -1403,7 +1403,7 @@ Digest: The review asks nothing of the user: the review card says the review run
 
 Digest: The panel window reloads itself once the service runs a new version, and the mode choice card no longer flashes between the end of the agent's turn and the review decision.
 
-### R6 — Review journal texts (fixes, OPEN)
+### R6 — Review journal texts (fixes, CLOSED)
 
 - [DONE] T023 — The review journal shows whole answers (work)
   - Commit: fix: show whole review answers in the journal
@@ -1413,7 +1413,7 @@ Digest: The panel window reloads itself once the service runs a new version, and
   - Commit: docs: reconcile documentation for R6
   - Files: README.md, docs/architecture/OVERVIEW.md
   - Depends on: T023
-- [TODO] T024 — Release 0.4.5 (delivery)
+- [DONE] T024 — Release 0.4.5 (delivery)
   - Commit: chore: release 0.4.5
   - Files: package.json, package-lock.json, docs/evidence/M4-acceptance.md
   - Depends on: T023, DOCS-R6

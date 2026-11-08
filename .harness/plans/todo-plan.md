@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 249,
+  "revision": 250,
   "rounds": [
     {
       "digest": {
@@ -163,6 +163,13 @@
       "kind": "fixes",
       "status": "CLOSED",
       "title": "Без карточки «Сообщение агенту»"
+    },
+    {
+      "digest": null,
+      "id": "R9",
+      "kind": "fixes",
+      "status": "OPEN",
+      "title": "Новая сессия Claude открывается в Desktop"
     }
   ],
   "schema": "harness-workflow-plan/1",
@@ -185,7 +192,7 @@
         "text": "Демон Codex запускается при каждом старте службы без согласий; при остановке службы не останавливается"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "IN_PROGRESS",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
@@ -1010,6 +1017,90 @@
       "status": "DONE",
       "title": "Релиз 0.3.14",
       "why": "Релиз 0.3.14"
+    },
+    {
+      "acceptance": [
+        "Служба открывает ссылки claude://claude.ai/code/session_<id>",
+        "Новая сессия Claude на Mac открывается в Claude Desktop сама, когда появилась ссылка",
+        "Проверки проходят"
+      ],
+      "checks": [],
+      "commitMessage": "feat: open a new Claude session in Claude Desktop",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/open-link.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/open-link.test.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/actions.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/view-model.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md"
+      ],
+      "fixes": null,
+      "id": "T019",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R9",
+      "status": "TODO",
+      "title": "Открывать новую сессию Claude в Claude Desktop",
+      "why": "Открывать новую сессию Claude в Claude Desktop"
+    },
+    {
+      "acceptance": [
+        "Project-wide documents describe the round result",
+        "The round digest records result, decisions, contracts and references"
+      ],
+      "checks": [],
+      "commitMessage": "docs: reconcile documentation for R9",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T019"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/architecture/OVERVIEW.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md"
+      ],
+      "fixes": null,
+      "id": "DOCS-R9",
+      "iteration": 1,
+      "kind": "docs",
+      "roundId": "R9",
+      "status": "TODO",
+      "title": "Reconcile project documentation and write the round digest",
+      "why": "Keep the project context current for the next agent and close the round."
+    },
+    {
+      "acceptance": [
+        "0.3.15 установлен, wfk doctor --installed — всё в порядке"
+      ],
+      "checks": [],
+      "commitMessage": "chore: release 0.3.15",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "DOCS-R9"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "package.json",
+        "package-lock.json",
+        "docs/evidence/M3-acceptance.md"
+      ],
+      "fixes": null,
+      "id": "T020",
+      "iteration": 1,
+      "kind": "delivery",
+      "roundId": "R9",
+      "status": "TODO",
+      "title": "Релиз 0.3.15",
+      "why": "Релиз 0.3.15"
     }
   ]
 }
@@ -1019,11 +1110,11 @@
 ## State
 
 - Scope: m3-autostart (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 26/26
-- Revision: 249
+- Progress: 26/29
+- Revision: 250
 
 ## Objective
 
@@ -1172,5 +1263,19 @@ Digest: Удаление проекта с диска убирает тред и
   - Depends on: DOCS-R8
 
 Digest: С экрана сессии убрана карточка «Сообщение агенту»: агенту пишут в самом чате Claude или ChatGPT. Маршрут службы POST …/sessions/:key/message остаётся, панель его не вызывает.
+
+### R9 — Новая сессия Claude открывается в Desktop (fixes, OPEN)
+
+- [TODO] T019 — Открывать новую сессию Claude в Claude Desktop (work)
+  - Commit: feat: open a new Claude session in Claude Desktop
+  - Files: product-parts/backend-core/clusters/runtime/modules/cli/src/open-link.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/open-link.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/actions.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/view-model.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md
+- [TODO] DOCS-R9 — Reconcile project documentation and write the round digest (docs)
+  - Commit: docs: reconcile documentation for R9
+  - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md
+  - Depends on: T019
+- [TODO] T020 — Релиз 0.3.15 (delivery)
+  - Commit: chore: release 0.3.15
+  - Files: package.json, package-lock.json, docs/evidence/M3-acceptance.md
+  - Depends on: DOCS-R9
 
 State changes only through `scripts/workflow` commands. History lives in Git.

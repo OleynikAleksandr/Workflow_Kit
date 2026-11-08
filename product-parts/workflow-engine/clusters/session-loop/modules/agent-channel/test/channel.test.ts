@@ -176,3 +176,38 @@ test('a session the channel has not seen yet takes a panel message when the prov
   assert.throws(() => queueSessionMessage(c, 'p2', key, 'other', false), { code: 'unknown-session' });
   c.close();
 });
+
+test('a hold with a timeout answer reminds the agent instead of a silent release (M4 section 4)', async () => {
+  const ch = channel(() => ({ kind: 'hold', reason: 'waiting-for-review', timeoutAnswer: 'Workflow Kit: ревью идёт.' }), 30);
+  const key = sessionKey('codex', CODEX_STOP.session_id);
+  const reply = await ch.stop(input('codex', CODEX_STOP));
+  assert.deepEqual(reply.answer, { decision: 'block', reason: 'Workflow Kit: ревью идёт.' });
+  assert.equal(ch.get(key)!.state, 'working');
+});
+
+test('stop listeners hear the whole last message and what started the turn', async () => {
+  const ch = channel(() => ({ kind: 'continue', text: 'дальше' }));
+  const key = sessionKey('claude', CLAUDE_STOP.session_id);
+  const events: import('../src/index.ts').StopEvent[] = [];
+  const off = ch.onStop((event) => events.push(event));
+  const long = 'x'.repeat(500);
+  await ch.prompt(input('claude', CLAUDE_STOP));
+  await ch.stop(input('claude', CLAUDE_STOP, { lastAssistantMessage: long }));
+  ch.enqueue(key, 'замечания', 'review');
+  (await ch.stop(input('claude', CLAUDE_STOP))).ack();
+  await ch.stop(input('claude', CLAUDE_STOP));
+  off();
+  await ch.stop(input('claude', CLAUDE_STOP));
+  assert.deepEqual(events.map((e) => [e.origin, e.sources]), [['user', []], ['decider', []], ['delivery', ['review']]]);
+  assert.equal(events[0]!.lastAssistantMessage, long);
+  assert.equal(events[0]!.projectId, 'p1');
+});
+
+test('a reminder turn is reported as such', async () => {
+  const ch = channel(() => ({ kind: 'hold', reason: 'waiting-for-review', timeoutAnswer: 'жди' }), 20);
+  const origins: string[] = [];
+  ch.onStop((event) => origins.push(event.origin));
+  await ch.stop(input('codex', CODEX_STOP));
+  await ch.stop(input('codex', CODEX_STOP));
+  assert.deepEqual(origins, ['unknown', 'reminder']);
+});

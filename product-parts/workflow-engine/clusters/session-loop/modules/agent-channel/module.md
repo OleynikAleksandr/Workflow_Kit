@@ -30,7 +30,15 @@
     `release` — без ответа, `hold` — держит хук (состояние `holding`,
     `holdReason`, `holdUntil`) до нового сообщения, `wake(key)`, отмены
     запроса (`signal`) или `STOP_HOLD_MS` (9 минут), затем отпускает без
-    ответа. Решатель по умолчанию — `release`.
+    ответа; `hold` с `timeoutAnswer` по истечении срока отвечает `block` с
+    этим текстом (напоминание, ход `reminder`; M4, раздел 4). Решатель по
+    умолчанию — `release`.
+  - `onStop(listener) → отписка`: каждый `Stop` до решателя — `StopEvent`
+    (`key`, `client`, `sessionId`, `projectId`, полное
+    `lastAssistantMessage`, `origin` — чем начат закончившийся ход:
+    `delivery` (сообщения очереди ответом `Stop`, `sources` — их источники),
+    `decider` (`continue`), `reminder`, `user` (`UserPromptSubmit`),
+    `unknown`); ошибка слушателя — строка в журнале.
   - `prompt(input)`: сессия «работает» (`turnStartedAt`); сообщения,
     пропустившие `Stop`, уходят дополнительным контекстом.
   - Ответ — `HookReply` (`answer`, `ack()`, `nack()`): сообщения уходят из

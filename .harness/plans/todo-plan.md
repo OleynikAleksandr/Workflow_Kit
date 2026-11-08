@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 268,
+  "revision": 270,
   "rounds": [
     {
       "digest": null,
@@ -134,7 +134,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Канал: удержание с напоминанием и наблюдатель Stop",
       "why": "Канал: удержание с напоминанием и наблюдатель Stop"
     },
@@ -337,8 +337,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 1/7
-- Revision: 268
+- Progress: 2/7
+- Revision: 270
 
 ## Objective
 
@@ -359,7 +359,7 @@
 - [DONE] T001 — Проба: ревьюер в другой сессии получает и отдаёт сообщения через хук Stop (work)
   - Commit: docs: record the cross review probe
   - Files: docs/evidence/M4-review-probe.md, docs/planning/M4-plan-review.md
-- [TODO] T002 — Канал: удержание с напоминанием и наблюдатель Stop (work)
+- [DONE] T002 — Канал: удержание с напоминанием и наблюдатель Stop (work)
   - Commit: feat: hold a stop hook with a reminder and report finished turns
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/channel.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/channel.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md
   - Depends on: T001

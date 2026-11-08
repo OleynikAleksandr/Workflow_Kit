@@ -9,6 +9,9 @@ export type {
   StopContext,
   StopDecider,
   StopDecision,
+  StopEvent,
+  StopListener,
+  TurnOrigin,
 } from './channel.ts';
 export { STOP_HOLD_MS, createAgentChannel } from './channel.ts';
 export type { AgentClient, HookInput } from './hook-input.ts';

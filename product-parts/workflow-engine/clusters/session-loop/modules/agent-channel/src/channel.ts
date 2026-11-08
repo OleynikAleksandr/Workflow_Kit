@@ -40,11 +40,32 @@ export interface QueuedMessage {
   createdAt: string;
 }
 
-/** What the decider wants after a Stop with no queued message. */
+/**
+ * What the decider wants after a Stop with no queued message. A hold with timeoutAnswer does not
+ * end silently: when the hold time passes the agent gets that text (a reminder) and goes on.
+ */
 export type StopDecision =
   | { kind: 'continue'; text: string }
-  | { kind: 'hold'; reason: string }
+  | { kind: 'hold'; reason: string; timeoutAnswer?: string }
   | { kind: 'release' };
+
+/** How the turn that just ended began. */
+export type TurnOrigin = 'delivery' | 'decider' | 'reminder' | 'user' | 'unknown';
+
+/** A finished turn: what the agent said last and what started the turn (spec M4 section 7). */
+export interface StopEvent {
+  key: string;
+  client: AgentClient;
+  sessionId: string;
+  projectId: string | null;
+  /** The whole last message of the turn (not cut like the activity). */
+  lastAssistantMessage: string | null;
+  origin: TurnOrigin;
+  /** Sources of the delivered messages that started the turn ('delivery' only). */
+  sources: string[];
+}
+
+export type StopListener = (event: StopEvent) => void;
 
 /** Facts the decider gets about a Stop. */
 export interface StopContext {
@@ -91,6 +112,8 @@ export interface AgentChannel {
   /** Asks the decider again for a held Stop (for example after a plan change). */
   wake(key: string): void;
   setDecider(decide: StopDecider): void;
+  /** Hears every Stop before the decider; returns the unsubscribe. */
+  onStop(listener: StopListener): () => void;
   get(key: string): SessionActivity | undefined;
   list(): SessionActivity[];
   queued(key: string): QueuedMessage[];
@@ -103,6 +126,8 @@ interface Slot {
   activity: SessionActivity;
   queue: QueuedMessage[];
   wake: (() => void) | null;
+  origin: TurnOrigin;
+  sources: string[];
 }
 
 const RELEASE: StopDecision = { kind: 'release' };
@@ -114,6 +139,7 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
   const log = options.log ?? noop;
   let decide: StopDecider = options.decide ?? (() => RELEASE);
   const slots = new Map<string, Slot>();
+  const listeners = new Set<StopListener>();
   let closed = false;
 
   const iso = (): string => now().toISOString();
@@ -140,6 +166,8 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
         },
         queue: [],
         wake: null,
+        origin: 'unknown',
+        sources: [],
       };
       slots.set(key, slot);
     }
@@ -166,6 +194,7 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
   /** Takes the whole queue as one delivery; ack drops it, nack puts it back in front. */
   function deliver(slot: Slot, render: (text: string) => Record<string, unknown>): HookReply {
     const taken = slot.queue.splice(0, slot.queue.length);
+    slot.sources = taken.map((message) => message.source);
     slot.activity.pending = 0;
     let settled = false;
     const text = taken.map((message) => message.text).join('\n\n');
@@ -187,6 +216,33 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
   }
 
   const empty = (answer: Record<string, unknown> | null = null): HookReply => ({ answer, ack: noop, nack: noop });
+
+  /** The next turn of the slot begins with this origin. */
+  function begin(slot: Slot, origin: TurnOrigin, sources: string[] = []): void {
+    slot.origin = origin;
+    if (origin !== 'delivery') slot.sources = sources;
+  }
+
+  function notify(slot: Slot, input: HookInput): void {
+    const event: StopEvent = {
+      key: slot.activity.key,
+      client: input.client,
+      sessionId: input.sessionId,
+      projectId: slot.activity.projectId,
+      lastAssistantMessage: input.lastAssistantMessage,
+      origin: slot.origin,
+      sources: [...slot.sources],
+    };
+    slot.origin = 'unknown';
+    slot.sources = [];
+    for (const listener of listeners) {
+      try {
+        listener(event);
+      } catch (error) {
+        log(`channel: stop listener failed for ${event.key}: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
+  }
 
   /** Waits until the slot is woken, the hold time passes or the hook went away. */
   function hold(slot: Slot, reason: string, deadline: number, signal?: AbortSignal): Promise<'woken' | 'timeout' | 'aborted'> {
@@ -214,11 +270,14 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
       const slot = await slotOf(input);
       const last = input.lastAssistantMessage ? input.lastAssistantMessage.slice(-LAST_MESSAGE_CHARS) : slot.activity.lastAssistantMessage;
       setState(slot, 'waiting', { lastStopAt: iso(), turnStartedAt: null, lastAssistantMessage: last });
+      notify(slot, input);
       const deadline = now().getTime() + holdMs;
       let woken = false;
+      let timeoutAnswer: string | undefined;
       for (;;) {
         if (slot.queue.length > 0) {
           const reply = deliver(slot, (text) => blockAnswer(text));
+          begin(slot, 'delivery');
           setState(slot, 'working', { turnStartedAt: iso() });
           return reply;
         }
@@ -239,14 +298,21 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
         }
         if (slot.queue.length > 0) continue;
         if (decision.kind === 'continue') {
+          begin(slot, 'decider');
           setState(slot, 'working', { turnStartedAt: iso() });
           return empty(blockAnswer(decision.text));
         }
-        if (decision.kind === 'release' || closed || now().getTime() >= deadline) {
+        timeoutAnswer = decision.kind === 'hold' ? decision.timeoutAnswer : undefined;
+        if (decision.kind === 'release' || closed) {
           setState(slot, 'waiting');
           return empty();
         }
-        const result = await hold(slot, decision.reason, deadline, signal);
+        const result = now().getTime() >= deadline ? 'timeout' : await hold(slot, decision.reason, deadline, signal);
+        if (result === 'timeout' && timeoutAnswer && !closed) {
+          begin(slot, 'reminder');
+          setState(slot, 'working', { turnStartedAt: iso() });
+          return empty(blockAnswer(timeoutAnswer));
+        }
         if (result !== 'woken') {
           setState(slot, 'waiting');
           return empty();
@@ -259,9 +325,11 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
       slot.wake?.();
       if (slot.queue.length > 0) {
         const reply = deliver(slot, (text) => contextAnswer(text));
+        slot.origin = 'user';
         setState(slot, 'working', { turnStartedAt: iso() });
         return reply;
       }
+      begin(slot, 'user');
       setState(slot, 'working', { turnStartedAt: iso() });
       return empty();
     },
@@ -287,6 +355,8 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
           },
           queue: [],
           wake: null,
+          origin: 'unknown',
+          sources: [],
         };
         slots.set(key, slot);
       }
@@ -302,6 +372,10 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
     },
     setDecider(next) {
       decide = next;
+    },
+    onStop(listener) {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
     },
     get: (key) => {
       const slot = slots.get(key);

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 243,
+  "revision": 245,
   "rounds": [
     {
       "digest": {
@@ -943,7 +943,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R8",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Убрать карточку «Сообщение агенту»",
       "why": "Убрать карточку «Сообщение агенту»"
     },
@@ -1011,8 +1011,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 23/26
-- Revision: 243
+- Progress: 24/26
+- Revision: 245
 
 ## Objective
 
@@ -1148,7 +1148,7 @@ Digest: Удаление проекта с диска убирает тред и
 
 ### R8 — Без карточки «Сообщение агенту» (fixes, OPEN)
 
-- [TODO] T017 — Убрать карточку «Сообщение агенту» (work)
+- [DONE] T017 — Убрать карточку «Сообщение агенту» (work)
   - Commit: fix: remove the agent message card from the session screen
   - Files: product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.css, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md
 - [TODO] DOCS-R8 — Reconcile project documentation and write the round digest (docs)

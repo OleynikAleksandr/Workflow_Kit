@@ -108,8 +108,7 @@
 }
 
 .choice textarea,
-.sv-form textarea,
-.sv-message textarea {
+.sv-form textarea {
   width: 100%;
   margin-top: 8px;
   padding: 8px 10px;
@@ -321,10 +320,3 @@
   background: var(--teal);
 }
 
-.sv-message {
-  margin-top: 12px;
-}
-
-.sv-message .btn {
-  margin-top: 8px;
-}

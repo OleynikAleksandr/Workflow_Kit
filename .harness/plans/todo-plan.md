@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 331,
+  "revision": 333,
   "rounds": [
     {
       "digest": {
@@ -130,7 +130,19 @@
       "title": "Panel refresh and choice flicker"
     },
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "CrossReview.section entries: text clipped by clip() (FORWARD_MAX_CHARS)",
+          "session-view .sv-xr-entry p scrolls (max-height 320px)"
+        ],
+        "decisions": [
+          "The reviews section carries whole entry texts with the forwarding limit instead of 400-character summaries"
+        ],
+        "references": [
+          "docs/planning/M4-review-failures.md#13.7. Журнал ревью показывает ответы целиком (раунд R6)"
+        ],
+        "result": "The review journal on the review card shows whole answers of the reviewer and the agent (up to 12000 characters) and each entry scrolls inside a limited height."
+      },
       "id": "R6",
       "kind": "fixes",
       "status": "OPEN",
@@ -1200,7 +1212,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R6",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -1243,8 +1255,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 28/30
-- Revision: 331
+- Progress: 29/30
+- Revision: 333
 
 ## Objective
 
@@ -1397,7 +1409,7 @@ Digest: The panel window reloads itself once the service runs a new version, and
   - Commit: fix: show whole review answers in the journal
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/cross-review, product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.css, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/review.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test/review.test.ts
   - Fixes: T017
-- [TODO] DOCS-R6 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R6 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R6
   - Files: README.md, docs/architecture/OVERVIEW.md
   - Depends on: T023
@@ -1405,5 +1417,7 @@ Digest: The panel window reloads itself once the service runs a new version, and
   - Commit: chore: release 0.4.5
   - Files: package.json, package-lock.json, docs/evidence/M4-acceptance.md
   - Depends on: T023, DOCS-R6
+
+Digest: The review journal on the review card shows whole answers of the reviewer and the agent (up to 12000 characters) and each entry scrolls inside a limited height.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

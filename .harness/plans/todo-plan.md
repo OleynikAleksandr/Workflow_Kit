@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 317,
+  "revision": 319,
   "rounds": [
     {
       "digest": {
@@ -105,7 +105,7 @@
       },
       "id": "R4",
       "kind": "fixes",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Review card"
     }
   ],
@@ -149,7 +149,7 @@
         "text": "Ревьюер только читает и пишет замечания"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
@@ -976,7 +976,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: release 0.4.3",
-      "confirmation": null,
+      "confirmation": "Да, собирай 0.4.3",
       "context": [],
       "dependencies": [
         "T017",
@@ -993,7 +993,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R4",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Release 0.4.3",
       "why": "Release 0.4.3"
     }
@@ -1005,11 +1005,11 @@
 ## State
 
 - Scope: m4-plan-review (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 22/23
-- Revision: 317
+- Progress: 23/23
+- Revision: 319
 
 ## Objective
 
@@ -1114,7 +1114,7 @@ Digest: Fixes after the live review check: the ChatGPT reviewer starts at once (
 
 Digest: Review failures: Codex creates a reviewer while the ChatGPT app holds remote control (409 Conflict counts as the app owner; only a real login error refuses), and a failed review stays visible on the choice card with «Повторить ревью».
 
-### R4 — Review card (fixes, OPEN)
+### R4 — Review card (fixes, CLOSED)
 
 - [DONE] T017 — The review card asks for nothing (work)
   - Commit: fix: keep the review card informative without needless buttons
@@ -1128,7 +1128,7 @@ Digest: Review failures: Codex creates a reviewer while the ChatGPT app holds re
   - Commit: docs: reconcile documentation for R4
   - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md
   - Depends on: T017, T019
-- [TODO] T018 — Release 0.4.3 (delivery)
+- [DONE] T018 — Release 0.4.3 (delivery)
   - Commit: chore: release 0.4.3
   - Files: package.json, package-lock.json, docs/evidence/M4-acceptance.md
   - Depends on: T017, DOCS-R4

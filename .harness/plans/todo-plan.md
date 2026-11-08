@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 263,
+  "revision": 264,
   "rounds": [
     {
       "digest": {
@@ -209,7 +209,10 @@
       "После перезагрузки Mac ChatGPT активен без кнопки «Запустить демон»",
       "Новый релиз установлен, wfk doctor --installed — всё в порядке"
     ],
-    "acceptanceNote": null,
+    "acceptanceNote": {
+      "at": "2026-11-08T09:05:09.384Z",
+      "text": "Работает. Давай, наверное, закроем, если скоп имеет незакрытый план, и начнем дальнейшую работу в новом плане."
+    },
     "approval": {
       "at": "2026-11-07T18:32:59.445Z",
       "text": "Ну, тогда все в порядке. Раз при инсталляции Workflow Kit мы ставим эту службу в автоматический запуск при старте операционной системы, то я проблем не вижу. | Execution mode chosen by the user: sequential: Выбрал последовательный"
@@ -223,7 +226,7 @@
         "text": "Демон Codex запускается при каждом старте службы без согласий; при остановке службы не останавливается"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "ACCEPTED",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
@@ -1218,11 +1221,11 @@
 ## State
 
 - Scope: m3-autostart (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: ACCEPTED
 - Execution: sequential
 - Current task: none
 - Progress: 32/32
-- Revision: 263
+- Revision: 264
 
 ## Objective
 

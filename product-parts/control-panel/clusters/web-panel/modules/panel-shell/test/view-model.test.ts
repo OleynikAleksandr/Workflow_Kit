@@ -188,3 +188,13 @@ test('a reviewer session of either provider is not listed and not counted (M4 13
   const reverse = { ...state(), reviews: { projects: { p1: [{ mainKey: 'codex:t1', reviewerKey: 'claude:c1', status: 'agreed' }] } } };
   assert.deepEqual(projectTree(reverse, { now: NOW, collapsed: new Set() }).find((p) => p.id === 'p1')!.sessions.map((s) => s.key), ['codex:t1']);
 });
+
+test('the panel reloads once when the service version changes (M4 13.5)', async () => {
+  const { shouldReload } = await import('../src/reload.js');
+  assert.equal(shouldReload(null, '0.4.4', null), false, 'nothing loaded yet');
+  assert.equal(shouldReload('0.4.3', '0.4.3', null), false);
+  assert.equal(shouldReload('0.4.3', '0.4.4', null), true);
+  assert.equal(shouldReload('0.4.3', '0.4.4', '0.4.4'), false, 'no reload loop');
+  assert.equal(shouldReload('0.4.3', undefined, null), false);
+});
+

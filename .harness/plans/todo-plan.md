@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 320,
+  "revision": 322,
   "rounds": [
     {
       "digest": {
@@ -1021,14 +1021,18 @@
       "dependencies": [],
       "docsWaiver": null,
       "files": [
-        "product-parts/control-panel/clusters/web-panel/modules/panel-shell"
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/reload.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts"
       ],
       "fixes": "T019",
       "id": "T020",
       "iteration": 1,
       "kind": "work",
       "roundId": "R5",
-      "status": "TODO",
+      "status": "DONE",
       "title": "The panel reloads itself after a new release",
       "why": "The window kept the old panel code after 0.4.3 and still listed the reviewer"
     },
@@ -1126,8 +1130,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 23/27
-- Revision: 320
+- Progress: 24/27
+- Revision: 322
 
 ## Objective
 
@@ -1255,9 +1259,9 @@ Digest: The review asks nothing of the user: the review card says the review run
 
 ### R5 — Panel refresh and choice flicker (fixes, OPEN)
 
-- [TODO] T020 — The panel reloads itself after a new release (work)
+- [DONE] T020 — The panel reloads itself after a new release (work)
   - Commit: fix: reload the panel when the service version changes
-  - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell
+  - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/reload.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts
   - Fixes: T019
 - [TODO] T021 — The mode choice card does not flicker (work)
   - Commit: fix: keep the mode choice hidden until the review decides

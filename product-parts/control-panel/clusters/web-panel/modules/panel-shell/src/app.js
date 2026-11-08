@@ -1,6 +1,7 @@
 // @ts-check
 // Panel bootstrap: the sidebar and the main screen of the agreed layout, routes in location.hash,
 // polling of GET /api/state every 3 s; the service cards render inside «Настройки».
+import { shouldReload } from './reload.js';
 import { createActions } from './actions.js';
 import { createArchiveScreen } from './archive.js';
 import { installPressFeedback } from './press.js';
@@ -265,6 +266,29 @@ function render() {
   renderMain();
 }
 
+/** Service version of the first state this page saw (spec M4 13.5). */
+/** @type {string | null} */
+let loadedVersion = null;
+
+/** Reloads the page once when the service runs another version than the page was loaded for. */
+function reloadOnNewVersion(/** @type {string | undefined} */ current) {
+  if (!current) return;
+  loadedVersion ??= current;
+  let reloadedFor = null;
+  try {
+    reloadedFor = sessionStorage.getItem('wfk-reloaded-for');
+  } catch {
+    // No storage: the version check alone still prevents a loop.
+  }
+  if (!shouldReload(loadedVersion, current, reloadedFor)) return;
+  try {
+    sessionStorage.setItem('wfk-reloaded-for', current);
+  } catch {
+    // Ignored: see above.
+  }
+  location.reload();
+}
+
 /** Fetches the state once and renders it. */
 async function refresh() {
   const controller = new AbortController();
@@ -274,6 +298,7 @@ async function refresh() {
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     state = /** @type {Record<string, unknown>} */ (await response.json());
     linked = true;
+    reloadOnNewVersion(/** @type {{ version?: string }} */ (state['system'] ?? {}).version);
     renderCards(settings.cards, state);
   } catch {
     linked = false;

@@ -112,7 +112,13 @@ app-server на весь Mac, доверие к папке, одобрение �
   (файл треда держит приложение ChatGPT: «active writer») или демон не запущен —
   тред ждёт в `<state>/sessions/codex-deleting.json` (`{ threadId, project, since }`);
   `retryDeletes()` повторяет `thread/delete`, удалённые и исчезнувшие уходят из очереди,
-  через `DELETE_KEEP_MS` (7 дней) — тоже, со строкой в журнале.
+  через `DELETE_KEEP_MS` (7 дней) — тоже, со строкой в журнале. Удалённый тред уходит
+  и из каталога приложения ChatGPT (`src/app-catalog.ts`, раунд R7):
+  `<CODEX_HOME>/sqlite/codex.db`, таблицы `CATALOG_TABLES` (`local_thread_catalog`,
+  `local_thread_catalog_scan_entries`, `thread_timeline_ledger`); перед записью — копия
+  `VACUUM INTO` в `<backups>/codex.db-<время>/codex.db` (`CATALOG_BACKUPS_KEPT` = 5),
+  после — проверка; нет базы или записей — запись не делается; ошибка — в журнал.
+  Список ChatGPT обновляется после перезапуска приложения.
 - **Автозапуск** (`autostart()`, скоуп M3-autostart): при старте службы,
   без подтверждения — перечитать путь к codex; codex не найден или Windows —
   `null`; демон подключён или подключается — `null`; иначе тот же запуск,

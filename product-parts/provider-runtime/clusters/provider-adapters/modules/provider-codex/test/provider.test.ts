@@ -6,6 +6,7 @@ import { after, before, test } from 'node:test';
 import { installStructure, recordSessionStart } from '#kit-structure';
 import { providerSessionsFile } from '#provider-registry';
 import type { Project, Provider } from '#provider-registry';
+import { appCatalog as makeCatalog } from './catalog-fixture.ts';
 import { APP_OWNER_REASON, CONNECTING_REASON, KIT_HOOK_COMMAND, STALE_LOGIN_REASON, KIT_HOOK_COMMANDS, createCodexProvider } from '../src/index.ts';
 import type { FakeDaemon } from './fake-daemon.ts';
 import { fakeMachine } from './helpers.ts';
@@ -341,10 +342,13 @@ test('deleteSessions: a thread held by another writer waits and is deleted by re
   const [held, gone] = [threads[0]!, threads[1]!];
   const queueFile = path.join(path.dirname(providerSessionsFile(machine.dirs, 'codex')), 'codex-deleting.json');
   let local = await machine.daemon({ deleteRefuse: held, deleteGone: gone });
+  // The ChatGPT app catalog lists every thread; the deleted ones leave it, the held one stays.
+  const catalog = await makeCatalog(machine.codexHome, threads);
   try {
     const own = createCodexProvider(machine.context());
     const deleted = await own.deleteSessions!(project);
     assert.deepEqual(new Set(deleted), new Set(threads.slice(1)), 'the gone thread counts as deleted');
+    assert.deepEqual(catalog.rows(), [held], 'deleted threads left the app catalog');
     const asked = local.calls.filter((c) => c.method === 'thread/delete').map((c) => (c.params as { threadId: string }).threadId);
     assert.deepEqual(new Set(asked), new Set(threads));
     const queued = JSON.parse(await readFile(queueFile, 'utf8')) as { threads: Array<{ threadId: string; project: string }> };
@@ -353,6 +357,7 @@ test('deleteSessions: a thread held by another writer waits and is deleted by re
     await local.close();
     local = await machine.daemon();
     assert.deepEqual(await own.retryDeletes!(), [held]);
+    assert.deepEqual(catalog.rows(), []);
     assert.deepEqual((JSON.parse(await readFile(queueFile, 'utf8')) as { threads: unknown[] }).threads, []);
     // Without a daemon every thread waits; a thread that waited 7 days is dropped.
     const stopped = createCodexProvider(machine.context(), { isAlive: () => false });

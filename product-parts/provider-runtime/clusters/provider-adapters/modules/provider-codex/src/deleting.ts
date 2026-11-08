@@ -1,10 +1,12 @@
 // Deletion of ChatGPT threads when a project is deleted from disk (spec M3-autostart sections 7
 // and 8). thread/delete is refused while another app-server writes the thread (the ChatGPT app
 // with that chat open): such a thread waits in <state>/sessions/codex-deleting.json and is tried
-// again (every minute and at the start of the service) until it is gone or 7 days passed.
+// again (every minute and at the start of the service) until it is gone or 7 days passed. A thread
+// gone leaves the ChatGPT app catalog too (app-catalog.ts).
 import path from 'node:path';
 import { readJsonFile, writeJsonAtomic } from '#data-store';
 import { providerSessionsFile } from '#provider-registry';
+import { forgetInAppCatalog } from './app-catalog.ts';
 import type { CodexRuntime } from './runtime.ts';
 
 /** A thread that could not be deleted yet. */
@@ -72,6 +74,17 @@ export function createDeleteQueue(rt: CodexRuntime): DeleteQueue {
     return { gone, refused };
   }
 
+  /** A thread gone from Codex leaves the app catalog too (section 9); a failure is only logged. */
+  async function forgetInApp(ids: readonly string[]): Promise<void> {
+    if (ids.length === 0) return;
+    try {
+      const removed = await forgetInAppCatalog({ codexHome: rt.paths.home, backupsDir: context.dirs.backupsDir, now: context.now(), threadIds: ids });
+      if (removed > 0) context.log(`codex: removed ${removed} row(s) of ${ids.length} deleted thread(s) from the ChatGPT app catalog`);
+    } catch (error) {
+      context.log(`codex: the ChatGPT app catalog was not cleaned: ${message(error)}`);
+    }
+  }
+
   return {
     pending: read,
     deleteThreads: (threadIds, project) =>
@@ -88,6 +101,7 @@ export function createDeleteQueue(rt: CodexRuntime): DeleteQueue {
           await writeJsonAtomic(file, { version: 1, threads: waiting });
         }
         if (gone.length > 0) context.log(`codex: deleted ${gone.length} thread(s) of ${project}`);
+        await forgetInApp(gone);
         return gone;
       }),
     retry: () =>
@@ -101,6 +115,7 @@ export function createDeleteQueue(rt: CodexRuntime): DeleteQueue {
         const { gone } = await attempt(live.map((t) => t.threadId)).catch(() => ({ gone: [] as string[] }));
         for (const t of live.filter((x) => gone.includes(x.threadId))) context.log(`codex: deleted the waiting thread ${t.threadId} of ${t.project}`);
         await writeJsonAtomic(file, { version: 1, threads: live.filter((t) => !gone.includes(t.threadId)) });
+        await forgetInApp(gone);
         return gone;
       }),
   };

@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": "T014",
+  "currentTaskId": null,
   "lastClosed": {
     "closedAt": "2026-11-07T18:15:01.786Z",
     "scopeId": "m3-fixes"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 235,
+  "revision": 236,
   "rounds": [
     {
       "digest": {
@@ -809,7 +809,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R7",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "title": "Тред уходит из каталога приложения ChatGPT",
       "why": "Тред уходит из каталога приложения ChatGPT"
     },
@@ -912,9 +912,9 @@
 - Scope: m3-autostart (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: T014
-- Progress: 19/23
-- Revision: 235
+- Current task: none
+- Progress: 20/23
+- Revision: 236
 
 ## Objective
 
@@ -1030,7 +1030,7 @@ Digest: Тред ChatGPT, который приложение держит от�
 
 ### R7 — Следы проекта в ChatGPT и Claude (fixes, OPEN)
 
-- [IN_PROGRESS] T014 — Тред уходит из каталога приложения ChatGPT (work)
+- [DONE] T014 — Тред уходит из каталога приложения ChatGPT (work)
   - Commit: feat: remove deleted threads from the ChatGPT app catalog
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/app-catalog.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/deleting.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/app-catalog.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/catalog-fixture.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md
   - Fixes: T012

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 335,
+  "revision": 336,
   "rounds": [
     {
       "digest": {
@@ -147,6 +147,13 @@
       "kind": "fixes",
       "status": "CLOSED",
       "title": "Review journal texts"
+    },
+    {
+      "digest": null,
+      "id": "R7",
+      "kind": "fixes",
+      "status": "OPEN",
+      "title": "Activity line"
     }
   ],
   "schema": "harness-workflow-plan/1",
@@ -189,7 +196,7 @@
         "text": "Ревьюер только читает и пишет замечания"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "IN_PROGRESS",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
@@ -1243,6 +1250,90 @@
       "status": "DONE",
       "title": "Release 0.4.5",
       "why": "Release 0.4.5"
+    },
+    {
+      "acceptance": [
+        "During a review the activity line shows the review step (describes the plan, the reviewer starts or checks, the agent answers) with the round",
+        "«ждёт вашего решения в панели» only for holds that wait for the user",
+        "A working agent shows the autopilot label only when that decision started the turn",
+        "Tests cover the activity model"
+      ],
+      "checks": [],
+      "commitMessage": "fix: describe the review and real waits in the activity line",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M4-review-failures.md",
+          "required": true
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/control-panel/clusters/web-panel/modules/session-view"
+      ],
+      "fixes": "T012",
+      "id": "T025",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R7",
+      "status": "TODO",
+      "title": "The activity line tells what really happens",
+      "why": "During the review the activity line said the agent waited for the user and kept a stale autopilot label"
+    },
+    {
+      "acceptance": [
+        "Project-wide documents describe the round result",
+        "The round digest records result, decisions, contracts and references"
+      ],
+      "checks": [],
+      "commitMessage": "docs: reconcile documentation for R7",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T025"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/architecture/OVERVIEW.md"
+      ],
+      "fixes": null,
+      "id": "DOCS-R7",
+      "iteration": 1,
+      "kind": "docs",
+      "roundId": "R7",
+      "status": "TODO",
+      "title": "Reconcile project documentation and write the round digest",
+      "why": "Keep the project context current for the next agent and close the round."
+    },
+    {
+      "acceptance": [
+        "Version 0.4.6 is installed and wfk doctor --installed is ok",
+        "The activity line during a review tells the review step"
+      ],
+      "checks": [],
+      "commitMessage": "chore: release 0.4.6",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T025",
+        "DOCS-R7"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "package.json",
+        "package-lock.json",
+        "docs/evidence/M4-acceptance.md"
+      ],
+      "fixes": null,
+      "id": "T026",
+      "iteration": 1,
+      "kind": "delivery",
+      "roundId": "R7",
+      "status": "TODO",
+      "title": "Release 0.4.6",
+      "why": "Release 0.4.6"
     }
   ]
 }
@@ -1252,11 +1343,11 @@
 ## State
 
 - Scope: m4-plan-review (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 30/30
-- Revision: 335
+- Progress: 30/33
+- Revision: 336
 
 ## Objective
 
@@ -1419,5 +1510,20 @@ Digest: The panel window reloads itself once the service runs a new version, and
   - Depends on: T023, DOCS-R6
 
 Digest: The review journal on the review card shows whole answers of the reviewer and the agent (up to 12000 characters) and each entry scrolls inside a limited height.
+
+### R7 — Activity line (fixes, OPEN)
+
+- [TODO] T025 — The activity line tells what really happens (work)
+  - Commit: fix: describe the review and real waits in the activity line
+  - Files: product-parts/control-panel/clusters/web-panel/modules/session-view
+  - Fixes: T012
+- [TODO] DOCS-R7 — Reconcile project documentation and write the round digest (docs)
+  - Commit: docs: reconcile documentation for R7
+  - Files: README.md, docs/architecture/OVERVIEW.md
+  - Depends on: T025
+- [TODO] T026 — Release 0.4.6 (delivery)
+  - Commit: chore: release 0.4.6
+  - Files: package.json, package-lock.json, docs/evidence/M4-acceptance.md
+  - Depends on: T025, DOCS-R7
 
 State changes only through `scripts/workflow` commands. History lives in Git.

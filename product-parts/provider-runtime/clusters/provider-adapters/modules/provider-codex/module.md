@@ -210,6 +210,12 @@ app-server на весь Mac, доверие к папке, одобрение �
   Запись `{ threadId, projectId, projectPath, title,
   createdAt, model? }` добавляется в `sessions/codex.json`
   (`providerSessionsFile`, атомарно).
+  С `detached` (ревьюер M4, раздел 11.1) createSession после `turn/start`
+  только отписывается и сразу возвращает сессию: не ждёт `turn/completed`,
+  не опрашивает `thread/loaded/list` и не архивирует. Ход продолжается в
+  демоне (его держит на `Stop` само ревью, поэтому ожидание длилось
+  180 + 90 с). Журнал: `codex: thread <id> detached, its first turn goes on
+  in the daemon`; `note` — `BUSY_NOTE` (чат занят первым ходом).
 - **listSessions**: записи панели этого проекта (`origin: 'panel'`) +
   журнал хука `readHookSessions(project, 'codex')` (`origin: 'hook'`),
   слияние по id треда (= `session_id` хука); название — из

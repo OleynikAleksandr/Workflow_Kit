@@ -140,7 +140,7 @@ stripping).
   `lateReviewDecider()` — решатель ревью для автопилота (подключается после
   создания), `wireCrossReview({ router, state, channel, messages, projects,
   providers, workflow, toggles, titles, log })` — `createCrossReview`
-  (ревьюер — `createSession` провайдера с первым сообщением, поиск по
+  (ревьюер — `createSession` провайдера с первым сообщением и `detached`, поиск по
   `listSessions`: `remoteId` или `localId`; сообщения — через будящий канал с
   источником `review`; открытое предложение — `workflow.proposal` без
   `execution`), слушатель `channel.onStop`, маршруты ревью; `toggleLock` —

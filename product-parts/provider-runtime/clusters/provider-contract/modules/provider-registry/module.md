@@ -19,8 +19,10 @@
   `previewTrust(project)`, `grantTrust(project, token, choices?)`,
   `trust(project)`,
   `hooks(project)`, `approveHooks?(project, { command, hash })`,
-  `listSessions(project)`, `createSession(project, { title, firstMessage? })`
-  (`firstMessage` — первое сообщение агенту вместо служебного хода; веха 2),
+  `listSessions(project)`, `createSession(project, { title, firstMessage?, detached? })`
+  (`firstMessage` — первое сообщение агенту вместо служебного хода; веха 2;
+  `detached` — вернуть сессию, как только ход начался, не дожидаясь его; ревьюер
+  M4, раздел 11.1),
   `resumeSession?(project, sid)`, `stopSession?(project, sid)`,
   `renameSession?(project, sid, name) → RenameResult` (`synced`, `note?`:
   имя в приложении провайдера, если это безопасно сейчас; веха 2),

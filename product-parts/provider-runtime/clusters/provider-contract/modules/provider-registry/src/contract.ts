@@ -235,8 +235,12 @@ export interface Provider {
   approveHooks?(project: Project, expected: { command: string; hash: string }): Promise<HookState>;
   /** The final list: hook journal (readHookSessions) plus the provider's own records. */
   listSessions(project: Project): Promise<SessionInfo[]>;
-  /** firstMessage: the agent's first instruction instead of the provider's service turn. */
-  createSession(project: Project, opts: { title: string; firstMessage?: string }): Promise<SessionInfo>;
+  /**
+   * firstMessage: the agent's first instruction instead of the provider's service turn. detached:
+   * return as soon as that turn has started, without waiting for it (a cross reviewer, whose turn
+   * the service itself holds); a provider that never waits ignores it.
+   */
+  createSession(project: Project, opts: { title: string; firstMessage?: string; detached?: boolean }): Promise<SessionInfo>;
   resumeSession?(project: Project, sessionId: string): Promise<SessionInfo>;
   stopSession?(project: Project, sessionId: string): Promise<void>;
   /**

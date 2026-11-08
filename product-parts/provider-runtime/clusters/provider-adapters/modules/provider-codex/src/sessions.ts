@@ -54,6 +54,9 @@ export const UNLOAD_METHODS = ['thread/archive', 'thread/unarchive'] as const;
 /** Note of a session whose thread the daemon still holds (no link until it is released). */
 export const RELEASING_NOTE = 'Codex ещё держит чат (до минуты после создания): ссылка появится, когда он его отпустит.';
 
+/** Note of a detached session: its first turn still runs in the daemon. */
+export const BUSY_NOTE = 'Чат занят первым ходом (ревью): ChatGPT откроет его, когда ход закончится.';
+
 /** Note of a session whose thread was still loaded when the wait ended. */
 export const HELD_NOTE = 'Codex мог ещё не отпустить чат: если ChatGPT скажет «Этот чат открыт в другом приложении», откройте его через минуту.';
 
@@ -88,7 +91,7 @@ function parseRecords(value: unknown): CodexRecord[] {
 /** Session methods of the provider. */
 export interface SessionParts {
   listSessions(project: Project): Promise<SessionInfo[]>;
-  createSession(project: Project, opts: { title: string; firstMessage?: string }): Promise<SessionInfo>;
+  createSession(project: Project, opts: { title: string; firstMessage?: string; detached?: boolean }): Promise<SessionInfo>;
   /** Panel records (tests and removeBlockers use them). */
   records(): Promise<CodexRecord[]>;
   /** thread/name/set, only while the daemon has the thread loaded (an open chat or a turn). */
@@ -198,6 +201,7 @@ export function createSessionParts(rt: CodexRuntime, options: SessionOptions = {
   /**
    * thread/start, name, service turn, thread/unsubscribe, then waits until the daemon unloads the
    * thread. The thread id goes to `started` (and to the releasing list) as soon as it is known.
+   * detached: no waits at all — the turn goes on in the daemon after the unsubscribe (M4 11.1).
    */
   const startThread = async (
     session: RpcSession,
@@ -205,6 +209,7 @@ export function createSessionParts(rt: CodexRuntime, options: SessionOptions = {
     title: string,
     started: { id: string | null },
     firstMessage: string | undefined,
+    detached: boolean,
   ): Promise<{ threadId: string; model?: string; held: boolean }> => {
     const answer = await session.request<{ thread?: { id?: unknown }; model?: unknown }>('thread/start', { cwd: project.path });
     const threadId = answer?.thread?.id;
@@ -215,7 +220,7 @@ export function createSessionParts(rt: CodexRuntime, options: SessionOptions = {
     try {
       await session.request('thread/name/set', { threadId, name: title });
       await session.request('turn/start', { threadId, input: [{ type: 'text', text: firstMessage ?? serviceTurnText(project.name) }] });
-      completed = (await session.waitForNotification('turn/completed', firstMessage ? firstTurnWaitMs : turnWaitMs)) !== undefined;
+      if (!detached) completed = (await session.waitForNotification('turn/completed', firstMessage ? firstTurnWaitMs : turnWaitMs)) !== undefined;
     } finally {
       // While this connection stays subscribed the daemon keeps the thread loaded and ChatGPT
       // says the chat is open in another app (D1): release it before the connection closes.
@@ -223,6 +228,10 @@ export function createSessionParts(rt: CodexRuntime, options: SessionOptions = {
         (reply) => context.log(`codex: thread/unsubscribe ${threadId}: ${unsubscribeStatus(reply)}`),
         (error: unknown) => context.log(`codex: thread/unsubscribe ${threadId} failed: ${error instanceof Error ? error.message : String(error)}`),
       );
+    }
+    if (detached) {
+      context.log(`codex: thread ${threadId} detached, its first turn goes on in the daemon`);
+      return { threadId, ...(typeof answer.model === 'string' ? { model: answer.model } : {}), held: true };
     }
     // The daemon unloads an idle thread only about a minute after the unsubscribe; until then
     // ChatGPT cannot open it, so the session is handed out only once the thread is unloaded. A
@@ -322,10 +331,11 @@ export function createSessionParts(rt: CodexRuntime, options: SessionOptions = {
         throw new ProviderError('not-trusted', 'Папка не доверена Codex', { hint: 'Сначала «Доверять» папке в Codex: иначе хук Kit не сработает.' });
       }
       const started: { id: string | null } = { id: null };
+      const detached = opts.detached === true;
       try {
         const created = await rt.withDaemon(
-          (session) => startThread(session, project, opts.title, started, opts.firstMessage),
-          (opts.firstMessage ? firstTurnWaitMs : turnWaitMs) + UNSUBSCRIBE_TIMEOUT_MS + releaseWaitMs + 30_000,
+          (session) => startThread(session, project, opts.title, started, opts.firstMessage, detached),
+          detached ? UNSUBSCRIBE_TIMEOUT_MS + 30_000 : (opts.firstMessage ? firstTurnWaitMs : turnWaitMs) + UNSUBSCRIBE_TIMEOUT_MS + releaseWaitMs + 30_000,
         );
         const record: CodexRecord = {
           threadId: created.threadId,
@@ -349,7 +359,8 @@ export function createSessionParts(rt: CodexRuntime, options: SessionOptions = {
           cwd: project.path,
         };
         if (record.model) info.model = record.model;
-        if (created.held) info.note = HELD_NOTE;
+        if (detached) info.note = BUSY_NOTE;
+        else if (created.held) info.note = HELD_NOTE;
         return info;
       } finally {
         // Dropped only after the record is written, so the session never vanishes from the list.

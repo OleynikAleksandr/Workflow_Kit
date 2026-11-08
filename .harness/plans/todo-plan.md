@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 282,
+  "revision": 284,
   "rounds": [
     {
       "digest": {
@@ -400,7 +400,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reviewer session starts without waiting for its turn",
       "why": "A ChatGPT reviewer took 4.5 minutes to start: createSession waited for a turn the review itself holds"
     },
@@ -514,8 +514,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 7/11
-- Revision: 282
+- Progress: 8/11
+- Revision: 284
 
 ## Objective
 
@@ -565,7 +565,7 @@ Digest: Перекрёстное ревью плана: при включённ�
 
 ### R2 — Fixes after the live review check (fixes, OPEN)
 
-- [TODO] T007 — Reviewer session starts without waiting for its turn (work)
+- [DONE] T007 — Reviewer session starts without waiting for its turn (work)
   - Commit: fix: start the reviewer session without waiting for its turn
   - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/release.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/review.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test/review.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/review-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md
   - Fixes: T003

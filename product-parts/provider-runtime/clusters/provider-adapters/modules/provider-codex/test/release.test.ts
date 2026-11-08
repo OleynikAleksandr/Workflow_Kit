@@ -5,6 +5,7 @@ import { after, before, test } from 'node:test';
 import { providerSessionsFile } from '#provider-registry';
 import type { Project } from '#provider-registry';
 import { HELD_NOTE, RELEASING_NOTE, createCodexProvider } from '../src/index.ts';
+import { BUSY_NOTE } from '../src/sessions.ts';
 import { createRpcSession, initializeSession } from '../src/rpc.ts';
 import { connectUnixWebSocket } from '../src/ws.ts';
 import type { FakeDaemon, FakeDaemonOptions } from './fake-daemon.ts';
@@ -155,4 +156,22 @@ test('createSession with a first message starts the turn with it instead of the 
   await provider.createSession(project, { title: 'Склад', firstMessage: 'Проект создан. Прочитай AGENTS.md' });
   const turn = daemon.calls.find((c) => c.method === 'turn/start');
   assert.deepEqual((turn?.params as { input: unknown }).input, [{ type: 'text', text: 'Проект создан. Прочитай AGENTS.md' }]);
+});
+
+test('a detached session returns right after turn/start: no wait for the turn or the release (M4 11.1)', async () => {
+  const daemon = await machine.daemon({ threadId: 'thread-detached', silentTurn: true, idleUnloadPolls: 1_000 });
+  const log: string[] = [];
+  // Waits that would take a minute each if the provider waited at all.
+  const provider = createCodexProvider(machine.context({ log: (line: string) => log.push(line) }), { firstTurnWaitMs: 60_000, releaseWaitMs: 60_000, daemonTtlMs: 0, releasePollMs: 10 });
+  await provider.refresh!();
+  const started = Date.now();
+  const session = await provider.createSession(project, { title: 'Ревью', firstMessage: 'Проверь план', detached: true });
+  assert.ok(Date.now() - started < 5_000, 'returned at once');
+  assert.equal(session.localId, 'thread-detached');
+  assert.equal(session.note, BUSY_NOTE);
+  const methods = daemon.calls.map((c) => c.method).filter((m) => m.startsWith('thread/') || m === 'turn/start');
+  assert.deepEqual(methods, ['thread/start', 'thread/name/set', 'turn/start', 'thread/unsubscribe'], 'no loaded/list polls, never archived');
+  assert.ok(log.includes('codex: thread thread-detached detached, its first turn goes on in the daemon'), log.join('\n'));
+  const saved = JSON.parse(await readFile(providerSessionsFile(machine.dirs, 'codex'), 'utf8')) as { sessions: Array<{ threadId: string }> };
+  assert.ok(saved.sessions.some((s) => s.threadId === 'thread-detached'), 'the record is written');
 });

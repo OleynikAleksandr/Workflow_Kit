@@ -26,7 +26,7 @@ const SUMMARY_CHARS = 400;
 export interface CrossReviewDeps {
   listProjects(): Promise<Array<{ id: string; name: string; path: string }>>;
   /** Starts the reviewer session like «Новая сессия» with a first message. */
-  createSession(projectId: string, provider: ReviewProvider, opts: { title: string; firstMessage: string }): Promise<{ localId: string | null; remoteId: string | null }>;
+  createSession(projectId: string, provider: ReviewProvider, opts: { title: string; firstMessage: string; detached: true }): Promise<{ localId: string | null; remoteId: string | null }>;
   /** Channel key of a created session once its hooks are known, else null. */
   resolveReviewer(projectId: string, provider: ReviewProvider, ref: { localId: string | null; remoteId: string | null }): Promise<string | null>;
   /** Queues a message for a session (and wakes it when the provider can). */
@@ -187,6 +187,8 @@ export function createCrossReview(deps: CrossReviewDeps): CrossReview {
         const ref = await deps.createSession(projectId, review.reviewerProvider, {
           title: review.reviewerTitle,
           firstMessage: reviewerBrief({ projectName: project?.name ?? projectId, projectPath: project?.path ?? '', mainProvider, mainTitle }),
+          // The review itself holds the reviewer's first turn: never wait for it (M4 11.1).
+          detached: true,
         });
         if (review.status !== 'starting') return;
         review.reviewerRef = ref;

@@ -13,7 +13,7 @@ async function setup(over: Partial<CrossReviewDeps> = {}) {
   const folder = await mkdtemp(path.join(tmpdir(), 'wfk-review-'));
   const sent: Array<{ key: string; text: string }> = [];
   const woken: string[] = [];
-  const created: Array<{ provider: ReviewProvider; title: string; firstMessage: string }> = [];
+  const created: Array<{ provider: ReviewProvider; title: string; firstMessage: string; detached: true }> = [];
   let toggle = true;
   let proposal: { generation: number; scopeId: string | null } | null = { generation: 1, scopeId: 's1' };
   const deps: CrossReviewDeps = {
@@ -59,6 +59,7 @@ test('a proposal with the toggle on starts a ChatGPT reviewer and the ping-pong 
   assert.equal(t.created[0]!.provider, 'codex');
   assert.equal(t.created[0]!.title, 'План склада — ревью');
   assert.match(t.created[0]!.firstMessage, /ревьюер плана/);
+  assert.equal(t.created[0]!.detached, true, 'the reviewer is never waited for (M4 11.1)');
   assert.ok(t.review.isReviewer('codex:t1'));
   t.stop('codex:t1', '1. Нет критериев.\nREVIEW: CHANGES', 'user', []);
   await t.settle();

@@ -12,7 +12,8 @@ ChatGPT — Claude) и пересылает законченные ходы ст
 ## Публичный интерфейс (`src/index.ts`)
 
 - `createCrossReview(deps) → CrossReview`. Зависимости `CrossReviewDeps`: `listProjects`,
-  `createSession(projectId, provider, { title, firstMessage })` (как «Новая сессия»),
+  `createSession(projectId, provider, { title, firstMessage, detached: true })` (как «Новая сессия»,
+  но без ожидания первого хода: его держит само ревью),
   `resolveReviewer(projectId, provider, ref)` (ключ канала созданной сессии: у Claude id хука
   известен не сразу), `enqueue(key, text, projectId)` (очередь и пробуждение), `wake(key)`
   (переспросить удержанный `Stop`), `toggle(projectId, key)`, `proposal(projectId)` (открытое

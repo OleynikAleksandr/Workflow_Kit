@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 300,
+  "revision": 301,
   "rounds": [
     {
       "digest": {
@@ -65,6 +65,13 @@
       "kind": "fixes",
       "status": "CLOSED",
       "title": "Fixes after the live review check"
+    },
+    {
+      "digest": null,
+      "id": "R3",
+      "kind": "fixes",
+      "status": "OPEN",
+      "title": "Review failures"
     }
   ],
   "schema": "harness-workflow-plan/1",
@@ -107,7 +114,7 @@
         "text": "Ревьюер только читает и пишет замечания"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "IN_PROGRESS",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
@@ -697,6 +704,122 @@
       "status": "DONE",
       "title": "Release 0.4.1",
       "why": "Release 0.4.1"
+    },
+    {
+      "acceptance": [
+        "A remote-control warning with 409 Conflict marks remote control as held by the ChatGPT app",
+        "createSession refuses codex-login only when the daemon log has a login error",
+        "Tests cover both"
+      ],
+      "checks": [],
+      "commitMessage": "fix: refuse a Codex session only on a real login problem",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M4-plan-review.md",
+          "heading": "13. Ревью не должно молча пропадать (раунд R3)",
+          "required": true
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex"
+      ],
+      "fixes": "T007",
+      "id": "T014",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R3",
+      "status": "TODO",
+      "title": "Codex creates sessions while the ChatGPT app holds remote control",
+      "why": "A reviewer was refused with a false login error while the daemon worked"
+    },
+    {
+      "acceptance": [
+        "While the proposal is open and the session's review of it failed, the choice card shows the reason and «Повторить ревью»",
+        "The retry route starts the review again for the same scope; 409 review-not-failed otherwise",
+        "Tests cover the model, the retry and the route"
+      ],
+      "checks": [],
+      "commitMessage": "fix: show a failed plan review and let the user retry it",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M4-plan-review.md",
+          "heading": "13. Ревью не должно молча пропадать (раунд R3)",
+          "required": true
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view"
+      ],
+      "fixes": "T008",
+      "id": "T015",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R3",
+      "status": "TODO",
+      "title": "A failed review is visible and can be retried",
+      "why": "The failed review vanished and the plan went on without the user knowing"
+    },
+    {
+      "acceptance": [
+        "Project-wide documents describe the round result",
+        "The round digest records result, decisions, contracts and references"
+      ],
+      "checks": [],
+      "commitMessage": "docs: reconcile documentation for R3",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T014",
+        "T015"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/architecture/OVERVIEW.md"
+      ],
+      "fixes": null,
+      "id": "DOCS-R3",
+      "iteration": 1,
+      "kind": "docs",
+      "roundId": "R3",
+      "status": "TODO",
+      "title": "Reconcile project documentation and write the round digest",
+      "why": "Keep the project context current for the next agent and close the round."
+    },
+    {
+      "acceptance": [
+        "Version 0.4.2 is installed and wfk doctor --installed is ok",
+        "A live review starts its ChatGPT reviewer while the ChatGPT app holds remote control"
+      ],
+      "checks": [],
+      "commitMessage": "chore: release 0.4.2",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T015",
+        "DOCS-R3"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "package.json",
+        "package-lock.json",
+        "docs/evidence/M4-acceptance.md"
+      ],
+      "fixes": null,
+      "id": "T016",
+      "iteration": 1,
+      "kind": "delivery",
+      "roundId": "R3",
+      "status": "TODO",
+      "title": "Release 0.4.2",
+      "why": "Release 0.4.2"
     }
   ]
 }
@@ -706,11 +829,11 @@
 ## State
 
 - Scope: m4-plan-review (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 15/15
-- Revision: 300
+- Progress: 15/19
+- Revision: 301
 
 ## Objective
 
@@ -793,5 +916,24 @@ Digest: Перекрёстное ревью плана: при включённ�
   - Depends on: T008, DOCS-R2
 
 Digest: Fixes after the live review check: the ChatGPT reviewer starts at once (detached createSession), the main agent describes the plan for the reviewer (preparing), the mode choice waits for the review, and the always-on toggle gives way to the plan question asked by the agent (wfk session plan) or at a proposal without a decision.
+
+### R3 — Review failures (fixes, OPEN)
+
+- [TODO] T014 — Codex creates sessions while the ChatGPT app holds remote control (work)
+  - Commit: fix: refuse a Codex session only on a real login problem
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex
+  - Fixes: T007
+- [TODO] T015 — A failed review is visible and can be retried (work)
+  - Commit: fix: show a failed plan review and let the user retry it
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/cross-review, product-parts/control-panel/clusters/web-panel/modules/session-view
+  - Fixes: T008
+- [TODO] DOCS-R3 — Reconcile project documentation and write the round digest (docs)
+  - Commit: docs: reconcile documentation for R3
+  - Files: README.md, docs/architecture/OVERVIEW.md
+  - Depends on: T014, T015
+- [TODO] T016 — Release 0.4.2 (delivery)
+  - Commit: chore: release 0.4.2
+  - Files: package.json, package-lock.json, docs/evidence/M4-acceptance.md
+  - Depends on: T015, DOCS-R3
 
 State changes only through `scripts/workflow` commands. History lives in Git.

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 301,
+  "revision": 303,
   "rounds": [
     {
       "digest": {
@@ -724,14 +724,19 @@
       "dependencies": [],
       "docsWaiver": null,
       "files": [
-        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex"
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/codex-files.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/runtime.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/sessions.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts"
       ],
       "fixes": "T007",
       "id": "T014",
       "iteration": 1,
       "kind": "work",
       "roundId": "R3",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Codex creates sessions while the ChatGPT app holds remote control",
       "why": "A reviewer was refused with a false login error while the daemon worked"
     },
@@ -832,8 +837,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 15/19
-- Revision: 301
+- Progress: 16/19
+- Revision: 303
 
 ## Objective
 
@@ -919,9 +924,9 @@ Digest: Fixes after the live review check: the ChatGPT reviewer starts at once (
 
 ### R3 — Review failures (fixes, OPEN)
 
-- [TODO] T014 — Codex creates sessions while the ChatGPT app holds remote control (work)
+- [DONE] T014 — Codex creates sessions while the ChatGPT app holds remote control (work)
   - Commit: fix: refuse a Codex session only on a real login problem
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/codex-files.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/runtime.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts
   - Fixes: T007
 - [TODO] T015 — A failed review is visible and can be retried (work)
   - Commit: fix: show a failed plan review and let the user retry it

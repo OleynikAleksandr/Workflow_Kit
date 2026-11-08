@@ -99,12 +99,16 @@ app-server на весь Mac, доверие к папке, одобрение �
   же установки, и сервер не пускает демон (`409 … Remote app server already
   online`). Зонд при несоединённом демоне читает последнее предупреждение
   `remote_control` процесса демона в `<CODEX_HOME>/logs_<N>.sqlite` (новейший,
-  только чтение, `node:sqlite`; `lastRemoteWarning`, `ALREADY_ONLINE`) и ставит
+  только чтение, `node:sqlite`; `lastRemoteWarning`, `heldByApp`: текст
+  `ALREADY_ONLINE` или `409 Conflict` — демон пишет текст не при каждом 409,
+  M4 13.1) и ставит
   `DaemonState.remoteOwner = 'app'`. Это рабочее состояние: `ready`, подпись
   «через приложение ChatGPT», создание сессий доступно, действие демона
   выключено (`APP_OWNER_REASON`), не ошибка входа, автозапуск — `null`;
-  `createSession` при `errored` отказывает `codex-login` только без
-  `remoteOwner: 'app'` (раунд R3).
+  `createSession` отказывает `codex-login` только при настоящей ошибке входа:
+  соединение не `connected`, не `remoteOwner: 'app'` и в журнале демона есть
+  строка 401 / истёкшего токена (`tokenError`); само состояние удалённого
+  управления создание треда через локальный сокет не блокирует (M4 13.1).
 - **Удаление тредов** (`deleteSessions(project)`, M3-autostart R5): при удалении
   проекта с диска — `thread/delete { threadId }` каждому треду проекта (записи панели
   и журнал хуков, до удаления папки); ответ — удалённые id. `src/deleting.ts`

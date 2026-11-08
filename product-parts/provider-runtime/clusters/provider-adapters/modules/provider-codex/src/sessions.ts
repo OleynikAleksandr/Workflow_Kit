@@ -322,8 +322,9 @@ export function createSessionParts(rt: CodexRuntime, options: SessionOptions = {
       if (!daemon.running) {
         throw new ProviderError('daemon-not-running', 'Демон Codex не запущен', { hint: 'Нажмите «Запустить демон» в карточке Codex.' });
       }
-      // The ChatGPT app holding remote control is fine: the daemon still serves the panel (M3-autostart 4).
-      if (daemon.remoteControl === 'errored' && daemon.remoteOwner !== 'app') {
+      // Remote control does not matter for a thread made over the local socket (the ChatGPT app may
+      // hold it, M3-autostart 4): only a real login problem in the daemon's log refuses (M4 13.1).
+      if (daemon.remoteControl !== 'connected' && daemon.remoteOwner !== 'app' && daemon.tokenError !== null) {
         throw new ProviderError('codex-login', 'Демон Codex не подключён к ChatGPT', { hint: 'Выполните codex login в Терминале, затем «Запустить демон».' });
       }
       const config = await rt.readText(paths.config);

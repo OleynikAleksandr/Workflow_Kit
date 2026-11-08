@@ -194,6 +194,15 @@ export function parseSessionIndex(text: string): Map<string, string> {
 export const ALREADY_ONLINE = 'Remote app server already online';
 
 /**
+ * A remote-control warning that means another app-server (the ChatGPT app) holds remote control:
+ * the text of the refusal, or its HTTP 409 Conflict — the daemon does not log the text with every
+ * 409 (seen 2026-11-08, spec M4 section 13.1).
+ */
+export function heldByApp(warning: string | null): boolean {
+  return warning !== null && (warning.includes(ALREADY_ONLINE) || /\b409 Conflict\b/.test(warning));
+}
+
+/**
  * The newest remote-control warning that process <pid> wrote to Codex's log database
  * (<home>/logs_<N>.sqlite, the newest N), read only; null when there is none or it cannot be read.
  */

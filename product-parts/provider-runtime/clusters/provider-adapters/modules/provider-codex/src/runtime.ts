@@ -6,7 +6,7 @@ import path from 'node:path';
 import { cleanEnv } from '#process-supervisor';
 import { createTokenStore } from '#provider-registry';
 import type { ProviderContext, TokenStore } from '#provider-registry';
-import { ALREADY_ONLINE, cachedText, codexPaths, lastRemoteWarning, pidAlive, readDaemonPid, readTail, tokenErrorLine } from './codex-files.ts';
+import { cachedText, heldByApp, codexPaths, lastRemoteWarning, pidAlive, readDaemonPid, readTail, tokenErrorLine } from './codex-files.ts';
 import type { CodexPaths } from './codex-files.ts';
 import { createRpcSession, initializeSession } from './rpc.ts';
 import type { InitializeResult, RpcSession, RpcTransport } from './rpc.ts';
@@ -197,7 +197,7 @@ export function createCodexRuntime(context: ProviderContext, deps: CodexDeps = {
         if (state.remoteControl !== null) lastKnown = { pid, remoteControl: state.remoteControl, serverName: state.serverName };
         if (state.remoteControl !== 'connected') {
           state.tokenError = tokenErrorLine(await readTail(paths.daemonStderr, 64 * 1024));
-          if ((await lastRemoteWarning(paths.home, pid))?.includes(ALREADY_ONLINE)) state.remoteOwner = 'app';
+          if (heldByApp(await lastRemoteWarning(paths.home, pid))) state.remoteOwner = 'app';
         }
         if (state.tokenError && pidFile?.startMs) {
           const authAt = await stat(paths.auth).then((info) => info.mtimeMs).catch(() => null);

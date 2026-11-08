@@ -7,6 +7,7 @@ import { installStructure, recordSessionStart } from '#kit-structure';
 import { providerSessionsFile } from '#provider-registry';
 import type { Project, Provider } from '#provider-registry';
 import { appCatalog as makeCatalog } from './catalog-fixture.ts';
+import { heldByApp } from '../src/codex-files.ts';
 import { APP_OWNER_REASON, CONNECTING_REASON, KIT_HOOK_COMMAND, STALE_LOGIN_REASON, KIT_HOOK_COMMANDS, createCodexProvider } from '../src/index.ts';
 import type { FakeDaemon } from './fake-daemon.ts';
 import { fakeMachine } from './helpers.ts';
@@ -286,6 +287,24 @@ test('remote control held by the ChatGPT app (409 already online) is a working s
   } finally {
     await held.close();
     await rm(logs, { force: true });
+    daemon = await machine.daemon();
+  }
+});
+
+test('a bare 409 Conflict means the app holds remote control; an errored daemon without a login error still creates sessions (M4 13.1)', async () => {
+  assert.equal(heldByApp('failed to connect app-server remote control websocket: HTTP error: 409 Conflict, request-id: x'), true);
+  assert.equal(heldByApp('failed to connect: HTTP error: 401 Unauthorized'), false);
+  assert.equal(heldByApp(null), false);
+  const errored = await machine.daemon({ remoteControl: 'errored' });
+  try {
+    await writeFile(path.join(machine.codexHome, 'app-server-daemon', 'daemon.stderr.log'), 'WARN remote control: connection reset\n');
+    const local = createCodexProvider(machine.context());
+    await local.refresh!();
+    const session = await local.createSession(project, { title: 'No login problem' });
+    assert.ok(session.localId, 'remote control does not matter for a thread over the local socket');
+  } finally {
+    await errored.close();
+    await writeFile(path.join(machine.codexHome, 'app-server-daemon', 'daemon.stderr.log'), '');
     daemon = await machine.daemon();
   }
 });

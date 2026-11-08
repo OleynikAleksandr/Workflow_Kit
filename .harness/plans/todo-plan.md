@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 261,
+  "revision": 263,
   "rounds": [
     {
       "digest": {
@@ -199,7 +199,7 @@
       },
       "id": "R10",
       "kind": "fixes",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Щелчок по карточке Claude открывает Desktop"
     }
   ],
@@ -223,7 +223,7 @@
         "text": "Демон Codex запускается при каждом старте службы без согласий; при остановке службы не останавливается"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
@@ -1190,7 +1190,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: release 0.3.16",
-      "confirmation": null,
+      "confirmation": "Да, собери релиз",
       "context": [],
       "dependencies": [
         "DOCS-R10"
@@ -1206,7 +1206,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R10",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Релиз 0.3.16",
       "why": "Релиз 0.3.16"
     }
@@ -1218,11 +1218,11 @@
 ## State
 
 - Scope: m3-autostart (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 31/32
-- Revision: 261
+- Progress: 32/32
+- Revision: 263
 
 ## Objective
 
@@ -1388,7 +1388,7 @@ Digest: С экрана сессии убрана карточка «Сообщ�
 
 Digest: Новая сессия Claude, созданная из панели на Mac, открывается в Claude Desktop сама: панель сразу показывает экран сессии, а когда появилась ссылка Remote Control, служба открывает claude://claude.ai/code/session_<id> через POST /api/open-link.
 
-### R10 — Щелчок по карточке Claude открывает Desktop (fixes, OPEN)
+### R10 — Щелчок по карточке Claude открывает Desktop (fixes, CLOSED)
 
 - [DONE] T021 — Щелчок по карточке Claude открывает сессию в Claude Desktop (work)
   - Commit: feat: open a Claude session in Claude Desktop on a card click
@@ -1397,7 +1397,7 @@ Digest: Новая сессия Claude, созданная из панели н�
   - Commit: docs: reconcile documentation for R10
   - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md
   - Depends on: T021
-- [TODO] T022 — Релиз 0.3.16 (delivery)
+- [DONE] T022 — Релиз 0.3.16 (delivery)
   - Commit: chore: release 0.3.16
   - Files: package.json, package-lock.json, docs/evidence/M3-acceptance.md
   - Depends on: DOCS-R10

@@ -305,7 +305,7 @@ function projectReviews(state, projectId) {
  * @property {'main' | 'reviewer'} role the session is the reviewed one or the reviewer
  * @property {boolean} active
  * @property {string | null} note what the user needs to know while the review runs (M4 13.3)
- * @property {boolean} canOpenOther the other session can be opened now (not a ChatGPT reviewer mid-review)
+ * @property {boolean} canOpenOther the other session can be opened (only the main one, from the reviewer)
  * @property {string} status
  * @property {string} statusLabel
  * @property {string} turn who answers now ("" when finished)
@@ -338,15 +338,14 @@ export function crossReviewView(state, projectId, key) {
   const turn = { preparing: `агент (${mainName}) описывает план`, starting: `${reviewerName} запускается`, reviewing: `отвечает ревьюер (${reviewerName})`, answering: `отвечает агент (${mainName})` };
   const role = found.mainKey === key ? 'main' : 'reviewer';
   const active = found.active === true;
-  // M4 13.3: a ChatGPT reviewer's chat stays locked by the Codex daemon while the review runs.
-  const lockedChat = active && role === 'main' && found.reviewerProvider === 'codex';
   return {
     role,
     active,
     note: active && role === 'main'
-      ? `Ревью идёт само — нажимать ничего не нужно; замечания и ответы — в журнале ниже.${lockedChat ? ' Чат ревьюера в ChatGPT откроется после ревью: пока он занят, ChatGPT пишет «открыт в другом приложении».' : ''}`
+      ? 'Ревью идёт само — нажимать ничего не нужно; замечания и ответы — в журнале ниже.'
       : null,
-    canOpenOther: !lockedChat,
+    // M4 13.4: the reviewer's chat is never offered; a reviewer may still open the main session.
+    canOpenOther: role === 'reviewer',
     status: String(found.status),
     statusLabel: String(found.statusLabel ?? found.status),
     turn: turn[/** @type {'preparing' | 'starting' | 'reviewing' | 'answering'} */ (found.status)] ?? '',

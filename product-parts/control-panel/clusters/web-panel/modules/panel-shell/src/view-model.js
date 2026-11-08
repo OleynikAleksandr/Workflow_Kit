@@ -199,7 +199,6 @@ export function filterProjects(projects, query) {
  * @property {string | null} note
  * @property {string} createdAt
  * @property {string} state process state from the provider: running, stopped or unknown
- * @property {boolean} reviewer the session reviews the plan of another one (M4, label «Ревью»)
  */
 
 /**
@@ -252,6 +251,9 @@ export function projectTree(state, ui) {
         const title = record(record(titles[project.id])[key]);
         // «Убрать из списка» in the archive: the session is gone from Workflow Kit for good.
         if (title['forgottenAt']) continue;
+        // A plan reviewer is not listed: its chat is busy during the review and the review
+        // journal of the main session shows its work (spec M4 section 13.4).
+        if (reviewers.has(key)) continue;
         const act = activity.get(key);
         const created = Date.parse(info.createdAt);
         const name = typeof title['name'] === 'string' && title['source'] !== 'default' ? title['name'] : ownerObjective(state, project.id, info.localId) || info.title || DEFAULT_SESSION_NAME;
@@ -268,7 +270,6 @@ export function projectTree(state, ui) {
           note: typeof info.note === 'string' ? info.note : null,
           createdAt: String(info.createdAt ?? ''),
           state: typeof info.state === 'string' ? info.state : 'unknown',
-          reviewer: reviewers.has(key),
         });
       }
     }

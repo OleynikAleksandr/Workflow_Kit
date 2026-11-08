@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 313,
+  "revision": 315,
   "rounds": [
     {
       "digest": {
@@ -909,14 +909,22 @@
       "docsWaiver": null,
       "files": [
         "product-parts/control-panel/clusters/web-panel/modules/panel-shell",
-        "product-parts/control-panel/clusters/web-panel/modules/session-view"
+        "product-parts/control-panel/clusters/web-panel/modules/session-view",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/sidebar.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/tree.css",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/view-model.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts"
       ],
       "fixes": "T017",
       "id": "T019",
       "iteration": 1,
       "kind": "work",
       "roundId": "R4",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reviewer sessions stay out of the panel",
       "why": "The user decided the reviewer chat is not to be opened or listed: the review journal is enough"
     },
@@ -987,8 +995,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 20/23
-- Revision: 313
+- Progress: 21/23
+- Revision: 315
 
 ## Objective
 
@@ -1099,9 +1107,9 @@ Digest: Review failures: Codex creates a reviewer while the ChatGPT app holds re
   - Commit: fix: keep the review card informative without needless buttons
   - Files: product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts
   - Fixes: T015
-- [TODO] T019 — Reviewer sessions stay out of the panel (work)
+- [DONE] T019 — Reviewer sessions stay out of the panel (work)
   - Commit: fix: hide reviewer sessions from the project tree
-  - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/control-panel/clusters/web-panel/modules/session-view
+  - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/sidebar.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/tree.css, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/view-model.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts
   - Fixes: T017
 - [TODO] DOCS-R4 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R4

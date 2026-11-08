@@ -236,7 +236,6 @@ export function createSidebar(handlers) {
       more,
       h('div', { class: 'title' }, [
         h('span', {}, [session.name]),
-        session.reviewer ? h('span', { class: 'tag-review', title: 'Ревьюер плана другой сессии' }, ['Ревью']) : null,
         session.working ? h('span', { class: 'spin', title: 'Агент работает' }) : null,
       ]),
       h('small', {}, [meta]),

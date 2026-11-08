@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 296,
+  "revision": 298,
   "rounds": [
     {
       "digest": {
@@ -40,7 +40,27 @@
       "title": "Implementation"
     },
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "Provider.createSession opts.detached",
+          "CrossReviewDeps question/asking/decided/askProposal; CrossReview.choiceBlocked; status preparing",
+          "ReviewToggles decided/ask/question/asking/answer/onAnswer; POST /api/sessions/plan; POST /api/projects/:id/sessions/:key/plan-decision",
+          "wfk session plan; hold reason waiting-for-plan-decision; choose refuses 409 review-pending",
+          "AGENTS.md managed section: plan question rule"
+        ],
+        "decisions": [
+          "The reviewer's first turn is never waited for: the review itself holds it",
+          "The reviewer sees the plan only from the main agent's description and answers",
+          "The mode choice waits while a question is open, a review runs or a toggled or undecided working session has not reviewed the proposal",
+          "The review decision comes from the plan question; the panel shows it read-only",
+          "talk records no decision; a later proposal asks again"
+        ],
+        "references": [
+          "docs/planning/M4-plan-review.md#11. Исправления после живой проверки (раунд R2)",
+          "docs/planning/M4-plan-review.md#12. Вопрос агента о плане (раунд R2)"
+        ],
+        "result": "Fixes after the live review check: the ChatGPT reviewer starts at once (detached createSession), the main agent describes the plan for the reviewer (preparing), the mode choice waits for the review, and the always-on toggle gives way to the plan question asked by the agent (wfk session plan) or at a proposal without a decision."
+      },
       "id": "R2",
       "kind": "fixes",
       "status": "OPEN",
@@ -646,7 +666,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -689,8 +709,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 13/15
-- Revision: 296
+- Progress: 14/15
+- Revision: 298
 
 ## Objective
 
@@ -763,7 +783,7 @@ Digest: Перекрёстное ревью плана: при включённ�
 - [DONE] T013 — Agent instruction for the plan question (work)
   - Commit: feat: tell the agent to ask before a specification and plan
   - Files: product-parts/backend-core/clusters/projects/modules/kit-structure, product-parts/backend-core/clusters/projects/modules/project-setup/test, product-parts/backend-core/clusters/projects/modules/kit-structure/module.md, product-parts/backend-core/clusters/projects/modules/kit-structure/src/templates.ts
-- [TODO] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R2
   - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md
   - Depends on: T007, T008, T010, T011, T012, T013
@@ -771,5 +791,7 @@ Digest: Перекрёстное ревью плана: при включённ�
   - Commit: chore: release 0.4.1
   - Files: package.json, package-lock.json, docs/evidence/M4-acceptance.md
   - Depends on: T008, DOCS-R2
+
+Digest: Fixes after the live review check: the ChatGPT reviewer starts at once (detached createSession), the main agent describes the plan for the reviewer (preparing), the mode choice waits for the review, and the always-on toggle gives way to the plan question asked by the agent (wfk session plan) or at a proposal without a decision.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 259,
+  "revision": 261,
   "rounds": [
     {
       "digest": {
@@ -185,7 +185,18 @@
       "title": "Новая сессия Claude открывается в Desktop"
     },
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "panel-shell: openSession для Claude зовёт openInDesktop на Mac и openChat по щелчку на сенсорном устройстве"
+        ],
+        "decisions": [
+          "Щелчок по карточке Claude ведёт себя как у ChatGPT: экран сессии и чат в приложении"
+        ],
+        "references": [
+          "docs/planning/M3-autostart.md#12. Раунд 10: щелчок по карточке Claude открывает сессию в Claude Desktop"
+        ],
+        "result": "Щелчок по карточке сессии Claude открывает её в приложении: на Mac служба открывает claude://claude.ai/code/session_<id> в Claude Desktop, на iPad и телефоне — https-ссылка в новой вкладке. Новая сессия открывается так же, без повторного открытия."
+      },
       "id": "R10",
       "kind": "fixes",
       "status": "OPEN",
@@ -1169,7 +1180,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R10",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -1210,8 +1221,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 30/32
-- Revision: 259
+- Progress: 31/32
+- Revision: 261
 
 ## Objective
 
@@ -1382,7 +1393,7 @@ Digest: Новая сессия Claude, созданная из панели н�
 - [DONE] T021 — Щелчок по карточке Claude открывает сессию в Claude Desktop (work)
   - Commit: feat: open a Claude session in Claude Desktop on a card click
   - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/actions.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md
-- [TODO] DOCS-R10 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R10 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R10
   - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md
   - Depends on: T021
@@ -1390,5 +1401,7 @@ Digest: Новая сессия Claude, созданная из панели н�
   - Commit: chore: release 0.3.16
   - Files: package.json, package-lock.json, docs/evidence/M3-acceptance.md
   - Depends on: DOCS-R10
+
+Digest: Щелчок по карточке сессии Claude открывает её в приложении: на Mac служба открывает claude://claude.ai/code/session_<id> в Claude Desktop, на iPad и телефоне — https-ссылка в новой вкладке. Новая сессия открывается так же, без повторного открытия.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

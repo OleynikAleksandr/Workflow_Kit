@@ -262,7 +262,7 @@ export function install(shell) {
       ? `Круг ${Math.max(review.round, 1)} из ${review.maxRounds} · ${review.turn}`
       : `${review.statusLabel}${review.reason ? `: ${review.reason}` : ''}`;
     const buttons = [
-      other ? button(review.role === 'main' ? 'Открыть сессию ревьюера' : 'Открыть основную сессию', () => open(other), 'btn') : null,
+      other && review.canOpenOther ? button(review.role === 'main' ? 'Открыть сессию ревьюера' : 'Открыть основную сессию', () => open(other), 'btn') : null,
       review.active && review.role === 'main'
         ? button('Прервать ревью', async () => {
             try {
@@ -275,14 +275,16 @@ export function install(shell) {
           }, 'btn')
         : null,
     ].filter((n) => n !== null);
-    const journal = review.entries.map((entry) =>
-      h('details', { class: `sv-xr-entry ${entry.from}` }, [h('summary', {}, [`${entry.who}${entry.round ? ` · круг ${entry.round}` : ''}`]), h('p', {}, [entry.text])]),
+    // The newest entry (the first: newest on top) is open, the rest fold.
+    const journal = review.entries.map((entry, index) =>
+      h('details', { class: `sv-xr-entry ${entry.from}`, ...(index === 0 ? { open: '' } : {}) }, [h('summary', {}, [`${entry.who}${entry.round ? ` · круг ${entry.round}` : ''}`]), h('p', {}, [entry.text])]),
     );
     const tone = review.status === 'agreed' ? ' ok' : review.active ? '' : ' muted';
     return h('div', { class: `panel sv-xreview${tone}` }, [
       h('h2', {}, ['Ревью плана']),
       h('p', {}, [head]),
       h('p', { class: 'sv-xr-state' }, [state]),
+      review.note ? h('p', { class: 'sv-muted' }, [review.note]) : null,
       buttons.length ? h('div', { class: 'sv-xr-buttons' }, buttons) : null,
       journal.length ? h('div', { class: 'sv-xr-journal' }, journal) : null,
     ].filter((n) => n !== null));

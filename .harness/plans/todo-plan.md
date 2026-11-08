@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 310,
+  "revision": 312,
   "rounds": [
     {
       "digest": {
@@ -875,14 +875,18 @@
       "dependencies": [],
       "docsWaiver": null,
       "files": [
-        "product-parts/control-panel/clusters/web-panel/modules/session-view"
+        "product-parts/control-panel/clusters/web-panel/modules/session-view",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts"
       ],
       "fixes": "T015",
       "id": "T017",
       "iteration": 1,
       "kind": "work",
       "roundId": "R4",
-      "status": "TODO",
+      "status": "DONE",
       "title": "The review card asks for nothing",
       "why": "The user took «Открыть сессию ревьюера» for a required step and hit the locked ChatGPT chat"
     },
@@ -951,8 +955,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 19/22
-- Revision: 310
+- Progress: 20/22
+- Revision: 312
 
 ## Objective
 
@@ -1059,9 +1063,9 @@ Digest: Review failures: Codex creates a reviewer while the ChatGPT app holds re
 
 ### R4 — Review card (fixes, OPEN)
 
-- [TODO] T017 — The review card asks for nothing (work)
+- [DONE] T017 — The review card asks for nothing (work)
   - Commit: fix: keep the review card informative without needless buttons
-  - Files: product-parts/control-panel/clusters/web-panel/modules/session-view
+  - Files: product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts
   - Fixes: T015
 - [TODO] DOCS-R4 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R4

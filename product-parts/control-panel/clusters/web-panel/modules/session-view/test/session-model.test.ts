@@ -131,6 +131,9 @@ test('the cross review: card data for both sides; the choice and the toggle hide
   assert.equal(main.role, 'main');
   assert.equal(main.turn, 'отвечает агент (Claude)');
   assert.equal(main.reviewerName, 'ChatGPT');
+  assert.match(main.note ?? '', /Ревью идёт само[\s\S]*откроется после ревью/, 'M4 13.3');
+  assert.equal(main.canOpenOther, false, 'the locked ChatGPT chat is not offered during the review');
+  assert.equal(crossReviewView(st, 'p', 'codex:r1')!.canOpenOther, true, 'the reviewer may open the main session');
   assert.deepEqual(main.entries.map((e) => e.who), ['Ревьюер (ChatGPT)', 'Агент (Claude)', 'Ревьюер (ChatGPT)']);
   assert.equal(crossReviewView(st, 'p', 'codex:r1')!.role, 'reviewer');
   const preparing = { ...st, reviews: { projects: { p: [{ ...review, status: 'preparing', reviewerKey: null, round: 0, entries: [] }] } } };

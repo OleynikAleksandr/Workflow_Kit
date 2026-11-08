@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 230,
+  "revision": 232,
   "rounds": [
     {
       "digest": {
@@ -123,7 +123,7 @@
       },
       "id": "R6",
       "kind": "fixes",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Отложенное удаление тредов ChatGPT"
     }
   ],
@@ -147,7 +147,7 @@
         "text": "Демон Codex запускается при каждом старте службы без согласий; при остановке службы не останавливается"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
@@ -751,7 +751,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: release 0.3.12",
-      "confirmation": null,
+      "confirmation": "Но вот удаление готового проекта из архива и из диска не удаляет сессию, которая фигурирует в чат GPT десктопе.",
       "context": [],
       "dependencies": [
         "DOCS-R6"
@@ -767,7 +767,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R6",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Релиз 0.3.12",
       "why": "Релиз 0.3.12"
     }
@@ -779,11 +779,11 @@
 ## State
 
 - Scope: m3-autostart (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 18/19
-- Revision: 230
+- Progress: 19/19
+- Revision: 232
 
 ## Objective
 
@@ -880,7 +880,7 @@ Digest: Щелчок по карточке сессии ChatGPT открывае
 
 Digest: Новая сессия открывается сама, у ChatGPT — с чатом в приложении (на Mac ссылку открывает служба); удаление проекта с диска удаляет его треды ChatGPT.
 
-### R6 — Отложенное удаление тредов ChatGPT (fixes, OPEN)
+### R6 — Отложенное удаление тредов ChatGPT (fixes, CLOSED)
 
 - [DONE] T012 — Очередь удаления тредов ChatGPT (work)
   - Commit: fix: retry deleting ChatGPT threads the app still holds
@@ -890,7 +890,7 @@ Digest: Новая сессия открывается сама, у ChatGPT — 
   - Commit: docs: reconcile documentation for R6
   - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md
   - Depends on: T012
-- [TODO] T013 — Релиз 0.3.12 (delivery)
+- [DONE] T013 — Релиз 0.3.12 (delivery)
   - Commit: chore: release 0.3.12
   - Files: package.json, package-lock.json, docs/evidence/M3-acceptance.md
   - Depends on: DOCS-R6

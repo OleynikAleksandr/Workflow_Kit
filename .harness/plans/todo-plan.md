@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 319,
+  "revision": 320,
   "rounds": [
     {
       "digest": {
@@ -107,6 +107,13 @@
       "kind": "fixes",
       "status": "CLOSED",
       "title": "Review card"
+    },
+    {
+      "digest": null,
+      "id": "R5",
+      "kind": "fixes",
+      "status": "OPEN",
+      "title": "Panel refresh and choice flicker"
     }
   ],
   "schema": "harness-workflow-plan/1",
@@ -149,7 +156,7 @@
         "text": "Ревьюер только читает и пишет замечания"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "IN_PROGRESS",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
@@ -996,6 +1003,117 @@
       "status": "DONE",
       "title": "Release 0.4.3",
       "why": "Release 0.4.3"
+    },
+    {
+      "acceptance": [
+        "The panel reloads once when /api/state reports another service version than at load",
+        "Tests cover the version check"
+      ],
+      "checks": [],
+      "commitMessage": "fix: reload the panel when the service version changes",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M4-review-failures.md",
+          "required": true
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell"
+      ],
+      "fixes": "T019",
+      "id": "T020",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R5",
+      "status": "TODO",
+      "title": "The panel reloads itself after a new release",
+      "why": "The window kept the old panel code after 0.4.3 and still listed the reviewer"
+    },
+    {
+      "acceptance": [
+        "A session that stopped after the proposal with the review on or undecided keeps the choice waiting until it holds for the mode choice or its review exists",
+        "Tests cover the gap"
+      ],
+      "checks": [],
+      "commitMessage": "fix: keep the mode choice hidden until the review decides",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M4-review-failures.md",
+          "required": true
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/control-panel/clusters/web-panel/modules/session-view"
+      ],
+      "fixes": "T010",
+      "id": "T021",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R5",
+      "status": "TODO",
+      "title": "The mode choice card does not flicker",
+      "why": "The choice card flashed between the end of the agent's turn and the start of the review"
+    },
+    {
+      "acceptance": [
+        "Project-wide documents describe the round result",
+        "The round digest records result, decisions, contracts and references"
+      ],
+      "checks": [],
+      "commitMessage": "docs: reconcile documentation for R5",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T020",
+        "T021"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/architecture/OVERVIEW.md"
+      ],
+      "fixes": null,
+      "id": "DOCS-R5",
+      "iteration": 1,
+      "kind": "docs",
+      "roundId": "R5",
+      "status": "TODO",
+      "title": "Reconcile project documentation and write the round digest",
+      "why": "Keep the project context current for the next agent and close the round."
+    },
+    {
+      "acceptance": [
+        "Version 0.4.4 is installed and wfk doctor --installed is ok",
+        "An open panel window switches to 0.4.4 by itself"
+      ],
+      "checks": [],
+      "commitMessage": "chore: release 0.4.4",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T021",
+        "DOCS-R5"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "package.json",
+        "package-lock.json",
+        "docs/evidence/M4-acceptance.md"
+      ],
+      "fixes": null,
+      "id": "T022",
+      "iteration": 1,
+      "kind": "delivery",
+      "roundId": "R5",
+      "status": "TODO",
+      "title": "Release 0.4.4",
+      "why": "Release 0.4.4"
     }
   ]
 }
@@ -1005,11 +1123,11 @@
 ## State
 
 - Scope: m4-plan-review (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 23/23
-- Revision: 319
+- Progress: 23/27
+- Revision: 320
 
 ## Objective
 
@@ -1134,5 +1252,24 @@ Digest: Review failures: Codex creates a reviewer while the ChatGPT app holds re
   - Depends on: T017, DOCS-R4
 
 Digest: The review asks nothing of the user: the review card says the review runs by itself and shows the journal (newest entry open); reviewer sessions of both providers are not listed in the project tree and no «Открыть сессию ревьюера» is offered.
+
+### R5 — Panel refresh and choice flicker (fixes, OPEN)
+
+- [TODO] T020 — The panel reloads itself after a new release (work)
+  - Commit: fix: reload the panel when the service version changes
+  - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell
+  - Fixes: T019
+- [TODO] T021 — The mode choice card does not flicker (work)
+  - Commit: fix: keep the mode choice hidden until the review decides
+  - Files: product-parts/control-panel/clusters/web-panel/modules/session-view
+  - Fixes: T010
+- [TODO] DOCS-R5 — Reconcile project documentation and write the round digest (docs)
+  - Commit: docs: reconcile documentation for R5
+  - Files: README.md, docs/architecture/OVERVIEW.md
+  - Depends on: T020, T021
+- [TODO] T022 — Release 0.4.4 (delivery)
+  - Commit: chore: release 0.4.4
+  - Files: package.json, package-lock.json, docs/evidence/M4-acceptance.md
+  - Depends on: T021, DOCS-R5
 
 State changes only through `scripts/workflow` commands. History lives in Git.

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 245,
+  "revision": 247,
   "rounds": [
     {
       "digest": {
@@ -147,7 +147,18 @@
       "title": "Следы проекта в ChatGPT и Claude"
     },
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "session-view: тело экрана сессии — строка активности, выбор пути, план, подтверждение выпуска; без поля сообщения агенту"
+        ],
+        "decisions": [
+          "Карточка «Сообщение агенту» удалена по решению пользователя 2026-11-08 как бессмысленная"
+        ],
+        "references": [
+          "docs/planning/M3-autostart.md#10. Раунд 8: без карточки «Сообщение агенту»"
+        ],
+        "result": "С экрана сессии убрана карточка «Сообщение агенту»: агенту пишут в самом чате Claude или ChatGPT. Маршрут службы POST …/sessions/:key/message остаётся, панель его не вызывает."
+      },
       "id": "R8",
       "kind": "fixes",
       "status": "OPEN",
@@ -970,7 +981,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R8",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -1011,8 +1022,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 24/26
-- Revision: 245
+- Progress: 25/26
+- Revision: 247
 
 ## Objective
 
@@ -1151,7 +1162,7 @@ Digest: Удаление проекта с диска убирает тред и
 - [DONE] T017 — Убрать карточку «Сообщение агенту» (work)
   - Commit: fix: remove the agent message card from the session screen
   - Files: product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.css, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md
-- [TODO] DOCS-R8 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R8 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R8
   - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md
   - Depends on: T017
@@ -1159,5 +1170,7 @@ Digest: Удаление проекта с диска убирает тред и
   - Commit: chore: release 0.3.14
   - Files: package.json, package-lock.json, docs/evidence/M3-acceptance.md
   - Depends on: DOCS-R8
+
+Digest: С экрана сессии убрана карточка «Сообщение агенту»: агенту пишут в самом чате Claude или ChatGPT. Маршрут службы POST …/sessions/:key/message остаётся, панель его не вызывает.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

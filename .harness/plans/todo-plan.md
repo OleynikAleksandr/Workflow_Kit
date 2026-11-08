@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 289,
+  "revision": 290,
   "rounds": [
     {
       "digest": {
@@ -493,6 +493,110 @@
     },
     {
       "acceptance": [
+        "wfk session plan records a question of the calling session; its Stop holds with waiting-for-plan-decision",
+        "The answer route records review or plan, sends the agent its Workflow Kit message and wakes it; talk records nothing",
+        "A proposal from a session without a decision asks the proposal question before the review or the mode choice",
+        "The mode choice waits while a question is open or an undecided working session has not reviewed the proposal",
+        "Tests cover the question, the answer, the fallback and the refusal"
+      ],
+      "checks": [],
+      "commitMessage": "feat: ask the user about the specification and plan",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M4-plan-review.md",
+          "heading": "12. Вопрос агента о плане (раунд R2)",
+          "required": true
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/workflow-engine/clusters/session-loop/modules/plan-review",
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/autopilot.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/texts.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/review-wiring.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/session-command.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/commands.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md"
+      ],
+      "fixes": null,
+      "id": "T011",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Plan question in the service",
+      "why": "The user decides about a plan and its review at the moment the agent recognises a development task"
+    },
+    {
+      "acceptance": [
+        "The session view shows the question card first with the agent's text and the three (or two for a proposal) buttons",
+        "The review toggle is gone from the session view",
+        "The choice card waits while a question is open",
+        "Tests cover the card model"
+      ],
+      "checks": [],
+      "commitMessage": "feat: show the plan question card instead of the review toggle",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M4-plan-review.md",
+          "heading": "12. Вопрос агента о плане (раунд R2)",
+          "required": true
+        }
+      ],
+      "dependencies": [
+        "T011"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/control-panel/clusters/web-panel/modules/session-view"
+      ],
+      "fixes": null,
+      "id": "T012",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Plan question card in the panel",
+      "why": "The user answers the agent's question with a card; the always-clickable toggle goes away"
+    },
+    {
+      "acceptance": [
+        "The managed AGENTS.md section tells the agent to run wfk session plan before a specification for a development task and never for discussion or research",
+        "Structure tests pass with the new section"
+      ],
+      "checks": [],
+      "commitMessage": "feat: tell the agent to ask before a specification and plan",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M4-plan-review.md",
+          "heading": "12. Вопрос агента о плане (раунд R2)",
+          "required": true
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/backend-core/clusters/projects/modules/kit-structure",
+        "product-parts/backend-core/clusters/projects/modules/project-setup/test"
+      ],
+      "fixes": null,
+      "id": "T013",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Agent instruction for the plan question",
+      "why": "The agent must know when to ask and when not to"
+    },
+    {
+      "acceptance": [
         "Project-wide documents describe the round result",
         "The round digest records result, decisions, contracts and references"
       ],
@@ -503,7 +607,10 @@
       "dependencies": [
         "T007",
         "T008",
-        "T010"
+        "T010",
+        "T011",
+        "T012",
+        "T013"
       ],
       "docsWaiver": null,
       "files": [
@@ -564,8 +671,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 10/12
-- Revision: 289
+- Progress: 10/15
+- Revision: 290
 
 ## Objective
 
@@ -628,10 +735,20 @@ Digest: Перекрёстное ревью плана: при включённ�
   - Commit: fix: keep the mode choice until the plan review starts
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/review.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test/review.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/autopilot.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/flow.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/review-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/index.ts
   - Fixes: T004
+- [TODO] T011 — Plan question in the service (work)
+  - Commit: feat: ask the user about the specification and plan
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/plan-review, product-parts/workflow-engine/clusters/session-loop/modules/cross-review, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/autopilot.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/texts.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/review-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/session-command.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/commands.ts, product-parts/backend-core/clusters/runtime/modules/cli/test, product-parts/backend-core/clusters/runtime/modules/cli/module.md
+- [TODO] T012 — Plan question card in the panel (work)
+  - Commit: feat: show the plan question card instead of the review toggle
+  - Files: product-parts/control-panel/clusters/web-panel/modules/session-view
+  - Depends on: T011
+- [TODO] T013 — Agent instruction for the plan question (work)
+  - Commit: feat: tell the agent to ask before a specification and plan
+  - Files: product-parts/backend-core/clusters/projects/modules/kit-structure, product-parts/backend-core/clusters/projects/modules/project-setup/test
 - [TODO] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R2
   - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md
-  - Depends on: T007, T008, T010
+  - Depends on: T007, T008, T010, T011, T012, T013
 - [TODO] T009 — Release 0.4.1 (delivery)
   - Commit: chore: release 0.4.1
   - Files: package.json, package-lock.json, docs/evidence/M4-acceptance.md

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 397,
+  "revision": 398,
   "rounds": [
     {
       "digest": null,
@@ -183,7 +183,8 @@
       ],
       "docsWaiver": null,
       "files": [
-        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude"
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude",
+        "docs/planning/M5-windows.md"
       ],
       "fixes": null,
       "id": "T003",
@@ -386,7 +387,7 @@
 - Execution: sequential
 - Current task: T003
 - Progress: 2/9
-- Revision: 397
+- Revision: 398
 
 ## Objective
 
@@ -412,7 +413,7 @@ Windows 11 (x64 и ARM64): сессии Claude и ChatGPT/Codex, ревью, в�
   - Files: product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/src/index.ts, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/src/supervisor.ts, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/src/windows.ts, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/test/supervisor.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/test/utils.test.ts
 - [IN_PROGRESS] T003 — Claude on Windows: session and environment hosts, program search, trust (work)
   - Commit: feat: run Claude sessions on Windows
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, docs/planning/M5-windows.md
   - Depends on: T001, T002
 - [TODO] T004 — Kit hooks and the wfk launcher on Windows (work)
   - Commit: feat: install Kit hooks and the launcher on Windows

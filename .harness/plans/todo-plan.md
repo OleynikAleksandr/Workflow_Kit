@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 429,
+  "revision": 430,
   "rounds": [
     {
       "digest": {
@@ -36,6 +36,13 @@
       "kind": "implementation",
       "status": "CLOSED",
       "title": "Implementation"
+    },
+    {
+      "digest": null,
+      "id": "R2",
+      "kind": "fixes",
+      "status": "OPEN",
+      "title": "Windows and macOS CI fixes"
     }
   ],
   "schema": "harness-workflow-plan/1",
@@ -82,7 +89,7 @@
         "text": "After acceptance and close, main with 0.5.1 is pushed to GitHub"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "IN_PROGRESS",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
@@ -274,6 +281,229 @@
       "status": "DONE",
       "title": "Release 0.5.1 and CI on branch ci/m6-cross-platform",
       "why": "The user asked for a new release number; CI results on real OSes are needed before acceptance without publishing main"
+    },
+    {
+      "acceptance": [
+        "writeFileAtomic retries rename on EPERM, EBUSY and EACCES on Windows like the Claude config writer",
+        "data-store tests pass on Windows: concurrent writes and the events path",
+        "module.md describes the retry"
+      ],
+      "checks": [],
+      "commitMessage": "fix: retry atomic renames on Windows and fix data-store tests",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/evidence/M6-acceptance.md",
+          "required": true,
+          "heading": "CI, раунд R1"
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/backend-core/clusters/runtime/modules/data-store"
+      ],
+      "fixes": "T002",
+      "id": "T005",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Atomic writes on Windows",
+      "why": "CI on Windows: concurrent writeFileAtomic fails with EPERM on rename; events test mixes POSIX platform with Windows paths"
+    },
+    {
+      "acceptance": [
+        "kit-structure tests inject the hook host or platform and pass on every OS",
+        "project-registry access-denied test passes on Windows",
+        "project-setup tests clean up without EBUSY on Windows",
+        "cli open-link tests build data paths for the host OS and pass on Windows",
+        "A product defect found here is fixed with a test, not hidden"
+      ],
+      "checks": [],
+      "commitMessage": "test: make kit-structure, registry, setup and cli tests pass on Windows",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/evidence/M6-acceptance.md",
+          "required": true,
+          "heading": "CI, раунд R1"
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/backend-core/clusters/projects/modules/kit-structure",
+        "product-parts/backend-core/clusters/projects/modules/project-registry",
+        "product-parts/backend-core/clusters/projects/modules/project-setup",
+        "product-parts/backend-core/clusters/runtime/modules/cli"
+      ],
+      "fixes": "T002",
+      "id": "T006",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Backend tests on Windows",
+      "why": "CI on Windows: tests use the host platform for hooks, POSIX platforms with Windows paths and leave folders busy"
+    },
+    {
+      "acceptance": [
+        "config, parts and windows tests pass on Windows x64 and ARM64",
+        "Paths in assertions are compared for the OS under test",
+        "A product defect found here is fixed with a test, not hidden"
+      ],
+      "checks": [],
+      "commitMessage": "test: make provider-claude tests pass on Windows",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/evidence/M6-acceptance.md",
+          "required": true,
+          "heading": "CI, раунд R1"
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude"
+      ],
+      "fixes": "T002",
+      "id": "T007",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Claude adapter tests on Windows",
+      "why": "CI on Windows: memory import scan, file mode, folder trust, program lookup and host timing tests fail"
+    },
+    {
+      "acceptance": [
+        "The fake daemon listens on a named pipe on Windows and a Unix socket elsewhere",
+        "release, provider, ws-rpc and files-hooks tests pass on Windows without hanging",
+        "A product defect found here is fixed with a test, not hidden"
+      ],
+      "checks": [],
+      "commitMessage": "test: run the fake Codex daemon on a named pipe on Windows",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/evidence/M6-acceptance.md",
+          "required": true,
+          "heading": "CI, раунд R1"
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex"
+      ],
+      "fixes": "T002",
+      "id": "T008",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Codex adapter tests on Windows",
+      "why": "CI on Windows: the fake daemon listens on a Unix socket in the temp folder (EACCES) and provider tests hang"
+    },
+    {
+      "acceptance": [
+        "The cause of COMMIT_FAILED in the orchestrated test is found and removed",
+        "The test passes repeatedly on macOS and in CI"
+      ],
+      "checks": [],
+      "commitMessage": "test: stabilize the orchestrated kit-project test",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/evidence/M6-acceptance.md",
+          "required": true,
+          "heading": "CI, раунд R1"
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-runner"
+      ],
+      "fixes": "T002",
+      "id": "T009",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Stable orchestrated commit test",
+      "why": "CI on macOS: kit-project.test.ts:158 got COMMIT_FAILED once"
+    },
+    {
+      "acceptance": [
+        "Project-wide documents describe the round result",
+        "The round digest records result, decisions, contracts and references"
+      ],
+      "checks": [],
+      "commitMessage": "docs: reconcile documentation for R2",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T005",
+        "T006",
+        "T007",
+        "T008",
+        "T009"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/architecture/OVERVIEW.md"
+      ],
+      "fixes": null,
+      "id": "DOCS-R2",
+      "iteration": 1,
+      "kind": "docs",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Reconcile project documentation and write the round digest",
+      "why": "Keep the project context current for the next agent and close the round."
+    },
+    {
+      "acceptance": [
+        "The service is reinstalled as 0.5.1 and wfk doctor --installed is ok",
+        "HEAD is pushed to refs/heads/ci/m6-cross-platform only",
+        "CI is green on macOS, Linux, Windows x64 and Windows ARM64; the evidence records the run",
+        "CHANGELOG 0.5.1 lists the Windows fixes"
+      ],
+      "checks": [],
+      "commitMessage": "chore: release 0.5.1 with green CI",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M6-cross-platform.md",
+          "required": true,
+          "heading": "5. Выпуск: запуск CI до приёмки"
+        }
+      ],
+      "dependencies": [
+        "T005",
+        "T006",
+        "T007",
+        "T008",
+        "T009",
+        "DOCS-R2"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "CHANGELOG.md",
+        "docs/evidence/M6-acceptance.md"
+      ],
+      "fixes": "T004",
+      "id": "T010",
+      "iteration": 1,
+      "kind": "delivery",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Release 0.5.1 with green CI",
+      "why": "The release must pass CI on all four platforms before acceptance"
     }
   ]
 }
@@ -283,11 +513,11 @@
 ## State
 
 - Scope: m6-cross-platform (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 5/5
-- Revision: 429
+- Progress: 5/12
+- Revision: 430
 
 ## Objective
 
@@ -324,5 +554,37 @@ Every further change to Workflow Kit covers macOS, Linux and Windows 11: CI on a
   - Depends on: T001, T002, T003, DOCS-R1
 
 Digest: R1 of m6-cross-platform: the platform-guard commit check (rules A, B, C), CI on macOS, Linux, Windows x64 and ARM64, LF line endings and the three-OS rules for agents in AGENTS.md with a spec template.
+
+### R2 — Windows and macOS CI fixes (fixes, OPEN)
+
+- [TODO] T005 — Atomic writes on Windows (work)
+  - Commit: fix: retry atomic renames on Windows and fix data-store tests
+  - Files: product-parts/backend-core/clusters/runtime/modules/data-store
+  - Fixes: T002
+- [TODO] T006 — Backend tests on Windows (work)
+  - Commit: test: make kit-structure, registry, setup and cli tests pass on Windows
+  - Files: product-parts/backend-core/clusters/projects/modules/kit-structure, product-parts/backend-core/clusters/projects/modules/project-registry, product-parts/backend-core/clusters/projects/modules/project-setup, product-parts/backend-core/clusters/runtime/modules/cli
+  - Fixes: T002
+- [TODO] T007 — Claude adapter tests on Windows (work)
+  - Commit: test: make provider-claude tests pass on Windows
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude
+  - Fixes: T002
+- [TODO] T008 — Codex adapter tests on Windows (work)
+  - Commit: test: run the fake Codex daemon on a named pipe on Windows
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex
+  - Fixes: T002
+- [TODO] T009 — Stable orchestrated commit test (work)
+  - Commit: test: stabilize the orchestrated kit-project test
+  - Files: product-parts/workflow-engine/clusters/kit-host/modules/kit-runner
+  - Fixes: T002
+- [TODO] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
+  - Commit: docs: reconcile documentation for R2
+  - Files: README.md, docs/architecture/OVERVIEW.md
+  - Depends on: T005, T006, T007, T008, T009
+- [TODO] T010 — Release 0.5.1 with green CI (delivery)
+  - Commit: chore: release 0.5.1 with green CI
+  - Files: CHANGELOG.md, docs/evidence/M6-acceptance.md
+  - Depends on: T005, T006, T007, T008, T009, DOCS-R2
+  - Fixes: T004
 
 State changes only through `scripts/workflow` commands. History lives in Git.

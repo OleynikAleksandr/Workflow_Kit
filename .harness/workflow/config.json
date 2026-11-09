@@ -20,6 +20,12 @@
         "docs": [
           "product-parts/backend-core/clusters/runtime/modules/cli/module.md"
         ]
+      },
+      {
+        "code": "tools/{tool}/*.ts",
+        "docs": [
+          "tools/{tool}/README.md"
+        ]
       }
     ]
   },
@@ -49,7 +55,8 @@
           "**/*.mjs",
           "product-parts/**/src/**/*.js",
           "tsconfig.json",
-          "package.json"
+          "package.json",
+          "tools/**/*.ts"
         ]
       },
       {
@@ -62,7 +69,8 @@
           "executable": "node",
           "args": [
             "--test",
-            "product-parts/**/test/*.test.ts"
+            "product-parts/**/test/*.test.ts",
+            "tools/**/test/*.test.ts"
           ]
         },
         "appliesTo": [
@@ -70,7 +78,27 @@
           "**/*.mjs",
           "product-parts/**/src/**/*.js",
           "tsconfig.json",
-          "package.json"
+          "package.json",
+          "tools/**"
+        ]
+      },
+      {
+        "id": "platform-guard",
+        "role": "custom",
+        "stage": "commit",
+        "required": true,
+        "timeoutMs": 120000,
+        "command": {
+          "executable": "node",
+          "args": [
+            "tools/platform-guard/check.ts"
+          ]
+        },
+        "appliesTo": [
+          "product-parts/**/src/**",
+          "bin/**",
+          "docs/planning/**",
+          "tools/platform-guard/**"
         ]
       },
       {

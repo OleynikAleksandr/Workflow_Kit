@@ -10,7 +10,10 @@
   - T003 `f52ed16` — пока впереди ревью плана, карточки «Выбор пользователя» без кнопок нет.
 - Локально (macOS): `npm test` — 413 из 413, `npm run check:platforms` — ok,
   `node bin/wfk.mjs install` и `wfk doctor --installed` — «всё в порядке», служба 0.5.2.
-- CI: ветка `ci/m7-test-fixes`, итог по четырём платформам дописывается после запуска.
+- CI: коммит `c7d2fe3` в ветке `ci/m7-test-fixes`,
+  [запуск 42663180822](https://github.com/OleynikAleksandr/Workflow_Kit/actions/runs/42663180822) —
+  успех на macOS ARM64, Linux x64, Windows x64 и Windows ARM64 (typecheck, тесты,
+  `check:platforms`).
 
 ## Живые проверки
 

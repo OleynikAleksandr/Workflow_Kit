@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 381,
+  "revision": 383,
   "rounds": [
     {
       "digest": null,
@@ -190,7 +190,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "CHANGELOG gets the missing versions",
       "why": "Releases 0.4.6 and 0.4.7 are missing from the changelog"
     },
@@ -269,8 +269,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 3/6
-- Revision: 381
+- Progress: 4/6
+- Revision: 383
 
 ## Objective
 
@@ -299,7 +299,7 @@
   - Commit: feat: teach agents to publish only after the scope is closed
   - Files: product-parts/backend-core/clusters/projects/modules/kit-structure, product-parts/backend-core/clusters/runtime/modules/cli/src/commands.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/session-command.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/project-command.ts, product-parts/backend-core/clusters/runtime/modules/cli/test, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/projects/modules/kit-structure/module.md, product-parts/backend-core/clusters/projects/modules/kit-structure/src/templates.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/project-command.test.ts
   - Depends on: T001
-- [TODO] T004 — CHANGELOG gets the missing versions (work)
+- [DONE] T004 — CHANGELOG gets the missing versions (work)
   - Commit: docs: add 0.4.6 and 0.4.7 to the changelog
   - Files: CHANGELOG.md
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)

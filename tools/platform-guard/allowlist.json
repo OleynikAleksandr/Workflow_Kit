@@ -1,0 +1,214 @@
+{
+  "programNames": [
+    "osascript",
+    "launchctl",
+    "expect",
+    "pbcopy",
+    "plutil",
+    "xdg-open",
+    "systemctl",
+    "loginctl",
+    "rundll32",
+    "taskkill",
+    "tasklist",
+    "powershell",
+    "powershell.exe",
+    "pwsh",
+    "cmd.exe",
+    "schtasks",
+    "wmic",
+    "reg"
+  ],
+  "directPlatform": [
+    {
+      "file": "product-parts/system-service/clusters/deployment/modules/service-installer/src/fs.ts",
+      "reason": "проверка X_OK пропускается: на Windows бит исполнения не используется"
+    },
+    {
+      "file": "product-parts/backend-core/clusters/runtime/modules/data-store/src/atomic.ts",
+      "reason": "не нужен chmod: на Windows права файла задаёт профиль пользователя, chmod не поддерживается"
+    },
+    {
+      "file": "product-parts/backend-core/clusters/runtime/modules/data-store/src/events.ts",
+      "reason": "не нужен chmod: на Windows права файла задаёт профиль пользователя, chmod не поддерживается"
+    },
+    {
+      "file": "product-parts/backend-core/clusters/runtime/modules/data-store/src/backup.ts",
+      "reason": "не нужен chmod: на Windows права файла задаёт профиль пользователя, chmod не поддерживается"
+    },
+    {
+      "file": "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/config-writer.ts",
+      "reason": "не нужен chmod: на Windows права файла задаёт профиль пользователя, chmod не поддерживается"
+    }
+  ],
+  "programs": [
+    {
+      "file": "product-parts/backend-core/clusters/runtime/modules/cli/src/open-link.ts",
+      "program": "powershell.exe",
+      "darwin": "open <ссылка>",
+      "linux": "не поддерживается: openCommands возвращает null, служба не открывает чаты (пробел паритета)",
+      "win32": "rundll32 url.dll,FileProtocolHandler; codex:// — PowerShell и приложение OpenAI.Codex"
+    },
+    {
+      "file": "product-parts/backend-core/clusters/runtime/modules/cli/src/open-link.ts",
+      "program": "rundll32",
+      "darwin": "open <ссылка>",
+      "linux": "не поддерживается: openCommands возвращает null, служба не открывает чаты (пробел паритета)",
+      "win32": "rundll32 url.dll,FileProtocolHandler; codex:// — PowerShell и приложение OpenAI.Codex"
+    },
+    {
+      "file": "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/programs.ts",
+      "program": "expect",
+      "darwin": "expect запускает session.exp и environment.exp",
+      "linux": "expect, как на macOS",
+      "win32": "не нужно: ConPTY через node-pty (win-host.ts)"
+    },
+    {
+      "file": "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty.ts",
+      "program": "expect",
+      "darwin": "expect запускает session.exp и environment.exp",
+      "linux": "expect, как на macOS",
+      "win32": "не нужно: ConPTY через node-pty (win-host.ts)"
+    },
+    {
+      "file": "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/runtime.ts",
+      "program": "expect",
+      "darwin": "expect запускает session.exp и environment.exp",
+      "linux": "expect, как на macOS",
+      "win32": "не нужно: ConPTY через node-pty (win-host.ts)"
+    },
+    {
+      "file": "product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/src/windows.ts",
+      "program": "powershell.exe",
+      "darwin": "ps и lsof (proc-info.ts)",
+      "linux": "/proc и ps (proc-info.ts)",
+      "win32": "powershell.exe с CIM Win32_Process"
+    },
+    {
+      "file": "product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/src/windows.ts",
+      "program": "taskkill",
+      "darwin": "сигналы SIGTERM/SIGKILL группе процессов",
+      "linux": "сигналы SIGTERM/SIGKILL группе процессов",
+      "win32": "taskkill /T [/F]"
+    },
+    {
+      "file": "product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/src/terminal.ts",
+      "program": "taskkill",
+      "darwin": "не нужно: ConPTY-хост только на Windows, сессии идут через expect",
+      "linux": "не нужно: ConPTY-хост только на Windows, сессии идут через expect",
+      "win32": "taskkill /T /F дерева процесса терминала"
+    },
+    {
+      "file": "product-parts/system-service/clusters/deployment/modules/service-installer/src/commands.ts",
+      "program": "launchctl",
+      "darwin": "LaunchAgent через launchctl",
+      "linux": "systemd --user (systemctl) или XDG autostart",
+      "win32": "HKCU\\…\\Run через reg и service.vbs"
+    },
+    {
+      "file": "product-parts/system-service/clusters/deployment/modules/service-installer/src/commands.ts",
+      "program": "reg",
+      "darwin": "LaunchAgent через launchctl",
+      "linux": "systemd --user (systemctl) или XDG autostart",
+      "win32": "HKCU\\…\\Run через reg и service.vbs"
+    },
+    {
+      "file": "product-parts/system-service/clusters/deployment/modules/service-installer/src/commands.ts",
+      "program": "systemctl",
+      "darwin": "LaunchAgent через launchctl",
+      "linux": "systemd --user (systemctl) или XDG autostart",
+      "win32": "HKCU\\…\\Run через reg и service.vbs"
+    },
+    {
+      "file": "product-parts/system-service/clusters/deployment/modules/service-installer/src/control.ts",
+      "program": "launchctl",
+      "darwin": "launchctl bootstrap/kickstart/bootout",
+      "linux": "systemctl --user start/stop",
+      "win32": "отдельный процесс wscript service.vbs, остановка через POST /api/system/shutdown"
+    },
+    {
+      "file": "product-parts/system-service/clusters/deployment/modules/service-installer/src/control.ts",
+      "program": "systemctl",
+      "darwin": "launchctl bootstrap/kickstart/bootout",
+      "linux": "systemctl --user start/stop",
+      "win32": "отдельный процесс wscript service.vbs, остановка через POST /api/system/shutdown"
+    },
+    {
+      "file": "product-parts/system-service/clusters/deployment/modules/service-installer/src/doctor.ts",
+      "program": "launchctl",
+      "darwin": "launchctl print для LaunchAgent",
+      "linux": "systemctl --user is-enabled или файл XDG autostart",
+      "win32": "reg query значения HKCU\\…\\Run"
+    },
+    {
+      "file": "product-parts/system-service/clusters/deployment/modules/service-installer/src/doctor.ts",
+      "program": "systemctl",
+      "darwin": "launchctl print для LaunchAgent",
+      "linux": "systemctl --user is-enabled или файл XDG autostart",
+      "win32": "reg query значения HKCU\\…\\Run"
+    },
+    {
+      "file": "product-parts/system-service/clusters/deployment/modules/service-installer/src/install.ts",
+      "program": "systemctl",
+      "darwin": "перезапуск через LaunchAgent (launchctl kickstart)",
+      "linux": "systemctl --user restart",
+      "win32": "остановка службы и новый запуск через service.vbs"
+    },
+    {
+      "file": "product-parts/system-service/clusters/deployment/modules/service-installer/src/integrate.ts",
+      "program": "reg",
+      "darwin": "LaunchAgent через launchctl",
+      "linux": "systemd --user (systemctl) или XDG autostart",
+      "win32": "HKCU\\…\\Run через reg и service.vbs"
+    },
+    {
+      "file": "product-parts/system-service/clusters/deployment/modules/service-installer/src/integrate.ts",
+      "program": "systemctl",
+      "darwin": "LaunchAgent через launchctl",
+      "linux": "systemd --user (systemctl) или XDG autostart",
+      "win32": "HKCU\\…\\Run через reg и service.vbs"
+    },
+    {
+      "file": "product-parts/system-service/clusters/deployment/modules/service-installer/src/open.ts",
+      "program": "rundll32",
+      "darwin": "open -a или приложение Workflow Kit.app",
+      "linux": "окно браузера-приложения или xdg-open",
+      "win32": "окно Edge/Chrome или rundll32 url.dll,FileProtocolHandler"
+    },
+    {
+      "file": "product-parts/system-service/clusters/deployment/modules/service-installer/src/open.ts",
+      "program": "xdg-open",
+      "darwin": "open -a или приложение Workflow Kit.app",
+      "linux": "окно браузера-приложения или xdg-open",
+      "win32": "окно Edge/Chrome или rundll32 url.dll,FileProtocolHandler"
+    },
+    {
+      "file": "product-parts/system-service/clusters/deployment/modules/service-installer/src/programs.ts",
+      "program": "expect",
+      "darwin": "путь expect сохраняется в config.json",
+      "linux": "путь expect сохраняется в config.json",
+      "win32": "не нужно: expect не используется, его отсутствие не ошибка"
+    },
+    {
+      "file": "product-parts/system-service/clusters/deployment/modules/service-installer/src/status.ts",
+      "program": "expect",
+      "darwin": "показывается путь expect",
+      "linux": "показывается путь expect",
+      "win32": "показывается «—»: expect не нужен"
+    }
+  ],
+  "legacySpecs": [
+    "docs/planning/M1-orchestrator-core.md",
+    "docs/planning/M1-providers.md",
+    "docs/planning/M2-interface-and-process.md",
+    "docs/planning/M3-autostart.md",
+    "docs/planning/M3-fixes.md",
+    "docs/planning/M3-orchestration.md",
+    "docs/planning/M4-plan-review.md",
+    "docs/planning/M4-review-failures.md",
+    "docs/planning/M5-windows-vm.md",
+    "docs/planning/M5-windows.md",
+    "docs/planning/github-publication.md",
+    "docs/planning/publication-order.md"
+  ]
+}

@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": "T001",
+  "currentTaskId": null,
   "lastClosed": {
     "closedAt": "2026-11-09T10:12:56.251Z",
     "scopeId": "m5-windows"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 418,
+  "revision": 419,
   "rounds": [
     {
       "digest": null,
@@ -112,7 +112,7 @@
       "kind": "work",
       "parallelSafe": true,
       "roundId": "R1",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "title": "platform-guard check",
       "why": "New code must stay testable for win32 and linux and must not use one OS's programs without an answer for the others"
     },
@@ -263,9 +263,9 @@
 - Scope: m6-cross-platform (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: T001
-- Progress: 0/5
-- Revision: 418
+- Current task: none
+- Progress: 1/5
+- Revision: 419
 
 ## Objective
 
@@ -283,7 +283,7 @@ Every further change to Workflow Kit covers macOS, Linux and Windows 11: CI on a
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [IN_PROGRESS] T001 — platform-guard check (work, parallel-safe)
+- [DONE] T001 — platform-guard check (work, parallel-safe)
   - Commit: feat: add platform-guard check for three-OS code
   - Files: tools/platform-guard/check.ts, tools/platform-guard/allowlist.json, tools/platform-guard/README.md, tools/platform-guard/test/check.test.ts, package.json, tsconfig.json
 - [TODO] T002 — CI on three OSes and LF line endings (work, parallel-safe)

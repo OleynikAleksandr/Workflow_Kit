@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 412,
+  "revision": 414,
   "rounds": [
     {
       "digest": {
@@ -39,7 +39,7 @@
       },
       "id": "R1",
       "kind": "implementation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Implementation"
     }
   ],
@@ -95,7 +95,7 @@
         "text": "Первая живая проверка — ВМ Windows 11 ARM в UTM, затем пользователь x64"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
@@ -429,7 +429,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: release 0.5.0",
-      "confirmation": null,
+      "confirmation": "Не получится у меня сегодня проверить на ВМ - по этому заканчивай и заливай релиз на ГитХаб - я попрошу проверить его на реальном Виндовс",
       "context": [],
       "dependencies": [
         "T001",
@@ -453,7 +453,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Release 0.5.0; the live Windows check follows on a real Windows PC",
       "why": "Windows support is accepted only after a live check"
     }
@@ -465,11 +465,11 @@
 ## State
 
 - Scope: m5-windows (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 8/9
-- Revision: 412
+- Progress: 9/9
+- Revision: 414
 
 ## Objective
 
@@ -485,7 +485,7 @@ Windows 11 (x64 и ARM64): сессии Claude и ChatGPT/Codex, ревью, в�
 
 ## Rounds
 
-### R1 — Implementation (implementation, OPEN)
+### R1 — Implementation (implementation, CLOSED)
 
 - [DONE] T001 — pty-host module: vendored node-pty 1.1.0 for Windows and a safe wrapper (work)
   - Commit: feat: add the ConPTY host for Windows
@@ -516,7 +516,7 @@ Windows 11 (x64 и ARM64): сессии Claude и ChatGPT/Codex, ревью, в�
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M5-windows.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, docs/installation.md, CHANGELOG.md
   - Depends on: T001, T002, T003, T004, T005, T006, T007
-- [TODO] T008 — Release 0.5.0; the live Windows check follows on a real Windows PC (delivery)
+- [DONE] T008 — Release 0.5.0; the live Windows check follows on a real Windows PC (delivery)
   - Commit: chore: release 0.5.0
   - Files: package.json, package-lock.json, CHANGELOG.md, docs/evidence/M5-acceptance.md
   - Depends on: T001, T002, T003, T004, T005, T006, T007, DOCS-R1

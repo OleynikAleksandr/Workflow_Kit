@@ -184,13 +184,6 @@
       "darwin": "путь expect сохраняется в config.json",
       "linux": "путь expect сохраняется в config.json",
       "win32": "не нужно: expect не используется, его отсутствие не ошибка"
-    },
-    {
-      "file": "product-parts/system-service/clusters/deployment/modules/service-installer/src/status.ts",
-      "program": "expect",
-      "darwin": "показывается путь expect",
-      "linux": "показывается путь expect",
-      "win32": "показывается «—»: expect не нужен"
     }
   ],
   "legacySpecs": [

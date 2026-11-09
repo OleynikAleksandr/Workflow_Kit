@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 476,
+  "revision": 478,
   "rounds": [
     {
       "digest": null,
@@ -381,14 +381,21 @@
         "product-parts/system-service/clusters/deployment/modules/service-installer",
         "product-parts/backend-core/clusters/runtime/modules/cli",
         "tools/platform-guard/allowlist.json",
-        "docs/architecture/OVERVIEW.md"
+        "docs/architecture/OVERVIEW.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/app.test.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/module.md",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/doctor.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/programs.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/status.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/types.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/test/install.test.ts"
       ],
       "fixes": null,
       "id": "T005",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "kimi in install programs, status and doctor",
       "why": "The service must know the path of kimi the same way as claude and codex"
     },
@@ -754,8 +761,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 4/13
-- Revision: 476
+- Progress: 5/13
+- Revision: 478
 
 ## Objective
 
@@ -788,9 +795,9 @@ Add Kimi Code as the third provider of Workflow Kit and release 0.6.0
   - Commit: feat: render provider names, buttons and labels of the panel from the state
   - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/control-panel/clusters/web-panel/modules/project-wizard, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, docs/architecture/OVERVIEW.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/actions.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/archive.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/layout.css, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/providers.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/screens.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/sidebar.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/slots.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/system-card.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/tree.css, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/view-model.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/panel-shell.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/registry.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/routes.test.ts
   - Depends on: T003
-- [TODO] T005 — kimi in install programs, status and doctor (work)
+- [DONE] T005 — kimi in install programs, status and doctor (work)
   - Commit: feat: record the kimi program at install and show it in status and doctor
-  - Files: product-parts/system-service/clusters/deployment/modules/service-installer, product-parts/backend-core/clusters/runtime/modules/cli, tools/platform-guard/allowlist.json, docs/architecture/OVERVIEW.md
+  - Files: product-parts/system-service/clusters/deployment/modules/service-installer, product-parts/backend-core/clusters/runtime/modules/cli, tools/platform-guard/allowlist.json, docs/architecture/OVERVIEW.md, product-parts/backend-core/clusters/runtime/modules/cli/test/app.test.ts, product-parts/system-service/clusters/deployment/modules/service-installer/module.md, product-parts/system-service/clusters/deployment/modules/service-installer/src/doctor.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/programs.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/status.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/types.ts, product-parts/system-service/clusters/deployment/modules/service-installer/test/install.test.ts
   - Depends on: T004
 - [TODO] T006 — Turn end without holding Stop (work)
   - Commit: feat: deliver the next message as a prompt after a detached turn end

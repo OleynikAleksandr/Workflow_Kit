@@ -135,6 +135,35 @@ test('macOS uninstall removes autostart, launcher, icon and app copies, the data
   assert.equal(status.autostart, false);
 });
 
+test('kimi is an optional program: install saves its path on macOS, Linux and Windows, a missing one is not an error', async () => {
+  const cases: Array<[NodeJS.Platform, string, string]> = [
+    ['darwin', '/opt/homebrew/bin/kimi', `${MAC_DATA}/config.json`],
+    ['linux', '/home/me/.local/bin/kimi', '/home/me/.config/workflow-kit/config.json'],
+    ['win32', 'C:\\Program Files\\nodejs\\kimi.cmd', 'C:\\Users\\me\\AppData\\Local\\Workflow Kit\\config.json'],
+  ];
+  for (const [platform, program, configFile] of cases) {
+    const without = standardMachine(platform);
+    const bare = await runServiceCommand('install', without.deps);
+    assert.equal(bare.exitCode, 0, `${platform}: ${bare.message}`);
+    const missing = JSON.parse(without.fs.readTextSync(configFile) ?? '') as { programs: Record<string, string> };
+    assert.equal(missing.programs['kimi'], undefined, `${platform}: a missing kimi is not saved`);
+    assert.match((await runServiceCommand('status', without.deps)).message, /программы: .*kimi —/, platform);
+    const doctor = await runServiceCommand('doctor', without.deps);
+    assert.match(doctor.message, /\[предупреждение\] программа kimi: не найдена/, platform);
+    assert.doesNotMatch(doctor.message, /\[ошибка\] программа kimi/, platform);
+
+    const m = standardMachine(platform);
+    m.fs.seed(program, 'x', 0o755);
+    const result = await runServiceCommand('install', m.deps);
+    assert.equal(result.exitCode, 0, `${platform}: ${result.message}`);
+    const config = JSON.parse(m.fs.readTextSync(configFile) ?? '') as { programs: Record<string, string> };
+    assert.equal(config.programs['kimi'], program, platform);
+    assert.equal(getServiceStatus(platform, m.deps).programs?.['kimi'], program, platform);
+    assert.ok((await runServiceCommand('status', m.deps)).message.includes(`kimi ${program}`), platform);
+    assert.match((await runServiceCommand('doctor', m.deps)).message, /\[ok\]\s+программа kimi/, platform);
+  }
+});
+
 test('Linux with systemd: user unit with KillMode=process, enable and restart', async () => {
   const m = standardMachine('linux', { env: { XDG_CONFIG_HOME: '/home/me/.cfg', XDG_DATA_HOME: '/home/me/.data' } });
   m.fs.seed('/usr/bin/expect', 'x', 0o755);

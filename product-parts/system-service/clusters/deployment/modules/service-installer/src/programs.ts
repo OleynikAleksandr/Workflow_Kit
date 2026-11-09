@@ -1,10 +1,13 @@
-// Service environment (D12): the login-shell PATH and absolute paths of node, claude, codex, expect.
+// Service environment (D12): the login-shell PATH and absolute paths of the programs of PROGRAMS.
 import { loginPathCommands, parseLoginPath } from './commands.ts';
 import { pathApi } from './fs.ts';
 import type { ResolvedDeps } from './types.ts';
 
-/** Programs whose paths install saves in config.json. */
-export const PROGRAMS: readonly string[] = ['node', 'claude', 'codex', 'expect'];
+/**
+ * Programs whose paths install saves in config.json. Only node is required: the provider programs
+ * (claude, codex, kimi) and expect are optional, a missing one is shown and is not an error.
+ */
+export const PROGRAMS: readonly string[] = ['node', 'claude', 'codex', 'kimi', 'expect'];
 
 /** Result of the detection. */
 export interface DetectedPrograms {

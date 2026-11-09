@@ -37,7 +37,7 @@ export interface ServiceStatus {
   autostartEntry?: string;
   launcher?: ManagedItem;
   icon?: ManagedItem;
-  /** Absolute program paths saved by install (D12): node, claude, codex, expect. */
+  /** Absolute program paths saved by install (D12): the found programs of PROGRAMS. */
   programs?: Record<string, string>;
   /** PATH of the login shell saved by install (D12). */
   loginPath?: string | null;

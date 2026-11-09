@@ -33,7 +33,13 @@ login-shell (D12), запускатель `wfk`, значок «Workflow Kit», 
   `development`), `version`, `installedAt`, `appPath`,
   `fromInstalledCopy` (код запущен из `app/<версия>`, а не из клона),
   `autostartEntry`, `launcher` и `icon` (`{ path, present }`), `programs`
-  (`node`, `claude`, `codex`, `expect` из `config.json`), `loginPath`.
+  (найденные программы `PROGRAMS` из `config.json`), `loginPath`.
+- `PROGRAMS` — `node`, `claude`, `codex`, `kimi`, `expect`: программы, пути
+  которых ищет и сохраняет `install`. Обязателен только `node`; программы
+  провайдеров и `expect` необязательны — отсутствующая показана («—» в
+  `wfk service status`, предупреждение в `wfk doctor`, «не найдена» в
+  карточке «Система») и ошибкой не считается. На трёх ОС одинаково; на
+  Windows имя ищется с расширениями `PATHEXT` (`kimi.exe`, `kimi.cmd`).
   Без `context` — заглушка (`implemented: false`), ничего не читает.
   Значение HKCU Run на Windows опрос не проверяет (это внешняя программа):
   его сверяет `doctor --installed`.
@@ -76,7 +82,8 @@ login-shell (D12), запускатель `wfk`, значок «Workflow Kit», 
    `app/<версия>`. Запуск из самой установленной копии ничего не копирует.
 3. PATH login-shell: `$SHELL -i -l -c`, затем `-l -c` (маркеры
    `__WFK_PATH__`), объединяется с каталогом `node` (первым) и PATH
-   процесса. Пути `claude`, `codex`, `expect` ищутся по нему.
+   процесса. Пути остальных программ `PROGRAMS` (`claude`, `codex`, `kimi`,
+   `expect`) ищутся по нему.
    `node` службы устойчив к обновлению Homebrew: `process.execPath` —
    версионный путь `…/Cellar/node@24/24.x.y/bin/node`, который исчезает
    после `brew upgrade`, поэтому берётся первый `node` из login PATH (затем

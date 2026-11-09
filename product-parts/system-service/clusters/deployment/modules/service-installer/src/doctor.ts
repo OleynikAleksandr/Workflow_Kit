@@ -47,7 +47,7 @@ export async function doctor(deps: ResolvedDeps, options: { installed: boolean; 
     const found =
       saved[name] ?? findProgram(name, envPath(deps.env), { platform: deps.platform, env: deps.env, isExecutable: (file) => deps.fs.isExecutable(file) });
     const usable = found !== null && deps.fs.isExecutable(found);
-    // claude, codex and expect are optional: the panel shows what is unavailable and why (D4).
+    // Everything but node is optional: the panel shows what is unavailable and why (D4).
     add(`программа ${name}`, usable ? 'ok' : name === 'node' && options.installed ? 'fail' : 'warn', found ?? 'не найдена');
   }
 

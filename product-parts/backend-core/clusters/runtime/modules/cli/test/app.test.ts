@@ -60,6 +60,7 @@ test('GET /api/health and GET /api/state expose the "system" section', async () 
   assert.equal(system.service.implemented, true);
   assert.equal(system.service.instance, 'development');
   assert.equal(system.service.running, true);
+  assert.deepEqual(system.service.programNames, ['node', 'claude', 'codex', 'kimi', 'expect'], 'the panel lists every program of the installer');
   assert.deepEqual(system.addresses, [
     `http://127.0.0.1:${app.server.port()}/`,
     `http://100.101.102.103:${app.server.port()}/`,

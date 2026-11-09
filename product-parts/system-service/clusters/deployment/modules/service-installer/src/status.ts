@@ -4,6 +4,7 @@ import { parseCurrent, readProgramPathsSync, servicePort } from './deploy.ts';
 import { pathApi } from './fs.ts';
 import { layoutOf } from './install.ts';
 import { autostartEntry, mechanismLabel } from './layout.ts';
+import { PROGRAMS } from './programs.ts';
 import type { AutostartMechanism, HealthInfo, ResolvedDeps, ServiceStatus } from './types.ts';
 
 /** Default autostart mechanism of a platform (Linux: systemd until install finds none). */
@@ -80,7 +81,7 @@ export async function describeStatus(deps: ResolvedDeps): Promise<{ text: string
     `автозапуск: ${mechanismLabel(status.mechanism)} — ${status.autostart ? 'зарегистрирован' : 'не зарегистрирован'} (${status.autostartEntry ?? '—'})`,
     `запускатель: ${status.launcher?.path ?? '—'} (${yesNo(status.launcher?.present ?? false)})`,
     `значок: ${status.icon?.path ?? '—'} (${yesNo(status.icon?.present ?? false)})`,
-    `программы: ${['node', 'claude', 'codex', 'expect'].map((name) => `${name} ${status.programs?.[name] ?? '—'}`).join(', ')}`,
+    `программы: ${PROGRAMS.map((name) => `${name} ${status.programs?.[name] ?? '—'}`).join(', ')}`,
   ];
   if (status.instance === 'development') lines.push(`примечание: ${status.note}`);
   return { text: lines.join('\n'), health };

@@ -138,11 +138,14 @@ test('~/.claude.json: trust per exact folder, login, broken file; cached by mtim
   assert.match(parseClaudeConfig('/x', '{').error ?? '', /JSON/);
   const file = path.join(tmp, 'claude.json');
   const reader = createClaudeConfigReader(file);
-  assert.equal((await reader.trustOf('/p')).trusted, false);
-  await writeFile(file, JSON.stringify({ projects: { '/p': { hasTrustDialogAccepted: true } } }));
-  assert.deepEqual(await reader.trustOf('/p'), { trusted: true });
-  assert.deepEqual(await reader.trustOf('/p/sub/deeper'), { trusted: false, inherited: { from: '/p', note: INHERITED_NOTE } }, 'a trusted parent is only a mark');
-  assert.deepEqual(await reader.trustOf('/q'), { trusted: false });
+  // Folders of the running OS; on Windows Claude Code writes the key with forward slashes.
+  const win = process.platform === 'win32';
+  const [p, key, deeper, q] = win ? ['C:\\p', 'C:/p', 'C:\\p\\sub\\deeper', 'C:\\q'] : ['/p', '/p', '/p/sub/deeper', '/q'];
+  assert.equal((await reader.trustOf(p)).trusted, false);
+  await writeFile(file, JSON.stringify({ projects: { [key]: { hasTrustDialogAccepted: true } } }));
+  assert.deepEqual(await reader.trustOf(p), { trusted: true });
+  assert.deepEqual(await reader.trustOf(deeper), { trusted: false, inherited: { from: p, note: INHERITED_NOTE } }, 'a trusted parent is only a mark');
+  assert.deepEqual(await reader.trustOf(q), { trusted: false });
   assert.equal((await reader.read()).loggedIn, false);
   await writeFile(file, 'not json at all, longer than before');
   assert.equal((await reader.trustOf('/p')).trusted, null);
@@ -170,7 +173,7 @@ test('capabilities follow the OS, expect and the claude version', async () => {
   await mkdir(bin, { recursive: true });
   await writeFile(path.join(bin, 'claude'), '#!/bin/sh\n');
   await chmod(path.join(bin, 'claude'), 0o755);
-  assert.equal(await findProgram('claude', { env: { PATH: `relative:${bin}` } }), path.join(bin, 'claude'));
+  assert.equal(await findProgram('claude', { env: { PATH: ['relative', bin].join(path.delimiter) } }), path.join(bin, 'claude'));
   assert.equal(await findProgram('claude', { env: {}, configured: path.join(tmp, 'nope') }), null);
   assert.equal(await findProgram('claude', { env: {}, extraDirs: [bin] }), path.join(bin, 'claude'));
 });

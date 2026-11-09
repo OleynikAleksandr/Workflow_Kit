@@ -75,7 +75,8 @@ export async function memoryFiles(projectPath: string, homedir: string): Promise
 export function importReferences(text: string): string[] {
   const prose = text.replace(/^(```|~~~)[^\n]*\n[\s\S]*?^\1[^\n]*$/gm, '').replace(/`[^`\n]*`/g, '');
   const refs: string[] = [];
-  for (const match of prose.matchAll(/(?:^|\s)@((?:[^\s\\]|\\ )+)/g)) {
+  // `\ ` is an escaped space; any other backslash belongs to the path (Windows: @C:\docs\a.md).
+  for (const match of prose.matchAll(/(?:^|\s)@((?:[^\s\\]|\\ |\\(?=\S))+)/g)) {
     const ref = (match[1] ?? '').replace(/\\ /g, ' ').replace(/#.*$/, '').replace(/[),.;:!?]+$/, '');
     if (ref !== '') refs.push(ref);
   }

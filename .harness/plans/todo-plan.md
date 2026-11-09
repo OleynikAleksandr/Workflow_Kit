@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 436,
+  "revision": 438,
   "rounds": [
     {
       "digest": {
@@ -384,14 +384,19 @@
       "dependencies": [],
       "docsWaiver": null,
       "files": [
-        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude"
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/imports.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/config.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parts.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/windows.test.ts"
       ],
       "fixes": "T002",
       "id": "T007",
       "iteration": 1,
       "kind": "work",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Claude adapter tests on Windows",
       "why": "CI on Windows: memory import scan, file mode, folder trust, program lookup and host timing tests fail"
     },
@@ -534,8 +539,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 7/12
-- Revision: 436
+- Progress: 8/12
+- Revision: 438
 
 ## Objective
 
@@ -583,9 +588,9 @@ Digest: R1 of m6-cross-platform: the platform-guard commit check (rules A, B, C)
   - Commit: test: make kit-structure, registry, setup and cli tests pass on Windows
   - Files: product-parts/backend-core/clusters/projects/modules/kit-structure, product-parts/backend-core/clusters/projects/modules/project-registry, product-parts/backend-core/clusters/projects/modules/project-setup, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner, product-parts/backend-core/clusters/projects/modules/kit-structure/test/structure.test.ts, product-parts/backend-core/clusters/projects/modules/project-registry/module.md, product-parts/backend-core/clusters/projects/modules/project-registry/src/home-paths.ts, product-parts/backend-core/clusters/projects/modules/project-registry/test/registry.test.ts, product-parts/backend-core/clusters/projects/modules/project-setup/test/setup.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/open-link.test.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/src/state.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/test/kit-project.test.ts
   - Fixes: T002
-- [TODO] T007 — Claude adapter tests on Windows (work)
+- [DONE] T007 — Claude adapter tests on Windows (work)
   - Commit: test: make provider-claude tests pass on Windows
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/imports.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/config.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parts.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/windows.test.ts
   - Fixes: T002
 - [TODO] T008 — Codex adapter tests on Windows (work)
   - Commit: test: run the fake Codex daemon on a named pipe on Windows

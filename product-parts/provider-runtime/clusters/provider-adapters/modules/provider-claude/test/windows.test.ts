@@ -77,8 +77,11 @@ function fakeHost() {
   };
 }
 
+// Waits by real time, not by a number of turns: the link timeout of the host is a real timer, and a
+// slow runner (CI on Windows ARM64) gets through many turns before it fires.
 async function until(check: () => boolean): Promise<void> {
-  for (let i = 0; i < 2000 && !check(); i += 1) await new Promise((resolve) => setImmediate(resolve));
+  const deadline = Date.now() + 5000;
+  while (!check() && Date.now() < deadline) await new Promise((resolve) => setImmediate(resolve));
   assert.ok(check(), 'condition was not reached');
 }
 

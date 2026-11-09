@@ -95,7 +95,7 @@ D5) и останавливает только по своим записям (D
   `enableAllProjectMcpServers`, `enabledMcpjsonServers`, серверы
   `.mcp.json`, команды `statusLine`, `apiKeyHelper`, …, чужие хуки
   `.codex/hooks.json`; нечитаемый JSON — точка `invalid`) и внешние импорты
-  CLAUDE.md (`imports.ts`). Если внешние импорты есть, а в записи папки нет
+  CLAUDE.md (`imports.ts`; `\ ` в `@путь` — пробел, иной `\` — часть пути Windows). Если внешние импорты есть, а в записи папки нет
   `hasClaudeMdExternalIncludesWarningShown: true`, — в `writes` ключи
   `hasClaudeMdExternalIncludesApproved: true` и
   `hasClaudeMdExternalIncludesWarningShown: true`: импорты разрешаются по
@@ -288,9 +288,8 @@ EnvironmentRecord[] }`. `SessionRecord`: `localId | null`, `remoteId`,
   вместо пробелов; нажатые в диалоге клавиши пишутся в `<лог>.keys`) под
   настоящими expect-скриптами, временные HOME и `WFK_DATA_DIR`
   (`test/harness.ts`), фикстуры транскриптов; без `expect`
-  интеграционные тесты пропускаются. `windows.test.ts` ведёт хост через
-  подставной терминал (маркеры, файлы управления, диалоги, окружение) и проверяет
-  ключи Windows в `~/.claude.json`. `trust.test.ts` повторяет машину
+  интеграционные тесты пропускаются. `windows.test.ts`: хост с подставным
+  терминалом и ключи Windows в `~/.claude.json`; тесты идут и в CI на Windows. `trust.test.ts` повторяет машину
   пользователя: `~` доверена, `~/CLAUDE.md` импортирует `~/AGENTS.md`.
 
 ## Проверить при приёмке

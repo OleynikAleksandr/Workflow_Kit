@@ -46,6 +46,8 @@ test('import references: plain, ~/ and escaped paths; code is skipped; email-lik
     'c d.md',
     'e.md',
   ]);
+  // Windows paths keep their backslashes; only `\ ` is an escaped space.
+  assert.deepEqual(importReferences('@C:\\Users\\u\\My\\ Docs\\a.md and @..\\b.md.'), ['C:\\Users\\u\\My Docs\\a.md', '..\\b.md']);
 });
 
 test('external imports: parents and rules are scanned, user memory is skipped, inside imports are not external', async () => {
@@ -55,7 +57,7 @@ test('external imports: parents and rules are scanned, user memory is skipped, i
   assert.ok(!files.some((f) => f.startsWith(path.join(home, '.claude'))));
   const scan = await scanExternalImports(project, home);
   assert.deepEqual(
-    scan.imports.map((i) => [path.relative(tmp, i.file), path.relative(tmp, i.from)]),
+    scan.imports.map((i) => [path.relative(tmp, i.file), path.relative(tmp, i.from)].map((p) => p.split(path.sep).join('/'))),
     [
       ['shared.md', 'home/Projects/demo/.claude/rules/nested/r.md'],
       ['home/AGENTS.md', 'home/CLAUDE.md'],
@@ -74,12 +76,14 @@ test('the writer merges keys into one project entry, keeps the rest, the mode an
   const real = path.join(dir, 'real.json');
   const link = path.join(dir, '.claude.json');
   await writeFile(real, JSON.stringify({ a: 1, projects: { '/p': { allowedTools: ['x'] }, '/q': { hasTrustDialogAccepted: true } } }));
+  // Windows has no POSIX modes: the mode checks run on macOS and Linux.
+  const modes = process.platform !== 'win32';
   await chmod(real, 0o604);
   await symlink(real, link);
   const result = await patchProjectEntry(link, '/p', { hasTrustDialogAccepted: true });
   assert.deepEqual(result, { attempts: 1, created: false });
   assert.ok((await lstat(link)).isSymbolicLink(), 'the link stays a link');
-  assert.equal((await stat(real)).mode & 0o777, 0o604);
+  if (modes) assert.equal((await stat(real)).mode & 0o777, 0o604);
   const text = await readFile(real, 'utf8');
   assert.deepEqual(JSON.parse(text), { a: 1, projects: { '/p': { allowedTools: ['x'], hasTrustDialogAccepted: true }, '/q': { hasTrustDialogAccepted: true } } });
   assert.ok(text.startsWith('{\n  "a": 1'));
@@ -88,7 +92,7 @@ test('the writer merges keys into one project entry, keeps the rest, the mode an
 
   const missing = path.join(dir, 'new.json');
   assert.deepEqual(await patchProjectEntry(missing, '/n', { k: true }), { attempts: 1, created: true });
-  assert.equal((await stat(missing)).mode & 0o777, 0o600);
+  if (modes) assert.equal((await stat(missing)).mode & 0o777, 0o600);
 
   const broken = path.join(dir, 'broken.json');
   await writeFile(broken, '{ nope');

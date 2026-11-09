@@ -26,14 +26,13 @@ import { projectWizardMount } from '#project-wizard';
 import { sessionViewMount } from '#session-view';
 import { createProcessSupervisor, processesFile, runCommand } from '#process-supervisor';
 import type { CommandRunner, ProcessSupervisor } from '#process-supervisor';
-import { createProvider as createClaudeProvider } from '#provider-claude';
-import { createProvider as createCodexProvider } from '#provider-codex';
 import { createProviderRegistry, registerProviderRoutes } from '#provider-registry';
-import type { ProviderContext, ProviderFactory, ProviderRegistry } from '#provider-registry';
+import type { HookDialect, ProviderContext, ProviderFactory, ProviderRegistry } from '#provider-registry';
 import { createProjectRegistry, isInside, projectsFile, registerProjectRoutes } from '#project-registry';
 import type { ProjectRegistry } from '#project-registry';
 import { getServiceStatus } from '#service-installer';
 import { registerOpenLinkRoute } from './open-link.ts';
+import { DEFAULT_PROVIDERS } from './provider-list.ts';
 import { wireProviderLifecycle } from './provider-lifecycle.ts';
 import { currentOsInput, detectOs, panelUrls, readPackageVersion } from './system-info.ts';
 import type { DetectOsInput, OsInfo } from './system-info.ts';
@@ -69,9 +68,6 @@ export interface AppOptions {
   /** Process supervisor given to providers (default: over <state>/processes.json). */
   supervisor?: ProcessSupervisor;
 }
-
-/** Providers registered by default, in panel order. */
-export const DEFAULT_PROVIDERS: readonly ProviderFactory[] = [createClaudeProvider, createCodexProvider];
 
 /** The assembled backend: data, routes, state sections and the HTTP server. */
 export interface App {
@@ -304,7 +300,9 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
     const lists = project ? await Promise.all(providers.list().map((p) => p.listSessions(project).catch(() => []))) : [];
     return lists.flat().some((info) => `${info.provider}:${info.localId}` === key);
   };
-  registerChannelRoutes({ router, state, channel: observedChannel, messages: wakingChannel, owns: ownsSession });
+  // A hook is taken only from a registered provider; its dialect decides how it is read and answered.
+  const dialects = (id: string): HookDialect | undefined => providers.get(id) && (providers.get(id)?.hookDialect ?? 'claude');
+  registerChannelRoutes({ router, state, channel: observedChannel, messages: wakingChannel, owns: ownsSession, dialects });
   registerAutopilotRoutes({ router, state, autopilot, mutex });
 
   const review = createReviewToggles({

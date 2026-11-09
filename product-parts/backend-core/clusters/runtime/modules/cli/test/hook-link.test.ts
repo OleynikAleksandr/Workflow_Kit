@@ -145,3 +145,19 @@ test('the hook command from settings runs the linked launcher end to end', { ski
   const missing = await exec('/bin/sh', ['-c', hookCommand('codex')], { HOME: path.join(tmp, 'nobody'), PATH: '/usr/bin:/bin' }, '{}');
   assert.deepEqual([missing.code, missing.out], [0, '']);
 });
+
+test('wfk hook session-start of a client that is not a provider records nothing', async () => {
+  const before = (await journal()).length;
+  const stdin = JSON.stringify({ session_id: 's-ghost', source: 'startup', cwd: project });
+  const refused = await run(['hook', 'session-start', '--client', 'ghost'], { app: { env: { CLAUDE_PROJECT_DIR: project } }, cwd: tmp, readStdin: async () => stdin });
+  assert.deepEqual([refused.code, refused.out], [0, '']);
+  assert.equal((await journal()).length, before);
+  const taken = await run(['hook', 'session-start', '--client', 'ghost'], {
+    app: { env: { CLAUDE_PROJECT_DIR: project } },
+    cwd: tmp,
+    readStdin: async () => stdin,
+    hookClients: ['ghost'],
+  });
+  assert.equal(taken.code, 0);
+  assert.equal((await journal()).at(-1)?.['client'], 'ghost');
+});

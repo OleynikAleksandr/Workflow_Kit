@@ -1,11 +1,13 @@
 // wfk hook stop|prompt end to end: the CLI posts the hook input to a real service on loopback and
-// prints its answer; the service is createApp with a temporary data dir and no providers.
+// prints its answer; the service is createApp with a temporary data dir and stub providers (a hook
+// is taken only from a registered provider).
 import assert from 'node:assert/strict';
 import { mkdir, mkdtemp, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { after, before, test } from 'node:test';
 import { sessionKey } from '#agent-channel';
+import { createStubProvider } from '#provider-registry';
 import { createApp, main } from '../src/index.ts';
 import type { App } from '../src/index.ts';
 
@@ -26,7 +28,8 @@ before(async () => {
   tmp = await mkdtemp(path.join(os.tmpdir(), 'wfk-hook-channel-'));
   folder = path.join(tmp, 'Projects', 'demo');
   await mkdir(folder, { recursive: true });
-  app = await createApp({ env: { WFK_DATA_DIR: path.join(tmp, 'data'), WFK_PORT: '0' }, homedir: tmp, providers: [] });
+  const stub = (id: string, hookDialect?: 'kimi') => () => ({ ...createStubProvider({ id, title: id, task: 'T' }), hookDialect });
+  app = await createApp({ env: { WFK_DATA_DIR: path.join(tmp, 'data'), WFK_PORT: '0' }, homedir: tmp, providers: [stub('claude'), stub('codex'), stub('kimi', 'kimi')] });
   const bound = await app.start();
   env = { WFK_DATA_DIR: path.join(tmp, 'data'), WFK_PORT: String(bound.port) };
   await app.projects.open(folder);
@@ -44,6 +47,7 @@ async function hook(event: string, input: object, extraEnv: Record<string, strin
     stderr: () => undefined,
     app: { env: { ...env, ...extraEnv }, homedir: tmp },
     readStdin: async () => JSON.stringify(input),
+    hookClients: ['claude', 'codex', 'kimi', 'ghost'],
   });
   return { code, out };
 }
@@ -175,4 +179,42 @@ test('wfk session title is refused during the panel greeting turn', async () => 
   assert.equal(code, 1);
   assert.match(err, /служебное сообщение/);
   await hook('stop', { ...CODEX_STOP, session_id: 'greeting', cwd: folder });
+});
+
+test('a kimi-dialect client gets queued messages as { message } and its prompt parts are read', async () => {
+  const key = sessionKey('kimi', 'session_k1');
+  const input = { session_id: 'session_k1', cwd: folder, hook_event_name: 'UserPromptSubmit', prompt: [{ type: 'text', text: 'задача' }] };
+  assert.equal((await hook('prompt', input, {}, 'kimi')).out, '');
+  assert.equal(app.channel.get(key)!.state, 'working');
+  app.channel.enqueue(key, 'Workflow Kit: продолжай.');
+  const reply = await hook('prompt', input, {}, 'kimi');
+  assert.deepEqual(JSON.parse(reply.out), { message: 'Workflow Kit: продолжай.' });
+  assert.equal(app.channel.queued(key).length, 0);
+});
+
+test('a hook of a client that is not a provider is refused by the CLI and by the service', async () => {
+  const input = { session_id: 'ghost-1', cwd: folder, hook_event_name: 'UserPromptSubmit', prompt: 'x' };
+  // The CLI knows only the service's providers: nothing is posted.
+  let posted = 0;
+  const code = await main(['hook', 'prompt', '--client', 'ghost'], {
+    stdout: () => assert.fail('no output'),
+    stderr: () => undefined,
+    app: { env, homedir: tmp },
+    readStdin: async () => JSON.stringify(input),
+    postJson: async () => {
+      posted += 1;
+      return null;
+    },
+  });
+  assert.deepEqual([code, posted], [0, 0]);
+  // A CLI that lets the client through is still refused by the registry of the service.
+  assert.deepEqual(await hook('prompt', input, {}, 'ghost'), { code: 0, out: '' });
+  assert.equal(app.channel.get(sessionKey('ghost', 'ghost-1')), undefined);
+  const response = await fetch(`http://127.0.0.1:${env['WFK_PORT']}/api/hooks/prompt`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Origin: `http://127.0.0.1:${env['WFK_PORT']}` },
+    body: JSON.stringify({ client: 'ghost', input }),
+  });
+  assert.equal(response.status, 400);
+  assert.equal(((await response.json()) as { error?: { code?: string } }).error?.code, 'bad-hook-input');
 });

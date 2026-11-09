@@ -14,7 +14,7 @@ export type {
   TurnOrigin,
 } from './channel.ts';
 export { STOP_HOLD_MS, createAgentChannel } from './channel.ts';
-export type { AgentClient, HookInput } from './hook-input.ts';
-export { AGENT_CLIENTS, blockAnswer, contextAnswer, isAgentClient, parseHookInput, sessionKey } from './hook-input.ts';
+export type { AgentClient, HookDialects, HookInput } from './hook-input.ts';
+export { blockAnswer, contextAnswer, messageAnswer, parseHookInput, promptAnswer, sessionKey } from './hook-input.ts';
 export type { ChannelRoutesOptions } from './routes.ts';
 export { MESSAGE_MAX_CHARS, queueSessionMessage, registerChannelRoutes } from './routes.ts';

@@ -52,8 +52,11 @@ stripping).
   `stop()` (останавливает слежение и сервер). Опции: `env`, `platform`, `homedir`, `getInterfaces`,
   `osInput`, `log`, `providers` (фабрики вместо `DEFAULT_PROVIDERS`),
   `runCommand` (исполнитель внешних программ для провайдеров), `supervisor`.
-- `DEFAULT_PROVIDERS` — фабрики `createProvider` из `#provider-claude` и
-  `#provider-codex`, в порядке панели.
+- `PROVIDER_ENTRIES` (`src/provider-list.ts`) — провайдеры службы в порядке панели,
+  `{ id, create }`: единственный список бэкенда, где они названы (`createProvider` из
+  `#provider-claude` и `#provider-codex`); `DEFAULT_PROVIDERS` — их фабрики,
+  `PROVIDER_IDS` — их id (по ним `wfk hook` проверяет `--client`; тест сверяет id с
+  реестром).
 - `detectOs(input)`, `panelUrls(port, interfaces)`, `readPackageVersion()`.
 - Константы `COMMANDS`, `EXIT_USAGE` (64), `EXIT_NOT_IMPLEMENTED` (2).
 - Типы `CliDeps`, `App`, `AppOptions`, `SystemSection`, `OsInfo`,
@@ -67,11 +70,11 @@ stripping).
 | `install`, `uninstall`, `service start/stop/status`, `open [--url-only]` | передаются в `runServiceCommand` из `service-installer` с контекстом `{ env, platform, homedir, ...deps.service }` (по умолчанию — текущий процесс и `os.homedir()`); сообщение — в stdout (успех) или stderr (ошибка), код выхода — из результата |
 | `doctor [--installed]` | то же, `--installed` передаётся аргументом; другие аргументы — справка, код 64 |
 | `link [--force]` | пишет запускатель `~/.local/bin/wfk` (0755, `#!/bin/sh`, строка-метка `# Workflow Kit launcher`), который запускает `bin/wfk.mjs` этого клона абсолютным `node`; чужой файл заменяется только с `--force`; предупреждает, если каталога нет в PATH; на Windows пишет те же три запускателя, что `wfk install` (`wfk.cmd`, `wfk` для Git Bash, `wfk.mjs` для хуков), в `%LOCALAPPDATA%\Workflow Kit` (M5, раздел 6) |
-| `hook session-start --client <claude\|codex>` | читает JSON хука из stdin (до 1 с, терминал — пусто) и передаёт `recordSessionStart` из `kit-structure`; весь бюджет 1,5 с; stdout пуст, код всегда 0; неизвестные подкоманды `hook` игнорируются |
+| `hook session-start --client <id провайдера>` | клиент не из `PROVIDER_IDS` (`CliDeps.hookClients` в тестах) — ничего не пишет; читает JSON хука из stdin (до 1 с, терминал — пусто) и передаёт `recordSessionStart` из `kit-structure`; весь бюджет 1,5 с; stdout пуст, код всегда 0; неизвестные подкоманды `hook` игнорируются |
 | `session title "<тема>"` | отправляет `{ title, cwd, projectDir, client, sessionId }` на `POST /api/sessions/title` (id сессии — `CODEX_THREAD_ID` или `CLAUDE_CODE_SESSION_ID`, `callingSession`); успех — «Имя сессии в Workflow Kit: …», код 0; отказ службы — причина в stderr, код 1; без темы — справка, код 64 |
 | `session plan "<что делаем>"` | вопрос о спецификации и плане (M4, раздел 12): `{ summary, cwd, projectDir, client, sessionId }` на `POST /api/sessions/plan`; успех — `PLAN_ASKED` («вопрос показан… закончи ход»), код 0; отказ — stderr, код 1; без текста — справка, код 64 |
 | `project publish` | публикация проекта текущей папки (publication-order 3.3, `src/project-command.ts`): проект — самый глубокий активный из `GET /api/projects`, содержащий папку (`projectOfFolder`); `POST /api/projects/:id/publish` (тайм-аут 120 с); успех — «Опубликовано: коммитов N, <sha>», код 0; отказ службы (scope открыт, грязное дерево, нет upstream, удалённая ветка впереди) или ошибка git — stderr с выводом git, код 1; другие аргументы — справка, код 64 |
-| `hook stop\|prompt --client <claude\|codex>` | читает JSON хука из stdin и отправляет `{ client, input, projectDir }` (`projectDir` — `$CLAUDE_PROJECT_DIR`) на `POST /api/hooks/stop\|prompt` службы; печатает в stdout поле `answer` ответа (JSON для агента) или ничего; ответ `prompt` сессии Claude несёт `hookSpecificOutput.sessionTitle` из `titles.appTitle` — имя Workflow Kit уходит в Claude; служба недоступна, вход не JSON — без вывода; код всегда 0; `WFK_HOOK_DEBUG` — причина в stderr |
+| `hook stop\|prompt --client <id провайдера>` | клиент не из `PROVIDER_IDS` — отказ: ничего не отправляет и не печатает; служба принимает хук только зарегистрированного провайдера (иначе 400 `bad-hook-input`) и читает вход и строит ответ по его `hookDialect` (нет поля — `claude`; `kimi` — `prompt` массивом частей, ответ `{ message }`); читает JSON хука из stdin и отправляет `{ client, input, projectDir }` (`projectDir` — `$CLAUDE_PROJECT_DIR`) на `POST /api/hooks/stop\|prompt` службы; печатает в stdout поле `answer` ответа (JSON для агента) или ничего; ответ `prompt` сессии Claude несёт `hookSpecificOutput.sessionTitle` из `titles.appTitle` — имя Workflow Kit уходит в Claude; служба недоступна, вход не JSON — без вывода; код всегда 0; `WFK_HOOK_DEBUG` — причина в stderr |
 | `--help`, `--version` | справка и версия из `package.json` |
 
 Неизвестная команда — сообщение и справка в stderr, код 64.

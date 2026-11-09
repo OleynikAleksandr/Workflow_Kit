@@ -215,10 +215,19 @@ export interface RenameResult {
   note?: string;
 }
 
+/**
+ * How a provider's hooks talk to Kit: 'claude' (Claude Code and Codex: a Stop may be answered with
+ * a block, UserPromptSubmit with hookSpecificOutput.additionalContext, the prompt is a string) or
+ * 'kimi' (the prompt is an array of parts, UserPromptSubmit is answered with { message }).
+ */
+export type HookDialect = 'claude' | 'kimi';
+
 /** The provider contract. All read methods must be cheap and read-only (D11). */
 export interface Provider {
   readonly id: ProviderId;
   readonly title: string;
+  /** Dialect of the provider's hooks (wfk hook --client <id>); absent means 'claude'. */
+  readonly hookDialect?: HookDialect;
   capabilities(): Promise<Capabilities>;
   status(): Promise<ProviderStatus>;
   /** Re-reads versions and daemons with external programs (POST /api/refresh, start of the service). */

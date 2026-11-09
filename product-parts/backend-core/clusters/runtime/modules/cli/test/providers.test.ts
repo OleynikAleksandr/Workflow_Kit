@@ -13,7 +13,7 @@ import type { CommandRunner } from '#process-supervisor';
 import { createProviderRegistry, createStubProvider } from '#provider-registry';
 import type { ProjectRegistry } from '#project-registry';
 import type { ProvidersSection } from '#provider-registry';
-import { DEFAULT_PROVIDERS, createApp } from '../src/index.ts';
+import { DEFAULT_PROVIDERS, PROVIDER_ENTRIES, PROVIDER_IDS, createApp } from '../src/index.ts';
 import type { App } from '../src/index.ts';
 import { AUTOSTART_ATTEMPTS, wireProviderLifecycle } from '../src/provider-lifecycle.ts';
 
@@ -77,6 +77,9 @@ test('DEFAULT_PROVIDERS register claude and codex, each with a state section for
   });
   try {
     assert.deepEqual(real.providers.ids(), ['claude', 'codex']);
+    // The ids `wfk hook` checks --client against are the ids of the registered providers.
+    assert.deepEqual(real.providers.ids(), [...PROVIDER_IDS]);
+    assert.deepEqual(PROVIDER_ENTRIES.map((entry) => entry.create), [...DEFAULT_PROVIDERS]);
     const project = await real.projects.create('Defaults');
     const realBase = `http://127.0.0.1:${(await real.start()).port}`;
     const state = await getState(realBase);

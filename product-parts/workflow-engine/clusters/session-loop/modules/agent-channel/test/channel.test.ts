@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { MESSAGE_MAX_CHARS, createAgentChannel, parseHookInput, queueSessionMessage, sessionKey } from '../src/index.ts';
-import type { HookInput, StopDecision } from '../src/index.ts';
+import type { HookDialects, HookInput, StopDecision } from '../src/index.ts';
 
 // Inputs as Claude 2.1.318 and codex-cli 0.166.0 send them (spec section 3).
 const CLAUDE_STOP = {
@@ -25,8 +25,11 @@ const CODEX_STOP = {
   last_assistant_message: 'APPLE',
 };
 
-const input = (client: 'claude' | 'codex', raw: object, over: Partial<HookInput> = {}): HookInput => ({
-  ...parseHookInput(client, raw)!,
+// The hook clients as the service builds them from the provider registry.
+const DIALECTS: HookDialects = (client) => (client === 'kimi' ? 'kimi' : client === 'claude' || client === 'codex' ? 'claude' : undefined);
+
+const input = (client: 'claude' | 'codex' | 'kimi', raw: object, over: Partial<HookInput> = {}): HookInput => ({
+  ...parseHookInput(client, raw, undefined, DIALECTS)!,
   ...over,
 });
 
@@ -47,7 +50,9 @@ test('parseHookInput reads Claude and Codex Stop inputs', () => {
   const codex = parseHookInput('codex', { ...CODEX_STOP, stop_hook_active: true })!;
   assert.equal(codex.turnId, CODEX_STOP.turn_id);
   assert.equal(codex.stopHookActive, true);
-  assert.equal(parseHookInput('other', CODEX_STOP), null);
+  assert.equal(parseHookInput('other', CODEX_STOP, undefined, DIALECTS), null);
+  assert.equal(parseHookInput('Bad Id', CODEX_STOP), null);
+  assert.equal(claude.dialect, 'claude');
   assert.equal(parseHookInput('codex', { cwd: '/x' }), null);
   assert.equal(claude.sessionTitle, null);
   const prompt = parseHookInput('claude', { session_id: 's', hook_event_name: 'UserPromptSubmit', prompt: 'x', session_title: 'Склад' })!;
@@ -210,4 +215,41 @@ test('a reminder turn is reported as such', async () => {
   await ch.stop(input('codex', CODEX_STOP));
   await ch.stop(input('codex', CODEX_STOP));
   assert.deepEqual(origins, ['unknown', 'reminder']);
+});
+
+// Input as Kimi Code 2.5.2 sends it (docs/evidence/M8-kimi-captures.md, hooks-last.log).
+const KIMI_PROMPT = {
+  hook_event_name: 'UserPromptSubmit',
+  session_id: 'session_c4db56ed-538b-40b0-9c61-32467d766652',
+  cwd: '/home/u/Projects/demo',
+  client_type: 'kimi_code_cli',
+  session_title: 'Kit test 2',
+  prompt: [{ type: 'text', text: 'first part' }, { type: 'image', url: 'x' }, { type: 'text', text: 'second part' }],
+  is_steer: false,
+};
+
+test('a prompt given as an array of parts is read as the text of its parts', () => {
+  const kimi = parseHookInput('kimi', KIMI_PROMPT, undefined, DIALECTS)!;
+  assert.equal(kimi.dialect, 'kimi');
+  assert.equal(kimi.prompt, 'first part\nsecond part');
+  assert.equal(kimi.sessionTitle, 'Kit test 2');
+  assert.equal(parseHookInput('kimi', { ...KIMI_PROMPT, prompt: [] }, undefined, DIALECTS)!.prompt, null);
+  assert.equal(parseHookInput('kimi', { ...KIMI_PROMPT, prompt: 'plain' }, undefined, DIALECTS)!.prompt, 'plain');
+});
+
+test('UserPromptSubmit of a kimi-dialect client is answered with { message }; claude keeps additionalContext', async () => {
+  const ch = channel();
+  const key = sessionKey('kimi', KIMI_PROMPT.session_id);
+  ch.enqueue(key, 'один');
+  ch.enqueue(key, 'два');
+  assert.equal(ch.get(key)!.client, 'kimi');
+  const reply = await ch.prompt(input('kimi', KIMI_PROMPT));
+  assert.deepEqual(reply.answer, { message: 'один\n\nдва' });
+  reply.ack();
+  assert.equal(ch.queued(key).length, 0);
+  assert.equal((await ch.prompt(input('kimi', KIMI_PROMPT))).answer, null);
+  const claudeKey = sessionKey('claude', CLAUDE_STOP.session_id);
+  ch.enqueue(claudeKey, 'три');
+  const claude = await ch.prompt(input('claude', { ...CLAUDE_STOP, hook_event_name: 'UserPromptSubmit', prompt: 'x' }));
+  assert.deepEqual(claude.answer, { hookSpecificOutput: { hookEventName: 'UserPromptSubmit', additionalContext: 'три' } });
 });

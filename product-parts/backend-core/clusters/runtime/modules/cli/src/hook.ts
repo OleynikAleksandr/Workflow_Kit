@@ -1,9 +1,11 @@
-// wfk hook session-start|stop|prompt --client <claude|codex>. session-start reads the hook JSON
+// wfk hook session-start|stop|prompt --client <provider id>. A client that is not a provider of
+// the service (provider-list.ts) is refused: nothing is recorded, asked or printed. session-start reads the hook JSON
 // from stdin and hands it to kit-structure; it never prints to stdout (Claude adds hook stdout to
 // the session context) and gives up after HOOK_BUDGET_MS. stop and prompt ask the running service
 // (hook-service.ts) and print its answer. Every subcommand always exits with 0.
 import { recordSessionStart } from '#kit-structure';
 import { runServiceHook } from './hook-service.ts';
+import { PROVIDER_IDS } from './provider-list.ts';
 import type { PostJson } from './hook-service.ts';
 
 /** Whole time budget of the hook; the spec allows 2 s. */
@@ -21,6 +23,8 @@ export interface HookDeps {
   platform?: NodeJS.Platform;
   /** Posts to the service (stop, prompt); tests pass a fake. */
   post?: PostJson;
+  /** Provider ids accepted as --client (default: PROVIDER_IDS). */
+  clients?: readonly string[];
   env: Readonly<Record<string, string | undefined>>;
   cwd: string;
   readStdin: (timeoutMs: number) => Promise<string>;
@@ -67,7 +71,7 @@ function option(args: readonly string[], name: string): string | undefined {
 
 async function sessionStart(args: readonly string[], deps: HookDeps): Promise<void> {
   const stdin = await deps.readStdin(STDIN_TIMEOUT_MS);
-  const result = await recordSessionStart({ client: option(args, '--client'), stdin, env: deps.env, cwd: deps.cwd });
+  const result = await recordSessionStart({ client: option(args, '--client'), clients: deps.clients ?? PROVIDER_IDS, stdin, env: deps.env, cwd: deps.cwd });
   if (!result.recorded && deps.env['WFK_HOOK_DEBUG']) deps.stderr(`wfk hook: ${result.reason}\n`);
 }
 
@@ -75,9 +79,14 @@ async function sessionStart(args: readonly string[], deps: HookDeps): Promise<vo
 export async function runHook(args: readonly string[], deps: HookDeps): Promise<number> {
   const [event, ...rest] = args;
   if (event === 'stop' || event === 'prompt') {
+    const client = option(rest, '--client');
+    if (!client || !(deps.clients ?? PROVIDER_IDS).includes(client)) {
+      if (deps.env['WFK_HOOK_DEBUG']) deps.stderr(`wfk hook: unknown client: ${String(client)}\n`);
+      return 0;
+    }
     try {
       const stdin = await deps.readStdin(STDIN_TIMEOUT_MS);
-      await runServiceHook(event, option(rest, '--client'), { ...deps, stdin });
+      await runServiceHook(event, client, { ...deps, stdin });
     } catch (error) {
       if (deps.env['WFK_HOOK_DEBUG']) deps.stderr(`wfk hook: ${error instanceof Error ? error.message : String(error)}\n`);
     }

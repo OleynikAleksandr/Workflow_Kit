@@ -15,7 +15,9 @@
 
 ### Контракт (`contract.ts`)
 
-- `Provider` — `id`, `title`, `capabilities()`, `status()`, `refresh?()`,
+- `Provider` — `id`, `title`, `hookDialect?` (`HookDialect`: `'claude'` — Claude и Codex,
+  `'kimi'` — `prompt` массивом частей и ответ `{ message }`; нет поля — `'claude'`; канал
+  `agent-channel` читает вход и строит ответ хука по нему), `capabilities()`, `status()`, `refresh?()`,
   `previewTrust(project)`, `grantTrust(project, token, choices?)`,
   `trust(project)`,
   `hooks(project)`, `approveHooks?(project, { command, hash })`,

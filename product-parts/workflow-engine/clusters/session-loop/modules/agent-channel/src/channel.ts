@@ -3,7 +3,7 @@
 // UserPromptSubmit hook marks the turn as running and carries messages that missed a Stop.
 // Every message is delivered once: it stays queued until the hook's HTTP answer was sent.
 import { randomUUID } from 'node:crypto';
-import { blockAnswer, contextAnswer, sessionKey } from './hook-input.ts';
+import { blockAnswer, promptAnswer, sessionKey } from './hook-input.ts';
 import type { AgentClient, HookInput } from './hook-input.ts';
 
 /** Longest hold of a Stop hook; the hook itself may wait 600 s. */
@@ -324,7 +324,7 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
       const slot = await slotOf(input);
       slot.wake?.();
       if (slot.queue.length > 0) {
-        const reply = deliver(slot, (text) => contextAnswer(text));
+        const reply = deliver(slot, (text) => promptAnswer(input.dialect, text));
         slot.origin = 'user';
         setState(slot, 'working', { turnStartedAt: iso() });
         return reply;
@@ -337,12 +337,12 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
       const message: QueuedMessage = { id: randomUUID(), text, source, createdAt: iso() };
       let slot = slots.get(key);
       if (!slot) {
-        const [client, ...rest] = key.split(':');
+        const cut = key.indexOf(':');
         slot = {
           activity: {
             key,
-            client: client === 'codex' ? 'codex' : 'claude',
-            sessionId: rest.join(':'),
+            client: cut < 0 ? key : key.slice(0, cut),
+            sessionId: cut < 0 ? '' : key.slice(cut + 1),
             projectId: projectId ?? null,
             state: 'waiting',
             since: iso(),

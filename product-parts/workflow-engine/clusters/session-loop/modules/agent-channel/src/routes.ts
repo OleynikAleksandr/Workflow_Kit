@@ -5,6 +5,7 @@ import { HttpError, classifyAddress } from '#http-server';
 import type { Router, StateRegistry } from '#http-server';
 import type { AgentChannel, HookReply, QueuedMessage } from './channel.ts';
 import { parseHookInput } from './hook-input.ts';
+import type { HookDialects } from './hook-input.ts';
 
 export interface ChannelRoutesOptions {
   router: Router;
@@ -17,6 +18,8 @@ export interface ChannelRoutesOptions {
    * after a restart of the service its agent has not run a hook yet.
    */
   owns?: (projectId: string, key: string) => Promise<boolean>;
+  /** Hook clients by the provider registry; a hook of an unknown client is refused (400). */
+  dialects?: HookDialects;
 }
 
 /** Longest panel message, in characters. */
@@ -78,8 +81,8 @@ export function registerChannelRoutes(options: ChannelRoutesOptions): void {
         throw new HttpError(403, 'loopback-only', 'Хуки принимаются только с этого компьютера');
       }
       const raw = hookBody(body);
-      const input = parseHookInput(raw.client, raw.input, raw.projectDir);
-      if (!input) throw new HttpError(400, 'bad-hook-input', 'Нет client или session_id во входе хука');
+      const input = parseHookInput(raw.client, raw.input, raw.projectDir, options.dialects);
+      if (!input) throw new HttpError(400, 'bad-hook-input', 'Неизвестный client или нет session_id во входе хука');
       const aborted = new AbortController();
       res.once('close', () => aborted.abort());
       const reply = event === 'stop' ? await channel.stop(input, aborted.signal) : await channel.prompt(input);

@@ -59,8 +59,9 @@ UserPromptSubmit в конец их списков.
   (`code`: `invalid-json` | `bad-markers` | `bad-shape`, `files`) до любой
   записи. Запись атомарная (`writeFileAtomic`), права существующего файла
   сохраняются (новые — 0644, каталоги — 0755). Повтор ничего не пишет.
-- `recordSessionStart({ client, stdin, env, cwd, now? }) →
-  SessionStartResult` — проект: первая папка с `.workflow-kit/manifest.json`
+- `recordSessionStart({ client, clients?, stdin, env, cwd, now? }) →
+  SessionStartResult` — `client` не из `clients` (id провайдеров вызывающего; по
+  умолчанию `HOOK_CLIENTS`) — ничего не пишет; проект: первая папка с `.workflow-kit/manifest.json`
   вверх от `$CLAUDE_PROJECT_DIR`, затем от `cwd` из входа хука, затем от
   `cwd` процесса; дописывает одну строку в
   `.workflow-kit/local/sessions.jsonl` (права 0600): `time`, `client`,

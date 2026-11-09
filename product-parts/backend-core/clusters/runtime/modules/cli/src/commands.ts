@@ -23,6 +23,8 @@ export interface CliDeps {
   readStdin?: (timeoutMs: number) => Promise<string>;
   /** Posts hook input to the service (wfk hook stop|prompt); tests pass a fake. */
   postJson?: PostJson;
+  /** Provider ids `wfk hook` accepts as --client (default: the service's providers). */
+  hookClients?: readonly string[];
   /** Posts to the service and reads the answer (wfk session title); tests pass a fake. */
   requestJson?: RequestJson;
   /** Resolves when the service should stop (default: SIGINT or SIGTERM). */
@@ -49,7 +51,7 @@ const USAGE = `Использование: wfk <команда>
   service start|stop|status     управление службой
   doctor [--installed]          проверка установки
   link [--force]                запускатель ~/.local/bin/wfk на текущий клон (разработка)
-  hook session-start|stop|prompt --client <claude|codex>
+  hook session-start|stop|prompt --client <провайдер>
                                 хуки агентов: начало сессии, конец хода, новое сообщение
   session title "<тема>"        имя сессии от агента (один раз, в идущем ходе)
   session plan "<что делаем>"   вопрос пользователю: спецификация и план (с ревью или без)
@@ -183,6 +185,7 @@ export async function main(argv: readonly string[], deps?: Partial<CliDeps>): Pr
         homedir: full.app?.homedir,
         platform: full.app?.platform,
         post: full.postJson,
+        clients: full.hookClients,
         env: full.app?.env ?? process.env,
         cwd: full.cwd ?? process.cwd(),
         readStdin: full.readStdin ?? readProcessStdin,

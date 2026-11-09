@@ -3,6 +3,7 @@ export type {
   AutorunPoint,
   Capabilities,
   Capability,
+  HookDialect,
   HookEntry,
   HookState,
   Project,

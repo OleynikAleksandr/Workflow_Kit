@@ -4,7 +4,6 @@ import { appendFile, mkdir, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { MANIFEST_PATH } from './structure.ts';
 import { HOOK_CLIENTS } from './templates.ts';
-import type { HookClient } from './templates.ts';
 
 /** Journal of the hook relative to the project root (git-ignored through .workflow-kit/local/). */
 export const SESSIONS_JOURNAL_PATH = '.workflow-kit/local/sessions.jsonl';
@@ -21,7 +20,8 @@ const INPUT_FIELDS = ['session_id', 'transcript_path', 'cwd', 'source', 'model',
 /** One line of sessions.jsonl. */
 export interface SessionStartRecord {
   time: string;
-  client: HookClient;
+  /** Id of the provider whose hook wrote the line. */
+  client: string;
   session_id: string | null;
   transcript_path: string | null;
   cwd: string | null;
@@ -35,7 +35,9 @@ export interface SessionStartRecord {
 /** Inputs of recordSessionStart; everything comes from the hook process. */
 export interface SessionStartInput {
   client: string | undefined;
-  /** Raw stdin of the hook (JSON from Claude or Codex); invalid JSON is tolerated. */
+  /** Provider ids accepted as the client (the caller's provider list; default: HOOK_CLIENTS). */
+  clients?: readonly string[];
+  /** Raw stdin of the hook (JSON from the client); invalid JSON is tolerated. */
   stdin: string;
   env: Readonly<Record<string, string | undefined>>;
   /** Working directory of the hook process. */
@@ -80,7 +82,7 @@ export async function findProjectRoot(start: string): Promise<string | undefined
  * folder with a Kit manifest above the session cwd (or the process cwd).
  */
 export async function recordSessionStart(input: SessionStartInput): Promise<SessionStartResult> {
-  const client = HOOK_CLIENTS.find((c) => c === input.client);
+  const client = (input.clients ?? HOOK_CLIENTS).find((c) => c === input.client);
   if (!client) return { recorded: false, reason: `unknown client: ${String(input.client)}` };
   const payload = parseInput(input.stdin);
   const payloadCwd = text(payload['cwd']);

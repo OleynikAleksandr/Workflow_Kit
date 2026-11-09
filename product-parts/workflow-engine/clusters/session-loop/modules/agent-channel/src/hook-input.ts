@@ -2,13 +2,28 @@
 // session_id (for Codex the thread id), turn_id (Codex only), transcript_path, cwd,
 // hook_event_name, stop_hook_active (Stop), last_assistant_message (Stop), prompt (UserPromptSubmit);
 // session_title (Claude 2.1.319 UserPromptSubmit: the session's current title).
+// Kimi Code 2.5.2 (dialect 'kimi') sends the UserPromptSubmit prompt as an array of parts
+// ([{ type: 'text', text }]) and takes { message } as the answer.
+import type { HookDialect } from '#provider-registry';
 
-export type AgentClient = 'claude' | 'codex';
-export const AGENT_CLIENTS: readonly AgentClient[] = ['claude', 'codex'];
+/** Id of the provider whose hook calls (wfk hook --client <id>); the provider registry names them. */
+export type AgentClient = string;
+
+/**
+ * The hook clients the service knows: the dialect of a client, undefined for an unknown one. The
+ * service builds it from the provider registry (Provider.hookDialect, 'claude' when absent).
+ */
+export type HookDialects = (client: string) => HookDialect | undefined;
+
+/** Shape of a client id; without a registry any such id is taken with the claude dialect. */
+const CLIENT_ID = /^[a-z][a-z0-9-]{0,31}$/;
+const anyClient: HookDialects = (client) => (CLIENT_ID.test(client) ? 'claude' : undefined);
 
 /** The fields of a hook input the service uses. */
 export interface HookInput {
   client: AgentClient;
+  /** Format of the client's hook input and answers. */
+  dialect: HookDialect;
   sessionId: string;
   turnId: string | null;
   cwd: string | null;
@@ -26,18 +41,30 @@ function text(value: unknown): string | null {
   return typeof value === 'string' && value !== '' ? value : null;
 }
 
-export function isAgentClient(value: unknown): value is AgentClient {
-  return value === 'claude' || value === 'codex';
+/** The prompt of UserPromptSubmit: a string, or the text parts of an array joined by a newline. */
+function promptText(value: unknown): string | null {
+  if (!Array.isArray(value)) return text(value);
+  const parts: string[] = [];
+  for (const part of value as unknown[]) {
+    if (typeof part === 'string') parts.push(part);
+    else if (typeof part === 'object' && part !== null && typeof (part as { text?: unknown }).text === 'string') parts.push((part as { text: string }).text);
+  }
+  return text(parts.join('\n'));
 }
 
-/** Reads a hook input object; null without a client or a session id. */
-export function parseHookInput(client: unknown, raw: unknown, projectDir?: unknown): HookInput | null {
-  if (!isAgentClient(client) || typeof raw !== 'object' || raw === null || Array.isArray(raw)) return null;
+/**
+ * Reads a hook input object; null for a client the registry does not know (dialects) or an input
+ * without a session id.
+ */
+export function parseHookInput(client: unknown, raw: unknown, projectDir?: unknown, dialects: HookDialects = anyClient): HookInput | null {
+  const dialect = typeof client === 'string' ? dialects(client) : undefined;
+  if (typeof client !== 'string' || !dialect || typeof raw !== 'object' || raw === null || Array.isArray(raw)) return null;
   const input = raw as Record<string, unknown>;
   const sessionId = text(input['session_id']);
   if (!sessionId) return null;
   return {
     client,
+    dialect,
     sessionId,
     turnId: text(input['turn_id']),
     cwd: text(input['cwd']),
@@ -45,7 +72,7 @@ export function parseHookInput(client: unknown, raw: unknown, projectDir?: unkno
     transcriptPath: text(input['transcript_path']),
     stopHookActive: input['stop_hook_active'] === true,
     lastAssistantMessage: text(input['last_assistant_message']),
-    prompt: text(input['prompt']),
+    prompt: promptText(input['prompt']),
     sessionTitle: text(input['session_title']),
   };
 }
@@ -63,4 +90,14 @@ export function blockAnswer(reason: string): { decision: 'block'; reason: string
 /** UserPromptSubmit hook answer that adds context to the turn. */
 export function contextAnswer(text: string): { hookSpecificOutput: { hookEventName: 'UserPromptSubmit'; additionalContext: string } } {
   return { hookSpecificOutput: { hookEventName: 'UserPromptSubmit', additionalContext: text } };
+}
+
+/** UserPromptSubmit hook answer of the kimi dialect: the text is added to the turn's context. */
+export function messageAnswer(text: string): { message: string } {
+  return { message: text };
+}
+
+/** UserPromptSubmit hook answer with the text, in the client's dialect. */
+export function promptAnswer(dialect: HookDialect, text: string): Record<string, unknown> {
+  return dialect === 'kimi' ? messageAnswer(text) : contextAnswer(text);
 }

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 359,
+  "revision": 361,
   "rounds": [
     {
       "digest": null,
@@ -140,7 +140,8 @@
       "files": [
         "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/view-model.js",
         "product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts",
-        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md"
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/reviewers.js"
       ],
       "fixes": null,
       "id": "T003",
@@ -148,7 +149,7 @@
       "kind": "work",
       "parallelSafe": true,
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "The tree hides a reviewer by its reference before its key is known",
       "why": "The reviewer session was listed while the review had no reviewer key"
     },
@@ -224,8 +225,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 2/5
-- Revision: 359
+- Progress: 3/5
+- Revision: 361
 
 ## Objective
 
@@ -250,9 +251,9 @@
   - Commit: fix: wake a fresh Claude reviewer to hand over its brief
   - Files: product-parts/backend-core/clusters/runtime/modules/cli/src/review-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/review.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md
   - Depends on: T001
-- [TODO] T003 — The tree hides a reviewer by its reference before its key is known (work, parallel-safe)
+- [DONE] T003 — The tree hides a reviewer by its reference before its key is known (work, parallel-safe)
   - Commit: fix: hide a starting reviewer session in the project tree
-  - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/view-model.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md
+  - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/view-model.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/reviewers.js
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M4-review-failures.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md

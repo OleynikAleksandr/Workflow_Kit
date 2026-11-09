@@ -1,6 +1,7 @@
 // @ts-check
 // Pure view models of the panel layout (no DOM): routes, the project and session tree, the
 // connection indicators and the status line. Covered by node --test.
+import { reviewerMatcher } from './reviewers.js';
 
 /** Provider names shown to the user; the id stays technical. */
 export const PROVIDER_LABELS = Object.freeze({ codex: 'ChatGPT', claude: 'Claude' });
@@ -240,7 +241,7 @@ export function projectTree(state, ui) {
   const channel = Array.isArray(record(state['channel'])['sessions']) ? record(state['channel'])['sessions'] : [];
   /** @type {Map<string, any>} */
   const activity = new Map(channel.map((/** @type {any} */ a) => [a.key, a]));
-  const reviewers = new Set(Object.values(record(record(state['reviews'])['projects'])).flatMap((list) => (Array.isArray(list) ? list.map((r) => r?.reviewerKey) : [])));
+  const isReviewer = reviewerMatcher(state);
   return projectLists(state).active.map((project) => {
     const sessions = /** @type {SessionRow[]} */ ([]);
     const archived = /** @type {SessionRow[]} */ ([]);
@@ -251,9 +252,8 @@ export function projectTree(state, ui) {
         const title = record(record(titles[project.id])[key]);
         // «Убрать из списка» in the archive: the session is gone from Workflow Kit for good.
         if (title['forgottenAt']) continue;
-        // A plan reviewer is not listed: its chat is busy during the review and the review
-        // journal of the main session shows its work (spec M4 section 13.4).
-        if (reviewers.has(key)) continue;
+        // A plan reviewer is not listed; its work is in the main session's journal (M4 13.4).
+        if (isReviewer(info, key)) continue;
         const act = activity.get(key);
         const created = Date.parse(info.createdAt);
         const name = typeof title['name'] === 'string' && title['source'] !== 'default' ? title['name'] : ownerObjective(state, project.id, info.localId) || info.title || DEFAULT_SESSION_NAME;

@@ -198,3 +198,14 @@ test('the panel reloads once when the service version changes (M4 13.5)', async 
   assert.equal(shouldReload('0.4.3', undefined, null), false);
 });
 
+
+test('a reviewer session is hidden by its reference before the review knows its key (M4 13.9)', () => {
+  const st = state();
+  (st['providers'] as any).projects.p1.claude.sessions[0].remoteId = 'session_R';
+  st['reviews'] = { projects: { p1: [{ mainKey: 'codex:t1', reviewerKey: null, reviewerProvider: 'claude', reviewerRef: { localId: 'session_R', remoteId: 'session_R' }, status: 'starting' }] } };
+  const project = projectTree(st, { now: NOW, collapsed: new Set() }).find((p) => p.id === 'p1')!;
+  assert.deepEqual(project.sessions.map((s) => s.key), ['codex:t1']);
+  assert.equal(project.count, '1 сессия');
+  const codexRef = { ...state(), reviews: { projects: { p1: [{ mainKey: 'claude:c1', reviewerKey: null, reviewerProvider: 'codex', reviewerRef: { localId: 't1', remoteId: null }, status: 'starting' }] } } };
+  assert.deepEqual(projectTree(codexRef, { now: NOW, collapsed: new Set() }).find((p) => p.id === 'p1')!.sessions.map((s) => s.key), ['claude:c1']);
+});

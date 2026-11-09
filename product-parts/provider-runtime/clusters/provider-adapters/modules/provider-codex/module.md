@@ -23,7 +23,8 @@ app-server на весь Mac, доверие к папке, одобрение �
 - Константы: `PROVIDER_ID` = `codex`, `PROVIDER_TITLE`,
   `DAEMON_START_ACTION` = `daemon-start`, `LOGIN_HINT`, `CONNECTING_REASON`,
   `STALE_LOGIN_REASON`,
-  `KIT_HOOK_COMMAND` (= `hookCommand('codex')` из `kit-structure`),
+  `KIT_HOOK_COMMAND` (= `kitCodexCommand('SessionStart')`: POSIX-команда хука Kit, на Windows —
+  его `commandWindows`),
   `KIT_HOOK_COMMANDS` (команды всех хуков Kit v2: SessionStart, Stop,
   UserPromptSubmit), `isExactKitCommand(command)`,
   `SERVICE_TURN_WAIT_MS` (15 с), `UNSUBSCRIBE_TIMEOUT_MS` (5 с),
@@ -124,7 +125,7 @@ app-server на весь Mac, доверие к папке, одобрение �
   после — проверка; нет базы или записей — запись не делается; ошибка — в журнал.
   Список ChatGPT обновляется после перезапуска приложения.
 - **Автозапуск** (`autostart()`, скоуп M3-autostart): при старте службы,
-  без подтверждения — перечитать путь к codex; codex не найден или Windows —
+  без подтверждения — перечитать путь к codex; codex не найден или старее нужного —
   `null`; демон подключён или подключается — `null`; иначе тот же запуск,
   что у `daemon-start`, ответ `'daemon started'`, ошибка — исключением.
 - **Доверие** (D7): `trust(project)` читает `trust_level` из `config.toml`
@@ -227,10 +228,19 @@ app-server на весь Mac, доверие к папке, одобрение �
   `codex://threads/<id>` (только id из `[A-Za-z0-9_-]`); `state:
   'unknown'`; новые первыми. Неполноту списка показывает `hooks.note` /
   `complete: false`.
-- **Windows** (Q2): все возможности (`trust`, `hooks`, `sessions`,
-  `createSession`, `daemon`) недоступны с причиной «Windows: Codex в вехе 1
-  не поддерживается (Q2)», статус `unavailable`, изменяющие методы —
-  `unsupported-os` (501), ссылок нет. Без CLI — `not-installed`.
+- **Windows** (спецификация M5, раздел 5): возможности те же, что на macOS. Программа — только
+  `codex.exe` (`findProgram` ищет `.exe`; `windowsCodexCandidates`: установщик и winget
+  `%LOCALAPPDATA%\Programs\OpenAI\Codex\bin`, `~\.codex\packages\standalone\current\bin`, exe
+  npm-пакета `@openai/codex-win32-<arch>` рядом с `codex.cmd`); версия старее `MIN_WINDOWS_CODEX`
+  (0.160.0) — `program.unsupported`: статус «нужна новее версия», возможности недоступны,
+  изменяющие методы — `unsupported-version`. Демон — через `codex app-server proxy --sock <сокет>`
+  (`proxy.ts`: процесс со скрытым окном, WebSocket-клиент `connectWebSocket` поверх его stdio;
+  `ws.ts` работает с любым `ByteStream`, на macOS — `socketStream`). Время запуска демона в
+  `daemon.pid` — FILETIME (`filetimeMs`). Ключи `config.toml`: `tomlKey` экранирует `\` и `"`,
+  ключ проекта — путь в нижнем регистре (`codexProjectKey`), доверие читается без учёта регистра и
+  вида косой черты (`sameFolder`). Хуки: команда сравнения — `commandWindows` (`localHooks`,
+  `kitCodexCommand`), ключи одобрения — из `hooks/list` (`sameHookKey` сопоставляет их с
+  локальными). Ссылки `codex://` открывает служба (`open-link`). Без CLI — `not-installed`.
 
 ## Проверить при приёмке (на устройстве)
 
@@ -290,7 +300,7 @@ app-server на весь Mac, доверие к папке, одобрение �
 ## Дальше
 
 Следующие вехи: `thread/resume` и состояние сессий (`project/list`,
-`thread/list` не проверены), Windows (Q2).
+`thread/list` не проверены); живая проверка Windows (M5, пункты **П**).
 
 ## Записи удалённых проектов (раунд R9)
 

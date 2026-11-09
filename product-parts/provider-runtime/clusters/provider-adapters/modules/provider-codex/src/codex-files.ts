@@ -31,16 +31,34 @@ export function codexPaths(homedir: string, env: Readonly<Record<string, string 
   };
 }
 
-/** A TOML basic-string key; paths with quotes, backslashes or control characters are refused. */
+/**
+ * A quoted key of a Codex keyPath: inside the quotes `\\` escapes the next character, so `\\` and `"`
+ * are escaped (Windows paths, spec M5 section 5); control characters are refused.
+ */
 export function tomlKey(value: string): string {
   // eslint-disable-next-line no-control-regex
-  if (/["\\\u0000-\u001f\u007f]/.test(value)) throw new Error(`cannot quote ${JSON.stringify(value)} as a Codex config key`);
-  return `"${value}"`;
+  if (/[\u0000-\u001f\u007f]/.test(value)) throw new Error(`cannot quote ${JSON.stringify(value)} as a Codex config key`);
+  return `"${value.replace(/[\\"]/g, (c) => `\\${c}`)}"`;
+}
+
+const WINDOWS_PATH = /^[A-Za-z]:[\\/]/;
+
+/** The project key Codex writes: on Windows the path in lower case (Codex matches it case-insensitively). */
+export function codexProjectKey(folder: string): string {
+  return WINDOWS_PATH.test(folder) ? folder.toLowerCase() : folder;
+}
+
+/** Same folder: exact for POSIX paths, ignoring case and slash style for Windows paths. */
+export function sameFolder(a: string, b: string): boolean {
+  if (a === b) return true;
+  if (!WINDOWS_PATH.test(a) || !WINDOWS_PATH.test(b)) return false;
+  const norm = (value: string): string => value.replace(/\\/g, '/').replace(/\/+$/, '').toLowerCase();
+  return norm(a) === norm(b);
 }
 
 /** keyPath of config/value/write for the trust of a folder. */
 export function trustKeyPath(folder: string): string {
-  return `projects.${tomlKey(folder)}.trust_level`;
+  return `projects.${tomlKey(codexProjectKey(folder))}.trust_level`;
 }
 
 /** keyPath of config/value/write for the approval of one hook. */
@@ -84,12 +102,13 @@ export function projectTrustLevel(text: string, folder: string): string | null {
       inProjects = /^\s*\[\s*projects\s*\]/.test(line);
       continue;
     }
-    if (table === folder) {
+    if (table !== null && sameFolder(table, folder)) {
       const match = TRUST_LINE.exec(line);
       if (match) found = match[1] ?? match[2] ?? null;
     } else if (inProjects) {
       const match = DOTTED_TRUST.exec(line) ?? INLINE_TRUST.exec(line);
-      if (match && decodeKey(match[1]!) === folder) found = match[2] ?? match[3] ?? null;
+      const key = match ? decodeKey(match[1]!) : null;
+      if (match && key !== null && sameFolder(key, folder)) found = match[2] ?? match[3] ?? null;
     }
   }
   return found;
@@ -124,10 +143,25 @@ export async function readDaemonPid(file: string): Promise<{ pid: number; starte
     const started = value['processStartTime'];
     const identity = value['processIdentity'] as Record<string, unknown> | undefined;
     const seconds = identity && typeof identity['startSeconds'] === 'number' ? identity['startSeconds'] : null;
-    return { pid, startedAt: typeof started === 'string' ? started : null, startMs: seconds === null ? null : seconds * 1000 };
+    const startMs = seconds !== null ? seconds * 1000 : filetimeMs(started) ?? filetimeMs(identity && Object.values(identity).find((v) => filetimeMs(v) !== null));
+    return { pid, startedAt: typeof started === 'string' && filetimeMs(started) === null ? started : null, startMs };
   } catch {
     return null;
   }
+}
+
+/** Seconds between 1601-01-01 (FILETIME epoch) and 1970-01-01. */
+const FILETIME_EPOCH_S = 11_644_473_600;
+
+/**
+ * Unix ms of a Windows FILETIME (100 ns since 1601, the start time Codex writes on Windows,
+ * spec M5 section 5): seconds = FILETIME / 1e7 − 11644473600. null for anything else.
+ */
+export function filetimeMs(value: unknown): number | null {
+  const number = typeof value === 'number' ? value : typeof value === 'string' && /^\d{15,20}$/.test(value.trim()) ? Number(value.trim()) : NaN;
+  // FILETIME of the years 1970–2200 lies between 1.16e17 and 1.89e17.
+  if (!Number.isFinite(number) || number < 1.16e17 || number > 1.9e17) return null;
+  return Math.round(number / 1e4 - FILETIME_EPOCH_S * 1000);
 }
 
 /** True when a process with pid exists (EPERM counts: it exists but belongs to someone else). */

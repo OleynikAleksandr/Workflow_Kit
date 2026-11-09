@@ -19,7 +19,6 @@ export const DAEMON_START_ACTION = 'daemon-start';
 /** Hint for an expired Codex login (R2: Kit only diagnoses it). */
 export const LOGIN_HINT = 'Выполните codex login в Терминале, затем «Запустить демон».';
 
-const WINDOWS_REASON = 'Windows: Codex в вехе 1 не поддерживается (Q2)';
 
 /** Parses the JSON status line of `codex remote-control start --json`. */
 export function parseRemoteControlStart(stdout: string): { status: string | null; serverName: string | null; error: string | null } {
@@ -69,8 +68,8 @@ function buildStatus(rt: CodexRuntime, daemon: DaemonState): ProviderStatus {
     codexHome: rt.paths.home,
   };
   const base = { implemented: true, installed: program.installed, version: program.version, path: program.path, checkedAt: program.checkedAt, details };
-  if (rt.context.platform === 'win32') return { ...base, state: 'unavailable', label: 'Windows: недоступно', note: WINDOWS_REASON };
   if (program.installed === false) return { ...base, state: 'not-installed', label: 'не установлен', note: program.error ?? 'codex не найден' };
+  if (program.unsupported) return { ...base, state: 'unavailable', label: 'нужна новее версия', note: program.unsupported };
   if (daemon.running && daemon.staleLogin && daemon.remoteControl !== 'connected') {
     return { ...base, state: 'error', label: 'демон держит устаревший вход', note: STALE_LOGIN_REASON };
   }
@@ -99,10 +98,7 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
   });
 
   const capabilities = async (): Promise<Capabilities> => {
-    if (context.platform === 'win32') {
-      return Object.fromEntries(['trust', 'hooks', 'sessions', 'createSession', 'daemon'].map((name) => [name, { available: false, reason: WINDOWS_REASON }]));
-    }
-    const missing = rt.program.installed === false ? 'codex не найден в PATH службы' : null;
+    const missing = rt.program.installed === false ? 'codex не найден в PATH службы' : rt.program.unsupported;
     const daemon = await rt.daemon();
     let create: string | null = missing;
     if (!create && !daemon.running) create = 'демон Codex не запущен — «Запустить демон»';
@@ -117,7 +113,6 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
 
   const actions = async (project: Project | null): Promise<ProviderAction[]> => {
     if (project !== null) return [];
-    if (context.platform === 'win32') return [{ id: DAEMON_START_ACTION, title: 'Запустить демон', scope: 'provider', enabled: false, reason: WINDOWS_REASON }];
     const daemon = await rt.daemon();
     const action: ProviderAction = {
       id: DAEMON_START_ACTION,
@@ -175,8 +170,8 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
 
   // Start of the service (spec M3-autostart): the daemon comes up unless it already works or connects.
   const autostart = async (): Promise<string | null> => {
-    if (context.platform === 'win32') return null;
-    if ((await rt.refreshProgram()).installed === false) return null;
+    const program = await rt.refreshProgram();
+    if (program.installed === false || program.unsupported) return null;
     const daemon = await rt.daemon(true);
     if (linked(daemon) || connecting(daemon)) return null;
     await startDaemon();
@@ -192,7 +187,7 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
       return buildStatus(rt, await rt.daemon());
     },
     async refresh() {
-      if (context.platform !== 'win32') await rt.refreshProgram();
+      await rt.refreshProgram();
       rt.forgetDaemon();
       trustParts.clearCache();
       return buildStatus(rt, await rt.daemon(true));

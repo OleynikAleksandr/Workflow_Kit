@@ -1,6 +1,8 @@
-// Minimal WebSocket client (RFC 6455) over a unix socket, without dependencies: the Codex daemon
+// Minimal WebSocket client (RFC 6455) over a byte stream, without dependencies: the Codex daemon
 // listens on ~/.codex/app-server-control/app-server-control.sock. Node's built-in WebSocket cannot
-// dial a unix socket, so the handshake and the frames are done here on top of node:net.
+// dial a unix socket, so the handshake and the frames are done here on top of node:net. On Windows
+// node:net cannot reach an AF_UNIX socket, so the same client runs over the stdio of
+// `codex app-server proxy` (proxy.ts, spec M5 section 5).
 import { createHash, randomBytes } from 'node:crypto';
 import { connect } from 'node:net';
 import type { RpcTransport } from './rpc.ts';
@@ -81,13 +83,46 @@ export function acceptKey(key: string): string {
   return createHash('sha1').update(key + GUID).digest('base64');
 }
 
-/**
- * Connects to a WebSocket server listening on a unix socket and returns a JSON message
- * transport (text frames carry one JSON-RPC message each). Rejects on refusal or timeout.
- */
+/** A byte stream the WebSocket client runs on: a unix socket or the stdio of a proxy process. */
+export interface ByteStream {
+  readonly destroyed: boolean;
+  write(data: string | Buffer): void;
+  end(): void;
+  destroy(): void;
+  onReady(listener: () => void): void;
+  onData(listener: (chunk: Buffer) => void): void;
+  onError(listener: (error: Error) => void): void;
+  onClose(listener: () => void): void;
+}
+
+/** A unix socket as a ByteStream. */
+export function socketStream(socketPath: string): ByteStream {
+  const socket = connect({ path: socketPath });
+  return {
+    get destroyed() {
+      return socket.destroyed;
+    },
+    write: (data) => void socket.write(data),
+    end: () => void socket.end(),
+    destroy: () => void socket.destroy(),
+    onReady: (listener) => void socket.on('connect', listener),
+    onData: (listener) => void socket.on('data', listener),
+    onError: (listener) => void socket.on('error', listener),
+    onClose: (listener) => void socket.on('close', () => listener()),
+  };
+}
+
+/** Connects to a WebSocket server listening on a unix socket (see connectWebSocket). */
 export function connectUnixWebSocket(socketPath: string, options: { timeoutMs?: number } = {}): Promise<RpcTransport> {
+  return connectWebSocket(socketStream(socketPath), options);
+}
+
+/**
+ * Runs the WebSocket handshake over a byte stream and returns a JSON message transport (text
+ * frames carry one JSON-RPC message each). Rejects on refusal or timeout.
+ */
+export function connectWebSocket(socket: ByteStream, options: { timeoutMs?: number } = {}): Promise<RpcTransport> {
   return new Promise((resolve, reject) => {
-    const socket = connect({ path: socketPath });
     const key = randomBytes(16).toString('base64');
     let handshake = Buffer.alloc(0);
     let open = false;
@@ -139,13 +174,13 @@ export function connectUnixWebSocket(socketPath: string, options: { timeoutMs?: 
       }
     };
 
-    socket.on('connect', () => {
+    socket.onReady(() => {
       socket.write(
         'GET / HTTP/1.1\r\nHost: localhost\r\nUpgrade: websocket\r\nConnection: Upgrade\r\n' +
           `Sec-WebSocket-Key: ${key}\r\nSec-WebSocket-Version: 13\r\n\r\n`,
       );
     });
-    socket.on('data', (chunk: Buffer) => {
+    socket.onData((chunk: Buffer) => {
       if (open) {
         onFrames(chunk);
         return;
@@ -182,8 +217,8 @@ export function connectUnixWebSocket(socketPath: string, options: { timeoutMs?: 
       });
       if (rest.length > 0) setImmediate(() => onFrames(rest));
     });
-    socket.on('error', (error) => fail(error));
-    socket.on('close', () => {
+    socket.onError((error) => fail(error));
+    socket.onClose(() => {
       clearTimeout(timer);
       if (!open) reject(new Error('the Codex daemon closed the connection'));
       else finishClose();

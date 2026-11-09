@@ -7,7 +7,7 @@ import path from 'node:path';
 import { backupFile } from '#data-store';
 import { ProviderError } from '#provider-registry';
 import type { AutorunPoint, HookState, Project, TrustPreview, TrustState, TrustWrite } from '#provider-registry';
-import { hookTrustKeyPath, projectTrustLevel, tomlKey, trustKeyPath } from './codex-files.ts';
+import { codexProjectKey, hookTrustKeyPath, projectTrustLevel, tomlKey, trustKeyPath } from './codex-files.ts';
 import { KIT_HOOK_COMMAND, buildHookState, isExactKitCommand, listedProjectHooks, projectHooksFile, readLocalHooks } from './hooks.ts';
 import type { ListedHook } from './hooks.ts';
 import type { CodexRuntime } from './runtime.ts';
@@ -35,10 +35,10 @@ async function mtime(file: string): Promise<string> {
   }
 }
 
-/** Throws unless Codex features can run here (Windows: Q2; the CLI must be found). */
+/** Throws unless Codex features can run here: the CLI must be found (and new enough on Windows). */
 export function requireCodex(rt: CodexRuntime): void {
-  if (rt.context.platform === 'win32') {
-    throw new ProviderError('unsupported-os', 'Codex на Windows в вехе 1 не поддерживается', { status: 501, hint: 'Используйте Mac (вопрос Q2 спецификации).' });
+  if (rt.program.unsupported) {
+    throw new ProviderError('unsupported-version', rt.program.unsupported, { hint: 'Обновите Codex и нажмите «Перепроверить».' });
   }
   if (rt.program.installed === false) {
     throw new ProviderError('not-installed', 'codex не найден', { hint: 'Установите Codex CLI и нажмите «Перепроверить».' });
@@ -47,9 +47,9 @@ export function requireCodex(rt: CodexRuntime): void {
 
 function quotedPath(project: Project): string {
   try {
-    return tomlKey(project.path);
+    return tomlKey(codexProjectKey(project.path));
   } catch {
-    throw new ProviderError('unsupported-path', 'Путь папки содержит кавычку или обратную косую черту', {
+    throw new ProviderError('unsupported-path', 'Путь папки содержит управляющие символы', {
       hint: 'Codex не примет такой ключ доверия; переименуйте папку.',
     });
   }
@@ -82,7 +82,6 @@ export function createTrustParts(rt: CodexRuntime): TrustParts {
 
   const parts: TrustParts = {
     async trust(project) {
-      if (context.platform === 'win32') return { trusted: null, note: 'Windows: недоступно (Q2)' };
       const { text, level } = await trustLevel(project);
       const backup = backups.get(project.id);
       const state: TrustState = { trusted: level === 'trusted' };
@@ -145,7 +144,6 @@ export function createTrustParts(rt: CodexRuntime): TrustParts {
     },
 
     async hooks(project) {
-      if (context.platform === 'win32') return { kitHook: null, hooks: [], complete: null, note: 'Windows: недоступно (Q2)' };
       const local = await readLocalHooks(project.path);
       const { level } = await trustLevel(project);
       const trusted = level === 'trusted';

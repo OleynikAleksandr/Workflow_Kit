@@ -12,6 +12,7 @@ import { createRpcSession, initializeSession } from './rpc.ts';
 import type { InitializeResult, RpcSession, RpcTransport } from './rpc.ts';
 import { spawnAppServer } from './stdio.ts';
 import type { AppServerOpener } from './stdio.ts';
+import { connectProxyWebSocket } from './proxy.ts';
 import { connectUnixWebSocket } from './ws.ts';
 
 /** Opens a transport to the daemon's control socket. */
@@ -65,6 +66,8 @@ export interface ProgramState {
   version: string | null;
   installed: boolean | null;
   error: string | null;
+  /** Why this Codex cannot be used here although it is installed (Windows: older than MIN_WINDOWS_CODEX). */
+  unsupported: string | null;
   checkedAt: string | null;
 }
 
@@ -74,12 +77,51 @@ const PROBE_TIMEOUT_MS = 4000;
 /** How long a probe waits for remoteControl/status/changed after initialize. */
 export const STATUS_WAIT_MS = 3000;
 
-/** Finds an executable by name in PATH (absolute names are checked as is). */
-export async function findProgram(name: string, env: Readonly<Record<string, string | undefined>>, platform: NodeJS.Platform): Promise<string | null> {
+/** Oldest Codex on Windows: hidden daemon console windows were fixed in 0.158–0.160 (spec M5 section 5). */
+export const MIN_WINDOWS_CODEX = '0.160.0';
+
+/** Compares dotted versions numerically (0.160.1 > 0.160.0). */
+export function compareVersions(a: string, b: string): number {
+  const left = a.split(/[.-]/).map((part) => Number.parseInt(part, 10) || 0);
+  const right = b.split(/[.-]/).map((part) => Number.parseInt(part, 10) || 0);
+  for (let i = 0; i < 3; i += 1) {
+    const diff = (left[i] ?? 0) - (right[i] ?? 0);
+    if (diff !== 0) return diff;
+  }
+  return 0;
+}
+
+/**
+ * Windows install places of codex.exe besides PATH (spec M5 section 5): the standalone installer and
+ * winget, the managed package, and the exe of the npm platform package next to the codex.cmd shim.
+ * Node cannot spawn a .cmd without a shell (EINVAL), so only codex.exe is ever used.
+ */
+export function windowsCodexCandidates(env: Readonly<Record<string, string | undefined>>, homedir: string, arch: string = process.arch): string[] {
+  const p = path.win32;
+  const local = env['LOCALAPPDATA'] || p.join(homedir, 'AppData', 'Local');
+  const triple = arch === 'arm64' ? 'aarch64-pc-windows-msvc' : 'x86_64-pc-windows-msvc';
+  const npmPackage = (dir: string): string =>
+    p.join(dir, 'node_modules', '@openai', 'codex', 'node_modules', '@openai', `codex-win32-${arch}`, 'vendor', triple, 'bin', 'codex.exe');
+  const dirs = (env['PATH'] ?? env['Path'] ?? '').split(';').filter(Boolean);
+  return [
+    p.join(local, 'Programs', 'OpenAI', 'Codex', 'bin', 'codex.exe'),
+    p.join(homedir, '.codex', 'packages', 'standalone', 'current', 'bin', 'codex.exe'),
+    ...dirs.map(npmPackage),
+  ];
+}
+
+/** Finds an executable by name in PATH (absolute names are checked as is); Windows: only .exe. */
+export async function findProgram(
+  name: string,
+  env: Readonly<Record<string, string | undefined>>,
+  platform: NodeJS.Platform,
+  extra: readonly string[] = [],
+): Promise<string | null> {
+  const windows = platform === 'win32';
+  const exe = windows && !name.toLowerCase().endsWith('.exe') ? `${name}.exe` : name;
   const candidates = path.isAbsolute(name)
-    ? [name]
-    : (env['PATH'] ?? '').split(platform === 'win32' ? ';' : ':').filter(Boolean).flatMap((dir) =>
-        platform === 'win32' ? ['.exe', '.cmd', ''].map((ext) => path.join(dir, name + ext)) : [path.join(dir, name)]);
+    ? [exe]
+    : [...(env['PATH'] ?? (windows ? env['Path'] : undefined) ?? '').split(windows ? ';' : ':').filter(Boolean).map((dir) => path.join(dir, exe)), ...extra];
   for (const candidate of candidates) {
     try {
       await access(candidate, platform === 'win32' ? constants.F_OK : constants.X_OK);
@@ -116,7 +158,11 @@ export interface CodexRuntime {
 export function createCodexRuntime(context: ProviderContext, deps: CodexDeps = {}): CodexRuntime {
   const paths = codexPaths(context.homedir, context.env);
   const openAppServer = deps.openAppServer ?? spawnAppServer;
-  const openDaemon: DaemonOpener = deps.openDaemon ?? ((socket, options) => connectUnixWebSocket(socket, options));
+  const openDaemon: DaemonOpener =
+    deps.openDaemon ??
+    (context.platform === 'win32'
+      ? (socket, options) => connectProxyWebSocket({ command: runtime.command(), env: runtime.childEnv(), socketPath: socket }, options)
+      : (socket, options) => connectUnixWebSocket(socket, options));
   const isAlive = deps.isAlive ?? pidAlive;
   const ttl = deps.daemonTtlMs ?? DAEMON_TTL_MS;
   let probe: { state: DaemonState; at: number } | null = null;
@@ -139,7 +185,7 @@ export function createCodexRuntime(context: ProviderContext, deps: CodexDeps = {
     paths,
     tokens: deps.tokens ?? createTokenStore({ now: context.now }),
     readText: cachedText(),
-    program: { path: null, version: null, installed: null, error: null, checkedAt: null },
+    program: { path: null, version: null, installed: null, error: null, unsupported: null, checkedAt: null },
     command() {
       return runtime.program.path ?? context.config.programs['codex'] ?? 'codex';
     },
@@ -148,22 +194,22 @@ export function createCodexRuntime(context: ProviderContext, deps: CodexDeps = {
     },
     async refreshProgram() {
       const configured = context.config.programs['codex'];
+      const extra = context.platform === 'win32' ? windowsCodexCandidates(context.env, context.homedir) : [];
       const found = (configured ? await findProgram(configured, context.env, context.platform) : null) ??
-        (await findProgram('codex', context.env, context.platform));
+        (await findProgram('codex', context.env, context.platform, extra));
       const checkedAt = context.now().toISOString();
       if (!found) {
-        runtime.program = { path: null, version: null, installed: false, error: 'codex не найден в PATH службы', checkedAt };
+        runtime.program = { path: null, version: null, installed: false, error: 'codex не найден в PATH службы', unsupported: null, checkedAt };
         return runtime.program;
       }
       const result = await context.runCommand(found, ['--version'], { env: runtime.childEnv(), timeoutMs: 10_000 });
       const version = /(\d+\.\d+\.\d+[\w.-]*)/.exec(result.stdout)?.[1] ?? (result.stdout.trim() || null);
-      runtime.program = {
-        path: found,
-        version,
-        installed: true,
-        error: result.code === 0 ? null : `codex --version: ${result.startError ?? (result.stderr.trim().slice(0, 200) || `код ${result.code}`)}`,
-        checkedAt,
-      };
+      const error = result.code === 0 ? null : `codex --version: ${result.startError ?? (result.stderr.trim().slice(0, 200) || `код ${result.code}`)}`;
+      const unsupported =
+        context.platform === 'win32' && version && /^\d/.test(version) && compareVersions(version, MIN_WINDOWS_CODEX) < 0
+          ? `Codex ${version} старее ${MIN_WINDOWS_CODEX}: на Windows нужна новее версия — обновите Codex`
+          : null;
+      runtime.program = { path: found, version, installed: true, error, unsupported, checkedAt };
       return runtime.program;
     },
     async daemon(force = false) {

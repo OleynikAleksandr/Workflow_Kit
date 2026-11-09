@@ -196,7 +196,7 @@ export function createSessionParts(rt: CodexRuntime, options: SessionOptions = {
     }
   };
 
-  const links = (id: string): SessionLinks => (context.platform === 'win32' ? {} : threadLinks(id));
+  const links = (id: string): SessionLinks => threadLinks(id);
 
   /**
    * thread/start, name, service turn, thread/unsubscribe, then waits until the daemon unloads the

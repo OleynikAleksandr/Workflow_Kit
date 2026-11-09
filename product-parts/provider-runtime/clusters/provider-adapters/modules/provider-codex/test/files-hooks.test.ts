@@ -32,8 +32,10 @@ test('trust_level is read from tables, dotted keys and inline tables; other fold
 test('config keys are quoted, unsafe paths are refused; CODEX_HOME is respected', () => {
   assert.equal(trustKeyPath('/Users/me/My Project'), 'projects."/Users/me/My Project".trust_level');
   assert.equal(hookTrustKeyPath('/p/.codex/hooks.json:session_start:0:0'), 'hooks.state."/p/.codex/hooks.json:session_start:0:0".trusted_hash');
-  assert.throws(() => trustKeyPath('/Users/me/a"b'), /cannot quote/);
-  assert.throws(() => trustKeyPath('/Users/me/a\\b'), /cannot quote/);
+  // Inside the quotes of a keyPath "\\" escapes the next character (spec M5 section 5).
+  assert.equal(trustKeyPath('/Users/me/a"b'), 'projects."/Users/me/a\\"b".trust_level');
+  assert.equal(trustKeyPath('C:\\Users\\Me\\Proj'), 'projects."c:\\\\users\\\\me\\\\proj".trust_level');
+  assert.throws(() => trustKeyPath('/Users/me/a\nb'), /cannot quote/);
   assert.equal(codexPaths('/home/u', {}).config, '/home/u/.codex/config.toml');
   assert.equal(codexPaths('/home/u', { CODEX_HOME: '/opt/cx' }).controlSocket, '/opt/cx/app-server-control/app-server-control.sock');
   assert.equal(codexPaths('/home/u', { CODEX_HOME: 'relative' }).home, '/home/u/.codex');

@@ -320,25 +320,31 @@ test('a write Codex did not record fails with the backup path', async () => {
   });
 });
 
-test('without the CLI and on Windows the capabilities are unavailable with a reason', async () => {
+test('without the CLI the capabilities are unavailable; Windows needs codex.exe 0.160 or newer', async () => {
   const missing = createCodexProvider(machine.context({ env: { PATH: '/nonexistent' } }));
   const status = await missing.refresh!();
   assert.equal(status.state, 'not-installed');
   assert.match((await missing.capabilities())['trust']?.reason ?? '', /codex не найден/);
   await assert.rejects(missing.previewTrust(project), code('not-installed'));
 
-  const windows = createCodexProvider(machine.context({ platform: 'win32' }));
-  await windows.refresh!();
-  const caps = await windows.capabilities();
-  for (const name of ['trust', 'hooks', 'sessions', 'createSession', 'daemon']) {
-    assert.equal(caps[name]?.available, false, name);
-    assert.match(caps[name]?.reason ?? '', /Windows.*Q2/);
-  }
-  assert.equal((await windows.status()).state, 'unavailable');
-  await assert.rejects(windows.previewTrust(project), code('unsupported-os'));
-  await assert.rejects(windows.createSession(project, { title: 'x' }), code('unsupported-os'));
-  assert.equal((await windows.actions(null))[0]?.enabled, false);
-  assert.deepEqual((await windows.listSessions(project)).every((s) => Object.keys(s.links).length === 0), true);
+  // Windows (spec M5 section 5): only codex.exe counts (a bare `codex` shim is not spawned).
+  const noExe = createCodexProvider(machine.context({ platform: 'win32', env: { PATH: machine.bin } }));
+  assert.equal((await noExe.refresh!()).state, 'not-installed');
+  const winBin = await mkdir(path.join(machine.root, 'win-bin'), { recursive: true }).then(() => path.join(machine.root, 'win-bin'));
+  const exe = path.join(winBin, 'codex.exe');
+  const windows = (version: string) => writeFile(exe, `#!/bin/sh\necho "codex-cli ${version}"\n`, { mode: 0o755 });
+  const daemonless = { openDaemon: async () => Promise.reject(new Error('no daemon')) };
+  await windows('0.150.0');
+  const old = createCodexProvider(machine.context({ platform: 'win32', env: { PATH: winBin } }), daemonless);
+  assert.match((await old.refresh!()).note ?? '', /старее 0\.160\.0/);
+  assert.match((await old.capabilities())['trust']?.reason ?? '', /старее/);
+  await assert.rejects(old.previewTrust(project), code('unsupported-version'));
+  await windows('0.167.0');
+  const fresh = createCodexProvider(machine.context({ platform: 'win32', env: { PATH: winBin } }), daemonless);
+  assert.equal((await fresh.refresh!()).path, exe);
+  const caps = await fresh.capabilities();
+  for (const name of ['trust', 'hooks', 'sessions', 'daemon']) assert.equal(caps[name]?.available, true, name);
+  assert.equal((await fresh.actions(null))[0]?.id, 'daemon-start');
 });
 
 test('forgetProjects drops the records of removed projects and keeps the others', async () => {

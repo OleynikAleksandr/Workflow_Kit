@@ -6,7 +6,7 @@ import { after, before, test } from 'node:test';
 import { createRpcSession, initializeSession } from '../src/rpc.ts';
 import type { RpcTransport } from '../src/rpc.ts';
 import { OPCODE, acceptKey, connectUnixWebSocket, createFrameDecoder, encodeFrame } from '../src/ws.ts';
-import { startFakeDaemon } from './fake-daemon.ts';
+import { listenPath, startFakeDaemon } from './fake-daemon.ts';
 
 let tmp = '';
 
@@ -84,4 +84,11 @@ test('server requests are refused, requests time out, a closed transport fails p
   await assert.rejects(pending, /gone/);
   await assert.rejects(session.request('after'), /gone/);
   assert.equal(await session.waitForNotification('never', 20), undefined);
+});
+
+test('the fake daemon listens on the Unix socket on macOS and Linux and on a named pipe on Windows', () => {
+  assert.equal(listenPath('/tmp/a.sock', 'darwin'), '/tmp/a.sock');
+  assert.equal(listenPath('/tmp/a.sock', 'linux'), '/tmp/a.sock');
+  assert.match(listenPath('C:\\T\\a.sock', 'win32'), /^\\\\\.\\pipe\\wfk-fake-[0-9a-f]{16}$/);
+  assert.notEqual(listenPath('C:\\T\\a.sock', 'win32'), listenPath('C:\\T\\b.sock', 'win32'));
 });

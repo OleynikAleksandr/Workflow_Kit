@@ -1,6 +1,7 @@
 // Test setup of the Codex provider: a fake HOME with $HOME/.codex, a fake `codex` program
 // (fixtures/fake-codex.mjs), a fake daemon socket linked where Codex keeps it, a project folder.
 import { chmod, mkdir, mkdtemp, readFile, realpath, rm, symlink, writeFile } from 'node:fs/promises';
+import { test } from 'node:test';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -13,6 +14,19 @@ import { startFakeDaemon } from './fake-daemon.ts';
 import type { FakeDaemon, FakeDaemonOptions } from './fake-daemon.ts';
 
 const FIXTURE = fileURLToPath(new URL('./fixtures/fake-codex.mjs', import.meta.url));
+
+/**
+ * The fake machine is a macOS/Linux one: a `#!/bin/sh` codex, a Unix socket linked where Codex keeps
+ * it, context platform darwin. On Windows its suites are skipped with this reason; the Windows
+ * transport (codex app-server proxy, named pipe) is tested in windows.test.ts and ws-rpc.test.ts.
+ */
+export const POSIX_MACHINE_SKIP: string | false =
+  process.platform === 'win32' ? 'fake macOS/Linux machine (sh codex, Unix socket); Windows: windows.test.ts, ws-rpc.test.ts' : false;
+
+/** test() of a fake-machine suite: skipped on Windows (POSIX_MACHINE_SKIP). */
+export function machineTest(name: string, fn: () => Promise<void> | void): void {
+  test(name, { skip: POSIX_MACHINE_SKIP }, fn);
+}
 
 /** One fake machine. */
 export interface FakeMachine {

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import path from 'node:path';
 import { test } from 'node:test';
 import { codexPaths, hookTrustKeyPath, parseSessionIndex, projectTrustLevel, tokenErrorLine, trustKeyPath } from '../src/codex-files.ts';
 import { KIT_HOOK_COMMAND, buildHookState, hookStatus, listedProjectHooks, localHooks, snakeEvent } from '../src/hooks.ts';
@@ -36,9 +37,12 @@ test('config keys are quoted, unsafe paths are refused; CODEX_HOME is respected'
   assert.equal(trustKeyPath('/Users/me/a"b'), 'projects."/Users/me/a\\"b".trust_level');
   assert.equal(trustKeyPath('C:\\Users\\Me\\Proj'), 'projects."c:\\\\users\\\\me\\\\proj".trust_level');
   assert.throws(() => trustKeyPath('/Users/me/a\nb'), /cannot quote/);
-  assert.equal(codexPaths('/home/u', {}).config, '/home/u/.codex/config.toml');
-  assert.equal(codexPaths('/home/u', { CODEX_HOME: '/opt/cx' }).controlSocket, '/opt/cx/app-server-control/app-server-control.sock');
-  assert.equal(codexPaths('/home/u', { CODEX_HOME: 'relative' }).home, '/home/u/.codex');
+  // Paths of the running OS (path.join): forward slashes on macOS and Linux, backslashes on Windows.
+  const home = path.resolve('/home/u');
+  const cx = path.resolve('/opt/cx');
+  assert.equal(codexPaths(home, {}).config, path.join(home, '.codex', 'config.toml'));
+  assert.equal(codexPaths(home, { CODEX_HOME: cx }).controlSocket, path.join(cx, 'app-server-control', 'app-server-control.sock'));
+  assert.equal(codexPaths(home, { CODEX_HOME: 'relative' }).home, path.join(home, '.codex'));
 });
 
 test('session names: the last line of an id wins, broken lines are skipped', () => {
@@ -59,7 +63,9 @@ test('links are codex://threads/<id> for safe ids only', () => {
   assert.deepEqual(threadLinks('../x?y'), {});
 });
 
-const FILE = '/p/.codex/hooks.json';
+// The project folder of the running OS; Codex reports sourcePath the same way.
+const P = process.platform === 'win32' ? 'C:\\p' : '/p';
+const FILE = path.join(P, '.codex', 'hooks.json');
 const config = {
   hooks: {
     SessionStart: [
@@ -76,14 +82,14 @@ test('hooks: positional keys, Kit hook first, foreign hooks with hash, completen
   assert.deepEqual(local.hooks.map((h) => h.key), [`${FILE}:session_start:0:0`, `${FILE}:session_start:1:0`, `${FILE}:user_prompt_submit:0:0`]);
   const listed = listedProjectHooks({
     data: [{
-      cwd: '/p',
+      cwd: P,
       hooks: [
         { key: '/home/.codex/hooks.json:session_start:0:0', sourcePath: '/home/.codex/hooks.json', command: 'global', currentHash: 'g', trustStatus: 'trusted' },
         { key: `${FILE}:session_start:0:0`, sourcePath: FILE, command: 'echo foreign', currentHash: 'sha256:f', trustStatus: 'untrusted' },
         { key: `${FILE}:session_start:1:0`, sourcePath: FILE, command: KIT_HOOK_COMMAND, currentHash: 'sha256:k', trustStatus: 'trusted' },
       ],
     }],
-  }, '/p');
+  }, P);
   assert.equal(listed.length, 2, 'global hooks of the user are not project hooks');
   const state = buildHookState({ local, listed, trusted: true });
   assert.equal(state.kitHook?.hash, 'sha256:k');

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { after, before, test } from 'node:test';
+import { after, before } from 'node:test';
 import { providerSessionsFile } from '#provider-registry';
 import type { Project } from '#provider-registry';
 import { HELD_NOTE, RELEASING_NOTE, createCodexProvider } from '../src/index.ts';
@@ -9,20 +9,21 @@ import { BUSY_NOTE } from '../src/sessions.ts';
 import { createRpcSession, initializeSession } from '../src/rpc.ts';
 import { connectUnixWebSocket } from '../src/ws.ts';
 import type { FakeDaemon, FakeDaemonOptions } from './fake-daemon.ts';
-import { fakeMachine } from './helpers.ts';
+import { POSIX_MACHINE_SKIP, fakeMachine, machineTest as test } from './helpers.ts';
 import type { FakeMachine } from './helpers.ts';
 
 let machine: FakeMachine;
 let project: Project;
 
 before(async () => {
+  if (POSIX_MACHINE_SKIP) return;
   machine = await fakeMachine();
   project = await machine.project('Release');
   await writeFile(path.join(machine.codexHome, 'config.toml'), `[projects."${project.path}"]\ntrust_level = "trusted"\n`);
 });
 
 after(async () => {
-  await machine.close();
+  await machine?.close();
 });
 
 /** Asks the daemon over a fresh connection, as another client (ChatGPT) would. */

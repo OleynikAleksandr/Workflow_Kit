@@ -2,6 +2,7 @@
 // unmasked, client frames must be masked). It records every request, answers the methods the
 // provider uses and keeps the list of loaded threads like the real daemon: thread/start loads a
 // thread, thread/unsubscribe of its last subscriber unloads it, thread/loaded/list lists them.
+import { createHash } from 'node:crypto';
 import { createServer } from 'node:net';
 import type { Server, Socket } from 'node:net';
 import { OPCODE, acceptKey, createFrameDecoder, encodeFrame } from '../src/ws.ts';
@@ -67,8 +68,18 @@ function sendJson(socket: Socket, message: unknown, tricky: boolean): void {
   socket.write(encodeFrame(OPCODE.continuation, payload.subarray(half), null));
 }
 
-/** Starts the fake daemon on socketPath. */
-export async function startFakeDaemon(socketPath: string, options: FakeDaemonOptions = {}): Promise<FakeDaemon> {
+/**
+ * Where the fake daemon listens: the Unix socket path on macOS and Linux; on Windows a named pipe
+ * derived from it (Windows refuses a Unix socket in the temporary folder, listen EACCES).
+ */
+export function listenPath(socketPath: string, platform: NodeJS.Platform = process.platform): string {
+  if (platform !== 'win32') return socketPath;
+  return `\\\\.\\pipe\\wfk-fake-${createHash('sha256').update(socketPath).digest('hex').slice(0, 16)}`;
+}
+
+/** Starts the fake daemon on socketPath (a named pipe on Windows, see listenPath). */
+export async function startFakeDaemon(requested: string, options: FakeDaemonOptions = {}): Promise<FakeDaemon> {
+  const socketPath = listenPath(requested);
   const calls: DaemonCall[] = [];
   const sockets = new Set<Socket>();
   const loaded = new Set<string>();

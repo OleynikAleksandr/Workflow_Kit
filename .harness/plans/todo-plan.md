@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": "T008",
+  "currentTaskId": null,
   "lastClosed": {
     "closedAt": "2026-11-09T10:12:56.251Z",
     "scopeId": "m5-windows"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 440,
+  "revision": 441,
   "rounds": [
     {
       "digest": {
@@ -419,14 +419,21 @@
       "dependencies": [],
       "docsWaiver": null,
       "files": [
-        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex"
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/files-hooks.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/helpers.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/release.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/ws-rpc.test.ts"
       ],
       "fixes": "T002",
       "id": "T008",
       "iteration": 1,
       "kind": "work",
       "roundId": "R2",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "title": "Codex adapter tests on Windows",
       "why": "CI on Windows: the fake daemon listens on a Unix socket in the temp folder (EACCES) and provider tests hang"
     },
@@ -538,9 +545,9 @@
 - Scope: m6-cross-platform (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: T008
-- Progress: 8/12
-- Revision: 440
+- Current task: none
+- Progress: 9/12
+- Revision: 441
 
 ## Objective
 
@@ -592,9 +599,9 @@ Digest: R1 of m6-cross-platform: the platform-guard commit check (rules A, B, C)
   - Commit: test: make provider-claude tests pass on Windows
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/imports.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/config.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parts.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/windows.test.ts
   - Fixes: T002
-- [IN_PROGRESS] T008 — Codex adapter tests on Windows (work)
+- [DONE] T008 — Codex adapter tests on Windows (work)
   - Commit: test: run the fake Codex daemon on a named pipe on Windows
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/files-hooks.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/helpers.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/release.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/ws-rpc.test.ts
   - Fixes: T002
 - [TODO] T009 — Stable orchestrated commit test (work)
   - Commit: test: stabilize the orchestrated kit-project test

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { after, before, test } from 'node:test';
+import { after, before } from 'node:test';
 import { installStructure, recordSessionStart } from '#kit-structure';
 import { providerSessionsFile } from '#provider-registry';
 import type { Project, Provider } from '#provider-registry';
@@ -10,7 +10,7 @@ import { appCatalog as makeCatalog } from './catalog-fixture.ts';
 import { heldByApp } from '../src/codex-files.ts';
 import { APP_OWNER_REASON, CONNECTING_REASON, KIT_HOOK_COMMAND, STALE_LOGIN_REASON, KIT_HOOK_COMMANDS, createCodexProvider } from '../src/index.ts';
 import type { FakeDaemon } from './fake-daemon.ts';
-import { fakeMachine } from './helpers.ts';
+import { POSIX_MACHINE_SKIP, fakeMachine, machineTest as test } from './helpers.ts';
 import type { FakeMachine } from './helpers.ts';
 
 let machine: FakeMachine;
@@ -22,6 +22,7 @@ const hashOf = (command: string): string => 'sha256:' + createHash('sha256').upd
 const code = (expected: string) => (error: unknown) => (error as { code?: string }).code === expected;
 
 before(async () => {
+  if (POSIX_MACHINE_SKIP) return;
   machine = await fakeMachine();
   daemon = await machine.daemon();
   project = await machine.project('Alpha');
@@ -34,7 +35,7 @@ before(async () => {
 });
 
 after(async () => {
-  await machine.close();
+  await machine?.close();
 });
 
 test('status: CLI version and path, daemon connected over the socket; daemon start is disabled while it works', async () => {

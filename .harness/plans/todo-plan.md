@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 387,
+  "revision": 388,
   "rounds": [
     {
       "digest": {
@@ -46,7 +46,10 @@
       "CHANGELOG содержит 0.4.6, 0.4.7 и 0.4.8",
       "Релиз 0.4.8 установлен, wfk doctor --installed — всё в порядке; push в релизе не выполняется"
     ],
-    "acceptanceNote": null,
+    "acceptanceNote": {
+      "at": "2026-11-09T08:50:00.819Z",
+      "text": "Принять и закрыть"
+    },
     "approval": {
       "at": "2026-11-09T08:37:41.755Z",
       "text": "Пользователь: «Публикация должна быть тогда, когда полностью принят и закрыт какой-то текущий скоп. И это правило нужно в Workflow Kit … интегрировать»; «Да, пиши спецификацию». | Execution mode chosen by the user: sequential: Последовательно"
@@ -77,7 +80,7 @@
         "text": "Живую проверку релиза выполняет пользователь"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "ACCEPTED",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
@@ -283,11 +286,11 @@
 ## State
 
 - Scope: publication-order (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: ACCEPTED
 - Execution: sequential
 - Current task: none
 - Progress: 6/6
-- Revision: 387
+- Revision: 388
 
 ## Objective
 

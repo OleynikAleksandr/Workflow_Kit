@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 368,
+  "revision": 370,
   "rounds": [
     {
       "digest": {
@@ -47,7 +47,7 @@
       },
       "id": "R2",
       "kind": "fixes",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Fixes"
     }
   ],
@@ -88,7 +88,7 @@
         "text": "Дерево скрывает ревьюера и по reviewerRef, пока ключа нет"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
@@ -275,7 +275,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: record the GitHub publication",
-      "confirmation": null,
+      "confirmation": "Принять и опубликовать",
       "context": [],
       "dependencies": [
         "T004",
@@ -290,7 +290,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Publish to GitHub",
       "why": "The user asked to publish the accepted result on GitHub"
     }
@@ -302,11 +302,11 @@
 ## State
 
 - Scope: m4-claude-reviewer (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 6/7
-- Revision: 368
+- Progress: 7/7
+- Revision: 370
 
 ## Objective
 
@@ -345,12 +345,12 @@
 
 Digest: Ревьюер Claude при основной сессии ChatGPT получает задание через очередь и пробуждение, служба находит его ключ по хукам за 3 минуты или завершает ревью видимой ошибкой; дерево скрывает ревьюера по reviewerRef до появления ключа.
 
-### R2 — Fixes (fixes, OPEN)
+### R2 — Fixes (fixes, CLOSED)
 
 - [DONE] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R2
   - Files: README.md, docs/architecture/OVERVIEW.md
-- [TODO] T005 — Publish to GitHub (delivery)
+- [DONE] T005 — Publish to GitHub (delivery)
   - Commit: chore: record the GitHub publication
   - Files: docs/evidence/M4-acceptance.md
   - Depends on: T004, DOCS-R2

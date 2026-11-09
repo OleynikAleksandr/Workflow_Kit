@@ -10,17 +10,397 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 389,
-  "rounds": [],
+  "revision": 390,
+  "rounds": [
+    {
+      "digest": null,
+      "id": "R1",
+      "kind": "implementation",
+      "status": "OPEN",
+      "title": "Implementation"
+    }
+  ],
   "schema": "harness-workflow-plan/1",
-  "scope": null,
-  "tasks": []
+  "scope": {
+    "acceptance": [
+      "На ВМ Windows 11 ARM проходят все строки таблицы паритета раздела 9 спецификации M5",
+      "Пункты, помеченные П, проверены на ВМ и записаны в docs/evidence/M5-acceptance.md",
+      "macOS и Linux не изменились: их тесты проходят, wfk doctor --installed на Mac — всё в порядке",
+      "README и docs/installation.md честно описывают поддержку Windows",
+      "Релиз 0.5.0 собран; push — только после приёмки и закрытия scope"
+    ],
+    "acceptanceNote": null,
+    "approval": {
+      "at": "2026-11-09T09:16:38.216Z",
+      "text": "Пользователь: «очень-очень внимательно проверь теоретические решения. Чтобы они были оправданы и, повторяли возможности, которые уже реализованы для Mac OS. Ну, собственно, приступай к реализации, спецификации и плана» | Execution mode chosen by the user: sequential: Последовательно"
+    },
+    "baselineCommit": "e6dc73364249997e310b53e60f233af1d4cf90a3",
+    "blockedReason": null,
+    "context": [
+      {
+        "path": "docs/planning/M5-windows.md",
+        "required": true
+      },
+      {
+        "path": "docs/planning/M5-windows-vm.md",
+        "required": false
+      }
+    ],
+    "decisions": [
+      {
+        "at": "2026-11-09T09:16:38.216Z",
+        "text": "Псевдотерминал на Windows — node-pty 1.1.0 (ConPTY, N-API) в составе приложения, только win32-x64 и win32-arm64"
+      },
+      {
+        "at": "2026-11-09T09:16:38.216Z",
+        "text": "macOS и Linux остаются на expect и прежнем коде"
+      },
+      {
+        "at": "2026-11-09T09:16:38.216Z",
+        "text": "Хосты session-host.mjs и environment-host.mjs повторяют контракт session.exp и environment.exp"
+      },
+      {
+        "at": "2026-11-09T09:16:38.216Z",
+        "text": "Демон Codex на Windows — через codex app-server proxy"
+      },
+      {
+        "at": "2026-11-09T09:16:38.216Z",
+        "text": "Хук Claude на Windows — exec-форма node.exe + wfk.mjs; хук Codex — commandWindows"
+      },
+      {
+        "at": "2026-11-09T09:16:38.216Z",
+        "text": "Первая живая проверка — ВМ Windows 11 ARM в UTM, затем пользователь x64"
+      }
+    ],
+    "delivery": "IN_PROGRESS",
+    "execution": {
+      "maxWorkers": 3,
+      "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
+      "strategy": "sequential"
+    },
+    "id": "m5-windows",
+    "objective": "Windows 11 (x64 и ARM64): сессии Claude и ChatGPT/Codex, ревью, выполнение плана и автопилот — как на macOS",
+    "spec": "docs/planning/M5-windows.md",
+    "status": "ACTIVE"
+  },
+  "tasks": [
+    {
+      "acceptance": [
+        "prebuilds win32-x64 and win32-arm64 (ConPTY only, no pdb, no winpty) with PROVENANCE SHA-256 and LICENSE",
+        "the loader picks the build by process.arch and refuses clearly without one",
+        "the wrapper uses conpty dll, handles socket errors, kills once and then taskkill /T /F; tests with a fake pty"
+      ],
+      "checks": [],
+      "commitMessage": "feat: add the ConPTY host for Windows",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/provider-runtime/clusters/provider-contract/modules/pty-host",
+        "package.json"
+      ],
+      "fixes": null,
+      "id": "T001",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R1",
+      "status": "TODO",
+      "title": "pty-host module: vendored node-pty 1.1.0 for Windows and a safe wrapper",
+      "why": "Claude Code needs a real terminal; Windows has no expect"
+    },
+    {
+      "acceptance": [
+        "spawn detached with windowsHide; identity and boot id through CIM; stop with taskkill tree then /F after re-check",
+        "check no longer returns unverifiable on Windows; macOS behaviour and tests unchanged"
+      ],
+      "checks": [],
+      "commitMessage": "feat: supervise session processes on Windows",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor"
+      ],
+      "fixes": null,
+      "id": "T002",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R1",
+      "status": "TODO",
+      "title": "Process supervisor on Windows",
+      "why": "Session processes are not supported on Windows today"
+    },
+    {
+      "acceptance": [
+        "session-host.mjs and environment-host.mjs print the same markers and honour the same control files as the expect scripts",
+        "claude.exe is found in %USERPROFILE%\\.local\\bin; trust in .claude.json uses forward slashes and case-insensitive matching with retries",
+        "capabilities on Windows are available; tests cover the host with a fake pty"
+      ],
+      "checks": [],
+      "commitMessage": "feat: run Claude sessions on Windows",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T001",
+        "T002"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude"
+      ],
+      "fixes": null,
+      "id": "T003",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R1",
+      "status": "TODO",
+      "title": "Claude on Windows: session and environment hosts, program search, trust",
+      "why": "Claude sessions must work on Windows like on macOS"
+    },
+    {
+      "acceptance": [
+        "on Windows the Claude hook is the exec form node.exe + wfk.mjs, the Codex hook has commandWindows; Kit recognises both",
+        "the installer and wfk link put a sh wfk script next to wfk.cmd for Git Bash; macOS hooks unchanged"
+      ],
+      "checks": [],
+      "commitMessage": "feat: install Kit hooks and the launcher on Windows",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/backend-core/clusters/projects/modules/kit-structure",
+        "product-parts/system-service/clusters/deployment/modules/service-installer",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/link.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md"
+      ],
+      "fixes": null,
+      "id": "T004",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R1",
+      "status": "TODO",
+      "title": "Kit hooks and the wfk launcher on Windows",
+      "why": "The POSIX hook command and the launcher path do not work on Windows"
+    },
+    {
+      "acceptance": [
+        "only codex.exe is spawned; the daemon is reached through codex app-server proxy on Windows",
+        "FILETIME start time, escaped keyPath and case-insensitive trust; hook keys from hooks/list",
+        "capabilities on Windows are available with minimum Codex 0.160; tests for each Windows branch"
+      ],
+      "checks": [],
+      "commitMessage": "feat: run Codex sessions on Windows",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T002"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex"
+      ],
+      "fixes": null,
+      "id": "T005",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R1",
+      "status": "TODO",
+      "title": "Codex on Windows: program, proxy transport, daemon pid, config keys, hooks",
+      "why": "Codex is disabled on Windows today"
+    },
+    {
+      "acceptance": [
+        "open-link on Windows: claude:// through rundll32, codex:// through the OpenAI.Codex AppX launch with a rundll32 fallback",
+        "POST /api/system/shutdown (loopback) stops the service; the installer uses it on Windows; wfk install warns when elevated"
+      ],
+      "checks": [],
+      "commitMessage": "feat: open chats and stop the service cleanly on Windows",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T004"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/backend-core/clusters/runtime/modules/cli/src",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/system-service/clusters/deployment/modules/service-installer"
+      ],
+      "fixes": null,
+      "id": "T006",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R1",
+      "status": "TODO",
+      "title": "Links, graceful shutdown and the elevation warning on Windows",
+      "why": "Chats must open and the service must stop cleanly on Windows"
+    },
+    {
+      "acceptance": [
+        "README and installation guide describe Windows install and the remaining limits; OVERVIEW stays under 28000 bytes"
+      ],
+      "checks": [],
+      "commitMessage": "docs: describe Windows support",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T003",
+        "T005",
+        "T006"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/installation.md",
+        "docs/architecture/OVERVIEW.md",
+        "CHANGELOG.md"
+      ],
+      "fixes": null,
+      "id": "T007",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R1",
+      "status": "TODO",
+      "title": "Documentation of Windows support",
+      "why": "The OS table must tell the truth"
+    },
+    {
+      "acceptance": [
+        "Project-wide documents describe the round result",
+        "The round digest records result, decisions, contracts and references"
+      ],
+      "checks": [],
+      "commitMessage": "docs: reconcile documentation for R1",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T001",
+        "T002",
+        "T003",
+        "T004",
+        "T005",
+        "T006",
+        "T007"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/architecture/OVERVIEW.md",
+        "docs/planning/M5-windows.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "docs/installation.md",
+        "CHANGELOG.md"
+      ],
+      "fixes": null,
+      "id": "DOCS-R1",
+      "iteration": 1,
+      "kind": "docs",
+      "roundId": "R1",
+      "status": "TODO",
+      "title": "Reconcile project documentation and write the round digest",
+      "why": "Keep the project context current for the next agent and close the round."
+    },
+    {
+      "acceptance": [
+        "wfk doctor --installed on macOS reports everything in order with 0.5.0",
+        "the parity table is checked on the Windows 11 ARM VM together with the user and recorded in docs/evidence/M5-acceptance.md"
+      ],
+      "checks": [],
+      "commitMessage": "chore: release 0.5.0",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T001",
+        "T002",
+        "T003",
+        "T004",
+        "T005",
+        "T006",
+        "T007",
+        "DOCS-R1"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "package.json",
+        "package-lock.json",
+        "CHANGELOG.md",
+        "docs/evidence/M5-acceptance.md"
+      ],
+      "fixes": null,
+      "id": "T008",
+      "iteration": 1,
+      "kind": "delivery",
+      "roundId": "R1",
+      "status": "TODO",
+      "title": "Release 0.5.0 and the live check on the Windows VM",
+      "why": "Windows support is accepted only after a live check"
+    }
+  ]
 }
 ```
 <!-- harness-workflow:end -->
 
 ## State
 
-No active scope. Last closed scope: publication-order.
+- Scope: m5-windows (ACTIVE)
+- Delivery: IN_PROGRESS
+- Execution: sequential
+- Current task: none
+- Progress: 0/9
+- Revision: 390
+
+## Objective
+
+Windows 11 (x64 и ARM64): сессии Claude и ChatGPT/Codex, ревью, выполнение плана и автопилот — как на macOS
+
+## Acceptance
+
+- На ВМ Windows 11 ARM проходят все строки таблицы паритета раздела 9 спецификации M5
+- Пункты, помеченные П, проверены на ВМ и записаны в docs/evidence/M5-acceptance.md
+- macOS и Linux не изменились: их тесты проходят, wfk doctor --installed на Mac — всё в порядке
+- README и docs/installation.md честно описывают поддержку Windows
+- Релиз 0.5.0 собран; push — только после приёмки и закрытия scope
+
+## Rounds
+
+### R1 — Implementation (implementation, OPEN)
+
+- [TODO] T001 — pty-host module: vendored node-pty 1.1.0 for Windows and a safe wrapper (work)
+  - Commit: feat: add the ConPTY host for Windows
+  - Files: product-parts/provider-runtime/clusters/provider-contract/modules/pty-host, package.json
+- [TODO] T002 — Process supervisor on Windows (work)
+  - Commit: feat: supervise session processes on Windows
+  - Files: product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor
+- [TODO] T003 — Claude on Windows: session and environment hosts, program search, trust (work)
+  - Commit: feat: run Claude sessions on Windows
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude
+  - Depends on: T001, T002
+- [TODO] T004 — Kit hooks and the wfk launcher on Windows (work)
+  - Commit: feat: install Kit hooks and the launcher on Windows
+  - Files: product-parts/backend-core/clusters/projects/modules/kit-structure, product-parts/system-service/clusters/deployment/modules/service-installer, product-parts/backend-core/clusters/runtime/modules/cli/src/link.ts, product-parts/backend-core/clusters/runtime/modules/cli/test, product-parts/backend-core/clusters/runtime/modules/cli/module.md
+- [TODO] T005 — Codex on Windows: program, proxy transport, daemon pid, config keys, hooks (work)
+  - Commit: feat: run Codex sessions on Windows
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex
+  - Depends on: T002
+- [TODO] T006 — Links, graceful shutdown and the elevation warning on Windows (work)
+  - Commit: feat: open chats and stop the service cleanly on Windows
+  - Files: product-parts/backend-core/clusters/runtime/modules/cli/src, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/system-service/clusters/deployment/modules/service-installer
+  - Depends on: T004
+- [TODO] T007 — Documentation of Windows support (work)
+  - Commit: docs: describe Windows support
+  - Files: README.md, docs/installation.md, docs/architecture/OVERVIEW.md, CHANGELOG.md
+  - Depends on: T003, T005, T006
+- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+  - Commit: docs: reconcile documentation for R1
+  - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M5-windows.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, docs/installation.md, CHANGELOG.md
+  - Depends on: T001, T002, T003, T004, T005, T006, T007
+- [TODO] T008 — Release 0.5.0 and the live check on the Windows VM (delivery)
+  - Commit: chore: release 0.5.0
+  - Files: package.json, package-lock.json, CHANGELOG.md, docs/evidence/M5-acceptance.md
+  - Depends on: T001, T002, T003, T004, T005, T006, T007, DOCS-R1
 
 State changes only through `scripts/workflow` commands. History lives in Git.

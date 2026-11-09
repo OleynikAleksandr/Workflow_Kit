@@ -12,15 +12,16 @@ import {
   clip,
   QUESTION_REMINDER,
   REMINDER,
+  REVIEW_PAIRS,
   SOURCE,
   STATUS_LABELS,
   mainAgrees,
+  providerOf,
   reviewerApproves,
   reviewerBrief,
   toMain,
   toReviewer,
 } from './texts.ts';
-import type { ReviewProvider } from './texts.ts';
 import type { CrossReview, CrossReviewDeps, ReviewSummary } from './contract.ts';
 import { FIND_REVIEWER, findReviewer } from './find-reviewer.ts';
 
@@ -33,13 +34,14 @@ export const CHOICE_WAITS_QUESTION = 'Сначала ответьте на во�
 /** A review without progress this long is given up (the reviewer does not answer). */
 export const REVIEW_STALL_MS = 60 * 60_000;
 
-const other = (provider: ReviewProvider): ReviewProvider => (provider === 'claude' ? 'codex' : 'claude');
-const providerOf = (key: string): ReviewProvider => (key.startsWith('codex:') ? 'codex' : 'claude');
+/** A review that cannot start: the main provider has no reviewer on this machine. */
+export const NO_REVIEWER = 'для этого провайдера нет ревьюера';
 
 export function createCrossReview(deps: CrossReviewDeps): CrossReview {
   const now = deps.now ?? (() => new Date());
   const log = deps.log ?? (() => undefined);
   const iso = (): string => now().toISOString();
+  const titleOf = (provider: string): string => deps.providerTitle?.(provider) ?? provider;
   /** mainKey → review (the latest of the session). */
   const reviews = new Map<string, Review>();
   /** reviewerKey → mainKey. */
@@ -105,7 +107,7 @@ export function createCrossReview(deps: CrossReviewDeps): CrossReview {
     review.entries.push({ from: 'reviewer', round: review.round, text, at: iso() });
     review.status = 'answering';
     await save(review);
-    deps.enqueue(review.mainKey, toMain(review.reviewerProvider, review.round, text), review.projectId);
+    deps.enqueue(review.mainKey, toMain(titleOf(review.reviewerProvider), review.round, text), review.projectId);
   }
 
   /** A finished turn of the main agent: the plan description, agreement, the end of the rounds, or the next round. */
@@ -126,13 +128,16 @@ export function createCrossReview(deps: CrossReviewDeps): CrossReview {
     if (review.round >= review.maxRounds) return finish(review, 'disagreed', `${review.maxRounds} кругов без согласия`);
     review.status = 'reviewing';
     await save(review);
-    if (review.reviewerKey) deps.enqueue(review.reviewerKey, toReviewer(review.mainProvider, review.round, text), review.projectId);
+    if (review.reviewerKey) deps.enqueue(review.reviewerKey, toReviewer(titleOf(review.mainProvider), review.round, text), review.projectId);
   }
 
-  async function start(projectId: string, mainKey: string, proposal: { generation: number; scopeId: string | null }): Promise<Review> {
+  /** Starts the review; false when the main provider has no reviewer (the review is kept as failed). */
+  async function start(projectId: string, mainKey: string, proposal: { generation: number; scopeId: string | null }): Promise<boolean> {
     const projects = await deps.listProjects();
     const project = projects.find((p) => p.id === projectId);
     const mainProvider = providerOf(mainKey);
+    const reviewerProvider = REVIEW_PAIRS[mainProvider] ?? null;
+    const blocked = reviewerProvider ? ((await deps.reviewerBlocked?.(reviewerProvider).catch(() => null)) ?? null) : NO_REVIEWER;
     const mainTitle = deps.sessionTitle(projectId, mainKey) ?? project?.name ?? 'сессия';
     const review: Review = {
       projectId,
@@ -140,7 +145,7 @@ export function createCrossReview(deps: CrossReviewDeps): CrossReview {
       mainKey,
       mainTitle,
       mainProvider,
-      reviewerProvider: other(mainProvider),
+      reviewerProvider: reviewerProvider ?? '',
       reviewerKey: null,
       reviewerRef: null,
       reviewerTitle: `${mainTitle} — ревью`,
@@ -157,9 +162,14 @@ export function createCrossReview(deps: CrossReviewDeps): CrossReview {
     const old = reviews.get(mainKey);
     if (old?.reviewerKey) reviewers.delete(old.reviewerKey);
     reviews.set(mainKey, review);
+    if (blocked) {
+      // Kept as a failed review of this proposal: the panel shows why, the mode choice is free.
+      await finish(review, 'failed', reviewerProvider ? `${titleOf(reviewerProvider)} не может быть ревьюером: ${blocked}` : blocked);
+      return false;
+    }
     await save(review);
     log(`review: ${mainKey} starts, reviewer ${review.reviewerProvider}; the main agent describes the plan first`);
-    return review;
+    return true;
   }
 
   /** Creates the reviewer session with the brief and the main agent's plan description. */
@@ -168,9 +178,9 @@ export function createCrossReview(deps: CrossReviewDeps): CrossReview {
     void queue(mainKey, async () => {
       try {
         const project = (await deps.listProjects()).find((p) => p.id === projectId);
-        const brief = reviewerBrief({ projectName: project?.name ?? projectId, projectPath: project?.path ?? '', mainProvider, mainTitle, plan });
-        // A brief typed into a Claude terminal was not sent (M4 13.9): Claude gets it by the queue.
-        const typed = review.reviewerProvider === 'codex';
+        const brief = reviewerBrief({ projectName: project?.name ?? projectId, projectPath: project?.path ?? '', mainName: titleOf(mainProvider), mainTitle, plan });
+        // A brief typed into a terminal session was not sent (M4 13.9): such a provider gets it by the queue.
+        const typed = !deps.briefByQueue?.(review.reviewerProvider);
         const ref = await deps.createSession(projectId, review.reviewerProvider, {
           title: review.reviewerTitle,
           ...(typed ? { firstMessage: brief } : {}),
@@ -179,9 +189,9 @@ export function createCrossReview(deps: CrossReviewDeps): CrossReview {
         });
         if (review.status !== 'starting') return;
         review.reviewerRef = ref;
-        if (review.reviewerProvider === 'codex' && ref.localId) setReviewer(review, `codex:${ref.localId}`);
+        if (typed && ref.localId) setReviewer(review, `${review.reviewerProvider}:${ref.localId}`);
         await save(review);
-        if (!typed) void bindClaude(review, brief);
+        if (!typed) void bindQueued(review, brief);
         const early = review.reviewerKey ? events.get(review.reviewerKey) : undefined;
         if (early) await fromReviewer(review, early);
         // A held early Stop asks again: the reviewer stays held, any other session is let go.
@@ -195,14 +205,14 @@ export function createCrossReview(deps: CrossReviewDeps): CrossReview {
     });
   }
 
-  /** Finds the key of a new Claude reviewer from its hooks and hands it the brief (M4 13.9). */
-  async function bindClaude(review: Review, brief: string): Promise<void> {
+  /** Finds the key of a new briefByQueue reviewer from its hooks and hands it the brief (M4 13.9). */
+  async function bindQueued(review: Review, brief: string): Promise<void> {
     const ref = review.reviewerRef!;
     const settled = (): boolean => review.status !== 'starting' || review.reviewerKey !== null;
-    const key = await findReviewer(() => deps.resolveReviewer(review.projectId, 'claude', ref), { ...(deps.findReviewer ?? FIND_REVIEWER), stop: settled });
+    const key = await findReviewer(() => deps.resolveReviewer(review.projectId, review.reviewerProvider, ref), { ...(deps.findReviewer ?? FIND_REVIEWER), stop: settled });
     await queue(review.mainKey, async () => {
       if (review.status !== 'starting') return;
-      if (!key && !review.reviewerKey) return finish(review, 'failed', 'сессия ревьюера Claude не отозвалась за 3 минуты');
+      if (!key && !review.reviewerKey) return finish(review, 'failed', `сессия ревьюера ${titleOf(review.reviewerProvider)} не отозвалась за 3 минуты`);
       if (!review.reviewerKey) setReviewer(review, key!);
       await save(review);
       (deps.deliver ?? deps.enqueue)(review.reviewerKey!, brief, review.projectId);
@@ -301,8 +311,7 @@ export function createCrossReview(deps: CrossReviewDeps): CrossReview {
       if (own && own.scopeId === proposal.scopeId && !(own.status === 'failed' && retries.has(context.key))) return null;
       retries.delete(context.key);
       if ([...reviews.values()].some((r) => r.projectId === context.projectId && active(r))) return null;
-      await start(context.projectId, context.key, proposal);
-      return { kind: 'continue', text: PLAN_REQUEST };
+      return (await start(context.projectId, context.key, proposal)) ? { kind: 'continue', text: PLAN_REQUEST } : null;
     },
     async choiceBlocked(projectId, working) {
       if (deps.asking?.(projectId)) return CHOICE_WAITS_QUESTION;

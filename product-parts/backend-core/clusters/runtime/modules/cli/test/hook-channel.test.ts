@@ -28,8 +28,13 @@ before(async () => {
   tmp = await mkdtemp(path.join(os.tmpdir(), 'wfk-hook-channel-'));
   folder = path.join(tmp, 'Projects', 'demo');
   await mkdir(folder, { recursive: true });
-  const stub = (id: string, hookDialect?: 'kimi') => () => ({ ...createStubProvider({ id, title: id, task: 'T' }), hookDialect });
-  app = await createApp({ env: { WFK_DATA_DIR: path.join(tmp, 'data'), WFK_PORT: '0' }, homedir: tmp, providers: [stub('claude'), stub('codex'), stub('kimi', 'kimi')] });
+  // The Claude stub takes session names in the prompt hook answer, like the real provider.
+  const stub = (id: string, extra: { hookDialect?: 'kimi'; promptTitle?: boolean } = {}) => () => ({ ...createStubProvider({ id, title: id, task: 'T' }), ...extra });
+  app = await createApp({
+    env: { WFK_DATA_DIR: path.join(tmp, 'data'), WFK_PORT: '0' },
+    homedir: tmp,
+    providers: [stub('claude', { promptTitle: true }), stub('codex'), stub('kimi', { hookDialect: 'kimi' })],
+  });
   const bound = await app.start();
   env = { WFK_DATA_DIR: path.join(tmp, 'data'), WFK_PORT: String(bound.port) };
   await app.projects.open(folder);

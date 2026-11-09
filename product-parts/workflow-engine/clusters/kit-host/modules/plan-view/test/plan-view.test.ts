@@ -105,7 +105,7 @@ const proposal: KitProposal = {
   scopeId: 'demo',
 };
 
-test('choice card: recommended first, refine last, orchestration for both apps', () => {
+test('choice card: recommended first, refine last, orchestration only for a provider that has it', () => {
   assert.equal(buildChoiceCard(null), null);
   const card = buildChoiceCard(proposal)!;
   assert.deepEqual(card.options.map((o) => o.option), ['orchestrated', 'sequential', 'refine']);
@@ -113,8 +113,10 @@ test('choice card: recommended first, refine last, orchestration for both apps',
   assert.equal(card.options[0]!.title, 'Оркестрация с исполнителями');
   assert.equal(card.options[2]!.title, 'Сначала доработать спецификацию');
   assert.equal(card.generation, 2);
-  assert.deepEqual(choiceOptionsFor(card, 'codex').map((o) => o.option), ['orchestrated', 'sequential', 'refine']);
-  assert.equal(choiceOptionsFor(card, 'claude').length, 3);
+  assert.deepEqual(choiceOptionsFor(card, true).map((o) => o.option), ['orchestrated', 'sequential', 'refine']);
+  // A provider without the orchestration capability (Kimi) runs a scope only sequentially.
+  assert.deepEqual(choiceOptionsFor(card, false).map((o) => o.option), ['sequential', 'refine']);
+  assert.equal(card.options.length, 3, 'the card itself is not changed');
   const sequential = buildChoiceCard({ ...proposal, recommended: 'sequential' })!;
   assert.deepEqual(sequential.options.map((o) => o.option), ['sequential', 'orchestrated', 'refine']);
 });

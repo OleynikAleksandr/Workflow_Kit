@@ -5,18 +5,14 @@ import { configFile, createEventLog, createKeyedMutex, createOperations, ensureD
 import type { DataDirs, EventLog, KeyedMutex, Operations, WfkConfig } from '#data-store';
 import { createHttpServer, createRouter, createStateRegistry, registerCoreRoutes } from '#http-server';
 import type { HttpServerHandle, InterfaceMap, Router, StateRegistry } from '#http-server';
-import { createAgentChannel, registerChannelRoutes } from '#agent-channel';
 import type { AgentChannel } from '#agent-channel';
-import { createAutopilot, registerAutopilotRoutes } from '#autopilot';
 import type { Autopilot } from '#autopilot';
 import { kitBundleProvider } from '#kit-bundle';
-import { createReviewToggles, registerReviewRoutes } from '#plan-review';
-import { createProjectSetup, registerSetupRoutes, SERVICE_MESSAGE_MARK } from '#project-setup';
+import { createProjectSetup, registerSetupRoutes } from '#project-setup';
 import type { ProjectSetup } from '#project-setup';
-import { createSessionTitles, registerTitleRoutes } from '#session-titles';
 import type { SessionTitles } from '#session-titles';
 import type { ReviewToggles } from '#plan-review';
-import { lateReviewDecider, toggleLock, wireCrossReview } from './review-wiring.ts';
+import { wireSessions } from './session-wiring.ts';
 import { createKitRunner, createWorkflowState } from '#kit-runner';
 import type { KitRunner, WorkflowState } from '#kit-runner';
 import { registerStructureRoutes } from '#kit-structure';
@@ -27,7 +23,7 @@ import { sessionViewMount } from '#session-view';
 import { createProcessSupervisor, processesFile, runCommand } from '#process-supervisor';
 import type { CommandRunner, ProcessSupervisor } from '#process-supervisor';
 import { createProviderRegistry, registerProviderRoutes } from '#provider-registry';
-import type { HookDialect, ProviderContext, ProviderFactory, ProviderRegistry } from '#provider-registry';
+import type { ProviderContext, ProviderFactory, ProviderRegistry } from '#provider-registry';
 import { createProjectRegistry, isInside, projectsFile, registerProjectRoutes } from '#project-registry';
 import type { ProjectRegistry } from '#project-registry';
 import { getServiceStatus } from '#service-installer';
@@ -237,111 +233,18 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
       .sort((a, b) => b.path.length - a.path.length)[0];
     return found ? { id: found.id } : undefined;
   };
-  const channel = createAgentChannel({
-    resolveProject: resolveFolderProject,
-    log: options.log,
-  });
-  // Panel messages for an idle agent wait for its next hook; a Claude session the panel runs is
-  // woken at once (session.exp types a short prompt, the prompt hook hands over the queue).
-  const wakeIdle = async (key: string): Promise<void> => {
-    const activity = channel.get(key);
-    if (!activity || activity.state !== 'waiting' || activity.client !== 'claude' || !activity.projectId) return;
-    const project = await projects.get(activity.projectId);
-    const provider = providers.get('claude');
-    if (!project || !provider?.wakeSession) return;
-    const woken = await provider.wakeSession(project, activity.sessionId).catch(() => false);
-    if (woken) options.log?.(`channel: woke ${key} for queued panel messages`);
-  };
-  const wakingChannel: AgentChannel = {
-    ...channel,
-    enqueue(key, text, source, projectId) {
-      const message = channel.enqueue(key, text, source, projectId);
-      void wakeIdle(key);
-      return message;
-    },
-  };
-  const reviewDecider = lateReviewDecider();
-  const autopilot = createAutopilot({
-    runner: kit,
+  const { channel, autopilot, review, titles, crossReview } = wireSessions({
+    router,
+    state,
+    mutex,
+    projects,
+    providers,
     workflow,
-    channel: wakingChannel,
-    review: reviewDecider,
-    projectPath: async (id) => (await projects.get(id))?.path,
+    kit,
+    resolveFolderProject,
+    sessionArchived: (id, key, archived) => lifecycle.sessionArchived(id, key, archived),
     log: options.log,
   });
-  channel.setDecider((context) => autopilot.decide(context));
-  // The prompt hook tells the autopilot who started the turn: the user typing, or panel messages;
-  // the Stop hook lets a waiting Claude rename go.
-  const observedChannel: AgentChannel = {
-    ...channel,
-    // At Stop the agent is out of its turn: a waiting Claude name can be typed as /rename.
-    async stop(input, signal) {
-      titles.onStop(`${input.client}:${input.sessionId}`);
-      return channel.stop(input, signal);
-    },
-    async prompt(input) {
-      const reply = await channel.prompt(input);
-      const key = `${input.client}:${input.sessionId}`;
-      // The panel's first message is a service greeting: no session topic is taken in that turn.
-      titles.setServiceTurn(key, input.prompt?.includes(SERVICE_MESSAGE_MARK) === true);
-      autopilot.onPrompt(key, reply.answer !== null);
-      titles.onTurn(key);
-      // Claude takes the session name from the prompt hook answer (hookSpecificOutput.sessionTitle).
-      const appTitle = input.client === 'claude' ? await titles.appTitle(key, input.sessionTitle).catch(() => null) : null;
-      if (!appTitle) return reply;
-      const answer = reply.answer ?? {};
-      const specific = (answer['hookSpecificOutput'] ?? {}) as Record<string, unknown>;
-      return { ...reply, answer: { ...answer, hookSpecificOutput: { ...specific, hookEventName: 'UserPromptSubmit', sessionTitle: appTitle } } };
-    },
-  };
-  // A session the channel has not seen since the start belongs to the project when its provider lists it.
-  const ownsSession = async (projectId: string, key: string): Promise<boolean> => {
-    const project = await projects.get(projectId);
-    const lists = project ? await Promise.all(providers.list().map((p) => p.listSessions(project).catch(() => []))) : [];
-    return lists.flat().some((info) => `${info.provider}:${info.localId}` === key);
-  };
-  // A hook is taken only from a registered provider; its dialect decides how it is read and answered.
-  const dialects = (id: string): HookDialect | undefined => providers.get(id) && (providers.get(id)?.hookDialect ?? 'claude');
-  registerChannelRoutes({ router, state, channel: observedChannel, messages: wakingChannel, owns: ownsSession, dialects });
-  registerAutopilotRoutes({ router, state, autopilot, mutex });
-
-  const review = createReviewToggles({
-    listProjects: async () => (await projects.list()).map((project) => ({ id: project.id, path: project.path })),
-    pathChosen: (id) => Boolean(workflow.get(id)?.execution),
-    locked: (id, key) => toggleLock(crossReview, workflow, id, key),
-    onChange: (id, key, on) => crossReview.toggled(id, key, on),
-  });
-  registerReviewRoutes({ router, state, toggles: review });
-
-  const titles = createSessionTitles({
-    listProjects: async () => (await projects.list()).map((project) => ({ id: project.id, path: project.path })),
-    resolveProject: resolveFolderProject,
-    sessions: () => channel.list(),
-    listed: async (id) => {
-      const project = await projects.get(id);
-      const keys = new Set<string>();
-      if (!project) return keys;
-      for (const provider of providers.list()) {
-        for (const info of await provider.listSessions(project).catch(() => [])) keys.add(`${info.provider}:${info.localId}`);
-      }
-      return keys;
-    },
-    scope: (id) => {
-      const view = workflow.get(id);
-      return view?.scope ? { objective: view.scope.objective, ownerSession: view.execution?.ownerSession ?? null } : null;
-    },
-    rename: async (id, key, name) => {
-      const project = await projects.get(id);
-      const provider = providers.get(key.slice(0, key.indexOf(':')));
-      if (!project || !provider?.renameSession) return { synced: false, note: 'Имя хранится только в Workflow Kit' };
-      return provider.renameSession(project, key.slice(key.indexOf(':') + 1), name);
-    },
-    archived: (id, key, archived) => lifecycle.sessionArchived(id, key, archived),
-    log: options.log,
-  });
-  registerTitleRoutes({ router, state, titles });
-  const crossReview = wireCrossReview({ router, state, channel, messages: wakingChannel, projects, providers, workflow, toggles: review, titles, log: options.log });
-  reviewDecider.attach(crossReview);
 
   const setup = createProjectSetup({
     projects,

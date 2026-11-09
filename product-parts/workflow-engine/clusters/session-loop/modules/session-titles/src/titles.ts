@@ -1,8 +1,8 @@
 // Session names (spec section 11): manual name → the agent's topic (`wfk session title`) → the
 // plan objective (owner session) → the provider's own name → «Новая сессия». Names live in the
 // project folder next to the review toggle, .workflow-kit/local/sessions/<client>.<id>.json
-// (fields title, topic, synced); Codex threads get the name in ChatGPT through the daemon, Claude
-// sessions through the UserPromptSubmit hook answer (hookSpecificOutput.sessionTitle).
+// (fields title, topic, synced); the provider gives the name to its app (renameSession), a
+// provider with promptTitle also through the UserPromptSubmit hook answer (sessionTitle).
 import { readdir } from 'node:fs/promises';
 import path from 'node:path';
 import { createKeyedMutex, readJsonFile, writeJsonAtomic } from '#data-store';
@@ -10,8 +10,11 @@ import { createKeyedMutex, readJsonFile, writeJsonAtomic } from '#data-store';
 export const SESSIONS_DIR = '.workflow-kit/local/sessions';
 export const DEFAULT_NAME = 'Новая сессия';
 export const MAX_TITLE_LENGTH = 80;
-/** Note of a Claude session whose name waits for the next prompt hook. */
-export const CLAUDE_NEXT_NOTE = 'Имя уйдёт в Claude, когда агент закончит ход или со следующим сообщением';
+/** Note of a promptTitle session whose name waits for the end of the turn or the next prompt hook. */
+export const NEXT_TURN_NOTE = 'Имя уйдёт в приложение, когда агент закончит ход или со следующим сообщением';
+/** How `wfk session title|plan` names the session itself. */
+export const SESSION_FLAGS_HINT = 'повторите команду с --client <id> --session <id>';
+const MAX_CANDIDATES = 20;
 
 export type TitleSource = 'manual' | 'agent' | 'scope' | 'provider' | 'default';
 
@@ -31,14 +34,25 @@ export interface SessionTitle {
 
 /** A refused title change. */
 export class TitleError extends Error {
-  readonly code: 'bad-title' | 'bad-session' | 'project-not-found' | 'no-running-turn' | 'ambiguous' | 'already-set' | 'service-turn';
+  readonly code: 'bad-title' | 'bad-session' | 'project-not-found' | 'session-ambiguous' | 'already-set' | 'service-turn';
   readonly status: number;
-  constructor(code: TitleError['code'], message: string, status: number) {
+  /** Extra fields of the HTTP error, e.g. { candidates } of session-ambiguous. */
+  readonly details: Record<string, unknown> | undefined;
+  constructor(code: TitleError['code'], message: string, status: number, details?: Record<string, unknown>) {
     super(message);
     this.name = 'TitleError';
     this.code = code;
     this.status = status;
+    this.details = details;
   }
+}
+
+/** A session `wfk session title|plan` may have meant (session-ambiguous). */
+export interface SessionCandidate {
+  client: string;
+  session: string;
+  state: string;
+  name: string;
 }
 
 /** A session the titles module can see in the channel. */
@@ -62,6 +76,11 @@ export interface SessionTitlesOptions {
    * apps also send hooks but are never listed).
    */
   listed?: (projectId: string) => Promise<ReadonlySet<string>>;
+  /**
+   * The provider's app takes a name from the prompt hook answer, and a rename is safe only
+   * outside a turn (Provider.promptTitle). Default: no provider does.
+   */
+  promptTitle?: (client: string) => boolean;
   /** Gives the name to the provider app; resolves { synced, note }. */
   rename?: (projectId: string, key: string, name: string) => Promise<{ synced: boolean; note?: string }>;
   /**
@@ -82,10 +101,16 @@ export interface SessionTitles {
   /** Removes the session from every list of Workflow Kit for good (the chat stays in the app). */
   setForgotten(projectId: string, key: string): Promise<SessionTitle>;
   /**
-   * `wfk session title`: the topic of the calling session (`session` from CODEX_THREAD_ID or
-   * CLAUDE_CODE_SESSION_ID), else of the session whose turn is running in the folder's project.
+   * `wfk session title`: the topic of the calling session (`session`: from the provider's
+   * environment variable or --client/--session), else of the only session whose turn is running
+   * in the folder's project (session-ambiguous with the candidates otherwise).
    */
   setTopic(folder: string, title: string, session?: { client: string; id: string } | null): Promise<{ projectId: string; key: string; title: SessionTitle }>;
+  /**
+   * Key of the only session of the project with a running turn (by the channel; never guessed by
+   * time). None or several → TitleError session-ambiguous (409) with details.candidates.
+   */
+  running(projectId: string): Promise<string>;
   /** Name of a session (providerTitle: the provider's own name, if any). */
   name(projectId: string, key: string, providerTitle?: string | null): SessionTitle;
   /** A turn of the session started: retries a provider rename that had to wait. */
@@ -98,7 +123,7 @@ export interface SessionTitles {
    */
   setServiceTurn(key: string, service: boolean): void;
   /**
-   * Prompt hook of a Claude session: the Workflow Kit name to give the app (once per name and
+   * Prompt hook of a promptTitle session: the Workflow Kit name to give the app (once per name and
    * service run) when it differs from `current`, the app's title; null otherwise. A matching
    * title marks the name synced.
    */
@@ -115,7 +140,9 @@ interface Stored {
   forgottenAt: string | null;
 }
 
-const KEY = /^(claude|codex):([A-Za-z0-9._-]{1,200})$/;
+const KEY = /^([a-z][a-z0-9-]{0,31}):([A-Za-z0-9._-]{1,200})$/;
+const FILE = /^([a-z][a-z0-9-]{0,31})\.([A-Za-z0-9._-]{1,200})\.json$/;
+const clientOf = (key: string): string => key.slice(0, Math.max(0, key.indexOf(':')));
 
 export function titleFileName(key: string): string | null {
   const match = KEY.exec(key);
@@ -133,7 +160,7 @@ export function createSessionTitles(options: SessionTitlesOptions): SessionTitle
   const log = options.log ?? (() => undefined);
   const stored = new Map<string, Map<string, Stored>>();
   const pending = new Map<string, { projectId: string; name: string }>();
-  // Claude session key -> the name already sent through the prompt hook in this service run.
+  // promptTitle session key -> the name already sent through the prompt hook in this service run.
   const sentToApp = new Map<string, string>();
   // Sessions whose current turn is the panel's service greeting.
   const serviceTurns = new Set<string>();
@@ -186,21 +213,21 @@ export function createSessionTitles(options: SessionTitlesOptions): SessionTitle
   }
 
   /**
-   * Gives a manual name or topic to the provider app. A Claude session is renamed by typing
-   * /rename into its terminal, which is safe only outside a turn (a permission dialog could take
-   * the keys): during a turn the name waits for the Stop hook (`idle`: called from it).
+   * Gives a manual name or topic to the provider app. A promptTitle session (Claude) is renamed
+   * by typing /rename into its terminal, which is safe only outside a turn (a permission dialog
+   * could take the keys): during a turn the name waits for the Stop hook (`idle`: called from it).
    */
   async function sync(projectId: string, key: string, idle = false): Promise<void> {
     const title = resolve(projectId, key);
     if (title.source !== 'manual' && title.source !== 'agent') return;
-    if (key.startsWith('claude:')) {
+    if (options.promptTitle?.(clientOf(key))) {
       const inTurn = !idle && options.sessions().some((s) => s.key === key && s.state === 'working');
       if (!options.rename || inTurn) {
         if (options.rename) pending.set(key, { projectId, name: title.name });
-        await save(projectId, key, { synced: false, note: CLAUDE_NEXT_NOTE }).catch((error: unknown) => log(`titles: save ${key} failed: ${String(error)}`));
+        await save(projectId, key, { synced: false, note: NEXT_TURN_NOTE }).catch((error: unknown) => log(`titles: save ${key} failed: ${String(error)}`));
         return;
       }
-    } else if (!key.startsWith('codex:')) return;
+    }
     if (!options.rename) return;
     try {
       const result = await options.rename(projectId, key, title.name);
@@ -223,19 +250,24 @@ export function createSessionTitles(options: SessionTitlesOptions): SessionTitle
 
   /** The only session of the project with a running turn; hidden helper threads are skipped. */
   async function runningKey(projectId: string): Promise<string> {
-    let running = options.sessions().filter((s) => s.projectId === projectId && s.state === 'working');
-    if (running.length > 1 && options.listed) {
-      const listed = await options.listed(projectId).catch(() => null);
-      const known = listed ? running.filter((s) => listed.has(s.key)) : [];
-      if (known.length > 0) running = known;
-    }
-    if (running.length === 0) {
-      throw new TitleError('no-running-turn', 'Не найдена сессия проекта с идущим ходом: служба не получила хук начала хода', 409);
-    }
-    if (running.length > 1) {
-      throw new TitleError('ambiguous', `В проекте идут ходы нескольких сессий (${running.length}): переименуйте сессию в панели Workflow Kit`, 409);
-    }
-    return running[0]!.key;
+    const all = options.sessions().filter((s) => s.projectId === projectId);
+    const listed = options.listed ? await options.listed(projectId).catch(() => null) : null;
+    // Hidden helper threads of the apps send hooks too: listed sessions win when there are any.
+    const known = (list: ActiveSession[]): ActiveSession[] => {
+      const found = listed ? list.filter((s) => listed.has(s.key)) : [];
+      return found.length > 0 ? found : list;
+    };
+    let running = all.filter((s) => s.state === 'working');
+    if (running.length > 1) running = known(running);
+    if (running.length === 1) return running[0]!.key;
+    const candidates: SessionCandidate[] = (running.length > 1 ? running : known(all)).slice(0, MAX_CANDIDATES).map((s) => ({
+      client: clientOf(s.key),
+      session: s.key.slice(s.key.indexOf(':') + 1),
+      state: s.state,
+      name: resolve(projectId, s.key).name,
+    }));
+    const what = running.length > 1 ? `В проекте идут ходы нескольких сессий (${running.length})` : 'Не найдена сессия проекта с идущим ходом';
+    throw new TitleError('session-ambiguous', `${what}: ${SESSION_FLAGS_HINT}`, 409, { candidates });
   }
 
   return {
@@ -250,7 +282,7 @@ export function createSessionTitles(options: SessionTitlesOptions): SessionTitle
         }
         const map = projectMap(project.id);
         for (const name of names) {
-          const match = /^(claude|codex)\.([A-Za-z0-9._-]{1,200})\.json$/.exec(name);
+          const match = FILE.exec(name);
           if (!match) continue;
           const value = (await readJsonFile(path.join(project.path, SESSIONS_DIR, name)).catch(() => undefined)) as Record<string, unknown> | undefined;
           if (!value) continue;
@@ -305,6 +337,7 @@ export function createSessionTitles(options: SessionTitlesOptions): SessionTitle
       return { projectId: project.id, key, title: resolve(project.id, key) };
     },
     name: resolve,
+    running: runningKey,
     onTurn(key) {
       const waiting = pending.get(key);
       if (waiting) void sync(waiting.projectId, key);
@@ -318,7 +351,7 @@ export function createSessionTitles(options: SessionTitlesOptions): SessionTitle
       if (waiting) void sync(waiting.projectId, key, true);
     },
     async appTitle(key, current) {
-      if (!key.startsWith('claude:')) return null;
+      if (!options.promptTitle?.(clientOf(key))) return null;
       for (const [projectId, map] of stored) {
         if (!map.has(key)) continue;
         const title = resolve(projectId, key);

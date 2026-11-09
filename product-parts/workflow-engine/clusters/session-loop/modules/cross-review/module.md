@@ -5,17 +5,19 @@
 ## Назначение
 
 Перекрёстное ревью плана (спецификация M4): при включённом «Ревью плана» и открытом
-предложении плана служба запускает сессию другого провайдера ревьюером (у Claude — ChatGPT, у
-ChatGPT — Claude) и пересылает законченные ходы сторон через `agent-channel`, пока ревьюер не
+предложении плана служба запускает сессию другого провайдера ревьюером (пары — таблица
+`REVIEW_PAIRS`: `claude → codex`, `codex → claude`, `kimi → codex`; M8, раздел 5) и пересылает законченные ходы сторон через `agent-channel`, пока ревьюер не
 одобрит, а основной агент не согласится, или не кончатся 5 кругов.
 
 ## Публичный интерфейс (`src/index.ts`)
 
 - `createCrossReview(deps) → CrossReview`. Зависимости `CrossReviewDeps`: `listProjects`,
   `createSession(projectId, provider, { title, firstMessage?, detached: true })` (как «Новая сессия»,
-  но без ожидания первого хода: его держит само ревью; `firstMessage` — только у ревьюера ChatGPT),
-  `resolveReviewer(projectId, provider, ref)` (ключ канала созданной сессии: у Claude id хука
-  известен не сразу), `enqueue(key, text, projectId)` (очередь и пробуждение), `wake(key)`
+  но без ожидания первого хода: его держит само ревью; `firstMessage` — у ревьюера без
+  `briefByQueue`), `resolveReviewer(projectId, provider, ref)` (ключ канала созданной сессии: id
+  хука бывает известен не сразу), необязательные `providerTitle(id)` (название для текстов, по
+  умолчанию id), `reviewerBlocked(provider)` (причина, почему провайдер сейчас не ревьюер, или
+  `null`), `briefByQueue(provider)` (задание идёт очередью и пробуждением, M4 13.9), `enqueue(key, text, projectId)` (очередь и пробуждение), `wake(key)`
   (переспросить удержанный `Stop`), `toggle(projectId, key)`, `proposal(projectId)` (открытое
   предложение `{ generation, scopeId }` или `null`), `sessionTitle`, вопрос о плане (M4,
   раздел 12, необязательные) — `question(projectId, key)`, `asking(projectId)`,
@@ -27,10 +29,10 @@ ChatGPT — Claude) и пересылает законченные ходы ст
   - `load()` — ревью проектов из `.workflow-kit/local/reviews/<client>.<id>.json`.
   - `onStop(event)` — слушатель канала: в `preparing` любой законченный ход основной —
     описание плана (запись `main` круга 0), затем `starting` и создание ревьюера с этим
-    описанием в задании ревьюеру: у ChatGPT — первым сообщением хода, у Claude (M4 13.9) —
-    без набора в терминал: `findReviewer` (`src/find-reviewer.ts`) спрашивает `resolveReviewer`
+    описанием в задании ревьюеру: первым сообщением хода, а у провайдера с `briefByQueue`
+    (Claude, M4 13.9) — без набора в терминал: `findReviewer` (`src/find-reviewer.ts`) спрашивает `resolveReviewer`
     раз в `pollMs`, найденный ключ сразу связывается с ревью и получает задание через
-    `deliver`; без ключа за `timeoutMs` ревью `failed` («сессия ревьюера Claude не отозвалась»); ход ревьюера пересылается основной, если ревью
+    `deliver`; без ключа за `timeoutMs` ревью `failed` («сессия ревьюера <название> не отозвалась»); ход ревьюера пересылается основной, если ревью
     `starting` (первый ход) или `reviewing` и ход начат доставкой ревью (`origin: delivery`,
     источник `review`); ход основной — ревьюеру, если ревью `answering` и ход начат доставкой
     ревью. Напоминания и ходы пользователя не пересылаются.
@@ -66,7 +68,10 @@ ChatGPT — Claude) и пересылает законченные ходы ст
 - Тексты (`texts.ts`): `PLAN_REQUEST`, `reviewerBrief` (роль, описание плана от основной или
   просьба запросить его, правила «только читай», команды контекста `recover`,
   `scope:proposal`, `context`, формат ответа), `toMain`, `toReviewer` (пересылаемый
-  текст до 12000 знаков), `REMINDER`, `STATUS_LABELS`, `PROVIDER_NAMES`.
+  текст до 12000 знаков), `REMINDER`, `STATUS_LABELS`; `REVIEW_PAIRS` и `providerOf(key)` — единственное место, где
+  провайдеры сопоставлены парами. У провайдера без строки в таблице (`NO_REVIEWER`) и при
+  `reviewerBlocked` ревью сразу `failed` с причиной, `decide` возвращает `null` — выбор режима
+  свободен. Названия провайдеров модуль получает от `providerTitle`.
 - `registerCrossReviewRoutes({ router, state, review })`: раздел `reviews` в `/api/state`,
   `GET /api/projects/:id/reviews/:key` (полное ревью, 404 `review-not-found`),
   `POST /api/projects/:id/reviews/:key/cancel` («Прервать ревью», 409 `review-not-active`),

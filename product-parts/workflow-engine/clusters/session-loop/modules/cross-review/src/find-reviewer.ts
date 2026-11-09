@@ -1,5 +1,5 @@
-// Looks for the channel key of a just created reviewer session (spec M4 13.9): a Claude session
-// gets its local id from its hooks a few seconds after the start, before any turn.
+// Looks for the channel key of a just created reviewer session (spec M4 13.9): a session of a
+// provider like Claude gets its local id from its hooks a few seconds after the start, before any turn.
 export const FIND_REVIEWER = Object.freeze({ pollMs: 2000, timeoutMs: 3 * 60_000 });
 
 /** Asks resolve() every pollMs until it returns a key, stop() says the search is moot, or the time is out. */

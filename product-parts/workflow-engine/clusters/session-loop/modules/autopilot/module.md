@@ -45,14 +45,17 @@
     сессии)` назвал причину (M4, раздел 11.3; `refine` не блокируется);
     `scope:choose --generation --option --session <id сессии> --note
     "Выбор пользователя в панели Workflow Kit: …"`; оркестрация — для
-    сессий обоих приложений; агенту — «режим
+    сессий провайдера с возможностью `orchestration` (опция
+    `orchestration(client)`; иначе `choose` с `orchestrated` и `start`
+    оркестрируемого плана — 409 `orchestration-unavailable`, M8, раздел 5); агенту — «режим
     выбран, ждите кнопку запуска» или текст «доработать спецификацию».
   - `start` (текст режима Harness: последовательно или оркестратор; у
-    оркестратора — процедура исполнителя его приложения `executorHowto`:
+    оркестратора — процедура исполнителя его приложения `executorHowto`
+    из таблицы `EXECUTOR_HOWTO` по id провайдера (`{ text, repeat }`):
     Claude — Agent с `isolation: "worktree"`, Codex — `git worktree add
     --detach .workflow-kit/local/worktrees/<id> <baseCommit>`, `spawn_agent`
     с `workdir`, `wait_agent`, `integration:start`; продолжения автопилота
-    в оркестрации у Codex дополняются той же процедурой),
+    в оркестрации дополняются процедурой у провайдера с `repeat` — Codex),
     `pause` (`pause:set --on`), `resume` (`pause:set --off` при паузе и
     «продолжай»), `accept` (`accept --note`, слова пользователя или текст по
     умолчанию), `close` (`close --scope <id> --note`), `fixes` (текст
@@ -72,7 +75,7 @@
   `note`, `text`); ошибки — `HttpError` с кодом Kit и `details.nextAction`;
   раздел `autopilot` в `/api/state`.
 - Тексты: `PREFIX` (`Workflow Kit:`), `CHOICE_NOTES`, `CHOSEN_WAIT`,
-  `START_MESSAGES`, `CLAUDE_EXECUTOR_HOWTO`, `CODEX_EXECUTOR_HOWTO`,
+  `START_MESSAGES`, `EXECUTOR_HOWTO`,
   `executorHowto(key)`, `REFINE_MESSAGE`, `RESUME_MESSAGE`, `fixesMessage`,
   `deliveryMessage`, `STOP_LABELS`.
 

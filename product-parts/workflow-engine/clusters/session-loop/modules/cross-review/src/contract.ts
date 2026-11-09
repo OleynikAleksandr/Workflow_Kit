@@ -5,6 +5,18 @@ import type { ReviewProvider } from './texts.ts';
 
 export interface CrossReviewDeps {
   listProjects(): Promise<Array<{ id: string; name: string; path: string }>>;
+  /** Title of a provider for the texts (default: its id). */
+  providerTitle?(provider: ReviewProvider): string;
+  /**
+   * Why a provider cannot be the reviewer now (not registered, its reviewer capability is not
+   * available), else null. Default: every provider of REVIEW_PAIRS can.
+   */
+  reviewerBlocked?(provider: ReviewProvider): Promise<string | null>;
+  /**
+   * The provider does not send a typed first message of a new session (spec M4 13.9): the brief
+   * goes by the queue and a wake once the session's key is known. Default: false.
+   */
+  briefByQueue?(provider: ReviewProvider): boolean;
   /** Starts the reviewer session like «Новая сессия» with a first message. */
   createSession(projectId: string, provider: ReviewProvider, opts: { title: string; firstMessage?: string; detached: true }): Promise<{ localId: string | null; remoteId: string | null }>;
   /** Channel key of a created session once its hooks are known, else null. */
@@ -13,10 +25,10 @@ export interface CrossReviewDeps {
   enqueue(key: string, text: string, projectId: string): void;
   /**
    * Hands a message to a session that may not have finished a turn yet: queued and woken at once
-   * (spec M4 13.9; a Claude reviewer gets its brief this way). Defaults to enqueue.
+   * (spec M4 13.9; a reviewer with briefByQueue gets its brief this way). Defaults to enqueue.
    */
   deliver?(key: string, text: string, projectId: string): void;
-  /** How a Claude reviewer's key is looked for after its creation (spec M4 13.9). */
+  /** How the key of a briefByQueue reviewer is looked for after its creation (spec M4 13.9). */
   findReviewer?: { pollMs: number; timeoutMs: number };
   /** Asks the decider again for a held Stop. */
   wake(key: string): void;

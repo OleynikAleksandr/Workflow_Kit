@@ -27,7 +27,7 @@ export type {
   TrustState,
   TrustWrite,
 } from './contract.ts';
-export { ProviderError, providerLogsDir, providerSessionsFile } from './contract.ts';
+export { ProviderError, providerCapability, providerLogsDir, providerSessionsFile } from './contract.ts';
 export type { HookSession, ReadHookSessionsOptions } from './hook-sessions.ts';
 export {
   HOOK_JOURNAL_MAX_BYTES,

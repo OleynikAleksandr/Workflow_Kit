@@ -13,7 +13,7 @@ import {
   PREFIX,
   REFINE_MESSAGE,
   RESUME_MESSAGE,
-  CODEX_EXECUTOR_HOWTO,
+  EXECUTOR_HOWTO,
   START_MESSAGES,
   executorHowto,
   STOP_LABELS,
@@ -72,6 +72,11 @@ export interface AutopilotOptions {
   channel: AgentChannel;
   projectPath: (projectId: string) => Promise<string | undefined>;
   review?: ReviewDecider;
+  /**
+   * Whether sessions of a provider may run a scope with executors (the provider's orchestration
+   * capability). Default: every provider may.
+   */
+  orchestration?: (client: string) => Promise<{ available: boolean; reason?: string }>;
   maxContinues?: number;
   now?: () => Date;
   log?: (line: string) => void;
@@ -128,6 +133,14 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
 
   function note(entry: SessionAutopilot, action: 'continue' | 'hold' | 'release', reason: AutopilotReason | null, detail: string): void {
     entry.last = { action, reason, label: reason ? (STOP_LABELS[reason] ?? reason) : null, detail, at: now().toISOString() };
+  }
+
+  /** A provider without orchestration runs a scope only sequentially (spec M8 section 5). */
+  async function requireOrchestration(key: string): Promise<void> {
+    const capability = await options.orchestration?.(clientOf(key));
+    if (!capability || capability.available) return;
+    const reason = capability.reason ?? 'сессии этого провайдера не запускают исполнителей';
+    throw new WorkflowActionError('orchestration-unavailable', `Оркестрация недоступна: ${reason}`, 409, 'Выберите «Выполнить самому, последовательно».');
   }
 
   async function root(projectId: string): Promise<string> {
@@ -233,7 +246,8 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
         entry.origin = 'kit';
         note(entry, 'continue', null, `Продолжение: ${decision.taskId}`);
         log(`autopilot: ${context.key} continue ${decision.taskId}`);
-        const howto = status.orchestration && clientOf(context.key) === 'codex' ? ` ${CODEX_EXECUTOR_HOWTO}` : '';
+        const procedure = EXECUTOR_HOWTO[clientOf(context.key)];
+        const howto = status.orchestration && procedure?.repeat ? ` ${procedure.text}` : '';
         return { kind: 'continue', text: `${PREFIX} autopilot. ${decision.text}${howto}` };
       }
       entry.origin = null;
@@ -252,6 +266,7 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
       if (!Number.isSafeInteger(request.generation) || request.generation < 1) {
         throw new WorkflowActionError('bad-request', 'Нужно поколение предложения', 400);
       }
+      if (request.option === 'orchestrated') await requireOrchestration(request.session);
       if (request.option !== 'refine' && options.review?.choiceBlocked) {
         const working = options.channel.list().filter((a) => a.projectId === projectId && a.state === 'working').map((a) => a.key);
         const blocked = await options.review.choiceBlocked(projectId, working);
@@ -282,6 +297,7 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
     async start(projectId, session) {
       const key = await owner(projectId, session);
       const mode = await strategy(projectId);
+      if (mode === 'orchestrated') await requireOrchestration(key);
       // Orchestration runs with the subagents of the session's app: the procedure differs.
       await enable(projectId, key, mode === 'orchestrated' ? `${START_MESSAGES.orchestrated} ${executorHowto(key)}` : START_MESSAGES[mode]);
       return { owner: key };

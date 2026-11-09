@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { decideAutopilot, executorHowto, nextAutopilotState } from '../src/index.ts';
+import { EXECUTOR_HOWTO, decideAutopilot, executorHowto, nextAutopilotState } from '../src/index.ts';
 import type { AutopilotProjectStatus, AutopilotState, AutopilotTurn } from '../src/index.ts';
 
 const state: AutopilotState = { enabled: true, continues: 0, maxContinues: 40, orchestrationKey: null };
@@ -51,4 +51,8 @@ test('orchestration runs with the subagents of the session app: Claude Agent wit
   assert.match(executorHowto('codex:t1'), /git worktree add --detach \.workflow-kit\/local\/worktrees\/<assignment id> <baseCommit>/);
   assert.match(executorHowto('codex:t1'), /spawn_agent/);
   assert.match(executorHowto('codex:t1'), /integration:start/);
+  // One table by provider id: a provider without a line (Kimi: no orchestration) has no procedure.
+  assert.deepEqual(Object.keys(EXECUTOR_HOWTO).sort(), ['claude', 'codex']);
+  assert.deepEqual([EXECUTOR_HOWTO['claude']!.repeat, EXECUTOR_HOWTO['codex']!.repeat], [false, true]);
+  assert.equal(executorHowto('kimi:session_k1'), '');
 });

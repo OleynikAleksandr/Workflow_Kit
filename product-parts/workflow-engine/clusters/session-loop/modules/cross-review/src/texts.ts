@@ -1,13 +1,24 @@
 // Texts of the cross review (spec M4 section 5): the reviewer brief, the forwarded messages and
 // the reminder of a waiting side. Markers end the answers of both sides.
-export type ReviewProvider = 'claude' | 'codex';
+/** Id of a provider of the registry. */
+export type ReviewProvider = string;
+
+/**
+ * Who reviews whose plan: the provider of the main session → the provider of the reviewer
+ * (spec M8 section 5). The only place that pairs providers; a provider without a line here, or
+ * whose reviewer is not available on this machine, gets no review.
+ */
+export const REVIEW_PAIRS: Readonly<Record<ReviewProvider, ReviewProvider>> = Object.freeze({ claude: 'codex', codex: 'claude', kimi: 'codex' });
+
+/** Provider of a session key ('<provider>:<session id>'). */
+export function providerOf(key: string): ReviewProvider {
+  return key.slice(0, Math.max(0, key.indexOf(':')));
+}
 
 export const MAX_ROUNDS = 5;
 /** Longest forwarded text; the full one stays in the sender's chat. */
 export const FORWARD_MAX_CHARS = 12_000;
 export const SOURCE = 'review';
-
-export const PROVIDER_NAMES: Record<ReviewProvider, string> = { claude: 'Claude', codex: 'ChatGPT' };
 
 const APPROVED = /REVIEW:\s*APPROVED/i;
 const AGREED = /REVIEW:\s*AGREED/i;
@@ -31,7 +42,8 @@ export function clip(text: string): string {
 export interface BriefInput {
   projectName: string;
   projectPath: string;
-  mainProvider: ReviewProvider;
+  /** Title of the main session's provider (from the registry). */
+  mainName: string;
   mainTitle: string;
   /** The main agent's description of the proposed plan (spec M4 section 11.2); '' when none. */
   plan: string;
@@ -47,7 +59,7 @@ export const PLAN_REQUEST =
 /** The first message of the reviewer session. */
 export function reviewerBrief(input: BriefInput): string {
   return [
-    `Ты — ревьюер плана в проекте «${input.projectName}» (${input.projectPath}). Основной агент — ${PROVIDER_NAMES[input.mainProvider]}, сессия «${input.mainTitle}»; он написал спецификацию и предложил план.`,
+    `Ты — ревьюер плана в проекте «${input.projectName}» (${input.projectPath}). Основной агент — ${input.mainName}, сессия «${input.mainTitle}»; он написал спецификацию и предложил план.`,
     'Задача: проверить спецификацию и план до начала работы — полнота относительно запроса пользователя, противоречия, риски, порядок и размер задач, критерии приёмки, проверяемость.',
     'Контекст: `scripts/workflow recover --format text`, предложение плана (режим и причина, без задач) — `scripts/workflow scope:proposal --format text`, документы — `scripts/workflow context <путь>`.',
     input.plan
@@ -59,8 +71,8 @@ export function reviewerBrief(input: BriefInput): string {
 }
 
 /** Reviewer remarks for the main agent; the first round carries the rules. */
-export function toMain(reviewer: ReviewProvider, round: number, text: string): string {
-  const head = `Workflow Kit: ревью плана, ревьюер — ${PROVIDER_NAMES[reviewer]}, круг ${round} из ${MAX_ROUNDS}. Замечания ревьюера:`;
+export function toMain(reviewerName: string, round: number, text: string): string {
+  const head = `Workflow Kit: ревью плана, ревьюер — ${reviewerName}, круг ${round} из ${MAX_ROUNDS}. Замечания ревьюера:`;
   const rules =
     round === 1
       ? '\n\nИсправь то, с чем согласен (при изменении плана снова `scope:propose` и новый состав задач в ответе — ревьюер видит план только из твоих сообщений), с остальным аргументированно не соглашайся. Ответь одним сообщением: что исправил, с чем не согласен и почему, ссылки на изменённые документы. Когда ревьюер написал `REVIEW: APPROVED` и ты согласен, закончи ответ строкой `REVIEW: AGREED`.'
@@ -69,8 +81,8 @@ export function toMain(reviewer: ReviewProvider, round: number, text: string): s
 }
 
 /** The main agent's answer for the reviewer. */
-export function toReviewer(main: ReviewProvider, round: number, text: string): string {
-  return `Workflow Kit: ответ основного агента (${PROVIDER_NAMES[main]}) на круг ${round} из ${MAX_ROUNDS}:\n\n${clip(text)}\n\nПроверь исправления (изменённые документы; новый состав задач, если план менялся, — в ответе выше) и ответь так же: замечания и последняя строка \`REVIEW: APPROVED\` или \`REVIEW: CHANGES\`.`;
+export function toReviewer(mainName: string, round: number, text: string): string {
+  return `Workflow Kit: ответ основного агента (${mainName}) на круг ${round} из ${MAX_ROUNDS}:\n\n${clip(text)}\n\nПроверь исправления (изменённые документы; новый состав задач, если план менялся, — в ответе выше) и ответь так же: замечания и последняя строка \`REVIEW: APPROVED\` или \`REVIEW: CHANGES\`.`;
 }
 
 /** Reminder of a session whose plan question is still open (spec M4 12.1). */

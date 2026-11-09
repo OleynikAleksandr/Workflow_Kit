@@ -21,3 +21,12 @@ export const DEFAULT_PROVIDERS: readonly ProviderFactory[] = PROVIDER_ENTRIES.ma
 
 /** Ids of the default providers: the clients `wfk hook` accepts. */
 export const PROVIDER_IDS: readonly string[] = PROVIDER_ENTRIES.map((entry) => entry.id);
+
+/**
+ * Where an agent leaves the id of its session for the commands it runs (`wfk session …`): the
+ * first variable that is set names the calling session.
+ */
+export const SESSION_ENV: readonly { client: string; variable: string }[] = [
+  { client: 'codex', variable: 'CODEX_THREAD_ID' },
+  { client: 'claude', variable: 'CLAUDE_CODE_SESSION_ID' },
+];

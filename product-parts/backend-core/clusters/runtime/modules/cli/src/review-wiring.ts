@@ -6,11 +6,14 @@ import type { ReviewDecider } from '#autopilot';
 import { FINISHED, createCrossReview, registerCrossReviewRoutes } from '#cross-review';
 import type { CrossReview } from '#cross-review';
 import type { WorkflowState } from '#kit-runner';
+import { HttpError } from '#http-server';
 import type { Router, StateRegistry } from '#http-server';
 import { ANSWER_MESSAGES, registerPlanQuestionRoute } from '#plan-review';
 import type { ReviewToggles } from '#plan-review';
 import type { ProjectRegistry } from '#project-registry';
+import { providerCapability } from '#provider-registry';
 import type { ProviderRegistry } from '#provider-registry';
+import { TitleError, namedSession } from '#session-titles';
 import type { SessionTitles } from '#session-titles';
 
 /** The autopilot's view of the review, attached once the review exists. */
@@ -38,8 +41,9 @@ export function toggleLock(review: CrossReview, workflow: WorkflowState, project
 
 /**
  * Hands a message to a session that may not have had a turn yet (spec M4 13.9): it is queued, and a
- * Claude session is woken at once (session.exp types a short prompt, the prompt hook hands over the
- * queue) — the usual wake waits for the channel to see the session idle after a Stop.
+ * session of a provider that can wake it (wakeSession) is woken at once — the prompt hook of the
+ * woken turn hands over the queue; the usual wake waits for the channel to see the session idle
+ * after a Stop.
  */
 export async function deliverToSession(
   deps: {
@@ -53,10 +57,10 @@ export async function deliverToSession(
   projectId: string,
 ): Promise<boolean> {
   deps.channel.enqueue(key, text, 'review', projectId);
-  if (!key.startsWith('claude:')) return false;
-  const provider = deps.providers.get('claude');
+  const colon = key.indexOf(':');
+  const provider = deps.providers.get(key.slice(0, colon));
   if (!provider?.wakeSession) return false;
-  const woken = await provider.wakeSession(await deps.project(projectId), key.slice('claude:'.length)).catch(() => false);
+  const woken = await provider.wakeSession(await deps.project(projectId), key.slice(colon + 1)).catch(() => false);
   deps.log?.(`review: ${woken ? 'woke' : 'could not wake'} ${key} for its brief`);
   return woken;
 }
@@ -65,13 +69,17 @@ export function wireCrossReview(options: {
   router: Router;
   state: StateRegistry;
   channel: AgentChannel;
-  /** Queues and wakes an idle Claude session. */
+  /** Queues and wakes an idle session of a provider that can be woken. */
   messages: AgentChannel;
   projects: ProjectRegistry;
   providers: ProviderRegistry;
   workflow: WorkflowState;
   toggles: ReviewToggles;
   titles: SessionTitles;
+  /** The deepest registered project that contains a folder. */
+  resolveFolderProject: (folder: string) => Promise<{ id: string } | undefined>;
+  /** True for the id of a registered provider. */
+  isClient: (client: string) => boolean;
   log?: (line: string) => void;
 }): CrossReview {
   const { projects, providers } = options;
@@ -109,15 +117,30 @@ export function wireCrossReview(options: {
     asking: (projectId) => options.toggles.asking(projectId),
     decided: (projectId, key) => options.toggles.decided(projectId, key),
     askProposal: async (projectId, key) => void (await options.toggles.ask(projectId, key, 'proposal', '')),
+    providerTitle: (id) => providers.get(id)?.title ?? id,
+    reviewerBlocked: async (id) => {
+      const capability = await providerCapability(providers.get(id), 'reviewer');
+      return capability.available ? null : (capability.reason ?? 'провайдер не может вести ревью');
+    },
+    // A provider that can wake its session reads the brief from the queue; the others get it typed.
+    briefByQueue: (id) => typeof providers.get(id)?.wakeSession === 'function',
     log: options.log,
   });
-  // The plan question (spec M4 12): `wfk session plan` opens it, the answer reaches the agent.
+  // The plan question (spec M4 12): `wfk session plan` opens it, the answer reaches the agent. The
+  // session is the named one (a registered client and its id), else the only running one.
   registerPlanQuestionRoute({
     router: options.router,
     toggles: options.toggles,
-    resolveProject: async (folder) => {
-      const clean = folder.replace(/\/+$/, '');
-      return (await projects.list()).find((p) => clean === p.path || clean.startsWith(`${p.path}/`)) ?? null;
+    resolveProject: options.resolveFolderProject,
+    sessionKey: async (input, projectId) => {
+      const named = namedSession(input, options.isClient);
+      if (named) return `${named.client}:${named.id}`;
+      try {
+        return await options.titles.running(projectId);
+      } catch (error) {
+        if (error instanceof TitleError) throw new HttpError(error.status, error.code, error.message, error.details);
+        throw error;
+      }
     },
   });
   options.toggles.onAnswer((projectId, key, choice, question) => {

@@ -211,9 +211,11 @@ export function buildChoiceCard(proposal: KitProposal | null): ChoiceCard | null
 }
 
 /**
- * The options a session of a provider may choose: all of them for both apps, orchestration runs
- * with the app's own subagents (Claude: Agent tool, Codex: spawn_agent; M3 round 7).
+ * The options a session may choose. `orchestration` is the capability of the session's provider
+ * (its app runs executors as its own subagents: Claude — Agent tool, Codex — spawn_agent; M3
+ * round 7): without it the scope runs only sequentially, the orchestrated option is not offered
+ * and the next option becomes the first one (spec M8 section 5).
  */
-export function choiceOptionsFor(card: ChoiceCard, _provider: 'claude' | 'codex'): ChoiceOptionView[] {
-  return card.options;
+export function choiceOptionsFor(card: ChoiceCard, orchestration: boolean): ChoiceOptionView[] {
+  return orchestration ? card.options : card.options.filter((option) => option.option !== 'orchestrated');
 }

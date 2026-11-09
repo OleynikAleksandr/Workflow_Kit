@@ -29,42 +29,50 @@ ChatGPT) → «Новая сессия».
     приложении не трогается;
   - `setTopic(folder, title, session?)` — тема от агента: проект по папке,
     сессия — `session` (`{ client, id }` из окружения агента), иначе
-    единственная сессия проекта в состоянии `working` канала (ход идёт;
-    из нескольких — та, что есть в `listed(projectId)`, списке провайдеров);
-    отказы `TitleError`: `no-running-turn`, `ambiguous` (несколько ходов —
-    подсказка переименовать в панели), `already-set` (тема задаётся один
+    единственная сессия проекта в состоянии `working` канала (`running`);
+    отказы `TitleError`: `session-ambiguous`, `already-set` (тема задаётся один
     раз), `service-turn`, `project-not-found`, `bad-title` (длиннее 80 знаков или пусто);
+  - `running(projectId) → Promise<key>` — единственная сессия проекта с идущим ходом по
+    данным канала (из нескольких — та, что есть в `listed(projectId)`, списке провайдеров);
+    ни одной или несколько — `TitleError` `session-ambiguous` (409) с
+    `details.candidates` (`{ client, session, state, name }`, до 20: идущие сессии, а без
+    них — все сессии проекта) и просьбой повторить с `--client <id> --session <id>`
+    (`SESSION_FLAGS_HINT`); по времени Kit не угадывает (M8, раздел 5);
   - `name(projectId, key, providerTitle?) → SessionTitle` (`name`,
     `source`: `manual` | `agent` | `scope` | `provider` | `default`,
     `manual`, `topic`, `synced`, `note`, `archivedAt`, `forgottenAt`);
   - `onTurn(key)` — начало хода: повтор отложенного переименования;
-  - `onStop(key)` — хук `Stop`: повтор переименования вне хода (Claude);
+  - `onStop(key)` — хук `Stop`: повтор переименования вне хода (провайдер с `promptTitle`);
   - `setServiceTurn(key, service)` — ход начат служебным приветствием панели
     (`SERVICE_MESSAGE_MARK`) или нет; в служебном ходе `setTopic` отказывает
     `service-turn` (тема — по задаче пользователя, не по приветствию);
   - `appTitle(key, current) → Promise<string | null>` — хук `prompt`
-    сессии Claude: ручное имя или тема агента, если оно отличается от
+    сессии провайдера с `promptTitle` (Claude): ручное имя или тема агента, если оно отличается от
     `current` (`session_title` хука); одно имя отправляется один раз за
     работу службы (переименование в самом приложении не перебивается);
-    совпадение `current` с именем — `synced: true`; для Codex — `null`;
+    совпадение `current` с именем — `synced: true`; для остальных провайдеров — `null`;
   - `section()` — `{ projects: { <id>: { <key>: SessionTitle } } }`.
-- Синхронизация (`rename`, провайдер `renameSession`): Codex — сразу,
-  `thread/name/set` демона, тред не загружается; Claude — `/rename` в
+- Синхронизация (`rename`, провайдер `renameSession`) — для сессии любого провайдера
+  реестра (ключ `<id провайдера>:<id сессии>`): обычно сразу (Codex —
+  `thread/name/set` демона, тред не загружается); у провайдера с опцией
+  `promptTitle(client)` (свойство `Provider.promptTitle`, Claude) — `/rename` в
   терминале сессии панели, только вне хода (состояние канала не
-  `working`), иначе `synced: false`, `CLAUDE_NEXT_NOTE` и повтор в
+  `working`), иначе `synced: false`, `NEXT_TURN_NOTE` и повтор в
   `onStop(key)` (пришёл хук `Stop`: хода и диалогов нет). Отказ —
   `synced: false` с причиной и повтор при следующем ходе или `Stop`; при
   `load()` (запуск службы) неотправленные имена отправляются заново в фоне.
-  Запасной путь Claude (сессии, начатые не панелью) — `appTitle` для хука
+  Запасной путь такого провайдера (сессии, начатые не панелью) — `appTitle` для хука
   `UserPromptSubmit` (`cli` кладёт имя в `hookSpecificOutput.sessionTitle`).
-- `registerTitleRoutes({ router, state, titles })`:
+- `registerTitleRoutes({ router, state, titles, isClient? })` (`isClient` — id провайдера
+  есть в реестре; `namedSession(input, isClient?)` разбирает `client`/`sessionId` запроса:
+  пара известного клиента и id, ничего — поиск идущей сессии, иначе 400 `bad-session`):
   `POST /api/projects/:id/sessions/:sid/title { name }`,
   `POST /api/projects/:id/sessions/:sid/archive { archived }`,
   `POST /api/projects/:id/sessions/:sid/forget`,
   `POST /api/sessions/title { title, cwd, projectDir, client?, sessionId? }` (только loopback;
   команда `wfk session title`), раздел `titles`.
 - `cleanTitle`, `titleFileName`, `DEFAULT_NAME`, `MAX_TITLE_LENGTH`,
-  `SESSIONS_DIR`.
+  `SESSIONS_DIR`, `NEXT_TURN_NOTE`, `SESSION_FLAGS_HINT`.
 
 ## Инварианты
 

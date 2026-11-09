@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
 import type { StopContext, StopEvent, TurnOrigin } from '#agent-channel';
-import { CHOICE_WAITS_QUESTION, CHOICE_WAITS_REVIEW, CHOICE_WAITS_TURN, PLAN_REQUEST, QUESTION_REMINDER, createCrossReview, readReviews } from '../src/index.ts';
+import { CHOICE_WAITS_QUESTION, CHOICE_WAITS_REVIEW, CHOICE_WAITS_TURN, NO_REVIEWER, PLAN_REQUEST, QUESTION_REMINDER, REVIEW_PAIRS, createCrossReview, readReviews } from '../src/index.ts';
 import type { CrossReviewDeps, ReviewProvider } from '../src/index.ts';
 
 const MAIN = 'claude:main-1';
@@ -23,6 +23,9 @@ async function setup(over: Partial<CrossReviewDeps> = {}) {
       return { localId: provider === 'codex' ? 't1' : null, remoteId: provider === 'claude' ? 'session_R' : null };
     },
     resolveReviewer: async () => null,
+    providerTitle: (id) => ({ claude: 'Claude', codex: 'ChatGPT', kimi: 'Kimi' })[id] ?? id,
+    // Like the registry: only the provider that can wake a session gets its brief by the queue.
+    briefByQueue: (provider) => provider === 'claude',
     enqueue: (key, text) => void sent.push({ key, text }),
     wake: (key) => void woken.push(key),
     toggle: () => toggle,
@@ -36,7 +39,7 @@ async function setup(over: Partial<CrossReviewDeps> = {}) {
     await new Promise((resolve) => setTimeout(resolve, 0));
     await review.idle();
   };
-  const ctx = (key: string): StopContext => ({ key, client: key.startsWith('codex:') ? 'codex' : 'claude', sessionId: key.split(':')[1]!, projectId: 'p1', stopHookActive: false, lastAssistantMessage: null, woken: false });
+  const ctx = (key: string): StopContext => ({ key, client: key.split(':')[0]!, sessionId: key.split(':')[1]!, projectId: 'p1', stopHookActive: false, lastAssistantMessage: null, woken: false });
   const stop = (key: string, text: string, origin: TurnOrigin = 'delivery', sources = ['review']): StopEvent => {
     const event: StopEvent = { key, client: ctx(key).client, sessionId: ctx(key).sessionId, projectId: 'p1', lastAssistantMessage: text, origin, sources };
     review.onStop(event);
@@ -165,6 +168,44 @@ test('a Claude reviewer without hooks in time fails the review with a reason (M4
   await t.begin(codexMain);
   await until(() => t.review.get('p1', codexMain)!.status === 'failed');
   assert.match(t.review.get('p1', codexMain)!.reason ?? '', /не отозвалась/);
+  await t.cleanup();
+});
+
+test('the pairs come from one table: a Kimi plan is reviewed by ChatGPT, Kimi reviews nobody (M8 5)', async () => {
+  assert.deepEqual({ ...REVIEW_PAIRS }, { claude: 'codex', codex: 'claude', kimi: 'codex' });
+  assert.ok(!Object.values(REVIEW_PAIRS).includes('kimi'));
+  const t = await setup({ sessionTitle: () => 'План Kimi' });
+  const kimiMain = 'kimi:session_k1';
+  await t.begin(kimiMain);
+  assert.equal(t.created[0]!.provider, 'codex');
+  assert.match(t.created[0]!.firstMessage ?? '', /Основной агент — Kimi/);
+  assert.equal(t.review.get('p1', kimiMain)!.mainProvider, 'kimi');
+  assert.ok(t.review.isReviewer('codex:t1'));
+  t.stop('codex:t1', 'Замечаний нет.\nREVIEW: APPROVED', 'user', []);
+  await t.settle();
+  assert.equal(t.sent.at(-1)!.key, kimiMain);
+  assert.match(t.sent.at(-1)!.text, /ревьюер — ChatGPT/);
+  await t.cleanup();
+});
+
+test('a reviewer that is not available fails the review at once and frees the mode choice (M8 5)', async () => {
+  const t = await setup({ reviewerBlocked: async (provider) => (provider === 'codex' ? 'Codex не установлен' : null) });
+  assert.equal(await t.review.decide(t.ctx(MAIN), true), null, 'the turn is not continued with a plan request');
+  const failed = t.review.get('p1', MAIN)!;
+  assert.equal(failed.status, 'failed');
+  assert.equal(failed.reason, 'ChatGPT не может быть ревьюером: Codex не установлен');
+  assert.equal(t.created.length, 0);
+  assert.equal(await t.review.decide(t.ctx(MAIN), true), null, 'no restart by itself');
+  await t.cleanup();
+});
+
+test('a provider without a line in the pairs table gets no review (M8 5)', async () => {
+  const t = await setup();
+  const key = 'gemini:g1';
+  assert.equal(await t.review.decide(t.ctx(key), true), null);
+  assert.equal(t.review.get('p1', key)!.status, 'failed');
+  assert.equal(t.review.get('p1', key)!.reason, NO_REVIEWER);
+  assert.equal(t.created.length, 0);
   await t.cleanup();
 });
 

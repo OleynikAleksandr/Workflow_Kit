@@ -17,7 +17,10 @@
 
 - `Provider` — `id`, `title`, `hookDialect?` (`HookDialect`: `'claude'` — Claude и Codex,
   `'kimi'` — `prompt` массивом частей и ответ `{ message }`; нет поля — `'claude'`; канал
-  `agent-channel` читает вход и строит ответ хука по нему), `capabilities()`, `status()`, `refresh?()`,
+  `agent-channel` читает вход и строит ответ хука по нему), `promptTitle?` (приложение берёт
+  имя сессии из ответа хука `UserPromptSubmit`, а `renameSession` безопасен только вне хода:
+  имя, заданное в ходе, ждёт хука `Stop` или следующего сообщения; так у Claude),
+  `capabilities()`, `status()`, `refresh?()`,
   `previewTrust(project)`, `grantTrust(project, token, choices?)`,
   `trust(project)`,
   `hooks(project)`, `approveHooks?(project, { command, hash })`,
@@ -59,7 +62,10 @@
   `label`, `installed`, `version`, `path`, `note?`, `checkedAt`,
   `details?`), `Capabilities` (`{ [имя]: { available, reason? } }`; имена
   `trust`, `hooks`, `sessions`, `createSession`, `resumeSession`,
-  `stopSession`, `environment`, `daemon` и свои), `TrustPreview`
+  `stopSession`, `environment`, `daemon` и свои; `orchestration` — сессия провайдера ведёт
+  скоуп с исполнителями, `reviewer` — сессия провайдера бывает ревьюером плана; провайдер,
+  который их не называет, их имеет; `providerCapability(provider, имя)` читает одну
+  возможность по этому правилу, без провайдера — недоступна), `TrustPreview`
   (`provider`, `trusted` — доверие самой папки, `writes: TrustWrite[]`,
   `autorun: AutorunPoint[]`, `choices?: TrustChoice[]`, `inherited?`,
   `token`, `expiresAt`, `notes?`), `TrustChoice` (`id`, `title`,

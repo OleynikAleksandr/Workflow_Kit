@@ -54,6 +54,10 @@ test('invalid session keys and unknown projects are refused', async () => {
   assert.equal(sessionFileName('claude:../x'), null);
   await assert.rejects(toggles.set('p', 'claude:../x', true), { code: 'bad-session' });
   await assert.rejects(toggles.set('nope', 'claude:s1', true), { code: 'project-not-found' });
+  // The key takes the id of any provider of the registry, not a fixed pair.
+  assert.equal(sessionFileName('kimi:session_k1'), 'kimi.session_k1.json');
+  assert.equal(sessionFileName('Kimi:x'), null);
+  assert.equal((await toggles.set('p', 'kimi:session_k1', true)).sessions['kimi:session_k1'], true);
 });
 
 test('a change reaches the cross review; a locked toggle refuses (M4 section 10)', async () => {

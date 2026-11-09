@@ -80,7 +80,8 @@ export interface ReviewToggles {
   section(): ReviewSection;
 }
 
-const KEY = /^(claude|codex):([A-Za-z0-9._-]{1,200})$/;
+// '<provider id>:<session id>'; the provider is any id of the registry.
+const KEY = /^([a-z][a-z0-9-]{0,31}):([A-Za-z0-9._-]{1,200})$/;
 
 /** File name of a session key, or null for an invalid key. */
 export function sessionFileName(key: string): string | null {
@@ -89,7 +90,7 @@ export function sessionFileName(key: string): string | null {
 }
 
 function keyOfFile(name: string): string | null {
-  const match = /^(claude|codex)\.([A-Za-z0-9._-]{1,200})\.json$/.exec(name);
+  const match = /^([a-z][a-z0-9-]{0,31})\.([A-Za-z0-9._-]{1,200})\.json$/.exec(name);
   return match ? `${match[1]}:${match[2]}` : null;
 }
 

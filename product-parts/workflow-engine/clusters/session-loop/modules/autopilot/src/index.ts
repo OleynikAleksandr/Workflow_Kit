@@ -13,4 +13,4 @@ export type { Autopilot, AutopilotOptions, AutopilotReason, ChooseRequest, Revie
 export { WorkflowActionError, createAutopilot } from './autopilot.ts';
 export type { AutopilotRoutesOptions } from './routes.ts';
 export { registerAutopilotRoutes } from './routes.ts';
-export { CHOICE_NOTES, CHOSEN_WAIT, CLAUDE_EXECUTOR_HOWTO, CODEX_EXECUTOR_HOWTO, PREFIX, REFINE_MESSAGE, RESUME_MESSAGE, START_MESSAGES, STOP_LABELS, deliveryMessage, executorHowto, fixesMessage } from './texts.ts';
+export { CHOICE_NOTES, CHOSEN_WAIT, EXECUTOR_HOWTO, PREFIX, REFINE_MESSAGE, RESUME_MESSAGE, START_MESSAGES, STOP_LABELS, deliveryMessage, executorHowto, fixesMessage } from './texts.ts';

@@ -22,7 +22,7 @@ export const CHOSEN_WAIT: Readonly<Record<'sequential' | 'orchestrated', string>
  * How a Codex orchestrator runs an executor: Kit prints the brief but makes no worktree (Claude's
  * Agent tool makes one with isolation), so the orchestrator makes it (M3 orchestration, 2-3).
  */
-export const CODEX_EXECUTOR_HOWTO =
+const CODEX_EXECUTOR_HOWTO =
   'For each assignment: `git worktree add --detach .workflow-kit/local/worktrees/<assignment id> <baseCommit>` ' +
   '(baseCommit from the assignment:create output); start a subagent with spawn_agent, give it the brief and the line ' +
   '"Your worktree is <absolute path>; run every command with that workdir"; independent assignments may run in parallel ' +
@@ -30,14 +30,24 @@ export const CODEX_EXECUTOR_HOWTO =
   'Kit removes the worktree after the integration.';
 
 /** How a Claude orchestrator runs an executor. */
-export const CLAUDE_EXECUTOR_HOWTO =
+const CLAUDE_EXECUTOR_HOWTO =
   'For each assignment start a subagent with the Agent tool and isolation: "worktree", give it the brief from assignment:create; ' +
   'independent assignments may run in parallel (up to maxWorkers); integrate the SHA it replies with ' +
   '`scripts/workflow integration:start --id <assignment id> --source <sha>`.';
 
-/** The executor procedure of the app of a session key (claude:… or codex:…). */
+/**
+ * The executor procedure of every provider whose sessions may orchestrate, by provider id — the
+ * only place that knows them. `repeat`: the autopilot adds the procedure to every continue of an
+ * orchestrated scope (the app does not keep it in mind between turns).
+ */
+export const EXECUTOR_HOWTO: Readonly<Record<string, { text: string; repeat: boolean }>> = Object.freeze({
+  claude: { text: CLAUDE_EXECUTOR_HOWTO, repeat: false },
+  codex: { text: CODEX_EXECUTOR_HOWTO, repeat: true },
+});
+
+/** The executor procedure of the app of a session key ('<provider>:<id>'); '' when it has none. */
 export function executorHowto(key: string): string {
-  return key.startsWith('codex:') ? CODEX_EXECUTOR_HOWTO : CLAUDE_EXECUTOR_HOWTO;
+  return EXECUTOR_HOWTO[key.slice(0, Math.max(0, key.indexOf(':')))]?.text ?? '';
 }
 
 /** "Начать выполнение плана": the Harness mode texts. */

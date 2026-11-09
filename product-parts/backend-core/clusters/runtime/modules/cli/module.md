@@ -56,7 +56,12 @@ stripping).
   `{ id, create }`: единственный список бэкенда, где они названы (`createProvider` из
   `#provider-claude` и `#provider-codex`); `DEFAULT_PROVIDERS` — их фабрики,
   `PROVIDER_IDS` — их id (по ним `wfk hook` проверяет `--client`; тест сверяет id с
-  реестром).
+  реестром); `SESSION_ENV` — таблица `{ client, variable }`: в какой переменной окружения
+  агент оставляет id своей сессии (`CODEX_THREAD_ID`, `CLAUDE_CODE_SESSION_ID`).
+- `wireSessions(options)` (`src/session-wiring.ts`) — проводка сессий для `createApp`: канал,
+  автопилот, переключатели ревью, имена и перекрёстное ревью. Имён провайдеров в ней нет:
+  различия читаются из реестра — `hookDialect`, `wakeSession`, `promptTitle`, возможности
+  `orchestration` и `reviewer` (`providerCapability`).
 - `detectOs(input)`, `panelUrls(port, interfaces)`, `readPackageVersion()`.
 - Константы `COMMANDS`, `EXIT_USAGE` (64), `EXIT_NOT_IMPLEMENTED` (2).
 - Типы `CliDeps`, `App`, `AppOptions`, `SystemSection`, `OsInfo`,
@@ -71,10 +76,10 @@ stripping).
 | `doctor [--installed]` | то же, `--installed` передаётся аргументом; другие аргументы — справка, код 64 |
 | `link [--force]` | пишет запускатель `~/.local/bin/wfk` (0755, `#!/bin/sh`, строка-метка `# Workflow Kit launcher`), который запускает `bin/wfk.mjs` этого клона абсолютным `node`; чужой файл заменяется только с `--force`; предупреждает, если каталога нет в PATH; на Windows пишет те же три запускателя, что `wfk install` (`wfk.cmd`, `wfk` для Git Bash, `wfk.mjs` для хуков), в `%LOCALAPPDATA%\Workflow Kit` (M5, раздел 6) |
 | `hook session-start --client <id провайдера>` | клиент не из `PROVIDER_IDS` (`CliDeps.hookClients` в тестах) — ничего не пишет; читает JSON хука из stdin (до 1 с, терминал — пусто) и передаёт `recordSessionStart` из `kit-structure`; весь бюджет 1,5 с; stdout пуст, код всегда 0; неизвестные подкоманды `hook` игнорируются |
-| `session title "<тема>"` | отправляет `{ title, cwd, projectDir, client, sessionId }` на `POST /api/sessions/title` (id сессии — `CODEX_THREAD_ID` или `CLAUDE_CODE_SESSION_ID`, `callingSession`); успех — «Имя сессии в Workflow Kit: …», код 0; отказ службы — причина в stderr, код 1; без темы — справка, код 64 |
-| `session plan "<что делаем>"` | вопрос о спецификации и плане (M4, раздел 12): `{ summary, cwd, projectDir, client, sessionId }` на `POST /api/sessions/plan`; успех — `PLAN_ASKED` («вопрос показан… закончи ход»), код 0; отказ — stderr, код 1; без текста — справка, код 64 |
+| `session title "<тема>" [--client <id> --session <id>]` | отправляет `{ title, cwd, projectDir, client, sessionId }` на `POST /api/sessions/title`. Сессия: флаги `--client` и `--session` (`sessionFlags`; оба сразу, иначе справка и код 64), иначе переменная окружения из `SESSION_ENV` (`callingSession`), иначе служба берёт единственную сессию проекта с идущим ходом (M8, раздел 5). Успех — «Имя сессии в Workflow Kit: …», код 0; отказ службы — причина в stderr, код 1; отказ `session-ambiguous` (409) дополнительно печатает кандидатов строками `--client <id> --session <id>  (состояние, «имя»)` (`candidateLines`); без темы — справка, код 64 |
+| `session plan "<что делаем>" [--client <id> --session <id>]` | вопрос о спецификации и плане (M4, раздел 12): `{ summary, cwd, projectDir, client, sessionId }` на `POST /api/sessions/plan`; сессия выбирается так же, как у `session title`, клиент — любой провайдер реестра (неизвестный — 400 `bad-session`); успех — `PLAN_ASKED` («вопрос показан… закончи ход»), код 0; отказ — stderr (и кандидаты при `session-ambiguous`), код 1; без текста — справка, код 64 |
 | `project publish` | публикация проекта текущей папки (publication-order 3.3, `src/project-command.ts`): проект — самый глубокий активный из `GET /api/projects`, содержащий папку (`projectOfFolder`); `POST /api/projects/:id/publish` (тайм-аут 120 с); успех — «Опубликовано: коммитов N, <sha>», код 0; отказ службы (scope открыт, грязное дерево, нет upstream, удалённая ветка впереди) или ошибка git — stderr с выводом git, код 1; другие аргументы — справка, код 64 |
-| `hook stop\|prompt --client <id провайдера>` | клиент не из `PROVIDER_IDS` — отказ: ничего не отправляет и не печатает; служба принимает хук только зарегистрированного провайдера (иначе 400 `bad-hook-input`) и читает вход и строит ответ по его `hookDialect` (нет поля — `claude`; `kimi` — `prompt` массивом частей, ответ `{ message }`); читает JSON хука из stdin и отправляет `{ client, input, projectDir }` (`projectDir` — `$CLAUDE_PROJECT_DIR`) на `POST /api/hooks/stop\|prompt` службы; печатает в stdout поле `answer` ответа (JSON для агента) или ничего; ответ `prompt` сессии Claude несёт `hookSpecificOutput.sessionTitle` из `titles.appTitle` — имя Workflow Kit уходит в Claude; служба недоступна, вход не JSON — без вывода; код всегда 0; `WFK_HOOK_DEBUG` — причина в stderr |
+| `hook stop\|prompt --client <id провайдера>` | клиент не из `PROVIDER_IDS` — отказ: ничего не отправляет и не печатает; служба принимает хук только зарегистрированного провайдера (иначе 400 `bad-hook-input`) и читает вход и строит ответ по его `hookDialect` (нет поля — `claude`; `kimi` — `prompt` массивом частей, ответ `{ message }`); читает JSON хука из stdin и отправляет `{ client, input, projectDir }` (`projectDir` — `$CLAUDE_PROJECT_DIR`) на `POST /api/hooks/stop\|prompt` службы; печатает в stdout поле `answer` ответа (JSON для агента) или ничего; ответ `prompt` сессии провайдера с `promptTitle` (Claude) несёт `hookSpecificOutput.sessionTitle` из `titles.appTitle` — имя Workflow Kit уходит в приложение; служба недоступна, вход не JSON — без вывода; код всегда 0; `WFK_HOOK_DEBUG` — причина в stderr |
 | `--help`, `--version` | справка и версия из `package.json` |
 
 Неизвестная команда — сообщение и справка в stderr, код 64.
@@ -129,11 +134,13 @@ stripping).
   — тот же поиск, что у канала, с `realpath` ближайшей существующей
   папки; сессии — из канала; цель плана — из раздела `workflow`;
   переименование — `renameSession` провайдера по префиксу ключа сессии),
-  `load()` при `start()`, `onTurn`, `setServiceTurn` (приветствие панели — `SERVICE_MESSAGE_MARK` из `#project-setup`) и `appTitle` (Claude) из хука `prompt`, `onStop` из хука `stop`,
-  `registerTitleRoutes` — маршруты имён и раздел `titles`.
+  `load()` при `start()`, `onTurn`, `setServiceTurn` (приветствие панели — `SERVICE_MESSAGE_MARK` из `#project-setup`) и `appTitle` из хука `prompt` (опция `promptTitle` — свойство `promptTitle` провайдера), `onStop` из хука `stop`,
+  `registerTitleRoutes` — маршруты имён и раздел `titles`; `isClient` — провайдер есть в реестре.
 - `autopilot` (веха 2, T003): `createAutopilot` получает канал-обёртку,
-  чей `enqueue` будит простаивающую (`waiting`) сессию Claude через
-  `wakeSession` провайдера; решатель `Stop` канала
+  чей `enqueue` будит простаивающую (`waiting`) сессию через `wakeSession` её
+  провайдера (есть метод — будит; сейчас он только у Claude); опция `orchestration` —
+  возможность `orchestration` провайдера сессии (недоступна — скоуп только
+  последовательно); решатель `Stop` канала
   (`channel.setDecider`); маршруты хуков получают канал-обёртку, чей
   `prompt` сообщает автопилоту, кто начал ход (`onPrompt`);
   сообщения панели (`POST …/sessions/:sid/message`) идут через ту же
@@ -154,14 +161,18 @@ stripping).
 - перекрёстное ревью плана (M4) собрано в `src/review-wiring.ts`:
   `lateReviewDecider()` — решатель ревью для автопилота (подключается после
   создания; передаёт и `choiceBlocked`), `wireCrossReview({ router, state, channel, messages, projects,
-  providers, workflow, toggles, titles, log })` — `createCrossReview` (с вопросом о плане:
-  `question`, `asking`, `decided`, `askProposal` из `toggles`; маршрут
-  `registerPlanQuestionRoute` с проектом по папке; ответ — `ANSWER_MESSAGES` агенту через
+  providers, workflow, toggles, titles, resolveFolderProject, isClient, log })` — `createCrossReview` (с вопросом о плане:
+  `question`, `asking`, `decided`, `askProposal` из `toggles`; `providerTitle` — название
+  провайдера из реестра, `reviewerBlocked` — причина недоступной возможности `reviewer`,
+  `briefByQueue` — у провайдера есть `wakeSession`; маршрут
+  `registerPlanQuestionRoute` с проектом по папке (`resolveFolderProject`, как у канала) и
+  сессией запроса (`sessionKey`: названная — `namedSession`, иначе `titles.running`; его
+  `TitleError` уходит как `HttpError` с кандидатами); ответ — `ANSWER_MESSAGES` агенту через
   будящий канал и `wake`)
   (ревьюер — `createSession` провайдера с первым сообщением и `detached`, поиск по
   `listSessions`: `remoteId` или `localId`; сообщения — через будящий канал с
-  источником `review`; задание ревьюеру Claude — `deliverToSession` (M4 13.9): очередь канала и
-  сразу `wakeSession` провайдера Claude, не дожидаясь первого `Stop` новой сессии; открытое предложение — `workflow.proposal` без
+  источником `review`; задание ревьюеру — `deliverToSession` (M4 13.9): очередь канала и
+  сразу `wakeSession` провайдера сессии (по префиксу ключа; нет метода — только очередь), не дожидаясь первого `Stop` новой сессии; открытое предложение — `workflow.proposal` без
   `execution`), слушатель `channel.onStop`, маршруты ревью; `toggleLock` —
   блокировка переключателя (ревью идёт или открытый план уже прошёл ревью);
   переключатель (`locked`, `onChange`) вызывает `crossReview.toggled`;

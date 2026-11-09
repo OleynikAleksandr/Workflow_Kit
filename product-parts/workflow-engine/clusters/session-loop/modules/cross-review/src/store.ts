@@ -25,7 +25,7 @@ export interface Review {
   reviewerProvider: ReviewProvider;
   /** Channel key of the reviewer once known. */
   reviewerKey: string | null;
-  /** What createSession returned: Claude knows its hook id only later. */
+  /** What createSession returned: some providers know the hook id of a session only later. */
   reviewerRef: { localId: string | null; remoteId: string | null } | null;
   reviewerTitle: string;
   status: ReviewStatus;
@@ -42,7 +42,7 @@ export interface Review {
 
 export const FINISHED: ReadonlySet<ReviewStatus> = new Set(['agreed', 'disagreed', 'failed', 'cancelled']);
 
-const KEY = /^(claude|codex):([A-Za-z0-9._-]{1,200})$/;
+const KEY = /^([a-z][a-z0-9-]{0,31}):([A-Za-z0-9._-]{1,200})$/;
 
 export function reviewFile(projectPath: string, mainKey: string): string | null {
   const match = KEY.exec(mainKey);

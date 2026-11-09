@@ -36,8 +36,9 @@
   `scopeId`, `objective`, `reason`, `recommended`, `hasParallelWork`,
   `refining`, `options` — рекомендованный первым, `refine` последним;
   у варианта `title`, `description` (тексты макета), `recommended`.
-- `choiceOptionsFor(card, 'claude' | 'codex')` — варианты для сессии: все,
-  оркестрация — встроенными подагентами приложения (веха 3, раунд 7).
+- `choiceOptionsFor(card, orchestration)` — варианты для сессии: `orchestration` —
+  возможность её провайдера (оркестрация идёт встроенными подагентами приложения, веха 3,
+  раунд 7); без неё вариант `orchestrated` не показывается (M8, раздел 5).
 - Константы подписей `PHASE_LABELS`, `TASK_STATE_LABELS`, `MODE_LABELS`.
 
 ## Инварианты

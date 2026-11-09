@@ -106,6 +106,8 @@ export function createClaudeProvider(context: ProviderContext, options: ClaudePr
   const provider: Provider = {
     id: PROVIDER_ID,
     title: 'Claude',
+    // Claude Code names a session from the prompt hook answer; /rename is typed only outside a turn.
+    promptTitle: true,
     capabilities: async () => claudeCapabilities(context.platform, await rt.programs(), rt.version()),
     status: () => status(rt),
     async refresh() {

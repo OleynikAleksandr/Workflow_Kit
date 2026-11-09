@@ -3,8 +3,8 @@ import { mkdir, mkdtemp, readFile, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { after, before, test } from 'node:test';
-import { DEFAULT_NAME, SESSIONS_DIR, TitleError, createSessionTitles } from '../src/index.ts';
-import { CLAUDE_NEXT_NOTE } from '../src/titles.ts';
+import { HttpError } from '#http-server';
+import { DEFAULT_NAME, NEXT_TURN_NOTE, SESSIONS_DIR, TitleError, createSessionTitles, namedSession } from '../src/index.ts';
 import type { ActiveSession, SessionTitlesOptions } from '../src/index.ts';
 
 let tmp = '';
@@ -28,6 +28,8 @@ const options = (): SessionTitlesOptions => ({
   resolveProject: async (f) => (f.startsWith(folder) ? { id: 'p' } : undefined),
   sessions: () => active,
   scope: () => scope,
+  // Like the registry: only Claude takes a name from the prompt hook answer.
+  promptTitle: (client) => client === 'claude',
   rename: async (_id, key, name) => {
     renames.push([key, name]);
     return loaded ? { synced: true } : { synced: false, note: 'later' };
@@ -59,16 +61,65 @@ test('the topic is set once, only for the single session with a running turn', a
   await titles.load();
   const code = (expected: string) => (error: unknown) => error instanceof TitleError && error.code === expected;
   active = [];
-  await assert.rejects(titles.setTopic(folder, 'Тема'), code('no-running-turn'));
+  await assert.rejects(titles.setTopic(folder, 'Тема'), code('session-ambiguous'));
   active = [
     { key: 'claude:x', projectId: 'p', state: 'working' },
     { key: 'codex:y', projectId: 'p', state: 'working' },
   ];
-  await assert.rejects(titles.setTopic(folder, 'Тема'), code('ambiguous'));
+  await assert.rejects(titles.setTopic(folder, 'Тема'), code('session-ambiguous'));
   active = [{ key: 'claude:a', projectId: 'p', state: 'working' }];
   await assert.rejects(titles.setTopic(folder, 'Ещё раз'), code('already-set'));
   await assert.rejects(titles.setTopic('/elsewhere', 'Тема'), code('project-not-found'));
   await assert.rejects(titles.setManual('p', 'claude:a', 'x'.repeat(81)), code('bad-title'));
+});
+
+test('none or several running turns: session-ambiguous with the candidates, never a guess (M8 5)', async () => {
+  const titles = createSessionTitles({ ...options(), rename: undefined });
+  const refusal = async (): Promise<TitleError> => {
+    try {
+      await titles.running('p');
+    } catch (error) {
+      if (error instanceof TitleError) return error;
+    }
+    throw new Error('expected a TitleError');
+  };
+  active = [
+    { key: 'kimi:session_k1', projectId: 'p', state: 'waiting' },
+    { key: 'codex:idle', projectId: 'p', state: 'waiting' },
+    { key: 'claude:other', projectId: 'q', state: 'working' },
+  ];
+  const none = await refusal();
+  assert.deepEqual([none.code, none.status], ['session-ambiguous', 409]);
+  assert.match(none.message, /Не найдена сессия проекта с идущим ходом: повторите команду с --client <id> --session <id>/);
+  assert.deepEqual(none.details, { candidates: [
+    { client: 'kimi', session: 'session_k1', state: 'waiting', name: DEFAULT_NAME },
+    { client: 'codex', session: 'idle', state: 'waiting', name: DEFAULT_NAME },
+  ] }, 'no turn runs: every session of the project is a candidate');
+  active = [
+    { key: 'kimi:session_k1', projectId: 'p', state: 'working' },
+    { key: 'codex:busy', projectId: 'p', state: 'working' },
+    { key: 'codex:idle', projectId: 'p', state: 'waiting' },
+  ];
+  const several = await refusal();
+  assert.match(several.message, /идут ходы нескольких сессий \(2\)/);
+  assert.deepEqual((several.details!['candidates'] as Array<{ session: string }>).map((c) => c.session), ['session_k1', 'busy'], 'only the running ones');
+  active = [{ key: 'kimi:session_k1', projectId: 'p', state: 'working' }, { key: 'codex:idle', projectId: 'p', state: 'waiting' }];
+  assert.equal(await titles.running('p'), 'kimi:session_k1');
+  assert.equal((await titles.setTopic(folder, 'Тема Kimi')).key, 'kimi:session_k1', 'a session of any registered provider gets its topic');
+  active = [];
+});
+
+test('a request names its session by a registered client and an id, or names none', () => {
+  const isClient = (client: string): boolean => ['claude', 'codex', 'kimi'].includes(client);
+  const bad = (error: unknown): boolean => error instanceof HttpError && error.status === 400 && error.code === 'bad-session';
+  assert.equal(namedSession({}, isClient), null);
+  assert.equal(namedSession({ client: '', sessionId: '' }, isClient), null);
+  assert.deepEqual(namedSession({ client: 'kimi', sessionId: 'session_k1' }, isClient), { client: 'kimi', id: 'session_k1' });
+  assert.throws(() => namedSession({ client: 'gemini', sessionId: 'g1' }, isClient), bad);
+  assert.throws(() => namedSession({ client: 'kimi' }, isClient), bad, 'a client without an id is not a guess');
+  assert.throws(() => namedSession({ sessionId: 'x' }, isClient), bad);
+  assert.deepEqual(namedSession({ client: 'gemini', sessionId: 'g1' }), { client: 'gemini', id: 'g1' }, 'without a registry any id-shaped client');
+  assert.throws(() => namedSession({ client: 'Bad Client', sessionId: 'g1' }), bad);
 });
 
 test('the calling session gets the topic by its id; helper threads do not make the choice ambiguous', async () => {
@@ -175,7 +226,7 @@ test('a Claude name goes to the app through the prompt hook once per name; a mat
   await titles.load();
   assert.equal(await titles.appTitle('claude:hooked', 'Старое'), null, 'no Kit name, nothing to send');
   await titles.setManual('p', 'claude:hooked', 'Склад — остатки');
-  assert.deepEqual([titles.name('p', 'claude:hooked').synced, titles.name('p', 'claude:hooked').note], [false, CLAUDE_NEXT_NOTE]);
+  assert.deepEqual([titles.name('p', 'claude:hooked').synced, titles.name('p', 'claude:hooked').note], [false, NEXT_TURN_NOTE]);
   assert.equal(await titles.appTitle('claude:hooked', 'Старое'), 'Склад — остатки');
   assert.equal(await titles.appTitle('claude:hooked', 'Старое'), null, 'sent once: a rename in the app is not overridden');
   assert.equal(await titles.appTitle('claude:hooked', 'Склад — остатки'), null);
@@ -193,7 +244,7 @@ test('a Claude name is typed into the session only outside a turn; during a turn
   active = [{ key: 'claude:busy', projectId: 'p', state: 'working' }];
   await titles.setTopic(folder, 'Инвентаризация', { client: 'claude', id: 'busy' });
   assert.deepEqual(renames, [], 'no keys during a turn');
-  assert.deepEqual([titles.name('p', 'claude:busy').synced, titles.name('p', 'claude:busy').note], [false, CLAUDE_NEXT_NOTE]);
+  assert.deepEqual([titles.name('p', 'claude:busy').synced, titles.name('p', 'claude:busy').note], [false, NEXT_TURN_NOTE]);
   titles.onTurn('claude:busy');
   await new Promise((r) => setTimeout(r, 20));
   assert.deepEqual(renames, [], 'still in a turn');

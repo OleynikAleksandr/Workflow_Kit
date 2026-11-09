@@ -44,9 +44,18 @@ export interface Capability {
 
 /**
  * Capabilities by name. Common names: trust, hooks, sessions, createSession, resumeSession,
- * stopSession, environment, daemon; a provider may add its own.
+ * stopSession, environment, daemon; a provider may add its own. Two names describe the provider's
+ * part in a plan, and a provider that does not report them has them: orchestration (its session
+ * may run a scope with executors) and reviewer (its session may review another provider's plan).
  */
 export type Capabilities = Record<string, Capability>;
+
+/** One capability of a provider: a name it does not report is available; no provider — unavailable. */
+export async function providerCapability(provider: Pick<Provider, 'capabilities'> | undefined, name: string): Promise<Capability> {
+  if (!provider) return { available: false, reason: 'провайдер не подключён' };
+  const found = (await provider.capabilities().catch(() => ({}) as Capabilities))[name];
+  return found ?? { available: true };
+}
 
 /** Overall state of a provider for the panel. */
 export type ProviderState = 'ready' | 'not-implemented' | 'not-installed' | 'unavailable' | 'error' | 'unknown';
@@ -228,6 +237,12 @@ export interface Provider {
   readonly title: string;
   /** Dialect of the provider's hooks (wfk hook --client <id>); absent means 'claude'. */
   readonly hookDialect?: HookDialect;
+  /**
+   * The app takes a session name from the answer of the UserPromptSubmit hook
+   * (hookSpecificOutput.sessionTitle), and renameSession is safe only outside a turn: a name set
+   * during a turn waits for the Stop hook or the next prompt.
+   */
+  readonly promptTitle?: boolean;
   capabilities(): Promise<Capabilities>;
   status(): Promise<ProviderStatus>;
   /** Re-reads versions and daemons with external programs (POST /api/refresh, start of the service). */

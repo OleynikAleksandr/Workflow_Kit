@@ -42,11 +42,13 @@
     `visible` — пока путь не выбран; `sessions` — ключ сессии → значение;
     `questions` — ключ сессии → открытый вопрос.
 - `ANSWER_MESSAGES` — сообщения `Workflow Kit:` агенту на каждый ответ.
-- `registerPlanQuestionRoute({ router, toggles, resolveProject })` —
-  `POST /api/sessions/plan { summary, cwd, projectDir, client, sessionId }`
-  (только loopback; без id сессии — 400 `bad-session`, папка не проекта —
-  404 `project-not-found`).
-- `sessionFileName(key)` — имя файла по ключу `claude|codex:<id>`
+- `registerPlanQuestionRoute({ router, toggles, resolveProject, sessionKey })` —
+  `POST /api/sessions/plan { summary, cwd, projectDir, client?, sessionId? }`
+  (только loopback; папка не проекта — 404 `project-not-found`). Сессию запроса даёт
+  `sessionKey(input, projectId)` от `cli`: названная пара клиента реестра и id, иначе
+  единственная сессия проекта с идущим ходом; отказы — 400 `bad-session` и 409
+  `session-ambiguous` с кандидатами (M8, раздел 5). Имён провайдеров модуль не знает.
+- `sessionFileName(key)` — имя файла по ключу `<id провайдера>:<id сессии>`
   (`[A-Za-z0-9._-]`), иначе `null`; `SESSIONS_DIR`.
 - `registerReviewRoutes({ router, state, toggles })` —
   `POST /api/projects/:id/sessions/:sid/review { on }`,

@@ -34,6 +34,8 @@ export interface CodexDeps {
   releaseWaitMs?: number;
   /** Interval of the thread/loaded/list polls while waiting (default 2 s). */
   releasePollMs?: number;
+  /** Hand-over of remote control to the ChatGPT app: pause and sleep (tests make them instant). */
+  handover?: { waitMs?: number; sleep?: (ms: number) => Promise<void> };
 }
 
 /** What the last daemon probe found. */
@@ -56,8 +58,21 @@ export interface DaemonState {
    * ChatGPT app) holds remote control (409 "Remote app server already online" in Codex's log).
    */
   remoteOwner: 'app' | null;
+  /**
+   * The daemon started less than SETTLE_MS ago and reports `errored` without a login error: the
+   * ChatGPT app probably holds remote control and Codex has not logged the 409 yet (spec M7).
+   */
+  settling: boolean;
   error: string | null;
   checkedAt: string;
+}
+
+/** How long after its start an `errored` daemon without a login error is still settling. */
+export const SETTLE_MS = 60_000;
+
+/** Pure rule of DaemonState.settling. */
+export function isSettling(state: Pick<DaemonState, 'remoteControl' | 'tokenError' | 'remoteOwner'>, startMs: number | null, nowMs: number): boolean {
+  return state.remoteControl === 'errored' && state.tokenError === null && state.remoteOwner !== 'app' && startMs !== null && nowMs - startMs < SETTLE_MS;
 }
 
 /** Version and path of the CLI, read by refresh(). */
@@ -218,12 +233,12 @@ export function createCodexRuntime(context: ProviderContext, deps: CodexDeps = {
       const now = Date.now();
       if (!pid) {
         probe = null;
-        return { running: false, pid: null, remoteControl: null, serverName: null, userAgent: null, tokenError: null, staleLogin: false, remoteOwner: null, error: null, checkedAt: context.now().toISOString() };
+        return { running: false, pid: null, remoteControl: null, serverName: null, userAgent: null, tokenError: null, staleLogin: false, remoteOwner: null, settling: false, error: null, checkedAt: context.now().toISOString() };
       }
       if (!force && probe && probe.state.pid === pid && now - probe.at < ttl) return probe.state;
       const known = lastKnown && lastKnown.pid === pid ? lastKnown : null;
       inflight ??= (async (): Promise<DaemonState> => {
-        const state: DaemonState = { running: true, pid, remoteControl: null, serverName: null, userAgent: null, tokenError: null, staleLogin: false, remoteOwner: null, error: null, checkedAt: context.now().toISOString() };
+        const state: DaemonState = { running: true, pid, remoteControl: null, serverName: null, userAgent: null, tokenError: null, staleLogin: false, remoteOwner: null, settling: false, error: null, checkedAt: context.now().toISOString() };
         try {
           await runtime.withDaemon(async (session, init) => {
             state.userAgent = typeof init.userAgent === 'string' ? init.userAgent : null;
@@ -249,6 +264,7 @@ export function createCodexRuntime(context: ProviderContext, deps: CodexDeps = {
           const authAt = await stat(paths.auth).then((info) => info.mtimeMs).catch(() => null);
           state.staleLogin = authAt !== null && authAt > pidFile.startMs;
         }
+        state.settling = isSettling(state, pidFile?.startMs ?? null, context.now().getTime());
         probe = { state, at: Date.now() };
         return state;
       })().finally(() => {

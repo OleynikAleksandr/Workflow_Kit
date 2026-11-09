@@ -291,6 +291,15 @@ test('autostart collects the lines of the providers that started something; a fa
   assert.deepEqual(Object.keys(result.errors), ['broken']);
 });
 
+test('maintain collects the upkeep lines per provider; a failure stays with its provider', async () => {
+  const own = createProviderRegistry();
+  for (const id of ['keeper', 'broken', 'quiet']) own.register(createFakeProvider(id));
+  own.register(createFakeProvider('plain', { withOptional: false }));
+  const result = await own.maintain();
+  assert.deepEqual(result.done, ['keeper: remote control handed over']);
+  assert.deepEqual(Object.keys(result.errors), ['broken']);
+});
+
 test('deleteSessions collects the deleted sessions per provider; a failure stays with its provider', async () => {
   const own = createProviderRegistry();
   own.register(createFakeProvider('keeper'));

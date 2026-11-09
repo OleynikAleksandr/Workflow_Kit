@@ -169,7 +169,9 @@ stripping).
   (раунд R10); перед удалением папки проекта (`addBeforeDeleteHook`) —
   `providers.deleteSessions` (треды ChatGPT, M3-autostart R5), неудача — в журнал;
   `providers.retryDeletes()` при запуске и раз в `DELETE_RETRY_MS` (60 с) — треды,
-  которые приложение не отдало сразу (R6);
+  которые приложение не отдало сразу (R6); `providers.maintain()` раз в `MAINTAIN_MS`
+  (60 с, опция `maintainMs`, `0` — выключено; одновременно идёт одно) — обслуживание
+  провайдеров, строки — в журнал (Codex: удалённое управление — приложению ChatGPT, M7);
   при запуске `providers.autostart()` (демон Codex) — до
   `AUTOSTART_ATTEMPTS` (3) попыток с паузой `AUTOSTART_PAUSE_MS` (30 с), каждая
   неудача — в журнал; при остановке службы демон и процессы Claude не трогаются

@@ -47,6 +47,8 @@
   приложением ждут `retryDeletes?()` — повтор, ответ — удалённые сейчас id (R6).
   `autostart?()` — при старте службы поднять нужное на весь Mac (Codex — демон);
   ответ — строка для журнала или `null` (скоуп M3-autostart).
+  `maintain?()` — обслуживание раз в минуту (Codex — передача удалённого управления
+  запущенному приложению ChatGPT, M7 замечание 2); ответ — строка для журнала или `null`.
   Методы чтения (`status`, `capabilities`, `trust`, `hooks`,
   `listSessions`, `actions`) обязаны быть дешёвыми и только читать: их
   вызывает каждый опрос `/api/state`.
@@ -152,7 +154,8 @@ project)`, `section(projects)`, `removeBlockers(project)` (живые сесси
 `deleted` — `'<провайдер>:<id>'`, ошибка — в `errors[id]`; `retryDeletes()` — то же
 для `retryDeletes?`.
 `autostart()` → `{ started, errors }` — `autostart?` всех провайдеров; `started` —
-`'<провайдер>: <строка>'`, ошибка — в `errors[id]`.
+`'<провайдер>: <строка>'`, ошибка — в `errors[id]`. `maintain()` → `{ done, errors }` —
+так же для `maintain?`.
 Каждое чтение ограничено `STATE_READ_TIMEOUT_MS` (3 с): упавшее или
 зависшее чтение попадает в `errors` (`timeout` и т. п.), остальные данные
 отдаются. `errorInfo(error)` — `{ code, message, hint? }`.

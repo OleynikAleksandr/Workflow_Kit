@@ -273,6 +273,11 @@ export interface Provider {
    */
   autostart?(): Promise<string | null>;
   /**
+   * Upkeep the service runs every minute (Codex: hands remote control to the running ChatGPT app,
+   * spec M7 remark 2). Resolves to a line for the log, or null when nothing had to be done.
+   */
+  maintain?(): Promise<string | null>;
+  /**
    * Deletion of the project from disk: deletes its sessions in the provider app (Codex:
    * thread/delete). Resolves to the ids deleted; the ones the app refuses wait for retryDeletes.
    */

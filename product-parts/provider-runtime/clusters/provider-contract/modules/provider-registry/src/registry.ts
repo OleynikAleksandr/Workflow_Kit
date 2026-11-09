@@ -55,6 +55,8 @@ export interface ProviderRegistry {
   setArchived(project: Project, key: string | null, archived: boolean): Promise<{ changed: string[]; errors: Record<string, string> }>;
   /** Start of the service: autostart? of every provider; started — '<provider>: <line>'. */
   autostart(): Promise<{ started: string[]; errors: Record<string, string> }>;
+  /** Every minute: maintain? of every provider; done — '<provider>: <line>'. */
+  maintain(): Promise<{ done: string[]; errors: Record<string, string> }>;
   /** Deletion from disk: deleteSessions? of every provider; deleted — '<provider>:<id>'. */
   deleteSessions(project: Project): Promise<{ deleted: string[]; errors: Record<string, string> }>;
   /** retryDeletes? of every provider; deleted — '<provider>:<id>'. */
@@ -205,6 +207,20 @@ export function createProviderRegistry(options: { readTimeoutMs?: number } = {})
         }
       }
       return { started, errors };
+    },
+    async maintain() {
+      const done: string[] = [];
+      const errors: Record<string, string> = {};
+      for (const provider of registry.list()) {
+        if (!provider.maintain) continue;
+        try {
+          const line = await provider.maintain();
+          if (line) done.push(`${provider.id}: ${line}`);
+        } catch (error) {
+          errors[provider.id] = error instanceof Error ? error.message : String(error);
+        }
+      }
+      return { done, errors };
     },
     async deleteSessions(project) {
       const deleted: string[] = [];

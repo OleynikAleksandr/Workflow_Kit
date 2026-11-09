@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 454,
+  "revision": 456,
   "rounds": [
     {
       "digest": null,
@@ -128,14 +128,26 @@
         "product-parts/backend-core/clusters/runtime/modules/cli/src/provider-lifecycle.ts",
         "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
         "product-parts/backend-core/clusters/runtime/modules/cli/test",
-        "tools/platform-guard/allowlist.json"
+        "tools/platform-guard/allowlist.json",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/providers.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/handover.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/runtime.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/handover.test.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/registry.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/fake-provider.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/routes.test.ts"
       ],
       "fixes": null,
       "id": "T002",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Hand remote control to the ChatGPT app",
       "why": "Hand remote control to the ChatGPT app"
     },
@@ -252,8 +264,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 1/5
-- Revision: 454
+- Progress: 2/5
+- Revision: 456
 
 ## Objective
 
@@ -273,9 +285,9 @@ Fix the defects found in live testing of 0.5.1 and release 0.5.2
 - [DONE] T001 — Wizard opens the new Claude session (work)
   - Commit: fix: open the new Claude session after the wizard
   - Files: product-parts/control-panel/clusters/web-panel/modules/project-wizard, product-parts/control-panel/clusters/web-panel/modules/project-wizard/module.md, product-parts/control-panel/clusters/web-panel/modules/project-wizard/src/project-wizard.js, product-parts/control-panel/clusters/web-panel/modules/project-wizard/src/wizard-model.js, product-parts/control-panel/clusters/web-panel/modules/project-wizard/test/wizard-model.test.ts
-- [TODO] T002 — Hand remote control to the ChatGPT app (work)
+- [DONE] T002 — Hand remote control to the ChatGPT app (work)
   - Commit: feat: hand Codex remote control to the running ChatGPT app
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/backend-core/clusters/runtime/modules/cli/src/provider-lifecycle.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/test, tools/platform-guard/allowlist.json
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/backend-core/clusters/runtime/modules/cli/src/provider-lifecycle.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/test, tools/platform-guard/allowlist.json, product-parts/backend-core/clusters/runtime/modules/cli/test/providers.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/handover.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/runtime.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/handover.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/registry.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/fake-provider.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/routes.test.ts
 - [TODO] T003 — No choice card while a review is ahead (work)
   - Commit: fix: hide the choice card while a plan review is ahead
   - Files: product-parts/control-panel/clusters/web-panel/modules/session-view

@@ -282,3 +282,35 @@ test('refused deletions are tried again at the start and then on an interval', a
   assert.ok(retries >= 3, `retries: ${retries}`);
 });
 
+
+test('the providers are kept up on an interval, one upkeep at a time; their lines go to the log', async () => {
+  const projects = {
+    addRemoveGuard: () => undefined,
+    addRemovedHook: () => undefined,
+    addArchivedHook: () => undefined,
+    addBeforeDeleteHook: () => undefined,
+    list: async () => [],
+    get: async () => undefined,
+  } as unknown as ProjectRegistry;
+  const providers = createProviderRegistry();
+  let runs = 0;
+  let running = 0;
+  let overlapped = false;
+  providers.register({
+    ...createStubProvider({ id: 'codex', title: 'Codex', task: 'T000' }),
+    maintain: async () => {
+      runs += 1;
+      running += 1;
+      overlapped ||= running > 1;
+      await new Promise((resolve) => setTimeout(resolve, 25));
+      running -= 1;
+      return runs === 1 ? 'remote control handed to the ChatGPT app' : null;
+    },
+  });
+  const lines: string[] = [];
+  wireProviderLifecycle({ projects, providers, log: (line) => void lines.push(line), maintainMs: 5 });
+  await new Promise((resolve) => setTimeout(resolve, 120));
+  assert.ok(runs >= 2, `runs: ${runs}`);
+  assert.equal(overlapped, false);
+  assert.deepEqual(lines.filter((l) => l.includes('remote control')), ['providers: codex: remote control handed to the ChatGPT app']);
+});

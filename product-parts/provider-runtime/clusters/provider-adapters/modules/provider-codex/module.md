@@ -19,10 +19,12 @@ app-server на весь Mac, доверие к папке, одобрение �
   `openAppServer` (stdio `codex app-server`), `openDaemon` (сокет демона),
   `isAlive(pid)`, `tokens` (`TokenStore`), `daemonTtlMs`,
   `serviceTurnWaitMs` (ожидание `turn/completed` служебного хода),
-  `releaseWaitMs` и `releasePollMs` (ожидание выгрузки треда демоном).
+  `releaseWaitMs` и `releasePollMs` (ожидание выгрузки треда демоном),
+  `handover` (`waitMs`, `sleep` передачи управления).
 - Константы: `PROVIDER_ID` = `codex`, `PROVIDER_TITLE`,
   `DAEMON_START_ACTION` = `daemon-start`, `LOGIN_HINT`, `CONNECTING_REASON`,
-  `STALE_LOGIN_REASON`,
+  `STALE_LOGIN_REASON`, `HANDOVER_REASON`, `HANDOVER_WAIT_MS` (60 с),
+  `isChatgptAppServer(line, platform)`, `appServerPids(listing, platform)`,
   `KIT_HOOK_COMMAND` (= `kitCodexCommand('SessionStart')`: POSIX-команда хука Kit, на Windows —
   его `commandWindows`),
   `KIT_HOOK_COMMANDS` (команды всех хуков Kit v2: SessionStart, Stop,
@@ -244,29 +246,31 @@ app-server на весь Mac, доверие к папке, одобрение �
 
 ## Проверить при приёмке (на устройстве)
 
-При разработке на настоящей машине выполнялись только чтения:
-`codex --version`, `initialize` по сокету демона (получено
-`remoteControl/status/changed: connected`) и `hooks/list`. Изменяющие
-вызовы проверены только на подставных программах.
+Изменяющие вызовы проверены на подставных программах; на машине — только чтения
+(`codex --version`, `initialize` по сокету демона, `hooks/list`). Проверить: новая
+сессия из панели сразу открывается в ChatGPT на Mac и iPad без «Этот чат открыт в
+другом приложении», пока Codex держит чат, кнопки «Открыть» нет («Codex ещё держит
+чат»), в журнале — `codex: thread <id> released by the daemon`; настройки треда —
+пользовательские; хук Kit после одобрения срабатывает с первым ходом.
 
-- Служебный ход идёт без переопределений `sandboxPolicy` и
-  `approvalPolicy` (по схеме `TurnStartParams` они действуют «для этого и
-  последующих ходов»), после хода — `thread/unsubscribe`
-  (`ThreadUnsubscribeParams { threadId }` → `{ status }`). Проверить:
-  новая сессия из панели сразу открывается в ChatGPT на Mac и iPad без
-  сообщения «Этот чат открыт в другом приложении»; в журнале службы —
-  строка `codex: thread/unsubscribe <id>: unsubscribed`; настройки треда в
-  ChatGPT — пользовательские.
-- Операция «Создать сессию» длится секунды (ход + выгрузка через
-  `thread/archive`/`thread/unarchive`); без `thread/archive` — около
-  минуты, служба ждёт, пока демон выгрузит тред. Проверить: пока идёт
-  операция, у сессии нет кнопки
-  «Открыть» и есть пояснение «Codex ещё держит чат»; после конца операции
-  ссылка открывает чат в ChatGPT на Mac и iPad без сообщения; в журнале
-  службы — `codex: thread <id> released by the daemon`.
-- `grantTrust` и `approveHooks` пишут через `config/value/write` и
-  проверяются после записи; хук Kit после одобрения срабатывает с первым
-  ходом и попадает в журнал.
+## Передача удалённого управления приложению ChatGPT (M7, замечание 2)
+
+У треда один писатель, удалённое управление получает подключившийся первым: если его
+держит демон, а приложение ChatGPT открыто, чат приложения не открывается на iPad
+(«используется в другом сеансе Codex»). `src/handover.ts`, `maintain()` (бэкенд
+зовёт раз в минуту): демон `connected`, работает app-server приложения, в демоне нет
+загруженных тредов (`thread/loaded/list`) и не идёт `createSession` — тогда
+`remote-control stop`, пауза `HANDOVER_WAIT_MS` (приложение берёт управление само,
+≤ 65 с), `start --json`; демон остаётся локальным app-server Kit (`remoteOwner:
+'app'`). Одна попытка на набор pid приложения. Во время передачи статус «передаёт
+управление ChatGPT», создание сессий и действие демона выключены (`HANDOVER_REASON`),
+`createSession` — `codex-handover`. `DaemonState.settling` (`isSettling`, `SETTLE_MS`
+60 с): `errored` без ошибки входа в первую минуту демона — «подключается», не
+«ошибка входа».
+
+| macOS | Linux | Windows |
+|---|---|---|
+| `ps -axo pid=,command=`: `/ChatGPT.app/` и `app-server` | приложения нет — ничего | CIM `Win32_Process` codex.exe через PowerShell, папка с `OpenAI.Codex`/`ChatGPT` (**П**) |
 
 ## Инварианты
 
@@ -281,20 +285,14 @@ app-server на весь Mac, доверие к папке, одобрение �
 - Зависимости: `#provider-registry` (контракт, журнал хука, токены),
   `#kit-structure` (`hookCommand`, `isKitHookCommand`), `#data-store`
   (`backupFile`, атомарная запись), `#process-supervisor` (`cleanEnv`).
-- Тесты (`test/`) работают на подставном HOME, подставной программе
-  `codex` (`test/fixtures/fake-codex.mjs`: `app-server` по stdio,
-  `--version`, `remote-control start`) и подставном демоне (WebSocket
-  JSON-RPC на unix-сокете, `test/fake-daemon.ts`; ведёт список
-  загруженных тредов: `thread/start` загружает, `thread/unsubscribe`
-  последнего подписчика выгружает (с `idleUnloadPolls` — только через
-  столько вызовов `thread/loaded/list`, как настоящий демон через минуту),
-  `thread/archive` выгружает сразу, `thread/unarchive` не загружает
-  (`archiveError` — демон без архивации),
-  закрытие соединения — нет, как в D1; отвечает на `thread/loaded/list`);
-  настоящий `~/.codex` не трогается. На Windows демон слушает именованный канал
-  (`listenPath`); наборы с машиной macOS/Linux (`provider`, `release`: `sh`-программа
-  `codex`, ссылка на сокет) пропускаются (`POSIX_MACHINE_SKIP`), путь Windows
-  проверяют `windows.test.ts` и `ws-rpc.test.ts`.
+- Тесты (`test/`): подставные HOME, `codex` (`test/fixtures/fake-codex.mjs`) и демон
+  (`test/fake-daemon.ts`: JSON-RPC на unix-сокете, список загруженных тредов —
+  `thread/start` загружает, `thread/unsubscribe` последнего подписчика выгружает, с
+  `idleUnloadPolls` — через столько `thread/loaded/list`, `thread/archive` сразу,
+  `archiveError` — без архивации); настоящий `~/.codex` не трогается. На Windows демон
+  слушает именованный канал (`listenPath`); наборы с машиной macOS/Linux пропускаются
+  (`POSIX_MACHINE_SKIP`), путь Windows — `windows.test.ts`, `ws-rpc.test.ts`; передача
+  управления — `handover.test.ts` на подставном runtime для всех трёх ОС.
 - После `createSession` тред не остаётся загруженным в демоне, а ссылка
   появляется только после его выгрузки; после завершённого хода тред
   выгружается архивацией без минутного ожидания и возвращается из архива,
@@ -302,8 +300,7 @@ app-server на весь Mac, доверие к папке, одобрение �
 
 ## Дальше
 
-Следующие вехи: `thread/resume` и состояние сессий (`project/list`,
-`thread/list` не проверены); живая проверка Windows (M5, пункты **П**).
+`thread/resume`, состояние сессий; проверка Windows (M5, M7: **П**).
 
 ## Записи удалённых проектов (раунд R9)
 

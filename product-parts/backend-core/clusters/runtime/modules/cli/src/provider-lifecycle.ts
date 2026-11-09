@@ -15,6 +15,8 @@ export const AUTOSTART_ATTEMPTS = 3;
 export const AUTOSTART_PAUSE_MS = 30_000;
 /** Interval of the retries of deletions an app refused. */
 export const DELETE_RETRY_MS = 60_000;
+/** Interval of the providers' upkeep (Codex: remote control to the ChatGPT app, spec M7 remark 2). */
+export const MAINTAIN_MS = 60_000;
 
 export function wireProviderLifecycle(options: {
   projects: ProjectRegistry;
@@ -24,6 +26,8 @@ export function wireProviderLifecycle(options: {
   autostartPauseMs?: number;
   /** Interval of the retries of refused deletions (tests shorten it). */
   deleteRetryMs?: number;
+  /** Interval of the providers' upkeep; 0 turns it off (tests). */
+  maintainMs?: number;
 }): ProviderLifecycle {
   const { projects, providers } = options;
   const log = (line: string): void => options.log?.(line);
@@ -52,6 +56,23 @@ export function wireProviderLifecycle(options: {
   const retryDeletes = (): void => void providers.retryDeletes().then(({ errors }) => report('retry deletions', errors), () => undefined);
   setInterval(retryDeletes, options.deleteRetryMs ?? DELETE_RETRY_MS).unref?.();
   retryDeletes();
+
+  // Every minute the providers keep up what changes outside the service (spec M7 remark 2: the
+  // ChatGPT app opened after the daemon took remote control). One upkeep runs at a time.
+  let maintaining = false;
+  const maintain = (): void => {
+    if (maintaining) return;
+    maintaining = true;
+    void providers
+      .maintain()
+      .then(({ done, errors }) => {
+        for (const line of done) log(`providers: ${line}`);
+        report('upkeep', errors);
+      }, () => undefined)
+      .finally(() => (maintaining = false));
+  };
+  const maintainMs = options.maintainMs ?? MAINTAIN_MS;
+  if (maintainMs > 0) setInterval(maintain, maintainMs).unref?.();
 
   // An archive waits for the stops (a removal right after it is not blocked by them); a restore
   // brings the sessions back in the background.

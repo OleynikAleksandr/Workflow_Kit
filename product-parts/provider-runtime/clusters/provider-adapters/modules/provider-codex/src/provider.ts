@@ -2,6 +2,7 @@
 // Mac-wide daemon, its start as a special action, trust, the Kit hook and sessions.
 import { ProviderError } from '#provider-registry';
 import type { Capabilities, Project, ProjectProviderState, Provider, ProviderAction, ProviderContext, ProviderStatus } from '#provider-registry';
+import { createHandover, HANDOVER_REASON } from './handover.ts';
 import { createCodexRuntime } from './runtime.ts';
 import type { CodexDeps, CodexRuntime, DaemonState } from './runtime.ts';
 import { createSessionParts } from './sessions.ts';
@@ -40,7 +41,7 @@ export function parseRemoteControlStart(stdout: string): { status: string | null
 
 /** The daemon runs and its link to ChatGPT is being set up (or it has not said yet). */
 function connecting(daemon: DaemonState): boolean {
-  return daemon.running && !daemon.error && (daemon.remoteControl === null || daemon.remoteControl === 'connecting');
+  return daemon.running && !daemon.error && (daemon.remoteControl === null || daemon.remoteControl === 'connecting' || daemon.settling);
 }
 
 /** Text of a daemon that holds a login the ChatGPT app has refreshed meanwhile. */
@@ -58,10 +59,10 @@ function linked(daemon: DaemonState): boolean {
 }
 
 function loginProblem(daemon: DaemonState): boolean {
-  return daemon.running && !daemon.staleLogin && daemon.remoteOwner !== 'app' && (daemon.remoteControl === 'errored' || (daemon.remoteControl !== 'connected' && daemon.tokenError !== null));
+  return daemon.running && !daemon.staleLogin && !daemon.settling && daemon.remoteOwner !== 'app' && (daemon.remoteControl === 'errored' || (daemon.remoteControl !== 'connected' && daemon.tokenError !== null));
 }
 
-function buildStatus(rt: CodexRuntime, daemon: DaemonState): ProviderStatus {
+function buildStatus(rt: CodexRuntime, daemon: DaemonState, handingOver = false): ProviderStatus {
   const program = rt.program;
   const details: Record<string, unknown> = {
     daemon: { running: daemon.running, pid: daemon.pid, remoteControl: daemon.remoteControl, serverName: daemon.serverName },
@@ -70,6 +71,7 @@ function buildStatus(rt: CodexRuntime, daemon: DaemonState): ProviderStatus {
   const base = { implemented: true, installed: program.installed, version: program.version, path: program.path, checkedAt: program.checkedAt, details };
   if (program.installed === false) return { ...base, state: 'not-installed', label: 'не установлен', note: program.error ?? 'codex не найден' };
   if (program.unsupported) return { ...base, state: 'unavailable', label: 'нужна новее версия', note: program.unsupported };
+  if (handingOver) return { ...base, state: 'unavailable', label: 'передаёт управление ChatGPT', note: HANDOVER_REASON };
   if (daemon.running && daemon.staleLogin && daemon.remoteControl !== 'connected') {
     return { ...base, state: 'error', label: 'демон держит устаревший вход', note: STALE_LOGIN_REASON };
   }
@@ -89,6 +91,9 @@ function buildStatus(rt: CodexRuntime, daemon: DaemonState): ProviderStatus {
 /** Creates the Codex provider; deps replace the transports and the clock of tokens in tests. */
 export function createCodexProvider(context: ProviderContext, deps: CodexDeps = {}): Provider {
   const rt = createCodexRuntime(context, deps);
+  // Sessions being created through the daemon: the hand-over never stops it under them.
+  let creating = 0;
+  const handover = createHandover(rt, { ...deps.handover, busy: () => creating > 0 });
   const trustParts = createTrustParts(rt);
   const sessionParts = createSessionParts(rt, {
     ...(deps.serviceTurnWaitMs === undefined ? {} : { serviceTurnWaitMs: deps.serviceTurnWaitMs }),
@@ -101,6 +106,7 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
     const missing = rt.program.installed === false ? 'codex не найден в PATH службы' : rt.program.unsupported;
     const daemon = await rt.daemon();
     let create: string | null = missing;
+    if (!create && handover.active) create = HANDOVER_REASON;
     if (!create && !daemon.running) create = 'демон Codex не запущен — «Запустить демон»';
     else if (!create && daemon.staleLogin && daemon.remoteControl !== 'connected') create = STALE_LOGIN_REASON;
     else if (!create && loginProblem(daemon)) create = `ошибка входа Codex — ${LOGIN_HINT}`;
@@ -122,6 +128,7 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
       confirm: 'Запустить фоновый app-server Codex с удалённым управлением (codex remote-control start) для всего Mac?',
     };
     if (rt.program.installed === false) return [{ ...action, enabled: false, reason: 'codex не найден' }];
+    if (handover.active) return [{ ...action, enabled: false, reason: HANDOVER_REASON }];
     if (!daemon.running) return [action];
     // A running daemon: the action only makes sense when its link to ChatGPT is off or failed.
     if (daemon.remoteControl === 'connected') return [{ ...action, enabled: false, reason: 'демон работает и подключён к ChatGPT' }];
@@ -182,15 +189,16 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
     id: PROVIDER_ID,
     title: PROVIDER_TITLE,
     autostart,
+    maintain: () => handover.maintain(),
     capabilities,
     async status() {
-      return buildStatus(rt, await rt.daemon());
+      return buildStatus(rt, await rt.daemon(), handover.active);
     },
     async refresh() {
       await rt.refreshProgram();
       rt.forgetDaemon();
       trustParts.clearCache();
-      return buildStatus(rt, await rt.daemon(true));
+      return buildStatus(rt, await rt.daemon(true), handover.active);
     },
     trust: (project) => trustParts.trust(project),
     previewTrust: (project) => trustParts.previewTrust(project),
@@ -203,7 +211,13 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
     retryDeletes: () => sessionParts.retryDeletes(),
     async createSession(project, opts) {
       requireCodex(rt);
-      return sessionParts.createSession(project, opts);
+      if (handover.active) throw new ProviderError('codex-handover', HANDOVER_REASON, { status: 409 });
+      creating += 1;
+      try {
+        return await sessionParts.createSession(project, opts);
+      } finally {
+        creating -= 1;
+      }
     },
     async renameSession(project, sessionId, name) {
       requireCodex(rt);

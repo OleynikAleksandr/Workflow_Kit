@@ -10,10 +10,33 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 409,
+  "revision": 411,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "pty-host: loadNodePty, startTerminal, ptyUnavailable, taskkillTree",
+          "process-supervisor: Windows CIM identity, taskkill stop, windowsBootId",
+          "provider-claude: PtyScripts.host, ptyCommand, requirePty().launcher, folder-key.ts, renameRetrying",
+          "kit-structure: HookHost, defaultHookHost, kitHookEntry(client,event,host), isKitHookEntry, hookText",
+          "provider-codex: proxy.ts, connectWebSocket(ByteStream), filetimeMs, codexProjectKey, sameFolder, kitCodexCommand, MIN_WINDOWS_CODEX",
+          "cli: POST /api/system/shutdown, App.shutdownRequested, openCommands (Windows); service-installer: layout.companions, requestShutdown, ELEVATED_WARNING"
+        ],
+        "decisions": [
+          "One ConPTY host pty/win-host.ts (mode session|environment) keeps the exact marker contract of session.exp and environment.exp",
+          "Windows hooks call the stable %LOCALAPPDATA%\\Workflow Kit\\wfk.mjs launcher so hooks survive app updates; Claude uses the exec form, Codex commandWindows with explicit UTF-8 stdin pipe",
+          "Codex daemon on Windows is reached through `codex app-server proxy --sock` (verified as a byte relay on macOS); only codex.exe is spawned; minimum Codex 0.160 on Windows",
+          "Windows path keys in .claude.json and config.toml match ignoring case and slash style; new Claude keys use / and an upper-case drive",
+          "Live Windows check moves after publication on a real Windows PC (user decision)"
+        ],
+        "references": [
+          "docs/planning/M5-windows.md",
+          "docs/planning/M5-windows-vm.md",
+          "docs/installation.md",
+          "docs/architecture/OVERVIEW.md"
+        ],
+        "result": "Windows 11 parity (code): ConPTY host for Claude, Codex via app-server proxy, Windows supervisor, Kit hooks and launchers, open-link, graceful shutdown, elevation warning; docs updated. Live Windows check pending."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -395,7 +418,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -445,8 +468,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 7/9
-- Revision: 409
+- Progress: 8/9
+- Revision: 411
 
 ## Objective
 
@@ -489,7 +512,7 @@ Windows 11 (x64 и ARM64): сессии Claude и ChatGPT/Codex, ревью, в�
   - Commit: docs: describe Windows support
   - Files: README.md, docs/installation.md, docs/architecture/OVERVIEW.md, CHANGELOG.md, docs/planning/M5-windows.md
   - Depends on: T003, T005, T006
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M5-windows.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, docs/installation.md, CHANGELOG.md
   - Depends on: T001, T002, T003, T004, T005, T006, T007
@@ -497,5 +520,7 @@ Windows 11 (x64 и ARM64): сессии Claude и ChatGPT/Codex, ревью, в�
   - Commit: chore: release 0.5.0
   - Files: package.json, package-lock.json, CHANGELOG.md, docs/evidence/M5-acceptance.md
   - Depends on: T001, T002, T003, T004, T005, T006, T007, DOCS-R1
+
+Digest: Windows 11 parity (code): ConPTY host for Claude, Codex via app-server proxy, Windows supervisor, Kit hooks and launchers, open-link, graceful shutdown, elevation warning; docs updated. Live Windows check pending.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

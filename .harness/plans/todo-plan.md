@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T003",
   "lastClosed": {
     "closedAt": "2026-11-09T08:29:03.967Z",
     "scopeId": "m4-claude-reviewer"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 378,
+  "revision": 380,
   "rounds": [
     {
       "digest": null,
@@ -156,6 +156,7 @@
         "product-parts/backend-core/clusters/projects/modules/kit-structure",
         "product-parts/backend-core/clusters/runtime/modules/cli/src/commands.ts",
         "product-parts/backend-core/clusters/runtime/modules/cli/src/session-command.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/project-command.ts",
         "product-parts/backend-core/clusters/runtime/modules/cli/test",
         "product-parts/backend-core/clusters/runtime/modules/cli/module.md"
       ],
@@ -164,7 +165,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "Agent rule and wfk project publish",
       "why": "Agents must not push inside a scope and must know how to publish after it"
     },
@@ -264,9 +265,9 @@
 - Scope: publication-order (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: none
+- Current task: T003
 - Progress: 2/6
-- Revision: 378
+- Revision: 380
 
 ## Objective
 
@@ -291,9 +292,9 @@
   - Commit: feat: show the GitHub publication in the panel
   - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/actions.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/api.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/layout.css, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/publication.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/screens.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts
   - Depends on: T001
-- [TODO] T003 — Agent rule and wfk project publish (work)
+- [IN_PROGRESS] T003 — Agent rule and wfk project publish (work)
   - Commit: feat: teach agents to publish only after the scope is closed
-  - Files: product-parts/backend-core/clusters/projects/modules/kit-structure, product-parts/backend-core/clusters/runtime/modules/cli/src/commands.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/session-command.ts, product-parts/backend-core/clusters/runtime/modules/cli/test, product-parts/backend-core/clusters/runtime/modules/cli/module.md
+  - Files: product-parts/backend-core/clusters/projects/modules/kit-structure, product-parts/backend-core/clusters/runtime/modules/cli/src/commands.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/session-command.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/project-command.ts, product-parts/backend-core/clusters/runtime/modules/cli/test, product-parts/backend-core/clusters/runtime/modules/cli/module.md
   - Depends on: T001
 - [TODO] T004 — CHANGELOG gets the missing versions (work)
   - Commit: docs: add 0.4.6 and 0.4.7 to the changelog

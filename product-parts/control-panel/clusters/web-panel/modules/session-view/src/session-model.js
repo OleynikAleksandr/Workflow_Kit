@@ -56,7 +56,6 @@ function choiceHolder(state, projectId) {
  * @property {number} generation
  * @property {string} reason
  * @property {Array<{ option: string, title: string, description: string, recommended: boolean }>} options
- * @property {string | null} waiting why the choice waits for the plan review (spec M4 11.3)
  * @property {string | null} failedReview why this session's review of the open plan did not run (spec M4 13.2)
  */
 
@@ -66,7 +65,7 @@ export const DECIDING_MS = 15_000;
 /**
  * A working session with the review on, or without a decision, that has not reviewed the open
  * proposal: its review (or the question about it) comes when its turn ends, so the mode choice
- * waits (spec M4 sections 11.3 and 12.3).
+ * is not shown until then (spec M4 sections 11.3 and 12.3; M7 remark 3: no card without buttons).
  * @param {Record<string, unknown>} state
  * @param {string} projectId
  * @returns {boolean}
@@ -111,9 +110,10 @@ export function choiceView(state, projectId, key) {
   if (projectReviews(state, projectId).some((r) => r.active || r.reviewerKey === key)) return null;
   // M4 12.3: an open plan question comes first.
   if (Object.keys(projectQuestions(state, projectId)).length > 0) return null;
+  // M7 remark 3: while a review is ahead the card is hidden, not shown without buttons.
+  if (reviewComing(state, projectId)) return null;
   return {
     generation: choice['generation'],
-    waiting: reviewComing(state, projectId) ? 'Сначала ревью плана: оно начнётся, когда агент закончит ход' : null,
     failedReview: failedReview(state, projectId, key),
     reason: typeof choice['reason'] === 'string' ? choice['reason'] : '',
     options: array(choice['options'])

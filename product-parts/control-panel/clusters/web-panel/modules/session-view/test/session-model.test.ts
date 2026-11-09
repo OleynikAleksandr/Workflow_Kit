@@ -76,11 +76,14 @@ test('activity: working with the turn timer, holding with the reason, unknown se
 });
 
 test('the choice card goes to the holding session; Codex sessions get orchestration too', () => {
-  const choice = choiceView(state(), 'p', 'codex:t1');
+  // claude:s1 works without the plan review: nothing is ahead of the choice.
+  const noReview = { review: { projects: { p: { visible: true, sessions: { 'claude:s1': false } } } } };
+  assert.equal(choiceView(state(), 'p', 'codex:t1'), null, 'the review of the working claude:s1 is ahead (M7 remark 3)');
+  const choice = choiceView(state(noReview), 'p', 'codex:t1');
   assert.ok(choice);
   assert.equal(choice.generation, 2);
   assert.deepEqual(choice.options.map((o) => o.option), ['orchestrated', 'sequential', 'refine']);
-  assert.equal(choiceView(state(), 'p', 'claude:s1'), null, 'another session holds the choice');
+  assert.equal(choiceView(state(noReview), 'p', 'claude:s1'), null, 'another session holds the choice');
   const free = state({ channel: { sessions: [] } });
   assert.deepEqual(choiceView(free, 'p', 'claude:s1')?.options.map((o) => o.option), ['orchestrated', 'sequential', 'refine']);
 });
@@ -152,20 +155,20 @@ test('the cross review: card data for both sides; the choice and the toggle hide
   assert.ok(reviewView(base, 'p', 'claude:s1'));
 });
 
-test('the choice card waits for the plan review while the toggled session still works (M4 11.3)', () => {
+test('the choice card is hidden while the plan review is ahead of the toggled working session (M4 11.3, M7 remark 3)', () => {
   const st = {
     workflow: { projects: { p: { choice: { generation: 1, reason: 'r', options: [{ option: 'sequential', title: 'Сам', description: '' }] }, proposal: { scopeId: 's1' } } } },
     review: { projects: { p: { visible: true, sessions: { 'claude:s1': true } } } },
     channel: { sessions: [{ key: 'claude:s1', projectId: 'p', state: 'working' }] },
     reviews: { projects: { p: [] } },
   };
-  assert.match(choiceView(st, 'p', 'claude:s1')!.waiting ?? '', /Сначала ревью плана/);
+  assert.equal(choiceView(st, 'p', 'claude:s1'), null, 'no card without buttons');
   const idle = { ...st, channel: { sessions: [{ key: 'claude:s1', projectId: 'p', state: 'waiting' }] } };
-  assert.equal(choiceView(idle, 'p', 'claude:s1')!.waiting, null);
+  assert.equal(choiceView(idle, 'p', 'claude:s1')!.options.length, 1);
   const off = { ...st, review: { projects: { p: { visible: true, sessions: { 'claude:s1': false } } } } };
-  assert.equal(choiceView(off, 'p', 'claude:s1')!.waiting, null);
+  assert.ok(choiceView(off, 'p', 'claude:s1'));
   const reviewed = { ...st, reviews: { projects: { p: [{ mainKey: 'claude:s1', scopeId: 's1', status: 'agreed', active: false }] } } };
-  assert.equal(choiceView(reviewed, 'p', 'claude:s1')!.waiting, null);
+  assert.ok(choiceView(reviewed, 'p', 'claude:s1'));
 });
 
 test('the plan question card: agent question with three answers, proposal question with two; the choice waits (M4 12)', () => {
@@ -184,7 +187,7 @@ test('the plan question card: agent question with three answers, proposal questi
   const proposal = { ...st, review: { projects: { p: { visible: true, sessions: {}, questions: { 'claude:s1': { kind: 'proposal', summary: '', askedAt: 'x' } } } } } };
   assert.deepEqual(planQuestionView(proposal, 'p', 'claude:s1')!.options.map((o) => o.choice), ['review', 'plan']);
   const undecided = { ...st, review: { projects: { p: { visible: true, sessions: {}, questions: {} } } }, channel: { sessions: [{ key: 'claude:s1', projectId: 'p', state: 'working' }] } };
-  assert.match(choiceView(undecided, 'p', 'claude:s1')!.waiting ?? '', /Сначала ревью/, 'an undecided working session will be asked at its Stop');
+  assert.equal(choiceView(undecided, 'p', 'claude:s1'), null, 'an undecided working session will be asked at its Stop');
 });
 
 test('a failed review of the open plan shows its reason on the choice card (M4 13.2)', () => {
@@ -207,15 +210,15 @@ test('the choice card does not flash between the Stop and the review decision (M
     reviews: { projects: { p: [] } },
   };
   const deciding = { ...base, channel: { sessions: [{ key: 'claude:s1', projectId: 'p', state: 'waiting', lastStopAt: '2026-11-08T17:00:03Z' }] } };
-  assert.ok(choiceView(deciding, 'p', 'claude:s1')!.waiting, 'the service is deciding: no buttons');
+  assert.equal(choiceView(deciding, 'p', 'claude:s1'), null, 'the service is deciding: no card');
   const later = { ...deciding, generatedAt: '2026-11-08T17:01:00Z' };
-  assert.equal(choiceView(later, 'p', 'claude:s1')!.waiting, null, 'no decision came: the buttons return');
+  assert.ok(choiceView(later, 'p', 'claude:s1'), 'no decision came: the card returns');
   const asked = { ...base, channel: { sessions: [{ key: 'claude:s1', projectId: 'p', state: 'holding', holdReason: 'waiting-for-plan-decision', lastStopAt: '2026-11-08T17:00:03Z' }] } };
-  assert.ok(choiceView(asked, 'p', 'claude:s1')!.waiting);
+  assert.equal(choiceView(asked, 'p', 'claude:s1'), null);
   const choosing = { ...base, channel: { sessions: [{ key: 'claude:s1', projectId: 'p', state: 'holding', holdReason: 'waiting-for-mode-choice', lastStopAt: '2026-11-08T17:00:03Z' }] } };
-  assert.equal(choiceView(choosing, 'p', 'claude:s1')!.waiting, null, 'the service holds for the choice: buttons');
+  assert.ok(choiceView(choosing, 'p', 'claude:s1'), 'the service holds for the choice: buttons');
   const before = { ...deciding, channel: { sessions: [{ key: 'claude:s1', projectId: 'p', state: 'waiting', lastStopAt: '2026-11-08T16:59:40Z' }] } };
-  assert.equal(choiceView(before, 'p', 'claude:s1')!.waiting, null, 'a Stop before the proposal does not count');
+  assert.ok(choiceView(before, 'p', 'claude:s1'), 'a Stop before the proposal does not count');
 });
 
 

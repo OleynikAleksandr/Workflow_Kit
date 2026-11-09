@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T001",
   "lastClosed": {
     "closedAt": "2026-11-09T08:29:03.967Z",
     "scopeId": "m4-claude-reviewer"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 373,
+  "revision": 375,
   "rounds": [
     {
       "digest": null,
@@ -88,6 +88,7 @@
         "product-parts/backend-core/clusters/projects/modules/git-publish",
         "package.json",
         "product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
         "docs/architecture/OVERVIEW.md"
       ],
       "fixes": null,
@@ -95,7 +96,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "git-publish module: publication state, publish route and state section",
       "why": "The service must know when a project can be published and publish it safely"
     },
@@ -249,9 +250,9 @@
 - Scope: publication-order (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: none
+- Current task: T001
 - Progress: 0/6
-- Revision: 373
+- Revision: 375
 
 ## Objective
 
@@ -269,9 +270,9 @@
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T001 — git-publish module: publication state, publish route and state section (work)
+- [IN_PROGRESS] T001 — git-publish module: publication state, publish route and state section (work)
   - Commit: feat: publish a closed scope to the git upstream
-  - Files: product-parts/backend-core/clusters/projects/modules/git-publish, package.json, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, docs/architecture/OVERVIEW.md
+  - Files: product-parts/backend-core/clusters/projects/modules/git-publish, package.json, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, docs/architecture/OVERVIEW.md
 - [TODO] T002 — Panel shows the GitHub line and the publish button (work)
   - Commit: feat: show the GitHub publication in the panel
   - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell

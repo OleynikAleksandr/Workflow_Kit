@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 462,
+  "revision": 463,
   "rounds": [
     {
       "digest": {
@@ -47,7 +47,10 @@
       "No choice card without options while a review is ahead",
       "0.5.2 is installed locally and CI is green on all four platforms before acceptance"
     ],
-    "acceptanceNote": null,
+    "acceptanceNote": {
+      "at": "2026-11-09T17:29:43.817Z",
+      "text": "Принять и опубликовать"
+    },
     "approval": {
       "at": "2026-11-09T17:04:32.163Z",
       "text": "User: «Исправь то, что мы уже нашли, и собери новый релиз с проверками» (remarks 1–3 of docs/planning/M7-test-fixes.md) | Execution mode chosen by the user: sequential: Пользователь в чате: «Исправь то, что мы уже нашли, и собери новый релиз с проверками»; рекомендованный режим — последовательно"
@@ -74,7 +77,7 @@
         "text": "Release 0.5.2; CI on branch ci/m7-test-fixes before acceptance; main is pushed after acceptance and close"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "ACCEPTED",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
@@ -284,11 +287,11 @@
 ## State
 
 - Scope: m7-test-fixes (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: ACCEPTED
 - Execution: sequential
 - Current task: none
 - Progress: 5/5
-- Revision: 462
+- Revision: 463
 
 ## Objective
 

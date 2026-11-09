@@ -67,7 +67,7 @@ async function getState(from = base): Promise<{ providers: ProvidersSection; ope
   return (await (await fetch(`${from}/api/state`)).json()) as { providers: ProvidersSection; operations: { operations: Operation[] } };
 }
 
-test('DEFAULT_PROVIDERS register claude and codex, each with a state section for the system and each project', async () => {
+test('DEFAULT_PROVIDERS register codex and claude (panel order), each with a state section for the system and each project', async () => {
   assert.equal(DEFAULT_PROVIDERS.length, 2);
   const real = await createApp({
     env: { WFK_DATA_DIR: path.join(tmp, 'defaults'), WFK_PORT: '0' },
@@ -76,22 +76,22 @@ test('DEFAULT_PROVIDERS register claude and codex, each with a state section for
     runCommand: noPrograms,
   });
   try {
-    assert.deepEqual(real.providers.ids(), ['claude', 'codex']);
+    assert.deepEqual(real.providers.ids(), ['codex', 'claude']);
     // The ids `wfk hook` checks --client against are the ids of the registered providers.
     assert.deepEqual(real.providers.ids(), [...PROVIDER_IDS]);
     assert.deepEqual(PROVIDER_ENTRIES.map((entry) => entry.create), [...DEFAULT_PROVIDERS]);
     const project = await real.projects.create('Defaults');
     const realBase = `http://127.0.0.1:${(await real.start()).port}`;
     const state = await getState(realBase);
-    assert.deepEqual(state.providers.providers.map((p) => p.id), ['claude', 'codex']);
+    assert.deepEqual(state.providers.providers.map((p) => p.id), ['codex', 'claude']);
     for (const summary of state.providers.providers) {
       assert.equal(typeof summary.title, 'string');
       assert.equal(typeof summary.capabilities, 'object');
       assert.ok(summary.status !== null || Object.keys(summary.errors).length > 0, `${summary.id}: no status and no error`);
     }
     const entry = state.providers.projects[project.id]!;
-    assert.deepEqual(Object.keys(entry), ['claude', 'codex']);
-    for (const id of ['claude', 'codex']) assert.ok(Array.isArray(entry[id]!.sessions), `${id}: sessions list`);
+    assert.deepEqual(Object.keys(entry), ['codex', 'claude']);
+    for (const id of ['codex', 'claude']) assert.ok(Array.isArray(entry[id]!.sessions), `${id}: sessions list`);
   } finally {
     await real.stop();
   }

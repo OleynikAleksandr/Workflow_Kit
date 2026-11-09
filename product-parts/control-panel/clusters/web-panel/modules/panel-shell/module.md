@@ -123,7 +123,8 @@
 | `view-model.js` | чистые модели без DOM: `parseRoute`/`routeHash` (`#/`, `#/settings`, `#/new`, `#/open`, `#/archive`, `#/p/<id>`, `#/s/<id>/<ключ>`), `projectLists`, `filterProjects`, `projectTree`, `ownerObjective`, `sessionKey` (`<провайдер>:<localId>` — ключ разделов `channel`, `titles`, `review`), `indicators`, `statusLine`, `deviceLink`, `formatWhen`, `formatElapsed`, `sessionsLabel`, `shortPath`, `themeAttribute`, `PROVIDER_LABELS` |
 | `sidebar.js` | боковая панель: `createSidebar(handlers) → { element, render(model), setReview(node) }` |
 | `menus.js` | всплывающие меню «⋯»: `openMenu(anchor, items)`, `closeMenu()` |
-| `screens.js` | экраны из состояния: `homeScreen` (только приветствие; создание и выбор проекта — в меню «Ваши проекты»), `projectScreen`, `sessionHeader`, `missingScreen` |
+| `screens.js` | экраны из состояния: `homeScreen` (только приветствие; создание и выбор проекта — в меню «Ваши проекты»), `projectScreen` (сессии, «GitHub», блок «Провайдеры» с действиями уровня провайдера), `sessionHeader`, `missingScreen` |
+| `provider-actions.js` | `providerActionRows(state)` — включённые действия `scope: 'provider'` каждого провайдера раздела `providers`, готового тоже (`{ provider, id, label, confirm }`); обработчик `runProviderAction` в `actions.js`: вопрос `confirm`, `POST /api/providers/:p/actions/:a`, отказ `action-disabled` ошибкой не показывается |
 | `new-project.js` | запасной экран «Новый проект» / «Открыть папку проекта», если мастер не загрузился |
 | `settings.js` | «Настройки»: внешний вид (`THEME_KEY`, `savedTheme`, `applyTheme`), папка для проектов, карточка «Архив» (`onArchive`), сетка служебных карточек |
 | `card-grid.js` | `renderCards(container, state)` — карточки и элементы групп по `order`, перерисовка только изменившихся |

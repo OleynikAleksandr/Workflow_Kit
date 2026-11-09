@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { test } from 'node:test';
 import { PROJECT_WIZARD_ASSETS_DIR, PROJECT_WIZARD_PREFIX, projectWizardMount } from '../src/index.ts';
-import { buttonViews, chatTarget, choiceViews, filesLabel, findRun, listedSessionKey, previewView, runView, validAnswers } from '../src/wizard-model.js';
+import { actionsKey, buttonViews, chatTarget, choiceViews, filesLabel, findRun, listedSessionKey, previewView, providerActionViews, runView, validAnswers } from '../src/wizard-model.js';
 
 const preview = (extra: Record<string, unknown> = {}): Record<string, unknown> => ({
   token: 't',
@@ -23,7 +23,12 @@ const preview = (extra: Record<string, unknown> = {}): Record<string, unknown> =
     },
   ],
   blocked: null,
-  providers: { claude: { available: true, reason: null }, codex: { available: false, reason: 'Codex CLI не найден' } },
+  providers: [
+    { id: 'codex', label: 'ChatGPT', mark: 'G', available: false, reason: 'Codex CLI не найден' },
+    { id: 'claude', label: 'Claude', mark: 'C', available: true, reason: null },
+    { id: 'kimi', label: 'Kimi', mark: 'K', available: true, reason: null },
+  ],
+  hooks: [],
   notes: ['Папка новая'],
   ...extra,
 });
@@ -52,9 +57,10 @@ test('preview: actions, changes, notes and expiry', () => {
 
 test('buttons wait for a required answer; unavailable providers and blocked previews say why', () => {
   let buttons = buttonViews(preview(), {});
-  assert.deepEqual(buttons.map((b) => [b.provider, b.label, b.enabled]), [
-    ['codex', 'Создать и открыть в ChatGPT', false],
-    ['claude', 'Создать и открыть в Claude', false],
+  assert.deepEqual(buttons.map((b) => [b.provider, b.label, b.letter, b.enabled]), [
+    ['codex', 'Создать и открыть в ChatGPT', 'G', false],
+    ['claude', 'Создать и открыть в Claude', 'C', false],
+    ['kimi', 'Создать и открыть в Kimi', 'K', false],
   ]);
   assert.equal(buttons[0]!.reason, 'Codex CLI не найден');
   assert.equal(buttons[1]!.reason, 'Сначала выберите ответ: «Внешние импорты CLAUDE.md»');
@@ -65,12 +71,73 @@ test('buttons wait for a required answer; unavailable providers and blocked prev
   assert.equal(choiceViews(preview(), { 'claude:imports': 'deny' })[0]!.options[1]!.checked, true);
   const blocked = buttonViews(preview({ blocked: { code: 'GIT_IDENTITY_REQUIRED', message: 'Нет git-личности', commands: [] } }), { 'claude:imports': 'deny' });
   assert.ok(blocked.every((b) => !b.enabled && b.reason === 'Нет git-личности'));
+  // The buttons are the providers of the preview: no list of their own, names with a fallback.
+  assert.deepEqual(buttonViews(preview({ providers: [{ id: 'next', available: false }] }), {}).map((b) => [b.label, b.letter, b.reason]), [
+    ['Создать и открыть в next', 'N', 'next недоступен'],
+  ]);
+  assert.deepEqual(buttonViews(preview({ providers: undefined }), {}), []);
+});
+
+test('a hook of the preview shows the file, the added text and the hash the consent approves', () => {
+  const hooks = [
+    {
+      provider: 'kimi',
+      label: 'Kimi',
+      status: 'pending',
+      command: '[[hooks]]\nevent = "Stop"',
+      hash: '0123456789abcdef0123',
+      writes: [{ file: '/Users/u/.kimi-code/config.toml', description: 'хук конца хода', value: '[[hooks]]\nevent = "Stop"' }],
+      note: 'Хук общий для всех проектов',
+    },
+    { provider: 'codex', label: 'ChatGPT', status: 'pending', command: 'node wfk hook', hash: 'ffff', writes: [], note: null },
+  ];
+  const view = previewView(preview({ hooks }), 0);
+  assert.deepEqual(view.hooks, [
+    {
+      title: 'Хук Kit для Kimi',
+      files: ['/Users/u/.kimi-code/config.toml'],
+      text: '[[hooks]]\nevent = "Stop"',
+      hash: '0123456789ab',
+      meta: 'запись в /Users/u/.kimi-code/config.toml · хеш 0123456789ab',
+      note: 'Хук общий для всех проектов',
+    },
+    { title: 'Хук Kit для ChatGPT', files: [], text: 'node wfk hook', hash: 'ffff', meta: 'хеш ffff', note: null },
+  ]);
+  assert.deepEqual(previewView(preview(), 0).hooks, []);
+});
+
+test('provider actions: buttons for a provider that is not ready, the rest folded; only enabled provider-level ones', () => {
+  const state = {
+    providers: {
+      providers: [
+        {
+          id: 'codex',
+          title: 'ChatGPT (Codex)',
+          label: 'ChatGPT',
+          actions: [
+            { id: 'start-daemon', title: 'Запустить демон', scope: 'provider', enabled: true },
+            { id: 'stop-daemon', title: 'Остановить демон', scope: 'provider', enabled: false },
+            { id: 'trust', title: 'Доверить папку', scope: 'project', enabled: true },
+          ],
+        },
+        { id: 'kimi', title: 'Kimi Code', actions: [{ id: 'remove-kimi-hook', title: 'Убрать хук Kit', scope: 'provider', enabled: true, confirm: 'Убрать хук?' }] },
+        { id: 'claude', title: 'Claude', actions: [] },
+      ],
+    },
+  };
+  const views = providerActionViews(state, buttonViews(preview(), { 'claude:imports': 'deny' }));
+  assert.deepEqual(views.primary, [{ provider: 'codex', id: 'start-daemon', title: 'Запустить демон', label: 'ChatGPT: Запустить демон', confirm: null }]);
+  assert.deepEqual(views.more, [{ provider: 'kimi', id: 'remove-kimi-hook', title: 'Убрать хук Kit', label: 'Kimi Code: Убрать хук Kit', confirm: 'Убрать хук?' }]);
+  assert.deepEqual(providerActionViews({}, []), { primary: [], more: [] });
+  assert.notEqual(actionsKey(state), actionsKey({}));
+  assert.equal(actionsKey(state), actionsKey(JSON.parse(JSON.stringify(state))));
 });
 
 test('run steps, cancel and the created session', () => {
   const run = {
     operationId: 'op1',
     provider: 'codex',
+    providerLabel: 'ChatGPT',
     projectId: 'p1',
     status: 'running',
     cancelRequested: false,
@@ -95,6 +162,9 @@ test('run steps, cancel and the created session', () => {
   assert.equal(view.sessionKey, 'codex:t9');
   view = runView({ ...run, status: 'failed', error: { code: 'x', message: 'Не вышло', hint: 'Повторите' } });
   assert.deepEqual(view.error, { message: 'Не вышло', hint: 'Повторите' });
+  assert.equal(view.errorCode, 'x');
+  assert.equal(view.providerLabel, 'ChatGPT');
+  assert.equal(runView({ status: 'succeeded', provider: 'kimi' }).title, 'Проект готов, сессия в kimi создана', 'the id stands in for a missing short name');
   assert.equal(view.canCancel, false);
 });
 

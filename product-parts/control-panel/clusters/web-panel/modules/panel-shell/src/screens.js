@@ -17,6 +17,7 @@ import { providerLabel } from './view-model.js';
  * @property {(session: SessionRow) => void} openChat
  * @property {(projectId: string, session: SessionRow, archived: boolean) => void} archiveSession
  * @property {(projectId: string) => Promise<void>} publish
+ * @property {(action: import('./provider-actions.js').ProviderActionRow) => void} runProviderAction
  */
 
 /**
@@ -87,8 +88,22 @@ function publicationPanel(projectId, view, handlers) {
 }
 
 /**
+ * Provider-level actions (start a daemon, remove a global hook): offered for every provider, also
+ * a ready one, so they are reachable from an existing project and not only from the wizard.
+ * @param {import('./provider-actions.js').ProviderActionRow[]} rows
+ * @param {ScreenHandlers} handlers
+ * @returns {HTMLElement}
+ */
+function providerPanel(rows, handlers) {
+  return h('div', { class: 'panel' }, [
+    h('h2', {}, ['Провайдеры']),
+    h('div', { class: 'row' }, rows.map((row) => button(row.label, () => handlers.runProviderAction(row)))),
+  ]);
+}
+
+/**
  * A project without a selected session: its sessions and new session buttons.
- * @param {ProjectRow & { publication?: import('./publication.js').PublicationView | null }} project
+ * @param {ProjectRow & { publication?: import('./publication.js').PublicationView | null, providerActions?: import('./provider-actions.js').ProviderActionRow[] }} project
  * @param {ScreenHandlers} handlers
  * @returns {HTMLElement}
  */
@@ -119,6 +134,7 @@ export function projectScreen(project, handlers) {
     project.missing ? h('div', { class: 'notice notice-error' }, [h('p', {}, ['Папка проекта не найдена. Верните папку на место или уберите проект в архив.'])]) : null,
     h('div', { class: 'panel' }, [h('h2', {}, ['Сессии']), list, h('div', { class: 'eyebrow' }, ['Новая сессия']), sessionButtons(project.id, handlers)]),
     project.publication ? publicationPanel(project.id, project.publication, handlers) : null,
+    project.providerActions && project.providerActions.length > 0 ? providerPanel(project.providerActions, handlers) : null,
     archived,
   ].filter((n) => n !== null));
 }

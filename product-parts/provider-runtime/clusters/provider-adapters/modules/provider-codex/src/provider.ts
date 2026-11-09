@@ -188,6 +188,8 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
   return {
     id: PROVIDER_ID,
     title: PROVIDER_TITLE,
+    label: 'ChatGPT',
+    mark: 'G',
     autostart,
     maintain: () => handover.maintain(),
     capabilities,

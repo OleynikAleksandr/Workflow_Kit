@@ -1,17 +1,19 @@
 // The project wizard (spec section 7): preview tokens and the apply operation. After the one
-// consent the steps run without questions: project → git → structure → Kit → trust Claude →
-// trust Codex and Kit hooks → first session with the first message → link. "Отменить подготовку"
-// stops before the next step; what is done stays and is shown.
+// consent the steps run without questions: project → git → structure → Kit → trust (and Kit
+// hooks) of every registered provider → first session with the first message → link. "Отменить
+// подготовку" stops before the next step; what is done stays and is shown.
 import { randomBytes } from 'node:crypto';
 import type { Operations } from '#data-store';
 import type { KitRunner, WorkflowState } from '#kit-runner';
 import { installStructure } from '#kit-structure';
 import type { Project } from '#project-registry';
-import type { SessionInfo } from '#provider-registry';
-import { PREVIEW_TTL_MS, SETUP_PROVIDERS, SetupError, buildPreview } from './preview.ts';
-import type { PreviewDeps, PreviewInput, SetupPreview, SetupProvider } from './preview.ts';
+import { providerLabel } from '#provider-registry';
+import type { Provider, SessionInfo } from '#provider-registry';
+import { PREVIEW_TTL_MS, SetupError, buildPreview } from './preview.ts';
+import type { HookPreview, PreviewDeps, PreviewInput, SetupPreview, SetupProvider } from './preview.ts';
 
-export type StepId = 'project' | 'git' | 'structure' | 'kit' | 'trust-claude' | 'trust-codex' | 'session';
+/** `project`, `git`, `structure`, `kit`, `trust-<provider>` per registered provider, `session`. */
+export type StepId = string;
 export type StepStatus = 'pending' | 'running' | 'done' | 'skipped' | 'failed';
 
 export interface SetupStep {
@@ -27,6 +29,8 @@ export interface SetupRun {
   name: string;
   path: string;
   provider: SetupProvider;
+  /** Short name of the chosen provider, for the texts of the panel. */
+  providerLabel: string;
   projectId: string | null;
   status: 'running' | 'succeeded' | 'failed' | 'cancelled';
   steps: SetupStep[];
@@ -43,7 +47,7 @@ export interface SetupDeps extends PreviewDeps {
   workflow: WorkflowState;
   kit: KitRunner;
   log?: (line: string) => void;
-  /** Waits between hook-state reads of Codex (tests shorten it). */
+  /** Waits between hook-state reads of a provider that shows the hash later (tests shorten it). */
   hooksPollMs?: number;
 }
 
@@ -61,15 +65,20 @@ export interface ProjectSetup {
   section(): { runs: SetupRun[] };
 }
 
-const STEP_TITLES: Readonly<Record<StepId, string>> = {
-  project: 'Папка проекта',
-  git: 'Локальная история (git)',
-  structure: 'Структура Kit',
-  kit: 'Процесс Kit 2.2.2',
-  'trust-claude': 'Доверие Claude',
-  'trust-codex': 'Доверие ChatGPT и хуки Kit',
-  session: 'Первая сессия',
-};
+const HOOKS_APPROVED = 'хуки Kit одобрены';
+
+/** Steps of a run: the fixed ones around one trust step per registered provider. */
+function stepList(providers: readonly Provider[]): SetupStep[] {
+  const titled: [StepId, string][] = [
+    ['project', 'Папка проекта'],
+    ['git', 'Локальная история (git)'],
+    ['structure', 'Структура Kit'],
+    ['kit', 'Процесс Kit 2.2.2'],
+    ...providers.map((p): [StepId, string] => [`trust-${p.id}`, `Доверие ${providerLabel(p)}${p.approveHooks ? ' и хуки Kit' : ''}`]),
+    ['session', 'Первая сессия'],
+  ];
+  return titled.map(([id, title]) => ({ id, title, status: 'pending', note: null }));
+}
 
 /** Part of the first message that marks the service turn (no session topic in it). */
 export const SERVICE_MESSAGE_MARK = 'создан панелью Workflow Kit';
@@ -117,51 +126,65 @@ export function createProjectSetup(deps: SetupDeps): ProjectSetup {
     }
   }
 
-  async function trustProvider(run: SetupRun, project: Project, id: SetupProvider, choices: Record<string, string>): Promise<{ note?: string | null; skipped?: boolean }> {
-    const provider = deps.providers.get(id);
-    if (!provider) return { skipped: true, note: 'провайдер не подключён' };
-    const preview = await provider.previewTrust(project);
+  // The hook is approved with the command and hash the user saw. A provider that learns the hash
+  // only after trust (Codex and the hook written by the structure step) had nothing to show: its
+  // hook is read until the hash appears.
+  async function approveKitHook(run: SetupRun, project: Project, provider: Provider, shown: HookPreview | undefined): Promise<string> {
+    if (shown) {
+      try {
+        await provider.approveHooks!(project, { command: shown.command, hash: shown.hash });
+      } catch (error) {
+        const code = (error as { code?: unknown }).code;
+        if (code !== 'hash-changed' && code !== 'hooks-changed') throw error;
+        throw new SetupError('hooks-changed', `Хук Kit для ${shown.label} изменился после предпросмотра`, 409, 'Проверьте предпросмотр ещё раз.');
+      }
+      return HOOKS_APPROVED;
+    }
+    for (let attempt = 0; attempt < 15; attempt += 1) {
+      if (run.cancelRequested) throw new Cancelled();
+      const kit = (await provider.hooks(project)).kitHook;
+      if (kit && kit.status === 'approved') return HOOKS_APPROVED;
+      if (kit && kit.hash) {
+        await provider.approveHooks!(project, { command: kit.command, hash: kit.hash });
+        return HOOKS_APPROVED;
+      }
+      await new Promise((resolve) => setTimeout(resolve, pollMs));
+    }
+    return `хуки Kit не одобрены: ${providerLabel(provider)} не показал их — одобрите в «Настройках»`;
+  }
+
+  async function trustProvider(run: SetupRun, project: Project, provider: Provider, choices: Record<string, string>, preview: SetupPreview): Promise<{ note?: string | null; skipped?: boolean }> {
+    const id = provider.id;
+    const trust = await provider.previewTrust(project);
     let note: string | null = null;
-    if (!preview.trusted || preview.writes.length > 0) {
+    if (!trust.trusted || trust.writes.length > 0) {
       const own: Record<string, string> = {};
       for (const [key, value] of Object.entries(choices)) if (key.startsWith(`${id}:`)) own[key.slice(id.length + 1)] = value;
-      const state = await provider.grantTrust(project, preview.token, own);
+      const state = await provider.grantTrust(project, trust.token, own);
       note = state.backup ? `копия до записи: ${state.backup}` : null;
     } else {
       note = 'уже было';
     }
-    if (id === 'codex' && provider.approveHooks) {
-      // hooks/list is read in the background; wait until the Kit hook shows its hash.
-      for (let attempt = 0; attempt < 15; attempt += 1) {
-        if (run.cancelRequested) throw new Cancelled();
-        const hooks = await provider.hooks(project);
-        const kit = hooks.kitHook;
-        if (kit && kit.status === 'approved') return { note: [note, 'хуки Kit одобрены'].filter(Boolean).join('; ') };
-        if (kit && kit.hash) {
-          await provider.approveHooks(project, { command: kit.command, hash: kit.hash });
-          return { note: [note, 'хуки Kit одобрены'].filter(Boolean).join('; ') };
-        }
-        await new Promise((resolve) => setTimeout(resolve, pollMs));
-      }
-      return { note: [note, 'хуки Kit не одобрены: Codex не показал их — одобрите в «Настройках»'].filter(Boolean).join('; ') };
-    }
-    return { note };
+    if (!provider.approveHooks) return { note };
+    const hooks = await approveKitHook(run, project, provider, preview.hooks.find((hook) => hook.provider === id));
+    return { note: [note, hooks].filter(Boolean).join('; ') };
   }
 
-  // Trust of the chosen provider is required; the other provider's trust is best effort: when it is
-  // unavailable or fails, the step is skipped with a note and can be repeated in «Настройки».
+  // Trust of the chosen provider is required; the other providers' trust is best effort: when one is
+  // unavailable or fails, its step is skipped with a note and can be repeated in «Настройки».
   async function trustStep(
     run: SetupRun,
     project: Project,
-    id: SetupProvider,
+    provider: Provider,
     choices: Record<string, string>,
     preview: SetupPreview,
   ): Promise<{ note?: string | null; skipped?: boolean }> {
-    if (id === run.provider) return trustProvider(run, project, id, choices);
+    if (provider.id === run.provider) return trustProvider(run, project, provider, choices, preview);
     const later = 'можно дать позже в «Настройках»';
-    if (!preview.providers[id].available) return { skipped: true, note: `${preview.providers[id].reason ?? 'провайдер недоступен'} — ${later}` };
+    const button = preview.providers.find((entry) => entry.id === provider.id);
+    if (!button?.available) return { skipped: true, note: `${button?.reason ?? 'провайдер недоступен'} — ${later}` };
     try {
-      return await trustProvider(run, project, id, choices);
+      return await trustProvider(run, project, provider, choices, preview);
     } catch (error) {
       if (error instanceof Cancelled) throw error;
       const message = (error instanceof Error ? error.message : String(error)).split('\n')[0]!.slice(0, 160);
@@ -203,8 +226,7 @@ export function createProjectSetup(deps: SetupDeps): ProjectSetup {
       void deps.workflow.refresh(project.id);
       return { note: `Kit ${outcome.result.version}` };
     });
-    await step(run, 'trust-claude', () => trustStep(run, project, 'claude', choices, preview));
-    await step(run, 'trust-codex', () => trustStep(run, project, 'codex', choices, preview));
+    for (const provider of deps.providers.list()) await step(run, `trust-${provider.id}`, () => trustStep(run, project, provider, choices, preview));
     const session = await step<SessionInfo>(run, 'session', async () => {
       const provider = deps.providers.get(run.provider)!;
       const value = await provider.createSession(project, { title: project.name, firstMessage: firstMessage(project.name) });
@@ -230,11 +252,13 @@ export function createProjectSetup(deps: SetupDeps): ProjectSetup {
     async apply(input) {
       const saved = previews.get(input.token);
       if (!saved || saved.expires < deps.now().getTime()) throw new SetupError('preview-expired', 'Предпросмотр устарел', 409, 'Откройте предпросмотр заново.');
-      if (!SETUP_PROVIDERS.includes(input.provider)) throw new SetupError('bad-provider', 'Неизвестный провайдер', 400);
+      const chosen = typeof input.provider === 'string' ? deps.providers.get(input.provider) : undefined;
+      if (!chosen) throw new SetupError('bad-provider', 'Неизвестный провайдер', 400);
       const fresh = await buildPreview(saved.input, deps);
       if (fresh.fingerprint !== saved.fingerprint) throw new SetupError('preview-stale', 'Папка или настройки изменились после предпросмотра', 409, 'Проверьте предпросмотр ещё раз.');
       if (fresh.blocked) throw new SetupError(fresh.blocked.code, fresh.blocked.message, 409, fresh.blocked.commands.join('\n'));
-      if (!fresh.providers[input.provider].available) throw new SetupError('provider-unavailable', fresh.providers[input.provider].reason ?? 'Провайдер недоступен', 409);
+      const button = fresh.providers.find((entry) => entry.id === chosen.id);
+      if (!button?.available) throw new SetupError('provider-unavailable', button?.reason ?? 'Провайдер недоступен', 409);
       const choices = input.choices ?? {};
       for (const choice of fresh.choices) {
         if (choice.required && !choice.options.some((o) => o.id === choices[choice.id])) {
@@ -248,16 +272,17 @@ export function createProjectSetup(deps: SetupDeps): ProjectSetup {
         key: `setup:${preview.path}`,
         kind: 'project.setup',
         title: `Подготовка проекта «${preview.name}»`,
-        scope: { project: null, provider: input.provider },
+        scope: { project: null, provider: chosen.id },
         run: async (handle) => {
           run = {
             operationId: handle.id,
             name: preview.name,
             path: preview.path,
-            provider: input.provider,
+            provider: chosen.id,
+            providerLabel: providerLabel(chosen),
             projectId: null,
             status: 'running',
-            steps: (Object.keys(STEP_TITLES) as StepId[]).map((id) => ({ id, title: STEP_TITLES[id], status: 'pending', note: null })),
+            steps: stepList(deps.providers.list()),
             cancelRequested: false,
             session: null,
             links: {},

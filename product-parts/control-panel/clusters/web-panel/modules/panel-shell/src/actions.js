@@ -184,6 +184,19 @@ export function createActions(options) {
         say('ok', `Опубликовано на GitHub: ${commitsLabel(Number(done.commits) || 0)}, ${String(done.sha).slice(0, 7)}`);
       });
     },
+    /** A provider-level action of the project screen. @param {import('./provider-actions.js').ProviderActionRow} action */
+    runProviderAction(action) {
+      if (action.confirm && !window.confirm(action.confirm)) return;
+      void act(`Не удалось — ${action.label}`, async () => {
+        try {
+          await api('POST', `/api/providers/${encodeURIComponent(action.provider)}/actions/${encodeURIComponent(action.id)}`);
+          say('ok', `${action.label} — запущено`);
+        } catch (error) {
+          // Not needed any more (the state changed meanwhile): the refreshed screen shows it.
+          if (!(error instanceof ApiError && error.code === 'action-disabled')) throw error;
+        }
+      });
+    },
     /** @param {string} projectId @param {SessionRow} session @param {boolean} archived */
     archiveSession(projectId, session, archived) {
       if (archived && !window.confirm(`Убрать сессию «${session.name}» в архив?\n\nВ приложении ${session.providerLabel} она останется; вернуть её можно в «Настройки» → «Архив».`)) return;

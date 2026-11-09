@@ -1,6 +1,7 @@
 // Preview of the project wizard (spec section 7): read-only. It tells what the one consent will
 // do to the folder and the provider configs, and returns a token whose fingerprint must still
-// match when the user presses "Создать и открыть в ChatGPT / Claude".
+// match when the user presses "Создать и открыть в <провайдер>". Providers, their trust and hook
+// actions come from the registry, in its order.
 import { createHash } from 'node:crypto';
 import { realpath, stat } from 'node:fs/promises';
 import path from 'node:path';
@@ -9,10 +10,11 @@ import { checkStructure } from '#kit-structure';
 import type { Project, ProjectRegistry } from '#project-registry';
 import { checkProjectName, resolveInsideHome } from '#project-registry';
 import type { CommandRunner } from '#process-supervisor';
-import type { ProviderRegistry, TrustChoice } from '#provider-registry';
+import { providerLabel, providerMark } from '#provider-registry';
+import type { HookEntry, ProviderRegistry, TrustChoice, TrustWrite } from '#provider-registry';
 
-export type SetupProvider = 'codex' | 'claude';
-export const SETUP_PROVIDERS: readonly SetupProvider[] = ['codex', 'claude'];
+/** Id of a registered provider. */
+export type SetupProvider = string;
 
 /** Files Kit 2.2.2 writes on install (verified with `install --host harness`). */
 export const KIT_INSTALL_FILES: readonly string[] = [
@@ -39,16 +41,32 @@ export type PreviewInput = { mode: 'create'; name: string } | { mode: 'open'; pa
 
 export type KitAction = 'install' | 'update' | 'open';
 
+/** `structure`, `kit`, `git`, then `trust-<provider>` and `hooks-<provider>` per registered provider. */
 export interface SetupAction {
-  id: 'structure' | 'kit' | 'git' | 'trust-claude' | 'trust-codex' | 'hooks-codex';
+  id: string;
   title: string;
   detail: string;
 }
 
 /** A provider button of the wizard. */
 export interface ProviderButton {
+  id: SetupProvider;
+  /** Short name and letter of the button ("ChatGPT", "G"). */
+  label: string;
+  mark: string;
   available: boolean;
   reason: string | null;
+}
+
+/** A Kit hook that apply approves with exactly this command and hash; `writes` is what gets written. */
+export interface HookPreview {
+  provider: SetupProvider;
+  label: string;
+  status: HookEntry['status'];
+  command: string;
+  hash: string;
+  writes: TrustWrite[];
+  note: string | null;
 }
 
 export interface SetupPreview {
@@ -66,7 +84,10 @@ export interface SetupPreview {
   choices: TrustChoice[];
   /** Why nothing can be applied (no git identity); null when the buttons work. */
   blocked: { code: string; message: string; commands: string[] } | null;
-  providers: Record<SetupProvider, ProviderButton>;
+  /** Buttons in the registry order. */
+  providers: ProviderButton[];
+  /** Kit hooks that are not approved yet and whose hash is already known. */
+  hooks: HookPreview[];
   notes: string[];
 }
 
@@ -129,6 +150,16 @@ async function gitValue(deps: PreviewDeps, cwd: string, args: string[]): Promise
   return result.code === 0 ? result.stdout.trim() || null : null;
 }
 
+/** A path under the home folder as ~/…; others as they are. */
+function shortPath(file: string, homedir: string): string {
+  if (!path.isAbsolute(file)) return file;
+  const rest = path.relative(homedir, file);
+  return rest && !rest.startsWith('..') && !path.isAbsolute(rest) ? `~/${rest.split(path.sep).join('/')}` : file;
+}
+
+const filesOf = (writes: TrustWrite[], homedir: string): string => [...new Set(writes.map((write) => shortPath(write.file, homedir)))].join(', ');
+const errorText = (error: unknown): string => (error instanceof Error ? error.message : String(error));
+
 /** A project object for provider previews of a folder that is not registered yet. */
 export function draftProject(name: string, folder: string, now: Date): Project {
   return { id: 'setup-preview', name, path: folder, source: 'opened', createdAt: now.toISOString() };
@@ -186,28 +217,6 @@ export async function buildPreview(input: PreviewInput, deps: PreviewDeps): Prom
   const files = [...new Set([...structureFiles, ...(structure && structure.installedVersion !== null ? [] : ['.workflow-kit/manifest.json']), ...(kitAction === 'install' ? KIT_INSTALL_FILES : [])])].sort();
 
   const draft = draftProject(name, folder, deps.now());
-  const choices: TrustChoice[] = [];
-  const providers = {} as Record<SetupProvider, ProviderButton>;
-  const trusted: Record<string, boolean | null> = {};
-  for (const id of SETUP_PROVIDERS) {
-    const provider = deps.providers.get(id);
-    if (!provider) {
-      providers[id] = { available: false, reason: 'Провайдер не подключён' };
-      continue;
-    }
-    const caps = await provider.capabilities().catch(() => ({}) as Record<string, { available: boolean; reason?: string }>);
-    const create = caps['createSession'];
-    providers[id] = { available: create?.available === true, reason: create?.available ? null : (create?.reason ?? 'Создание сессий недоступно') };
-    try {
-      const trust = await provider.previewTrust(draft);
-      trusted[id] = trust.trusted && trust.writes.length === 0;
-      for (const choice of trust.choices ?? []) choices.push({ ...choice, id: `${id}:${choice.id}` });
-    } catch (error) {
-      trusted[id] = null;
-      if (exists) notes.push(`${provider.title}: ${error instanceof Error ? error.message : String(error)}`);
-    }
-  }
-
   const actions: SetupAction[] = [
     { id: 'structure', title: 'Структура Kit в папке', detail: 'AGENTS.md, CLAUDE.md, хуки начала сессии, конца хода и нового сообщения, шаблоны product-parts' },
     {
@@ -216,16 +225,55 @@ export async function buildPreview(input: PreviewInput, deps: PreviewDeps): Prom
       detail: kitAction === 'install' ? 'установка: план, задачи, проверки' : kitAction === 'update' ? `обновление с ${kitVersion ?? 'старой версии'}` : 'уже установлен',
     },
     { id: 'git', title: 'Локальная история проекта (git)', detail: repository ? 'уже есть' : 'будет создана' },
-    { id: 'trust-claude', title: 'Доверие папке в Claude', detail: trusted['claude'] ? 'уже есть' : 'копия ~/.claude.json до записи' },
-    { id: 'trust-codex', title: 'Доверие папке в ChatGPT (Codex)', detail: trusted['codex'] ? 'уже есть' : 'копия ~/.codex/config.toml до записи' },
-    { id: 'hooks-codex', title: 'Хуки Kit для ChatGPT одобрены по хешу', detail: 'чтобы Kit видел ходы сессий' },
   ];
+  const choices: TrustChoice[] = [];
+  const providers: ProviderButton[] = [];
+  const hooks: HookPreview[] = [];
+  // [provider, trusted, hook status, hook hash]: part of the fingerprint.
+  const providerState: [string, boolean | null, string | null, string | null][] = [];
+  for (const provider of deps.providers.list()) {
+    const id = provider.id;
+    const label = providerLabel(provider);
+    const caps = await provider.capabilities().catch(() => ({}) as Record<string, { available: boolean; reason?: string }>);
+    const create = caps['createSession'];
+    providers.push({ id, label, mark: providerMark(provider), available: create?.available === true, reason: create?.available ? null : (create?.reason ?? 'Создание сессий недоступно') });
+    let trusted: boolean | null = null;
+    let trustDetail = 'запишет провайдер';
+    try {
+      const trust = await provider.previewTrust(draft);
+      trusted = trust.trusted && trust.writes.length === 0;
+      if (trusted) trustDetail = 'уже есть';
+      else if (trust.writes.length > 0) trustDetail = `копия ${filesOf(trust.writes, deps.homedir)} до записи`;
+      for (const choice of trust.choices ?? []) choices.push({ ...choice, id: `${id}:${choice.id}` });
+    } catch (error) {
+      if (exists) notes.push(`${provider.title}: ${errorText(error)}`);
+    }
+    actions.push({ id: `trust-${id}`, title: `Доверие папке в ${label}`, detail: trustDetail });
+    let kitHook: HookEntry | null = null;
+    if (provider.approveHooks) {
+      let detail = 'одобрение по хешу, чтобы Kit видел ходы сессий';
+      try {
+        const state = await provider.hooks(draft);
+        kitHook = state.kitHook;
+        if (kitHook?.status === 'approved') detail = 'уже одобрены';
+        else if (kitHook && kitHook.hash) {
+          const writes = state.writes ?? [];
+          hooks.push({ provider: id, label, status: kitHook.status, command: kitHook.command, hash: kitHook.hash, writes, note: state.note ?? null });
+          if (writes.length > 0) detail = `запись в ${filesOf(writes, deps.homedir)} — текст показан ниже`;
+        }
+      } catch (error) {
+        if (exists) notes.push(`${provider.title}, хуки: ${errorText(error)}`);
+      }
+      actions.push({ id: `hooks-${id}`, title: `Хуки Kit для ${label}`, detail });
+    }
+    providerState.push([id, trusted, kitHook?.status ?? null, kitHook?.hash || null]);
+  }
   const blocked = identity
     ? null
     : { code: 'GIT_IDENTITY_REQUIRED', message: 'Git не знает ваше имя и почту: без них Kit не сделает ни одного коммита. Выполните в терминале:', commands: [...IDENTITY_COMMANDS] };
 
   const fingerprint = createHash('sha256')
-    .update(JSON.stringify({ input, folder, exists, repository, identity, kitState, kitVersion, kitAction, structure: structure?.fragments.map((f) => [f.id, f.status]) ?? null, choices: choices.map((c) => [c.id, c.options.map((o) => o.id)]), trusted }))
+    .update(JSON.stringify({ input, folder, exists, repository, identity, kitState, kitVersion, kitAction, structure: structure?.fragments.map((f) => [f.id, f.status]) ?? null, choices: choices.map((c) => [c.id, c.options.map((o) => o.id)]), providers: providerState }))
     .digest('hex')
     .slice(0, 24);
   return {
@@ -240,6 +288,7 @@ export async function buildPreview(input: PreviewInput, deps: PreviewDeps): Prom
     choices,
     blocked,
     providers,
+    hooks,
     notes,
     fingerprint,
   };

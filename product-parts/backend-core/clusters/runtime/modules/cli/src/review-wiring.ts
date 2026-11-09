@@ -11,7 +11,7 @@ import type { Router, StateRegistry } from '#http-server';
 import { ANSWER_MESSAGES, registerPlanQuestionRoute } from '#plan-review';
 import type { ReviewToggles } from '#plan-review';
 import type { ProjectRegistry } from '#project-registry';
-import { providerCapability } from '#provider-registry';
+import { providerCapability, providerLabel } from '#provider-registry';
 import type { ProviderRegistry } from '#provider-registry';
 import { TitleError, namedSession } from '#session-titles';
 import type { SessionTitles } from '#session-titles';
@@ -117,7 +117,10 @@ export function wireCrossReview(options: {
     asking: (projectId) => options.toggles.asking(projectId),
     decided: (projectId, key) => options.toggles.decided(projectId, key),
     askProposal: async (projectId, key) => void (await options.toggles.ask(projectId, key, 'proposal', '')),
-    providerTitle: (id) => providers.get(id)?.title ?? id,
+    providerTitle: (id) => {
+      const provider = providers.get(id);
+      return provider ? providerLabel(provider) : id;
+    },
     reviewerBlocked: async (id) => {
       const capability = await providerCapability(providers.get(id), 'reviewer');
       return capability.available ? null : (capability.reason ?? 'провайдер не может вести ревью');

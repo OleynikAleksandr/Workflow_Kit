@@ -8,8 +8,8 @@
 Провайдер Codex по контракту `provider-registry`
 (`docs/planning/M1-providers.md`, раздел 3): CLI и фоновый демон
 app-server на весь Mac, доверие к папке, одобрение хука Kit, сессии,
-которые открываются в ChatGPT на Mac и iPad. Название в панели —
-«ChatGPT (Codex)».
+которые открываются в ChatGPT на Mac и iPad. Имя — «ChatGPT (Codex)»,
+`label` «ChatGPT», `mark` G.
 
 ## Публичный интерфейс (`src/index.ts`)
 

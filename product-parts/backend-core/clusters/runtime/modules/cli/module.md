@@ -52,8 +52,8 @@ stripping).
   `stop()` (останавливает слежение и сервер). Опции: `env`, `platform`, `homedir`, `getInterfaces`,
   `osInput`, `log`, `providers` (фабрики вместо `DEFAULT_PROVIDERS`),
   `runCommand` (исполнитель внешних программ для провайдеров), `supervisor`.
-- `PROVIDER_ENTRIES` (`src/provider-list.ts`) — провайдеры службы в порядке панели,
-  `{ id, create }`: единственный список бэкенда, где они названы (`createProvider` из
+- `PROVIDER_ENTRIES` (`src/provider-list.ts`) — провайдеры службы в порядке панели
+  (ChatGPT, Claude: так идут кнопки мастера и шаги доверия), `{ id, create }`: единственный список бэкенда, где они названы (`createProvider` из
   `#provider-claude` и `#provider-codex`); `DEFAULT_PROVIDERS` — их фабрики,
   `PROVIDER_IDS` — их id (по ним `wfk hook` проверяет `--client`; тест сверяет id с
   реестром); `SESSION_ENV` — таблица `{ client, variable }`: в какой переменной окружения

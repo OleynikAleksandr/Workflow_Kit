@@ -1,5 +1,5 @@
-// The wizard end to end on a temporary HOME: real git and the real Kit 2.2.2 bundle, fake Claude
-// and Codex providers that record what the wizard asks of them.
+// The wizard end to end on a temporary HOME: real git and the real Kit 2.2.2 bundle, fake Codex,
+// Claude and a third provider (a hook written into a file) that record what the wizard asks.
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
@@ -8,6 +8,7 @@ import path from 'node:path';
 import { after, before, test } from 'node:test';
 import { createApp } from '#cli';
 import type { App } from '#cli';
+import { ProviderError } from '#provider-registry';
 import type { Provider, ProviderFactory } from '#provider-registry';
 
 let tmp = '';
@@ -16,20 +17,32 @@ let app: App;
 let base = '';
 const calls: string[] = [];
 let codexTrustFails = false;
+/** Hash of the third provider's hook as its preview shows it and as its file really is. */
+let thirdShown = 'sha256:t1';
+let thirdReal = 'sha256:t1';
 
-function fakeProvider(id: 'claude' | 'codex'): ProviderFactory {
+const TITLES: Record<string, { title: string; label?: string; mark?: string }> = {
+  codex: { title: 'ChatGPT (Codex)', label: 'ChatGPT', mark: 'G' },
+  claude: { title: 'Claude' },
+  third: { title: 'Третий', mark: 'т' },
+};
+
+function fakeProvider(id: 'claude' | 'codex' | 'third'): ProviderFactory {
   return () => {
     const trusted = new Set<string>();
-    let approved = false;
+    const hookState = (): { command: string; hash: string } => (id === 'third' ? { command: '[[hooks]] third', hash: thirdShown } : { command: 'kit', hash: 'sha256:k' });
+    // An approval holds for the hash it was given for.
+    const approvedHashes = new Set<string>();
+    const isApproved = (): boolean => approvedHashes.has(hookState().hash);
     const provider: Partial<Provider> = {
       id,
-      title: id === 'codex' ? 'Codex' : 'Claude',
+      ...TITLES[id]!,
       capabilities: async () => ({ createSession: { available: true }, trust: { available: true } }),
       status: async () => ({ installed: true }) as never,
       previewTrust: async (project) => ({
         provider: id,
         trusted: trusted.has(project.path),
-        writes: trusted.has(project.path) ? [] : [{ file: `~/.${id}`, key: 'trust', value: 'trusted', description: 'trust' }],
+        writes: trusted.has(project.path) ? [] : [{ file: path.join(home, `.${id}`, 'config'), key: 'trust', value: 'trusted', description: 'trust' }],
         autorun: [],
         token: `tok-${id}`,
         expiresAt: new Date(Date.now() + 60_000).toISOString(),
@@ -42,15 +55,22 @@ function fakeProvider(id: 'claude' | 'codex'): ProviderFactory {
       },
       trust: async (project) => ({ trusted: trusted.has(project.path) }),
       hooks: async () => ({
-        kitHook: { command: 'kit', hash: 'sha256:k', kit: true, status: approved ? 'approved' : 'pending' },
+        kitHook: { ...hookState(), kit: true, status: isApproved() ? 'approved' : 'pending' },
         hooks: [],
-        complete: approved,
+        complete: isApproved(),
+        ...(id === 'third' ? { writes: [{ file: path.join(home, '.third', 'config.toml'), description: 'хук конца хода', value: '[[hooks]] third' }], note: 'хук общий для всех проектов' } : {}),
       }),
-      approveHooks: async (_project, expected) => {
-        calls.push(`${id}:approve:${expected.hash}`);
-        approved = true;
-        return { kitHook: null, hooks: [], complete: true };
-      },
+      // Claude has no hook approval, as the real provider.
+      ...(id === 'claude'
+        ? {}
+        : {
+            approveHooks: async (_project, expected) => {
+              if (id === 'third' && expected.hash !== thirdReal) throw new ProviderError('hooks-changed', 'config changed', { status: 409 });
+              calls.push(`${id}:approve:${expected.command}:${expected.hash}`);
+              approvedHashes.add(expected.hash);
+              return { kitHook: null, hooks: [], complete: true };
+            },
+          }),
       listSessions: async () => [],
       createSession: async (project, opts) => {
         calls.push(`${id}:session:${opts.title}:${opts.firstMessage ?? ''}`);
@@ -83,7 +103,7 @@ before(async () => {
     env: { PATH: process.env['PATH'], HOME: home, GIT_CONFIG_GLOBAL: path.join(home, '.gitconfig'), GIT_CONFIG_NOSYSTEM: '1', WFK_DATA_DIR: path.join(tmp, 'data'), WFK_PORT: '0' },
     homedir: home,
     getInterfaces: () => ({}),
-    providers: [fakeProvider('claude'), fakeProvider('codex')],
+    providers: [fakeProvider('codex'), fakeProvider('claude'), fakeProvider('third')],
   });
   base = `http://127.0.0.1:${(await app.start()).port}`;
 });
@@ -111,8 +131,24 @@ test('create: preview, one consent, then everything happens and the session link
   assert.equal(p['exists'], false);
   assert.ok(p['changes'].count > 15);
   assert.ok(p['changes'].files.includes('.harness/workflow/runtime/workflow.mjs'));
-  assert.deepEqual(p['actions'].map((a: { id: string }) => a.id), ['structure', 'kit', 'git', 'trust-claude', 'trust-codex', 'hooks-codex']);
-  assert.equal(p['providers'].codex.available, true);
+  // Buttons, trust and hook actions follow the registry: nothing is named in the wizard itself.
+  assert.deepEqual(p['actions'].map((a: { id: string }) => a.id), ['structure', 'kit', 'git', 'trust-codex', 'hooks-codex', 'trust-claude', 'trust-third', 'hooks-third']);
+  assert.deepEqual(p['providers'], [
+    { id: 'codex', label: 'ChatGPT', mark: 'G', available: true, reason: null },
+    { id: 'claude', label: 'Claude', mark: 'C', available: true, reason: null },
+    { id: 'third', label: 'Третий', mark: 'Т', available: true, reason: null },
+  ]);
+  const byId = Object.fromEntries(p['actions'].map((a: { id: string; title: string; detail: string }) => [a.id, a]));
+  assert.equal(byId['trust-codex'].title, 'Доверие папке в ChatGPT');
+  assert.equal(byId['trust-third'].detail, 'копия ~/.third/config до записи');
+  assert.equal(byId['hooks-third'].detail, 'запись в ~/.third/config.toml — текст показан ниже');
+  // What a hook approval writes is shown before the consent, with the hash that will be approved.
+  assert.deepEqual(p['hooks'].map((h: { provider: string; hash: string }) => [h.provider, h.hash]), [['codex', 'sha256:k'], ['third', 'sha256:t1']]);
+  const third = p['hooks'][1];
+  assert.equal(third.label, 'Третий');
+  assert.equal(third.command, '[[hooks]] third');
+  assert.equal(third.note, 'хук общий для всех проектов');
+  assert.deepEqual(third.writes, [{ file: path.join(home, '.third', 'config.toml'), description: 'хук конца хода', value: '[[hooks]] third' }]);
 
   const applied = await send('/api/setup/apply', { token: p['token'], provider: 'codex' });
   assert.equal(applied.status, 202, JSON.stringify(applied.json));
@@ -124,10 +160,13 @@ test('create: preview, one consent, then everything happens and the session link
     ['git', 'done'],
     ['structure', 'done'],
     ['kit', 'done'],
-    ['trust-claude', 'done'],
     ['trust-codex', 'done'],
+    ['trust-claude', 'done'],
+    ['trust-third', 'done'],
     ['session', 'done'],
   ]);
+  assert.deepEqual(run.steps.filter((s) => s.id.startsWith('trust-')).map((s) => s.title), ['Доверие ChatGPT и хуки Kit', 'Доверие Claude', 'Доверие Третий и хуки Kit']);
+  assert.equal(run.providerLabel, 'ChatGPT');
   assert.equal(run.links.desktop, 'codex://threads/thread-1');
   const folder = p['path'] as string;
   const log = git(folder, 'log', '--format=%s');
@@ -135,7 +174,13 @@ test('create: preview, one consent, then everything happens and the session link
   assert.match(log, /chore: add Workflow Kit structure/);
   assert.equal(git(folder, 'status', '--porcelain'), '', 'the tree is clean after the wizard');
   assert.match(await readFile(path.join(folder, 'AGENTS.md'), 'utf8'), /wfk session title/);
-  assert.deepEqual(calls.filter((c) => !c.includes(':session:')), ['claude:grant:tok-claude', 'codex:grant:tok-codex', 'codex:approve:sha256:k']);
+  assert.deepEqual(calls.filter((c) => !c.includes(':session:')), [
+    'codex:grant:tok-codex',
+    'codex:approve:kit:sha256:k',
+    'claude:grant:tok-claude',
+    'third:grant:tok-third',
+    'third:approve:[[hooks]] third:sha256:t1',
+  ]);
   assert.match(calls.find((c) => c.startsWith('codex:session:'))!, /^codex:session:Склад:Проект «Склад» создан панелью Workflow Kit\. Прочитай AGENTS\.md/);
   assert.ok((await app.projects.list()).some((project) => project.path === folder));
 
@@ -218,5 +263,44 @@ test('the other provider\'s trust is best effort; the chosen provider\'s trust i
     assert.equal(app.setup.get(failed.json['operationId'])!.steps.find((s) => s.id === 'trust-codex')!.status, 'failed');
   } finally {
     codexTrustFails = false;
+  }
+});
+
+test('a hook is approved with the shown hash; a hook changed after the preview is refused', async () => {
+  // The hash is part of the fingerprint: a hook that changed before the consent makes the preview stale.
+  const first = await send('/api/setup/preview', { mode: 'create', name: 'Хук1' });
+  thirdShown = thirdReal = 'sha256:t2';
+  try {
+    const stale = await send('/api/setup/apply', { token: first.json['token'], provider: 'third' });
+    assert.equal(stale.status, 409);
+    assert.equal(stale.json['error'].code, 'preview-stale');
+
+    // The file changes while the wizard runs: the provider is asked with the shown hash, not a re-read one.
+    const second = await send('/api/setup/preview', { mode: 'create', name: 'Хук2' });
+    assert.equal(second.json['hooks'].find((h: { provider: string }) => h.provider === 'third').hash, 'sha256:t2');
+    thirdReal = 'sha256:t3';
+    const applied = await send('/api/setup/apply', { token: second.json['token'], provider: 'third' });
+    const operation = await app.operations.wait(applied.json['operationId']);
+    assert.equal(operation.status, 'failed');
+    const run = app.setup.get(applied.json['operationId'])!;
+    assert.equal(run.error?.code, 'hooks-changed');
+    assert.equal(run.error?.hint, 'Проверьте предпросмотр ещё раз.');
+    assert.equal(run.steps.find((s) => s.id === 'trust-third')!.status, 'failed');
+    assert.equal(run.steps.find((s) => s.id === 'session')!.status, 'pending');
+    assert.ok(!calls.some((c) => c.startsWith('third:approve:') && c.endsWith(':sha256:t2')), 'nothing was approved');
+
+    // For a provider that is not the chosen one the step is skipped with a note.
+    const other = await send('/api/setup/preview', { mode: 'create', name: 'Хук3' });
+    const done = await send('/api/setup/apply', { token: other.json['token'], provider: 'claude' });
+    assert.equal((await app.operations.wait(done.json['operationId'])).status, 'succeeded');
+    const step = app.setup.get(done.json['operationId'])!.steps.find((s) => s.id === 'trust-third')!;
+    assert.equal(step.status, 'skipped');
+    assert.match(step.note!, /^не получилось: Хук Kit для Третий изменился после предпросмотра/);
+
+    const unknown = await send('/api/setup/apply', { token: (await send('/api/setup/preview', { mode: 'create', name: 'Хук4' })).json['token'], provider: 'nobody' });
+    assert.equal(unknown.status, 400);
+    assert.equal(unknown.json['error'].code, 'bad-provider');
+  } finally {
+    thirdShown = thirdReal = 'sha256:t1';
   }
 });

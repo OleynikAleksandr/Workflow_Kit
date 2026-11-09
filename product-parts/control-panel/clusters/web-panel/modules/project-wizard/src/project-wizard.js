@@ -2,7 +2,7 @@
 // The project wizard (spec section 7): name or folder → preview with one consent → preparation
 // steps with «Отменить подготовку» → the chat of the first session opens by itself. Panel extension:
 // install(shell) fills the "newProject" slot of panel-shell.
-import { buttonViews, chatTarget, choiceViews, findRun, listedSessionKey, previewView, runView, validAnswers } from './wizard-model.js';
+import { actionsKey, buttonViews, chatTarget, choiceViews, findRun, listedSessionKey, previewView, providerActionViews, runView, validAnswers } from './wizard-model.js';
 
 /**
  * Helpers the panel shell gives to extensions (see panel-shell app.js).
@@ -51,6 +51,8 @@ function createWizard(shell, ctx) {
   let navigated = false;
   let busy = false;
   let runKey = '';
+  /** A run refused with hooks-changed got its new preview already. */
+  let repreviewed = false;
   /** @type {Record<string, unknown>} */
   let state = {};
   /** When the preview was last read: a provider that is not ready is re-checked every few seconds. */
@@ -88,7 +90,7 @@ function createWizard(shell, ctx) {
   const picker = shell.createFolderPicker({
     idPrefix: 'wizard-picker',
     pickLabel: 'Выбрать эту папку',
-    onPick: (path) => loadPreview({ mode: 'open', path }),
+    onPick: async (path) => void (await loadPreview({ mode: 'open', path })),
     onClose: () => ctx.navigate({ screen: 'home' }),
   });
   const nameTitle = h('h2', {}, ['Новый проект']);
@@ -96,9 +98,9 @@ function createWizard(shell, ctx) {
   const cancelName = button('Отмена', () => ctx.navigate({ screen: 'home' }), 'text-btn');
   const namePanel = h('div', { class: 'panel panel-form' }, [nameTitle, nameLead, nameForm, picker.element, cancelName]);
 
-  /** @param {PreviewRequest} input */
+  /** @param {PreviewRequest} input @returns {Promise<boolean>} whether the preview is shown */
   async function loadPreview(input) {
-    if (busy) return;
+    if (busy) return false;
     busy = true;
     next.disabled = true;
     notice(message, 'muted', '');
@@ -109,8 +111,10 @@ function createWizard(shell, ctx) {
       answers = {};
       stage = 'preview';
       draw();
+      return true;
     } catch (error) {
       fail(error);
+      return false;
     } finally {
       busy = false;
       next.disabled = false;
@@ -128,9 +132,11 @@ function createWizard(shell, ctx) {
     try {
       const fresh = await shell.api('POST', '/api/setup/preview', request);
       if (stage !== 'preview' || !preview) return;
-      const before = JSON.stringify(buttonViews(preview, answers));
+      /** @param {Record<string, any>} p */
+      const shown = (p) => JSON.stringify([buttonViews(p, answers), p['hooks']]);
+      const before = shown(preview);
       preview = fresh;
-      if (JSON.stringify(buttonViews(fresh, answers)) !== before) draw();
+      if (shown(fresh) !== before) draw();
     } catch {
       // The next state update tries again.
     } finally {
@@ -148,6 +154,7 @@ function createWizard(shell, ctx) {
       operationId = String(result?.operationId ?? '');
       opened = false;
       navigated = false;
+      repreviewed = false;
       runKey = '';
       stage = 'run';
       ctx.requestRefresh();
@@ -191,6 +198,8 @@ function createWizard(shell, ctx) {
       h('p', {}, [view.lead]),
       h('div', { class: 'path-box' }, [view.path]),
       h('ul', { class: 'checks' }, view.actions.map((a) => h('li', {}, [h('span', { class: 'ok' }, ['✓']), h('span', {}, [a.title, h('small', {}, [a.detail])])]))),
+      // A hook is approved exactly as shown here: its text and hash go into the consent.
+      ...view.hooks.map((hook) => h('div', { class: 'wizard-hook' }, [h('strong', {}, [hook.title]), h('small', {}, [hook.meta]), h('pre', {}, [hook.text]), hook.note ? h('small', {}, [hook.note]) : null])),
       h('details', {}, [h('summary', {}, [view.changesLabel]), h('ul', { class: 'wizard-files' }, view.files.map((f) => h('li', {}, [f])))]),
       ...choices,
       view.blocked ? h('div', { class: 'notice notice-error' }, [h('p', {}, [view.blocked.message]), ...view.blocked.commands.map((c) => h('p', {}, [code(c)]))]) : null,
@@ -215,25 +224,24 @@ function createWizard(shell, ctx) {
   }
 
   /**
-   * Actions of the providers whose button is off because the provider is not ready (for example
-   * «Запустить демон» of Codex): the settings have no provider cards any more.
+   * Provider-level actions of every provider: as buttons for a provider whose button is off (for
+   * example «Запустить демон» of Codex), folded under «Действия провайдеров» for a ready one.
    * @param {Array<{ provider: string, enabled: boolean }>} buttons
    */
   function providerActions(buttons) {
-    const summaries = /** @type {any[]} */ (Array.isArray(/** @type {any} */ (state['providers'])?.providers) ? /** @type {any} */ (state['providers']).providers : []);
-    const off = new Set(buttons.filter((b) => !b.enabled).map((b) => b.provider));
-    return summaries
-      .filter((p) => off.has(p?.id) && Array.isArray(p.actions))
-      .flatMap((p) => p.actions.filter((/** @type {any} */ a) => a?.scope === 'provider' && a.enabled).map((/** @type {any} */ a) =>
-        button(`${p.title ?? p.id}: ${a.title}`, () => void runProviderAction(String(p.id), a), 'btn primary')));
+    const views = providerActionViews(state, buttons);
+    /** @param {import('./wizard-model.js').ProviderActionView} a @param {string} cls */
+    const node = (a, cls) => button(a.label, () => void runProviderAction(a), cls);
+    const more = views.more.length > 0 ? [h('details', {}, [h('summary', {}, ['Действия провайдеров']), h('div', { class: 'row' }, views.more.map((a) => node(a, 'btn')))])] : [];
+    return [...views.primary.map((a) => node(a, 'btn primary')), ...more];
   }
 
-  /** @param {string} provider @param {{ id: string, title: string, confirm?: string }} action */
-  async function runProviderAction(provider, action) {
+  /** @param {import('./wizard-model.js').ProviderActionView} action */
+  async function runProviderAction(action) {
     if (action.confirm && !window.confirm(action.confirm)) return;
     try {
       notice(message, 'muted', `${action.title}…`);
-      await shell.api('POST', `/api/providers/${encodeURIComponent(provider)}/actions/${encodeURIComponent(action.id)}`);
+      await shell.api('POST', `/api/providers/${encodeURIComponent(action.provider)}/actions/${encodeURIComponent(action.id)}`);
       ctx.requestRefresh();
       // The preview tells whether the provider is ready now.
       setTimeout(() => {
@@ -262,7 +270,6 @@ function createWizard(shell, ctx) {
     const run = operationId ? findRun(state, operationId) : null;
     if (!run) return h('div', { class: 'panel' }, [h('h2', {}, ['Готовим проект']), h('ul', { class: 'checks' }, [h('li', {}, [h('span', { class: 'spin' }), 'Запускаем подготовку…'])])]);
     const view = runView(run);
-    const provider = run['provider'] === 'claude' ? 'Claude' : 'ChatGPT';
     // The chat opens by itself in the app and the panel goes to the session screen as soon as the
     // session is listed: no «Открыть чат» / «Перейти к сессии» (user decision 2026-11-06).
     if (view.status === 'succeeded' && !opened) {
@@ -273,11 +280,13 @@ function createWizard(shell, ctx) {
     const actions = [];
     if (view.canCancel) actions.push(button('Отменить подготовку', () => void cancel()));
     if (view.status === 'failed' || view.status === 'cancelled') {
-      actions.push(button('Повторить', () => request && void loadPreview(request), 'btn primary'));
+      // The folder of a registered project exists already: its preview is the one of «Открыть».
+      const again = view.projectId ? /** @type {PreviewRequest} */ ({ mode: 'open', path: String(run['path'] ?? '') }) : request;
+      actions.push(button('Повторить', () => again && void loadPreview(again), 'btn primary'));
       actions.push(button('Закрыть', () => ctx.navigate(view.projectId ? { screen: 'project', projectId: view.projectId } : { screen: 'home' })));
     }
     return h('div', { class: 'screen' }, [
-      h('div', { class: 'screen-head' }, [h('h1', {}, [String(run['name'] ?? '')]), h('div', { class: 'sub' }, [`${String(run['path'] ?? '')} · первая сессия в ${provider}`])]),
+      h('div', { class: 'screen-head' }, [h('h1', {}, [String(run['name'] ?? '')]), h('div', { class: 'sub' }, [`${String(run['path'] ?? '')} · первая сессия в ${view.providerLabel}`])]),
       h('div', { class: 'panel' }, [
         h('h2', {}, [view.title]),
         h('ul', { class: 'checks' }, view.steps.map((s) =>
@@ -338,6 +347,7 @@ function createWizard(shell, ctx) {
         operationId = null;
         opened = false;
         navigated = false;
+        repreviewed = false;
         runKey = '';
         actionKey = '';
         nameInput.value = '';
@@ -351,7 +361,7 @@ function createWizard(shell, ctx) {
         const waiting = buttonViews(preview, answers).some((b) => !b.enabled);
         if (waiting && Date.now() - previewAt > PREVIEW_RECHECK_MS) void refreshPreview();
         // The provider actions follow the providers section of the new state (redrawn only on change).
-        const key = waiting ? actionsKey(nextState) : '';
+        const key = actionsKey(nextState);
         if (key !== actionKey) {
           actionKey = key;
           draw();
@@ -362,6 +372,15 @@ function createWizard(shell, ctx) {
       const run = findRun(nextState, operationId);
       // The session may be listed after the run stopped changing: the check runs on every state.
       const view = run ? runView(run) : null;
+      // A hook changed between the preview and its approval: nothing was approved, the new preview
+      // shows the new text (the folder exists by now, so it is the preview of «Открыть»).
+      if (run && view?.status === 'failed' && view.errorCode === 'hooks-changed' && !repreviewed) {
+        repreviewed = true;
+        void loadPreview({ mode: 'open', path: String(run['path'] ?? '') }).then((shown) => {
+          if (shown) notice(message, 'muted', 'Хук изменился после предпросмотра и не был одобрен: проверьте обновлённый предпросмотр и нажмите кнопку ещё раз.');
+        });
+        return;
+      }
       const listed = view?.status === 'succeeded' && view.projectId && view.session && !navigated ? listedSessionKey(nextState, view.projectId, view.session) : null;
       if (view?.projectId && listed) {
         navigated = true;
@@ -375,14 +394,5 @@ function createWizard(shell, ctx) {
       draw();
     },
   };
-}
-
-/**
- * The provider-level actions of the state, as a key that changes when any of them changes.
- * @param {Record<string, unknown>} state
- */
-function actionsKey(state) {
-  const providers = /** @type {{ providers?: Array<{ id?: unknown, actions?: unknown }> }} */ (state['providers'] ?? {}).providers ?? [];
-  return JSON.stringify(providers.map((p) => [p.id, p.actions]));
 }
 

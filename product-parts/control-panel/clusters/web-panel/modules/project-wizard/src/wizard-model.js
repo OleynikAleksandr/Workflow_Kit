@@ -2,12 +2,6 @@
 // Pure models of the project wizard (spec section 7): the preview with its choices and buttons, the
 // steps of a run from the "setup" section and where the chat link opens. No DOM; node --test.
 
-/** The two first-session buttons, ChatGPT first as in the mockup. */
-export const PROVIDERS = Object.freeze([
-  { id: 'codex', label: 'ChatGPT', letter: 'G' },
-  { id: 'claude', label: 'Claude', letter: 'C' },
-]);
-
 /** Step marks of a run: done, running (spinner), waiting, skipped, failed. */
 export const STEP_MARKS = Object.freeze({ done: '✓', running: '', pending: '○', skipped: '–', failed: '✕' });
 
@@ -98,17 +92,64 @@ export function validAnswers(preview, answers) {
 export function buttonViews(preview, answers) {
   const blocked = record(preview['blocked']);
   const missing = choiceViews(preview, answers).find((c) => c.required && !c.answered);
-  const providers = record(preview['providers']);
-  return PROVIDERS.map((p) => {
-    const info = record(providers[p.id]);
+  // One button per registered provider, in the order of the preview (the order of the registry).
+  return (Array.isArray(preview['providers']) ? preview['providers'] : []).map((entry) => {
+    const info = record(entry);
+    const id = String(info['id'] ?? '');
+    const label = text(info['label']) ?? id;
     /** @type {string | null} */
     let reason = null;
     if (typeof blocked['message'] === 'string') reason = blocked['message'];
-    else if (info['available'] !== true) reason = typeof info['reason'] === 'string' ? info['reason'] : `${p.label} недоступен`;
+    else if (info['available'] !== true) reason = text(info['reason']) ?? `${label} недоступен`;
     else if (missing) reason = `Сначала выберите ответ: «${missing.title}»`;
-    return { provider: p.id, label: `Создать и открыть в ${p.label}`, letter: p.letter, enabled: reason === null, reason };
+    return { provider: id, label: `Создать и открыть в ${label}`, letter: text(info['mark']) ?? label.slice(0, 1).toUpperCase(), enabled: reason === null, reason };
   });
 }
+
+/**
+ * @typedef {object} ProviderActionView
+ * @property {string} provider
+ * @property {string} id
+ * @property {string} title the action's own title (shown while it runs)
+ * @property {string} label «<provider>: <action>»
+ * @property {string | null} confirm
+ */
+
+/**
+ * Enabled provider-level actions of the "providers" section: `primary` belongs to the providers
+ * whose button is off (the action may be what makes the provider ready), `more` to the others.
+ * @param {Record<string, unknown>} state
+ * @param {Array<{ provider: string, enabled: boolean }>} buttons
+ * @returns {{ primary: ProviderActionView[], more: ProviderActionView[] }}
+ */
+export function providerActionViews(state, buttons) {
+  const summaries = record(state['providers'])['providers'];
+  const off = new Set(buttons.filter((b) => !b.enabled).map((b) => b.provider));
+  /** @type {{ primary: ProviderActionView[], more: ProviderActionView[] }} */
+  const result = { primary: [], more: [] };
+  for (const entry of Array.isArray(summaries) ? summaries : []) {
+    const summary = record(entry);
+    const provider = String(summary['id'] ?? '');
+    const name = text(summary['label']) ?? text(summary['title']) ?? provider;
+    for (const item of Array.isArray(summary['actions']) ? summary['actions'] : []) {
+      const action = record(item);
+      if (action['scope'] !== 'provider' || action['enabled'] !== true) continue;
+      const title = String(action['title'] ?? action['id'] ?? '');
+      (off.has(provider) ? result.primary : result.more).push({ provider, id: String(action['id'] ?? ''), title, label: `${name}: ${title}`, confirm: text(action['confirm']) });
+    }
+  }
+  return result;
+}
+
+/**
+ * @typedef {object} HookView
+ * @property {string} title «Хук Kit для Kimi»
+ * @property {string[]} files files the approval writes (empty: the provider stores it itself)
+ * @property {string} text the text added to the file, or the hook command
+ * @property {string} hash short hash the approval is bound to
+ * @property {string} meta «запись в <файлы> · хеш <hash>»
+ * @property {string | null} note
+ */
 
 /**
  * @typedef {object} PreviewView
@@ -116,6 +157,7 @@ export function buttonViews(preview, answers) {
  * @property {string} lead
  * @property {string} path
  * @property {Array<{ title: string, detail: string }>} actions
+ * @property {HookView[]} hooks hooks that the consent approves exactly as shown
  * @property {string} changesLabel «Изменения в папке · N файлов»
  * @property {string[]} files
  * @property {{ message: string, commands: string[] } | null} blocked
@@ -142,6 +184,21 @@ export function previewView(preview, now) {
       : 'Добавим инструкции, документацию и план. Существующие файлы сохранятся.',
     path: String(preview['path'] ?? ''),
     actions: (Array.isArray(preview['actions']) ? preview['actions'] : []).map((a) => ({ title: String(a.title ?? ''), detail: String(a.detail ?? '') })),
+    hooks: (Array.isArray(preview['hooks']) ? preview['hooks'] : []).map((entry) => {
+      const hook = record(entry);
+      const writes = (Array.isArray(hook['writes']) ? hook['writes'] : []).map(record);
+      const added = writes.map((w) => text(w['value'])).filter((v) => v !== null);
+      const files = [...new Set(writes.map((w) => text(w['file'])).filter((f) => f !== null))];
+      const hash = String(hook['hash'] ?? '').slice(0, 12);
+      return {
+        title: `Хук Kit для ${text(hook['label']) ?? String(hook['provider'] ?? '')}`,
+        files,
+        text: added.length > 0 ? added.join('\n') : String(hook['command'] ?? ''),
+        hash,
+        meta: [files.length > 0 ? `запись в ${files.join(', ')}` : '', hash ? `хеш ${hash}` : ''].filter((part) => part !== '').join(' · '),
+        note: text(hook['note']),
+      };
+    }),
     changesLabel: `Изменения в папке · ${filesLabel(count)}`,
     files,
     blocked: typeof blocked['message'] === 'string' ? { message: blocked['message'], commands: Array.isArray(blocked['commands']) ? blocked['commands'].map(String) : [] } : null,
@@ -178,9 +235,11 @@ export function findRun(state, operationId) {
  * @typedef {object} RunView
  * @property {'running' | 'succeeded' | 'failed' | 'cancelled'} status
  * @property {string} title
+ * @property {string} providerLabel short name of the provider of the first session
  * @property {Array<{ id: string, title: string, status: string, mark: string, note: string | null }>} steps
  * @property {boolean} canCancel
  * @property {{ message: string, hint: string | null } | null} error
+ * @property {string | null} errorCode
  * @property {string | null} sessionKey "<provider>:<localId>" of the created session
  * @property {{ provider: string, localId: string | null, remoteId: string | null } | null} session ids of the created session
  * @property {string | null} projectId
@@ -195,7 +254,7 @@ export function runView(run) {
   const session = record(run['session']);
   const id = session['localId'] ?? session['remoteId'];
   const error = record(run['error']);
-  const label = PROVIDERS.find((p) => p.id === run['provider'])?.label ?? String(run['provider'] ?? '');
+  const label = text(run['providerLabel']) ?? String(run['provider'] ?? '');
   /** @type {Record<string, string>} */
   const titles = {
     running: run['cancelRequested'] ? 'Останавливаем подготовку' : 'Готовим проект',
@@ -207,6 +266,7 @@ export function runView(run) {
   return {
     status,
     title: titles[status] ?? '',
+    providerLabel: label,
     steps: (Array.isArray(run['steps']) ? run['steps'] : []).map((step) => ({
       id: String(step.id),
       title: String(step.title ?? step.id),
@@ -217,6 +277,7 @@ export function runView(run) {
     })),
     canCancel: status === 'running' && !run['cancelRequested'],
     error: typeof error['message'] === 'string' ? { message: error['message'], hint: typeof error['hint'] === 'string' ? error['hint'] : null } : null,
+    errorCode: text(error['code']),
     sessionKey: id && typeof session['provider'] === 'string' ? `${session['provider']}:${id}` : null,
     session: id && typeof session['provider'] === 'string' ? { provider: session['provider'], localId: text(session['localId']), remoteId: text(session['remoteId']) } : null,
     projectId: typeof run['projectId'] === 'string' ? run['projectId'] : null,
@@ -271,4 +332,14 @@ export function chatTarget(links, maxTouchPoints) {
     return { href: value.trim(), newTab: scheme === 'http' || scheme === 'https' };
   }
   return null;
+}
+
+/**
+ * The provider-level actions of the state, as a key that changes when any of them changes.
+ * @param {Record<string, unknown>} state
+ * @returns {string}
+ */
+export function actionsKey(state) {
+  const providers = record(state['providers'])['providers'];
+  return JSON.stringify((Array.isArray(providers) ? providers : []).map((p) => [record(p)['id'], record(p)['actions']]));
 }

@@ -2,6 +2,7 @@
 // Panel bootstrap: the sidebar and the main screen of the agreed layout, routes in location.hash,
 // polling of GET /api/state every 3 s; the service cards render inside «Настройки».
 import { shouldReload } from './reload.js';
+import { providerActionRows } from './provider-actions.js';
 import { publicationView } from './publication.js';
 import { createActions } from './actions.js';
 import { createArchiveScreen } from './archive.js';
@@ -166,7 +167,7 @@ function renderMain() {
   } else if (r.screen === 'project') {
     const project = tree.find((p) => p.id === r.projectId);
     const home = projectLists(state).home;
-    const shown = project ? { ...project, path: shortPath(project.path, home), publication: publicationView(state, project.id) } : null;
+    const shown = project ? { ...project, path: shortPath(project.path, home), publication: publicationView(state, project.id), providerActions: providerActionRows(state) } : null;
     screen = ['project', shown, () => (shown ? projectScreen(shown, handlers) : missingScreen('Проект не найден', handlers))];
   } else if (r.screen === 'session') {
     const project = tree.find((p) => p.id === r.projectId);

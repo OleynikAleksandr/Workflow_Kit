@@ -1,6 +1,6 @@
-// The providers of the service, in panel order. This is the only list of the backend that names
-// them: the service registers them from here, and `wfk hook --client <id>` (a process without
-// the running registry) checks its client against the same ids.
+// The providers of the service, in panel order (wizard buttons, project screen). This is the only
+// list of the backend that names them: the service registers them from here, and
+// `wfk hook --client <id>` (a process without the running registry) checks its client against it.
 import { createProvider as createClaudeProvider } from '#provider-claude';
 import { createProvider as createCodexProvider } from '#provider-codex';
 import type { ProviderFactory } from '#provider-registry';
@@ -12,8 +12,8 @@ export interface ProviderEntry {
 }
 
 export const PROVIDER_ENTRIES: readonly ProviderEntry[] = [
-  { id: 'claude', create: createClaudeProvider },
   { id: 'codex', create: createCodexProvider },
+  { id: 'claude', create: createClaudeProvider },
 ];
 
 /** Providers registered by default, in panel order. */

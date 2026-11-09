@@ -1,6 +1,6 @@
 // Registry of providers by string id and the "providers" section of /api/state. Every read goes
 // through the contract with a time limit; a failing read becomes an error entry, not a failed poll.
-import { ProviderError } from './contract.ts';
+import { ProviderError, providerLabel, providerMark } from './contract.ts';
 import type {
   Capabilities,
   Project,
@@ -19,6 +19,9 @@ export const STATE_READ_TIMEOUT_MS = 3000;
 export interface ProviderSummary {
   id: ProviderId;
   title: string;
+  /** Short name and letter of the provider on buttons and badges (providerLabel, providerMark). */
+  label: string;
+  mark: string;
   status: ProviderStatus | null;
   capabilities: Capabilities;
   /** Provider-scope actions (actions(null)). */
@@ -115,7 +118,7 @@ export function createProviderRegistry(options: { readTimeoutMs?: number } = {})
         read(errors, 'capabilities', provider, {}, () => provider.capabilities()),
         read(errors, 'actions', provider, [], () => provider.actions(null)),
       ]);
-      return { id: provider.id, title: provider.title, status, capabilities, actions, errors };
+      return { id: provider.id, title: provider.title, label: providerLabel(provider), mark: providerMark(provider), status, capabilities, actions, errors };
     },
     async projectState(provider, project) {
       const errors: Record<string, ProviderErrorInfo> = {};

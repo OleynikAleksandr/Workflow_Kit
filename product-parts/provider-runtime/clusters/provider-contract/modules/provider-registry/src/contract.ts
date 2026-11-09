@@ -50,6 +50,17 @@ export interface Capability {
  */
 export type Capabilities = Record<string, Capability>;
 
+/** Short name of a provider on buttons, badges and in messages: its label, else its title. */
+export function providerLabel(provider: Pick<Provider, 'title' | 'label'>): string {
+  return provider.label ?? provider.title;
+}
+
+/** The letter of a provider on buttons: its mark, else the first letter of its short name. */
+export function providerMark(provider: Pick<Provider, 'title' | 'label' | 'mark'>): string {
+  const first = [...(provider.mark ?? providerLabel(provider)).trim()][0];
+  return first ? first.toUpperCase() : '?';
+}
+
 /** One capability of a provider: a name it does not report is available; no provider — unavailable. */
 export async function providerCapability(provider: Pick<Provider, 'capabilities'> | undefined, name: string): Promise<Capability> {
   if (!provider) return { available: false, reason: 'провайдер не подключён' };
@@ -171,6 +182,11 @@ export interface HookState {
   /** False when the session list is incomplete because the Kit hook is not active; null when unknown. */
   complete: boolean | null;
   note?: string;
+  /**
+   * What approveHooks would write (file and added text): the hook is shown before the approval and
+   * approved with the shown command and hash. Absent when the provider only records an approval.
+   */
+  writes?: TrustWrite[];
 }
 
 /** Links of a session; the panel picks mobile on touch devices, otherwise desktop, web as fallback. */
@@ -235,6 +251,10 @@ export type HookDialect = 'claude' | 'kimi';
 export interface Provider {
   readonly id: ProviderId;
   readonly title: string;
+  /** Short name on buttons, badges and in messages ("ChatGPT"); absent means the title. */
+  readonly label?: string;
+  /** One letter drawn on the provider's buttons; absent means the first letter of the label. */
+  readonly mark?: string;
   /** Dialect of the provider's hooks (wfk hook --client <id>); absent means 'claude'. */
   readonly hookDialect?: HookDialect;
   /**

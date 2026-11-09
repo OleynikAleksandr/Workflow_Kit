@@ -15,7 +15,9 @@
 
 ### Контракт (`contract.ts`)
 
-- `Provider` — `id`, `title`, `hookDialect?` (`HookDialect`: `'claude'` — Claude и Codex,
+- `Provider` — `id`, `title`, `label?` (короткое имя на кнопках, значках и в сообщениях;
+  `providerLabel(provider)` даёт его или `title`), `mark?` (буква на кнопках;
+  `providerMark(provider)` даёт её или первую букву короткого имени), `hookDialect?` (`HookDialect`: `'claude'` — Claude и Codex,
   `'kimi'` — `prompt` массивом частей и ответ `{ message }`; нет поля — `'claude'`; канал
   `agent-channel` читает вход и строит ответ хука по нему), `promptTitle?` (приложение берёт
   имя сессии из ответа хука `UserPromptSubmit`, а `renameSession` безопасен только вне хода:
@@ -76,7 +78,10 @@
   `note` провайдера объясняет, что это значит), `TrustState`
   (`trusted: boolean | null`, `note?`, `inherited?`, `backup?`),
   `HookState` (`kitHook`, `hooks: HookEntry[]`,
-  `complete` — `false`, если список сессий неполон, `note?`), `HookEntry`
+  `complete` — `false`, если список сессий неполон, `note?`, `writes?:
+  TrustWrite[]` — что запишет `approveHooks`: файл и добавляемый текст;
+  мастер показывает их до согласия и одобряет хук показанными `command` и
+  `hash`), `HookEntry`
   (`command`, `hash`, `kit`, `status` — `approved` | `pending` | `modified`
   | `unknown`, `key?`), `SessionInfo` (`provider`, `localId`, `remoteId?`,
   `title`, `createdAt`, `origin` — `panel` | `hook`, `state` — `running` |
@@ -209,7 +214,7 @@ mutex, events?, platform, now?, onRefresh? }) → { refresh() }` регистр�
 (у заглушки 501 `not-implemented`).
 
 Раздел `/api/state` → `providers`: `{ providers: ProviderSummary[]
-(id, title, status, capabilities, actions(null), errors), projects: {
+(id, title, label, mark, status, capabilities, actions(null), errors), projects: {
 <projectId>: { <providerId>: ProjectProviderState } } }`.
 
 ## Инварианты

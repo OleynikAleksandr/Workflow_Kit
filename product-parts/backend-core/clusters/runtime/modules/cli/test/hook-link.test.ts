@@ -55,6 +55,10 @@ function exec(file: string, args: string[], env: NodeJS.ProcessEnv, input: strin
     child.stderr.on('data', (chunk: Buffer) => (err += chunk.toString()));
     child.on('error', reject);
     child.on('close', (code) => resolve({ code: code ?? -1, out, err, ms: Date.now() - started }));
+    // A hook without a launcher exits without reading stdin: EPIPE on the write is expected then.
+    child.stdin.on('error', (error: NodeJS.ErrnoException) => {
+      if (error.code !== 'EPIPE') reject(error);
+    });
     child.stdin.end(input);
   });
 }

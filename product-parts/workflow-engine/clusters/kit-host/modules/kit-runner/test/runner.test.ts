@@ -84,8 +84,8 @@ test('the reads of the service (status, scope:proposal) take no optional git loc
       { PATH: '/bin', HOME: '/h', GIT_OPTIONAL_LOCKS: '0' },
       { PATH: '/bin', HOME: '/h' },
     ]);
-    assert.equal(readEnv(undefined)['GIT_OPTIONAL_LOCKS'], '0');
-    assert.equal(readEnv(undefined)['PATH'], process.env['PATH']);
+    // Without an env the service's own environment is kept (its keys as they are: Path on Windows).
+    assert.deepEqual(readEnv(undefined), { ...process.env, GIT_OPTIONAL_LOCKS: '0' });
   } finally {
     await rm(root, { recursive: true, force: true });
   }

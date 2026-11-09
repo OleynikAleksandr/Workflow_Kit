@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": "T010",
+  "currentTaskId": null,
   "lastClosed": {
     "closedAt": "2026-11-09T10:12:56.251Z",
     "scopeId": "m5-windows"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 448,
+  "revision": 449,
   "rounds": [
     {
       "digest": {
@@ -59,7 +59,7 @@
       },
       "id": "R2",
       "kind": "fixes",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Windows and macOS CI fixes"
     }
   ],
@@ -107,7 +107,7 @@
         "text": "After acceptance and close, main with 0.5.1 is pushed to GitHub"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
@@ -557,7 +557,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R2",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "title": "Release 0.5.1 with green CI",
       "why": "The release must pass CI on all four platforms before acceptance"
     }
@@ -569,11 +569,11 @@
 ## State
 
 - Scope: m6-cross-platform (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
-- Current task: T010
-- Progress: 11/12
-- Revision: 448
+- Current task: none
+- Progress: 12/12
+- Revision: 449
 
 ## Objective
 
@@ -611,7 +611,7 @@ Every further change to Workflow Kit covers macOS, Linux and Windows 11: CI on a
 
 Digest: R1 of m6-cross-platform: the platform-guard commit check (rules A, B, C), CI on macOS, Linux, Windows x64 and ARM64, LF line endings and the three-OS rules for agents in AGENTS.md with a spec template.
 
-### R2 — Windows and macOS CI fixes (fixes, OPEN)
+### R2 — Windows and macOS CI fixes (fixes, CLOSED)
 
 - [DONE] T005 — Atomic writes on Windows (work)
   - Commit: fix: retry atomic renames on Windows and fix data-store tests
@@ -637,7 +637,7 @@ Digest: R1 of m6-cross-platform: the platform-guard commit check (rules A, B, C)
   - Commit: docs: reconcile documentation for R2
   - Files: README.md, docs/architecture/OVERVIEW.md
   - Depends on: T005, T006, T007, T008, T009
-- [IN_PROGRESS] T010 — Release 0.5.1 with green CI (delivery)
+- [DONE] T010 — Release 0.5.1 with green CI (delivery)
   - Commit: chore: release 0.5.1 with green CI
   - Files: CHANGELOG.md, docs/evidence/M6-acceptance.md, product-parts/backend-core/clusters/runtime/modules/cli/test/app.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/hook-link.test.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/test/runner.test.ts
   - Depends on: T005, T006, T007, T008, T009, DOCS-R2

@@ -36,7 +36,8 @@ before(async () => {
 
 after(async () => {
   await app.stop();
-  await rm(tmp, { recursive: true, force: true });
+  // The stopped service may still finish a write in its data folder (ENOTEMPTY seen in CI).
+  await rm(tmp, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
 });
 
 test('createApp uses WFK_DATA_DIR, creates it with 0700 and binds WFK_PORT', async () => {

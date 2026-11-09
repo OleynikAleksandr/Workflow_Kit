@@ -3,6 +3,7 @@
 // `wfk hook --client <id>` (a process without the running registry) checks its client against it.
 import { createProvider as createClaudeProvider } from '#provider-claude';
 import { createProvider as createCodexProvider } from '#provider-codex';
+import { createProvider as createKimiProvider } from '#provider-kimi';
 import type { ProviderFactory } from '#provider-registry';
 
 /** A provider of the service: its id (equal to the id of the provider the factory builds) and the factory. */
@@ -14,6 +15,7 @@ export interface ProviderEntry {
 export const PROVIDER_ENTRIES: readonly ProviderEntry[] = [
   { id: 'codex', create: createCodexProvider },
   { id: 'claude', create: createClaudeProvider },
+  { id: 'kimi', create: createKimiProvider },
 ];
 
 /** Providers registered by default, in panel order. */

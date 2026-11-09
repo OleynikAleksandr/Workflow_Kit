@@ -53,8 +53,8 @@ stripping).
   `osInput`, `log`, `providers` (фабрики вместо `DEFAULT_PROVIDERS`),
   `runCommand` (исполнитель внешних программ для провайдеров), `supervisor`.
 - `PROVIDER_ENTRIES` (`src/provider-list.ts`) — провайдеры службы в порядке панели
-  (ChatGPT, Claude: так идут кнопки мастера и шаги доверия), `{ id, create }`: единственный список бэкенда, где они названы (`createProvider` из
-  `#provider-claude` и `#provider-codex`); `DEFAULT_PROVIDERS` — их фабрики,
+  (ChatGPT, Claude, Kimi: так идут кнопки мастера и шаги доверия), `{ id, create }`: единственный список бэкенда, где они названы (`createProvider` из
+  `#provider-codex`, `#provider-claude`, `#provider-kimi`); `DEFAULT_PROVIDERS` — их фабрики,
   `PROVIDER_IDS` — их id (по ним `wfk hook` проверяет `--client`; тест сверяет id с
   реестром); `SESSION_ENV` — таблица `{ client, variable }`: в какой переменной окружения
   агент оставляет id своей сессии (`CODEX_THREAD_ID`, `CLAUDE_CODE_SESSION_ID`).
@@ -221,7 +221,7 @@ stripping).
   `#agent-channel`, `#autopilot`, `#http-server`, `#plan-review`, `#project-setup`, `#session-titles`, `#kit-bundle`, `#kit-runner`, `#kit-structure`,
   `#panel-shell`, `#process-supervisor`,
   `#project-wizard`, `#session-view`,
-  `#project-registry`, `#provider-claude`, `#provider-codex`,
+  `#project-registry`, `#provider-claude`, `#provider-codex`, `#provider-kimi`,
   `#provider-registry`, `#service-installer`).
 - Провайдер подключается фабрикой `createProvider` своего модуля; его
   реализация меняется без правок `cli`.

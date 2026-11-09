@@ -57,7 +57,7 @@ export interface AppOptions {
   getInterfaces?: () => InterfaceMap;
   osInput?: DetectOsInput;
   log?: (line: string) => void;
-  /** Provider factories (default: Claude and Codex); tests pass fake providers. */
+  /** Provider factories (default: DEFAULT_PROVIDERS); tests pass fake providers. */
   providers?: ProviderFactory[];
   /** Runner of external programs given to providers (default: runCommand). */
   runCommand?: CommandRunner;

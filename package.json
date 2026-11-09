@@ -32,6 +32,7 @@
     "#session-view": "./product-parts/control-panel/clusters/web-panel/modules/session-view/src/index.ts",
     "#provider-claude": "./product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/index.ts",
     "#provider-codex": "./product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts",
+    "#provider-kimi": "./product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/index.ts",
     "#provider-registry": "./product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts",
     "#service-installer": "./product-parts/system-service/clusters/deployment/modules/service-installer/src/index.ts",
     "#session-titles": "./product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/index.ts"

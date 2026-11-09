@@ -1,0 +1,114 @@
+{
+  "code": 0,
+  "msg": "success",
+  "data": {
+    "server_version": "2.5.2",
+    "capabilities": {
+      "websocket": true,
+      "file_upload": true,
+      "fs_query": true,
+      "mcp": true,
+      "tasks": true
+    },
+    "server_id": "01M70X1N2969CFKJV8GGC1AT8C",
+    "started_at": "2026-11-09T19:37:30.954Z",
+    "open_in_apps": [],
+    "dangerous_bypass_auth": false,
+    "backend": "v2",
+    "experimental_flags": {
+      "notify_user": false,
+      "wait_for": true,
+      "subagent_fork": false,
+      "tower": false,
+      "tool-select": false
+    },
+    "features": [
+      {
+        "name": "skill",
+        "state": "Active",
+        "meta": {}
+      },
+      {
+        "name": "btw",
+        "state": "Active",
+        "meta": {}
+      },
+      {
+        "name": "dateChange",
+        "state": "Active",
+        "meta": {}
+      },
+      {
+        "name": "plan",
+        "state": "Active",
+        "meta": {}
+      },
+      {
+        "name": "fileHistory",
+        "state": "Active",
+        "meta": {}
+      },
+      {
+        "name": "externalHooks",
+        "state": "Active",
+        "meta": {}
+      },
+      {
+        "name": "debugEvents",
+        "state": "Active",
+        "meta": {}
+      },
+      {
+        "name": "swarm",
+        "state": "Active",
+        "meta": {}
+      },
+      {
+        "name": "goal",
+        "state": "Active",
+        "meta": {}
+      },
+      {
+        "name": "tower",
+        "state": "Active",
+        "meta": {}
+      },
+      {
+        "name": "usage",
+        "state": "Active",
+        "meta": {}
+      },
+      {
+        "name": "cron",
+        "state": "Active",
+        "meta": {}
+      },
+      {
+        "name": "reminder",
+        "state": "Active",
+        "meta": {}
+      },
+      {
+        "name": "tokenCounting",
+        "state": "Active",
+        "meta": {}
+      },
+      {
+        "name": "sessionInit",
+        "state": "Active",
+        "meta": {}
+      },
+      {
+        "name": "todo",
+        "state": "Active",
+        "meta": {}
+      },
+      {
+        "name": "notify",
+        "state": "Active",
+        "meta": {}
+      }
+    ]
+  },
+  "request_id": "01M70XCD60AJWS82ZMGZTJT0NY"
+}

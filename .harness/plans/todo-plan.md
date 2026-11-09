@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 480,
+  "revision": 482,
   "rounds": [
     {
       "digest": null,
@@ -508,14 +508,49 @@
         "package-lock.json",
         "tsconfig.json",
         "tools/platform-guard/allowlist.json",
-        "docs/architecture/OVERVIEW.md"
+        "docs/architecture/OVERVIEW.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/provider-list.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/providers.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/client.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/index.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/paths.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/program.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/provider.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/server.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/shapes.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/trust.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/workspace.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/client.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fixtures/abort.json",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fixtures/auth.json",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fixtures/config.json",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fixtures/messages.json",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fixtures/meta.json",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fixtures/prompt-queued.json",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fixtures/prompt-running.json",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fixtures/reload.json",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fixtures/session-busy.json",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fixtures/session-idle.json",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fixtures/trust.json",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fixtures/v2-sessions.json",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fixtures/workspaces.json",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/helpers.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/paths-program.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/provider.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/trust.test.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/module.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/src/supervisor.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/test/supervisor.test.ts"
       ],
       "fixes": null,
       "id": "T007",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "provider-kimi: program, server, status, workspace, trust",
       "why": "The base of the third provider"
     },
@@ -782,8 +817,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 6/13
-- Revision: 480
+- Progress: 7/13
+- Revision: 482
 
 ## Objective
 
@@ -824,9 +859,9 @@ Add Kimi Code as the third provider of Workflow Kit and release 0.6.0
   - Commit: feat: deliver the next message as a prompt after a detached turn end
   - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel, product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/workflow-engine/clusters/session-loop/modules/cross-review, product-parts/workflow-engine/clusters/session-loop/modules/plan-review, product-parts/workflow-engine/clusters/session-loop/modules/session-titles, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/backend-core/clusters/projects/modules/kit-structure, docs/architecture/OVERVIEW.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/commands.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/hook-service.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/hook.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/hook-turn-end.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/channel.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/detached.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/slots.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/types.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/detached-rules.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/detached-world.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/detached.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/titles.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/test/titles.test.ts
   - Depends on: T005
-- [TODO] T007 — provider-kimi: program, server, status, workspace, trust (work)
+- [DONE] T007 — provider-kimi: program, server, status, workspace, trust (work)
   - Commit: feat: add the Kimi provider with its server, status and folder trust
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi, product-parts/provider-runtime/clusters/provider-adapters/cluster.md, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/backend-core/clusters/runtime/modules/cli, package.json, package-lock.json, tsconfig.json, tools/platform-guard/allowlist.json, docs/architecture/OVERVIEW.md
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi, product-parts/provider-runtime/clusters/provider-adapters/cluster.md, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/backend-core/clusters/runtime/modules/cli, package.json, package-lock.json, tsconfig.json, tools/platform-guard/allowlist.json, docs/architecture/OVERVIEW.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/provider-list.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/providers.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/client.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/paths.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/program.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/server.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/shapes.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/trust.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/workspace.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/client.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fixtures/abort.json, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fixtures/auth.json, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fixtures/config.json, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fixtures/messages.json, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fixtures/meta.json, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fixtures/prompt-queued.json, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fixtures/prompt-running.json, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fixtures/reload.json, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fixtures/session-busy.json, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fixtures/session-idle.json, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fixtures/trust.json, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fixtures/v2-sessions.json, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fixtures/workspaces.json, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/helpers.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/paths-program.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/trust.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/src/supervisor.ts, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/test/supervisor.test.ts
   - Depends on: T006
 - [TODO] T008 — Kit hook for Kimi in config.toml (work)
   - Commit: feat: write the Kit hook into the Kimi config after a preview

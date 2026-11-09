@@ -1,0 +1,17 @@
+{
+  "code": 0,
+  "msg": "success",
+  "data": {
+    "prompt_id": "kit-p12",
+    "user_message_id": "kit-p12",
+    "status": "running",
+    "content": [
+      {
+        "type": "text",
+        "text": "SLOW two"
+      }
+    ],
+    "created_at": "2026-11-09T19:43:16.781Z"
+  },
+  "request_id": "01M70XC6S8D63XF1S1HDZM9WHQ"
+}

@@ -47,6 +47,7 @@ runtime-зависимостей) и веб-панель для Mac и iPad. С�
 | | | [pty-host](../../product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/module.md) | ConPTY на Windows (node-pty 1.1.0) |
 | | [provider-adapters](../../product-parts/provider-runtime/clusters/provider-adapters/cluster.md) | [provider-claude](../../product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md) | доверие (прямая запись `~/.claude.json`, выбор о внешних импортах CLAUDE.md), сессии Remote Control, окружение папки (pty через `expect`) |
 | | | [provider-codex](../../product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md) | демон app-server, доверие, одобрение хука Kit, сессии (треды; после служебного хода — `thread/unsubscribe`) |
+| | | [provider-kimi](../../product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md) | сервер `kimi web` службы, статус, рабочая область и доверие папке |
 | [workflow-engine](../../product-parts/workflow-engine/product-part.md) | [kit-host](../../product-parts/workflow-engine/clusters/kit-host/cluster.md) | [kit-bundle](../../product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md) | вендорный бандл Kit 2.2.2 с проверкой хеша |
 | | | [kit-runner](../../product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/module.md) | команды Kit проекта, установка, слежение за планом, раздел `workflow` |
 | | | [plan-view](../../product-parts/workflow-engine/clusters/kit-host/modules/plan-view/module.md) | модели карточек плана и выбора пути (порт правил Harness) |
@@ -85,8 +86,8 @@ runtime-зависимостей) и веб-панель для Mac и iPad. С�
 HTTP-сервер с панелью (`panelShellMount()` в корне,
 `projectWizardMount()` и `sessionViewMount()` под своими префиксами),
 журнал событий, мьютекс, реестр проектов, операции, учёт процессов и реестр провайдеров из фабрик
-`DEFAULT_PROVIDERS` (`createProvider` модулей `provider-claude` и
-`provider-codex`). `start()` пишет событие `service.started` и запускает
+`DEFAULT_PROVIDERS` (`provider-codex`, `provider-claude`,
+`provider-kimi`). `start()` пишет событие `service.started` и запускает
 операцию `providers.refresh`. Новые возможности подключаются регистрацией в
 `app.router` и `app.state` внутри `createApp`. Команды службы `cli`
 передаёт в `runServiceCommand` (`service-installer`). Контракт —
@@ -236,6 +237,7 @@ Linux `$XDG_CONFIG_HOME`, `$XDG_STATE_HOME`, `$XDG_DATA_HOME` +
 | Claude: сессии, окружение (pty) | да | если есть `expect` | да, ConPTY (`pty-host`) |
 | Codex: демон, доверие, хуки, сессии | да | да | да, Codex 0.160+, через `proxy` |
 | Codex: управление — приложению ChatGPT | да, `ps` | нет приложения | CIM codex.exe (**П**) |
+| Kimi: сервер, статус, доверие папке | да | тесты (**П**) | тесты (**П**) |
 | Запуск и остановка процессов сессий | да | да | да (CIM, `taskkill`) |
 | Живые проверки | есть, см. документы приёмки M1–M4 | нет, только тесты | нет, только тесты |
 
@@ -243,13 +245,12 @@ Linux `$XDG_CONFIG_HOME`, `$XDG_STATE_HOME`, `$XDG_DATA_HOME` +
 
 - Основная проверенная ОС — macOS. Linux и Windows проверены тестами (и в CI на
   них) с подставными программами; полного сценария на устройствах нет (Windows —
-  живая проверка M5 впереди). На Linux Claude требует `expect`, чаты служба не открывает. Установка панели не подтверждает
-  готовность провайдеров. Актуальная инструкция — [установка](../installation.md).
+  живая проверка M5 впереди). На Linux Claude требует `expect`, чаты служба не открывает. Актуальная инструкция — [установка](../installation.md).
 - macOS: установка проверена в M3/M4; окно значка собирается через `swiftc`,
   при недоступной сборке используется браузер. Windows/Linux открывают браузер.
 - Прерванные сессии Claude восстанавливаются при старте службы и открытии;
   архивированные и намеренно остановленные не поднимаются автоматически.
-  Это изменено в 0.3.5–0.3.7. У Codex нет `thread/resume`
+  У Codex нет `thread/resume`
   в контракте Kit, состояние сессии может оставаться `unknown`.
 - Доверие Claude записывается в `~/.claude.json`; при неожиданном диалоге
   сессия останавливается с ошибкой, клавиши автоматически не нажимаются.
@@ -259,8 +260,7 @@ Linux `$XDG_CONFIG_HOME`, `$XDG_STATE_HOME`, `$XDG_DATA_HOME` +
   Публичное размещение HTTP-панели не предусмотрено. Удалённый клиент
   зависит от работающего компьютера со службой и связи через Tailscale.
 - Браузер на iPad может блокировать автоматическое открытие чата;
-  используйте щелчок по карточке сессии. Полная равнозначность поведения
-  приложений на всех устройствах не подтверждена.
+  используйте щелчок по карточке сессии.
 - «Перезапустить службу» и «Диагностика» в панели не реализованы;
   используйте команды `wfk service` и `wfk doctor`. Операции в памяти
   пропадают при перезапуске службы; остановка службы сама по себе

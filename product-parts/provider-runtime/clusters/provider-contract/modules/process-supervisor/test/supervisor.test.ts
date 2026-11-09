@@ -1,6 +1,6 @@
 // Real processes here are only `node -e` children started by the test itself; nothing else is signalled.
 import assert from 'node:assert/strict';
-import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { after, before, test } from 'node:test';
@@ -199,4 +199,20 @@ test('Windows: the process tree is stopped with taskkill, forced only after the 
     ['taskkill', '/PID', '7001', '/T', '/F'],
   ]);
   assert.deepEqual(await windows.list(), []);
+});
+
+test('spawn with logFile null: the output is dropped and no file is created (every OS)', async () => {
+  const dir = path.join(tmp, 'quiet');
+  await mkdir(dir, { recursive: true });
+  const quiet = createProcessSupervisor({
+    file: path.join(dir, 'processes.json'),
+    inspect: async (pid) => ({ pid, pgid: null, startToken: 't', startedAt: null, commandLine: 'node' }),
+  });
+  const marker = path.join(dir, 'ran.txt');
+  const script = `console.log('secret-token'); require('node:fs').writeFileSync(${JSON.stringify(marker)}, 'ok\\n');`;
+  const record = await quiet.spawn({ owner: { ...owner, ref: 'quiet' }, command: process.execPath, args: ['-e', script], cwd: dir, env: process.env, logFile: null });
+  assert.equal(record.logFile, null);
+  assert.equal(await logLine(marker), 'ok');
+  assert.deepEqual((await readdir(dir)).sort(), ['processes.json', 'ran.txt']);
+  assert.equal((await quiet.list())[0]?.logFile, null);
 });

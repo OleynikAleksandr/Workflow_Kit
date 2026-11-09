@@ -1,0 +1,112 @@
+{
+  "code": 0,
+  "msg": "success",
+  "data": {
+    "default_model": "fake/fake",
+    "default_permission_mode": "yolo",
+    "providers": {
+      "fake": {
+        "type": "kimi",
+        "base_url": "http://127.0.0.1:58201/v1",
+        "has_api_key": true
+      }
+    },
+    "models": {
+      "fake/fake": {
+        "provider": "fake",
+        "model": "fake",
+        "maxContextSize": 262144,
+        "capabilities": [
+          "tool_use"
+        ],
+        "displayName": "Fake",
+        "has_api_key": false
+      }
+    },
+    "hooks": [
+      {
+        "event": "SessionStart",
+        "command": "python3 /home/user/hooklog.py SessionStart",
+        "timeout": 10
+      },
+      {
+        "event": "UserPromptSubmit",
+        "command": "python3 /home/user/hooklog.py UserPromptSubmit",
+        "timeout": 10
+      },
+      {
+        "event": "Stop",
+        "command": "python3 /home/user/hooklog.py Stop",
+        "timeout": 10
+      },
+      {
+        "event": "StopFailure",
+        "command": "python3 /home/user/hooklog.py StopFailure",
+        "timeout": 10
+      },
+      {
+        "event": "Interrupt",
+        "command": "python3 /home/user/hooklog.py Interrupt",
+        "timeout": 10
+      },
+      {
+        "event": "SubagentStart",
+        "command": "python3 /home/user/hooklog.py SubagentStart",
+        "timeout": 10
+      },
+      {
+        "event": "SubagentStop",
+        "command": "python3 /home/user/hooklog.py SubagentStop",
+        "timeout": 10
+      },
+      {
+        "event": "TurnStarted",
+        "command": "python3 /home/user/hooklog.py TurnStarted",
+        "timeout": 10
+      },
+      {
+        "event": "SessionEnd",
+        "command": "python3 /home/user/hooklog.py SessionEnd",
+        "timeout": 10
+      }
+    ],
+    "workspace": {
+      "requireTrust": true
+    },
+    "extra_skill_dirs": [],
+    "merge_all_available_skills": true,
+    "builtin_product_skills": true,
+    "extra_agent_dirs": [],
+    "default_plan_mode": false,
+    "cron": {
+      "debug": false,
+      "noJitter": false,
+      "noStale": false,
+      "disabled": false,
+      "manualTick": false
+    },
+    "read": {},
+    "identity": {},
+    "swarm": {
+      "timeoutMs": 7200000
+    },
+    "subagent": {
+      "timeoutMs": 7200000
+    },
+    "token_counting": {
+      "strategy": "measured+estimated"
+    },
+    "image": {},
+    "mcp": {},
+    "task": {},
+    "background": {},
+    "database": {},
+    "watch": {},
+    "thinking": {},
+    "loop_control": {},
+    "services": {},
+    "permission": {},
+    "yolo": true
+  },
+  "request_id": "01M70XCD70PMQ2HR7K19QA1TJQ"
+}

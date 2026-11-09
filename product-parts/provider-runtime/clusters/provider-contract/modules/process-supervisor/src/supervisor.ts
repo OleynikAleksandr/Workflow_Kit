@@ -41,7 +41,7 @@ export interface ProcessRecord {
   command: string;
   args: string[];
   cwd: string;
-  logFile: string;
+  logFile: string | null;
   /** Identity read right after the start (D9). */
   startToken: string;
   startedAt: string;
@@ -70,7 +70,7 @@ export interface SpawnSpec {
   /** Variables added on top of env (e.g. WFK_SERVICE_SESSION). */
   extraEnv?: Readonly<Record<string, string | undefined>>;
   /** stdout and stderr go here (appended, mode 0600). */
-  logFile: string;
+  logFile: string | null;
 }
 
 /** Errors of the supervisor; providers turn them into their own messages. */
@@ -224,18 +224,19 @@ export function createProcessSupervisor(options: SupervisorOptions): ProcessSupe
   const supervisor: ProcessSupervisor = {
     file: options.file,
     async spawn(spec) {
-      await mkdir(path.dirname(spec.logFile), { recursive: true, mode: 0o700 });
-      const log = await open(spec.logFile, 'a', 0o600);
+      // logFile null: the output is dropped (a program that prints secrets), no file is created.
+      if (spec.logFile !== null) await mkdir(path.dirname(spec.logFile), { recursive: true, mode: 0o700 });
+      const log = spec.logFile === null ? null : await open(spec.logFile, 'a', 0o600);
       let pid: number;
       try {
-        await chmod(spec.logFile, 0o600);
+        if (spec.logFile !== null) await chmod(spec.logFile, 0o600);
         const child = spawn(spec.command, spec.args, {
           cwd: spec.cwd,
           env: cleanEnv(spec.env, { extra: spec.extraEnv, platform }),
           detached: true,
           // Windows: the detached child gets its own console; it stays hidden.
           windowsHide: true,
-          stdio: ['ignore', log.fd, log.fd],
+          stdio: log ? ['ignore', log.fd, log.fd] : 'ignore',
         });
         pid = await new Promise<number>((resolve, reject) => {
           child.once('error', (error) => reject(new ProcessError('start-failed', `${spec.command}: ${error.message}`)));
@@ -243,14 +244,14 @@ export function createProcessSupervisor(options: SupervisorOptions): ProcessSupe
         });
         child.unref();
       } finally {
-        await log.close();
+        await log?.close();
       }
       let info: ProcessInfo | undefined;
       for (let attempt = 0; attempt < 5 && !info; attempt += 1) {
         info = await inspect(pid);
         if (!info) await sleep(20);
       }
-      if (!info) throw new ProcessError('exited', `${spec.command} exited right after the start; see ${spec.logFile}`);
+      if (!info) throw new ProcessError('exited', `${spec.command} exited right after the start${spec.logFile === null ? '' : `; see ${spec.logFile}`}`);
       const record: ProcessRecord = {
         id: `proc-${randomBytes(6).toString('hex')}`,
         owner: { ref: null, ...spec.owner },

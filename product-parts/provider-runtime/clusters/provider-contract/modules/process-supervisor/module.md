@@ -18,7 +18,9 @@
   0600). Методы:
   - `spawn({ owner, command, args, cwd, env, extraEnv?, logFile })` —
     `detached` (своя группа процессов, лидер группы — сам процесс), stdin
-    закрыт, stdout и stderr дописываются в `logFile` (0600, каталоги 0700),
+    закрыт, stdout и stderr дописываются в `logFile` (0600, каталоги 0700;
+    `logFile: null` — вывод отбрасывается и файл не создаётся: так
+    запускается программа, печатающая секрет, например сервер Kimi),
     окружение — `cleanEnv(env, { extra: extraEnv })` (без `CLAUDE*`),
     `unref()`. Сразу после старта через `ps` читаются группа, время старта
     и командная строка; запись `ProcessRecord`: `id`, `owner` (`provider`,

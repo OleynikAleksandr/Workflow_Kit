@@ -1,0 +1,29 @@
+{
+  "code": 0,
+  "msg": "success",
+  "data": {
+    "items": [
+      {
+        "id": "wm_d7ee5e9e-2bd6-4b04-8544-27db00055591",
+        "root": "/home/user/kwork",
+        "name": "kwork",
+        "kind": "managed",
+        "additional_dirs": [],
+        "created_at": "2026-11-09T19:37:38.697Z",
+        "last_opened_at": "2026-11-09T19:38:18.987Z",
+        "session_count": 2
+      },
+      {
+        "id": "wm_b71c79ab-a017-4632-b6a3-84fd57e28fab",
+        "root": "/home/user/kwork",
+        "name": "kwork",
+        "kind": "managed",
+        "additional_dirs": [],
+        "created_at": "2026-11-09T19:37:45.843Z",
+        "last_opened_at": "2026-11-09T19:37:45.843Z",
+        "session_count": 0
+      }
+    ]
+  },
+  "request_id": "01M70XCD7HQANV0VSHE6RN17FB"
+}

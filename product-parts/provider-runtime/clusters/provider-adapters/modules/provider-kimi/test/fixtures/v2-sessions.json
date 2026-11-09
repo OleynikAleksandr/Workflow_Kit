@@ -1,0 +1,50 @@
+{
+  "code": 0,
+  "msg": "success",
+  "data": {
+    "items": [
+      {
+        "id": "session_c4db56ed-538b-40b0-9c61-32467d766652",
+        "workspace": {
+          "id": "wm_d7ee5e9e-2bd6-4b04-8544-27db00055591",
+          "cwd": "/home/user/kwork"
+        },
+        "meta": {
+          "title": "Kit test 2",
+          "last_prompt": "queued one",
+          "created_at": 1794253098998,
+          "updated_at": 1794253398243,
+          "archived": false,
+          "archived_at": null
+        },
+        "activity": {
+          "status": "idle",
+          "model": "fake/fake"
+        }
+      },
+      {
+        "id": "session_8109bd97-fc58-4bf4-a404-6a6112791e42",
+        "workspace": {
+          "id": "wm_d7ee5e9e-2bd6-4b04-8544-27db00055591",
+          "cwd": "/home/user/kwork"
+        },
+        "meta": {
+          "title": "Kit test",
+          "last_prompt": "hello two",
+          "created_at": 1794253065997,
+          "updated_at": 1794253086878,
+          "archived": false,
+          "archived_at": null
+        },
+        "activity": {
+          "status": "failed",
+          "model": ""
+        }
+      }
+    ],
+    "total": 2,
+    "has_more": false,
+    "next_page_token": null
+  },
+  "request_id": "01M70XCD820MMS8CAF3XFTJ4FR"
+}

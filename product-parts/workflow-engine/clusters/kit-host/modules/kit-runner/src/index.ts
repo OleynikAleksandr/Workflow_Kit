@@ -10,7 +10,7 @@ export type {
   KitSuccess,
   RunKitOptions,
 } from './runner.ts';
-export { KIT_INSTALL_TIMEOUT_MS, KIT_TIMEOUT_MS, createKitRunner, parseEnvelope, projectBundlePath } from './runner.ts';
+export { KIT_INSTALL_TIMEOUT_MS, KIT_TIMEOUT_MS, createKitRunner, parseEnvelope, projectBundlePath, readEnv } from './runner.ts';
 export type {
   ProjectWorkflow,
   WatchFactory,

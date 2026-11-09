@@ -19,7 +19,10 @@
     приложения (`appBundle()`); `install` всегда с `--host harness`.
   - `run(root, args)`, `status(root)`, `proposal(root)` (`scope:proposal`) —
     бандлом проекта `.harness/workflow/runtime/workflow.mjs`
-    (`projectBundlePath`); `installed(root)` — есть ли он.
+    (`projectBundlePath`); `installed(root)` — есть ли он. Чтения службы
+    `status` и `proposal` идут с `readEnv(env)` (`GIT_OPTIONAL_LOCKS=0`): их
+    `git status` не берёт `.git/index.lock`, и одновременный коммит агента в том
+    же проекте не падает с `COMMIT_FAILED` (CI macOS, M6 R1).
 - Результат — `KitOutcome<T>`: `{ ok: true, command, result }` или
   `{ ok: false, code, message, nextAction, details }`; не бросается.
   Коды — коды Kit из его конверта или свои: `KIT_NO_BUNDLE` (бандл

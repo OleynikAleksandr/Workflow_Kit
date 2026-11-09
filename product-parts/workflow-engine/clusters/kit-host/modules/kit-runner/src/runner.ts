@@ -117,15 +117,24 @@ export function parseEnvelope<T>(stdout: string, stderr: string): KitOutcome<T> 
   return failure('KIT_OUTPUT', 'Kit вернул ответ без поля ok.', { stdout: tail(stdout) });
 }
 
+/**
+ * Environment of the reads the service runs on its own (status, scope:proposal) while an agent may
+ * commit in the same project: GIT_OPTIONAL_LOCKS=0 keeps their `git status` from taking
+ * .git/index.lock, which made a concurrent Kit commit fail with COMMIT_FAILED.
+ */
+export function readEnv(env: Readonly<Record<string, string | undefined>> | undefined): Record<string, string | undefined> {
+  return { ...(env ?? process.env), GIT_OPTIONAL_LOCKS: '0' };
+}
+
 export function createKitRunner(options: KitRunnerOptions): KitRunner {
   const nodePath = options.nodePath ?? process.execPath;
   const defaultTimeout = options.timeoutMs ?? KIT_TIMEOUT_MS;
 
-  async function exec<T>(bundle: string, cwd: string, args: readonly string[], timeoutMs: number): Promise<KitOutcome<T>> {
+  async function exec<T>(bundle: string, cwd: string, args: readonly string[], timeoutMs: number, read = false): Promise<KitOutcome<T>> {
     const label = args[0] ?? '';
     const result = await options.runCommand(nodePath, [bundle, ...args], {
       cwd,
-      env: options.env,
+      env: read ? readEnv(options.env) : options.env,
       timeoutMs,
       maxBytes: MAX_OUTPUT_BYTES,
     });
@@ -148,15 +157,17 @@ export function createKitRunner(options: KitRunnerOptions): KitRunner {
     return exec<T>(bundle, root, args, timeoutMs);
   }
 
+  async function inProject<T>(root: string, args: readonly string[], timeoutMs: number, read: boolean): Promise<KitOutcome<T>> {
+    if (!runner.installed(root)) {
+      return failure('KIT_NOT_INSTALLED', 'В проекте нет процесса Kit.', { root }, 'Установите процесс Kit в мастере проекта.');
+    }
+    return exec<T>(projectBundlePath(root), root, args, timeoutMs, read);
+  }
+
   const runner: KitRunner = {
     projectBundle: projectBundlePath,
     installed: (root) => existsSync(projectBundlePath(root)),
-    async run<T>(root: string, args: readonly string[], runOptions: RunKitOptions = {}): Promise<KitOutcome<T>> {
-      if (!runner.installed(root)) {
-        return failure('KIT_NOT_INSTALLED', 'В проекте нет процесса Kit.', { root }, 'Установите процесс Kit в мастере проекта.');
-      }
-      return exec<T>(projectBundlePath(root), root, args, runOptions.timeoutMs ?? defaultTimeout);
-    },
+    run: <T>(root: string, args: readonly string[], runOptions: RunKitOptions = {}) => inProject<T>(root, args, runOptions.timeoutMs ?? defaultTimeout, false),
     inspect: (root) => withAppBundle<KitInspect>(root, ['inspect', root], defaultTimeout),
     install(root, installOptions = {}) {
       const args = ['install', root, '--host', 'harness'];
@@ -164,8 +175,8 @@ export function createKitRunner(options: KitRunnerOptions): KitRunner {
       if (installOptions.name) args.push('--name', installOptions.name);
       return withAppBundle<KitInstall>(root, args, Math.max(defaultTimeout, KIT_INSTALL_TIMEOUT_MS));
     },
-    status: (root) => runner.run<KitStatus>(root, ['status']),
-    proposal: (root) => runner.run<KitProposal | null>(root, ['scope:proposal']),
+    status: (root) => inProject<KitStatus>(root, ['status'], defaultTimeout, true),
+    proposal: (root) => inProject<KitProposal | null>(root, ['scope:proposal'], defaultTimeout, true),
   };
   return runner;
 }

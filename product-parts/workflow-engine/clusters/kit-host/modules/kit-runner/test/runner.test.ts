@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict';
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
 import { test } from 'node:test';
 import type { RunResult } from '#process-supervisor';
-import { createKitRunner, parseEnvelope } from '../src/index.ts';
+import { createKitRunner, parseEnvelope, projectBundlePath, readEnv } from '../src/index.ts';
 
 const result = (over: Partial<RunResult> = {}): RunResult => ({
   code: 0,
@@ -56,4 +59,34 @@ test('runner failures: spawn, timeout, missing bundles', async () => {
   });
   const inspect = await noBundle.inspect('/p');
   assert.deepEqual([inspect.ok, (inspect as { code: string }).code], [false, 'KIT_NO_BUNDLE']);
+});
+
+test('the reads of the service (status, scope:proposal) take no optional git locks; other commands keep the env', async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'wfk-kit-env-'));
+  try {
+    await mkdir(path.dirname(projectBundlePath(root)), { recursive: true });
+    await writeFile(projectBundlePath(root), '');
+    const envs: Array<Readonly<Record<string, string | undefined>> | undefined> = [];
+    const runner = createKitRunner({
+      nodePath: '/node',
+      appBundle: async () => '/app/kit.mjs',
+      env: { PATH: '/bin', HOME: '/h' },
+      runCommand: async (_command, _args, options) => {
+        envs.push(options?.env);
+        return result({ stdout: '{"command":"x","ok":true,"result":null}' });
+      },
+    });
+    await runner.status(root);
+    await runner.proposal(root);
+    await runner.run(root, ['commit', '--task', 'T001']);
+    assert.deepEqual(envs, [
+      { PATH: '/bin', HOME: '/h', GIT_OPTIONAL_LOCKS: '0' },
+      { PATH: '/bin', HOME: '/h', GIT_OPTIONAL_LOCKS: '0' },
+      { PATH: '/bin', HOME: '/h' },
+    ]);
+    assert.equal(readEnv(undefined)['GIT_OPTIONAL_LOCKS'], '0');
+    assert.equal(readEnv(undefined)['PATH'], process.env['PATH']);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
 });

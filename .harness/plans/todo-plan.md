@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 441,
+  "revision": 443,
   "rounds": [
     {
       "digest": {
@@ -455,14 +455,18 @@
       "dependencies": [],
       "docsWaiver": null,
       "files": [
-        "product-parts/workflow-engine/clusters/kit-host/modules/kit-runner"
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-runner",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/module.md",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/src/index.ts",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/src/runner.ts",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/test/runner.test.ts"
       ],
       "fixes": "T002",
       "id": "T009",
       "iteration": 1,
       "kind": "work",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Stable orchestrated commit test",
       "why": "CI on macOS: kit-project.test.ts:158 got COMMIT_FAILED once"
     },
@@ -546,8 +550,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 9/12
-- Revision: 441
+- Progress: 10/12
+- Revision: 443
 
 ## Objective
 
@@ -603,9 +607,9 @@ Digest: R1 of m6-cross-platform: the platform-guard commit check (rules A, B, C)
   - Commit: test: run the fake Codex daemon on a named pipe on Windows
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/files-hooks.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/helpers.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/release.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/ws-rpc.test.ts
   - Fixes: T002
-- [TODO] T009 — Stable orchestrated commit test (work)
+- [DONE] T009 — Stable orchestrated commit test (work)
   - Commit: test: stabilize the orchestrated kit-project test
-  - Files: product-parts/workflow-engine/clusters/kit-host/modules/kit-runner
+  - Files: product-parts/workflow-engine/clusters/kit-host/modules/kit-runner, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/src/index.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/src/runner.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/test/runner.test.ts
   - Fixes: T002
 - [TODO] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R2

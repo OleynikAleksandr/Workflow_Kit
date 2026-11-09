@@ -6,6 +6,7 @@
     "pbcopy",
     "plutil",
     "xdg-open",
+    "xdg-mime",
     "systemctl",
     "loginctl",
     "rundll32",
@@ -42,15 +43,22 @@
       "file": "product-parts/backend-core/clusters/runtime/modules/cli/src/open-link.ts",
       "program": "powershell.exe",
       "darwin": "open <ссылка>",
-      "linux": "не поддерживается: openCommands возвращает null, служба не открывает чаты (пробел паритета)",
-      "win32": "rundll32 url.dll,FileProtocolHandler; codex:// — PowerShell и приложение OpenAI.Codex"
+      "linux": "xdg-open только для ссылки проекта kimi-code://; не поддерживается для чатов ChatGPT и Claude: их приложений для Linux нет (пробел паритета)",
+      "win32": "rundll32 url.dll,FileProtocolHandler (claude://, kimi-code://); codex:// — PowerShell и приложение OpenAI.Codex"
     },
     {
       "file": "product-parts/backend-core/clusters/runtime/modules/cli/src/open-link.ts",
       "program": "rundll32",
       "darwin": "open <ссылка>",
-      "linux": "не поддерживается: openCommands возвращает null, служба не открывает чаты (пробел паритета)",
-      "win32": "rundll32 url.dll,FileProtocolHandler; codex:// — PowerShell и приложение OpenAI.Codex"
+      "linux": "xdg-open только для ссылки проекта kimi-code://; не поддерживается для чатов ChatGPT и Claude: их приложений для Linux нет (пробел паритета)",
+      "win32": "rundll32 url.dll,FileProtocolHandler (claude://, kimi-code://); codex:// — PowerShell и приложение OpenAI.Codex"
+    },
+    {
+      "file": "product-parts/backend-core/clusters/runtime/modules/cli/src/open-link.ts",
+      "program": "xdg-open",
+      "darwin": "open <ссылка>",
+      "linux": "xdg-open только для ссылки проекта kimi-code://; не поддерживается для чатов ChatGPT и Claude: их приложений для Linux нет (пробел паритета)",
+      "win32": "rundll32 url.dll,FileProtocolHandler (claude://, kimi-code://); codex:// — PowerShell и приложение OpenAI.Codex"
     },
     {
       "file": "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/programs.ts",
@@ -184,6 +192,20 @@
       "darwin": "путь expect сохраняется в config.json",
       "linux": "путь expect сохраняется в config.json",
       "win32": "не нужно: expect не используется, его отсутствие не ошибка"
+    },
+    {
+      "file": "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/app-link.ts",
+      "program": "reg",
+      "darwin": "папка Kimi Code.app в /Applications или ~/Applications (stat, без программы)",
+      "linux": "xdg-mime query default x-scheme-handler/kimi-code",
+      "win32": "reg query HKCU\\Software\\Classes\\kimi-code, затем HKCR\\kimi-code"
+    },
+    {
+      "file": "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/app-link.ts",
+      "program": "xdg-mime",
+      "darwin": "папка Kimi Code.app в /Applications или ~/Applications (stat, без программы)",
+      "linux": "xdg-mime query default x-scheme-handler/kimi-code",
+      "win32": "reg query HKCU\\Software\\Classes\\kimi-code, затем HKCR\\kimi-code"
     }
   ],
   "legacySpecs": [

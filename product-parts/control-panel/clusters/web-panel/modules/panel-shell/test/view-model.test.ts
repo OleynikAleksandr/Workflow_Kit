@@ -4,6 +4,7 @@ import {
   arrivedSession,
   chatStatus,
   deviceLink,
+  opensByItself,
   filterProjects,
   formatElapsed,
   ownerObjective,
@@ -193,6 +194,20 @@ test('a ChatGPT session header says the chat opens from the card; without a link
   assert.deepEqual(chatStatus({}, 'codex://threads/t1'), { text: 'чат открывается щелчком по карточке сессии', tone: 'muted' });
   assert.deepEqual(chatStatus({ note: 'без ссылки' }, null), { text: 'без ссылки', tone: 'muted' });
   assert.deepEqual(chatStatus({}, null), { text: 'ссылки нет', tone: 'muted' });
+  assert.equal(chatStatus({ note: 'ждёт ответа' }, 'codex://threads/t1').text, 'чат открывается щелчком по карточке сессии — ждёт ответа');
+});
+
+test('a Kimi session: the card opens the project in the app; the Remote Control page waits for a tap', () => {
+  const links = { desktop: 'kimi-code://open?root=%2FUsers%2Fme%2Fapp', mobile: 'https://code-rc.kimi.com/devices/dev_1/' };
+  assert.equal(deviceLink(links, 0), links.desktop);
+  assert.equal(deviceLink(links, 5), links.mobile);
+  assert.equal(deviceLink({ desktop: links.desktop }, 5), null, 'the app link of the computer is not offered on a tablet');
+  assert.equal(chatStatus({}, links.desktop).text, 'проект открывается в Kimi Code щелчком по карточке сессии');
+  assert.equal(chatStatus({ note: 'в архиве Kimi' }, links.desktop).text, 'проект открывается в Kimi Code щелчком по карточке сессии — в архиве Kimi');
+  assert.equal(chatStatus({}, links.mobile).text, 'чат открывается щелчком по карточке сессии');
+  assert.equal(chatStatus({ note: 'продолжить: `kimi -S s1` в терминале проекта' }, null).text, 'продолжить: `kimi -S s1` в терминале проекта');
+  // Without a click: an app link opens on every device, a web page only on a computer.
+  assert.deepEqual([opensByItself(links.desktop, 0), opensByItself(links.mobile, 0), opensByItself(links.mobile, 5), opensByItself('codex://threads/t1', 5)], [true, true, false, true]);
 });
 
 test('an awaited session is found by its key, or as the newest of the provider created after the request', () => {

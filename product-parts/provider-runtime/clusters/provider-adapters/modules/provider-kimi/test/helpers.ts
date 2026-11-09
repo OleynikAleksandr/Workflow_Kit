@@ -238,7 +238,8 @@ export async function fakeKimi(): Promise<FakeKimi> {
     seen: (method, url) => machine.api.requests.filter((request) => request.method === method && request.url === url),
     async close() {
       await machine.crash();
-      await rm(root, { recursive: true, force: true });
+      // Events are appended without waiting: a late write may land while the folder is removed.
+      await rm(root, { recursive: true, force: true, maxRetries: 10, retryDelay: 50 });
     },
   };
   return machine;

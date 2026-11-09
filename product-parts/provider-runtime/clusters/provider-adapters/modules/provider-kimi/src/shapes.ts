@@ -227,3 +227,23 @@ export function parseBatch(data: unknown): KimiBatchResult[] {
     return { id: text(item['id'], `batch.results[${index}].id`), ok: item['ok'], code: typeof error['code'] === 'number' ? error['code'] : null, message: optionalText(error['message']) };
   });
 }
+
+/** The only Remote Control address Kit passes on: the page of a device, without credentials or parameters. */
+export const REMOTE_URL = /^https:\/\/code-rc\.kimi\.com\/devices\/[A-Za-z0-9_-]{1,128}\/$/;
+
+/** GET and POST /api/v1/remote-control; url is null unless it is a REMOTE_URL. */
+export interface KimiRemoteState {
+  enabled: boolean;
+  state: string;
+  url: string | null;
+  /** Another application of the machine runs Remote Control. */
+  conflict: boolean;
+}
+
+export function parseRemote(data: unknown): KimiRemoteState {
+  const remote = record(data, 'remote-control');
+  if (typeof remote['enabled'] !== 'boolean') throw shapeError('remote-control.enabled');
+  const url = remote['url'];
+  const conflict = remote['conflict'];
+  return { enabled: remote['enabled'], state: text(remote['state'], 'remote-control.state'), url: typeof url === 'string' && REMOTE_URL.test(url) ? url : null, conflict: typeof conflict === 'object' && conflict !== null };
+}

@@ -1,8 +1,10 @@
 // The Kimi Code provider (spec M8): the program, the server of Kit, the status table, the
-// workspace and the trust of a folder. The Kit hook is in hooks.ts, the sessions in sessions.ts.
+// workspace and the trust of a folder. The Kit hook is in hooks.ts, the sessions in sessions.ts,
+// the app link in app-link.ts and Remote Control in remote.ts.
 import { readJsonFile } from '#data-store';
 import { ProviderError, createTokenStore, providerSessionsFile } from '#provider-registry';
 import type { Capabilities, Provider, ProviderAction, ProviderContext, ProviderStatus } from '#provider-registry';
+import { kimiAppFound } from './app-link.ts';
 import { KIMI_CODES, KimiError, describeKimiError } from './client.ts';
 import type { KimiClient } from './client.ts';
 import { REMOVE_HOOK_ACTION, createKimiHooks } from './hooks.ts';
@@ -11,6 +13,8 @@ import { kimiHome, kimiPaths } from './paths.ts';
 import type { KimiPaths } from './paths.ts';
 import { UNCHECKED_PROGRAM, readProgram, testedVersion } from './program.ts';
 import type { ProgramState } from './program.ts';
+import { REMOTE_OFF_ACTION, REMOTE_ON_ACTION, createKimiRemote } from './remote.ts';
+import type { KimiRemote } from './remote.ts';
 import { LOCK_SWITCH, createKimiServer } from './server.ts';
 import type { KimiServer, KimiServerDeps } from './server.ts';
 import { createKimiSessions } from './sessions.ts';
@@ -40,6 +44,8 @@ export interface KimiProbe {
 export interface KimiDeps extends Pick<KimiServerDeps, 'fetch' | 'startWaitMs' | 'stopWaitMs' | 'pollMs' | 'freePort'>, KimiHookDeps, KimiSessionDeps {
   /** Clock of the preview tokens. */
   tokenNow?: () => Date;
+  /** Check that the Kimi Code app is installed (default: kimiAppFound). */
+  appFound?: () => Promise<boolean>;
 }
 
 /** Shared state of the provider parts (hooks and sessions build on it). */
@@ -54,6 +60,9 @@ export interface KimiRuntime {
   /** Client of the server, started when needed, without the login and model check (rename, archive, deletion). */
   requireServer(): Promise<KimiClient>;
   requireProgram(): void;
+  /** Whether the Kimi Code app is installed; null until the first refresh() (external programs run only there). */
+  appFound(): boolean | null;
+  remote: KimiRemote;
 }
 
 /** Asks the server what the status table needs: backend, login, model. */
@@ -79,12 +88,13 @@ export function createKimiRuntime(context: ProviderContext, deps: KimiDeps = {})
   let program: ProgramState = UNCHECKED_PROGRAM;
   let probe: KimiProbe | null = null;
   let serverError: string | null = null;
+  let app: boolean | null = null;
   const server = createKimiServer({ ...deps, context, paths, program: () => (program.installed ? program.path : null) });
 
   const usable = (): boolean => program.installed === true && !program.unsupported && !program.error;
 
   const notes = (...first: Array<string | null>): string | undefined => {
-    const all = first.filter((item): item is string => Boolean(item));
+    const all = [...first, remote.note()].filter((item): item is string => Boolean(item));
     if (program.version && !testedVersion(program.version)) all.push(`версия ${program.version} не проверялась с Workflow Kit`);
     if (platform !== 'darwin') all.push(UNTESTED_OS_NOTE);
     return all.length > 0 ? all.join('; ') : undefined;
@@ -149,6 +159,9 @@ export function createKimiRuntime(context: ProviderContext, deps: KimiDeps = {})
     return ensureServer();
   };
 
+  const remote = createKimiRemote({ current: () => server.current(), requireServer, now: () => context.now().getTime(), version: () => program.version });
+  const findApp = deps.appFound ?? (() => kimiAppFound({ platform, env: context.env, homedir: context.homedir, runCommand: context.runCommand }));
+
   // The server is wanted when Kit keeps sessions of Kimi (session-store.ts writes the file).
   const hasSessions = async (): Promise<boolean> => {
     const data = await readJsonFile(providerSessionsFile(context.dirs, PROVIDER_ID)).catch(() => undefined);
@@ -175,7 +188,7 @@ export function createKimiRuntime(context: ProviderContext, deps: KimiDeps = {})
 
   const trust = createKimiTrust({ platform, paths, tokens, workspaces, current: () => server.current(), requireReady, requireProgram, notReady, version: () => program.version, log: context.log });
   const hooks = createKimiHooks({ context, paths, server, ensureServer, programPath, ...(deps.hookHost ? { hookHost: deps.hookHost } : {}), ...(deps.liveness ? { liveness: deps.liveness } : {}), ...(deps.beforeRename ? { beforeRename: deps.beforeRename } : {}) });
-  const runtime: KimiRuntime = { context, paths, server, workspaces, program: () => program, requireReady, requireServer, requireProgram };
+  const runtime: KimiRuntime = { context, paths, server, workspaces, program: () => program, requireReady, requireServer, requireProgram, appFound: () => app, remote };
   const sessions = createKimiSessions(runtime, deps);
 
   const provider: Provider = {
@@ -202,6 +215,8 @@ export function createKimiRuntime(context: ProviderContext, deps: KimiDeps = {})
     },
     async refresh() {
       program = await readProgram(context, paths);
+      app = await findApp().catch(() => false);
+      remote.reset();
       if (usable()) await check(await hasSessions());
       else probe = null;
       return buildStatus();
@@ -230,6 +245,8 @@ export function createKimiRuntime(context: ProviderContext, deps: KimiDeps = {})
       if (project !== null) return [];
       const running = (await server.current()) !== null;
       const missing = program.installed === false ? 'Kimi Code не найден' : (program.unsupported ?? program.error);
+      const remoteOn = running && (await remote.enabled());
+      const remoteAction = (id: string, title: string, enabled: boolean, reason: string, confirm: string): ProviderAction => ({ id, title, scope: 'provider', enabled: !missing && enabled, ...(missing || !enabled ? { reason: missing ?? reason } : {}), confirm });
       return [
         {
           id: RESTART_ACTION,
@@ -239,13 +256,19 @@ export function createKimiRuntime(context: ProviderContext, deps: KimiDeps = {})
           ...(missing ? { reason: missing } : {}),
           ...(running ? { confirm: 'Сервер Kimi будет перезапущен: ходы сессий Kimi, идущие сейчас, прервутся.' } : {}),
         },
+        remoteAction(REMOTE_ON_ACTION, 'Включить Remote Control Kimi', !remoteOn, 'Remote Control Kimi уже включён', 'Remote Control Kimi будет включён: сессии Kimi этого компьютера станут доступны с телефона через code-rc.kimi.com.'),
+        remoteAction(REMOTE_OFF_ACTION, 'Выключить Remote Control Kimi', remoteOn, 'Remote Control Kimi выключен', 'Remote Control Kimi будет выключен: ссылки на сессии Kimi с телефона перестанут открываться.'),
         await hooks.action(missing),
       ];
     },
     async runAction(id, project) {
-      if ((id !== RESTART_ACTION && id !== REMOVE_HOOK_ACTION) || project !== null) throw new ProviderError('unknown-action', `Неизвестное действие Kimi: ${id}`, { status: 404 });
+      if (![RESTART_ACTION, REMOVE_HOOK_ACTION, REMOTE_ON_ACTION, REMOTE_OFF_ACTION].includes(id) || project !== null) throw new ProviderError('unknown-action', `Неизвестное действие Kimi: ${id}`, { status: 404 });
       if (id === REMOVE_HOOK_ACTION) {
         await hooks.remove();
+        return buildStatus();
+      }
+      if (id === REMOTE_ON_ACTION || id === REMOTE_OFF_ACTION) {
+        await remote.set(id === REMOTE_ON_ACTION);
         return buildStatus();
       }
       if (program.installed === null) program = await readProgram(context, paths);

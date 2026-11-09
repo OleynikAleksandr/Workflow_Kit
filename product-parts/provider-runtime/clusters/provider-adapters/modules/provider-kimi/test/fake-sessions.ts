@@ -40,6 +40,8 @@ export interface FakeSessions {
   promptStatus: string;
   /** Bodies of the accepted prompts with their session. */
   prompts: Array<{ sessionId: string; body: Record<string, unknown> }>;
+  /** Remote Control of the server: POST sets enabled; a server without the route has supported false. */
+  remote: { supported: boolean; enabled: boolean; url: string; conflict: boolean };
   add(session: Partial<FakeSession> & { workspace: string }): FakeSession;
   /** Refuses the matching requests `times` times (default: always). */
   fail(on: RegExp, code: number, times?: number): void;
@@ -81,6 +83,7 @@ export function fakeSessions(machine: FakeKimi): FakeSessions {
     pageSize: 0,
     promptStatus: 'running',
     prompts: [],
+    remote: { supported: true, enabled: false, url: 'https://code-rc.kimi.com/devices/dev_1/', conflict: false },
     add(session) {
       count += 1;
       const item: FakeSession = { id: `session_${count}`, cwd: '/nowhere', title: `Session ${count}`, created: Date.now() - 60_000 + count, archived: false, status: 'idle', model: 'fake/fake', pending: 'none', messages: [], ...session };
@@ -107,6 +110,11 @@ export function fakeSessions(machine: FakeKimi): FakeSessions {
     if (failure) {
       failure.times -= 1;
       return refusal(failure.code);
+    }
+    if (route === '/api/v1/remote-control' && state.remote.supported && (request.method === 'GET' || request.method === 'POST')) {
+      if (request.method === 'POST') state.remote.enabled = (request.body as { enabled: boolean }).enabled;
+      const { enabled, url, conflict } = state.remote;
+      return ok({ enabled, state: enabled ? 'on' : 'off', ...(enabled ? { url, device_id: 'dev_1', device_name: 'test' } : {}), ...(conflict ? { conflict: { device_name: 'other' } } : {}) });
     }
     if (request.method === 'GET' && route === '/api/v2/sessions') {
       const archived = params.get('meta.archived');
@@ -165,7 +173,7 @@ export function fakeSessions(machine: FakeKimi): FakeSessions {
 /** Short waits of the server and of the retries after 40931. */
 export const FAST = { startWaitMs: 2000, stopWaitMs: 500, pollMs: 10, retryDelaysMs: [1, 1, 1] };
 
-/** A fake machine with the program installed, the session routes, one project and a provider. */
+/** A fake machine with the program installed, the session routes, one project and a provider (the app counts as installed). */
 export interface SessionSetup {
   machine: FakeKimi;
   api: FakeSessions;
@@ -193,7 +201,7 @@ export async function withSessions(run: (setup: SessionSetup) => Promise<void>, 
     const api = fakeSessions(machine);
     const project = await machine.project('app');
     let shift = 0;
-    const create = (): { runtime: KimiRuntime; provider: Provider } => createKimiRuntime(machine.context({ now: () => new Date(Date.now() + shift), ...context }), { ...FAST, ...deps });
+    const create = (): { runtime: KimiRuntime; provider: Provider } => createKimiRuntime(machine.context({ now: () => new Date(Date.now() + shift), ...context }), { ...FAST, appFound: async () => true, ...deps });
     const { runtime, provider } = create();
     let count = 0;
     await run({

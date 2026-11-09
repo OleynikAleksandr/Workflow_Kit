@@ -194,7 +194,7 @@ test('without the kimi program nothing is written and the removal is off', async
     await rm(b.machine.paths.program);
     await b.provider.refresh!();
     assert.equal((await b.hooks()).kitHook?.status, 'approved', 'the file is read without the program');
-    assert.deepEqual((await b.provider.actions(null)).map((action) => [action.enabled, action.reason]), [[false, 'Kimi Code не найден'], [false, 'Kimi Code не найден']]);
+    assert.deepEqual((await b.provider.actions(null)).map((action) => [action.enabled, action.reason]), Array.from({ length: 4 }, () => [false, 'Kimi Code не найден']));
     await assert.rejects(b.provider.runAction(REMOVE_HOOK_ACTION, null), (error: unknown) => error instanceof ProviderError && error.code === 'not-installed');
     await writeFile(b.file, OTHER);
     await assert.rejects(b.approve(shownOf(await b.hooks())), (error: unknown) => error instanceof ProviderError && error.code === 'not-installed');

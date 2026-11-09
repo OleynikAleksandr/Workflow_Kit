@@ -49,7 +49,7 @@ test('status: not installed, an old version, ready on demand without starting th
     await machine.installProgram();
     machine.version = '2.5.1';
     assert.deepEqual(brief(await provider.refresh!()), ['unavailable', 'нужна версия Kimi Code не ниже 2.5.2', note()]);
-    assert.deepEqual((await provider.actions(null)).map((action) => [action.enabled, action.reason]), [[false, 'нужна версия Kimi Code не ниже 2.5.2'], [false, 'хука Kit в config.toml Kimi нет']]);
+    assert.deepEqual((await provider.actions(null)).map((action) => [action.enabled, action.reason]), [...Array.from({ length: 3 }, () => [false, 'нужна версия Kimi Code не ниже 2.5.2']), [false, 'хука Kit в config.toml Kimi нет']]);
     machine.version = '2.5.2';
     const status = await provider.refresh!();
     assert.deepEqual(brief(status), ['ready', 'готов', note(ON_DEMAND_NOTE)]);

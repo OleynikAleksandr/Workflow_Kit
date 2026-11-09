@@ -5,7 +5,7 @@ import { api, ApiError } from './api.js';
 import { requestRefresh } from './cards.js';
 import { h, notice } from './dom.js';
 import { commitsLabel } from './publication.js';
-import { ARRIVAL_WAIT_MS, arrivedSession, chatStatus, deviceLink, runningText } from './view-model.js';
+import { ARRIVAL_WAIT_MS, arrivedSession, chatStatus, deviceLink, opensByItself, runningText } from './view-model.js';
 
 /** localStorage key of the collapsed projects of the tree (per device). */
 const COLLAPSED_KEY = 'wfk.tree.collapsed';
@@ -256,15 +256,18 @@ export function createActions(options) {
     },
     /**
      * Opens the chat of a session in its app. auto: no click of the user (a new session), which a
-     * window may refuse to open by itself — on the Mac the service opens it (POST /api/open-link),
-     * elsewhere (or when the service cannot) a navigation to the link.
+     * window may refuse to open by itself — on the computer the service opens it (POST
+     * /api/open-link), elsewhere (or when the service cannot) a navigation to the link. A web page
+     * on a touch device is never opened without a click (opensByItself).
      * @param {SessionRow} session @param {boolean} [auto]
      */
     openChat(session, auto = false) {
-      const touch = (navigator.maxTouchPoints ?? 0) > 1;
-      const link = deviceLink(session.links, navigator.maxTouchPoints ?? 0);
+      const points = navigator.maxTouchPoints ?? 0;
+      const touch = points > 1;
+      const link = deviceLink(session.links, points);
       if (!link) say('muted', session.note ?? 'У этой сессии нет ссылки');
       else if (!auto) window.open(link, '_blank', 'noopener');
+      else if (!opensByItself(link, points)) return;
       else if (touch) window.location.assign(link);
       else api('POST', '/api/open-link', { url: link }).catch(() => window.location.assign(link));
     },

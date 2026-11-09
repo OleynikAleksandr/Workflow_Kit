@@ -315,6 +315,18 @@ export function deviceLink(links, maxTouchPoints) {
   return null;
 }
 
+/**
+ * Whether a session link opens without a click of the user (a just created session). An app link
+ * does; a web page on a touch device waits for a tap, because it would replace the panel (the
+ * Remote Control page of Kimi).
+ * @param {string} link
+ * @param {number} maxTouchPoints
+ * @returns {boolean}
+ */
+export function opensByItself(link, maxTouchPoints) {
+  return !(maxTouchPoints > 1 && /^https?:/i.test(link));
+}
+
 /** How long the panel waits for a session it asked for to appear in the tree. */
 export const ARRIVAL_WAIT_MS = 180_000;
 
@@ -344,13 +356,16 @@ export function arrivedSession(tree, pending) {
 }
 
 /**
- * Header line of a session whose chat opens from its card instead of «Открыть чат».
+ * Header line of a session whose chat opens from its card instead of «Открыть чат»; the note of
+ * the provider follows it. A Kimi Code link opens the project of the session, not its chat.
  * @param {{ note?: string | null }} session
  * @param {string | null} link the chat link for this device
  * @returns {{ text: string, tone: 'muted' }}
  */
 export function chatStatus(session, link) {
-  return { text: link ? 'чат открывается щелчком по карточке сессии' : (session.note ?? 'ссылки нет'), tone: 'muted' };
+  if (!link) return { text: session.note ?? 'ссылки нет', tone: 'muted' };
+  const opens = link.startsWith('kimi-code://') ? 'проект открывается в Kimi Code щелчком по карточке сессии' : 'чат открывается щелчком по карточке сессии';
+  return { text: session.note ? `${opens} — ${session.note}` : opens, tone: 'muted' };
 }
 
 /**

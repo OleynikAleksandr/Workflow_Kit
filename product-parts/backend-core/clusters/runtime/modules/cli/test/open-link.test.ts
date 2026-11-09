@@ -1,10 +1,12 @@
-// POST /api/open-link: the service opens a ChatGPT chat link with `open` on macOS; other links refused.
+// POST /api/open-link: the service opens a ChatGPT chat link with `open` on macOS and the project
+// link of Kimi Code for a registered project; other links are refused.
 import assert from 'node:assert/strict';
 import { mkdtemp, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { after, before, test } from 'node:test';
 import type { CommandRunner } from '#process-supervisor';
+import { kimiProjectLink } from '#provider-kimi';
 import { createStubProvider } from '#provider-registry';
 import { createApp } from '../src/index.ts';
 import { codexAppxScript, openCommands } from '../src/open-link.ts';
@@ -17,6 +19,7 @@ let app: App;
 let base = '';
 const calls: Array<[string, readonly string[]]> = [];
 let fail = false;
+let kimiInstalled = true;
 const runner: CommandRunner = async (command, args) => {
   calls.push([command, args]);
   return { code: fail ? 1 : 0, signal: null, stdout: '', stderr: fail ? 'no app' : '', timedOut: false, startError: null };
@@ -30,6 +33,7 @@ before(async () => {
     getInterfaces: () => ({}),
     runCommand: runner,
     platform: PLATFORM,
+    kimiApp: async () => kimiInstalled,
     providers: [() => createStubProvider({ id: 'claude', title: 'Claude', task: 'T000' })],
   });
   base = `http://127.0.0.1:${(await app.start()).port}`;
@@ -77,6 +81,39 @@ test('ChatGPT thread and Claude Desktop session links are opened with open; othe
   fail = false;
 });
 
+test('a Kimi Code link is opened only for the folder of a registered project and only with the app installed', async () => {
+  const project = await app.projects.create('kimi-open');
+  const link = kimiProjectLink(project.path);
+  calls.length = 0;
+  const ok = await post(link);
+  assert.deepEqual([ok.status, ok.json], [200, { opened: true }]);
+  assert.deepEqual(calls, [[opener(link).command, opener(link).args]]);
+  assert.equal(opener(link).args.at(-1), link, 'the link goes to the program as one argument');
+  // A new session of the project: the link is built again from the registered folder.
+  assert.equal((await post(`${link}&new=1`)).status, 200);
+  assert.equal(calls.at(-1)?.[1].at(-1), kimiProjectLink(project.path, true));
+  calls.length = 0;
+  for (const bad of [
+    kimiProjectLink(path.dirname(project.path)),
+    kimiProjectLink(path.join(project.path, 'inner')),
+    `${link}&session=1`,
+    `${link}&root=${encodeURIComponent(project.path)}`,
+    `${link}#x`,
+    'kimi-code://open',
+    `kimi-code://run?root=${encodeURIComponent(project.path)}`,
+    `kimi-code:open?root=${encodeURIComponent(project.path)}`,
+  ]) {
+    const refused = await post(bad);
+    assert.deepEqual([refused.status, (refused.json['error'] as Record<string, unknown>)?.['code']], [400, 'bad-link'], bad);
+  }
+  kimiInstalled = false;
+  const missing = await post(link);
+  kimiInstalled = true;
+  assert.deepEqual([missing.status, (missing.json['error'] as Record<string, unknown>)?.['code']], [501, 'no-handler']);
+  assert.match(String((missing.json['error'] as Record<string, unknown>)?.['message']), /kimi -S/);
+  assert.equal(calls.length, 0, 'nothing runs for a refused link');
+});
+
 test('Windows (spec M5 section 7): claude:// through rundll32, codex:// through the AppX app, rundll32 as the fallback', () => {
   const env = { SystemRoot: 'C:\\Windows' };
   const claude = 'claude://claude.ai/code/session_01Ab';
@@ -88,6 +125,11 @@ test('Windows (spec M5 section 7): claude:// through rundll32, codex:// through 
   assert.match(codexAppxScript(codex), /Get-AppxPackage -Name 'OpenAI\.Codex'.*exit 3.*shell:AppsFolder.*-ArgumentList 'codex:\/\/threads\/01a1-b2'$/);
   assert.deepEqual(fallback?.args, ['url.dll,FileProtocolHandler', codex]);
   assert.equal(openCommands('linux', codex, env), null);
+  // The project link of Kimi Code: open, xdg-open and rundll32 by platform.
+  const kimi = kimiProjectLink('/home/me/app');
+  assert.deepEqual(openCommands('darwin', kimi, env), [{ command: 'open', args: [kimi] }]);
+  assert.deepEqual(openCommands('linux', kimi, env), [{ command: 'xdg-open', args: [kimi] }]);
+  assert.deepEqual(openCommands('win32', kimi, env), [{ command: 'C:\\Windows\\System32\\rundll32.exe', args: ['url.dll,FileProtocolHandler', kimi] }]);
 });
 
 test('POST /api/system/shutdown asks wfk serve to stop (loopback, Origin as for every change)', async () => {

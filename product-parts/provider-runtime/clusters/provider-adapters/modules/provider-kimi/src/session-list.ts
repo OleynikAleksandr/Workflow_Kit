@@ -3,7 +3,8 @@
 // cwd of the hook journal) is the project folder or lies inside it. The sources are merged by id:
 // server > panel record > hook journal. Reading the list never starts the server.
 import { hookSessionInfo, readHookSessions } from '#provider-registry';
-import type { Project, SessionInfo } from '#provider-registry';
+import type { Project, SessionInfo, SessionLinks } from '#provider-registry';
+import { kimiProjectLink, resumeNote } from './app-link.ts';
 import { describeKimiError, shapeError } from './client.ts';
 import type { KimiClient } from './client.ts';
 import { liveSessionLocks } from './locks.ts';
@@ -104,6 +105,16 @@ export async function enumerateSessions(
   return { sessions: [...sessions.values()], complete };
 }
 
+/**
+ * Links of the sessions of a project (spec 2.6): the project in the Kimi Code app when the app is
+ * found, the Remote Control address when it is on. resume: the app is missing, sessions carry resumeNote.
+ */
+export async function sessionLinks(rt: KimiRuntime, project: Project): Promise<{ links: SessionLinks; resume: boolean }> {
+  const app = rt.appFound();
+  const mobile = await rt.remote.mobile();
+  return { links: { ...(app ? { desktop: kimiProjectLink(project.path) } : {}), ...(mobile ? { mobile } : {}) }, resume: app === false };
+}
+
 export interface KimiSessionList {
   list(project: Project): Promise<SessionInfo[]>;
   /** The panel records whose folder belongs to the project. */
@@ -189,12 +200,15 @@ export function createKimiSessionList(rt: KimiRuntime, store: KimiStore, livenes
         flags.set(session.id, [...(session.archived ? [ARCHIVED_NOTE] : []), ...(session.status === 'approval' || session.status === 'question' ? [WAITING_NOTE] : [])]);
       }
 
+      const links = await sessionLinks(rt, project);
       const result = [...byId.values()].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
       for (const info of result) {
+        info.links = { ...links.links };
         const parts = [...(common ? [common] : []), ...(fetched && !fetched.value.complete ? [PARTIAL_NOTE] : []), ...(flags.get(info.localId) ?? [])];
         // A session the complete list of the server does not have (a newer one may not be in the cached answer yet).
         if (fetched?.value.complete && !flags.has(info.localId) && Date.parse(info.createdAt) < fetched.at) parts.push(GONE_NOTE);
         for (const note of notes.get(info.localId)) if (!parts.includes(note)) parts.push(note);
+        if (links.resume) parts.push(resumeNote(info.localId));
         if (parts.length > 0) info.note = parts.join('; ');
       }
       return result;

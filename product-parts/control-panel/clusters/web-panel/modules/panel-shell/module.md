@@ -46,7 +46,8 @@
   (`label`, иначе `title`, иначе id), буква метки (`mark`), кнопки и пункты
   «Новая сессия», тексты подтверждений («Чаты в ChatGPT и Claude
   останутся…» — `providerNames`), индикаторы. Своего списка провайдеров в
-  панели нет; у провайдера без своих цветов в `tree.css` метка нейтральная.
+  панели нет; у провайдера без своих цветов в `tree.css` метка нейтральная (свои — у
+  ChatGPT, Claude и Kimi, токен `--kimi`).
 - Дерево показывает только выбранный проект: проект маршрута, иначе
   выбранный последним (`wfk.current-project` на устройстве; мастер
   выбирает новый проект — `SlotContext.selectProject`), если он среди
@@ -72,8 +73,10 @@
   состояние процесса («открыта в <провайдер>» и примечание сессии,
   `runningText`), а открытие экрана поднимает остановленную сессию через
   `POST …/providers/<id>/sessions/:sid/resume`, повтор после ошибки — через
-  `REVIVE_RETRY_MS` (30 с), раунд R9; у остальных (ChatGPT) — `chatStatus`:
-  «чат открывается щелчком по карточке сессии»; щелчок или Enter по карточке
+  `REVIVE_RETRY_MS` (30 с), раунд R9; у остальных (ChatGPT, Kimi) — `chatStatus`:
+  «чат открывается щелчком по карточке сессии» (у ссылки `kimi-code://` —
+  «проект открывается в Kimi Code щелчком по карточке сессии»; пометка сессии
+  дописывается через « — », без ссылки показывается только она); щелчок или Enter по карточке
   такой сессии в дереве открывает её чат по ссылке устройства
   (`deviceLink`), открытие экрана без щелчка чат не открывает; пункта
   «Открыть чат» в меню сессий нет, M3-autostart R4. Новая сессия
@@ -86,7 +89,9 @@
   Desktop (`claude://…`, `openInDesktop`), когда у неё появилась ссылка
   (экран сессии — сразу, `PendingSession.shown`), M3-autostart R9; щелчок по
   карточке Claude тоже открывает её в Claude Desktop, на сенсорном устройстве —
-  https-ссылку в новой вкладке (R10); сессия-ревьюер (раздел `reviews`, M4)
+  https-ссылку в новой вкладке (R10); http(s)-ссылка на сенсорном устройстве
+  (Remote Control Kimi) сама не открывается никогда — только нажатием
+  (`opensByItself(link, maxTouchPoints)`, M8 2.6); сессия-ревьюер (раздел `reviews`, M4)
   в дерево и в число сессий проекта не входит (M4, раздел 13.4: её работа — в журнале ревью основной сессии); тело — слот `sessionBody`, модуль `session-view`;
   узел тела постоянный, введённый текст переживает опрос); «Настройки»
   (внешний вид, папка для проектов — `POST /api/settings/projects-root`,
@@ -127,7 +132,7 @@
 | `app.js` | состояние и маршрут, опрос `/api/state` (следующий запрос — через 3 с после ответа, таймаут 8 с, сразу при возврате на вкладку, тик таймера строки подготовки раз в секунду), самоперезагрузка страницы, когда служба отвечает другой версией, чем при загрузке (один раз на версию, `sessionStorage`, M4 13.5), экраны и слоты; загрузка расширений `PANEL_EXTENSIONS` (`/project-wizard/project-wizard.js`, `/session-view/session-view.js`) до первого опроса: `install(shell)` с помощниками `registerCard`, `registerCardGroup`, `registerSlot`, `requestRefresh`, `api`, `ApiError`, `dom`, `createFolderPicker`, `showError` |
 | `actions.js` | `createActions({ navigate, render, route })` → `{ handlers, toast, say, collapsed }`: в архив; для «Архива» — `restoreProjects`, `forgetProjects`, `deleteProject`, `restoreSessions`, `forgetSessions`; новая сессия, обновить сессии, копировать путь, открыть чат, переименовать и архивировать сессию; сообщения над экраном; свёрнутые проекты |
 | `slots.js` | слоты раскладки для расширений: `registerSlot('newProject' \| 'sessionBody' \| 'sessionReview', definition)`, `slots`; типы `SlotContext` (`navigate`, `requestRefresh`, `say`, `selectProject`), `SessionContext` (`project`, `session`, `link`) |
-| `view-model.js` | чистые модели без DOM: `parseRoute`/`routeHash` (`#/`, `#/settings`, `#/new`, `#/open`, `#/archive`, `#/p/<id>`, `#/s/<id>/<ключ>`), `projectLists`, `filterProjects`, `projectTree`, `ownerObjective`, `sessionKey` (`<провайдер>:<localId>` — ключ разделов `channel`, `titles`, `review`), `runningText`, `statusLine`, `deviceLink`, `formatWhen`, `formatElapsed`, `sessionsLabel`, `shortPath`, `themeAttribute`; в строке сессии — `providerLabel` и `resumable` из сводки провайдера |
+| `view-model.js` | чистые модели без DOM: `parseRoute`/`routeHash` (`#/`, `#/settings`, `#/new`, `#/open`, `#/archive`, `#/p/<id>`, `#/s/<id>/<ключ>`), `projectLists`, `filterProjects`, `projectTree`, `ownerObjective`, `sessionKey` (`<провайдер>:<localId>` — ключ разделов `channel`, `titles`, `review`), `runningText`, `statusLine`, `chatStatus`, `opensByItself`, `deviceLink`, `formatWhen`, `formatElapsed`, `sessionsLabel`, `shortPath`, `themeAttribute`; в строке сессии — `providerLabel` и `resumable` из сводки провайдера |
 | `providers.js` | провайдеры из раздела `providers` состояния: `providerViews(state)` (`id`, `label`, `mark`, `resume`, `ready`, `statusLabel`), `providerNamer(state)`, `providerNames(state)` («ChatGPT и Claude»), `indicators(state, linked)` |
 | `sidebar.js` | боковая панель: `createSidebar(handlers) → { element, render(model), setReview(node) }` |
 | `menus.js` | всплывающие меню «⋯»: `openMenu(anchor, items)`, `closeMenu()` |

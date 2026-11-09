@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 486,
+  "revision": 488,
   "rounds": [
     {
       "digest": null,
@@ -718,14 +718,38 @@
         "product-parts/control-panel/clusters/web-panel/modules/panel-shell",
         "product-parts/control-panel/clusters/web-panel/modules/session-view",
         "tools/platform-guard/allowlist.json",
-        "docs/architecture/OVERVIEW.md"
+        "docs/architecture/OVERVIEW.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/open-link.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/open-link.test.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/actions.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/styles.css",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/tree.css",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/view-model.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/links.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/app-link.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/index.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/provider.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/remote.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/session-list.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/sessions.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/shapes.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/app-remote.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fake-sessions.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/helpers.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/hooks.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/provider.test.ts"
       ],
       "fixes": null,
       "id": "T010",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Kimi links, app check, Remote Control",
       "why": "The user opens the chat from the panel on the computer and on a tablet"
     },
@@ -861,8 +885,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 9/13
-- Revision: 486
+- Progress: 10/13
+- Revision: 488
 
 ## Objective
 
@@ -915,9 +939,9 @@ Add Kimi Code as the third provider of Workflow Kit and release 0.6.0
   - Commit: feat: create, list, rename, archive and delete Kimi sessions and deliver messages
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/workflow-engine/clusters/session-loop/modules/session-titles, product-parts/backend-core/clusters/runtime/modules/cli, docs/architecture/OVERVIEW.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/sessions.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/client.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/messages.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/paths.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/session-list.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/session-store.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/shapes.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fake-sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/messages.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/session-archive.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/sessions.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/shapes.test.ts
   - Depends on: T008
-- [TODO] T010 — Kimi links, app check, Remote Control (work)
+- [DONE] T010 — Kimi links, app check, Remote Control (work)
   - Commit: feat: open Kimi sessions in the Kimi Code app and through Remote Control
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/control-panel/clusters/web-panel/modules/session-view, tools/platform-guard/allowlist.json, docs/architecture/OVERVIEW.md
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/control-panel/clusters/web-panel/modules/session-view, tools/platform-guard/allowlist.json, docs/architecture/OVERVIEW.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/open-link.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/open-link.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/actions.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/styles.css, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/tree.css, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/view-model.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/links.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/app-link.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/remote.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/session-list.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/shapes.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/app-remote.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fake-sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/helpers.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/hooks.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/provider.test.ts
   - Depends on: T009
 - [TODO] T011 — Scenario tests, autopilot texts and AGENTS template for Kimi (work)
   - Commit: test: cover Kimi autopilot and review scenarios; say that Kimi runs scopes sequentially

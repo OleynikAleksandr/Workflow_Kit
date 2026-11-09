@@ -11,7 +11,8 @@ import { createKimiMessages } from './messages.ts';
 import type { KimiMessageDeps } from './messages.ts';
 import { inFolder } from './paths.ts';
 import type { KimiRuntime } from './provider.ts';
-import { createKimiSessionList, createSessionNotes, enumerateSessions, folderRoots } from './session-list.ts';
+import { resumeNote } from './app-link.ts';
+import { createKimiSessionList, createSessionNotes, enumerateSessions, folderRoots, sessionLinks } from './session-list.ts';
 import { DELETE_KEEP_MS, SESSION_ID, createKimiStore } from './session-store.ts';
 import type { DeleteIntent } from './session-store.ts';
 import { parseBatch, parseSession } from './shapes.ts';
@@ -191,8 +192,9 @@ export function createKimiSessions(rt: KimiRuntime, deps: KimiSessionDeps = {}):
       list.drop();
       // A first message Kimi refuses does not undo the session: it stays in the list with a note.
       const started = opts.firstMessage ? await messages.sendMessage(project, session.id, opts.firstMessage, { id: `first-${session.id}` }) : false;
-      const info: SessionInfo = { provider: 'kimi', localId: session.id, title, createdAt: session.createdAt, origin: 'panel', state: started ? 'running' : 'stopped', links: {}, cwd: project.path };
-      const note = notes.get(session.id).join('; ');
+      const { links, resume } = await sessionLinks(rt, project);
+      const info: SessionInfo = { provider: 'kimi', localId: session.id, title, createdAt: session.createdAt, origin: 'panel', state: started ? 'running' : 'stopped', links, cwd: project.path };
+      const note = [...notes.get(session.id), ...(resume ? [resumeNote(session.id)] : [])].join('; ');
       if (note) info.note = note;
       return info;
     },

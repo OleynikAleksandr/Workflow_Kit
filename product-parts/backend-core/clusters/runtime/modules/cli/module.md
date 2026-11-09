@@ -156,11 +156,17 @@ stripping).
 - `POST /api/open-link { url }` (`src/open-link.ts`, M3-autostart раздел 7): служба
   открывает ссылку чата ChatGPT (`codex://threads/<id>`) или сессии Claude Desktop
   (`claude://claude.ai/code/session_<id>`, раздел 11), `OPENABLE_LINK`, командой `open` —
-  только с этого компьютера (loopback, иначе 403), только macOS и Windows (иначе 501); другая
-  ссылка — 400 без запуска, неудача всех команд — 502 и строка в журнале. Windows
-  (`openCommands`, M5 раздел 7): `claude://` — `rundll32 url.dll,FileProtocolHandler`;
-  `codex://` — приложение из AppX-пакета `OpenAI.Codex` (`codexAppxScript`, PowerShell
-  `shell:AppsFolder\<семейство>!<id>` с адресом; без пакета — выход 3), затем `rundll32`.
+  только с этого компьютера (loopback, иначе 403), только macOS и Windows (иначе 501
+  `not-supported`); другая ссылка — 400 без запуска, неудача всех команд — 502 и строка в
+  журнале. Windows (`openCommands`, M5 раздел 7): `claude://` — `rundll32
+  url.dll,FileProtocolHandler`; `codex://` — приложение из AppX-пакета `OpenAI.Codex`
+  (`codexAppxScript`, PowerShell `shell:AppsFolder\<семейство>!<id>` с адресом; без пакета —
+  выход 3), затем `rundll32`. Ссылка проекта Kimi Code (M8, раздел 2.6):
+  `kimi-code://open?root=<папка>` с необязательным `new=1` (`parseKimiProjectLink`) — только
+  для папки зарегистрированного проекта (`sameFolder`, иначе 400 `bad-link`) и только когда
+  приложение найдено (`kimiAppFound`, подмена — `AppOptions.kimiApp`; иначе 501 `no-handler`
+  с подсказкой `kimi -S <id>`); служба открывает ссылку, собранную заново из папки проекта:
+  macOS — `open`, Linux — `xdg-open`, Windows — `rundll32`.
 - `POST /api/system/shutdown` (там же, M5 раздел 7): только loopback (и Origin, как у любого
   изменения); отвечает `{ stopping: true }` и через 50 мс выполняет `app.shutdownRequested` —
   `wfk serve` останавливается так же, как по SIGTERM (на Windows сигналов нет; так службу

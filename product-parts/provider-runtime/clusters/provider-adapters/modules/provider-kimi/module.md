@@ -9,7 +9,8 @@
 ([спецификация M8](../../../../../../docs/planning/M8-kimi-provider.md),
 [протокол](../../../../../../docs/planning/M8-kimi-protocol.md)): программа
 `kimi`, свой сервер `kimi web` на 127.0.0.1, рабочая область папки,
-доверие папке, хук Kit в `config.toml`, сессии и доставка сообщений. Имя — «Kimi Code», `label` «Kimi»,
+доверие папке, хук Kit в `config.toml`, сессии, доставка сообщений, ссылки
+в приложение Kimi Code и Remote Control. Имя — «Kimi Code», `label` «Kimi»,
 `mark` K, диалект хука `kimi`. В списке провайдеров идёт третьим (после
 ChatGPT и Claude).
 
@@ -20,10 +21,11 @@ ChatGPT и Claude).
 - `createKimiProvider(context, deps?)`, `createKimiRuntime(context, deps?)`
   → `{ runtime, provider }`. `KimiDeps`: `fetch`, `startWaitMs` (15 с),
   `stopWaitMs` (5 с), `pollMs`, `freePort`, `tokenNow`, а для хука —
-  `hookHost`, `liveness`, `beforeRename`, для доставки — `retryDelaysMs`.
-  `KimiRuntime` (`context`, `paths`, `server`, `workspaces`, `program()`,
-  `requireReady()`, `requireServer()`, `requireProgram()`) — общая часть
-  для хука и сессий.
+  `hookHost`, `liveness`, `beforeRename`, для доставки — `retryDelaysMs`,
+  для ссылок — `appFound`. `KimiRuntime` (`context`, `paths`, `server`,
+  `workspaces`, `program()`, `requireReady()`, `requireServer()`,
+  `requireProgram()`, `appFound()`, `remote`) — общая часть для хука и
+  сессий.
 - Константы: `PROVIDER_ID` = `kimi`, `PROVIDER_TITLE`, `RESTART_ACTION` =
   `restart-kimi-server`, `LOGIN_NOTE`, `MODEL_NOTE`, `UNTESTED_OS_NOTE`,
   `ON_DEMAND_NOTE`, `MIN_KIMI_VERSION` = `2.5.2`, `KIMI_HOME_ENV` =
@@ -61,6 +63,12 @@ ChatGPT и Claude).
   `FOREIGN_RETRY_MS` (4, 8, 16 с) и тексты пометок (`ARCHIVED_NOTE`,
   `WAITING_NOTE`, `GONE_NOTE`, `PARTIAL_NOTE`, `ARCHIVE_STALE_NOTE`,
   `FOREIGN_RENAME_NOTE`, `SERVER_DOWN`, `unavailableNote`, `deliveryNote`).
+- Ссылки и приложение: `kimiProjectLink`, `parseKimiProjectLink`,
+  `resumeNote`, `kimiAppFound(check)`, `KIMI_LINK_PREFIX`, `KIMI_APP_NAME`,
+  `KIMI_SCHEME_KEYS`, `KIMI_SCHEME_MIME`, `sessionLinks(runtime, project)`.
+- Remote Control: `createKimiRemote(options)` → `{ mobile, enabled, set,
+  note, reset }`, `REMOTE_ON_ACTION` = `kimi-remote`, `REMOTE_OFF_ACTION` =
+  `kimi-remote-off`, `REMOTE_BUSY_NOTE`, `REMOTE_CACHE_MS`, `parseRemote`.
 
 ## Файлы Kimi
 
@@ -228,10 +236,19 @@ Kit есть записи сессий Kimi; сам сервер ради ста
 удаление остаётся намерением и повторяется; сообщение идёт с `prompt_id`
 `kit-<id доставки>`.
 
+### Ссылки, приложение, Remote Control
+
+Описаны в [links.md](links.md). Коротко: `links.desktop` —
+`kimi-code://open?root=<папка>`, только когда приложение Kimi Code найдено
+(иначе пометка с `kimi -S <id>`); `links.mobile` — адрес Remote Control
+сервера Kit; действия `kimi-remote` и `kimi-remote-off`; код `40928` —
+пометка статуса.
+
 ## Поведение на ОС
 
 | | macOS | Linux | Windows |
 | --- | --- | --- | --- |
+| Проверка приложения Kimi Code | папка `Kimi Code.app` | `xdg-mime query default` | `reg query` ключа `kimi-code` |
 | Команда хука | строка `/bin/sh` с `~/.local/bin/wfk` | то же | `"<node.exe>" "<wfk.mjs>" hook …` для `cmd.exe`; путь с `"`, `%` или переводом строки — `unknown` |
 | Права `config.toml` и копий | сохраняются (новый — 0600) | то же | не задаются |
 | Переводы строк блоков | как в файле | как в файле | как в файле (`\r\n` сохраняется) |
@@ -243,8 +260,9 @@ Kit есть записи сессий Kimi; сам сервер ради ста
 | Пометка «на этой ОС не проверялся» | нет | есть | есть |
 | Живая проверка | пользователь | нет, только CI | проверяющий на Windows (**П**) |
 
-Вызовов программ одной ОС в модуле нет; процесс сервера запускает и
-завершает `process-supervisor`.
+Программы одной ОС вызывает только проверка приложения (`xdg-mime`, `reg` —
+`src/app-link.ts`, запись в `tools/platform-guard/allowlist.json`); процесс
+сервера запускает и завершает `process-supervisor`.
 
 ## Факты Kimi 2.5.2 (стенд, отдельный `KIMI_CODE_HOME`)
 
@@ -280,4 +298,4 @@ Kit есть записи сессий Kimi; сам сервер ради ста
 
 ## Дальше
 
-Ссылки и панель (T010), сценарии автопилота и ревью (T011).
+Сценарии автопилота и ревью (T011).

@@ -28,6 +28,7 @@
   --shadow: 0 12px 30px rgb(0 0 0 / 18%);
   --gpt: #0f7d77;
   --claude: #b4682f;
+  --kimi: #3761c4;
   /* Names used by the older cards. */
   --surface: var(--card);
   --border: var(--card-line);
@@ -62,6 +63,7 @@
     --shadow: 0 12px 30px rgb(0 0 0 / 40%);
     --gpt: #7fd0cb;
     --claude: #e0a57a;
+    --kimi: #9db8f2;
   }
 }
 
@@ -91,6 +93,7 @@
   --shadow: 0 12px 30px rgb(0 0 0 / 40%);
   --gpt: #7fd0cb;
   --claude: #e0a57a;
+  --kimi: #9db8f2;
 }
 
 * {

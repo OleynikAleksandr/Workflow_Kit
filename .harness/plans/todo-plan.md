@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 411,
+  "revision": 412,
   "rounds": [
     {
       "digest": {
@@ -425,7 +425,7 @@
     {
       "acceptance": [
         "wfk doctor --installed on macOS reports everything in order with 0.5.0",
-        "the parity table is checked on the Windows 11 ARM VM together with the user and recorded in docs/evidence/M5-acceptance.md"
+        "docs/evidence/M5-acceptance.md records the automatic checks and that the live parity check (section 9) is done by the user on a real Windows PC after publication (user decision of 2026-11-09)"
       ],
       "checks": [],
       "commitMessage": "chore: release 0.5.0",
@@ -454,7 +454,7 @@
       "kind": "delivery",
       "roundId": "R1",
       "status": "TODO",
-      "title": "Release 0.5.0 and the live check on the Windows VM",
+      "title": "Release 0.5.0; the live Windows check follows on a real Windows PC",
       "why": "Windows support is accepted only after a live check"
     }
   ]
@@ -469,7 +469,7 @@
 - Execution: sequential
 - Current task: none
 - Progress: 8/9
-- Revision: 411
+- Revision: 412
 
 ## Objective
 
@@ -516,7 +516,7 @@ Windows 11 (x64 и ARM64): сессии Claude и ChatGPT/Codex, ревью, в�
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M5-windows.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, docs/installation.md, CHANGELOG.md
   - Depends on: T001, T002, T003, T004, T005, T006, T007
-- [TODO] T008 — Release 0.5.0 and the live check on the Windows VM (delivery)
+- [TODO] T008 — Release 0.5.0; the live Windows check follows on a real Windows PC (delivery)
   - Commit: chore: release 0.5.0
   - Files: package.json, package-lock.json, CHANGELOG.md, docs/evidence/M5-acceptance.md
   - Depends on: T001, T002, T003, T004, T005, T006, T007, DOCS-R1

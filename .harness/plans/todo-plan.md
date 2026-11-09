@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 443,
+  "revision": 445,
   "rounds": [
     {
       "digest": {
@@ -38,7 +38,25 @@
       "title": "Implementation"
     },
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "data-store: renameRetrying(from, to, platform, deps?) and writeFileAtomic option platform",
+          "kit-runner: WorkflowState.release(projectId); readEnv(env) for status and scope:proposal",
+          "project-registry: nodeFs.rm retries (maxRetries 5, retryDelay 200)",
+          "provider-claude: a backslash in @path is part of the path unless it escapes a space"
+        ],
+        "decisions": [
+          "writeFileAtomic retries a busy rename on Windows (renameRetrying), like the Claude config writer",
+          "The service releases a project's file watchers before deleting its folder; rm retries a busy folder",
+          "Kit reads of the service run with GIT_OPTIONAL_LOCKS=0 so a concurrent commit does not fail",
+          "The Codex fake-machine suites (sh codex, Unix socket) are skipped on Windows; Windows transport is tested by windows.test.ts and ws-rpc.test.ts"
+        ],
+        "references": [
+          "docs/evidence/M6-acceptance.md",
+          "docs/planning/M6-cross-platform.md"
+        ],
+        "result": "R2 of m6-cross-platform: the defects CI found on Windows and macOS are fixed; tests use the path rules of the host OS and the Windows transports."
+      },
       "id": "R2",
       "kind": "fixes",
       "status": "OPEN",
@@ -496,7 +514,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -550,8 +568,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 10/12
-- Revision: 443
+- Progress: 11/12
+- Revision: 445
 
 ## Objective
 
@@ -611,7 +629,7 @@ Digest: R1 of m6-cross-platform: the platform-guard commit check (rules A, B, C)
   - Commit: test: stabilize the orchestrated kit-project test
   - Files: product-parts/workflow-engine/clusters/kit-host/modules/kit-runner, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/src/index.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/src/runner.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/test/runner.test.ts
   - Fixes: T002
-- [TODO] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R2
   - Files: README.md, docs/architecture/OVERVIEW.md
   - Depends on: T005, T006, T007, T008, T009
@@ -620,5 +638,7 @@ Digest: R1 of m6-cross-platform: the platform-guard commit check (rules A, B, C)
   - Files: CHANGELOG.md, docs/evidence/M6-acceptance.md
   - Depends on: T005, T006, T007, T008, T009, DOCS-R2
   - Fixes: T004
+
+Digest: R2 of m6-cross-platform: the defects CI found on Windows and macOS are fixed; tests use the path rules of the host OS and the Windows transports.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

@@ -8,14 +8,10 @@
 Провайдер Kimi Code по контракту `provider-registry`
 ([спецификация M8](../../../../../../docs/planning/M8-kimi-provider.md),
 [протокол](../../../../../../docs/planning/M8-kimi-protocol.md)): программа
-`kimi`, свой сервер `kimi web` на 127.0.0.1, рабочая область папки и
-доверие папке и хук Kit в `config.toml`. Имя — «Kimi Code», `label` «Kimi»,
+`kimi`, свой сервер `kimi web` на 127.0.0.1, рабочая область папки,
+доверие папке, хук Kit в `config.toml`, сессии и доставка сообщений. Имя — «Kimi Code», `label` «Kimi»,
 `mark` K, диалект хука `kimi`. В списке провайдеров идёт третьим (после
 ChatGPT и Claude).
-
-Сессии подключаются следующими задачами плана M8: до них `listSessions()`
-отвечает пустым списком, `createSession()` — отказом `not-implemented`
-(501), а возможность `createSession` недоступна с причиной.
 
 ## Публичный интерфейс (`src/index.ts`)
 
@@ -24,22 +20,25 @@ ChatGPT и Claude).
 - `createKimiProvider(context, deps?)`, `createKimiRuntime(context, deps?)`
   → `{ runtime, provider }`. `KimiDeps`: `fetch`, `startWaitMs` (15 с),
   `stopWaitMs` (5 с), `pollMs`, `freePort`, `tokenNow`, а для хука —
-  `hookHost`, `liveness`, `beforeRename`. `KimiRuntime`
-  (`context`, `paths`, `server`, `workspaces`, `program()`,
-  `requireReady()`, `requireProgram()`) — общая часть для хука и сессий.
+  `hookHost`, `liveness`, `beforeRename`, для доставки — `retryDelaysMs`.
+  `KimiRuntime` (`context`, `paths`, `server`, `workspaces`, `program()`,
+  `requireReady()`, `requireServer()`, `requireProgram()`) — общая часть
+  для хука и сессий.
 - Константы: `PROVIDER_ID` = `kimi`, `PROVIDER_TITLE`, `RESTART_ACTION` =
   `restart-kimi-server`, `LOGIN_NOTE`, `MODEL_NOTE`, `UNTESTED_OS_NOTE`,
   `ON_DEMAND_NOTE`, `MIN_KIMI_VERSION` = `2.5.2`, `KIMI_HOME_ENV` =
   `KIMI_CODE_HOME`, `LOCK_SWITCH` = `KIMI_CODE_SESSION_LOCK`,
   `SERVER_OWNER`, `KIMI_CODES`, `KIMI_TIMEOUT_MS` (10 с).
 - Пути: `kimiHome(env, homedir, platform)`, `kimiPaths(home, platform)`,
-  `pathApi`, `envValue`, `envWithout`, `sameFolder`.
+  `pathApi`, `envValue`, `envWithout`, `sameFolder`,
+  `inFolder(folder, parent, platform)`.
 - Программа: `readProgram(context, paths)`, `findKimiProgram`,
   `parseVersion`, `compareVersions`, `testedVersion`.
 - Клиент: `createKimiClient({ port, tokenFile, fetch?, timeoutMs? })`,
   `KimiError`, `describeKimiError`, `shapeError`.
 - Формы ответов: `parseMeta`, `parseAuth`, `parseConfig`, `parseWorkspace`,
-  `parseWorkspaces`, `parseTrusted`, `parseInstance`.
+  `parseWorkspaces`, `parseTrusted`, `parseInstance`, `parseSessionPage`,
+  `parseSession`, `parseMessages`, `parsePrompt`, `parseBatch`.
 - Сервер: `createKimiServer(deps)` → `{ current(), ensure(), stop(), used }`,
   `freeLocalPort()`, `readInstances(dir)`.
 - Рабочие области и доверие: `createKimiWorkspaces(platform)` →
@@ -53,7 +52,15 @@ ChatGPT и Claude).
   `UNREADABLE_LOCK_MS` (30 с); `scanToml`, `tomlValue`, `TomlScanError`;
   `parseConfigHooks`.
 - Замки: `liveSessionLocks(dir, live)`, `holderAlive`, `lockTime`,
-  `defaultLiveness()` → `Liveness { alive(pid), bootedAt() }`.
+  `defaultLiveness()` → `Liveness { pidAlive(pid), bootTime(), hostname() }`.
+- Сессии: `createKimiSessions(runtime, deps?)` (методы сессий провайдера),
+  `createKimiSessionList`, `enumerateSessions`, `createSessionNotes`,
+  `createKimiMessages`, `createKimiStore(context)` → записи панели и
+  намерения удаления; `SESSION_ID`, `DELETE_KEEP_MS` (7 дней),
+  `LIST_PAGE_LIMIT` (20), `LIST_CACHE_MS` (5 с), `ANSWER_PAGE_LIMIT` (10),
+  `FOREIGN_RETRY_MS` (4, 8, 16 с) и тексты пометок (`ARCHIVED_NOTE`,
+  `WAITING_NOTE`, `GONE_NOTE`, `PARTIAL_NOTE`, `ARCHIVE_STALE_NOTE`,
+  `FOREIGN_RENAME_NOTE`, `SERVER_DOWN`, `unavailableNote`, `deliveryNote`).
 
 ## Файлы Kimi
 
@@ -72,6 +79,13 @@ ChatGPT и Claude).
 `config.toml.wfk-lock` и `config.toml.wfk-tmp-<pid>`, копии прежнего файла
 `config.toml.wfk-backup-<время>` (хранятся три последние). Рабочую область
 (`projects.json`) и файл доверия создаёт сервер Kimi по запросу Kit.
+
+В каталоге состояния службы модуль ведёт два файла:
+`sessions/kimi.json` — `{ version: 1, sessions: [{ sessionId, projectId,
+projectPath, workspaceId, title, createdAt }], projectArchives? }` (сессии,
+созданные из панели, и id сессий, которые Kit отправил в архив Kimi вместе
+с проектом) и `sessions/kimi-deletes.json` — `{ version: 1, intents:
+[{ root, real?, since, sessionIds }] }` (незавершённые удаления).
 
 ## Поведение
 
@@ -100,10 +114,12 @@ Kit есть записи сессий Kimi; сам сервер ради ста
 2.5.x, но формы ответов известны — провайдер остаётся `ready`) и «на этой
 ОС не проверялся» (Linux и Windows). `details.kimiHome` — каталог Kimi.
 
-`requireReady()` — вход всех операций, которым нужен сервер: перечитывает
+`requireReady()` — вход создания сессии, доставки и доверия: перечитывает
 программу, если прошлой проверкой она не найдена или не подошла, запускает
 сервер, проверяет вход и модель; иначе `ProviderError` (`not-installed`,
 `unsupported-version`, `kimi-program`, `kimi-server`, `kimi-not-ready`).
+`requireServer()` — то же без проверки входа и модели: для имени, архива,
+удаления и чтения ответа.
 
 ### Сервер Kit
 
@@ -202,6 +218,16 @@ Kit есть записи сессий Kimi; сам сервер ради ста
 - Приложение Kimi Code и открытые в терминале `kimi` подхватывают хук после
   своего перезапуска — Kit их не трогает.
 
+### Сессии
+
+Создание, список, имя, архив, удаление, состояние хода, последний ответ и
+доставка сообщений описаны в [sessions.md](sessions.md). Коротко: одно
+правило принадлежности (папка сессии — папка проекта или внутри неё);
+список сервер не запускает и при недоступном сервере строится по записям
+панели и журналу хука; архив панели зеркалится в Kimi; незавершённое
+удаление остаётся намерением и повторяется; сообщение идёт с `prompt_id`
+`kit-<id доставки>`.
+
 ## Поведение на ОС
 
 | | macOS | Linux | Windows |
@@ -212,7 +238,8 @@ Kit есть записи сессий Kimi; сам сервер ради ста
 | Каталог Kimi | `~/.kimi-code` | `~/.kimi-code` | `%USERPROFILE%\.kimi-code` |
 | Программа | `bin/kimi` | `bin/kimi` | `bin\kimi.exe` |
 | Имена переменных окружения | с учётом регистра | с учётом регистра | без учёта регистра |
-| Сравнение папок | точное | точное | без регистра, любой слеш |
+| Сравнение папок, «папка внутри проекта» | точное | точное | без регистра, любой слеш |
+| Замок хода | pid и `startedAt` из файла, хост — `os.hostname()` | то же | то же |
 | Пометка «на этой ОС не проверялся» | нет | есть | есть |
 | Живая проверка | пользователь | нет, только CI | проверяющий на Windows (**П**) |
 
@@ -231,6 +258,13 @@ Kit есть записи сессий Kimi; сам сервер ради ста
 - `POST …/trust {}` → `{ trusted: true }` и файл
   `workspace-trust/wd_<имя>_<hash12>`; неизвестный id → `40001`.
 - `POST /api/v1/shutdown {}` → `{ ok: true }`, запись `instances` исчезает.
+- Сессии: `GET /api/v2/sessions` → `items[{ id, workspace { id, cwd },
+  meta { title, created_at (мс), archived }, activity { status, model } }]`,
+  `has_more`, `next_page_token`; `POST /api/v1/sessions` → `id
+  session_<uuid>`, `created_at` ISO, `pending_interaction`; нет сессии —
+  `40401`; `:archive`/`:restore` → `{ results: [{ id, ok, error? }] }`;
+  `:delete {}` → `{ deleted: true }`; ответ `prompts` → `status`
+  `running` или `queued`; у сообщений `assistant` поля `metadata` нет.
 - `kimi doctor config`: код 0 для файла с пятью блоками Kit (строка POSIX и
   строка Windows) и для пустого файла, код 1 для битого TOML;
   `GET /api/v1/config` → `hooks: [{ event, command, timeout }]`.
@@ -246,5 +280,4 @@ Kit есть записи сессий Kimi; сам сервер ради ста
 
 ## Дальше
 
-Сессии и сообщения (T009), ссылки и панель (T010), сценарии автопилота и
-ревью (T011).
+Ссылки и панель (T010), сценарии автопилота и ревью (T011).

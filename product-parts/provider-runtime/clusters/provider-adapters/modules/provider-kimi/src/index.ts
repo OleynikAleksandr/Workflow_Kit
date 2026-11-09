@@ -18,14 +18,22 @@ export { defaultLiveness, holderAlive, liveSessionLocks, lockTime } from './lock
 export type { Liveness } from './locks.ts';
 export { TomlScanError, scanToml, tomlValue } from './toml-scan.ts';
 export type { TomlEntry, TomlSection } from './toml-scan.ts';
-export { KIMI_HOME_ENV, envValue, envWithout, kimiHome, kimiPaths, pathApi, sameFolder } from './paths.ts';
+export { KIMI_HOME_ENV, envValue, envWithout, inFolder, kimiHome, kimiPaths, pathApi, sameFolder } from './paths.ts';
 export type { KimiPaths } from './paths.ts';
 export { MIN_KIMI_VERSION, OLD_VERSION_NOTE, compareVersions, findKimiProgram, parseVersion, testedVersion } from './program.ts';
 export type { ProgramState } from './program.ts';
 export { LOCK_SWITCH, SERVER_OWNER, createKimiServer, freeLocalPort, readInstances } from './server.ts';
 export type { KimiServer, KimiServerDeps } from './server.ts';
-export { parseAuth, parseConfig, parseConfigHooks, parseInstance, parseMeta, parseTrusted, parseWorkspace, parseWorkspaces } from './shapes.ts';
-export type { KimiInstance, KimiMeta, KimiWorkspace } from './shapes.ts';
+export { ANSWER_PAGE_LIMIT, FOREIGN_RETRY_MS, createKimiMessages, deliveryNote } from './messages.ts';
+export type { KimiMessageDeps, KimiMessages } from './messages.ts';
+export { ARCHIVED_NOTE, GONE_NOTE, LIST_CACHE_MS, LIST_PAGE_LIMIT, PARTIAL_NOTE, SERVER_DOWN, WAITING_NOTE, createKimiSessionList, createSessionNotes, enumerateSessions, unavailableNote } from './session-list.ts';
+export type { Enumeration, KimiSessionList, SessionNotes } from './session-list.ts';
+export { DELETE_KEEP_MS, SESSION_ID, createKimiStore } from './session-store.ts';
+export type { DeleteIntent, KimiRecord, KimiStore } from './session-store.ts';
+export { ARCHIVE_STALE_NOTE, FOREIGN_RENAME_NOTE, createKimiSessions } from './sessions.ts';
+export type { KimiSessionDeps, KimiSessions } from './sessions.ts';
+export { parseAuth, parseBatch, parseConfig, parseConfigHooks, parseInstance, parseMessages, parseMeta, parsePrompt, parseSession, parseSessionPage, parseTrusted, parseWorkspace, parseWorkspaces } from './shapes.ts';
+export type { KimiBatchResult, KimiInstance, KimiListedSession, KimiMessage, KimiMeta, KimiSession, KimiWorkspace } from './shapes.ts';
 export { createKimiWorkspaces, folderTrusted, pickWorkspace, workspaceKey } from './workspace.ts';
 export type { KimiWorkspaces } from './workspace.ts';
 

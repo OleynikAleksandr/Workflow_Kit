@@ -8,6 +8,8 @@ export const KIMI_CODES = {
   badRequest: 40001,
   unauthorized: 40101,
   noProvider: 40110,
+  /** No such session (GET, :delete, messages). */
+  noSession: 40401,
   promptUsed: 40927,
   remoteControlRuns: 40928,
   foreignSession: 40931,

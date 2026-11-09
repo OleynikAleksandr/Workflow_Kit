@@ -95,3 +95,135 @@ export function parseConfigHooks(data: unknown): Array<{ event: string; command:
     return typeof hook['event'] === 'string' && typeof hook['command'] === 'string' ? [{ event: hook['event'], command: hook['command'] }] : [];
   });
 }
+
+/** A time of Kimi (ms or an ISO string) as an ISO string. */
+function isoTime(value: unknown, what: string): string {
+  const ms = typeof value === 'number' ? value : typeof value === 'string' ? Date.parse(value) : Number.NaN;
+  if (!Number.isFinite(ms)) throw shapeError(what);
+  return new Date(ms).toISOString();
+}
+
+const optionalText = (value: unknown): string | null => (typeof value === 'string' && value.trim() !== '' ? value : null);
+
+/** A session as GET /api/v2/sessions lists it. */
+export interface KimiListedSession {
+  id: string;
+  workspaceId: string;
+  cwd: string | null;
+  title: string;
+  createdAt: string;
+  archived: boolean;
+  /** running, approval, question, failed, idle. */
+  status: string | null;
+  model: string | null;
+}
+
+/** GET /api/v2/sessions: one page; next is the token of the following page, null on the last one. */
+export function parseSessionPage(data: unknown): { items: KimiListedSession[]; next: string | null } {
+  const page = record(data, 'sessions');
+  if (!Array.isArray(page['items'])) throw shapeError('sessions.items');
+  const items = page['items'].map((value, index): KimiListedSession => {
+    const what = `sessions.items[${index}]`;
+    const item = record(value, what);
+    const workspace = record(item['workspace'], `${what}.workspace`);
+    const meta = record(item['meta'], `${what}.meta`);
+    const activity = typeof item['activity'] === 'object' && item['activity'] !== null ? (item['activity'] as Record<string, unknown>) : {};
+    if (typeof meta['archived'] !== 'boolean') throw shapeError(`${what}.meta.archived`);
+    return {
+      id: text(item['id'], `${what}.id`),
+      workspaceId: text(workspace['id'], `${what}.workspace.id`),
+      cwd: optionalText(workspace['cwd']),
+      title: typeof meta['title'] === 'string' ? meta['title'] : '',
+      createdAt: isoTime(meta['created_at'], `${what}.meta.created_at`),
+      archived: meta['archived'],
+      status: optionalText(activity['status']),
+      model: optionalText(activity['model']),
+    };
+  });
+  const token = optionalText(page['next_page_token']);
+  if (page['has_more'] === true && token === null) throw shapeError('sessions.next_page_token');
+  return { items, next: page['has_more'] === false ? null : token };
+}
+
+/** A session as POST /api/v1/sessions, GET /api/v1/sessions/{id} and …/profile answer. */
+export interface KimiSession {
+  id: string;
+  workspaceId: string;
+  title: string;
+  createdAt: string;
+  archived: boolean;
+  /** Kimi waits for an answer of the user (an approval or a question). */
+  waiting: boolean;
+  /** Model of the session; null until one is set. */
+  model: string | null;
+  cwd: string | null;
+}
+
+export function parseSession(data: unknown): KimiSession {
+  const item = record(data, 'session');
+  const metadata = typeof item['metadata'] === 'object' && item['metadata'] !== null ? (item['metadata'] as Record<string, unknown>) : {};
+  const agent = typeof item['agent_config'] === 'object' && item['agent_config'] !== null ? (item['agent_config'] as Record<string, unknown>) : {};
+  const pending = item['pending_interaction'];
+  return {
+    id: text(item['id'], 'session.id'),
+    workspaceId: text(item['workspace_id'], 'session.workspace_id'),
+    title: typeof item['title'] === 'string' ? item['title'] : '',
+    createdAt: isoTime(item['created_at'], 'session.created_at'),
+    archived: item['archived'] === true,
+    waiting: typeof pending === 'string' && pending !== '' && pending !== 'none',
+    model: optionalText(agent['model']),
+    cwd: optionalText(metadata['cwd']),
+  };
+}
+
+/** One message of a session: its text parts joined; origin is metadata.origin.kind. */
+export interface KimiMessage {
+  id: string;
+  role: string;
+  text: string;
+  origin: string | null;
+}
+
+/** GET /api/v1/sessions/{id}/messages: one page, newest first. */
+export function parseMessages(data: unknown): { items: KimiMessage[]; hasMore: boolean } {
+  const page = record(data, 'messages');
+  if (!Array.isArray(page['items'])) throw shapeError('messages.items');
+  if (typeof page['has_more'] !== 'boolean') throw shapeError('messages.has_more');
+  const items = page['items'].map((value, index): KimiMessage => {
+    const what = `messages.items[${index}]`;
+    const item = record(value, what);
+    if (!Array.isArray(item['content'])) throw shapeError(`${what}.content`);
+    const parts = item['content'].flatMap((part) => {
+      const piece = typeof part === 'object' && part !== null ? (part as Record<string, unknown>) : {};
+      return piece['type'] === 'text' && typeof piece['text'] === 'string' ? [piece['text']] : [];
+    });
+    const metadata = typeof item['metadata'] === 'object' && item['metadata'] !== null ? (item['metadata'] as Record<string, unknown>) : {};
+    const origin = typeof metadata['origin'] === 'object' && metadata['origin'] !== null ? (metadata['origin'] as Record<string, unknown>)['kind'] : undefined;
+    return { id: text(item['id'], `${what}.id`), role: text(item['role'], `${what}.role`), text: parts.join('\n').trim(), origin: optionalText(origin) };
+  });
+  return { items, hasMore: page['has_more'] };
+}
+
+/** POST /api/v1/sessions/{id}/prompts: the status of the accepted prompt (running, queued, blocked). */
+export function parsePrompt(data: unknown): string {
+  return text(record(data, 'prompt')['status'], 'prompt.status');
+}
+
+/** One row of POST /api/v2/sessions:archive | :restore. */
+export interface KimiBatchResult {
+  id: string;
+  ok: boolean;
+  code: number | null;
+  message: string | null;
+}
+
+export function parseBatch(data: unknown): KimiBatchResult[] {
+  const results = record(data, 'batch')['results'];
+  if (!Array.isArray(results)) throw shapeError('batch.results');
+  return results.map((value, index) => {
+    const item = record(value, `batch.results[${index}]`);
+    if (typeof item['ok'] !== 'boolean') throw shapeError(`batch.results[${index}].ok`);
+    const error = typeof item['error'] === 'object' && item['error'] !== null ? (item['error'] as Record<string, unknown>) : {};
+    return { id: text(item['id'], `batch.results[${index}].id`), ok: item['ok'], code: typeof error['code'] === 'number' ? error['code'] : null, message: optionalText(error['message']) };
+  });
+}

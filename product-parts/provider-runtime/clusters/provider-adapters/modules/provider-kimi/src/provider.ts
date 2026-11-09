@@ -1,5 +1,5 @@
 // The Kimi Code provider (spec M8): the program, the server of Kit, the status table, the
-// workspace and the trust of a folder. The Kit hook is in hooks.ts; sessions are added by sessions.ts.
+// workspace and the trust of a folder. The Kit hook is in hooks.ts, the sessions in sessions.ts.
 import { readJsonFile } from '#data-store';
 import { ProviderError, createTokenStore, providerSessionsFile } from '#provider-registry';
 import type { Capabilities, Provider, ProviderAction, ProviderContext, ProviderStatus } from '#provider-registry';
@@ -11,8 +11,10 @@ import { kimiHome, kimiPaths } from './paths.ts';
 import type { KimiPaths } from './paths.ts';
 import { UNCHECKED_PROGRAM, readProgram, testedVersion } from './program.ts';
 import type { ProgramState } from './program.ts';
-import { createKimiServer } from './server.ts';
+import { LOCK_SWITCH, createKimiServer } from './server.ts';
 import type { KimiServer, KimiServerDeps } from './server.ts';
+import { createKimiSessions } from './sessions.ts';
+import type { KimiSessionDeps } from './sessions.ts';
 import { parseAuth, parseConfig, parseMeta } from './shapes.ts';
 import { createKimiTrust } from './trust.ts';
 import { createKimiWorkspaces } from './workspace.ts';
@@ -35,7 +37,7 @@ export interface KimiProbe {
 }
 
 /** Replacements for tests. */
-export interface KimiDeps extends Pick<KimiServerDeps, 'fetch' | 'startWaitMs' | 'stopWaitMs' | 'pollMs' | 'freePort'>, KimiHookDeps {
+export interface KimiDeps extends Pick<KimiServerDeps, 'fetch' | 'startWaitMs' | 'stopWaitMs' | 'pollMs' | 'freePort'>, KimiHookDeps, KimiSessionDeps {
   /** Clock of the preview tokens. */
   tokenNow?: () => Date;
 }
@@ -49,6 +51,8 @@ export interface KimiRuntime {
   program(): ProgramState;
   /** Client of a ready provider: starts the server when needed; throws a ProviderError otherwise. */
   requireReady(): Promise<KimiClient>;
+  /** Client of the server, started when needed, without the login and model check (rename, archive, deletion). */
+  requireServer(): Promise<KimiClient>;
   requireProgram(): void;
 }
 
@@ -140,7 +144,12 @@ export function createKimiRuntime(context: ProviderContext, deps: KimiDeps = {})
     return client;
   };
 
-  // The server is wanted when Kit keeps sessions of Kimi (sessions.ts writes the file).
+  const requireServer = async (): Promise<KimiClient> => {
+    await programPath();
+    return ensureServer();
+  };
+
+  // The server is wanted when Kit keeps sessions of Kimi (session-store.ts writes the file).
   const hasSessions = async (): Promise<boolean> => {
     const data = await readJsonFile(providerSessionsFile(context.dirs, PROVIDER_ID)).catch(() => undefined);
     const sessions = typeof data === 'object' && data !== null ? (data as Record<string, unknown>)['sessions'] : undefined;
@@ -166,7 +175,8 @@ export function createKimiRuntime(context: ProviderContext, deps: KimiDeps = {})
 
   const trust = createKimiTrust({ platform, paths, tokens, workspaces, current: () => server.current(), requireReady, requireProgram, notReady, version: () => program.version, log: context.log });
   const hooks = createKimiHooks({ context, paths, server, ensureServer, programPath, ...(deps.hookHost ? { hookHost: deps.hookHost } : {}), ...(deps.liveness ? { liveness: deps.liveness } : {}), ...(deps.beforeRename ? { beforeRename: deps.beforeRename } : {}) });
-  const pending = 'подключается следующей задачей плана';
+  const runtime: KimiRuntime = { context, paths, server, workspaces, program: () => program, requireReady, requireServer, requireProgram };
+  const sessions = createKimiSessions(runtime, deps);
 
   const provider: Provider = {
     id: PROVIDER_ID,
@@ -174,6 +184,7 @@ export function createKimiRuntime(context: ProviderContext, deps: KimiDeps = {})
     label: 'Kimi',
     mark: 'K',
     hookDialect: 'kimi',
+    lockSwitch: LOCK_SWITCH,
     async capabilities(): Promise<Capabilities> {
       const missing = program.installed === false ? 'Kimi Code не найден' : (program.unsupported ?? program.error);
       const cap = (reason: string | null) => (reason ? { available: false, reason } : { available: true });
@@ -181,7 +192,7 @@ export function createKimiRuntime(context: ProviderContext, deps: KimiDeps = {})
         trust: cap(missing),
         hooks: cap(missing),
         sessions: { available: true },
-        createSession: cap(missing ?? pending),
+        createSession: cap(missing),
         orchestration: cap('у Kimi нет оркестрации Workflow Kit'),
         reviewer: cap('Kimi не делает перекрёстное ревью'),
       };
@@ -214,12 +225,7 @@ export function createKimiRuntime(context: ProviderContext, deps: KimiDeps = {})
     grantTrust: (project, token) => trust.grantTrust(project, token),
     hooks: () => hooks.hooks(),
     approveHooks: (_project, expected) => hooks.approveHooks(expected),
-    async listSessions() {
-      return [];
-    },
-    async createSession() {
-      throw new ProviderError('not-implemented', `Сессии Kimi: ${pending}`, { status: 501 });
-    },
+    ...sessions,
     async actions(project): Promise<ProviderAction[]> {
       if (project !== null) return [];
       const running = (await server.current()) !== null;
@@ -250,7 +256,7 @@ export function createKimiRuntime(context: ProviderContext, deps: KimiDeps = {})
     },
   };
 
-  return { runtime: { context, paths, server, workspaces, program: () => program, requireReady, requireProgram }, provider };
+  return { runtime, provider };
 }
 
 /** Creates the Kimi provider; deps replace the waits and the transport in tests. */

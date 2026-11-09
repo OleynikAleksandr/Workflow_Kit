@@ -63,6 +63,16 @@ export function kimiPaths(home: string, platform: NodeJS.Platform): KimiPaths {
   };
 }
 
+/** True when the folder is the parent or lies inside it (the ownership rule of sessions). */
+export function inFolder(folder: string, parent: string, platform: NodeJS.Platform): boolean {
+  const norm = (value: string): string => {
+    const cut = value.length > 1 ? value.replace(/[\\/]+$/, '') || value : value;
+    return platform === 'win32' ? cut.replace(/\\/g, '/').toLowerCase() : cut;
+  };
+  const [child, base] = [norm(folder), norm(parent)];
+  return child === base || child.startsWith(base.endsWith('/') ? base : `${base}/`);
+}
+
 /** Same folder: exact on macOS and Linux; on Windows without case and with either slash. */
 export function sameFolder(a: string, b: string, platform: NodeJS.Platform): boolean {
   const trim = (value: string): string => (value.length > 1 ? value.replace(/[\\/]+$/, '') || value : value);

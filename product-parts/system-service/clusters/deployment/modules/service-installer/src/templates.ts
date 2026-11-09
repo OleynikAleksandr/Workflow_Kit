@@ -45,8 +45,27 @@ function cmdQuote(value: string): string {
 }
 
 /** Windows launcher wfk.cmd (CRLF line ends). */
-export function windowsLauncher(node: string, entry: string): string {
-  return ['@echo off', `rem ${LAUNCHER_MARK.slice(2)} (wfk install)`, `${cmdQuote(node)} ${cmdQuote(entry)} %*`, ''].join('\r\n');
+export function windowsLauncher(node: string, entry: string, origin = 'wfk install'): string {
+  return ['@echo off', `rem ${LAUNCHER_MARK.slice(2)} (${origin})`, `${cmdQuote(node)} ${cmdQuote(entry)} %*`, ''].join('\r\n');
+}
+
+/** Windows path → file URL (works on any test host). */
+export function windowsFileUrl(file: string): string {
+  return new URL(`file:///${file.replace(/\\/g, '/')}`).href;
+}
+
+/** Windows: the sh launcher `wfk` next to wfk.cmd for Git Bash (the Bash tool of Claude Code). */
+export function gitBashLauncher(node: string, entry: string, origin = 'wfk install'): string {
+  const slash = (value: string): string => value.replace(/\\/g, '/');
+  return `#!/bin/sh\n${LAUNCHER_MARK} (${origin})\nexec ${shellQuote(slash(node))} ${shellQuote(slash(entry))} "$@"\n`;
+}
+
+/**
+ * Windows: the launcher script wfk.mjs next to wfk.cmd. Kit hooks run `node <it> hook …` (spec M5
+ * section 6); it starts the current copy, so the hooks stay the same across updates.
+ */
+export function hookLauncherScript(entry: string, origin = 'wfk install'): string {
+  return `// ${LAUNCHER_MARK.slice(2)} (${origin}): Kit hooks run node with this file.\nawait import(${JSON.stringify(windowsFileUrl(entry))});\n`;
 }
 
 /** True when a launcher file was written by Workflow Kit (install or link). */

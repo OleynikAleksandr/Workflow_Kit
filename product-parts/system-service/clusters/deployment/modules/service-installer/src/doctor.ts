@@ -4,7 +4,7 @@ import { readCurrent, readProgramPathsSync, servicePort } from './deploy.ts';
 import { layoutOf } from './install.ts';
 import { mechanismLabel } from './layout.ts';
 import { PROGRAMS, envPath, findProgram } from './programs.ts';
-import { desktopExecArg, isOwnLauncher, windowsRunValue } from './templates.ts';
+import { desktopExecArg, isOwnLauncher, windowsFileUrl, windowsRunValue } from './templates.ts';
 import type { ResolvedDeps } from './types.ts';
 
 /** One line of the doctor report. */
@@ -88,6 +88,12 @@ async function checkIntegration(
   const launcher = await fs.readText(layout.launcher);
   const launcherOk = launcher !== undefined && isOwnLauncher(launcher) && launcher.includes(entry);
   add('запускатель wfk', launcherOk ? 'ok' : 'fail', `${layout.launcher}${launcherOk ? '' : ' отсутствует или указывает не на установленную копию'}`);
+  for (const file of layout.companions) {
+    // Windows: wfk for Git Bash (path with "/") and wfk.mjs for hooks (a file URL).
+    const text = await fs.readText(file);
+    const ok = text !== undefined && isOwnLauncher(text) && (text.includes(entry.replace(/\\/g, '/')) || text.includes(windowsFileUrl(entry)));
+    add('запускатель wfk', ok ? 'ok' : 'fail', `${file}${ok ? '' : ' отсутствует или указывает не на установленную копию'}`);
+  }
   add('значок', (await fs.exists(layout.icon)) ? 'ok' : 'fail', layout.icon);
 
   const label = mechanism === 'launchagent' || mechanism === 'systemd-user' || mechanism === 'xdg-autostart' || mechanism === 'hkcu-run' ? mechanismLabel(mechanism) : 'нет';

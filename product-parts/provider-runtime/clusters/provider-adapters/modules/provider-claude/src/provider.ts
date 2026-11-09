@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { ProviderError, createTokenStore } from '#provider-registry';
 import type { HookEntry, HookState, Project, ProjectProviderState, Provider, ProviderContext, ProviderStatus, TrustState } from '#provider-registry';
-import { findKitHook, isKitHookCommand, normalizeHook, sha256 } from '#kit-structure';
+import { findKitHook, hookText, isKitHookEntry, normalizeHook, sha256 } from '#kit-structure';
 import { archiveSessions, restoreSessions } from './archive.ts';
 import { ENVIRONMENT_START, ENVIRONMENT_STOP, environmentActions, environmentBlockers, startEnvironment, stopEnvironment } from './environment.ts';
 import { claudeCapabilities, ptyUnavailableReason } from './programs.ts';
@@ -59,9 +59,10 @@ function hookEntries(config: unknown): HookEntry[] {
     for (const group of groups as Array<{ hooks?: unknown }>) {
       if (!Array.isArray(group?.hooks)) continue;
       for (const hook of group.hooks as Array<Record<string, unknown>>) {
-        const command = typeof hook?.['command'] === 'string' ? hook['command'] : JSON.stringify(hook);
+        // The exec form (Windows) keeps its arguments in args: show command and args together.
+        const command = typeof hook?.['command'] === 'string' ? hookText(hook) : JSON.stringify(hook);
         // Claude runs the hooks of a trusted folder without a separate approval.
-        entries.push({ command, hash: sha256(normalizeHook(hook)), kit: isKitHookCommand(command), status: 'approved', key: event });
+        entries.push({ command, hash: sha256(normalizeHook(hook)), kit: isKitHookEntry(hook), status: 'approved', key: event });
       }
     }
   }

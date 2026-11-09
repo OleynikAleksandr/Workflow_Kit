@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { writeFileAtomic } from '#data-store';
+import { gitBashLauncher, hookLauncherScript, isOwnLauncher, windowsLauncher } from '#service-installer';
 
 /** Marker line that identifies a launcher written by Workflow Kit (link or install). */
 export const LAUNCHER_MARK = '# Workflow Kit launcher';
@@ -23,6 +24,8 @@ export interface LinkOptions {
   nodePath?: string;
   /** Replace a file that was not written by Workflow Kit. */
   force?: boolean;
+  /** Windows: %LOCALAPPDATA% (default: <home>/AppData/Local). */
+  localAppData?: string;
 }
 
 /** Result of a successful link. */
@@ -60,7 +63,7 @@ export function launcherScript(nodePath: string, entry: string): string {
 
 /** Writes ~/.local/bin/wfk (0755) that runs bin/wfk.mjs of the clone with an absolute node. */
 export async function linkLauncher(options: LinkOptions): Promise<LinkResult> {
-  if (options.platform === 'win32') throw new LinkError('wfk link работает только на macOS и Linux');
+  if (options.platform === 'win32') return linkWindows(options);
   const root = options.repoRoot ?? REPO_ROOT;
   const entry = path.join(root, 'bin', 'wfk.mjs');
   try {
@@ -83,4 +86,43 @@ export async function linkLauncher(options: LinkOptions): Promise<LinkResult> {
   const dir = path.dirname(launcher);
   const inPath = (options.pathEnv ?? '').split(path.delimiter).some((item) => item.replace(/\/+$/, '') === dir);
   return { launcher, entry, node, replaced: previous !== undefined, inPath };
+}
+
+/**
+ * Windows (spec M5 section 6): the same three launchers as `wfk install` — wfk.cmd, `wfk` for Git
+ * Bash and wfk.mjs for Kit hooks — in %LOCALAPPDATA%\\Workflow Kit, pointed at this clone.
+ */
+async function linkWindows(options: LinkOptions): Promise<LinkResult> {
+  const root = options.repoRoot ?? REPO_ROOT;
+  const entry = path.join(root, 'bin', 'wfk.mjs');
+  try {
+    await readFile(entry);
+  } catch {
+    throw new LinkError(`не найден ${entry}: запускайте wfk link из клона Workflow Kit`);
+  }
+  const dir = path.join(options.localAppData || path.join(options.homedir, 'AppData', 'Local'), 'Workflow Kit');
+  const node = options.nodePath ?? process.execPath;
+  const origin = 'wfk link: development clone';
+  const files: Array<[string, string]> = [
+    [path.join(dir, 'wfk.cmd'), windowsLauncher(node, entry, origin)],
+    [path.join(dir, 'wfk'), gitBashLauncher(node, entry, origin)],
+    [path.join(dir, 'wfk.mjs'), hookLauncherScript(entry, origin)],
+  ];
+  let replaced = false;
+  for (const [file] of files) {
+    let previous: string | undefined;
+    try {
+      previous = await readFile(file, 'utf8');
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+    }
+    if (previous !== undefined && !isOwnLauncher(previous) && !options.force) {
+      throw new LinkError(`${file} уже существует и создан не Workflow Kit; чтобы заменить его, повторите с --force`);
+    }
+    replaced ||= previous !== undefined;
+  }
+  for (const [file, text] of files) await writeFileAtomic(file, text, { mode: 0o644, dirMode: 0o755 });
+  const wanted = dir.toLowerCase().replace(/[\\/]+$/, '');
+  const inPath = (options.pathEnv ?? '').split(';').some((item) => item.toLowerCase().replace(/[\\/]+$/, '') === wanted);
+  return { launcher: files[0]![0], entry, node, replaced, inPath };
 }

@@ -29,6 +29,8 @@ import {
   macIconScript,
   posixLauncher,
   systemdUnit,
+  gitBashLauncher,
+  hookLauncherScript,
   windowsLauncher,
   windowsOpenVbs,
   windowsRunValue,
@@ -55,9 +57,11 @@ function iconInfoPlist(layout: ServiceLayout): string {
 
 /** Refuses to replace a launcher or icon that Workflow Kit did not write. */
 export async function checkConflicts(deps: ResolvedDeps, layout: ServiceLayout): Promise<void> {
-  const launcher = await deps.fs.readText(layout.launcher);
-  if (launcher !== undefined && !isOwnLauncher(launcher)) {
-    throw new ServiceError(`${layout.launcher} уже существует и создан не Workflow Kit; переименуйте или удалите его и повторите install`);
+  for (const file of [layout.launcher, ...layout.companions]) {
+    const text = await deps.fs.readText(file);
+    if (text !== undefined && !isOwnLauncher(text)) {
+      throw new ServiceError(`${file} уже существует и создан не Workflow Kit; переименуйте или удалите его и повторите install`);
+    }
   }
   if (await ownedIcon(deps, layout) === false) {
     throw new ServiceError(`${layout.icon} уже существует и создан не Workflow Kit; переименуйте или удалите его и повторите install`);
@@ -79,6 +83,9 @@ async function ownedIcon(deps: ResolvedDeps, layout: ServiceLayout): Promise<boo
 export async function writeLauncher(deps: ResolvedDeps, layout: ServiceLayout, program: ServiceProgram): Promise<void> {
   if (layout.platform === 'win32') {
     await deps.fs.writeText(layout.launcher, windowsLauncher(program.node, program.entry), PUBLIC_FILE);
+    const [sh, hook] = layout.companions;
+    if (sh) await deps.fs.writeText(sh, gitBashLauncher(program.node, program.entry), PUBLIC_FILE);
+    if (hook) await deps.fs.writeText(hook, hookLauncherScript(program.entry), PUBLIC_FILE);
     const dir = pathApi('win32').dirname(layout.launcher);
     await runChecked(deps, powershell(deps.env, addUserPathScript(dir)), 'не удалось добавить каталог wfk.cmd в PATH пользователя');
     return;
@@ -219,10 +226,12 @@ export async function removeIntegration(deps: ResolvedDeps, layout: ServiceLayou
     }
     if (await removeIfMarked(deps, layout.xdgAutostartFile, DESKTOP_MARK)) removed.push(layout.xdgAutostartFile);
   }
-  const launcher = await fs.readText(layout.launcher);
-  if (launcher !== undefined && isOwnLauncher(launcher)) {
-    await fs.remove(layout.launcher);
-    removed.push(layout.launcher);
+  for (const file of [layout.launcher, ...layout.companions]) {
+    const text = await fs.readText(file);
+    if (text !== undefined && isOwnLauncher(text)) {
+      await fs.remove(file);
+      removed.push(file);
+    }
   }
   if ((await ownedIcon(deps, layout)) === true) {
     await fs.remove(layout.icon);

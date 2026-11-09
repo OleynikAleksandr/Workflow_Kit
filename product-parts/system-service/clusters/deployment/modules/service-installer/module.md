@@ -60,7 +60,7 @@ login-shell (D12), запускатель `wfk`, значок «Workflow Kit», 
 | Что | macOS | Linux | Windows |
 | --- | --- | --- | --- |
 | копии | `<данные>/app/<версия>` | `$XDG_DATA_HOME/workflow-kit/app/<версия>` | `%LOCALAPPDATA%\Workflow Kit\app\<версия>` |
-| запускатель | `~/.local/bin/wfk` (0755) | `~/.local/bin/wfk` | `wfk.cmd` в каталоге данных + PATH пользователя |
+| запускатель | `~/.local/bin/wfk` (0755) | `~/.local/bin/wfk` | `wfk.cmd` в каталоге данных + PATH пользователя; рядом `wfk` (sh для Git Bash) и `wfk.mjs` для хуков Kit (`layout.companions`, M5 раздел 6) |
 | значок | `~/Applications/Workflow Kit.app` | `$XDG_DATA_HOME/applications/workflow-kit.desktop` | `…\Start Menu\Programs\Workflow Kit.lnk` |
 | автозапуск | `~/Library/LaunchAgents/ai.workflowkit.backend.plist` | `$XDG_CONFIG_HOME/systemd/user/workflow-kit.service`, без systemd — `$XDG_CONFIG_HOME/autostart/workflow-kit.desktop` | `HKCU\…\Run` → `WorkflowKit` |
 | журналы | `<состояние>/logs/service.log`, `open.log` | то же | то же |
@@ -217,3 +217,12 @@ unit, `daemon-reload`; XDG-файл; `reg delete`, `.vbs`, PATH пользова
   `--app` Chrome с отдельным профилем.
 - Linux и Windows проверяются только тестами (R3): `systemctl --user`,
   XDG autostart, `reg add`, PowerShell-скрипты PATH и ярлыка.
+
+## Windows: запускатели рядом с wfk.cmd (M5, раздел 6)
+
+`layout.companions` на Windows — `wfk` (`gitBashLauncher`: sh-скрипт с путями через `/` для
+инструмента Bash Claude Code) и `wfk.mjs` (`hookLauncherScript`: `await import(<file URL копии>)`,
+его запускают хуки Kit). Оба несут метку `Workflow Kit launcher`, пишутся вместе с `wfk.cmd`,
+проверяются `checkConflicts` (чужой файл — отказ), `doctor --installed` и удаляются `uninstall`.
+Шаблоны экспортируются для `wfk link` (`windowsLauncher`, `gitBashLauncher`, `hookLauncherScript`,
+`isOwnLauncher`).

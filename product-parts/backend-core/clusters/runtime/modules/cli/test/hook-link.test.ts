@@ -111,7 +111,17 @@ test('wfk link writes the launcher into a substituted HOME and refuses foreign f
   assert.equal((await run(['link', '--force'], { app: { homedir: fakeHome, env, platform: 'darwin' } })).code, 0);
   assert.ok((await readFile(launcher, 'utf8')).includes(LAUNCHER_MARK));
   assert.equal((await run(['link', '--bogus'], { app: { homedir: fakeHome } })).code, 64);
-  assert.equal((await run(['link'], { app: { homedir: fakeHome, platform: 'win32' } })).code, 1);
+  // Windows (spec M5 section 6): wfk.cmd, wfk for Git Bash and wfk.mjs for hooks in %LOCALAPPDATA%\\Workflow Kit.
+  const local = path.join(fakeHome, 'Local');
+  const windows = await run(['link'], { app: { homedir: fakeHome, env: { LOCALAPPDATA: local, PATH: '' }, platform: 'win32' } });
+  assert.equal(windows.code, 0, windows.err);
+  const dir = path.join(local, 'Workflow Kit');
+  assert.match(await readFile(path.join(dir, 'wfk.cmd'), 'utf8'), /^@echo off\r\nrem Workflow Kit launcher \(wfk link: development clone\)\r\n".+node.*" ".+wfk\.mjs" %\*\r\n$/);
+  assert.match(await readFile(path.join(dir, 'wfk'), 'utf8'), /^#!\/bin\/sh\n# Workflow Kit launcher .*\nexec '.+' '.+\/bin\/wfk\.mjs' "\$@"\n$/);
+  assert.match(await readFile(path.join(dir, 'wfk.mjs'), 'utf8'), /await import\("file:\/\/\/.+\/bin\/wfk\.mjs"\);/);
+  assert.match(windows.out, /не в PATH/);
+  await writeFile(path.join(dir, 'wfk'), 'foreign\n');
+  assert.equal((await run(['link'], { app: { homedir: fakeHome, env: { LOCALAPPDATA: local }, platform: 'win32' } })).code, 1);
 });
 
 test('the hook command from settings runs the linked launcher end to end', { skip: !posix }, async () => {

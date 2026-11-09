@@ -74,12 +74,22 @@ UserPromptSubmit в конец их списков.
 - `hookCommand(client, event = 'SessionStart')`, `HOOK_CLIENTS`,
   `KIT_HOOK_EVENTS`, `STRUCTURE_VERSION`, `MANIFEST_PATH`, маркеры
   `AGENTS_BEGIN/END`, `GITIGNORE_BEGIN/END`; `findKitHook(config, event?)`,
-  `withKitHook(config, client, event?)`, `withKitHooks(config, client)`,
-  `kitHookEntry(client, event?)`, `isKitHookCommand` (SessionStart),
-  `isKitEventCommand(command, event)`, `kitHooksText`,
-  `expectedKitHooksText`, `STOP_HOOK_TIMEOUT_S` (600),
+  `withKitHook(config, client, event?, host?)`, `withKitHooks(config, client, host?)`,
+  `kitHookEntry(client, event?, host?)`, `isKitHookCommand` (SessionStart),
+  `isKitEventCommand(command, event)`, `isKitHookEntry(hook)`, `kitHooksText`,
+  `expectedKitHooksText(client, host?)`, `STOP_HOOK_TIMEOUT_S` (600),
   `PROMPT_HOOK_TIMEOUT_S` (30), `normalizeHook`, `HOOK_EVENT`,
   `findMarkedSection`, `FRAGMENTS`, `sha256`.
+- Хуки на Windows (`src/hook-host.ts`, спецификация M5, раздел 6): `HookHost { platform, node,
+  launcher }`, `defaultHookHost()` — `node` службы и `%LOCALAPPDATA%\Workflow Kit\wfk.mjs`
+  (`WINDOWS_HOOK_LAUNCHER`; не `WFK_DATA_DIR`, как `~/.local/bin/wfk` на macOS). На Windows хук
+  Claude — exec-форма без оболочки `{ command: <node.exe>, args: [<wfk.mjs>, 'hook', <событие>,
+  '--client', 'claude'] }`, хук Codex сохраняет POSIX `command` и получает `commandWindows`
+  (`powershellHookCommand`: вход хука читается в UTF-8 и передаётся `node` конвейером, `exit 0`).
+  Пути — через `/` (`forwardSlashes`). `wfk.mjs` пишут `wfk install` и `wfk link`, он запускает
+  текущую копию, поэтому хуки не меняются при обновлении; смена `node` даёт «устарело».
+  Свой хук узнаётся по `hookText(hook)` (command, args и commandWindows вместе): `hook <событие> `
+  и `/.local/bin/wfk` или `wfk.mjs`. На macOS и Linux хуки прежние.
 - Типы `StructureReport`, `FragmentReport`, `StructureStatus`,
   `InstallResult`, `FragmentId`, `FragmentKind`, `HookClient`, `KitHookEvent`,
   `SessionStartInput`, `SessionStartRecord`, `SessionStartResult`,
@@ -121,7 +131,7 @@ UserPromptSubmit в конец их списков.
 - `provider-codex` сверяет хук Kit с `hookCommand('codex')`
   (`isKitHookCommand`) и одобряет его по команде и хешу
   (`POST .../hooks/approve`); `provider-claude` находит свой хук через
-  `findKitHook`, `normalizeHook`, `sha256` и `isKitHookCommand`.
+  `findKitHook`, `normalizeHook`, `sha256`, `hookText` и `isKitHookEntry`.
 
 ## Дальше
 

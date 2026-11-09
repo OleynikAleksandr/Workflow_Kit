@@ -126,7 +126,8 @@ async function link(args: string[], deps: CliDeps): Promise<number> {
     const result = await linkLauncher({
       homedir: deps.app?.homedir ?? os.homedir(),
       platform: deps.app?.platform ?? process.platform,
-      pathEnv: env['PATH'],
+      pathEnv: env['PATH'] ?? env['Path'],
+      ...(env['LOCALAPPDATA'] ? { localAppData: env['LOCALAPPDATA'] } : {}),
       force: args.includes('--force'),
     });
     deps.stdout(`Запускатель ${result.launcher} ${result.replaced ? 'обновлён' : 'создан'}: ${result.node} ${result.entry}\n`);

@@ -2,6 +2,8 @@
 // Stop and UserPromptSubmit. Both files use { hooks: { <Event>: [{ matcher?, hooks: [{ type,
 // command, timeout? }] }] } }; foreign entries stay where they are, and a Kit group is only ever
 // appended at the end of its event list (Codex approves hooks by position).
+import { defaultHookHost, forwardSlashes, hookArgs, hookText, powershellHookCommand } from './hook-host.ts';
+import type { HookHost } from './hook-host.ts';
 import { hookCommand, KIT_HOOK_EVENTS } from './templates.ts';
 import type { HookClient, KitHookEvent } from './templates.ts';
 
@@ -38,23 +40,43 @@ const SUBCOMMANDS: Readonly<Record<KitHookEvent, string>> = {
   UserPromptSubmit: 'prompt',
 };
 
-/** The hook object Kit writes for a client and an event (SessionStart by default). */
-export function kitHookEntry(client: HookClient, event: KitHookEvent = 'SessionStart'): JsonObject {
+/**
+ * The hook object Kit writes for a client and an event (SessionStart by default). Windows (spec M5
+ * section 6): Claude gets the exec form { command: node.exe, args: [wfk.mjs, hook, …] }, Codex keeps
+ * the POSIX command and gets commandWindows (PowerShell).
+ */
+export function kitHookEntry(client: HookClient, event: KitHookEvent = 'SessionStart', host: HookHost = defaultHookHost()): JsonObject {
   const entry: JsonObject = { type: 'command', command: hookCommand(client, event) };
+  if (host.platform === 'win32' && client === 'claude') {
+    entry['command'] = forwardSlashes(host.node);
+    entry['args'] = [forwardSlashes(host.launcher), ...hookArgs(SUBCOMMANDS[event], client)];
+  } else if (host.platform === 'win32') {
+    entry['commandWindows'] = powershellHookCommand(host, SUBCOMMANDS[event], client);
+  }
   const timeout = event === 'Stop' ? STOP_HOOK_TIMEOUT_S : event === 'UserPromptSubmit' ? PROMPT_HOOK_TIMEOUT_S : undefined;
   // Claude reads `timeout`, Codex reads `timeoutSec` (seconds in both).
   if (timeout !== undefined) entry[client === 'codex' ? 'timeoutSec' : 'timeout'] = timeout;
   return entry;
 }
 
+/** True for text that calls the Kit launcher: ~/.local/bin/wfk, or wfk.mjs on Windows. */
+function callsLauncher(text: string): boolean {
+  return text.includes('/.local/bin/wfk') || text.includes('wfk.mjs');
+}
+
 /** True for a command that runs the Kit launcher's hook of an event (any client, any edit around it). */
 export function isKitEventCommand(command: unknown, event: KitHookEvent): boolean {
-  return typeof command === 'string' && command.includes('/.local/bin/wfk') && command.includes(`hook ${SUBCOMMANDS[event]} `);
+  return typeof command === 'string' && callsLauncher(command) && command.includes(`hook ${SUBCOMMANDS[event]} `);
 }
 
 /** True for the Kit SessionStart hook command. */
 export function isKitHookCommand(command: unknown): boolean {
-  return typeof command === 'string' && command.includes('/.local/bin/wfk') && command.includes('hook session-start');
+  return typeof command === 'string' && callsLauncher(command) && command.includes('hook session-start');
+}
+
+/** True for a Kit hook entry of any event: command, exec-form args or commandWindows. */
+export function isKitHookEntry(hook: unknown): boolean {
+  return isObject(hook) && KIT_HOOK_EVENTS.some((event) => isKitEventCommand(hookText(hook), event));
 }
 
 function sortKeys(value: unknown): unknown {
@@ -89,7 +111,7 @@ export function findKitHook(config: unknown, event: KitHookEvent = 'SessionStart
   for (const [group, entry] of groups.entries()) {
     if (!isObject(entry) || !Array.isArray(entry['hooks'])) continue;
     for (const [index, hook] of entry['hooks'].entries()) {
-      if (isObject(hook) && isKitEventCommand(hook['command'], event)) return { kind: 'found', group, index, hook };
+      if (isObject(hook) && isKitEventCommand(hookText(hook), event)) return { kind: 'found', group, index, hook };
     }
   }
   return { kind: 'none' };
@@ -99,10 +121,10 @@ export function findKitHook(config: unknown, event: KitHookEvent = 'SessionStart
  * Returns a copy of the config with the Kit hook of one event written: replaced in place when it
  * exists, otherwise appended as a new group at the end of the event list.
  */
-export function withKitHook(config: unknown, client: HookClient, event: KitHookEvent = 'SessionStart'): JsonObject {
+export function withKitHook(config: unknown, client: HookClient, event: KitHookEvent = 'SessionStart', host: HookHost = defaultHookHost()): JsonObject {
   const copy: JsonObject = config === undefined ? {} : (structuredClone(config) as JsonObject);
   const lookup = findKitHook(copy, event);
-  const entry = kitHookEntry(client, event);
+  const entry = kitHookEntry(client, event, host);
   if (lookup.kind === 'found') {
     const groups = eventGroups(copy, event) ?? [];
     const group = groups[lookup.group] as JsonObject;
@@ -118,9 +140,9 @@ export function withKitHook(config: unknown, client: HookClient, event: KitHookE
 }
 
 /** All Kit hooks of structure v2 written into a config. */
-export function withKitHooks(config: unknown, client: HookClient): JsonObject {
+export function withKitHooks(config: unknown, client: HookClient, host: HookHost = defaultHookHost()): JsonObject {
   let result: unknown = config;
-  for (const event of KIT_HOOK_EVENTS) result = withKitHook(result, client, event);
+  for (const event of KIT_HOOK_EVENTS) result = withKitHook(result, client, event, host);
   return result as JsonObject;
 }
 
@@ -142,9 +164,9 @@ export function kitHooksText(config: unknown): string | undefined {
 }
 
 /** The managed text Kit writes for a client (all events). */
-export function expectedKitHooksText(client: HookClient): string {
+export function expectedKitHooksText(client: HookClient, host: HookHost = defaultHookHost()): string {
   const all: JsonObject = {};
-  for (const event of KIT_HOOK_EVENTS) all[event] = kitHookEntry(client, event);
+  for (const event of KIT_HOOK_EVENTS) all[event] = kitHookEntry(client, event, host);
   return normalizeHook(all);
 }
 

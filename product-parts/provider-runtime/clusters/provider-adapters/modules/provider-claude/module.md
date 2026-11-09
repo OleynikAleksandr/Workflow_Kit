@@ -253,8 +253,8 @@ D5) и останавливает только по своим записям (D
 
 `hooks(project)` — хук Kit из `.claude/settings.json` (`findKitHook`) и
 остальные хуки обоих файлов настроек с хешем (`sha256(normalizeHook)`),
-все `approved`: Claude не требует отдельного одобрения хуков доверенной
-папки. Без хука Kit — `complete: false` с пояснением.
+все `approved` (одобрения у доверенной папки нет). Команда — `hookText` (с `args` exec-формы
+Windows), признак Kit — `isKitHookEntry`. Без хука Kit — `complete: false`.
 
 ## Данные
 

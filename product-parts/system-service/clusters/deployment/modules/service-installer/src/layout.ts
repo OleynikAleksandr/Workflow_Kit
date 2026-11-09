@@ -45,6 +45,8 @@ export interface ServiceLayout {
   browserProfile: string;
   /** The wfk launcher (~/.local/bin/wfk; Windows: wfk.cmd in the data directory). */
   launcher: string;
+  /** Windows: `wfk` for Git Bash and `wfk.mjs` for Kit hooks next to wfk.cmd (spec M5 section 6); elsewhere empty. */
+  companions: string[];
   /** The icon: macOS .app, Linux .desktop, Windows Start menu shortcut. */
   icon: string;
   /** Windows helper scripts that start the service and the panel without a console window. */
@@ -90,6 +92,7 @@ export function serviceLayout(input: LayoutInput): ServiceLayout {
     openLog: p.join(dirs.logsDir, 'open.log'),
     browserProfile: p.join(dirs.stateDir, 'panel-browser'),
     launcher,
+    companions: input.platform === 'win32' ? [p.join(dirs.configDir, 'wfk'), p.join(dirs.configDir, 'wfk.mjs')] : [],
     icon,
     serviceVbs: p.join(dirs.configDir, 'wfk-service.vbs'),
     openVbs: p.join(dirs.configDir, 'wfk-open.vbs'),

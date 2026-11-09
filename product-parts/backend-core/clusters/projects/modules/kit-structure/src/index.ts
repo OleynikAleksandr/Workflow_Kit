@@ -9,12 +9,15 @@ export {
   findKitHook,
   isKitEventCommand,
   isKitHookCommand,
+  isKitHookEntry,
   kitHookEntry,
   kitHooksText,
   normalizeHook,
   withKitHook,
   withKitHooks,
 } from './hook-config.ts';
+export type { HookHost } from './hook-host.ts';
+export { WINDOWS_HOOK_LAUNCHER, defaultHookHost, forwardSlashes, hookText, powershellHookCommand } from './hook-host.ts';
 export { findMarkedSection } from './markers.ts';
 export type { StructureEntry, StructureRoutesOptions, StructureSection } from './routes.ts';
 export { registerStructureRoutes } from './routes.ts';

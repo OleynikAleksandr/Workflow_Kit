@@ -198,6 +198,12 @@ test('Windows: wfk.cmd, hidden Run value, user PATH, Start menu shortcut', async
     m.fs.readTextSync(`${data}\\wfk.cmd`),
     `@echo off\r\nrem Workflow Kit launcher (wfk install)\r\n"C:\\Program Files\\nodejs\\node.exe" "${entry}" %*\r\n`,
   );
+  // Git Bash launcher and the hook launcher next to wfk.cmd (spec M5 section 6).
+  assert.equal(
+    m.fs.readTextSync(`${data}\\wfk`),
+    `#!/bin/sh\n# Workflow Kit launcher (wfk install)\nexec 'C:/Program Files/nodejs/node.exe' 'C:/Users/me/AppData/Local/Workflow Kit/app/0.1.0/bin/wfk.mjs' "$@"\n`,
+  );
+  assert.match(m.fs.readTextSync(`${data}\\wfk.mjs`) ?? '', /await import\("file:\/\/\/C:\/Users\/me\/AppData\/Local\/Workflow%20Kit\/app\/0\.1\.0\/bin\/wfk\.mjs"\);/);
   const serviceVbs = m.fs.readTextSync(`${data}\\wfk-service.vbs`) ?? '';
   assert.match(serviceVbs, /shell\.Run """C:\\Program Files\\nodejs\\node\.exe"" ""C:\\Users\\me\\AppData\\Local\\Workflow Kit\\app\\0\.1\.0\\bin\\wfk\.mjs"" service start", 0, False/);
   const reg = m.calls.find((call) => call.command === 'C:\\Windows\\System32\\reg.exe');
@@ -226,7 +232,7 @@ test('Windows: wfk.cmd, hidden Run value, user PATH, Start menu shortcut', async
   const removed = await runServiceCommand('uninstall', m.deps);
   assert.equal(removed.exitCode, 0, removed.message);
   assert.ok(m.lines().some((line) => line.startsWith('C:\\Windows\\System32\\reg.exe delete HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run /v WorkflowKit /f')));
-  for (const gone of [`${data}\\wfk.cmd`, `${data}\\wfk-service.vbs`, `${data}\\wfk-open.vbs`, `${data}\\app`]) assert.ok(!m.fs.existsSync(gone), gone);
+  for (const gone of [`${data}\\wfk.cmd`, `${data}\\wfk`, `${data}\\wfk.mjs`, `${data}\\wfk-service.vbs`, `${data}\\wfk-open.vbs`, `${data}\\app`]) assert.ok(!m.fs.existsSync(gone), gone);
   assert.ok(!m.fs.existsSync('C:\\Users\\me\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Workflow Kit.lnk'));
   assert.match(m.calls.at(-1)?.args.at(-1) ?? '', /\$_ -ne \$d/);
 });

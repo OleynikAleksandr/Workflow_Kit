@@ -6,7 +6,7 @@ import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import type { AutorunPoint } from '#provider-registry';
-import { isKitHookCommand } from '#kit-structure';
+import { hookText, isKitHookEntry } from '#kit-structure';
 
 /** Files inspected, relative to the project folder. */
 export const AUTORUN_FILES: readonly string[] = ['.claude/settings.json', '.claude/settings.local.json', '.mcp.json', '.codex/hooks.json'];
@@ -40,8 +40,8 @@ function hookPoints(file: string, config: JsonObject, kind: string): AutorunPoin
       const matcher = typeof group['matcher'] === 'string' && group['matcher'] !== '' ? ` [${group['matcher']}]` : '';
       for (const hook of group['hooks']) {
         if (!isRecord(hook)) continue;
-        const command = typeof hook['command'] === 'string' ? hook['command'] : JSON.stringify(hook);
-        const kit = isKitHookCommand(command) ? ' (хук Kit)' : '';
+        const command = typeof hook['command'] === 'string' ? hookText(hook) : JSON.stringify(hook);
+        const kit = isKitHookEntry(hook) ? ' (хук Kit)' : '';
         points.push({ file, kind, detail: short(`${event}${matcher}: ${command}${kit}`) });
       }
     }

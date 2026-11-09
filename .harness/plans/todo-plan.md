@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 376,
+  "revision": 378,
   "rounds": [
     {
       "digest": null,
@@ -120,14 +120,22 @@
       ],
       "docsWaiver": null,
       "files": [
-        "product-parts/control-panel/clusters/web-panel/modules/panel-shell"
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/actions.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/api.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/layout.css",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/publication.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/screens.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts"
       ],
       "fixes": null,
       "id": "T002",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Panel shows the GitHub line and the publish button",
       "why": "The user publishes a closed scope from the panel"
     },
@@ -257,8 +265,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 1/6
-- Revision: 376
+- Progress: 2/6
+- Revision: 378
 
 ## Objective
 
@@ -279,9 +287,9 @@
 - [DONE] T001 — git-publish module: publication state, publish route and state section (work)
   - Commit: feat: publish a closed scope to the git upstream
   - Files: product-parts/backend-core/clusters/projects/modules/git-publish, package.json, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, docs/architecture/OVERVIEW.md, product-parts/backend-core/clusters/projects/modules/git-publish/module.md, product-parts/backend-core/clusters/projects/modules/git-publish/src/git.ts, product-parts/backend-core/clusters/projects/modules/git-publish/src/index.ts, product-parts/backend-core/clusters/projects/modules/git-publish/src/publication.ts, product-parts/backend-core/clusters/projects/modules/git-publish/src/routes.ts, product-parts/backend-core/clusters/projects/modules/git-publish/test/publication.test.ts
-- [TODO] T002 — Panel shows the GitHub line and the publish button (work)
+- [DONE] T002 — Panel shows the GitHub line and the publish button (work)
   - Commit: feat: show the GitHub publication in the panel
-  - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell
+  - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/actions.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/api.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/layout.css, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/publication.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/screens.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts
   - Depends on: T001
 - [TODO] T003 — Agent rule and wfk project publish (work)
   - Commit: feat: teach agents to publish only after the scope is closed

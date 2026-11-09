@@ -16,6 +16,7 @@ import { providerLabel } from './view-model.js';
  * @property {(projectId: string, provider: string) => void} newSession
  * @property {(session: SessionRow) => void} openChat
  * @property {(projectId: string, session: SessionRow, archived: boolean) => void} archiveSession
+ * @property {(projectId: string) => Promise<void>} publish
  */
 
 /**
@@ -66,8 +67,28 @@ export function homeScreen() {
 }
 
 /**
+ * The «GitHub» panel (spec publication-order 3.2): state text and the publish button.
+ * @param {string} projectId
+ * @param {import('./publication.js').PublicationView} view
+ * @param {ScreenHandlers} handlers
+ * @returns {HTMLElement}
+ */
+function publicationPanel(projectId, view, handlers) {
+  const children = [h('h2', {}, ['GitHub']), h('p', { class: `pub-${view.tone}` }, [view.text])];
+  if (view.button) {
+    const node = button(view.button, () => {
+      node.disabled = true;
+      node.textContent = 'Публикуем…';
+      void handlers.publish(projectId).finally(() => (node.disabled = false));
+    }, 'btn primary');
+    children.push(node);
+  }
+  return h('div', { class: 'panel' }, children);
+}
+
+/**
  * A project without a selected session: its sessions and new session buttons.
- * @param {ProjectRow} project
+ * @param {ProjectRow & { publication?: import('./publication.js').PublicationView | null }} project
  * @param {ScreenHandlers} handlers
  * @returns {HTMLElement}
  */
@@ -97,6 +118,7 @@ export function projectScreen(project, handlers) {
     header(project.name, [code(project.path), ' · ', project.count]),
     project.missing ? h('div', { class: 'notice notice-error' }, [h('p', {}, ['Папка проекта не найдена. Верните папку на место или уберите проект в архив.'])]) : null,
     h('div', { class: 'panel' }, [h('h2', {}, ['Сессии']), list, h('div', { class: 'eyebrow' }, ['Новая сессия']), sessionButtons(project.id, handlers)]),
+    project.publication ? publicationPanel(project.id, project.publication, handlers) : null,
     archived,
   ].filter((n) => n !== null));
 }

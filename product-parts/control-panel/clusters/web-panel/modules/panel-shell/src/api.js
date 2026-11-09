@@ -30,11 +30,12 @@ const TIMEOUT_MS = 15000;
  * @param {string} method
  * @param {string} url
  * @param {unknown} [body]
+ * @param {number} [timeoutMs] longer for slow actions (a git push)
  * @returns {Promise<any>}
  */
-export async function api(method, url, body) {
+export async function api(method, url, body, timeoutMs = TIMEOUT_MS) {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   /** @type {RequestInit} */
   const init = { method, cache: 'no-store', signal: controller.signal };
   if (method !== 'GET' && method !== 'HEAD') {

@@ -209,3 +209,15 @@ test('a reviewer session is hidden by its reference before the review knows its 
   const codexRef = { ...state(), reviews: { projects: { p1: [{ mainKey: 'claude:c1', reviewerKey: null, reviewerProvider: 'codex', reviewerRef: { localId: 't1', remoteId: null }, status: 'starting' }] } } };
   assert.deepEqual(projectTree(codexRef, { now: NOW, collapsed: new Set() }).find((p) => p.id === 'p1')!.sessions.map((s) => s.key), ['claude:c1']);
 });
+
+test('the GitHub line: published, ready with the button, or why it waits; nothing without an upstream', async () => {
+  const { commitsLabel, publicationView } = await import('../src/publication.js');
+  assert.deepEqual([1, 3, 5, 11, 21, 24].map(commitsLabel), ['1 коммит', '3 коммита', '5 коммитов', '11 коммитов', '21 коммит', '24 коммита']);
+  const st = (entry: unknown) => ({ publication: { projects: { p1: entry } } });
+  assert.equal(publicationView({}, 'p1'), null);
+  assert.equal(publicationView(st({ status: 'none' }), 'p1'), null);
+  assert.equal(publicationView(st({ status: 'up-to-date', branch: 'main', upstream: 'origin/main', ahead: 0 }), 'p1')!.button, null);
+  assert.equal(publicationView(st({ status: 'ready', ahead: 3 }), 'p1')!.button, 'Опубликовать на GitHub (3 коммита)');
+  const waits = publicationView(st({ status: 'blocked', ahead: 2, reason: 'Scope открыт — опубликовать можно после приёмки и закрытия' }), 'p1')!;
+  assert.deepEqual([waits.button, waits.text], [null, 'Неопубликованных коммитов: 2 · Scope открыт — опубликовать можно после приёмки и закрытия']);
+});

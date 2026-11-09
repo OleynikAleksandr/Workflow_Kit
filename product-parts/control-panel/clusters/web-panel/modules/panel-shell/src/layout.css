@@ -394,3 +394,6 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* «GitHub» panel of the project screen (spec publication-order 3.2). */
+.pub-ok { color: var(--ok); } .pub-muted { color: var(--muted); } .pub-warn { color: var(--warn); }

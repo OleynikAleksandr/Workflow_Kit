@@ -4,6 +4,7 @@
 import { api, ApiError } from './api.js';
 import { requestRefresh } from './cards.js';
 import { h, notice } from './dom.js';
+import { commitsLabel } from './publication.js';
 import { ARRIVAL_WAIT_MS, arrivedSession, chatStatus, deviceLink } from './view-model.js';
 
 /** localStorage key of the collapsed projects of the tree (per device). */
@@ -175,6 +176,13 @@ export function createActions(options) {
       if (name === null) return;
       void act('Не удалось переименовать сессию', () =>
         api('POST', `/api/projects/${encodeURIComponent(projectId)}/sessions/${encodeURIComponent(session.key)}/title`, { name }));
+    },
+    /** «Опубликовать на GitHub» (spec publication-order 3.2): a push may take a while. @param {string} projectId */
+    async publish(projectId) {
+      await act('Не удалось опубликовать', async () => {
+        const done = await api('POST', `/api/projects/${encodeURIComponent(projectId)}/publish`, {}, 120_000);
+        say('ok', `Опубликовано на GitHub: ${commitsLabel(Number(done.commits) || 0)}, ${String(done.sha).slice(0, 7)}`);
+      });
     },
     /** @param {string} projectId @param {SessionRow} session @param {boolean} archived */
     archiveSession(projectId, session, archived) {

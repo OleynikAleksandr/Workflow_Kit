@@ -1,9 +1,10 @@
-// HTTP side of the channel: POST /api/hooks/stop and /api/hooks/prompt (loopback only),
+// HTTP side of the channel: POST /api/hooks/stop, /api/hooks/prompt and /api/hooks/turn-end (loopback only),
 // POST /api/projects/:id/sessions/:sid/message (a message from the panel) and the "channel"
 // section of /api/state.
 import { HttpError, classifyAddress } from '#http-server';
 import type { Router, StateRegistry } from '#http-server';
-import type { AgentChannel, HookReply, QueuedMessage } from './channel.ts';
+import { TURN_END_EVENTS } from './types.ts';
+import type { AgentChannel, HookReply, QueuedMessage, TurnEndEvent } from './types.ts';
 import { parseHookInput } from './hook-input.ts';
 import type { HookDialects } from './hook-input.ts';
 
@@ -73,13 +74,23 @@ function send(res: import('node:http').ServerResponse, reply: HookReply): void {
   res.end(text);
 }
 
+const LOOPBACK_ONLY = 'Хуки принимаются только с этого компьютера';
+
 export function registerChannelRoutes(options: ChannelRoutesOptions): void {
   const { router, channel } = options;
+  // The hook that cannot be held only tells the turn ended; the answer does not wait for the work.
+  router.post('/api/hooks/turn-end', async ({ body, req }) => {
+    if (classifyAddress(req.socket.remoteAddress) !== 'loopback') throw new HttpError(403, 'loopback-only', LOOPBACK_ONLY);
+    const value = typeof body === 'object' && body !== null ? (body as Record<string, unknown>) : {};
+    const { client, sessionId, cwd, event } = value;
+    const known = typeof client === 'string' && typeof sessionId === 'string' && sessionId !== '' && TURN_END_EVENTS.includes(event as TurnEndEvent);
+    const taken = known && (await channel.turnEnd({ client, sessionId, cwd: typeof cwd === 'string' && cwd !== '' ? cwd : null, event: event as TurnEndEvent }));
+    if (!taken) throw new HttpError(400, 'bad-hook-input', 'Неизвестный client, событие или нет sessionId во входе хука');
+    return { ok: true };
+  });
   for (const event of ['stop', 'prompt'] as const) {
     router.post(`/api/hooks/${event}`, async ({ body, req, res }) => {
-      if (classifyAddress(req.socket.remoteAddress) !== 'loopback') {
-        throw new HttpError(403, 'loopback-only', 'Хуки принимаются только с этого компьютера');
-      }
+      if (classifyAddress(req.socket.remoteAddress) !== 'loopback') throw new HttpError(403, 'loopback-only', LOOPBACK_ONLY);
       const raw = hookBody(body);
       const input = parseHookInput(raw.client, raw.input, raw.projectDir, options.dialects);
       if (!input) throw new HttpError(400, 'bad-hook-input', 'Неизвестный client или нет session_id во входе хука');

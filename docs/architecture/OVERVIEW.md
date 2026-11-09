@@ -50,7 +50,7 @@ runtime-зависимостей) и веб-панель для Mac и iPad. С�
 | [workflow-engine](../../product-parts/workflow-engine/product-part.md) | [kit-host](../../product-parts/workflow-engine/clusters/kit-host/cluster.md) | [kit-bundle](../../product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md) | вендорный бандл Kit 2.2.2 с проверкой хеша |
 | | | [kit-runner](../../product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/module.md) | команды Kit проекта, установка, слежение за планом, раздел `workflow` |
 | | | [plan-view](../../product-parts/workflow-engine/clusters/kit-host/modules/plan-view/module.md) | модели карточек плана и выбора пути (порт правил Harness) |
-| | [session-loop](../../product-parts/workflow-engine/clusters/session-loop/cluster.md) | [agent-channel](../../product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md) | хуки `Stop`/`UserPromptSubmit`, очередь сообщений агенту, удержание хода, активность |
+| | [session-loop](../../product-parts/workflow-engine/clusters/session-loop/cluster.md) | [agent-channel](../../product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md) | хуки `Stop`/`UserPromptSubmit`, очередь сообщений агенту, удержание и конец хода, активность |
 | | | [autopilot](../../product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md) | «продолжать, держать или отпустить» после хода; действия с планом из панели |
 | | | [plan-review](../../product-parts/workflow-engine/clusters/session-loop/modules/plan-review/module.md) | решение о ревью и вопрос о плане |
 | | | [cross-review](../../product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md) | ревью плана сессией другого провайдера (M4) |
@@ -83,9 +83,8 @@ runtime-зависимостей) и веб-панель для Mac и iPad. С�
 `createApp(options?)` создаёт каталоги данных (0700), читает конфиг и
 собирает: реестр маршрутов и реестр разделов состояния (`http-server`),
 HTTP-сервер с панелью (`panelShellMount()` в корне,
-`providerCardsMount()`, `projectWizardMount()`, `sessionViewMount()` под
-своими префиксами), журнал событий, мьютекс,
-реестр проектов, операции, учёт процессов и реестр провайдеров из фабрик
+`projectWizardMount()` и `sessionViewMount()` под своими префиксами),
+журнал событий, мьютекс, реестр проектов, операции, учёт процессов и реестр провайдеров из фабрик
 `DEFAULT_PROVIDERS` (`createProvider` модулей `provider-claude` и
 `provider-codex`). `start()` пишет событие `service.started` и запускает
 операцию `providers.refresh`. Новые возможности подключаются регистрацией в
@@ -117,10 +116,8 @@ HTTP-сервер с панелью (`panelShellMount()` в корне,
 модуля провайдера. Методы чтения дёшевы и только читают (D11). Запись в
 чужие конфиги — по одноразовому токену предпросмотра, связанному с
 отпечатком показанного (D7). Предпросмотр (`TrustPreview`) может содержать
-выборы `choices` — решения пользователя до «Доверять», без ответа по
-умолчанию; ответы приходят в `grantTrust(project, token, choices)`
-(`POST …/trust { token, choices }`), и панель не отправляет «Доверять» без
-обязательного ответа. Пометка `inherited` (в предпросмотре и в состоянии
+выборы `choices` — решения пользователя до «Доверять»; ответы приходят в
+`grantTrust(project, token, choices)`. Пометка `inherited` (в предпросмотре и в состоянии
 доверия) говорит, что доверена только родительская папка. Модуль даёт маршруты провайдеров, раздел
 `providers` и чтение журнала хука `.workflow-kit/local/sessions.jsonl`.
 Сервер и панель о конкретных провайдерах не знают. Контракт —
@@ -176,9 +173,10 @@ Kit 2.2.2 ставится в проект своим бандлом (`install -
 команды выполняются отдельным процессом с JSON-ответом (`kit-runner`);
 файлы `.harness/**` служба не читает и не пишет. Раздел `workflow` даёт
 модели карточки плана и выбора пути (`plan-view`). Хуки агента `wfk hook
-stop|prompt` идут в `agent-channel` (`POST /api/hooks/stop|prompt`, только
-loopback): `Stop` может держаться до 9 минут, пока пользователь решает в
-панели (выбор пути, запуск плана, подтверждение выпуска); `autopilot`
+stop|prompt|turn-end` идут в `agent-channel` (`POST /api/hooks/…`, только
+loopback): `Stop` держится до 9 минут, пока пользователь решает в панели;
+провайдеру, чей `Stop` не удержать (`turn-end`), следующее сообщение уходит
+промптом, когда сессия свободна; `autopilot`
 решает, продолжать ли агента, по `autopilot:status` и правилам Harness, а
 кнопки панели (`POST /api/projects/:id/workflow/…`) выполняют команды Kit
 и сообщают агенту. Имена и архив сессий, переключатель ревью хранятся в

@@ -1,6 +1,7 @@
 // wfk hook stop|prompt: hands the hook input to the running service (POST /api/hooks/<event> on
 // the loopback address) and prints the service's answer for the agent. A missing or broken service
-// means no output and exit 0, so the agent session is never disturbed.
+// means no output and exit 0, so the agent session is never disturbed. wfk hook turn-end only tells
+// the service that the turn ended (a hook that cannot be held) and never prints anything.
 import http from 'node:http';
 import os from 'node:os';
 import { loadConfig, resolveDataDirs } from '#data-store';
@@ -9,6 +10,8 @@ import { loadConfig, resolveDataDirs } from '#data-store';
 export const STOP_REQUEST_MS = 9 * 60_000 + 30_000;
 /** How long a UserPromptSubmit may wait. */
 export const PROMPT_REQUEST_MS = 20_000;
+/** How long a turn end notice may wait: the service answers at once. */
+export const TURN_END_REQUEST_MS = 3000;
 
 export type ServiceEvent = 'stop' | 'prompt';
 
@@ -99,5 +102,27 @@ export async function runServiceHook(event: ServiceEvent, client: string | undef
     if (answer && typeof answer === 'object') deps.stdout(`${JSON.stringify(answer)}\n`);
   } catch (error) {
     debug(`служба недоступна (${error instanceof Error ? error.message : String(error)})`);
+  }
+}
+
+/**
+ * Tells the service that a turn ended: POST /api/hooks/turn-end { client, sessionId, cwd, event },
+ * the event being hook_event_name of the input (Stop, StopFailure, Interrupt). Prints nothing and
+ * never throws, also when the service is down.
+ */
+export async function runTurnEndHook(client: string, deps: ServiceHookDeps): Promise<void> {
+  const debug = (text: string): void => {
+    if (deps.env['WFK_HOOK_DEBUG']) deps.stderr(`wfk hook turn-end: ${text}\n`);
+  };
+  try {
+    const input = JSON.parse(deps.stdin) as Record<string, unknown> | null;
+    const sessionId = input?.['session_id'];
+    const event = input?.['hook_event_name'];
+    if (typeof sessionId !== 'string' || sessionId === '' || typeof event !== 'string') return debug('во входе хука нет session_id или hook_event_name');
+    const cwd = typeof input?.['cwd'] === 'string' ? input['cwd'] : null;
+    const base = await serviceUrl(deps.env, deps.homedir ?? os.homedir(), deps.platform ?? process.platform);
+    await (deps.post ?? postJson)(`${base}/api/hooks/turn-end`, { client, sessionId, cwd, event }, TURN_END_REQUEST_MS);
+  } catch (error) {
+    debug(error instanceof SyntaxError ? 'вход хука — не JSON' : `служба недоступна (${error instanceof Error ? error.message : String(error)})`);
   }
 }

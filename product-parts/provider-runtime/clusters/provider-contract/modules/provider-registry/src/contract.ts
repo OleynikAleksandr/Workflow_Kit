@@ -297,6 +297,17 @@ export interface Provider {
    * delivers them). Resolves false when the provider cannot reach the session.
    */
   wakeSession?(project: Project, sessionId: string): Promise<boolean>;
+  /**
+   * For a provider whose Stop hook cannot be held (spec M8 section 3): no turn runs in the session
+   * now (no live session lock), the text of its last answer (null for a turn without text; rejects
+   * when it cannot be read) and a message sent as a prompt (true when it was accepted; delivery.id
+   * is the same on every retry, so an accepted prompt never runs twice).
+   */
+  sessionIdle?(project: Project, sessionId: string): Promise<boolean>;
+  lastAnswer?(project: Project, sessionId: string): Promise<string | null>;
+  sendMessage?(project: Project, sessionId: string, text: string, delivery: { id: string }): Promise<boolean>;
+  /** Name of the setting that turns session locks off; without locks the turn end cannot be told. */
+  readonly lockSwitch?: string;
   actions(project: Project | null): Promise<ProviderAction[]>;
   runAction(id: string, project: Project | null): Promise<ProviderStatus | ProjectProviderState>;
   /** Reasons the project cannot be removed (e.g. a running environment); live sessions are found by the registry. */

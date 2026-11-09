@@ -115,8 +115,8 @@ export interface SessionTitles {
   name(projectId: string, key: string, providerTitle?: string | null): SessionTitle;
   /** A turn of the session started: retries a provider rename that had to wait. */
   onTurn(key: string): void;
-  /** The Stop hook of the session arrived (no turn, no dialog): retries a waiting rename. */
-  onStop(key: string): void;
+  /** The turn of the session ended (no turn, no dialog): retries a waiting rename; resolves after it. */
+  onStop(key: string): Promise<void>;
   /**
    * A turn started with the panel's service greeting (`service`: true) or with anything else:
    * no topic is taken during a service turn, it is not the user's task yet.
@@ -346,9 +346,9 @@ export function createSessionTitles(options: SessionTitlesOptions): SessionTitle
       if (service) serviceTurns.add(key);
       else serviceTurns.delete(key);
     },
-    onStop(key) {
+    async onStop(key) {
       const waiting = pending.get(key);
-      if (waiting) void sync(waiting.projectId, key, true);
+      if (waiting) await sync(waiting.projectId, key, true);
     },
     async appTitle(key, current) {
       if (!options.promptTitle?.(clientOf(key))) return null;

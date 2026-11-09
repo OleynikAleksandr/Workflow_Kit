@@ -248,12 +248,24 @@ test('a Claude name is typed into the session only outside a turn; during a turn
   titles.onTurn('claude:busy');
   await new Promise((r) => setTimeout(r, 20));
   assert.deepEqual(renames, [], 'still in a turn');
-  titles.onStop('claude:busy');
-  for (let i = 0; i < 50 && titles.name('p', 'claude:busy').synced !== true; i += 1) await new Promise((r) => setTimeout(r, 10));
-  assert.deepEqual(renames, [['claude:busy', 'Инвентаризация']]);
+  await titles.onStop('claude:busy');
+  assert.deepEqual([renames, titles.name('p', 'claude:busy').synced], [[['claude:busy', 'Инвентаризация']], true], 'onStop resolves with the name applied');
   active = [];
   await titles.setManual('p', 'claude:busy', 'Ревизия');
   assert.deepEqual(renames.at(-1), ['claude:busy', 'Ревизия'], 'an idle session is renamed at once');
+});
+
+test('a name the provider refused during a turn is applied at the end of the turn, before onStop resolves', async () => {
+  renames = [];
+  loaded = false;
+  const titles = createSessionTitles(options());
+  await titles.setManual('p', 'kimi:busy', 'Отчёт по складу');
+  assert.deepEqual([renames.length, titles.name('p', 'kimi:busy').synced, titles.name('p', 'kimi:busy').note], [1, false, 'later']);
+  loaded = true;
+  await titles.onStop('kimi:busy');
+  assert.deepEqual([renames.length, titles.name('p', 'kimi:busy').synced, titles.name('p', 'kimi:busy').note], [2, true, null]);
+  await titles.onStop('kimi:busy');
+  assert.equal(renames.length, 2, 'nothing waits any more');
 });
 
 test('no topic during the service greeting turn; the next turn with a task sets it', async () => {

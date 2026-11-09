@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 478,
+  "revision": 480,
   "rounds": [
     {
       "digest": null,
@@ -439,14 +439,35 @@
         "product-parts/workflow-engine/clusters/session-loop/modules/session-titles",
         "product-parts/backend-core/clusters/runtime/modules/cli",
         "product-parts/backend-core/clusters/projects/modules/kit-structure",
-        "docs/architecture/OVERVIEW.md"
+        "docs/architecture/OVERVIEW.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/commands.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/hook-service.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/hook.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/hook-turn-end.test.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/channel.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/detached.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/index.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/routes.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/slots.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/types.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/detached-rules.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/detached-world.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/detached.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/titles.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/session-titles/test/titles.test.ts"
       ],
       "fixes": null,
       "id": "T006",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Turn end without holding Stop",
       "why": "Kimi cannot take a continuation in its Stop hook, so the channel needs a detached turn end"
     },
@@ -761,8 +782,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 5/13
-- Revision: 478
+- Progress: 6/13
+- Revision: 480
 
 ## Objective
 
@@ -799,9 +820,9 @@ Add Kimi Code as the third provider of Workflow Kit and release 0.6.0
   - Commit: feat: record the kimi program at install and show it in status and doctor
   - Files: product-parts/system-service/clusters/deployment/modules/service-installer, product-parts/backend-core/clusters/runtime/modules/cli, tools/platform-guard/allowlist.json, docs/architecture/OVERVIEW.md, product-parts/backend-core/clusters/runtime/modules/cli/test/app.test.ts, product-parts/system-service/clusters/deployment/modules/service-installer/module.md, product-parts/system-service/clusters/deployment/modules/service-installer/src/doctor.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/programs.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/status.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/types.ts, product-parts/system-service/clusters/deployment/modules/service-installer/test/install.test.ts
   - Depends on: T004
-- [TODO] T006 — Turn end without holding Stop (work)
+- [DONE] T006 — Turn end without holding Stop (work)
   - Commit: feat: deliver the next message as a prompt after a detached turn end
-  - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel, product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/workflow-engine/clusters/session-loop/modules/cross-review, product-parts/workflow-engine/clusters/session-loop/modules/plan-review, product-parts/workflow-engine/clusters/session-loop/modules/session-titles, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/backend-core/clusters/projects/modules/kit-structure, docs/architecture/OVERVIEW.md
+  - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel, product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/workflow-engine/clusters/session-loop/modules/cross-review, product-parts/workflow-engine/clusters/session-loop/modules/plan-review, product-parts/workflow-engine/clusters/session-loop/modules/session-titles, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/backend-core/clusters/projects/modules/kit-structure, docs/architecture/OVERVIEW.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/commands.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/hook-service.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/hook.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/hook-turn-end.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/channel.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/detached.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/slots.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/types.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/detached-rules.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/detached-world.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/detached.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/titles.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/test/titles.test.ts
   - Depends on: T005
 - [TODO] T007 — provider-kimi: program, server, status, workspace, trust (work)
   - Commit: feat: add the Kimi provider with its server, status and folder trust

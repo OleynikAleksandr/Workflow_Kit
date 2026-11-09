@@ -42,7 +42,9 @@ ChatGPT) → «Новая сессия».
     `source`: `manual` | `agent` | `scope` | `provider` | `default`,
     `manual`, `topic`, `synced`, `note`, `archivedAt`, `forgottenAt`);
   - `onTurn(key)` — начало хода: повтор отложенного переименования;
-  - `onStop(key)` — хук `Stop`: повтор переименования вне хода (провайдер с `promptTitle`);
+  - `onStop(key) → Promise<void>` — конец хода (хук `Stop` или простой сессии по
+    `AgentChannel.onIdle`): повтор отложенного переименования вне хода; обещание выполняется
+    после попытки, поэтому канал отдаёт следующее сообщение уже после имени;
   - `setServiceTurn(key, service)` — ход начат служебным приветствием панели
     (`SERVICE_MESSAGE_MARK`) или нет; в служебном ходе `setTopic` отказывает
     `service-turn` (тема — по задаче пользователя, не по приветствию);

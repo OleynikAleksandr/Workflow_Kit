@@ -1,8 +1,8 @@
 // Wiring of sessions: the agent channel, the autopilot, the plan review toggles, session names and
 // the cross review. Nothing here names a provider: what differs between them is read from the
-// registry (hook dialect, wakeSession, promptTitle, capabilities).
+// registry (hook dialect, wakeSession, sendMessage, promptTitle, capabilities).
 import { createAgentChannel, registerChannelRoutes } from '#agent-channel';
-import type { AgentChannel } from '#agent-channel';
+import type { AgentChannel, SessionRef } from '#agent-channel';
 import { createAutopilot, registerAutopilotRoutes } from '#autopilot';
 import type { Autopilot } from '#autopilot';
 import type { CrossReview } from '#cross-review';
@@ -11,10 +11,10 @@ import type { Router, StateRegistry } from '#http-server';
 import type { KitRunner, WorkflowState } from '#kit-runner';
 import { createReviewToggles, registerReviewRoutes } from '#plan-review';
 import type { ReviewToggles } from '#plan-review';
-import type { ProjectRegistry } from '#project-registry';
+import type { Project, ProjectRegistry } from '#project-registry';
 import { SERVICE_MESSAGE_MARK } from '#project-setup';
-import { providerCapability } from '#provider-registry';
-import type { HookDialect, ProviderRegistry } from '#provider-registry';
+import { providerCapability, providerLabel } from '#provider-registry';
+import type { HookDialect, Provider, ProviderRegistry } from '#provider-registry';
 import { createSessionTitles, registerTitleRoutes } from '#session-titles';
 import type { SessionTitles, SessionTitlesOptions } from '#session-titles';
 import { lateReviewDecider, toggleLock, wireCrossReview } from './review-wiring.ts';
@@ -45,17 +45,38 @@ export interface SessionWiring {
 export function wireSessions(options: SessionWiringOptions): SessionWiring {
   const { router, state, mutex, projects, providers, workflow, kit, resolveFolderProject } = options;
   const clientOf = (key: string): string => key.slice(0, key.indexOf(':'));
+  // A provider whose Stop hook cannot be held (sessionIdle and sendMessage) gets the next message
+  // as a prompt once the session is idle; a session archived in the panel gets none.
+  const reach = async (ref: SessionRef): Promise<{ provider: Provider; project: Project }> => {
+    const provider = providers.get(ref.client);
+    const project = ref.projectId ? await projects.get(ref.projectId) : undefined;
+    if (!provider || !project) throw new Error('проект сессии неизвестен');
+    return { provider, project };
+  };
   const channel = createAgentChannel({
     resolveProject: resolveFolderProject,
     log: options.log,
+    detached: {
+      supports: (client) => Boolean(providers.get(client)?.sessionIdle && providers.get(client)?.sendMessage),
+      idle: async (ref) => (await reach(ref).then(({ provider, project }) => provider.sessionIdle?.(project, ref.sessionId))) === true,
+      lastAnswer: async (ref) => (await reach(ref).then(({ provider, project }) => provider.lastAnswer?.(project, ref.sessionId))) ?? null,
+      send: async (ref, text, delivery) => (await reach(ref).then(({ provider, project }) => provider.sendMessage?.(project, ref.sessionId, text, delivery))) === true,
+      archived: (ref) => ref.projectId !== null && titles.name(ref.projectId, ref.key).archivedAt !== null,
+      names: (client) => {
+        const provider = providers.get(client);
+        return { label: provider ? providerLabel(provider) : client, title: provider?.title ?? client, lockSwitch: provider?.lockSwitch ?? null };
+      },
+    },
   });
   // Panel messages for an idle agent wait for its next hook; a session of a provider that can wake
-  // it (wakeSession) is woken at once: the prompt hook of the woken turn hands over the queue.
+  // it (wakeSession) is woken at once: the prompt hook of the woken turn hands over the queue. A
+  // provider with sendMessage gets them from the channel itself (flush).
   const wakeIdle = async (key: string): Promise<void> => {
     const activity = channel.get(key);
-    if (!activity || activity.state !== 'waiting' || !activity.projectId) return;
+    if (!activity || activity.state === 'working' || !activity.projectId) return;
     const provider = providers.get(activity.client);
-    if (!provider?.wakeSession) return;
+    if (provider?.sendMessage) return channel.flush(key);
+    if (!provider?.wakeSession || activity.state !== 'waiting') return;
     const project = await projects.get(activity.projectId);
     if (!project) return;
     const woken = await provider.wakeSession(project, activity.sessionId).catch(() => false);
@@ -86,7 +107,7 @@ export function wireSessions(options: SessionWiringOptions): SessionWiring {
     ...channel,
     // At Stop the agent is out of its turn: a name that waited for it can go to the app.
     async stop(input, signal) {
-      titles.onStop(`${input.client}:${input.sessionId}`);
+      void titles.onStop(`${input.client}:${input.sessionId}`);
       return channel.stop(input, signal);
     },
     async prompt(input) {
@@ -94,7 +115,8 @@ export function wireSessions(options: SessionWiringOptions): SessionWiring {
       const key = `${input.client}:${input.sessionId}`;
       // The panel's first message is a service greeting: no session topic is taken in that turn.
       titles.setServiceTurn(key, input.prompt?.includes(SERVICE_MESSAGE_MARK) === true);
-      autopilot.onPrompt(key, reply.answer !== null);
+      // A prompt the service itself sent (reply.own) is the service's turn as well.
+      autopilot.onPrompt(key, reply.own === true || reply.answer !== null);
       titles.onTurn(key);
       // A provider with promptTitle takes the session name from the prompt hook answer
       // (hookSpecificOutput.sessionTitle); for the others appTitle gives null.
@@ -151,6 +173,8 @@ export function wireSessions(options: SessionWiringOptions): SessionWiring {
     archived: options.sessionArchived,
     log: options.log,
   });
+  // A detached session became idle: a name that waited for the end of the turn goes before the next message.
+  channel.onIdle((key) => titles.onStop(key));
   const isClient = (id: string): boolean => providers.get(id) !== undefined;
   registerTitleRoutes({ router, state, titles, isClient });
   const crossReview = wireCrossReview({ router, state, channel, messages: wakingChannel, projects, providers, workflow, toggles: review, titles, resolveFolderProject, isClient, log: options.log });

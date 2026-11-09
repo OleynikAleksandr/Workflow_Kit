@@ -51,8 +51,9 @@ const USAGE = `Использование: wfk <команда>
   service start|stop|status     управление службой
   doctor [--installed]          проверка установки
   link [--force]                запускатель ~/.local/bin/wfk на текущий клон (разработка)
-  hook session-start|stop|prompt --client <провайдер>
-                                хуки агентов: начало сессии, конец хода, новое сообщение
+  hook session-start|stop|prompt|turn-end --client <провайдер>
+                                хуки агентов: начало сессии, конец хода, новое сообщение,
+                                конец хода без удержания
   session title "<тема>"        имя сессии от агента (один раз, в идущем ходе)
   session plan "<что делаем>"   вопрос пользователю: спецификация и план (с ревью или без)
   project publish               опубликовать проект папки в upstream git (только при закрытом scope)

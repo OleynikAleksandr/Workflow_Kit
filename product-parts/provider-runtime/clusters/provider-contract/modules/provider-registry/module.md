@@ -36,6 +36,12 @@
   `wakeSession?(project, sid) → boolean` (разбудить простаивающую сессию,
   чтобы хук отдал ей очередь панели; Claude — ввод в терминал сессии
   панели; веха 3),
+  `sessionIdle?(project, sid) → boolean`, `lastAnswer?(project, sid) → string | null`,
+  `sendMessage?(project, sid, text, { id }) → boolean` и свойство `lockSwitch?` —
+  для провайдера, чей хук `Stop` нельзя удержать (M8, раздел 3): в сессии нет
+  хода (нет живого замка); текст последнего ответа (`null` — ход без текста,
+  сбой чтения — отказ); сообщение промптом (`true` — принят; `id` один на все
+  повторы); имя настройки, отключающей замки сессий (для пометки в панели),
   `actions(project | null)`, `runAction(id, project | null)`,
   `removeBlockers?(project)`.
   Расширения раздела 1: `trust(project)` — текущее доверие для панели

@@ -61,7 +61,12 @@ stripping).
 - `wireSessions(options)` (`src/session-wiring.ts`) — проводка сессий для `createApp`: канал,
   автопилот, переключатели ревью, имена и перекрёстное ревью. Имён провайдеров в ней нет:
   различия читаются из реестра — `hookDialect`, `wakeSession`, `promptTitle`, возможности
-  `orchestration` и `reviewer` (`providerCapability`).
+  `orchestration` и `reviewer` (`providerCapability`). Провайдер с `sessionIdle` и
+  `sendMessage` получает путь канала без удержания `Stop` (опция `detached`:
+  `idle`/`lastAnswer`/`send` — методы провайдера по проекту сессии, `archived` — архив
+  панели из `titles`, `names` — `providerLabel`, `title`, `lockSwitch`); `wakeIdle` для
+  него зовёт `channel.flush`, `channel.onIdle` — `titles.onStop`, а промпт с
+  `HookReply.own` автопилот считает ходом службы.
 - `detectOs(input)`, `panelUrls(port, interfaces)`, `readPackageVersion()`.
 - Константы `COMMANDS`, `EXIT_USAGE` (64), `EXIT_NOT_IMPLEMENTED` (2).
 - Типы `CliDeps`, `App`, `AppOptions`, `SystemSection`, `OsInfo`,
@@ -80,6 +85,7 @@ stripping).
 | `session plan "<что делаем>" [--client <id> --session <id>]` | вопрос о спецификации и плане (M4, раздел 12): `{ summary, cwd, projectDir, client, sessionId }` на `POST /api/sessions/plan`; сессия выбирается так же, как у `session title`, клиент — любой провайдер реестра (неизвестный — 400 `bad-session`); успех — `PLAN_ASKED` («вопрос показан… закончи ход»), код 0; отказ — stderr (и кандидаты при `session-ambiguous`), код 1; без текста — справка, код 64 |
 | `project publish` | публикация проекта текущей папки (publication-order 3.3, `src/project-command.ts`): проект — самый глубокий активный из `GET /api/projects`, содержащий папку (`projectOfFolder`); `POST /api/projects/:id/publish` (тайм-аут 120 с); успех — «Опубликовано: коммитов N, <sha>», код 0; отказ службы (scope открыт, грязное дерево, нет upstream, удалённая ветка впереди) или ошибка git — stderr с выводом git, код 1; другие аргументы — справка, код 64 |
 | `hook stop\|prompt --client <id провайдера>` | клиент не из `PROVIDER_IDS` — отказ: ничего не отправляет и не печатает; служба принимает хук только зарегистрированного провайдера (иначе 400 `bad-hook-input`) и читает вход и строит ответ по его `hookDialect` (нет поля — `claude`; `kimi` — `prompt` массивом частей, ответ `{ message }`); читает JSON хука из stdin и отправляет `{ client, input, projectDir }` (`projectDir` — `$CLAUDE_PROJECT_DIR`) на `POST /api/hooks/stop\|prompt` службы; печатает в stdout поле `answer` ответа (JSON для агента) или ничего; ответ `prompt` сессии провайдера с `promptTitle` (Claude) несёт `hookSpecificOutput.sessionTitle` из `titles.appTitle` — имя Workflow Kit уходит в приложение; служба недоступна, вход не JSON — без вывода; код всегда 0; `WFK_HOOK_DEBUG` — причина в stderr |
+| `hook turn-end --client <id провайдера>` | конец хода без удержания (хуки `Stop`, `StopFailure`, `Interrupt` провайдера с `sendMessage`): читает из stdin `session_id`, `hook_event_name`, `cwd` и отправляет `{ client, sessionId, cwd, event }` на `POST /api/hooks/turn-end` (ожидание до 3 с); ничего не печатает, код 0 и при недоступной службе, и при входе не JSON |
 | `--help`, `--version` | справка и версия из `package.json` |
 
 Неизвестная команда — сообщение и справка в stderr, код 64.

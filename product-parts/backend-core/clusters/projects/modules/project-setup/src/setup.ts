@@ -130,6 +130,8 @@ export function createProjectSetup(deps: SetupDeps): ProjectSetup {
   // only after trust (Codex and the hook written by the structure step) had nothing to show: its
   // hook is read until the hash appears.
   async function approveKitHook(run: SetupRun, project: Project, provider: Provider, shown: HookPreview | undefined): Promise<string> {
+    // Nothing to approve: the preview showed why Kit cannot write this hook and the text for a manual edit.
+    if (shown && !shown.hash) return `хук Kit для ${shown.label} не записан: добавьте его вручную`;
     if (shown) {
       try {
         await provider.approveHooks!(project, { command: shown.command, hash: shown.hash });
@@ -142,8 +144,11 @@ export function createProjectSetup(deps: SetupDeps): ProjectSetup {
     }
     for (let attempt = 0; attempt < 15; attempt += 1) {
       if (run.cancelRequested) throw new Cancelled();
-      const kit = (await provider.hooks(project)).kitHook;
+      const state = await provider.hooks(project);
+      const kit = state.kitHook;
       if (kit && kit.status === 'approved') return HOOKS_APPROVED;
+      // A hook that is written into a file is approved only as shown; this one was not in the preview.
+      if (state.writes !== undefined) return `хук Kit для ${providerLabel(provider)} не записан: его не было в предпросмотре — откройте проект мастером ещё раз`;
       if (kit && kit.hash) {
         await provider.approveHooks!(project, { command: kit.command, hash: kit.hash });
         return HOOKS_APPROVED;

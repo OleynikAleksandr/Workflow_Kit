@@ -91,6 +91,16 @@ UserPromptSubmit в конец их списков.
   текущую копию, поэтому хуки не меняются при обновлении; смена `node` даёт «устарело».
   Свой хук узнаётся по `hookText(hook)` (command, args и commandWindows вместе): `hook <событие> `
   и `/.local/bin/wfk` или `wfk.mjs`. На macOS и Linux хуки прежние.
+- Хук Kimi (`src/kimi-hook.ts`, спецификация M8, раздел 2.3): `kimiHookBlocks(host)` →
+  `{ ok, blocks }` или `{ ok: false, reason }` — пять блоков `KimiHookBlock { event, command,
+  timeout }` по `KIMI_HOOK_EVENTS` (`SessionStart` → `session-start`, `UserPromptSubmit` →
+  `prompt`, `Stop`, `StopFailure`, `Interrupt` → `turn-end`), `KIMI_HOOK_TIMEOUT_S` (30),
+  `KIMI_HOOK_CLIENT`. Kimi выполняет команду оболочкой ОС: `kimiHookCommand` даёт строку POSIX
+  прочих клиентов, на Windows — `"<node.exe>" "<wfk.mjs>" hook <событие> --client kimi` для
+  `cmd.exe` (пути как есть, с `\`); путь с `"`, `%` или переводом строки — отказ с причиной.
+  `kimiHooksSection(blocks, eol)` — текст для `config.toml` (комментарий `KIMI_HOOKS_MARKER`
+  и блоки `[[hooks]]`), `tomlString` (строка в `'…'`, с апострофом — в `"…"`),
+  `isKimiKitCommand`. Файл `config.toml` читает и пишет `provider-kimi`.
 - Типы `StructureReport`, `FragmentReport`, `StructureStatus`,
   `InstallResult`, `FragmentId`, `FragmentKind`, `HookClient`, `KitHookEvent`,
   `SessionStartInput`, `SessionStartRecord`, `SessionStartResult`,
@@ -132,7 +142,8 @@ UserPromptSubmit в конец их списков.
 - `provider-codex` сверяет хук Kit с `hookCommand('codex')`
   (`isKitHookCommand`) и одобряет его по команде и хешу
   (`POST .../hooks/approve`); `provider-claude` находит свой хук через
-  `findKitHook`, `normalizeHook`, `sha256`, `hookText` и `isKitHookEntry`.
+  `findKitHook`, `normalizeHook`, `sha256`, `hookText` и `isKitHookEntry`;
+  `provider-kimi` берёт блоки хука из `kimiHookBlocks` и `kimiHooksSection`.
 
 ## Дальше
 

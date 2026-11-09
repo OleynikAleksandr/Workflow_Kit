@@ -104,6 +104,12 @@ test('a hook of the preview shows the file, the added text and the hash the cons
     { title: 'Хук Kit для ChatGPT', files: [], text: 'node wfk hook', hash: 'ffff', meta: 'хеш ffff', note: null },
   ]);
   assert.deepEqual(previewView(preview(), 0).hooks, []);
+  // A hook Kit cannot write: no hash and no file, only the text for a manual edit and the reason.
+  const manual = { provider: 'kimi', label: 'Kimi', status: 'unknown', command: '[[hooks]]\nevent = "Stop"', hash: '', writes: [], note: 'Workflow Kit не меняет config.toml: ключ hooks задан массивом' };
+  assert.deepEqual(previewView(preview({ hooks: [manual, { ...manual, command: '' }] }), 0).hooks, [
+    { title: 'Хук Kit для Kimi', files: [], text: '[[hooks]]\nevent = "Stop"', hash: '', meta: '', note: manual.note },
+    { title: 'Хук Kit для Kimi', files: [], text: '', hash: '', meta: '', note: manual.note },
+  ]);
 });
 
 test('provider actions: buttons for a provider that is not ready, the rest folded; only enabled provider-level ones', () => {

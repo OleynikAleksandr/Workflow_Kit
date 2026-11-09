@@ -9,13 +9,13 @@
 ([спецификация M8](../../../../../../docs/planning/M8-kimi-provider.md),
 [протокол](../../../../../../docs/planning/M8-kimi-protocol.md)): программа
 `kimi`, свой сервер `kimi web` на 127.0.0.1, рабочая область папки и
-доверие папке. Имя — «Kimi Code», `label` «Kimi», `mark` K, диалект хука
-`kimi`. В списке провайдеров идёт третьим (после ChatGPT и Claude).
+доверие папке и хук Kit в `config.toml`. Имя — «Kimi Code», `label` «Kimi»,
+`mark` K, диалект хука `kimi`. В списке провайдеров идёт третьим (после
+ChatGPT и Claude).
 
-Хук Kit в `config.toml` и сессии подключаются следующими задачами плана M8:
-до них `hooks()` отвечает `complete: null`, `listSessions()` — пустым
-списком, `createSession()` — отказом `not-implemented` (501), а возможности
-`hooks` и `createSession` недоступны с причиной.
+Сессии подключаются следующими задачами плана M8: до них `listSessions()`
+отвечает пустым списком, `createSession()` — отказом `not-implemented`
+(501), а возможность `createSession` недоступна с причиной.
 
 ## Публичный интерфейс (`src/index.ts`)
 
@@ -23,7 +23,8 @@
   регистрирует его в `PROVIDER_ENTRIES`.
 - `createKimiProvider(context, deps?)`, `createKimiRuntime(context, deps?)`
   → `{ runtime, provider }`. `KimiDeps`: `fetch`, `startWaitMs` (15 с),
-  `stopWaitMs` (5 с), `pollMs`, `freePort`, `tokenNow`. `KimiRuntime`
+  `stopWaitMs` (5 с), `pollMs`, `freePort`, `tokenNow`, а для хука —
+  `hookHost`, `liveness`, `beforeRename`. `KimiRuntime`
   (`context`, `paths`, `server`, `workspaces`, `program()`,
   `requireReady()`, `requireProgram()`) — общая часть для хука и сессий.
 - Константы: `PROVIDER_ID` = `kimi`, `PROVIDER_TITLE`, `RESTART_ACTION` =
@@ -44,6 +45,15 @@
 - Рабочие области и доверие: `createKimiWorkspaces(platform)` →
   `{ find, ensure }`, `pickWorkspace`, `workspaceKey`, `realFolder`,
   `folderTrusted(paths, folder, platform)`, `createKimiTrust(deps)`.
+- Хук: `createKimiHooks(options)` → `{ hooks, approveHooks, action, remove,
+  syncServer }`, `REMOVE_HOOK_ACTION` = `remove-kimi-hook`,
+  `HOOK_SCOPE_NOTE`; `planHookFile(current, blocks)` → `HookFilePlan
+  { status, reason, section, target, cleaned, found }`, `hookFingerprint`;
+  `changeConfig(deps, build)`, `readConfig`, `KEPT_BACKUPS` (3),
+  `UNREADABLE_LOCK_MS` (30 с); `scanToml`, `tomlValue`, `TomlScanError`;
+  `parseConfigHooks`.
+- Замки: `liveSessionLocks(dir, live)`, `holderAlive`, `lockTime`,
+  `defaultLiveness()` → `Liveness { alive(pid), bootedAt() }`.
 
 ## Файлы Kimi
 
@@ -55,9 +65,13 @@
 | `server.token` | токен сервера; читается перед каждым запросом |
 | `server/instances/<id>.json` | `{ server_id, pid, host, port, … }` работающих серверов |
 | `workspace-trust/*` | файлы доверия `{ root, trustedAt }` |
+| `config.toml` | блоки `[[hooks]]` хука Kit |
+| `locks/sessions/*` | замки идущих ходов (`pid`, `startedAt`) |
 
-Kit сам в каталог Kimi не пишет: рабочую область (`projects.json`) и файл
-доверия создаёт сервер Kimi по запросу Kit.
+Сам Kit пишет в каталоге Kimi только хук: `config.toml`, на время записи —
+`config.toml.wfk-lock` и `config.toml.wfk-tmp-<pid>`, копии прежнего файла
+`config.toml.wfk-backup-<время>` (хранятся три последние). Рабочую область
+(`projects.json`) и файл доверия создаёт сервер Kimi по запросу Kit.
 
 ## Поведение
 
@@ -140,10 +154,61 @@ Kit есть записи сессий Kimi; сам сервер ради ста
   чтение файла доверия; нет файла — `not-recorded`. Ошибка Kimi —
   `kimi-trust` с кодом и текстом без подробностей.
 
+### Хук Kit
+
+Хуки Kimi общие для всех проектов: пять блоков `[[hooks]]` в `config.toml`
+(`SessionStart`, `UserPromptSubmit`, `Stop`, `StopFailure`, `Interrupt`,
+`timeout` 30). Их текст строит `kit-structure` (`kimiHookBlocks`,
+`kimiHooksSection`); здесь — чтение и запись файла.
+
+- `planHookFile` разбирает файл построчно (`scanToml`: заголовки таблиц и
+  ключи, многострочные строки и массивы) и находит блоки Kit по команде
+  (`isKimiKitCommand`). Статус: `approved` — пять блоков с нужными событием,
+  командой и таймаутом; `pending` — блоков Kit нет; `modified` — есть, но не
+  те; `unknown` — файл нельзя менять безопасно: не UTF-8, не разбирается,
+  `hooks` задан массивом в строке или таблицей `[hooks]`, либо команду
+  нельзя записать для этой машины.
+- `hooks()` читает файл без сервера и без программы. `kitHook.command` —
+  добавляемый текст (комментарий `# Workflow Kit` и блоки, с переводами
+  строк файла), `kitHook.hash` = sha256(текущий текст, `\0`, итоговый
+  текст), `writes` — запись в `config.toml` (пусто при `approved` и
+  `unknown`), `note` — что хук общий для всех проектов, при `unknown` —
+  причина и просьба добавить текст вручную.
+- `approveHooks(project, { command, hash })` пишет только показанное: под
+  замком файл читается заново, другой текст или хеш — `hooks-changed`.
+  Прежние блоки Kit (с комментарием и пустой строкой над ним) убираются,
+  свежие дописываются в конец; остальной текст — байт в байт.
+- Запись (`changeConfig`): замок `config.toml.wfk-lock` с `pid` и
+  `startedAt` (создание `wx`; замок мёртвого процесса или процесса,
+  начатого до загрузки ОС, перехватывается; нечитаемый — через 30 с), копия
+  прежнего файла с его правами, временный файл рядом, сверка текста перед
+  `rename` (изменился — `hooks-changed`), затем `kimi doctor config`. Отказ,
+  сбой запуска или таймаут проверки — откат: прежний текст возвращается,
+  только если в файле всё ещё запись Kit (созданный файл удаляется);
+  ошибка `hooks-invalid` называет копию. Новый файл создаётся с правами
+  0600.
+- Коды ошибок (все 409): `hooks-busy`, `hooks-changed`, `hooks-unknown`,
+  `hooks-invalid`. Запись и удаление требуют программу (`not-installed`,
+  `unsupported-version`), сервер им не нужен.
+- Действие `remove-kimi-hook` «Убрать хук Kit из Kimi» (область `provider`,
+  второе после перезапуска сервера, с подтверждением) убирает только блоки
+  Kit. Выключено с причиной, когда блоков нет, файл в состоянии `unknown`
+  или нет программы.
+- Сервер Kit читает `config.toml` при запуске. После записи и в
+  `maintain()` (`syncServer`) блоки Kit из `GET /api/v1/config` сверяются с
+  файлом; при расхождении сервер перезапускается, когда нет живых замков
+  ходов, и не чаще одного раза на один текст файла. Строка об этом идёт в
+  журнал службы (`[kimi] …`).
+- Приложение Kimi Code и открытые в терминале `kimi` подхватывают хук после
+  своего перезапуска — Kit их не трогает.
+
 ## Поведение на ОС
 
 | | macOS | Linux | Windows |
 | --- | --- | --- | --- |
+| Команда хука | строка `/bin/sh` с `~/.local/bin/wfk` | то же | `"<node.exe>" "<wfk.mjs>" hook …` для `cmd.exe`; путь с `"`, `%` или переводом строки — `unknown` |
+| Права `config.toml` и копий | сохраняются (новый — 0600) | то же | не задаются |
+| Переводы строк блоков | как в файле | как в файле | как в файле (`\r\n` сохраняется) |
 | Каталог Kimi | `~/.kimi-code` | `~/.kimi-code` | `%USERPROFILE%\.kimi-code` |
 | Программа | `bin/kimi` | `bin/kimi` | `bin\kimi.exe` |
 | Имена переменных окружения | с учётом регистра | с учётом регистра | без учёта регистра |
@@ -166,6 +231,9 @@ Kit есть записи сессий Kimi; сам сервер ради ста
 - `POST …/trust {}` → `{ trusted: true }` и файл
   `workspace-trust/wd_<имя>_<hash12>`; неизвестный id → `40001`.
 - `POST /api/v1/shutdown {}` → `{ ok: true }`, запись `instances` исчезает.
+- `kimi doctor config`: код 0 для файла с пятью блоками Kit (строка POSIX и
+  строка Windows) и для пустого файла, код 1 для битого TOML;
+  `GET /api/v1/config` → `hooks: [{ event, command, timeout }]`.
 
 ## Инварианты
 
@@ -178,5 +246,5 @@ Kit есть записи сессий Kimi; сам сервер ради ста
 
 ## Дальше
 
-Хук Kit в `config.toml` (T008), сессии и сообщения (T009), ссылки и панель
-(T010), сценарии автопилота и ревью (T011).
+Сессии и сообщения (T009), ссылки и панель (T010), сценарии автопилота и
+ревью (T011).

@@ -1,10 +1,12 @@
 // The Kimi Code provider (spec M8): the program, the server of Kit, the status table, the
-// workspace and the trust of a folder. Hooks and sessions are added by hooks.ts and sessions.ts.
+// workspace and the trust of a folder. The Kit hook is in hooks.ts; sessions are added by sessions.ts.
 import { readJsonFile } from '#data-store';
 import { ProviderError, createTokenStore, providerSessionsFile } from '#provider-registry';
 import type { Capabilities, Provider, ProviderAction, ProviderContext, ProviderStatus } from '#provider-registry';
 import { KIMI_CODES, KimiError, describeKimiError } from './client.ts';
 import type { KimiClient } from './client.ts';
+import { REMOVE_HOOK_ACTION, createKimiHooks } from './hooks.ts';
+import type { KimiHookDeps } from './hooks.ts';
 import { kimiHome, kimiPaths } from './paths.ts';
 import type { KimiPaths } from './paths.ts';
 import { UNCHECKED_PROGRAM, readProgram, testedVersion } from './program.ts';
@@ -33,7 +35,7 @@ export interface KimiProbe {
 }
 
 /** Replacements for tests. */
-export interface KimiDeps extends Pick<KimiServerDeps, 'fetch' | 'startWaitMs' | 'stopWaitMs' | 'pollMs' | 'freePort'> {
+export interface KimiDeps extends Pick<KimiServerDeps, 'fetch' | 'startWaitMs' | 'stopWaitMs' | 'pollMs' | 'freePort'>, KimiHookDeps {
   /** Clock of the preview tokens. */
   tokenNow?: () => Date;
 }
@@ -123,10 +125,15 @@ export function createKimiRuntime(context: ProviderContext, deps: KimiDeps = {})
     }
   };
 
-  const requireReady = async (): Promise<KimiClient> => {
-    // A program installed or fixed since the last check is noticed without "Перепроверить".
+  // A program installed or fixed since the last check is noticed without "Перепроверить".
+  const programPath = async (): Promise<string> => {
     if (program.installed !== true || program.error || program.unsupported) program = await readProgram(context, paths);
     requireProgram();
+    return program.path ?? paths.program;
+  };
+
+  const requireReady = async (): Promise<KimiClient> => {
+    await programPath();
     const client = await ensureServer();
     if (probe?.state !== 'ready') probe = await probeServer(client, program.version);
     if (probe.state !== 'ready') throw new ProviderError('kimi-not-ready', `Kimi не готов: ${probe.note}`, { hint: RECHECK_HINT });
@@ -158,6 +165,7 @@ export function createKimiRuntime(context: ProviderContext, deps: KimiDeps = {})
   };
 
   const trust = createKimiTrust({ platform, paths, tokens, workspaces, current: () => server.current(), requireReady, requireProgram, notReady, version: () => program.version, log: context.log });
+  const hooks = createKimiHooks({ context, paths, server, ensureServer, programPath, ...(deps.hookHost ? { hookHost: deps.hookHost } : {}), ...(deps.liveness ? { liveness: deps.liveness } : {}), ...(deps.beforeRename ? { beforeRename: deps.beforeRename } : {}) });
   const pending = 'подключается следующей задачей плана';
 
   const provider: Provider = {
@@ -171,7 +179,7 @@ export function createKimiRuntime(context: ProviderContext, deps: KimiDeps = {})
       const cap = (reason: string | null) => (reason ? { available: false, reason } : { available: true });
       return {
         trust: cap(missing),
-        hooks: cap(missing ?? pending),
+        hooks: cap(missing),
         sessions: { available: true },
         createSession: cap(missing ?? pending),
         orchestration: cap('у Kimi нет оркестрации Workflow Kit'),
@@ -196,14 +204,16 @@ export function createKimiRuntime(context: ProviderContext, deps: KimiDeps = {})
     async maintain() {
       if (!usable()) return null;
       const result = await check(server.used || (await hasSessions()));
-      return result === 'failed' ? `server not started: ${serverError}` : result === 'started' ? 'server started again' : null;
+      if (result === 'failed') return `server not started: ${serverError}`;
+      // A server that still runs with the hooks of an older config.toml is restarted between turns.
+      const synced = await hooks.syncServer().catch((error: unknown) => `hooks not checked: ${error instanceof Error ? error.message : String(error)}`);
+      return result === 'started' ? 'server started again' : synced;
     },
     trust: (project) => trust.trust(project),
     previewTrust: (project) => trust.previewTrust(project),
     grantTrust: (project, token) => trust.grantTrust(project, token),
-    async hooks() {
-      return { kitHook: null, hooks: [], complete: null, note: `хук Kimi ${pending}` };
-    },
+    hooks: () => hooks.hooks(),
+    approveHooks: (_project, expected) => hooks.approveHooks(expected),
     async listSessions() {
       return [];
     },
@@ -223,10 +233,15 @@ export function createKimiRuntime(context: ProviderContext, deps: KimiDeps = {})
           ...(missing ? { reason: missing } : {}),
           ...(running ? { confirm: 'Сервер Kimi будет перезапущен: ходы сессий Kimi, идущие сейчас, прервутся.' } : {}),
         },
+        await hooks.action(missing),
       ];
     },
     async runAction(id, project) {
-      if (id !== RESTART_ACTION || project !== null) throw new ProviderError('unknown-action', `Неизвестное действие Kimi: ${id}`, { status: 404 });
+      if ((id !== RESTART_ACTION && id !== REMOVE_HOOK_ACTION) || project !== null) throw new ProviderError('unknown-action', `Неизвестное действие Kimi: ${id}`, { status: 404 });
+      if (id === REMOVE_HOOK_ACTION) {
+        await hooks.remove();
+        return buildStatus();
+      }
       if (program.installed === null) program = await readProgram(context, paths);
       requireProgram();
       await server.stop();

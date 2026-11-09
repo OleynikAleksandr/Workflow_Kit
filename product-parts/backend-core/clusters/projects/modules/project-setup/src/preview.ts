@@ -86,7 +86,7 @@ export interface SetupPreview {
   blocked: { code: string; message: string; commands: string[] } | null;
   /** Buttons in the registry order. */
   providers: ProviderButton[];
-  /** Kit hooks that are not approved yet and whose hash is already known. */
+  /** Kit hooks that are not approved yet: with the hash the approval is bound to, or with an empty hash and a note when Kit cannot write the hook. */
   hooks: HookPreview[];
   notes: string[];
 }
@@ -260,6 +260,10 @@ export async function buildPreview(input: PreviewInput, deps: PreviewDeps): Prom
           const writes = state.writes ?? [];
           hooks.push({ provider: id, label, status: kitHook.status, command: kitHook.command, hash: kitHook.hash, writes, note: state.note ?? null });
           if (writes.length > 0) detail = `запись в ${filesOf(writes, deps.homedir)} — текст показан ниже`;
+        } else if (kitHook?.status === 'unknown' && state.writes !== undefined) {
+          // A provider that writes the hook into a file cannot do it here: the reason is shown, with the text to add by hand.
+          hooks.push({ provider: id, label, status: 'unknown', command: kitHook.command, hash: '', writes: [], note: state.note ?? null });
+          detail = 'Workflow Kit не запишет их сам — причина показана ниже';
         }
       } catch (error) {
         if (exists) notes.push(`${provider.title}, хуки: ${errorText(error)}`);

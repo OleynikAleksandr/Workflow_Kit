@@ -84,3 +84,14 @@ export function parseInstance(data: unknown): KimiInstance | undefined {
   if (typeof item['host'] === 'string' && item['host'] !== '127.0.0.1' && item['host'] !== 'localhost') return undefined;
   return { serverId, pid: pid as number, port: port as number };
 }
+
+/** GET /api/v1/config: the hooks the server has loaded (none when the key is absent). */
+export function parseConfigHooks(data: unknown): Array<{ event: string; command: string }> {
+  const hooks = record(data, 'config')['hooks'];
+  if (hooks === undefined || hooks === null) return [];
+  if (!Array.isArray(hooks)) throw shapeError('config.hooks');
+  return hooks.flatMap((item) => {
+    const hook = typeof item === 'object' && item !== null ? (item as Record<string, unknown>) : {};
+    return typeof hook['event'] === 'string' && typeof hook['command'] === 'string' ? [{ event: hook['event'], command: hook['command'] }] : [];
+  });
+}

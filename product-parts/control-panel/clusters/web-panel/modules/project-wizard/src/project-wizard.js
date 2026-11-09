@@ -198,8 +198,9 @@ function createWizard(shell, ctx) {
       h('p', {}, [view.lead]),
       h('div', { class: 'path-box' }, [view.path]),
       h('ul', { class: 'checks' }, view.actions.map((a) => h('li', {}, [h('span', { class: 'ok' }, ['✓']), h('span', {}, [a.title, h('small', {}, [a.detail])])]))),
-      // A hook is approved exactly as shown here: its text and hash go into the consent.
-      ...view.hooks.map((hook) => h('div', { class: 'wizard-hook' }, [h('strong', {}, [hook.title]), h('small', {}, [hook.meta]), h('pre', {}, [hook.text]), hook.note ? h('small', {}, [hook.note]) : null])),
+      // A hook is approved exactly as shown here: its text and hash go into the consent. A hook Kit
+      // cannot write has no hash: its note says why, and the text (when there is one) is for a manual edit.
+      ...view.hooks.map((hook) => h('div', { class: 'wizard-hook' }, [h('strong', {}, [hook.title]), hook.meta ? h('small', {}, [hook.meta]) : null, hook.text ? h('pre', {}, [hook.text]) : null, hook.note ? h('small', {}, [hook.note]) : null])),
       h('details', {}, [h('summary', {}, [view.changesLabel]), h('ul', { class: 'wizard-files' }, view.files.map((f) => h('li', {}, [f])))]),
       ...choices,
       view.blocked ? h('div', { class: 'notice notice-error' }, [h('p', {}, [view.blocked.message]), ...view.blocked.commands.map((c) => h('p', {}, [code(c)]))]) : null,

@@ -13,11 +13,12 @@
 | --- | --- |
 | [provider-claude](modules/provider-claude/module.md) | доверие, сессии Remote Control, окружение папки (pty через `expect`) |
 | [provider-codex](modules/provider-codex/module.md) | демон app-server, доверие, одобрение хука Kit, сессии |
-| [provider-kimi](modules/provider-kimi/module.md) | сервер `kimi web` службы, статус, рабочая область и доверие папке |
+| [provider-kimi](modules/provider-kimi/module.md) | сервер `kimi web` службы, статус, рабочая область и доверие папке, хук Kit в `config.toml` |
 
 ## Границы
 
 - Каждый провайдер — свой каталог; провайдеры не импортируют друг друга.
 - Внешние программы вызываются через внедряемый исполнитель; тесты не
   трогают настоящие `~/.claude.json`, `~/.codex` и `~/.kimi-code`.
-- Записи в чужие конфиги — только после предпросмотра с токеном (D7).
+- Записи в чужие конфиги — только после предпросмотра: доверие — с токеном
+  (D7), хук Kit в `config.toml` Kimi — с показанными текстом и хешем.

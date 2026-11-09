@@ -147,7 +147,7 @@ export function providerActionViews(state, buttons) {
  * @property {string[]} files files the approval writes (empty: the provider stores it itself)
  * @property {string} text the text added to the file, or the hook command
  * @property {string} hash short hash the approval is bound to
- * @property {string} meta «запись в <файлы> · хеш <hash>»
+ * @property {string} meta «запись в <файлы> · хеш <hash>»; empty for a hook Kit cannot write
  * @property {string | null} note
  */
 

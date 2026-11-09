@@ -60,7 +60,7 @@ export function kitHookEntry(client: HookClient, event: KitHookEvent = 'SessionS
 }
 
 /** True for text that calls the Kit launcher: ~/.local/bin/wfk, or wfk.mjs on Windows. */
-function callsLauncher(text: string): boolean {
+export function callsLauncher(text: string): boolean {
   return text.includes('/.local/bin/wfk') || text.includes('wfk.mjs');
 }
 

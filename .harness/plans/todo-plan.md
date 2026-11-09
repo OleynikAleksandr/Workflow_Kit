@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 482,
+  "revision": 484,
   "rounds": [
     {
       "digest": null,
@@ -589,14 +589,42 @@
         "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry",
         "product-parts/backend-core/clusters/runtime/modules/cli",
         "tools/platform-guard/allowlist.json",
-        "docs/architecture/OVERVIEW.md"
+        "docs/architecture/OVERVIEW.md",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/module.md",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/src/hook-config.ts",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/src/index.ts",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/src/kimi-hook.ts",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/test/kimi-hook.test.ts",
+        "product-parts/backend-core/clusters/projects/modules/project-setup/module.md",
+        "product-parts/backend-core/clusters/projects/modules/project-setup/src/preview.ts",
+        "product-parts/backend-core/clusters/projects/modules/project-setup/src/setup.ts",
+        "product-parts/backend-core/clusters/projects/modules/project-setup/test/setup.test.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/project-wizard/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/project-wizard/src/project-wizard.js",
+        "product-parts/control-panel/clusters/web-panel/modules/project-wizard/src/wizard-model.js",
+        "product-parts/control-panel/clusters/web-panel/modules/project-wizard/test/wizard-model.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/cluster.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/hook-file.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/hook-writer.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/hooks.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/index.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/locks.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/provider.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/shapes.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/toml-scan.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/hook-file.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/hook-writer.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/hooks.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/provider.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/toml-scan.test.ts"
       ],
       "fixes": null,
       "id": "T008",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Kit hook for Kimi in config.toml",
       "why": "Kimi hooks are global entries of the user config and must be written safely"
     },
@@ -817,8 +845,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 7/13
-- Revision: 482
+- Progress: 8/13
+- Revision: 484
 
 ## Objective
 
@@ -863,9 +891,9 @@ Add Kimi Code as the third provider of Workflow Kit and release 0.6.0
   - Commit: feat: add the Kimi provider with its server, status and folder trust
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi, product-parts/provider-runtime/clusters/provider-adapters/cluster.md, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/backend-core/clusters/runtime/modules/cli, package.json, package-lock.json, tsconfig.json, tools/platform-guard/allowlist.json, docs/architecture/OVERVIEW.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/provider-list.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/providers.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/client.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/paths.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/program.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/server.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/shapes.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/trust.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/workspace.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/client.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fixtures/abort.json, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fixtures/auth.json, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fixtures/config.json, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fixtures/messages.json, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fixtures/meta.json, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fixtures/prompt-queued.json, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fixtures/prompt-running.json, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fixtures/reload.json, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fixtures/session-busy.json, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fixtures/session-idle.json, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fixtures/trust.json, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fixtures/v2-sessions.json, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fixtures/workspaces.json, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/helpers.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/paths-program.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/trust.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/src/supervisor.ts, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/test/supervisor.test.ts
   - Depends on: T006
-- [TODO] T008 — Kit hook for Kimi in config.toml (work)
+- [DONE] T008 — Kit hook for Kimi in config.toml (work)
   - Commit: feat: write the Kit hook into the Kimi config after a preview
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi, product-parts/backend-core/clusters/projects/modules/kit-structure, product-parts/backend-core/clusters/projects/modules/project-setup, product-parts/control-panel/clusters/web-panel/modules/project-wizard, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/backend-core/clusters/runtime/modules/cli, tools/platform-guard/allowlist.json, docs/architecture/OVERVIEW.md
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi, product-parts/backend-core/clusters/projects/modules/kit-structure, product-parts/backend-core/clusters/projects/modules/project-setup, product-parts/control-panel/clusters/web-panel/modules/project-wizard, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/backend-core/clusters/runtime/modules/cli, tools/platform-guard/allowlist.json, docs/architecture/OVERVIEW.md, product-parts/backend-core/clusters/projects/modules/kit-structure/module.md, product-parts/backend-core/clusters/projects/modules/kit-structure/src/hook-config.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/src/index.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/src/kimi-hook.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/test/kimi-hook.test.ts, product-parts/backend-core/clusters/projects/modules/project-setup/module.md, product-parts/backend-core/clusters/projects/modules/project-setup/src/preview.ts, product-parts/backend-core/clusters/projects/modules/project-setup/src/setup.ts, product-parts/backend-core/clusters/projects/modules/project-setup/test/setup.test.ts, product-parts/control-panel/clusters/web-panel/modules/project-wizard/module.md, product-parts/control-panel/clusters/web-panel/modules/project-wizard/src/project-wizard.js, product-parts/control-panel/clusters/web-panel/modules/project-wizard/src/wizard-model.js, product-parts/control-panel/clusters/web-panel/modules/project-wizard/test/wizard-model.test.ts, product-parts/provider-runtime/clusters/provider-adapters/cluster.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/hook-file.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/hook-writer.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/hooks.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/locks.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/shapes.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/toml-scan.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/hook-file.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/hook-writer.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/hooks.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/toml-scan.test.ts
   - Depends on: T007
 - [TODO] T009 — Kimi sessions and message delivery (work)
   - Commit: feat: create, list, rename, archive and delete Kimi sessions and deliver messages

@@ -20,6 +20,10 @@ let codexTrustFails = false;
 /** Hash of the third provider's hook as its preview shows it and as its file really is. */
 let thirdShown = 'sha256:t1';
 let thirdReal = 'sha256:t1';
+/** The third provider cannot write its hook (its file has a form Kit does not change). */
+let thirdUnknown = false;
+/** How many next reads of the third provider's hook fail (a file that cannot be read for a while). */
+let thirdHooksFail = 0;
 
 const TITLES: Record<string, { title: string; label?: string; mark?: string }> = {
   codex: { title: 'ChatGPT (Codex)', label: 'ChatGPT', mark: 'G' },
@@ -54,12 +58,19 @@ function fakeProvider(id: 'claude' | 'codex' | 'third'): ProviderFactory {
         return { trusted: true, backup: `/backups/${id}` };
       },
       trust: async (project) => ({ trusted: trusted.has(project.path) }),
-      hooks: async () => ({
-        kitHook: { ...hookState(), kit: true, status: isApproved() ? 'approved' : 'pending' },
-        hooks: [],
-        complete: isApproved(),
-        ...(id === 'third' ? { writes: [{ file: path.join(home, '.third', 'config.toml'), description: 'хук конца хода', value: '[[hooks]] third' }], note: 'хук общий для всех проектов' } : {}),
-      }),
+      hooks: async () => {
+        if (id === 'third' && thirdHooksFail > 0) {
+          thirdHooksFail -= 1;
+          throw new Error('config unreadable');
+        }
+        if (id === 'third' && thirdUnknown) return { kitHook: { command: '[[hooks]] third', hash: '', kit: true, status: 'unknown' }, hooks: [], complete: null, writes: [], note: 'файл не разобран' };
+        return {
+          kitHook: { ...hookState(), kit: true, status: isApproved() ? 'approved' : 'pending' },
+          hooks: [],
+          complete: isApproved(),
+          ...(id === 'third' ? { writes: [{ file: path.join(home, '.third', 'config.toml'), description: 'хук конца хода', value: '[[hooks]] third' }], note: 'хук общий для всех проектов' } : {}),
+        };
+      },
       // Claude has no hook approval, as the real provider.
       ...(id === 'claude'
         ? {}
@@ -300,6 +311,44 @@ test('a hook is approved with the shown hash; a hook changed after the preview i
     const unknown = await send('/api/setup/apply', { token: (await send('/api/setup/preview', { mode: 'create', name: 'Хук4' })).json['token'], provider: 'nobody' });
     assert.equal(unknown.status, 400);
     assert.equal(unknown.json['error'].code, 'bad-provider');
+  } finally {
+    thirdShown = thirdReal = 'sha256:t1';
+  }
+});
+
+test('a hook that Kit cannot write is shown with its reason and is left for a manual edit', async () => {
+  const approvals = (): number => calls.filter((c) => c.startsWith('third:approve:')).length;
+  const before = approvals();
+  const stepNote = async (name: string): Promise<string> => {
+    const shown = await send('/api/setup/preview', { mode: 'create', name });
+    const applied = await send('/api/setup/apply', { token: shown.json['token'], provider: 'claude' });
+    assert.equal((await app.operations.wait(applied.json['operationId'])).status, 'succeeded');
+    return app.setup.get(applied.json['operationId'])!.steps.find((s) => s.id === 'trust-third')!.note!;
+  };
+  thirdUnknown = true;
+  try {
+    const shown = await send('/api/setup/preview', { mode: 'create', name: 'Хук5' });
+    assert.deepEqual(shown.json['hooks'].find((h: { provider: string }) => h.provider === 'third'), {
+      provider: 'third',
+      label: 'Третий',
+      status: 'unknown',
+      command: '[[hooks]] third',
+      hash: '',
+      writes: [],
+      note: 'файл не разобран',
+    });
+    assert.equal(shown.json['actions'].find((a: { id: string }) => a.id === 'hooks-third').detail, 'Workflow Kit не запишет их сам — причина показана ниже');
+    assert.match(await stepNote('Хук6'), /хук Kit для Третий не записан: добавьте его вручную$/);
+  } finally {
+    thirdUnknown = false;
+  }
+  // The hook could not be read at the preview and at the consent: a hook written into a file is never approved unseen.
+  thirdShown = thirdReal = 'sha256:t9';
+  thirdHooksFail = 2;
+  try {
+    assert.match(await stepNote('Хук7'), /хук Kit для Третий не записан: его не было в предпросмотре — откройте проект мастером ещё раз$/);
+    assert.equal(thirdHooksFail, 0);
+    assert.equal(approvals(), before, 'nothing was approved');
   } finally {
     thirdShown = thirdReal = 'sha256:t1';
   }

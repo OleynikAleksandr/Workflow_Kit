@@ -18,6 +18,8 @@ export {
 } from './hook-config.ts';
 export type { HookHost } from './hook-host.ts';
 export { WINDOWS_HOOK_LAUNCHER, defaultHookHost, forwardSlashes, hookText, powershellHookCommand } from './hook-host.ts';
+export type { KimiHookBlock, KimiHookPlan } from './kimi-hook.ts';
+export { KIMI_HOOKS_MARKER, KIMI_HOOK_CLIENT, KIMI_HOOK_EVENTS, KIMI_HOOK_TIMEOUT_S, isKimiKitCommand, kimiHookBlocks, kimiHookCommand, kimiHooksSection, tomlString } from './kimi-hook.ts';
 export { findMarkedSection } from './markers.ts';
 export type { StructureEntry, StructureRoutesOptions, StructureSection } from './routes.ts';
 export { registerStructureRoutes } from './routes.ts';

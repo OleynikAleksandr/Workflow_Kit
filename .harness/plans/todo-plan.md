@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 425,
+  "revision": 426,
   "rounds": [
     {
       "digest": {
@@ -260,6 +260,7 @@
       "files": [
         "package.json",
         "package-lock.json",
+        "CHANGELOG.md",
         "docs/evidence/M6-acceptance.md"
       ],
       "fixes": null,
@@ -283,7 +284,7 @@
 - Execution: sequential
 - Current task: none
 - Progress: 4/5
-- Revision: 425
+- Revision: 426
 
 ## Objective
 
@@ -316,7 +317,7 @@ Every further change to Workflow Kit covers macOS, Linux and Windows 11: CI on a
   - Depends on: T001, T002, T003
 - [TODO] T004 — Release 0.5.1 and CI on branch ci/m6-cross-platform (delivery)
   - Commit: chore: release 0.5.1
-  - Files: package.json, package-lock.json, docs/evidence/M6-acceptance.md
+  - Files: package.json, package-lock.json, CHANGELOG.md, docs/evidence/M6-acceptance.md
   - Depends on: T001, T002, T003, DOCS-R1
 
 Digest: R1 of m6-cross-platform: the platform-guard commit check (rules A, B, C), CI on macOS, Linux, Windows x64 and ARM64, LF line endings and the three-OS rules for agents in AGENTS.md with a spec template.

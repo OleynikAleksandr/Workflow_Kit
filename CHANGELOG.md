@@ -8,6 +8,26 @@
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-11-09
+
+### Added
+
+- Windows 11 (x64 и ARM64): сессии Claude через встроенный ConPTY (node-pty 1.1.0)
+  вместо `expect`, с тем же поведением, что на macOS: имя, сообщения из панели,
+  пробуждение, остановка, возобновление и окружение папки.
+- Windows: сессии ChatGPT/Codex через демон Codex (`codex app-server proxy`),
+  доверие и одобрение хуков, поиск `codex.exe`; нужна версия Codex 0.160 или новее.
+- Windows: хуки Kit (форма «программа и аргументы» для Claude, `commandWindows`
+  для Codex), запускатели `wfk` для Git Bash и `wfk.mjs` для хуков, `wfk link`.
+- Windows: открытие чатов ChatGPT и сессий Claude службой, штатная остановка службы
+  (`POST /api/system/shutdown`), предупреждение об установке с правами администратора.
+
+### Changed
+
+- Процессы сессий на Windows отслеживаются и останавливаются (`taskkill`), как на macOS.
+- Доверие к папке в `~/.claude.json` и `~/.codex/config.toml` учитывает ключи Windows
+  без учёта регистра и вида косой черты.
+
 ## [0.4.8] - 2026-11-09
 
 ### Added

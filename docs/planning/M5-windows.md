@@ -142,12 +142,14 @@ code.claude.com и CHANGELOG Claude Code 2.1.319, tarball-ы node-pty). Увер
   Git Bash и PowerShell, stdin с данными хука доходит напрямую:
   `{ "type": "command", "command": "<node.exe>", "args": ["<…/bin/wfk.mjs>", "hook", "stop", "--client", "claude"], "timeout": 600 }`
   с абсолютными путями через `/` (обратные слэши в командах хуков теряются, #108050). Пути —
-  установленный Node и точка входа приложения; при их смене проверка структуры показывает
+  `node.exe` службы и стабильный запускатель `%LOCALAPPDATA%\Workflow Kit\wfk.mjs` (его пишут
+  `wfk install` и `wfk link`; он запускает текущую копию, а копии лежат в `app/<версия>`, и
+  прямой путь менялся бы при каждом обновлении). При смене `node` проверка структуры показывает
   «устарело», обновление переписывает хук.
 - **Codex на Windows:** `commandWindows` — PowerShell-строка в одинарных кавычках, вызывающая тот
-  же `node.exe … wfk.mjs hook … --client codex` и завершающаяся `exit 0`. Получает ли дочерний
-  `node` stdin PowerShell — **П**; запасной вариант — явная передача
-  `[Console]::In.ReadToEnd()` в UTF-8.
+  же `node.exe … wfk.mjs hook … --client codex` и завершающаяся `exit 0`. Вход хука передаётся
+  явно: `[Console]::In.ReadToEnd() | & node …` с кодировками UTF-8 (PowerShell сам не передаёт
+  свой stdin дочерней программе); работу на Windows подтверждает живая проверка (**П**).
 - **Узнавание своего хука:** по `hook <событие> ` и точке входа `wfk.mjs` или `/.local/bin/wfk`.
 - **Проект на двух ОС:** хук Claude в `.claude/settings.json` у Windows и macOS разный (у Claude
   нет поля для другой ОС, **В**): при открытии проекта на другой ОС проверка структуры показывает
@@ -169,8 +171,8 @@ code.claude.com и CHANGELOG Claude Code 2.1.319, tarball-ы node-pty). Увер
   останавливает службу через него и только потом завершает процесс.
 - **Права администратора:** `wfk install` на Windows предупреждает, если запущен с повышением
   (демон Codex откажется работать).
-- **`wfk link`** (запускатель для разработки) на Windows пишет `wfk.cmd` и sh-скрипт `wfk` в
-  `%USERPROFILE%\.local\bin`.
+- **`wfk link`** (запускатель для разработки) на Windows пишет те же три файла, что установщик
+  (`wfk.cmd`, sh-скрипт `wfk`, `wfk.mjs`), в `%LOCALAPPDATA%\Workflow Kit`, указывая на клон.
 
 ## 8. Границы
 

@@ -1,16 +1,10 @@
 # Workflow Kit — обзор архитектуры
 
-Состояние: веха 2 (`m2-interface-and-process`: процесс Kit 2.2.2 в
-проектах, мастер, автопилот, новый интерфейс) принята; веха 3
-(`m3-fixes`, `m3-autostart`) принята; веха 4 — перекрёстное ревью плана —
-принята и закрыта, текущая версия 0.4.6
-([M4-plan-review.md](../planning/M4-plan-review.md),
-[M4-acceptance.md](../evidence/M4-acceptance.md)). Веха 1 — с исправлениями D1–D3 первой приёмки
-([M1-acceptance.md](../evidence/M1-acceptance.md)). Документ
+Состояние: вехи 1–4 приняты (приёмки [M1](../evidence/M1-acceptance.md)–[M4](../evidence/M4-acceptance.md);
+веха 4 — перекрёстное ревью плана, [M4-plan-review.md](../planning/M4-plan-review.md));
+веха 5 — Windows ([M5-windows.md](../planning/M5-windows.md)), версия 0.5.0. Документ
 поддерживает задача DOCS каждого раунда; подробности — в контрактах модулей
-(`module.md`), на которые он ссылается. Спецификация вехи и проверенные
-факты о провайдерах пока лежат в `docs/planning/` (после приёмки вехи
-действующее содержание переносится сюда, а временные документы удаляются).
+(`module.md`). Спецификации вех и факты о провайдерах — в `docs/planning/`.
 
 ## Что это
 
@@ -49,6 +43,7 @@ runtime-зависимостей) и веб-панель для Mac и iPad. С�
 | | | [project-setup](../../product-parts/backend-core/clusters/projects/modules/project-setup/module.md) | мастер проекта: предпросмотр и одно согласие — git, структура, Kit 2.2.2, доверие, хуки, первая сессия |
 | [provider-runtime](../../product-parts/provider-runtime/product-part.md) | [provider-contract](../../product-parts/provider-runtime/clusters/provider-contract/cluster.md) | [provider-registry](../../product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md) | контракт провайдера, реестр, журнал хука, токены предпросмотра, маршруты провайдеров |
 | | | [process-supervisor](../../product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/module.md) | запуск, учёт и остановка процессов (D5, D9), исполнитель внешних программ |
+| | | [pty-host](../../product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/module.md) | ConPTY на Windows (node-pty 1.1.0) |
 | | [provider-adapters](../../product-parts/provider-runtime/clusters/provider-adapters/cluster.md) | [provider-claude](../../product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md) | доверие (прямая запись `~/.claude.json`, выбор о внешних импортах CLAUDE.md), сессии Remote Control, окружение папки (pty через `expect`) |
 | | | [provider-codex](../../product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md) | демон app-server, доверие, одобрение хука Kit, сессии (треды; после служебного хода — `thread/unsubscribe`) |
 | [workflow-engine](../../product-parts/workflow-engine/product-part.md) | [kit-host](../../product-parts/workflow-engine/clusters/kit-host/cluster.md) | [kit-bundle](../../product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md) | вендорный бандл Kit 2.2.2 с проверкой хеша |
@@ -237,19 +232,18 @@ Linux `$XDG_CONFIG_HOME`, `$XDG_STATE_HOME`, `$XDG_DATA_HOME` +
 | --- | --- | --- | --- |
 | Бэкенд, панель, проекты, структура | да | да | да |
 | Автозапуск | LaunchAgent `ai.workflowkit.backend` | systemd user, без systemd — XDG autostart | `HKCU\…\Run` → `WorkflowKit` |
-| Запускатель и значок | `~/.local/bin/wfk`, `~/Applications/Workflow Kit.app` | `~/.local/bin/wfk`, `.desktop` | `wfk.cmd` и PATH, ярлык в «Пуске» |
-| Claude: доверие (запись `~/.claude.json`) | да | да | нет (Q1) |
-| Claude: сессии, окружение (pty) | да | если есть `expect` | нет (Q1) |
-| Codex: демон, доверие, хуки, сессии | да | да | нет (Q2) |
-| Запуск и остановка процессов сессий | да | да | нет (`unsupported`) |
+| Запускатель и значок | `~/.local/bin/wfk`, `~/Applications/Workflow Kit.app` | `~/.local/bin/wfk`, `.desktop` | `wfk.cmd`, `wfk`, `wfk.mjs`, PATH, «Пуск» |
+| Claude: доверие (запись `~/.claude.json`) | да | да | да |
+| Claude: сессии, окружение (pty) | да | если есть `expect` | да, ConPTY (`pty-host`) |
+| Codex: демон, доверие, хуки, сессии | да | да | да, Codex 0.160+, через `proxy` |
+| Запуск и остановка процессов сессий | да | да | да (CIM, `taskkill`) |
 | Живые проверки | есть, см. документы приёмки M1–M4 | нет, только тесты | нет, только тесты |
 
 ## Известные ограничения
 
 - Основная проверенная ОС — macOS. Linux и Windows проверены тестами с
-  подставными системными программами; полного сценария на устройствах нет.
-  На Windows недоступны интеграции Claude и Codex и управление процессами
-  сессий. На Linux Claude требует `expect`. Установка панели не подтверждает
+  подставными системными программами; полного сценария на устройствах нет
+  (Windows — живая проверка M5 впереди). На Linux Claude требует `expect`. Установка панели не подтверждает
   готовность провайдеров. Актуальная инструкция — [установка](../installation.md).
 - macOS: установка проверена в M3/M4; окно значка собирается через `swiftc`,
   при недоступной сборке используется браузер. Windows/Linux открывают браузер.

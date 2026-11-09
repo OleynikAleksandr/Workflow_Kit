@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": "T007",
+  "currentTaskId": null,
   "lastClosed": {
     "closedAt": "2026-11-09T08:50:01.775Z",
     "scopeId": "publication-order"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 408,
+  "revision": 409,
   "rounds": [
     {
       "digest": null,
@@ -359,7 +359,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "title": "Documentation of Windows support",
       "why": "The OS table must tell the truth"
     },
@@ -444,9 +444,9 @@
 - Scope: m5-windows (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: T007
-- Progress: 6/9
-- Revision: 408
+- Current task: none
+- Progress: 7/9
+- Revision: 409
 
 ## Objective
 
@@ -485,7 +485,7 @@ Windows 11 (x64 и ARM64): сессии Claude и ChatGPT/Codex, ревью, в�
   - Commit: feat: open chats and stop the service cleanly on Windows
   - Files: product-parts/backend-core/clusters/runtime/modules/cli/src, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/system-service/clusters/deployment/modules/service-installer, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/commands.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/open-link.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/open-link.test.ts, product-parts/system-service/clusters/deployment/modules/service-installer/module.md, product-parts/system-service/clusters/deployment/modules/service-installer/src/context.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/control.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/install.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/run.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/types.ts, product-parts/system-service/clusters/deployment/modules/service-installer/test/fakes.ts, product-parts/system-service/clusters/deployment/modules/service-installer/test/install.test.ts
   - Depends on: T004
-- [IN_PROGRESS] T007 — Documentation of Windows support (work)
+- [DONE] T007 — Documentation of Windows support (work)
   - Commit: docs: describe Windows support
   - Files: README.md, docs/installation.md, docs/architecture/OVERVIEW.md, CHANGELOG.md, docs/planning/M5-windows.md
   - Depends on: T003, T005, T006

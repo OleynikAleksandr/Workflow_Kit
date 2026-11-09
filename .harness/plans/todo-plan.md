@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T010",
   "lastClosed": {
     "closedAt": "2026-11-09T10:12:56.251Z",
     "scopeId": "m5-windows"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 445,
+  "revision": 447,
   "rounds": [
     {
       "digest": {
@@ -527,7 +527,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: release 0.5.1 with green CI",
-      "confirmation": null,
+      "confirmation": "Не останавливайся, выполни весь план до самого конца и собери новый релиз.",
       "context": [
         {
           "path": "docs/planning/M6-cross-platform.md",
@@ -546,14 +546,17 @@
       "docsWaiver": null,
       "files": [
         "CHANGELOG.md",
-        "docs/evidence/M6-acceptance.md"
+        "docs/evidence/M6-acceptance.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/app.test.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/hook-link.test.ts",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/test/runner.test.ts"
       ],
       "fixes": "T004",
       "id": "T010",
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "Release 0.5.1 with green CI",
       "why": "The release must pass CI on all four platforms before acceptance"
     }
@@ -567,9 +570,9 @@
 - Scope: m6-cross-platform (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: none
+- Current task: T010
 - Progress: 11/12
-- Revision: 445
+- Revision: 447
 
 ## Objective
 
@@ -633,9 +636,9 @@ Digest: R1 of m6-cross-platform: the platform-guard commit check (rules A, B, C)
   - Commit: docs: reconcile documentation for R2
   - Files: README.md, docs/architecture/OVERVIEW.md
   - Depends on: T005, T006, T007, T008, T009
-- [TODO] T010 — Release 0.5.1 with green CI (delivery)
+- [IN_PROGRESS] T010 — Release 0.5.1 with green CI (delivery)
   - Commit: chore: release 0.5.1 with green CI
-  - Files: CHANGELOG.md, docs/evidence/M6-acceptance.md
+  - Files: CHANGELOG.md, docs/evidence/M6-acceptance.md, product-parts/backend-core/clusters/runtime/modules/cli/test/app.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/hook-link.test.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/test/runner.test.ts
   - Depends on: T005, T006, T007, T008, T009, DOCS-R2
   - Fixes: T004
 

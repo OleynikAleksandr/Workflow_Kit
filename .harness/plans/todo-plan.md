@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 414,
+  "revision": 415,
   "rounds": [
     {
       "digest": {
@@ -52,7 +52,10 @@
       "README и docs/installation.md честно описывают поддержку Windows",
       "Релиз 0.5.0 собран; push — только после приёмки и закрытия scope"
     ],
-    "acceptanceNote": null,
+    "acceptanceNote": {
+      "at": "2026-11-09T10:12:50.543Z",
+      "text": "Принять, закрыть, опубликовать"
+    },
     "approval": {
       "at": "2026-11-09T09:16:38.216Z",
       "text": "Пользователь: «очень-очень внимательно проверь теоретические решения. Чтобы они были оправданы и, повторяли возможности, которые уже реализованы для Mac OS. Ну, собственно, приступай к реализации, спецификации и плана» | Execution mode chosen by the user: sequential: Последовательно"
@@ -95,7 +98,7 @@
         "text": "Первая живая проверка — ВМ Windows 11 ARM в UTM, затем пользователь x64"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "ACCEPTED",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
@@ -465,11 +468,11 @@
 ## State
 
 - Scope: m5-windows (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: ACCEPTED
 - Execution: sequential
 - Current task: none
 - Progress: 9/9
-- Revision: 414
+- Revision: 415
 
 ## Objective
 

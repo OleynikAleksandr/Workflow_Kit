@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 355,
+  "revision": 357,
   "rounds": [
     {
       "digest": null,
@@ -83,14 +83,19 @@
       "dependencies": [],
       "docsWaiver": null,
       "files": [
-        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review"
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review",
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/contract.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/find-reviewer.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/review.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test/review.test.ts"
       ],
       "fixes": null,
       "id": "T001",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Cross review finds the Claude reviewer and delivers its brief by the queue",
       "why": "The typed brief of a Claude reviewer was never sent and its key was known only after a Stop"
     },
@@ -219,8 +224,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 0/5
-- Revision: 355
+- Progress: 1/5
+- Revision: 357
 
 ## Objective
 
@@ -238,9 +243,9 @@
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T001 — Cross review finds the Claude reviewer and delivers its brief by the queue (work)
+- [DONE] T001 — Cross review finds the Claude reviewer and delivers its brief by the queue (work)
   - Commit: fix: deliver the brief of a Claude reviewer through the message queue
-  - Files: product-parts/workflow-engine/clusters/session-loop/modules/cross-review
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/cross-review, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/contract.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/find-reviewer.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/review.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test/review.test.ts
 - [TODO] T002 — The service wires deliver: queue plus a direct wake of the Claude session (work)
   - Commit: fix: wake a fresh Claude reviewer to hand over its brief
   - Files: product-parts/backend-core/clusters/runtime/modules/cli/src/review-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/review.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md

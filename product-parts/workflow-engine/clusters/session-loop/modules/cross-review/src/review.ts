@@ -21,6 +21,10 @@ import {
   toReviewer,
 } from './texts.ts';
 import type { ReviewProvider } from './texts.ts';
+import type { CrossReview, CrossReviewDeps, ReviewSummary } from './contract.ts';
+import { FIND_REVIEWER, findReviewer } from './find-reviewer.ts';
+
+export type { CrossReview, CrossReviewDeps, ReviewSummary } from './contract.ts';
 
 export const CHOICE_WAITS_REVIEW = 'Идёт ревью плана: путь выбирается после согласия ревьюера и агента';
 export const CHOICE_WAITS_TURN = 'Сначала ревью плана: оно (или вопрос о нём) появится, когда агент закончит ход';
@@ -28,68 +32,6 @@ export const CHOICE_WAITS_QUESTION = 'Сначала ответьте на во�
 
 /** A review without progress this long is given up (the reviewer does not answer). */
 export const REVIEW_STALL_MS = 60 * 60_000;
-
-export interface CrossReviewDeps {
-  listProjects(): Promise<Array<{ id: string; name: string; path: string }>>;
-  /** Starts the reviewer session like «Новая сессия» with a first message. */
-  createSession(projectId: string, provider: ReviewProvider, opts: { title: string; firstMessage: string; detached: true }): Promise<{ localId: string | null; remoteId: string | null }>;
-  /** Channel key of a created session once its hooks are known, else null. */
-  resolveReviewer(projectId: string, provider: ReviewProvider, ref: { localId: string | null; remoteId: string | null }): Promise<string | null>;
-  /** Queues a message for a session (and wakes it when the provider can). */
-  enqueue(key: string, text: string, projectId: string): void;
-  /** Asks the decider again for a held Stop. */
-  wake(key: string): void;
-  toggle(projectId: string, key: string): boolean;
-  /** The open plan proposal of a project, or null. */
-  proposal(projectId: string): Promise<{ generation: number; scopeId: string | null } | null>;
-  sessionTitle(projectId: string, key: string): string | null;
-  /** The session has an open plan question (spec M4 12): its Stop waits for the answer. */
-  question?(projectId: string, key: string): boolean;
-  /** Any open plan question in the project. */
-  asking?(projectId: string): boolean;
-  /** The session has a review decision (an answer to the question). */
-  decided?(projectId: string, key: string): boolean;
-  /** Asks the proposal question of a session without a decision (spec M4 12.2). */
-  askProposal?(projectId: string, key: string): Promise<void>;
-  now?: () => Date;
-  log?: (line: string) => void;
-}
-
-export interface ReviewSummary extends Omit<Review, 'entries'> {
-  statusLabel: string;
-  active: boolean;
-  entries: Review['entries'];
-}
-
-export interface CrossReview {
-  load(): Promise<void>;
-  /** Channel listener: remembers the finished turn and forwards it when it belongs to a review. */
-  onStop(event: StopEvent): void;
-  /**
-   * Stop decision for a session in a review, or null. canStart: the session would now wait for
-   * the mode choice of an open proposal — with the toggle on, its review starts here.
-   */
-  decide(context: StopContext, canStart?: boolean): Promise<StopDecision | null>;
-  /**
-   * Why the mode choice must wait (spec M4 section 11.3), or null: a review runs, or one of the
-   * working sessions has the toggle on and has not reviewed the open proposal yet.
-   */
-  choiceBlocked(projectId: string, working: readonly string[]): Promise<string | null>;
-  /** The toggle changed: on asks the held Stop again (starts the review), off cancels it. */
-  toggled(projectId: string, key: string, on: boolean): Promise<void>;
-  cancel(projectId: string, key: string, reason: string): Promise<Review | null>;
-  /**
-   * «Повторить ревью» (spec M4 13.2): the session's review of the open proposal failed — its held
-   * Stop is asked again and the review starts anew. False when there is nothing to retry.
-   */
-  retry(projectId: string, key: string): Promise<boolean>;
-  isReviewer(key: string): boolean;
-  /** The review of a session as main or reviewer. */
-  get(projectId: string, key: string): Review | null;
-  section(): { projects: Record<string, ReviewSummary[]> };
-  /** Resolves when no review work is running (tests, shutdown). */
-  idle(): Promise<void>;
-}
 
 const other = (provider: ReviewProvider): ReviewProvider => (provider === 'claude' ? 'codex' : 'claude');
 const providerOf = (key: string): ReviewProvider => (key.startsWith('codex:') ? 'codex' : 'claude');
@@ -226,9 +168,12 @@ export function createCrossReview(deps: CrossReviewDeps): CrossReview {
     void queue(mainKey, async () => {
       try {
         const project = (await deps.listProjects()).find((p) => p.id === projectId);
+        const brief = reviewerBrief({ projectName: project?.name ?? projectId, projectPath: project?.path ?? '', mainProvider, mainTitle, plan });
+        // A brief typed into a Claude terminal was not sent (M4 13.9): Claude gets it by the queue.
+        const typed = review.reviewerProvider === 'codex';
         const ref = await deps.createSession(projectId, review.reviewerProvider, {
           title: review.reviewerTitle,
-          firstMessage: reviewerBrief({ projectName: project?.name ?? projectId, projectPath: project?.path ?? '', mainProvider, mainTitle, plan }),
+          ...(typed ? { firstMessage: brief } : {}),
           // The review itself holds the reviewer's first turn: never wait for it (M4 11.1).
           detached: true,
         });
@@ -236,6 +181,7 @@ export function createCrossReview(deps: CrossReviewDeps): CrossReview {
         review.reviewerRef = ref;
         if (review.reviewerProvider === 'codex' && ref.localId) setReviewer(review, `codex:${ref.localId}`);
         await save(review);
+        if (!typed) void bindClaude(review, brief);
         const early = review.reviewerKey ? events.get(review.reviewerKey) : undefined;
         if (early) await fromReviewer(review, early);
         // A held early Stop asks again: the reviewer stays held, any other session is let go.
@@ -246,6 +192,20 @@ export function createCrossReview(deps: CrossReviewDeps): CrossReview {
       } catch (error) {
         if (review.status === 'starting') await finish(review, 'failed', error instanceof Error ? error.message : String(error));
       }
+    });
+  }
+
+  /** Finds the key of a new Claude reviewer from its hooks and hands it the brief (M4 13.9). */
+  async function bindClaude(review: Review, brief: string): Promise<void> {
+    const ref = review.reviewerRef!;
+    const settled = (): boolean => review.status !== 'starting' || review.reviewerKey !== null;
+    const key = await findReviewer(() => deps.resolveReviewer(review.projectId, 'claude', ref), { ...(deps.findReviewer ?? FIND_REVIEWER), stop: settled });
+    await queue(review.mainKey, async () => {
+      if (review.status !== 'starting') return;
+      if (!key && !review.reviewerKey) return finish(review, 'failed', 'сессия ревьюера Claude не отозвалась за 3 минуты');
+      if (!review.reviewerKey) setReviewer(review, key!);
+      await save(review);
+      (deps.deliver ?? deps.enqueue)(review.reviewerKey!, brief, review.projectId);
     });
   }
 

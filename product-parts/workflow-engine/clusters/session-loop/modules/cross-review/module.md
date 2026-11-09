@@ -12,19 +12,25 @@ ChatGPT — Claude) и пересылает законченные ходы ст
 ## Публичный интерфейс (`src/index.ts`)
 
 - `createCrossReview(deps) → CrossReview`. Зависимости `CrossReviewDeps`: `listProjects`,
-  `createSession(projectId, provider, { title, firstMessage, detached: true })` (как «Новая сессия»,
-  но без ожидания первого хода: его держит само ревью),
+  `createSession(projectId, provider, { title, firstMessage?, detached: true })` (как «Новая сессия»,
+  но без ожидания первого хода: его держит само ревью; `firstMessage` — только у ревьюера ChatGPT),
   `resolveReviewer(projectId, provider, ref)` (ключ канала созданной сессии: у Claude id хука
   известен не сразу), `enqueue(key, text, projectId)` (очередь и пробуждение), `wake(key)`
   (переспросить удержанный `Stop`), `toggle(projectId, key)`, `proposal(projectId)` (открытое
   предложение `{ generation, scopeId }` или `null`), `sessionTitle`, вопрос о плане (M4,
   раздел 12, необязательные) — `question(projectId, key)`, `asking(projectId)`,
-  `decided(projectId, key)`, `askProposal(projectId, key)`, `now`, `log`.
+  `decided(projectId, key)`, `askProposal(projectId, key)`, `deliver(key, text, projectId)`
+  (необязательная: очередь и немедленное пробуждение сессии без первого `Stop`; по умолчанию
+  `enqueue`), `findReviewer` (`{ pollMs, timeoutMs }`, по умолчанию `FIND_REVIEWER` — 2 с и 3 мин),
+  `now`, `log`. Типы — в `src/contract.ts`.
 - `CrossReview`:
   - `load()` — ревью проектов из `.workflow-kit/local/reviews/<client>.<id>.json`.
   - `onStop(event)` — слушатель канала: в `preparing` любой законченный ход основной —
     описание плана (запись `main` круга 0), затем `starting` и создание ревьюера с этим
-    описанием в первом сообщении; ход ревьюера пересылается основной, если ревью
+    описанием в задании ревьюеру: у ChatGPT — первым сообщением хода, у Claude (M4 13.9) —
+    без набора в терминал: `findReviewer` (`src/find-reviewer.ts`) спрашивает `resolveReviewer`
+    раз в `pollMs`, найденный ключ сразу связывается с ревью и получает задание через
+    `deliver`; без ключа за `timeoutMs` ревью `failed` («сессия ревьюера Claude не отозвалась»); ход ревьюера пересылается основной, если ревью
     `starting` (первый ход) или `reviewing` и ход начат доставкой ревью (`origin: delivery`,
     источник `review`); ход основной — ревьюеру, если ревью `answering` и ход начат доставкой
     ревью. Напоминания и ходы пользователя не пересылаются.

@@ -13,7 +13,7 @@ async function setup(over: Partial<CrossReviewDeps> = {}) {
   const folder = await mkdtemp(path.join(tmpdir(), 'wfk-review-'));
   const sent: Array<{ key: string; text: string }> = [];
   const woken: string[] = [];
-  const created: Array<{ provider: ReviewProvider; title: string; firstMessage: string; detached: true }> = [];
+  const created: Array<{ provider: ReviewProvider; title: string; firstMessage?: string; detached: true }> = [];
   let toggle = true;
   let proposal: { generation: number; scopeId: string | null } | null = { generation: 1, scopeId: 's1' };
   const deps: CrossReviewDeps = {
@@ -65,7 +65,7 @@ test('a proposal with the toggle on starts a ChatGPT reviewer and the ping-pong 
   assert.equal((await t.review.decide(t.ctx(MAIN)))?.kind, 'hold', 'then the main agent waits for the review');
   assert.equal(t.created[0]!.provider, 'codex');
   assert.equal(t.created[0]!.title, 'План склада — ревью');
-  assert.match(t.created[0]!.firstMessage, /ревьюер плана[\s\S]*T001 «Склад», файлы src\/store.ts/);
+  assert.match(t.created[0]!.firstMessage ?? "", /ревьюер плана[\s\S]*T001 «Склад», файлы src\/store.ts/);
   assert.equal(t.created[0]!.detached, true, 'the reviewer is never waited for (M4 11.1)');
   assert.ok(t.review.isReviewer('codex:t1'));
   t.stop('codex:t1', '1. Нет критериев.\nREVIEW: CHANGES', 'user', []);
@@ -125,17 +125,54 @@ test('a failed start is visible and frees the main session', async () => {
   await t.cleanup();
 });
 
-test('a Claude reviewer is recognised by its Remote Control id when its first Stop arrives', async () => {
-  const t = await setup({ resolveReviewer: async (_p, _provider, ref) => (ref.remoteId === 'session_R' ? 'claude:hook-9' : null) });
+/** Waits until check() holds (the Claude reviewer is looked for outside the review queue). */
+async function until(check: () => boolean, ms = 2000): Promise<void> {
+  const end = Date.now() + ms;
+  while (!check()) {
+    if (Date.now() > end) throw new Error('timed out');
+    await new Promise((resolve) => setTimeout(resolve, 5));
+  }
+}
+
+test('a Claude reviewer is found from its hooks and gets the brief by the queue, not typed (M4 13.9)', async () => {
+  let hooked = false;
+  const delivered: Array<{ key: string; text: string }> = [];
+  const t = await setup({
+    resolveReviewer: async (_p, _provider, ref) => (hooked && ref.remoteId === 'session_R' ? 'claude:hook-9' : null),
+    deliver: (key, text) => void delivered.push({ key, text }),
+    findReviewer: { pollMs: 5, timeoutMs: 2000 },
+  });
   const codexMain = 'codex:main-2';
-  await t.begin(codexMain);
+  await t.begin(codexMain, 'T001 «Склад»: файлы src/store.ts');
   assert.equal(t.created[0]!.provider, 'claude');
-  t.stop('claude:hook-9', 'REVIEW: APPROVED', 'user', []);
-  const decision = await t.review.decide(t.ctx('claude:hook-9'));
-  assert.equal(decision?.kind, 'hold');
+  assert.equal(t.created[0]!.firstMessage, undefined, 'nothing is typed into the Claude terminal');
+  hooked = true;
+  await until(() => delivered.length === 1);
+  assert.equal(delivered[0]!.key, 'claude:hook-9');
+  assert.match(delivered[0]!.text, /T001 «Склад»/);
+  assert.equal(t.review.get('p1', codexMain)!.reviewerKey, 'claude:hook-9');
+  assert.equal(t.review.isReviewer('claude:hook-9'), true);
+  t.stop('claude:hook-9', 'Замечаний нет.\nREVIEW: APPROVED');
   await t.settle();
   assert.equal(t.sent.at(-1)!.key, codexMain);
   assert.equal(t.review.get('p1', 'claude:hook-9')!.round, 1);
+  await t.cleanup();
+});
+
+test('a Claude reviewer without hooks in time fails the review with a reason (M4 13.9)', async () => {
+  const t = await setup({ findReviewer: { pollMs: 5, timeoutMs: 30 } });
+  const codexMain = 'codex:main-2';
+  await t.begin(codexMain);
+  await until(() => t.review.get('p1', codexMain)!.status === 'failed');
+  assert.match(t.review.get('p1', codexMain)!.reason ?? '', /не отозвалась/);
+  await t.cleanup();
+});
+
+test('a ChatGPT reviewer still gets the brief as its first message', async () => {
+  const t = await setup();
+  await t.begin();
+  assert.equal(t.created[0]!.provider, 'codex');
+  assert.match(t.created[0]!.firstMessage ?? '', /ревьюер плана/);
   await t.cleanup();
 });
 
@@ -205,7 +242,7 @@ test('a reviewer that ends its first turn before its creation returns is held, t
 test('an empty plan description still starts the reviewer, asked to request the plan', async () => {
   const t = await setup();
   await t.begin(MAIN, '');
-  assert.match(t.created[0]!.firstMessage, /не описал состав плана/);
+  assert.match(t.created[0]!.firstMessage ?? "", /не описал состав плана/);
   assert.equal(t.review.get('p1', MAIN)!.entries[0]!.text, '(агент не описал план)');
   await t.cleanup();
 });

@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T003",
   "lastClosed": {
     "closedAt": "2026-11-09T08:50:01.775Z",
     "scopeId": "publication-order"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 395,
+  "revision": 397,
   "rounds": [
     {
       "digest": null,
@@ -169,7 +169,7 @@
     },
     {
       "acceptance": [
-        "session-host.mjs and environment-host.mjs print the same markers and honour the same control files as the expect scripts",
+        "pty/win-host.ts in session and environment mode prints the same markers and honours the same control files as session.exp and environment.exp",
         "claude.exe is found in %USERPROFILE%\\.local\\bin; trust in .claude.json uses forward slashes and case-insensitive matching with retries",
         "capabilities on Windows are available; tests cover the host with a fake pty"
       ],
@@ -190,7 +190,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "Claude on Windows: session and environment hosts, program search, trust",
       "why": "Claude sessions must work on Windows like on macOS"
     },
@@ -384,9 +384,9 @@
 - Scope: m5-windows (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: none
+- Current task: T003
 - Progress: 2/9
-- Revision: 395
+- Revision: 397
 
 ## Objective
 
@@ -410,7 +410,7 @@ Windows 11 (x64 и ARM64): сессии Claude и ChatGPT/Codex, ревью, в�
 - [DONE] T002 — Process supervisor on Windows (work)
   - Commit: feat: supervise session processes on Windows
   - Files: product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/src/index.ts, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/src/supervisor.ts, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/src/windows.ts, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/test/supervisor.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/test/utils.test.ts
-- [TODO] T003 — Claude on Windows: session and environment hosts, program search, trust (work)
+- [IN_PROGRESS] T003 — Claude on Windows: session and environment hosts, program search, trust (work)
   - Commit: feat: run Claude sessions on Windows
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude
   - Depends on: T001, T002

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 460,
+  "revision": 462,
   "rounds": [
     {
       "digest": {
@@ -35,7 +35,7 @@
       },
       "id": "R1",
       "kind": "implementation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Implementation"
     }
   ],
@@ -74,7 +74,7 @@
         "text": "Release 0.5.2; CI on branch ci/m7-test-fixes before acceptance; main is pushed after acceptance and close"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
@@ -243,7 +243,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: release 0.5.2",
-      "confirmation": null,
+      "confirmation": "Исправь то, что мы уже нашли, и собери новый релиз с проверками.",
       "context": [
         {
           "path": "docs/planning/M6-cross-platform.md",
@@ -272,7 +272,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Release 0.5.2",
       "why": "Release 0.5.2"
     }
@@ -284,11 +284,11 @@
 ## State
 
 - Scope: m7-test-fixes (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 4/5
-- Revision: 460
+- Progress: 5/5
+- Revision: 462
 
 ## Objective
 
@@ -303,7 +303,7 @@ Fix the defects found in live testing of 0.5.1 and release 0.5.2
 
 ## Rounds
 
-### R1 — Implementation (implementation, OPEN)
+### R1 — Implementation (implementation, CLOSED)
 
 - [DONE] T001 — Wizard opens the new Claude session (work)
   - Commit: fix: open the new Claude session after the wizard
@@ -318,7 +318,7 @@ Fix the defects found in live testing of 0.5.1 and release 0.5.2
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M7-test-fixes.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md
   - Depends on: T001, T002, T003
-- [TODO] T004 — Release 0.5.2 (delivery)
+- [DONE] T004 — Release 0.5.2 (delivery)
   - Commit: chore: release 0.5.2
   - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/installation.md, docs/architecture/OVERVIEW.md, docs/evidence/M7-acceptance.md
   - Depends on: T001, T002, T003, DOCS-R1

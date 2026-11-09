@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T004",
   "lastClosed": {
     "closedAt": "2026-11-09T10:12:56.251Z",
     "scopeId": "m5-windows"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 426,
+  "revision": 428,
   "rounds": [
     {
       "digest": {
@@ -242,7 +242,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: release 0.5.1",
-      "confirmation": null,
+      "confirmation": "Не останавливайся, выполни весь план до самого конца и собери новый релиз.",
       "context": [
         {
           "path": "docs/planning/M6-cross-platform.md",
@@ -261,6 +261,9 @@
         "package.json",
         "package-lock.json",
         "CHANGELOG.md",
+        "README.md",
+        "docs/installation.md",
+        "docs/architecture/OVERVIEW.md",
         "docs/evidence/M6-acceptance.md"
       ],
       "fixes": null,
@@ -268,7 +271,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "Release 0.5.1 and CI on branch ci/m6-cross-platform",
       "why": "The user asked for a new release number; CI results on real OSes are needed before acceptance without publishing main"
     }
@@ -282,9 +285,9 @@
 - Scope: m6-cross-platform (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: none
+- Current task: T004
 - Progress: 4/5
-- Revision: 426
+- Revision: 428
 
 ## Objective
 
@@ -315,9 +318,9 @@ Every further change to Workflow Kit covers macOS, Linux and Windows 11: CI on a
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M6-cross-platform.md, tools/platform-guard/README.md, AGENTS.md, docs/planning/TEMPLATE.md
   - Depends on: T001, T002, T003
-- [TODO] T004 — Release 0.5.1 and CI on branch ci/m6-cross-platform (delivery)
+- [IN_PROGRESS] T004 — Release 0.5.1 and CI on branch ci/m6-cross-platform (delivery)
   - Commit: chore: release 0.5.1
-  - Files: package.json, package-lock.json, CHANGELOG.md, docs/evidence/M6-acceptance.md
+  - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/installation.md, docs/architecture/OVERVIEW.md, docs/evidence/M6-acceptance.md
   - Depends on: T001, T002, T003, DOCS-R1
 
 Digest: R1 of m6-cross-platform: the platform-guard commit check (rules A, B, C), CI on macOS, Linux, Windows x64 and ARM64, LF line endings and the three-OS rules for agents in AGENTS.md with a spec template.

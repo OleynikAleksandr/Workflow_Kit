@@ -70,3 +70,21 @@ test('runCommand passes stdin, keeps the exit code and reports start errors and 
   const env = await runCommand(process.execPath, ['-e', 'process.stdout.write(process.env.X || "")'], { env: { X: 'y', PATH: process.env['PATH'] } });
   assert.equal(env.stdout, 'y');
 });
+
+test('Windows identity comes from CIM and the boot id from the last boot time (M5 3)', async () => {
+  const { cimInspector, parseCimLine, windowsBootId } = await import('../src/windows.ts');
+  assert.deepEqual(parseCimLine(5, '\uFEFF2026-11-09T10:00:00.1234567Z\t"C:\\x\\node.exe" host.mjs «Склад»\r\n'), {
+    pid: 5, pgid: null, startToken: '2026-11-09T10:00:00.1234567Z', startedAt: '2026-11-09T10:00:00.123Z', commandLine: '"C:\\x\\node.exe" host.mjs «Склад»',
+  });
+  assert.equal(parseCimLine(5, ''), undefined);
+  const scripts: string[] = [];
+  const run = async (command: string, args: readonly string[]) => {
+    scripts.push(`${command} ${args.at(-1)}`);
+    const out = String(args.at(-1)).includes('Win32_OperatingSystem') ? '2026-11-09T09:00:00Z' : '2026-11-09T10:00:00.0000000Z\tnode.exe';
+    return { code: 0, signal: null, stdout: out, stderr: '', timedOut: false, startError: null };
+  };
+  assert.equal((await cimInspector({ run })(42))?.commandLine, 'node.exe');
+  assert.match(scripts[0]!, /^powershell\.exe .*UTF8.*ProcessId=42/);
+  assert.equal(await windowsBootId({ run })(), 'win32:2026-11-09T09:00:00Z');
+  assert.equal(await cimInspector({ run })(-1), undefined);
+});

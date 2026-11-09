@@ -4,6 +4,7 @@ export { COMMAND_TIMEOUT_MS, runCommand } from './command.ts';
 export { STRIPPED_ENV_PREFIXES, cleanEnv } from './env.ts';
 export type { BootIdReader, ProcessInfo, ProcessInspector } from './proc-info.ts';
 export { parsePsLine, psInspector, systemBootId } from './proc-info.ts';
+export { cimInspector, parseCimLine, powershell, taskkill, windowsBootId } from './windows.ts';
 export type {
   ProcessCheck,
   ProcessOwner,

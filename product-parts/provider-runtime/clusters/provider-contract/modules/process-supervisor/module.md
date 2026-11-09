@@ -25,13 +25,14 @@
     `project`, `kind`, `ref`), `pid`, `pgid`, `command`, `args`, `cwd`,
     `logFile`, `startToken`, `startedAt`, `commandLine`, `bootId`,
     `children`. Процесс, завершившийся до проверки, — `ProcessError`
-    `exited`; на Windows — `unsupported`.
+    `exited`. Windows (M5, раздел 3): `detached` + `windowsHide` (процесс
+    переживает службу, его консоль скрыта), группы нет (`pgid: null`).
   - `track(id, pid)` — добавить проверенный pid к записи (например, pid
     дочернего `claude`, который сообщает `expect`); `stop` завершает и его.
   - `get(id)`, `list(filter?)` (по полям `owner`), `forget(id)`.
   - `check(id)` — полная проверка: другой boot id или нет процесса —
     `gone`; время старта или командная строка не совпали (pid занят другим
-    процессом) — `mismatch`; совпали — `alive`; Windows — `unverifiable`.
+    процессом) — `mismatch`; совпали — `alive`. На Windows сверка — через CIM.
   - `quickCheck(id)` — для опроса без внешних программ: boot id и
     `kill(pid, 0)`.
   - `stop(id, { graceMs? })` — сверка; TERM группе (лидер совпал) и
@@ -84,8 +85,18 @@
   `runCommand` — исполнитель внешних программ по умолчанию в `cli` и
   `service-installer`.
 
-## Дальше
+## Windows (`src/windows.ts`, спецификация M5, раздел 3)
 
-В вехе 1 изменений не запланировано. Вне вехи: запуск и сверка процессов на
-Windows (сейчас `unsupported` и `unverifiable`, Q1) и автовосстановление
-сессий Claude после перезагрузки (Q3).
+- `cimInspector({ run? })` — личность процесса через Windows PowerShell
+  (`Get-CimInstance Win32_Process`): `startToken` — `CreationDate` в UTC (ISO,
+  7 знаков дробной части), `commandLine` — `CommandLine`; вывод в UTF-8
+  (`parseCimLine`). `wmic` не используется (удалён в Windows 11 24H2).
+- `windowsBootId({ run? })` — `win32:<LastBootUpTime UTC>`.
+- `taskkill(run, pid, force)` — `taskkill /PID <pid> /T` (дерево процессов
+  вместо группы), с `/F` — принудительно.
+- `stop` на Windows: «TERM» — `taskkill /T`, ожидание по наличию pid (запрос
+  CIM занимает около секунды), «KILL» — `taskkill /T /F` только после
+  повторной сверки личности через CIM. Итоги те же: `stopped`, `killed`,
+  `already-gone`, `mismatch`, `still-running`.
+- Опция `run` диспетчера — исполнитель `taskkill` и PowerShell (тесты
+  передают подделку).

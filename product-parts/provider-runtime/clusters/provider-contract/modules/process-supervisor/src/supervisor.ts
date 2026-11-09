@@ -9,6 +9,9 @@ import { createKeyedMutex, readJsonFile, writeJsonAtomic } from '#data-store';
 import { cleanEnv } from './env.ts';
 import { psInspector, systemBootId } from './proc-info.ts';
 import type { BootIdReader, ProcessInfo, ProcessInspector } from './proc-info.ts';
+import { runCommand } from './command.ts';
+import type { CommandRunner } from './command.ts';
+import { cimInspector, taskkill, windowsBootId } from './windows.ts';
 
 /** Who a process belongs to; providers find their processes by these fields. */
 export interface ProcessOwner {
@@ -88,6 +91,8 @@ export interface SupervisorOptions {
   inspect?: ProcessInspector;
   bootId?: BootIdReader;
   signal?: (pid: number, signal: NodeJS.Signals | 0) => void;
+  /** Runs taskkill and PowerShell on Windows (spec M5 section 3). */
+  run?: CommandRunner;
   /** Wait after TERM before KILL, ms (default 5000). */
   graceMs?: number;
   /** Wait after KILL, ms (default 2000). */
@@ -133,8 +138,10 @@ function matches(info: ProcessInfo | undefined, expected: { startToken: string; 
 /** Creates a supervisor over processes.json. */
 export function createProcessSupervisor(options: SupervisorOptions): ProcessSupervisor {
   const platform = options.platform ?? process.platform;
-  const inspect = options.inspect ?? psInspector({ platform });
-  const bootId = options.bootId ?? systemBootId({ platform });
+  const windows = platform === 'win32';
+  const run = options.run ?? runCommand;
+  const inspect = options.inspect ?? (windows ? cimInspector({ run }) : psInspector({ platform }));
+  const bootId = options.bootId ?? (windows ? windowsBootId({ run }) : systemBootId({ platform }));
   const signal = options.signal ?? ((pid: number, sig: NodeJS.Signals | 0) => void process.kill(pid, sig));
   const pollMs = options.pollMs ?? 100;
   const lock = createKeyedMutex();
@@ -168,7 +175,6 @@ export function createProcessSupervisor(options: SupervisorOptions): ProcessSupe
   }
 
   async function checkRecord(record: ProcessRecord): Promise<ProcessCheck> {
-    if (platform === 'win32') return 'unverifiable';
     if (await bootChanged(record)) return 'gone';
     return matches(await inspect(record.pid), record);
   }
@@ -196,14 +202,18 @@ export function createProcessSupervisor(options: SupervisorOptions): ProcessSupe
     let alive = list;
     for (;;) {
       const next: typeof list = [];
-      for (const t of alive) if (await aliveTarget(t)) next.push(t);
+      // Windows: a CIM query takes about a second, so waiting looks only at the pid; the identity
+      // is checked again right before the forced kill.
+      for (const t of alive) if (windows ? exists(t.pid) : await aliveTarget(t)) next.push(t);
       alive = next;
       if (alive.length === 0 || Date.now() >= deadline) return alive;
       await sleep(pollMs);
     }
   }
 
-  function send(t: { pid: number; group: boolean }, sig: NodeJS.Signals): void {
+  async function send(t: { pid: number; group: boolean }, sig: NodeJS.Signals): Promise<void> {
+    // Windows has no groups or TERM: the process tree ends through taskkill (/F for KILL).
+    if (windows) return void (await taskkill(run, t.pid, sig === 'SIGKILL'));
     try {
       signal(t.group ? -t.pid : t.pid, sig);
     } catch (error) {
@@ -214,7 +224,6 @@ export function createProcessSupervisor(options: SupervisorOptions): ProcessSupe
   const supervisor: ProcessSupervisor = {
     file: options.file,
     async spawn(spec) {
-      if (platform === 'win32') throw new ProcessError('unsupported', 'Detached session processes are not supported on Windows');
       await mkdir(path.dirname(spec.logFile), { recursive: true, mode: 0o700 });
       const log = await open(spec.logFile, 'a', 0o600);
       let pid: number;
@@ -224,6 +233,8 @@ export function createProcessSupervisor(options: SupervisorOptions): ProcessSupe
           cwd: spec.cwd,
           env: cleanEnv(spec.env, { extra: spec.extraEnv, platform }),
           detached: true,
+          // Windows: the detached child gets its own console; it stays hidden.
+          windowsHide: true,
           stdio: ['ignore', log.fd, log.fd],
         });
         pid = await new Promise<number>((resolve, reject) => {
@@ -281,7 +292,6 @@ export function createProcessSupervisor(options: SupervisorOptions): ProcessSupe
     },
     async stop(id, stopOptions = {}) {
       const record = await find(id);
-      if (platform === 'win32') return { outcome: 'unverifiable', record };
       if (await bootChanged(record)) {
         await supervisor.forget(id);
         return { outcome: 'already-gone', record };
@@ -295,12 +305,12 @@ export function createProcessSupervisor(options: SupervisorOptions): ProcessSupe
         await supervisor.forget(id);
         return { outcome: state === 'mismatch' ? 'mismatch' : 'already-gone', record };
       }
-      for (const t of live) send(t, 'SIGTERM');
+      for (const t of live) await send(t, 'SIGTERM');
       let left = await waitGone(live, stopOptions.graceMs ?? options.graceMs ?? 5000);
       let killed = false;
       if (left.length > 0) {
         // Re-verified right before KILL by aliveTarget inside waitGone (identity or own group).
-        for (const t of left) if (await aliveTarget(t)) send(t, 'SIGKILL');
+        for (const t of left) if (await aliveTarget(t)) await send(t, 'SIGKILL');
         killed = true;
         left = await waitGone(left, options.killWaitMs ?? 2000);
       }

@@ -159,6 +159,44 @@ test('a reused pid, another boot or a foreign child are never signalled', async 
   const { removed } = await fake.reconcile();
   assert.deepEqual(removed.map((r) => r.id).sort(), ['proc-900021', 'proc-900031']);
   await assert.rejects(fake.check('proc-900021'), /No process record/);
-  const windows = createProcessSupervisor({ file, platform: 'win32' });
-  await assert.rejects(windows.spawn({ owner, command: 'x', args: [], cwd: '/', env: {}, logFile: path.join(tmp, 'w.log') }), /not supported/);
+});
+
+test('Windows: the process tree is stopped with taskkill, forced only after the identity matches again (M5 3)', async () => {
+  const file = path.join(tmp, 'win', 'processes.json');
+  await mkdir(path.dirname(file), { recursive: true });
+  const identity = { startToken: '2026-11-09T10:00:00.0000000Z', commandLine: '"C:/node.exe" host.mjs' };
+  const record = (pid: number): ProcessRecord => ({
+    id: `proc-${pid}`, owner: { ...owner, ref: null }, pid, pgid: null, command: 'node', args: [], cwd: 'C:/p', logFile: 'C:/l.log',
+    startedAt: '2026-11-09T10:00:00.000Z', bootId: 'win32:2026-11-09T09:00:00Z', children: [], ...identity,
+  });
+  await writeFile(file, JSON.stringify({ version: 1, processes: [record(7001), record(7002)] }));
+  const alive = new Set([7001, 7002]);
+  const calls: string[][] = [];
+  const windows = createProcessSupervisor({
+    file,
+    platform: 'win32',
+    graceMs: 60,
+    killWaitMs: 60,
+    pollMs: 10,
+    bootId: async () => 'win32:2026-11-09T09:00:00Z',
+    inspect: async (pid) => (alive.has(pid) ? ({ pid, pgid: null, startedAt: null, ...identity } as ProcessInfo) : undefined),
+    signal: (pid) => {
+      if (!alive.has(pid)) throw Object.assign(new Error('ESRCH'), { code: 'ESRCH' });
+    },
+    run: async (command, args) => {
+      calls.push([command, ...args]);
+      // 7001 ignores the polite taskkill (a console program), 7002 ends on it.
+      if (args.includes('/F') || args[1] === '7002') alive.delete(Number(args[1]));
+      return { code: 0, signal: null, stdout: '', stderr: '', timedOut: false, startError: null };
+    },
+  });
+  assert.equal(await windows.check('proc-7001'), 'alive');
+  assert.equal((await windows.stop('proc-7002')).outcome, 'stopped');
+  assert.equal((await windows.stop('proc-7001')).outcome, 'killed');
+  assert.deepEqual(calls, [
+    ['taskkill', '/PID', '7002', '/T'],
+    ['taskkill', '/PID', '7001', '/T'],
+    ['taskkill', '/PID', '7001', '/T', '/F'],
+  ]);
+  assert.deepEqual(await windows.list(), []);
 });

@@ -16,9 +16,10 @@ after(async () => {
 });
 
 test('events.jsonl lives in the state directory', () => {
-  const dirs = resolveDataDirs({ platform: 'linux', env: { WFK_DATA_DIR: tmp }, homedir: '/home/u' });
+  const dirs = resolveDataDirs({ platform: process.platform === 'win32' ? 'win32' : 'linux', env: { WFK_DATA_DIR: tmp }, homedir: '/home/u' });
   assert.equal(eventsFile(dirs), path.join(tmp, 'events.jsonl'));
   assert.equal(rotatedEventsFile('/x/events.jsonl'), '/x/events.1.jsonl');
+  assert.equal(rotatedEventsFile('C:\\x\\events.jsonl'), 'C:\\x\\events.1.jsonl');
 });
 
 test('events are appended as JSON lines with time and type, file mode 0600', async () => {

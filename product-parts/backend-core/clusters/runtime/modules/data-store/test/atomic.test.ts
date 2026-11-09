@@ -3,7 +3,7 @@ import { mkdtemp, readdir, readFile, rm, stat, writeFile } from 'node:fs/promise
 import os from 'node:os';
 import path from 'node:path';
 import { after, before, test } from 'node:test';
-import { InvalidJsonFileError, readJsonFile, writeFileAtomic, writeJsonAtomic } from '../src/index.ts';
+import { InvalidJsonFileError, readJsonFile, renameRetrying, writeFileAtomic, writeJsonAtomic } from '../src/index.ts';
 
 let tmp = '';
 before(async () => {
@@ -41,6 +41,36 @@ test('concurrent writes never produce a partial file', async () => {
   const value = (await readJsonFile(file)) as { i: number; big: string };
   assert.equal(value.big.length, 100_000);
   assert.ok(value.i >= 0 && value.i < 10);
+});
+
+test('renameRetrying retries a busy rename on Windows only and gives up after the attempts', async () => {
+  const busy = (code: string) => Object.assign(new Error(code), { code });
+  let calls = 0;
+  const pauses: number[] = [];
+  const flaky = async () => {
+    calls += 1;
+    if (calls < 3) throw busy(calls === 1 ? 'EPERM' : 'EBUSY');
+  };
+  await renameRetrying('a', 'b', 'win32', { rename: flaky, sleep: async (ms) => void pauses.push(ms) });
+  assert.equal(calls, 3);
+  assert.deepEqual(pauses, [15, 30]);
+  calls = 0;
+  await assert.rejects(renameRetrying('a', 'b', 'darwin', { rename: flaky, sleep: async () => {} }), { code: 'EPERM' });
+  assert.equal(calls, 1);
+  calls = 0;
+  const missing = async () => {
+    calls += 1;
+    throw busy('ENOENT');
+  };
+  await assert.rejects(renameRetrying('a', 'b', 'win32', { rename: missing, sleep: async () => {} }), { code: 'ENOENT' });
+  assert.equal(calls, 1);
+  calls = 0;
+  const always = async () => {
+    calls += 1;
+    throw busy('EACCES');
+  };
+  await assert.rejects(renameRetrying('a', 'b', 'win32', { rename: always, sleep: async () => {}, attempts: 4 }), { code: 'EACCES' });
+  assert.equal(calls, 4);
 });
 
 test('a failed rename removes the temporary file', async () => {

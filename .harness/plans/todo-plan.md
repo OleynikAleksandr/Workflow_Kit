@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": "T005",
+  "currentTaskId": null,
   "lastClosed": {
     "closedAt": "2026-11-09T10:12:56.251Z",
     "scopeId": "m5-windows"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 432,
+  "revision": 433,
   "rounds": [
     {
       "digest": {
@@ -302,14 +302,19 @@
       "docsWaiver": null,
       "files": [
         "product-parts/backend-core/clusters/runtime/modules/data-store",
-        "tools/platform-guard/allowlist.json"
+        "tools/platform-guard/allowlist.json",
+        "product-parts/backend-core/clusters/runtime/modules/data-store/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/data-store/src/atomic.ts",
+        "product-parts/backend-core/clusters/runtime/modules/data-store/src/index.ts",
+        "product-parts/backend-core/clusters/runtime/modules/data-store/test/atomic.test.ts",
+        "product-parts/backend-core/clusters/runtime/modules/data-store/test/events.test.ts"
       ],
       "fixes": "T002",
       "id": "T005",
       "iteration": 1,
       "kind": "work",
       "roundId": "R2",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "title": "Atomic writes on Windows",
       "why": "CI on Windows: concurrent writeFileAtomic fails with EPERM on rename; events test mixes POSIX platform with Windows paths"
     },
@@ -516,9 +521,9 @@
 - Scope: m6-cross-platform (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: T005
-- Progress: 5/12
-- Revision: 432
+- Current task: none
+- Progress: 6/12
+- Revision: 433
 
 ## Objective
 
@@ -558,9 +563,9 @@ Digest: R1 of m6-cross-platform: the platform-guard commit check (rules A, B, C)
 
 ### R2 — Windows and macOS CI fixes (fixes, OPEN)
 
-- [IN_PROGRESS] T005 — Atomic writes on Windows (work)
+- [DONE] T005 — Atomic writes on Windows (work)
   - Commit: fix: retry atomic renames on Windows and fix data-store tests
-  - Files: product-parts/backend-core/clusters/runtime/modules/data-store, tools/platform-guard/allowlist.json
+  - Files: product-parts/backend-core/clusters/runtime/modules/data-store, tools/platform-guard/allowlist.json, product-parts/backend-core/clusters/runtime/modules/data-store/module.md, product-parts/backend-core/clusters/runtime/modules/data-store/src/atomic.ts, product-parts/backend-core/clusters/runtime/modules/data-store/src/index.ts, product-parts/backend-core/clusters/runtime/modules/data-store/test/atomic.test.ts, product-parts/backend-core/clusters/runtime/modules/data-store/test/events.test.ts
   - Fixes: T002
 - [TODO] T006 — Backend tests on Windows (work)
   - Commit: test: make kit-structure, registry, setup and cli tests pass on Windows

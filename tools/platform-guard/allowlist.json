@@ -25,10 +25,6 @@
       "reason": "проверка X_OK пропускается: на Windows бит исполнения не используется"
     },
     {
-      "file": "product-parts/backend-core/clusters/runtime/modules/data-store/src/atomic.ts",
-      "reason": "не нужен chmod: на Windows права файла задаёт профиль пользователя, chmod не поддерживается"
-    },
-    {
       "file": "product-parts/backend-core/clusters/runtime/modules/data-store/src/events.ts",
       "reason": "не нужен chmod: на Windows права файла задаёт профиль пользователя, chmod не поддерживается"
     },

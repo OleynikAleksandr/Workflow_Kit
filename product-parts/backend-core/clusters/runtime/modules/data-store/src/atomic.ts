@@ -8,6 +8,39 @@ export interface WriteJsonOptions {
   mode?: number;
   /** Mode of parent directories created on the way (default 0700). */
   dirMode?: number;
+  /** Platform whose file rules apply (default: the running one). */
+  platform?: NodeJS.Platform;
+}
+
+/** Codes of a Windows rename that loses a race with another writer or a reader of the target. */
+const WINDOWS_BUSY = new Set(['EPERM', 'EBUSY', 'EACCES']);
+
+/** Dependencies of renameRetrying; tests replace them. */
+export interface RenameDeps {
+  rename?: (from: string, to: string) => Promise<void>;
+  sleep?: (ms: number) => Promise<void>;
+  attempts?: number;
+}
+
+/**
+ * Renames a file over its target. On Windows a rename fails with EPERM, EBUSY or EACCES while
+ * another process renames onto or reads the same target; the rename is retried with a growing
+ * pause. Other platforms and other errors fail at once.
+ */
+export async function renameRetrying(from: string, to: string, platform: NodeJS.Platform, deps: RenameDeps = {}): Promise<void> {
+  const move = deps.rename ?? rename;
+  const sleep = deps.sleep ?? ((ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms)));
+  const attempts = deps.attempts ?? 10;
+  for (let attempt = 1; ; attempt += 1) {
+    try {
+      await move(from, to);
+      return;
+    } catch (error) {
+      const code = (error as NodeJS.ErrnoException).code ?? '';
+      if (platform !== 'win32' || !WINDOWS_BUSY.has(code) || attempt >= attempts) throw error;
+      await sleep(15 * attempt);
+    }
+  }
 }
 
 /**
@@ -28,17 +61,18 @@ export async function writeFileAtomic(file: string, text: string, options: Write
   await mkdir(dir, { recursive: true, mode: options.dirMode ?? 0o700 });
   const tmp = path.join(dir, `.${path.basename(file)}.${process.pid}.${randomBytes(6).toString('hex')}.tmp`);
   const mode = options.mode ?? 0o600;
+  const platform = options.platform ?? process.platform;
   const handle = await open(tmp, 'wx', mode);
   try {
     try {
       await handle.writeFile(text, 'utf8');
       // The umask may narrow the mode given to open(); chmod sets it exactly.
-      if (process.platform !== 'win32') await handle.chmod(mode);
+      if (platform !== 'win32') await handle.chmod(mode);
       await handle.sync();
     } finally {
       await handle.close();
     }
-    await rename(tmp, file);
+    await renameRetrying(tmp, file, platform);
   } catch (error) {
     await unlink(tmp).catch(() => undefined);
     throw error;

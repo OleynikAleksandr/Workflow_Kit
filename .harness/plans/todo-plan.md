@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 447,
+  "revision": 448,
   "rounds": [
     {
       "digest": {
@@ -522,7 +522,8 @@
       "acceptance": [
         "The service is reinstalled as 0.5.1 and wfk doctor --installed is ok",
         "HEAD is pushed to refs/heads/ci/m6-cross-platform only",
-        "CI is green on macOS, Linux, Windows x64 and Windows ARM64; the evidence records the run",
+        "The evidence records CI run 2 per platform and the test defects it found, fixed in this task",
+        "The CI run of this commit is checked on all four platforms before acceptance; a red job becomes a fixes round",
         "CHANGELOG 0.5.1 lists the Windows fixes"
       ],
       "checks": [],
@@ -572,7 +573,7 @@
 - Execution: sequential
 - Current task: T010
 - Progress: 11/12
-- Revision: 447
+- Revision: 448
 
 ## Objective
 

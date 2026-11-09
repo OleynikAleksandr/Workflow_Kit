@@ -16,7 +16,7 @@
  * @property {(tone: 'ok' | 'error' | 'muted', text: string, error?: unknown) => void} say
  * @property {(projectId: string) => void} selectProject makes the project the one the sidebar tree shows
  * @property {(projectId: string, key: string) => void} [openSession] opens a just created session
- *   by itself once it is in the tree (the screen and, for ChatGPT, its chat)
+ *   by itself once it is in the tree (the screen and, for a provider with chat links, its chat)
  */
 
 /**
@@ -25,8 +25,8 @@
  * @property {ProjectRow} project
  * @property {SessionRow} session
  * @property {string | null} link Chat link for this device.
- * @property {{ text: string, tone: 'ok' | 'muted' | 'error' } | null} [status] Claude: the session
- *   process instead of a chat link (it is revived when the screen opens).
+ * @property {{ text: string, tone: 'ok' | 'muted' | 'error' } | null} [status] A resumable provider:
+ *   the session process instead of a chat link (it is revived when the screen opens).
  */
 
 /**

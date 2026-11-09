@@ -40,8 +40,13 @@
   /api/refresh`); стрелка у «Ваши проекты» смотрит вверх, пока меню
   открыто; «Свернуть все»; дерево; «Ревью плана»
   выбранной сессии (слот `sessionReview`); индикаторы связи (служба,
-  ChatGPT, Claude — по `status.state` провайдера, iPad · Tailscale — есть
-  ли адрес Tailscale).
+  каждый провайдер раздела `providers` — по его `status.state`, iPad ·
+  Tailscale — есть ли адрес Tailscale).
+- Провайдеры панель берёт только из состояния (`providers.js`, M8): названия
+  (`label`, иначе `title`, иначе id), буква метки (`mark`), кнопки и пункты
+  «Новая сессия», тексты подтверждений («Чаты в ChatGPT и Claude
+  останутся…» — `providerNames`), индикаторы. Своего списка провайдеров в
+  панели нет; у провайдера без своих цветов в `tree.css` метка нейтральная.
 - Дерево показывает только выбранный проект: проект маршрута, иначе
   выбранный последним (`wfk.current-project` на устройстве; мастер
   выбирает новый проект — `SlotContext.selectProject`), если он среди
@@ -49,10 +54,10 @@
   «Ваши проекты»; без выбранного дерево пусто (список, «Проектов пока нет» и
   создание — в меню «Ваши проекты»).
   Проект — имя, число сессий (или «папка не найдена»), свёртка
-  (на устройстве, `wfk.tree.collapsed`), «⋯»: новая сессия ChatGPT /
-  Claude, скопировать путь, в архив. Сессия — имя (из раздела `titles`, иначе
+  (на устройстве, `wfk.tree.collapsed`), «⋯»: новая сессия каждого
+  провайдера, скопировать путь, в архив. Сессия — имя (из раздела `titles`, иначе
   цель плана у сессии-владельца, иначе имя провайдера, иначе «Новая сессия»), время, «новая» (до часа после
-  создания, пока агент не закончил ход), метка ChatGPT / Claude, спиннер,
+  создания, пока агент не закончил ход), метка провайдера, спиннер,
   пока агент работает (раздел `channel`, `working`); «⋯»: открыть чат,
   переименовать (`POST …/sessions/:key/title`), в архив (`POST
   …/sessions/:key/archive`; сессии в архиве — в «Архиве» и на экране
@@ -62,12 +67,14 @@
   проекта» (слот `newProject` — мастер `project-wizard`; без него — простая
   форма `new-project.js`); проект (сессии, кнопки новой сессии, сессии в
   архиве); сессия (заголовок, проект, провайдер, время и строка состояния
-  вместо «Открыть чат»: у Claude — состояние процесса, а открытие экрана
-  поднимает остановленную сессию через `POST
-  …/providers/claude/sessions/:sid/resume`, повтор после ошибки — через
-  `REVIVE_RETRY_MS` (30 с), раунд R9; у ChatGPT — `chatStatus`: «чат
-  открывается щелчком по карточке сессии»; щелчок или Enter по карточке
-  сессии ChatGPT в дереве открывает её чат по ссылке устройства
+  вместо «Открыть чат»: у провайдера с подъёмом сессий (`resume` в его
+  сводке — есть `resumeSession`; сейчас Claude, `SessionRow.resumable`) —
+  состояние процесса («открыта в <провайдер>» и примечание сессии,
+  `runningText`), а открытие экрана поднимает остановленную сессию через
+  `POST …/providers/<id>/sessions/:sid/resume`, повтор после ошибки — через
+  `REVIVE_RETRY_MS` (30 с), раунд R9; у остальных (ChatGPT) — `chatStatus`:
+  «чат открывается щелчком по карточке сессии»; щелчок или Enter по карточке
+  такой сессии в дереве открывает её чат по ссылке устройства
   (`deviceLink`), открытие экрана без щелчка чат не открывает; пункта
   «Открыть чат» в меню сессий нет, M3-autostart R4. Новая сессия
   открывается сама, как щелчком, когда появилась в дереве (R5): «Новая
@@ -120,7 +127,8 @@
 | `app.js` | состояние и маршрут, опрос `/api/state` (следующий запрос — через 3 с после ответа, таймаут 8 с, сразу при возврате на вкладку, тик таймера строки подготовки раз в секунду), самоперезагрузка страницы, когда служба отвечает другой версией, чем при загрузке (один раз на версию, `sessionStorage`, M4 13.5), экраны и слоты; загрузка расширений `PANEL_EXTENSIONS` (`/project-wizard/project-wizard.js`, `/session-view/session-view.js`) до первого опроса: `install(shell)` с помощниками `registerCard`, `registerCardGroup`, `registerSlot`, `requestRefresh`, `api`, `ApiError`, `dom`, `createFolderPicker`, `showError` |
 | `actions.js` | `createActions({ navigate, render, route })` → `{ handlers, toast, say, collapsed }`: в архив; для «Архива» — `restoreProjects`, `forgetProjects`, `deleteProject`, `restoreSessions`, `forgetSessions`; новая сессия, обновить сессии, копировать путь, открыть чат, переименовать и архивировать сессию; сообщения над экраном; свёрнутые проекты |
 | `slots.js` | слоты раскладки для расширений: `registerSlot('newProject' \| 'sessionBody' \| 'sessionReview', definition)`, `slots`; типы `SlotContext` (`navigate`, `requestRefresh`, `say`, `selectProject`), `SessionContext` (`project`, `session`, `link`) |
-| `view-model.js` | чистые модели без DOM: `parseRoute`/`routeHash` (`#/`, `#/settings`, `#/new`, `#/open`, `#/archive`, `#/p/<id>`, `#/s/<id>/<ключ>`), `projectLists`, `filterProjects`, `projectTree`, `ownerObjective`, `sessionKey` (`<провайдер>:<localId>` — ключ разделов `channel`, `titles`, `review`), `indicators`, `statusLine`, `deviceLink`, `formatWhen`, `formatElapsed`, `sessionsLabel`, `shortPath`, `themeAttribute`, `PROVIDER_LABELS` |
+| `view-model.js` | чистые модели без DOM: `parseRoute`/`routeHash` (`#/`, `#/settings`, `#/new`, `#/open`, `#/archive`, `#/p/<id>`, `#/s/<id>/<ключ>`), `projectLists`, `filterProjects`, `projectTree`, `ownerObjective`, `sessionKey` (`<провайдер>:<localId>` — ключ разделов `channel`, `titles`, `review`), `runningText`, `statusLine`, `deviceLink`, `formatWhen`, `formatElapsed`, `sessionsLabel`, `shortPath`, `themeAttribute`; в строке сессии — `providerLabel` и `resumable` из сводки провайдера |
+| `providers.js` | провайдеры из раздела `providers` состояния: `providerViews(state)` (`id`, `label`, `mark`, `resume`, `ready`, `statusLabel`), `providerNamer(state)`, `providerNames(state)` («ChatGPT и Claude»), `indicators(state, linked)` |
 | `sidebar.js` | боковая панель: `createSidebar(handlers) → { element, render(model), setReview(node) }` |
 | `menus.js` | всплывающие меню «⋯»: `openMenu(anchor, items)`, `closeMenu()` |
 | `screens.js` | экраны из состояния: `homeScreen` (только приветствие; создание и выбор проекта — в меню «Ваши проекты»), `projectScreen` (сессии, «GitHub», блок «Провайдеры» с действиями уровня провайдера), `sessionHeader`, `missingScreen` |
@@ -132,7 +140,7 @@
 | `dom.js` | помощники `h`, `facts`, `pill`, `code`, `notice`, `plainInput`; текст только через `textContent` |
 | `api.js` | `api(method, url, body?)`, `apiGet(url)`, `ApiError` (`status`, `code`, `message`, `hint`, `blockers`) |
 | `folder-picker.js` | выбор папки внутри домашней (`GET /api/folders`); `pickLabel`, `idPrefix` |
-| `system-card.js` | карточка «Система» (версия, ОС, служба, автозапуск, запускатель, значок, программы, адреса) |
+| `system-card.js` | карточка «Система» (версия, ОС, служба, автозапуск, запускатель, значок, программы, адреса); «Программы» — имена из `system.service.programNames` службы (найденные — с путём, остальные — «не найдена»), у службы без этого поля — найденные |
 | `manifest.webmanifest`, `icons/` | экран «Домой»: `icon.svg` (источник) и `icon-180/192/512.png` |
 
 ## Как добавить карточку «Настроек»

@@ -10,7 +10,7 @@ import { filterProjects, shortPath } from './view-model.js';
  * @typedef {import('./view-model.js').Route} Route
  * @typedef {import('./view-model.js').ProjectRow} ProjectRow
  * @typedef {import('./view-model.js').SessionRow} SessionRow
- * @typedef {import('./view-model.js').Indicator} Indicator
+ * @typedef {import('./providers.js').Indicator} Indicator
  */
 
 /**
@@ -22,6 +22,7 @@ import { filterProjects, shortPath } from './view-model.js';
  * @property {string} home home folder, shown as "~" in paths
  * @property {Route} route
  * @property {Indicator[]} indicators
+ * @property {import('./providers.js').ProviderView[]} providers for the «Новая сессия …» items
  */
 
 /**
@@ -190,8 +191,7 @@ export function createSidebar(handlers) {
     more.addEventListener('click', (event) => {
       event.stopPropagation();
       openMenu(more, [
-        { label: 'Новая сессия ChatGPT', onSelect: () => handlers.newSession(project.id, 'codex') },
-        { label: 'Новая сессия Claude', onSelect: () => handlers.newSession(project.id, 'claude') },
+        ...(last?.providers ?? []).map((p) => ({ label: `Новая сессия ${p.label}`, onSelect: () => handlers.newSession(project.id, p.id) })),
         '-',
         { label: 'Скопировать путь', hint: shortPath(project.path, last?.home ?? ''), onSelect: () => handlers.copyText(project.path) },
         { label: 'В архив', onSelect: () => handlers.archiveProject(project) },
@@ -241,7 +241,7 @@ export function createSidebar(handlers) {
       h('small', {}, [meta]),
       h('span', { class: `badge ${session.provider}` }, [session.providerLabel]),
     ]);
-    // A click on the card opens the session and, for ChatGPT, its chat in the app.
+    // A click on the card opens the session and, for a provider with chat links, its chat in the app.
     const go = () => handlers.openSession(projectId, session);
     node.addEventListener('click', go);
     node.addEventListener('keydown', (event) => {

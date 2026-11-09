@@ -97,7 +97,7 @@ function createColumnList(label, rowContent, onChange) {
 
 /**
  * @param {ArchiveHandlers} handlers
- * @returns {{ element: HTMLElement, render: (projects: ArchivedProject[], sessions: ArchivedSessionRow[], home: string) => void }}
+ * @returns {{ element: HTMLElement, render: (projects: ArchivedProject[], sessions: ArchivedSessionRow[], home: string, providerNames: string) => void }}
  */
 export function createArchiveScreen(handlers) {
   let home = '';
@@ -158,10 +158,11 @@ export function createArchiveScreen(handlers) {
       }
     });
   });
+  const deleteText = h('p', {}, ['']);
   const deletePanel = h('section', { class: 'archive-delete' }, [
     deleteName,
     deletePath,
-    h('p', {}, ['Папка проекта со всем содержимым будет удалена с диска безвозвратно. Чаты в ChatGPT и Claude останутся. Для подтверждения введите точное имя проекта.']),
+    deleteText,
     confirmInput,
     h('div', { class: 'row' }, [confirmDelete, button('Отмена', 'btn', () => {
       deletePanel.hidden = true;
@@ -211,8 +212,9 @@ export function createArchiveScreen(handlers) {
 
   return {
     element,
-    render(nextProjects, nextSessions, nextHome) {
+    render(nextProjects, nextSessions, nextHome, providerNames) {
       home = nextHome;
+      deleteText.textContent = `Папка проекта со всем содержимым будет удалена с диска безвозвратно. Чаты в ${providerNames} останутся. Для подтверждения введите точное имя проекта.`;
       projectCount.textContent = String(nextProjects.length);
       sessionCount.textContent = String(nextSessions.length);
       projects.set(nextProjects);

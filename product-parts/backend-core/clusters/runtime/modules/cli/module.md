@@ -95,7 +95,9 @@ stripping).
 `getServiceStatus(platform, { env, homedir, serving: true })` из
 `service-installer` (только файлы, D11): установленная версия, экземпляр
 (`default` / `development` при `WFK_DATA_DIR`), способ и состояние
-автозапуска, запускатель, значок, пути программ. `GET /api/health` → `{ ok, version, pid, startedAt }`.
+автозапуска, запускатель, значок, пути программ; плюс `programNames` —
+имена всех программ, которые ищет установщик (`PROGRAMS`), чтобы панель
+показывала и ненайденные. `GET /api/health` → `{ ok, version, pid, startedAt }`.
 
 ## Подключённые модули
 

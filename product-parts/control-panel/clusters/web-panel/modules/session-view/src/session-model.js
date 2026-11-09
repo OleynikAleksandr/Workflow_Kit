@@ -2,8 +2,6 @@
 // Pure models of the session screen (spec sections 6, 8.3, 9.3, 10): the
 // path choice card, the plan card with its buttons and «Ревью плана». No DOM; node --test.
 
-const PROVIDER_NAMES = Object.freeze({ claude: 'Claude', codex: 'ChatGPT' });
-
 export { REASON_LABELS, activityView, timer } from './activity-model.js';
 
 /** Plan card buttons in the order they are drawn. */
@@ -96,7 +94,7 @@ function reviewComing(state, projectId) {
 
 /**
  * The path choice card for a session: the session holding the choice (or any session of the
- * project when none does); Codex sessions do not get orchestration.
+ * project when none does); the service lists the options the session's provider can run.
  * @param {Record<string, unknown>} state
  * @param {string} projectId
  * @param {string} key
@@ -296,8 +294,13 @@ export function crossReviewView(state, projectId, key) {
     .filter((r) => r && (r.mainKey === key || r.reviewerKey === key))
     .sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt)))[0];
   if (!found) return null;
-  const reviewerName = PROVIDER_NAMES[/** @type {'claude' | 'codex'} */ (found.reviewerProvider)] ?? 'ревьюер';
-  const mainName = PROVIDER_NAMES[/** @type {'claude' | 'codex'} */ (found.mainProvider)] ?? 'агент';
+  // Names of the providers as the service reports them (the "providers" section).
+  const named = (/** @type {unknown} */ id) => {
+    const summary = array(record(state['providers'])['providers']).find((p) => p && p.id === id);
+    return typeof summary?.label === 'string' && summary.label !== '' ? summary.label : typeof summary?.title === 'string' ? summary.title : null;
+  };
+  const reviewerName = named(found.reviewerProvider) ?? 'ревьюер';
+  const mainName = named(found.mainProvider) ?? 'агент';
   const who = (/** @type {string} */ from) => (from === 'reviewer' ? `Ревьюер (${reviewerName})` : from === 'main' ? `Агент (${mainName})` : 'Workflow Kit');
   const turn = { preparing: `агент (${mainName}) описывает план`, starting: `${reviewerName} запускается`, reviewing: `отвечает ревьюер (${reviewerName})`, answering: `отвечает агент (${mainName})` };
   const role = found.mainKey === key ? 'main' : 'reviewer';

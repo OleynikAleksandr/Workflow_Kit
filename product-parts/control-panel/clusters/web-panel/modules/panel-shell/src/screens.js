@@ -2,12 +2,12 @@
 // Screens of the main area that are rebuilt from the state: first start, project and session.
 // Each function returns a fresh node; app.js redraws only when its data changed.
 import { code, h } from './dom.js';
-import { providerLabel } from './view-model.js';
 
 /**
  * @typedef {import('./view-model.js').Route} Route
  * @typedef {import('./view-model.js').ProjectRow} ProjectRow
  * @typedef {import('./view-model.js').SessionRow} SessionRow
+ * @typedef {import('./providers.js').ProviderView} ProviderView
  */
 
 /**
@@ -42,28 +42,30 @@ function button(label, action, cls = 'btn') {
 }
 
 /**
- * Two buttons «Создать и открыть в ChatGPT / Claude» style for a new session of a project.
+ * A button «Новая сессия в <provider>» for every provider of the service.
  * @param {string} projectId
+ * @param {ProviderView[]} providers
  * @param {ScreenHandlers} handlers
  * @returns {HTMLElement}
  */
-function sessionButtons(projectId, handlers) {
-  const make = (/** @type {string} */ provider, /** @type {string} */ letter) => {
-    const node = button('', () => handlers.newSession(projectId, provider), 'btn prov');
-    node.append(h('i', { class: provider, 'aria-hidden': 'true' }, [letter]), `Новая сессия в ${providerLabel(provider)}`);
+function sessionButtons(projectId, providers, handlers) {
+  const make = (/** @type {ProviderView} */ provider) => {
+    const node = button('', () => handlers.newSession(projectId, provider.id), 'btn prov');
+    node.append(h('i', { class: provider.id, 'aria-hidden': 'true' }, [provider.mark]), `Новая сессия в ${provider.label}`);
     return node;
   };
-  return h('div', { class: 'session-start' }, [make('codex', 'G'), make('claude', 'C')]);
+  return h('div', { class: 'session-start' }, providers.map(make));
 }
 
 /**
  * First start (no projects) or no selection: only the greeting. Creating, opening and choosing a
  * project live in the «Ваши проекты» menu, so the screen repeats none of it.
+ * @param {string} names the providers in a sentence (providerNames)
  * @returns {HTMLElement}
  */
-export function homeScreen() {
+export function homeScreen(names) {
   return h('div', { class: 'screen' }, [
-    header('Добро пожаловать в Workflow Kit', ['Kit ведёт ваши проекты в ChatGPT и Claude: план, задачи, сессии — на Mac и iPad.']),
+    header('Добро пожаловать в Workflow Kit', [`Kit ведёт ваши проекты в ${names}: план, задачи, сессии — на Mac и iPad.`]),
   ]);
 }
 
@@ -103,7 +105,7 @@ function providerPanel(rows, handlers) {
 
 /**
  * A project without a selected session: its sessions and new session buttons.
- * @param {ProjectRow & { publication?: import('./publication.js').PublicationView | null, providerActions?: import('./provider-actions.js').ProviderActionRow[] }} project
+ * @param {ProjectRow & { publication?: import('./publication.js').PublicationView | null, providerActions?: import('./provider-actions.js').ProviderActionRow[], providers?: ProviderView[] }} project
  * @param {ScreenHandlers} handlers
  * @returns {HTMLElement}
  */
@@ -132,7 +134,7 @@ export function projectScreen(project, handlers) {
   return h('div', { class: 'screen' }, [
     header(project.name, [code(project.path), ' · ', project.count]),
     project.missing ? h('div', { class: 'notice notice-error' }, [h('p', {}, ['Папка проекта не найдена. Верните папку на место или уберите проект в архив.'])]) : null,
-    h('div', { class: 'panel' }, [h('h2', {}, ['Сессии']), list, h('div', { class: 'eyebrow' }, ['Новая сессия']), sessionButtons(project.id, handlers)]),
+    h('div', { class: 'panel' }, [h('h2', {}, ['Сессии']), list, h('div', { class: 'eyebrow' }, ['Новая сессия']), sessionButtons(project.id, project.providers ?? [], handlers)]),
     project.publication ? publicationPanel(project.id, project.publication, handlers) : null,
     project.providerActions && project.providerActions.length > 0 ? providerPanel(project.providerActions, handlers) : null,
     archived,
@@ -140,8 +142,8 @@ export function projectScreen(project, handlers) {
 }
 
 /**
- * Header of the session screen: name, project, provider, start time and a state line (Claude: the
- * session process, it is revived; ChatGPT: the chat opens from the session card). The body
+ * Header of the session screen: name, project, provider, start time and a state line (a provider
+ * that brings sessions back: the session process; others: the chat opens from the card). The body
  * (activity, choice and plan cards) comes from the "sessionBody" slot.
  * @param {{ project: ProjectRow, session: SessionRow, link: string | null, status?: { text: string, tone: string } | null }} data
  * @returns {HTMLElement}

@@ -6,7 +6,6 @@ import {
   deviceLink,
   filterProjects,
   formatElapsed,
-  indicators,
   ownerObjective,
   parseRoute,
   projectLists,
@@ -17,8 +16,10 @@ import {
   shortPath,
   statusLine,
   themeAttribute,
+  runningText,
   settingsExit,
 } from '../src/view-model.js';
+import { indicators, providerNames, providerViews } from '../src/providers.js';
 
 const NOW = Date.parse('2026-11-06T08:10:00Z');
 
@@ -36,8 +37,8 @@ function state(): Record<string, unknown> {
     },
     providers: {
       providers: [
-        { id: 'codex', status: { state: 'ready', label: 'готов' } },
-        { id: 'claude', status: { state: 'not-installed', label: 'не установлен' } },
+        { id: 'codex', title: 'ChatGPT (Codex)', label: 'ChatGPT', mark: 'G', resume: false, status: { state: 'ready', label: 'готов' } },
+        { id: 'claude', title: 'Claude', label: 'Claude', mark: 'C', resume: true, status: { state: 'not-installed', label: 'не установлен' } },
       ],
       projects: {
         p1: {
@@ -160,6 +161,32 @@ test('archive rows are chosen like in Workflow Pilot: click, ⌘ toggle, Shift r
   assert.deepEqual(selectRows(ids, ['b'], 'b', 'd', { range: true }).selected, ['b', 'c', 'd']);
   assert.deepEqual(selectRows(ids, ['b'], 'b', 'd', { toggle: true }).selected, ['b', 'd']);
   assert.deepEqual(selectRows(ids, ['b', 'd'], 'd', 'b', { toggle: true }).selected, ['d']);
+});
+
+test('providers come from the state: names, letters, resume, and the sentence of the texts', () => {
+  assert.deepEqual(providerViews(state()), [
+    { id: 'codex', label: 'ChatGPT', mark: 'G', resume: false, ready: true, statusLabel: 'готов' },
+    { id: 'claude', label: 'Claude', mark: 'C', resume: true, ready: false, statusLabel: 'не установлен' },
+  ]);
+  const three = { providers: { providers: [{ id: 'codex', label: 'ChatGPT' }, { id: 'claude', label: 'Claude' }, { id: 'kimi', title: 'Kimi Code' }, { title: 'no id' }] } };
+  assert.deepEqual(providerViews(three).map((p) => [p.id, p.label, p.mark, p.resume, p.statusLabel]), [
+    ['codex', 'ChatGPT', 'C', false, 'нет сведений'],
+    ['claude', 'Claude', 'C', false, 'нет сведений'],
+    ['kimi', 'Kimi Code', 'K', false, 'нет сведений'],
+  ]);
+  assert.equal(providerNames(three), 'ChatGPT, Claude и Kimi Code');
+  assert.equal(providerNames(state()), 'ChatGPT и Claude');
+  assert.equal(providerNames({ providers: { providers: [{ id: 'kimi', label: 'Kimi' }] } }), 'Kimi');
+  assert.equal(providerNames({}), 'приложениях провайдеров');
+  assert.deepEqual(indicators(three, true).map((i) => i.id), ['service', 'codex', 'claude', 'kimi', 'ipad'], 'an indicator per provider of the service');
+  const tree = projectTree(state(), { now: NOW, collapsed: new Set() }).find((p) => p.id === 'p1')!;
+  assert.deepEqual(tree.sessions.map((s) => [s.provider, s.providerLabel, s.resumable]), [['codex', 'ChatGPT', false], ['claude', 'Claude', true]]);
+  const unknown = { ...state(), providers: { providers: [], projects: (state()['providers'] as any).projects } };
+  assert.deepEqual(projectTree(unknown, { now: NOW, collapsed: new Set() }).find((p) => p.id === 'p1')!.sessions.map((s) => [s.providerLabel, s.resumable]), [['codex', false], ['claude', false]], 'an unknown provider keeps its id and is not resumed');
+  assert.equal(runningText({ providerLabel: 'Claude' }), 'открыта в Claude');
+  assert.equal(runningText({ providerLabel: 'Kimi', note: 'группа Remote' }), 'открыта в Kimi — группа Remote');
+  const run = { setup: { runs: [{ status: 'running', provider: 'kimi', providerLabel: 'Kimi', startedAt: '2026-11-06T08:09:44Z' }] } };
+  assert.equal(statusLine(run, NOW)?.text, 'Готовим сессию в Kimi', 'the run carries the name of its provider');
 });
 
 test('a ChatGPT session header says the chat opens from the card; without a link it shows the note', () => {

@@ -217,6 +217,7 @@ test('the "providers" state section collects every provider and project; failure
   fake.failHooks = false;
   bare.slow = false;
   assert.deepEqual(section.providers.map((p) => p.id), ['fake', 'bare']);
+  assert.deepEqual(section.providers.map((p) => p.resume), [true, false], 'resume follows the resumeSession method');
   assert.equal(section.providers[0]!.status?.label, 'готов');
   assert.equal(section.providers[0]!.capabilities['environment']?.reason, 'нет expect');
   assert.deepEqual(section.providers[0]!.actions.map((a) => a.id), ['daemon-start', 'daemon-stop']);

@@ -220,6 +220,7 @@
   font-size: 11px;
 }
 
+/* Provider colours: a provider without a rule here keeps the neutral badge and mark. */
 .badge.codex,
 .badge-inline.codex {
   color: var(--gpt);
@@ -228,6 +229,16 @@
 .badge.claude,
 .badge-inline.claude {
   color: var(--claude);
+}
+
+.prov i.codex {
+  background: #0f3d3b;
+  color: #7fd0cb;
+}
+
+.prov i.claude {
+  background: #3d2616;
+  color: #e0a57a;
 }
 
 .badge-inline {

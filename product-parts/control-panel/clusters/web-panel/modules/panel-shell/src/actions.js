@@ -5,7 +5,7 @@ import { api, ApiError } from './api.js';
 import { requestRefresh } from './cards.js';
 import { h, notice } from './dom.js';
 import { commitsLabel } from './publication.js';
-import { ARRIVAL_WAIT_MS, arrivedSession, chatStatus, deviceLink } from './view-model.js';
+import { ARRIVAL_WAIT_MS, arrivedSession, chatStatus, deviceLink, runningText } from './view-model.js';
 
 /** localStorage key of the collapsed projects of the tree (per device). */
 const COLLAPSED_KEY = 'wfk.tree.collapsed';
@@ -13,11 +13,11 @@ const COLLAPSED_KEY = 'wfk.tree.collapsed';
 /** @typedef {import('./view-model.js').Route} Route */
 /** @typedef {import('./view-model.js').SessionRow} SessionRow */
 
-/** How long a resume of a Claude session is not repeated (a failed one is retried after it). */
+/** How long a resume of a session is not repeated (a failed one is retried after it). */
 const REVIVE_RETRY_MS = 30_000;
 
 /**
- * @param {{ navigate: (route: Route) => void, render: () => void, route: () => Route }} options
+ * @param {{ navigate: (route: Route) => void, render: () => void, route: () => Route, providerNames: () => string }} options
  */
 export function createActions(options) {
   const { navigate, render } = options;
@@ -78,20 +78,20 @@ export function createActions(options) {
     requestRefresh();
   }
 
-  /** Claude sessions being revived: when the resume started and its error, if any. */
+  /** Sessions being revived: when the resume started and its error, if any. */
   /** @type {Map<string, { at: number, error: string | null }>} */
   const reviving = new Map();
 
   const handlers = {
     navigate,
     /**
-     * Brings back a Claude session that has no live process (opening its screen is the intent to
-     * work in it): the service resumes it under the same Remote Control channel. A failed resume
-     * is retried after REVIVE_RETRY_MS, a pending one is not repeated.
+     * Brings back a session that has no live process (opening its screen is the intent to work in
+     * it), for a provider that resumes sessions: the service resumes it under the same channel.
+     * A failed resume is retried after REVIVE_RETRY_MS, a pending one is not repeated.
      * @param {string} projectId @param {SessionRow} session
      */
     reviveSession(projectId, session) {
-      if (session.provider !== 'claude' || session.state === 'running') {
+      if (!session.resumable || session.state === 'running') {
         reviving.delete(session.key);
         return;
       }
@@ -99,7 +99,7 @@ export function createActions(options) {
       if (entry && Date.now() - entry.at < REVIVE_RETRY_MS) return;
       reviving.set(session.key, { at: Date.now(), error: null });
       const sid = session.key.slice(session.key.indexOf(':') + 1);
-      api('POST', `/api/projects/${encodeURIComponent(projectId)}/providers/claude/sessions/${encodeURIComponent(sid)}/resume`, {}).then(
+      api('POST', `/api/projects/${encodeURIComponent(projectId)}/providers/${encodeURIComponent(session.provider)}/sessions/${encodeURIComponent(sid)}/resume`, {}).then(
         () => requestRefresh(),
         (error) => {
           reviving.set(session.key, { at: Date.now(), error: error instanceof Error ? error.message : String(error) });
@@ -108,14 +108,14 @@ export function createActions(options) {
       );
     },
     /**
-     * State line of the session screen instead of «Открыть чат»: the Claude process state, or
-     * for ChatGPT that the chat opens from the session card.
+     * State line of the session screen instead of «Открыть чат»: the process state of a session
+     * its provider brings back, or that the chat opens from the session card.
      * @param {SessionRow} session
      * @returns {{ text: string, tone: 'ok' | 'muted' | 'error' }}
      */
     sessionStatus(session) {
-      if (session.provider !== 'claude') return chatStatus(session, deviceLink(session.links, navigator.maxTouchPoints ?? 0));
-      if (session.state === 'running') return { text: 'открыта в Claude — группа Remote Control', tone: 'ok' };
+      if (!session.resumable) return chatStatus(session, deviceLink(session.links, navigator.maxTouchPoints ?? 0));
+      if (session.state === 'running') return { text: runningText(session), tone: 'ok' };
       const error = reviving.get(session.key)?.error;
       if (error) return { text: `не удалось поднять сессию: ${error}`, tone: 'error' };
       return { text: 'поднимаем сессию…', tone: 'muted' };
@@ -248,7 +248,7 @@ export function createActions(options) {
     async forgetSessions(sessions) {
       if (!window.confirm(`Убрать из списка Workflow Kit сессий: ${sessions.length}?
 
-Чаты в ChatGPT и Claude останутся.`)) return;
+Чаты в ${options.providerNames()} останутся.`)) return;
       await act('Не удалось убрать сессии из списка', async () => {
         for (const s of sessions) await api('POST', `/api/projects/${encodeURIComponent(s.projectId)}/sessions/${encodeURIComponent(s.key)}/forget`);
         say('ok', `Убраны из списка сессий: ${sessions.length}`);
@@ -269,8 +269,8 @@ export function createActions(options) {
       else api('POST', '/api/open-link', { url: link }).catch(() => window.location.assign(link));
     },
     /**
-     * A Claude session on the Mac: the service switches Claude Desktop to it (claude:// link).
-     * A failure stays silent — the session is in the Remote Control group anyway.
+     * A resumed session on a computer: the service switches the provider's app to it (its
+     * desktop link). A failure stays silent — the session is in the app anyway.
      * @param {SessionRow} session
      */
     openInDesktop(session) {
@@ -278,14 +278,14 @@ export function createActions(options) {
       if (link) api('POST', '/api/open-link', { url: link }).catch(() => {});
     },
     /**
-     * What a click on the session card does: the session screen and the chat in its app — ChatGPT
-     * by its link, Claude in Claude Desktop on the Mac, the Claude app on a touch device by a click
-     * only (a sleeping Claude session comes back by itself when its screen is open).
+     * What a click on the session card does: the session screen and the chat in its app by the
+     * links of the session. A session its provider brings back opens in the desktop app through
+     * the service, on a touch device by a click only (it wakes when its screen is open).
      * @param {string} projectId @param {SessionRow} session @param {boolean} [auto]
      */
     openSession(projectId, session, auto = false) {
       navigate({ screen: 'session', projectId, key: session.key });
-      if (session.provider !== 'claude') handlers.openChat(session, auto);
+      if (!session.resumable) handlers.openChat(session, auto);
       else if ((navigator.maxTouchPoints ?? 0) <= 1) handlers.openInDesktop(session);
       else if (!auto && session.links?.mobile) handlers.openChat(session);
     },
@@ -306,10 +306,10 @@ export function createActions(options) {
       const found = arrivedSession(tree, pending);
       if (!found) return;
       const { projectId, session } = found;
-      const desktop = session.provider === 'claude' && (navigator.maxTouchPoints ?? 0) <= 1;
+      const desktop = session.resumable && (navigator.maxTouchPoints ?? 0) <= 1;
       const shown = pending.shown === true;
       if (desktop && !session.links?.desktop) {
-        // The Remote Control link comes later: show the screen now, open Desktop once it is there.
+        // The desktop link comes later: show the screen now, open the app once it is there.
         if (!shown) setTimeout(() => handlers.openSession(projectId, session, true), 0);
         pending.shown = true;
         return;

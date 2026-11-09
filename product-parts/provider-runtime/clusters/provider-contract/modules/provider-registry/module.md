@@ -214,7 +214,8 @@ mutex, events?, platform, now?, onRefresh? }) → { refresh() }` регистр�
 (у заглушки 501 `not-implemented`).
 
 Раздел `/api/state` → `providers`: `{ providers: ProviderSummary[]
-(id, title, label, mark, status, capabilities, actions(null), errors), projects: {
+(id, title, label, mark, status, capabilities, resume — есть ли у провайдера
+`resumeSession`, actions(null), errors), projects: {
 <projectId>: { <providerId>: ProjectProviderState } } }`.
 
 ## Инварианты

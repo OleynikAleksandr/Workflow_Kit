@@ -24,6 +24,8 @@ export interface ProviderSummary {
   mark: string;
   status: ProviderStatus | null;
   capabilities: Capabilities;
+  /** The provider brings a session without a live process back (it has resumeSession). */
+  resume: boolean;
   /** Provider-scope actions (actions(null)). */
   actions: ProviderAction[];
   errors: Record<string, ProviderErrorInfo>;
@@ -118,7 +120,8 @@ export function createProviderRegistry(options: { readTimeoutMs?: number } = {})
         read(errors, 'capabilities', provider, {}, () => provider.capabilities()),
         read(errors, 'actions', provider, [], () => provider.actions(null)),
       ]);
-      return { id: provider.id, title: provider.title, label: providerLabel(provider), mark: providerMark(provider), status, capabilities, actions, errors };
+      const resume = typeof provider.resumeSession === 'function';
+      return { id: provider.id, title: provider.title, label: providerLabel(provider), mark: providerMark(provider), status, capabilities, resume, actions, errors };
     },
     async projectState(provider, project) {
       const errors: Record<string, ProviderErrorInfo> = {};

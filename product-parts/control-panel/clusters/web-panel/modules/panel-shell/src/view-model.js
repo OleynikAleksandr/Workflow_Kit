@@ -1,10 +1,8 @@
 // @ts-check
 // Pure view models of the panel layout (no DOM): routes, the project and session tree, the
 // connection indicators and the status line. Covered by node --test.
+import { providerViews } from './providers.js';
 import { reviewerMatcher } from './reviewers.js';
-
-/** Provider names shown to the user; the id stays technical. */
-export const PROVIDER_LABELS = Object.freeze({ codex: 'ChatGPT', claude: 'Claude' });
 
 /** Default name of a session without one (session-titles DEFAULT_NAME). */
 export const DEFAULT_SESSION_NAME = 'Новая сессия';
@@ -85,15 +83,6 @@ export function routeHash(route) {
 export function sessionKey(session) {
   const id = session.localId ?? session.remoteId;
   return id ? `${session.provider}:${id}` : null;
-}
-
-/**
- * Provider name for the user.
- * @param {string} id
- * @returns {string}
- */
-export function providerLabel(id) {
-  return /** @type {Record<string, string>} */ (PROVIDER_LABELS)[id] ?? id;
 }
 
 /**
@@ -191,6 +180,7 @@ export function filterProjects(projects, query) {
  * @property {string} key
  * @property {string} provider
  * @property {string} providerLabel
+ * @property {boolean} resumable its provider brings a session without a live process back
  * @property {string} name
  * @property {string} when
  * @property {boolean} isNew
@@ -242,6 +232,7 @@ export function projectTree(state, ui) {
   /** @type {Map<string, any>} */
   const activity = new Map(channel.map((/** @type {any} */ a) => [a.key, a]));
   const isReviewer = reviewerMatcher(state);
+  const known = new Map(providerViews(state).map((p) => [p.id, p]));
   return projectLists(state).active.map((project) => {
     const sessions = /** @type {SessionRow[]} */ ([]);
     const archived = /** @type {SessionRow[]} */ ([]);
@@ -260,7 +251,8 @@ export function projectTree(state, ui) {
         (title['archivedAt'] ? archived : sessions).push({
           key,
           provider: info.provider,
-          providerLabel: providerLabel(info.provider),
+          providerLabel: known.get(info.provider)?.label ?? String(info.provider),
+          resumable: known.get(info.provider)?.resume === true,
           name,
           when: formatWhen(info.createdAt),
           isNew: !act?.lastStopAt && Number.isFinite(created) && ui.now - created < NEW_SESSION_MS,
@@ -289,35 +281,6 @@ export function projectTree(state, ui) {
 }
 
 /**
- * @typedef {object} Indicator
- * @property {string} id
- * @property {string} label
- * @property {boolean} ok
- * @property {string} title Tooltip with the reason.
- */
-
-/**
- * Connection indicators of the sidebar foot: service, ChatGPT, Claude, iPad.
- * @param {Record<string, unknown>} state
- * @param {boolean} linked The last poll of /api/state succeeded.
- * @returns {Indicator[]}
- */
-export function indicators(state, linked) {
-  const providers = Array.isArray(record(state['providers'])['providers']) ? record(state['providers'])['providers'] : [];
-  /** @type {Indicator[]} */
-  const list = [{ id: 'service', label: 'Служба', ok: linked, title: linked ? 'Служба отвечает' : 'Нет связи со службой' }];
-  for (const id of ['codex', 'claude']) {
-    const status = record(providers.find((/** @type {any} */ p) => p.id === id)?.status);
-    const ok = linked && status['state'] === 'ready';
-    list.push({ id, label: providerLabel(id), ok, title: typeof status['label'] === 'string' ? status['label'] : 'нет сведений' });
-  }
-  const addresses = record(state['system'])['addresses'];
-  const remote = (Array.isArray(addresses) ? addresses : []).filter((a) => typeof a === 'string' && !a.includes('127.0.0.1'));
-  list.push({ id: 'ipad', label: 'iPad · Tailscale', ok: linked && remote.length > 0, title: remote.length > 0 ? remote.join(', ') : 'Адреса Tailscale нет' });
-  return list;
-}
-
-/**
  * The status line of the current preparation (a running setup), or null.
  * @param {Record<string, unknown>} state
  * @param {number} now
@@ -329,7 +292,7 @@ export function statusLine(state, now) {
   if (!run) return null;
   const started = Date.parse(run.startedAt);
   return {
-    text: `Готовим сессию в ${providerLabel(run.provider)}`,
+    text: `Готовим сессию в ${typeof run.providerLabel === 'string' ? run.providerLabel : (providerViews(state).find((p) => p.id === run.provider)?.label ?? run.provider)}`,
     elapsed: Number.isFinite(started) ? formatElapsed(now - started) : '',
   };
 }
@@ -361,7 +324,7 @@ export const ARRIVAL_WAIT_MS = 180_000;
  * @property {string | null} key the session key when known (the wizard), else any new one
  * @property {string | null} provider the provider of «Новая сессия»
  * @property {number} since when it was asked for (ms)
- * @property {boolean} [shown] its screen is open, a Claude session still waits for its link
+ * @property {boolean} [shown] its screen is open, the session still waits for its desktop link
  */
 
 /**
@@ -381,13 +344,23 @@ export function arrivedSession(tree, pending) {
 }
 
 /**
- * Header line of a session whose chat opens from its card (ChatGPT) instead of «Открыть чат».
+ * Header line of a session whose chat opens from its card instead of «Открыть чат».
  * @param {{ note?: string | null }} session
  * @param {string | null} link the chat link for this device
  * @returns {{ text: string, tone: 'muted' }}
  */
 export function chatStatus(session, link) {
   return { text: link ? 'чат открывается щелчком по карточке сессии' : (session.note ?? 'ссылки нет'), tone: 'muted' };
+}
+
+/**
+ * State line of a running session its provider brings back: where it is open, with the note of
+ * the provider when it has one.
+ * @param {{ providerLabel: string, note?: string | null }} session
+ * @returns {string}
+ */
+export function runningText(session) {
+  return session.note ? `открыта в ${session.providerLabel} — ${session.note}` : `открыта в ${session.providerLabel}`;
 }
 
 /**

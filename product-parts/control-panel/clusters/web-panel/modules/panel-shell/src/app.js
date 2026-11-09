@@ -18,7 +18,8 @@ import { archivedSessions, currentProjectId } from './selection.js';
 import { applyTheme, createSettings } from './settings.js';
 import { createSidebar } from './sidebar.js';
 import { registerSlot, slots } from './slots.js';
-import { deviceLink, indicators, parseRoute, projectLists, projectTree, routeHash, settingsExit, shortPath, statusLine } from './view-model.js';
+import { indicators, providerNames, providerViews } from './providers.js';
+import { deviceLink, parseRoute, projectLists, projectTree, routeHash, settingsExit, shortPath, statusLine } from './view-model.js';
 import './system-card.js';
 
 /**
@@ -77,7 +78,7 @@ function navigate(next) {
   else render();
 }
 
-const { handlers, toast, say, collapsed } = createActions({ navigate, render: () => render(), route: () => route });
+const { handlers, toast, say, collapsed } = createActions({ navigate, render: () => render(), route: () => route, providerNames: () => providerNames(state) });
 
 /** @type {import('./slots.js').SlotContext} */
 const slotContext = Object.freeze({
@@ -143,7 +144,7 @@ function renderMain() {
   archive.element.hidden = route.screen !== 'archive';
   if (route.screen === 'archive') {
     const lists = projectLists(state);
-    archive.render(lists.archived, archivedSessions(tree), lists.home);
+    archive.render(lists.archived, archivedSessions(tree), lists.home, providerNames(state));
   }
   newProjectHost.hidden = route.screen !== 'new';
   if (route.screen === 'new') {
@@ -162,18 +163,18 @@ function renderMain() {
   let screen = null;
   const r = route;
   if (r.screen === 'home') {
-    const hasProjects = tree.length > 0;
-    screen = ['home', hasProjects, () => homeScreen()];
+    const names = providerNames(state);
+    screen = ['home', [tree.length > 0, names], () => homeScreen(names)];
   } else if (r.screen === 'project') {
     const project = tree.find((p) => p.id === r.projectId);
     const home = projectLists(state).home;
-    const shown = project ? { ...project, path: shortPath(project.path, home), publication: publicationView(state, project.id), providerActions: providerActionRows(state) } : null;
+    const shown = project ? { ...project, path: shortPath(project.path, home), publication: publicationView(state, project.id), providerActions: providerActionRows(state), providers: providerViews(state) } : null;
     screen = ['project', shown, () => (shown ? projectScreen(shown, handlers) : missingScreen('Проект не найден', handlers))];
   } else if (r.screen === 'session') {
     const project = tree.find((p) => p.id === r.projectId);
     const session = project?.sessions.find((s) => s.key === r.key);
     const link = session ? deviceLink(session.links, navigator.maxTouchPoints ?? 0) : null;
-    // Opening a Claude session brings back its process; the header shows its state instead of a link.
+    // Opening a session its provider resumes brings back its process; the header shows its state.
     if (project && session) handlers.reviveSession(project.id, session);
     const data = project && session ? { project, session, link, status: handlers.sessionStatus(session) } : null;
     if (data) {
@@ -261,6 +262,7 @@ function renderSidebar() {
     home: lists.home,
     route,
     indicators: indicators(state, linked),
+    providers: providerViews(state),
   });
 }
 

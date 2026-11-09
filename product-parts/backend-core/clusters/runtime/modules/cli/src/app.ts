@@ -26,7 +26,7 @@ import { createProviderRegistry, registerProviderRoutes } from '#provider-regist
 import type { ProviderContext, ProviderFactory, ProviderRegistry } from '#provider-registry';
 import { createProjectRegistry, isInside, projectsFile, registerProjectRoutes } from '#project-registry';
 import type { ProjectRegistry } from '#project-registry';
-import { getServiceStatus } from '#service-installer';
+import { PROGRAMS, getServiceStatus } from '#service-installer';
 import { registerOpenLinkRoute } from './open-link.ts';
 import { DEFAULT_PROVIDERS } from './provider-list.ts';
 import { wireProviderLifecycle } from './provider-lifecycle.ts';
@@ -120,7 +120,8 @@ export interface SystemSection {
   dataDirOverridden: boolean;
   dataDirs: { config: string; state: string; app: string; logs: string };
   addresses: string[];
-  service: ReturnType<typeof getServiceStatus>;
+  /** The service status and the names of every program the installer looks for (found or not). */
+  service: ReturnType<typeof getServiceStatus> & { programNames: string[] };
 }
 
 /** Builds the backend: creates the data directories (0700), reads config and wires the modules. */
@@ -170,7 +171,7 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
     dataDirOverridden: dirs.overridden,
     dataDirs: { config: dirs.configDir, state: dirs.stateDir, app: dirs.appDir, logs: dirs.logsDir },
     addresses: panelUrls(server.port(), getInterfaces()),
-    service: getServiceStatus(platform, { env, homedir, serving: true }),
+    service: { ...getServiceStatus(platform, { env, homedir, serving: true }), programNames: [...PROGRAMS] },
   }));
   registerProjectRoutes(router, state, projects, homeScope);
   registerStructureRoutes({ router, state, projects, platform, mutex, events });

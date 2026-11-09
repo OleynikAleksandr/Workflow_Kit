@@ -69,8 +69,8 @@ export function install(shell) {
   function activityBlock(activity) {
     const mark = activity.state === 'working' ? h('span', { class: 'spin' }) : h('span', { class: activity.state === 'holding' ? 'sv-hold' : 'wait' }, [activity.state === 'holding' ? '⏸' : '○']);
     const time = h('span', { 'data-since': activity.since ?? '' }, [timer(activity.since, Date.now())]);
-    // A waiting agent gets the queue with its next hook: Claude sessions of the panel are woken by
-    // the service, a chat open in ChatGPT only when the user writes there.
+    // A waiting agent gets the queue with its next hook: sessions the service can wake get it by
+    // themselves, a chat open in the provider's app only when the user writes there.
     const queued = activity.pending > 0
       ? `сообщений в очереди: ${activity.pending}${activity.state === 'waiting' ? ' — уйдут агенту со следующим сообщением в чате' : ''}`
       : null;

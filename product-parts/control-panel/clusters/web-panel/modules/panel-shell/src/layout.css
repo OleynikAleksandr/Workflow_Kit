@@ -330,16 +330,9 @@
   font-size: 11px;
   font-style: normal;
   font-weight: 800;
-}
-
-.prov i.codex {
-  background: #0f3d3b;
-  color: #7fd0cb;
-}
-
-.prov i.claude {
-  background: #3d2616;
-  color: #e0a57a;
+  /* A provider without its own colours (tree.css) keeps the neutral mark. */
+  background: var(--hover);
+  color: var(--muted);
 }
 
 .segmented {

@@ -5,8 +5,12 @@ import { test } from 'node:test';
 import { SESSION_VIEW_ASSETS_DIR, SESSION_VIEW_PREFIX, sessionViewMount } from '../src/index.ts';
 import { activityView, choiceView, crossReviewView, planQuestionView, planView, reviewView, timer } from '../src/session-model.js';
 
+/** The "providers" section as the service reports it: the panel takes the names from it. */
+const PROVIDERS = { providers: [{ id: 'codex', title: 'ChatGPT (Codex)', label: 'ChatGPT' }, { id: 'claude', title: 'Claude', label: 'Claude' }, { id: 'kimi', title: 'Kimi Code' }] };
+
 function state(extra: Record<string, unknown> = {}): Record<string, unknown> {
   return {
+    providers: PROVIDERS,
     channel: {
       sessions: [
         { key: 'claude:s1', projectId: 'p', state: 'working', since: '2026-11-06T08:00:00Z', turnStartedAt: '2026-11-06T08:09:45Z', pending: 0, holdReason: null },
@@ -128,6 +132,7 @@ test('the cross review: card data for both sides; the choice and the toggle hide
     workflow: { projects: { p: { choice: { generation: 1, reason: 'r', options: [{ option: 'sequential', title: 'Сам', description: '' }] }, proposal: { scopeId: 's1' } } } },
     review: { projects: { p: { visible: true, sessions: { 'claude:s1': true } } } },
     channel: { sessions: [] },
+    providers: PROVIDERS,
   };
   const st = { ...base, reviews: { projects: { p: [review] } } };
   const main = crossReviewView(st, 'p', 'claude:s1')!;
@@ -143,6 +148,8 @@ test('the cross review: card data for both sides; the choice and the toggle hide
   assert.equal(crossReviewView(preparing, 'p', 'claude:s1')!.turn, 'агент (Claude) описывает план', 'M4 11.2');
   assert.equal(choiceView(preparing, 'p', 'claude:s1'), null, 'no mode choice while the plan is described');
   assert.equal(crossReviewView(st, 'p', 'claude:other'), null);
+  const kimi = crossReviewView({ ...st, reviews: { projects: { p: [{ ...review, reviewerProvider: 'kimi', mainProvider: 'none' }] } } }, 'p', 'claude:s1')!;
+  assert.deepEqual([kimi.reviewerName, kimi.turn], ['Kimi Code', 'отвечает агент (агент)'], 'names come from the state: the title without a label, a neutral word for an unknown id');
   assert.equal(choiceView(st, 'p', 'claude:s1'), null, 'no mode choice while the review runs');
   assert.equal(reviewView(st, 'p', 'claude:s1'), null, 'the toggle is gone while the review runs');
   assert.equal(reviewView(st, 'p', 'codex:r1'), null, 'a reviewer has no toggle');

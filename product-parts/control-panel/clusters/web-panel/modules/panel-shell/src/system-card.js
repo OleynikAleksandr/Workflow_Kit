@@ -18,6 +18,7 @@ import { code, facts, h, pill } from './dom.js';
  * @property {ManagedItem} [launcher]
  * @property {ManagedItem} [icon]
  * @property {Record<string, string>} [programs]
+ * @property {string[]} [programNames] every program the service looks for, found or not
  */
 
 /**
@@ -97,8 +98,9 @@ function autostartValue(service) {
  * @returns {Node}
  */
 function programList(service) {
-  const names = ['node', 'claude', 'codex', 'expect'];
   const programs = service?.programs ?? {};
+  // The service names the programs it looks for; an older service reports the found ones only.
+  const names = Array.isArray(service?.programNames) ? service.programNames : Object.keys(programs);
   if (Object.keys(programs).length === 0) return h('small', {}, ['сохраняются командой wfk install']);
   return h(
     'ul',

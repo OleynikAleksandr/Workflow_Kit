@@ -22,6 +22,7 @@ test('the panel files live in the module src directory', async () => {
     'buttons.css',
     'archive.css',
     'view-model.js',
+    'providers.js',
     'sidebar.js',
     'menus.js',
     'screens.js',
@@ -127,7 +128,9 @@ test('the System card shows the service from service-installer: instance, autost
   for (const field of ['service.version', 'service.instance', 'service.mechanism', 'service.autostartEntry', 'service?.launcher', 'service?.icon', 'service?.programs']) {
     assert.ok(card.includes(field), field);
   }
-  for (const name of ["'node'", "'claude'", "'codex'", "'expect'"]) assert.ok(card.includes(name), name);
+  // The program names come from the service (system.service.programNames), not from the panel.
+  assert.ok(card.includes('service?.programNames'), 'programNames');
+  for (const name of ["'node'", "'claude'", "'codex'", "'expect'"]) assert.ok(!card.includes(name), name);
   assert.doesNotMatch(card, /innerHTML/);
 });
 

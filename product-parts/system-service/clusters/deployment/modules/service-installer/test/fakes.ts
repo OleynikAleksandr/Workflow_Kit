@@ -147,6 +147,8 @@ export interface Machine {
   calls: Call[];
   spawned: { command: string; args: string[]; env: Record<string, string>; logFile?: string }[];
   killed: number[];
+  /** Ports that got POST /api/system/shutdown (the service stops at once). */
+  shutdowns: number[];
   backend: { health: HealthInfo | null };
   /** Command lines of the calls, for compact assertions. */
   lines(): string[];
@@ -205,6 +207,7 @@ export function makeMachine(platform: NodeJS.Platform, options: { handler?: Hand
   const calls: Call[] = [];
   const spawned: Machine['spawned'] = [];
   const killed: number[] = [];
+  const shutdowns: number[] = [];
   const backend: Machine['backend'] = { health: null };
   let pid = 1000;
   const env = { ...base.env, ...options.env };
@@ -213,6 +216,7 @@ export function makeMachine(platform: NodeJS.Platform, options: { handler?: Hand
     calls,
     spawned,
     killed,
+    shutdowns,
     backend,
     lines: () => calls.map((call) => [call.command, ...call.args].join(' ')),
     boot() {
@@ -237,6 +241,11 @@ export function makeMachine(platform: NodeJS.Platform, options: { handler?: Hand
       kill: (target) => {
         killed.push(target);
         backend.health = null;
+      },
+      requestShutdown: async (port) => {
+        shutdowns.push(port);
+        backend.health = null;
+        return true;
       },
       spawnDetached: async (command, args, spawnOptions) => {
         spawned.push({ command, args: [...args], env: spawnOptions.env, logFile: spawnOptions.logFile });

@@ -37,6 +37,22 @@ export const fetchHealth: HealthProbe = async (port) => {
   }
 };
 
+/** POST /api/system/shutdown from this computer (Origin and JSON as the service requires). */
+export async function postShutdown(port: number): Promise<boolean> {
+  const origin = `http://127.0.0.1:${port}`;
+  try {
+    const response = await fetch(`${origin}/api/system/shutdown`, {
+      method: 'POST',
+      headers: { origin, 'content-type': 'application/json' },
+      body: '{}',
+      signal: AbortSignal.timeout(3000),
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
 /** Starts a detached program in its own group, stdin closed, output appended to the log (0600). */
 export const spawnDetachedProcess: DetachedSpawner = async (command, args, options) => {
   let fd: number | undefined;
@@ -75,6 +91,7 @@ export function resolveDeps(deps: ServiceDeps = {}): ResolvedDeps {
     spawnDetached: deps.spawnDetached ?? spawnDetachedProcess,
     health: deps.health ?? fetchHealth,
     kill: deps.kill ?? ((pid, signal) => process.kill(pid, signal)),
+    requestShutdown: deps.requestShutdown ?? postShutdown,
     sleep: deps.sleep ?? ((ms) => delay(ms)),
     now: deps.now ?? (() => new Date()),
     uid: deps.uid ?? process.getuid?.() ?? 0,

@@ -19,7 +19,7 @@ login-shell (D12), запускатель `wfk`, значок «Workflow Kit», 
   `stop`, `status`, `open`, `doctor` (`args` с `--installed` — проверка
   установленной службы). `context` (`ServiceDeps`): `platform`, `env`,
   `homedir`, `serving` и внедряемые эффекты `fs` (`InstallerFs`), `run`
-  (`CommandRunner`), `spawnDetached`, `health`, `kill`, `sleep`, `now`,
+  (`CommandRunner`), `spawnDetached`, `health`, `kill`, `requestShutdown`, `sleep`, `now`,
   `uid`, `sourceRoot` (что устанавливать, по умолчанию корень этого кода
   `SOURCE_ROOT`), `nodePath` (по умолчанию `process.execPath`),
   `readyTimeoutMs` (20 с), `stopTimeoutMs` (10 с). Без `context` вызов
@@ -154,8 +154,13 @@ unit, `daemon-reload`; XDG-файл; `reg delete`, `.vbs`, PATH пользова
 - `stop`: `launchctl bootout` с ожиданием выгрузки или
   `systemctl --user stop`; если бэкенд
   всё ещё отвечает (или служба отсоединённая) — TERM процессу с pid,
-  который только что сообщил сам `/api/health`, ожидание до 10 с. Шаблонов
+  который только что сообщил сам `/api/health`, ожидание до 10 с. На Windows
+  сначала `requestShutdown` (`postShutdown`: `POST /api/system/shutdown` с Origin) и
+  ожидание ухода, `kill` — только если служба не остановилась. Шаблонов
   `pkill` нет (D9).
+- `install` на Windows проверяет права (`ELEVATION_SCRIPT`, PowerShell `IsInRole(Administrator)`):
+  при повышенных правах отчёт заканчивается строкой «ВНИМАНИЕ: …» (`ELEVATED_WARNING`, демон Codex
+  с повышенными правами не работает, M5 раздел 7); установка не прерывается.
 - `status`: служба (`/api/health`, pid, версия, порт), установка,
   автозапуск, запускатель, значок, пути программ.
 - `open`: `start` при необходимости, затем окно панели

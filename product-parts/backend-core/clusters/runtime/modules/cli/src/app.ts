@@ -79,14 +79,12 @@ export interface App {
   readonly config: WfkConfig;
   readonly version: string;
   readonly os: OsInfo;
-  /** Route registry; feature modules add their API routes here before start(). */
+  /** Route registry and /api/state sections; feature modules add theirs here before start(). */
   readonly router: Router;
-  /** /api/state sections; feature modules add their sections here before start(). */
   readonly state: StateRegistry;
   readonly server: HttpServerHandle;
-  /** Backend event journal (events.jsonl, rotated at 5 MiB). */
+  /** Backend event journal (events.jsonl, rotated at 5 MiB) and the keyed mutex of actions (D10). */
   readonly events: EventLog;
-  /** Keyed mutex for actions on projects and providers (D10). */
   readonly mutex: KeyedMutex;
   /** Project list (projects.json); later modules add remove guards here. */
   readonly projects: ProjectRegistry;
@@ -113,6 +111,8 @@ export interface App {
   /** Starts listening on config.port; returns the bound port and the panel URLs. */
   start(): Promise<{ port: number; host: string; urls: string[] }>;
   stop(): Promise<void>;
+  /** Resolves on POST /api/system/shutdown (wfk serve then stops, as on SIGTERM). */
+  readonly shutdownRequested: Promise<void>;
 }
 
 /** Contents of the "system" section of /api/state. */
@@ -165,7 +165,7 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
   });
 
   registerCoreRoutes(router, state, () => ({ version, pid: process.pid, startedAt }));
-  registerOpenLinkRoute({ router, runCommand: options.runCommand ?? runCommand, platform, log: options.log });
+  const system = registerOpenLinkRoute({ router, runCommand: options.runCommand ?? runCommand, platform, env, log: options.log });
   state.add('system', (): SystemSection => ({
     version,
     os: osInfo,
@@ -379,11 +379,11 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
     review,
     titles,
     setup,
+    shutdownRequested: system.shutdownRequested,
     async start() {
       const bound = await server.listen(config.port);
       await events.append('service.started', { version, pid: process.pid, port: bound.port }).catch(() => undefined);
-      // External programs run at start and on "Обновить" only (D11).
-      providerRoutes.refresh();
+      providerRoutes.refresh(); // External programs run at start and on "Обновить" only (D11).
       void workflow.start();
       await review.load().catch(() => undefined);
       await crossReview.load().catch(() => undefined);

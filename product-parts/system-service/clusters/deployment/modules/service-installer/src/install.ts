@@ -1,6 +1,6 @@
 // wfk install and wfk uninstall (spec section 9). A repeated install updates the version;
 // uninstall removes autostart, launcher, icon and the installed copies, the data stays.
-import { systemctl } from './commands.ts';
+import { powershell, systemctl } from './commands.ts';
 import { ServiceError, startService, stopService, unloadLaunchAgent } from './control.ts';
 import type { ControlTarget, StartResult } from './control.ts';
 import { copyApp, pruneVersions, readCurrent, readSourceVersion, saveProgramPaths, servicePort, writeCurrent } from './deploy.ts';
@@ -28,6 +28,23 @@ export interface InstallReport {
   removedVersions: string[];
   /** What the icon is (macOS: the app or the browser-window script) and why, when it is not the app. */
   icon: IconResult | null;
+  /** Warnings shown after the report (Windows: run with administrator rights). */
+  warnings: string[];
+}
+
+/** PowerShell check of administrator rights of the current process (prints True or False). */
+export const ELEVATION_SCRIPT =
+  '([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)';
+
+/** The warning about an elevated install (spec M5 section 7): the Codex daemon refuses to run elevated. */
+export const ELEVATED_WARNING =
+  'wfk install запущен с правами администратора: служба унаследует их, а демон Codex с повышенными правами не работает. Переустановите из обычного (не администраторского) терминала.';
+
+async function elevationWarnings(deps: ResolvedDeps): Promise<string[]> {
+  if (deps.platform !== 'win32') return [];
+  const check = powershell(deps.env, ELEVATION_SCRIPT);
+  const result = await deps.run(check.command, check.args, { timeoutMs: 15_000 });
+  return result.code === 0 && result.stdout.trim().toLowerCase() === 'true' ? [ELEVATED_WARNING] : [];
 }
 
 /** What uninstall did. */
@@ -76,6 +93,7 @@ export async function install(deps: ResolvedDeps): Promise<InstallReport> {
   const previous = await readCurrent(deps.fs, layout);
   const port = await servicePort(deps.fs, layout, deps.env);
   if (integrated) await checkConflicts(deps, layout);
+  const warnings = await elevationWarnings(deps);
 
   for (const dir of [layout.dirs.configDir, layout.dirs.stateDir, layout.dirs.appDir, layout.dirs.logsDir, layout.appRoot]) {
     await deps.fs.ensureDir(dir);
@@ -130,6 +148,7 @@ export async function install(deps: ResolvedDeps): Promise<InstallReport> {
     start,
     removedVersions,
     icon,
+    warnings,
   };
 }
 

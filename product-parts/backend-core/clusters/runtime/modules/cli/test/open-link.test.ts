@@ -7,6 +7,7 @@ import { after, before, test } from 'node:test';
 import type { CommandRunner } from '#process-supervisor';
 import { createStubProvider } from '#provider-registry';
 import { createApp } from '../src/index.ts';
+import { codexAppxScript, openCommands } from '../src/open-link.ts';
 import type { App } from '../src/index.ts';
 
 let tmp = '';
@@ -60,4 +61,28 @@ test('ChatGPT thread and Claude Desktop session links are opened with open; othe
   const failed = await post('codex://threads/abc');
   assert.equal(failed.status, 502);
   fail = false;
+});
+
+test('Windows (spec M5 section 7): claude:// through rundll32, codex:// through the AppX app, rundll32 as the fallback', () => {
+  const env = { SystemRoot: 'C:\\Windows' };
+  const claude = 'claude://claude.ai/code/session_01Ab';
+  assert.deepEqual(openCommands('win32', claude, env), [{ command: 'C:\\Windows\\System32\\rundll32.exe', args: ['url.dll,FileProtocolHandler', claude] }]);
+  const codex = 'codex://threads/01a1-b2';
+  const [appx, fallback] = openCommands('win32', codex, env) ?? [];
+  assert.equal(appx?.command, 'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe');
+  assert.equal(appx?.args.at(-1), codexAppxScript(codex));
+  assert.match(codexAppxScript(codex), /Get-AppxPackage -Name 'OpenAI\.Codex'.*exit 3.*shell:AppsFolder.*-ArgumentList 'codex:\/\/threads\/01a1-b2'$/);
+  assert.deepEqual(fallback?.args, ['url.dll,FileProtocolHandler', codex]);
+  assert.equal(openCommands('linux', codex, env), null);
+});
+
+test('POST /api/system/shutdown asks wfk serve to stop (loopback, Origin as for every change)', async () => {
+  let requested = false;
+  void app.shutdownRequested.then(() => (requested = true));
+  const refused = await fetch(`${base}/api/system/shutdown`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+  assert.equal(refused.status, 403);
+  const response = await fetch(`${base}/api/system/shutdown`, { method: 'POST', headers: { Origin: base, 'Content-Type': 'application/json' }, body: '{}' });
+  assert.deepEqual([response.status, await response.json()], [200, { stopping: true }]);
+  await new Promise((resolve) => setTimeout(resolve, 120));
+  assert.equal(requested, true);
 });

@@ -167,6 +167,11 @@ export async function stopService(deps: ResolvedDeps, target: ControlTarget): Pr
   const gone = await waitUntil(deps, mode === 'detached' ? 0 : 2_000, async () => (await deps.health(target.port)) === null);
   if (!gone) {
     const health = await deps.health(target.port);
+    // Windows has no SIGTERM (kill ends the process at once): ask the service to stop itself first.
+    const asked = health && deps.platform === 'win32' && (await deps.requestShutdown(target.port));
+    if (asked && (await waitUntil(deps, deps.stopTimeoutMs, async () => (await deps.health(target.port)) === null))) {
+      return { wasRunning: before !== null, mode };
+    }
     if (health) {
       try {
         deps.kill(health.pid, 'SIGTERM');

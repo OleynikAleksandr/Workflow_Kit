@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 404,
+  "revision": 406,
   "rounds": [
     {
       "digest": null,
@@ -310,14 +310,26 @@
       "files": [
         "product-parts/backend-core/clusters/runtime/modules/cli/src",
         "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
-        "product-parts/system-service/clusters/deployment/modules/service-installer"
+        "product-parts/system-service/clusters/deployment/modules/service-installer",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/commands.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/open-link.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/open-link.test.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/module.md",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/context.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/control.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/install.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/run.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/types.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/test/fakes.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/test/install.test.ts"
       ],
       "fixes": null,
       "id": "T006",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Links, graceful shutdown and the elevation warning on Windows",
       "why": "Chats must open and the service must stop cleanly on Windows"
     },
@@ -432,8 +444,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 5/9
-- Revision: 404
+- Progress: 6/9
+- Revision: 406
 
 ## Objective
 
@@ -468,9 +480,9 @@ Windows 11 (x64 и ARM64): сессии Claude и ChatGPT/Codex, ревью, в�
   - Commit: feat: run Codex sessions on Windows
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/codex-files.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/hooks.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/proxy.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/runtime.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/trust.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/ws.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/files-hooks.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/windows.test.ts
   - Depends on: T002
-- [TODO] T006 — Links, graceful shutdown and the elevation warning on Windows (work)
+- [DONE] T006 — Links, graceful shutdown and the elevation warning on Windows (work)
   - Commit: feat: open chats and stop the service cleanly on Windows
-  - Files: product-parts/backend-core/clusters/runtime/modules/cli/src, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/system-service/clusters/deployment/modules/service-installer
+  - Files: product-parts/backend-core/clusters/runtime/modules/cli/src, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/system-service/clusters/deployment/modules/service-installer, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/commands.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/open-link.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/open-link.test.ts, product-parts/system-service/clusters/deployment/modules/service-installer/module.md, product-parts/system-service/clusters/deployment/modules/service-installer/src/context.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/control.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/install.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/run.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/types.ts, product-parts/system-service/clusters/deployment/modules/service-installer/test/fakes.ts, product-parts/system-service/clusters/deployment/modules/service-installer/test/install.test.ts
   - Depends on: T004
 - [TODO] T007 — Documentation of Windows support (work)
   - Commit: docs: describe Windows support

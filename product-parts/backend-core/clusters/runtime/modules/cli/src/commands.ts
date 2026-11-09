@@ -57,7 +57,8 @@ const USAGE = `Использование: wfk <команда>
   --version                     версия
 `;
 
-function defaultShutdown(): Promise<void> {
+/** SIGINT, SIGTERM or POST /api/system/shutdown (the graceful stop on Windows). */
+function defaultShutdown(app: App): Promise<void> {
   return new Promise((resolve) => {
     const stop = (): void => {
       process.off('SIGINT', stop);
@@ -66,6 +67,7 @@ function defaultShutdown(): Promise<void> {
     };
     process.on('SIGINT', stop);
     process.on('SIGTERM', stop);
+    void app.shutdownRequested.then(stop);
   });
 }
 

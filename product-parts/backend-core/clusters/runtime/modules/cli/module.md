@@ -137,8 +137,15 @@ stripping).
 - `POST /api/open-link { url }` (`src/open-link.ts`, M3-autostart раздел 7): служба
   открывает ссылку чата ChatGPT (`codex://threads/<id>`) или сессии Claude Desktop
   (`claude://claude.ai/code/session_<id>`, раздел 11), `OPENABLE_LINK`, командой `open` —
-  только с этого компьютера (loopback, иначе 403), только macOS (иначе 501); другая
-  ссылка — 400 без запуска, неудача `open` — 502 и строка в журнале. Панель зовёт его для
+  только с этого компьютера (loopback, иначе 403), только macOS и Windows (иначе 501); другая
+  ссылка — 400 без запуска, неудача всех команд — 502 и строка в журнале. Windows
+  (`openCommands`, M5 раздел 7): `claude://` — `rundll32 url.dll,FileProtocolHandler`;
+  `codex://` — приложение из AppX-пакета `OpenAI.Codex` (`codexAppxScript`, PowerShell
+  `shell:AppsFolder\<семейство>!<id>` с адресом; без пакета — выход 3), затем `rundll32`.
+- `POST /api/system/shutdown` (там же, M5 раздел 7): только loopback (и Origin, как у любого
+  изменения); отвечает `{ stopping: true }` и через 50 мс выполняет `app.shutdownRequested` —
+  `wfk serve` останавливается так же, как по SIGTERM (на Windows сигналов нет; так службу
+  останавливает установщик). Панель зовёт его для
   новой сессии: окно без щелчка пользователя ссылку приложения может не открыть;
 - перекрёстное ревью плана (M4) собрано в `src/review-wiring.ts`:
   `lateReviewDecider()` — решатель ревью для автопилота (подключается после

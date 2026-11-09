@@ -218,7 +218,7 @@ test('Windows: wfk.cmd, hidden Run value, user PATH, Start menu shortcut', async
     `"C:\\Windows\\System32\\wscript.exe" "${data}\\wfk-service.vbs"`,
     '/f',
   ]);
-  const scripts = m.calls.filter((call) => call.command.endsWith('powershell.exe')).map((call) => call.args.at(-1) ?? '');
+  const scripts = m.calls.filter((call) => call.command.endsWith('powershell.exe')).map((call) => call.args.at(-1) ?? '').filter((s) => !s.includes('IsInRole'));
   assert.equal(scripts.length, 2);
   assert.match(scripts[0] ?? '', /\$d = 'C:\\Users\\me\\AppData\\Local\\Workflow Kit'.*SetEnvironmentVariable\('Path'/);
   assert.match(scripts[1] ?? '', /CreateShortcut\('C:\\Users\\me\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Workflow Kit\.lnk'\)/);
@@ -254,4 +254,22 @@ test('a development instance (WFK_DATA_DIR) gets the copy and the service, no la
   const removed = await runServiceCommand('uninstall', m.deps);
   assert.equal(removed.exitCode, 0, removed.message);
   assert.ok(!m.fs.existsSync('/tmp/wfk-dev/app'));
+});
+
+test('Windows: an elevated install warns; a reinstall stops the service through /api/system/shutdown', async () => {
+  const elevated = standardMachine('win32', { extra: (command, args) => (command.endsWith('powershell.exe') && (args.at(-1) ?? '').includes('IsInRole') ? { stdout: 'True\r\n' } : undefined) });
+  const first = await runServiceCommand('install', elevated.deps);
+  assert.equal(first.exitCode, 0, first.message);
+  assert.match(first.message, /ВНИМАНИЕ: wfk install запущен с правами администратора/);
+  const again = await runServiceCommand('install', elevated.deps);
+  assert.equal(again.exitCode, 0, again.message);
+  assert.equal(elevated.shutdowns.length, 1);
+  assert.deepEqual(elevated.killed, []);
+
+  const normal = standardMachine('win32');
+  const plain = await runServiceCommand('install', normal.deps);
+  assert.doesNotMatch(plain.message, /ВНИМАНИЕ/);
+  const mac = standardMachine('darwin');
+  assert.equal((await runServiceCommand('install', mac.deps)).exitCode, 0);
+  assert.ok(!mac.lines().some((line) => line.includes('IsInRole')));
 });

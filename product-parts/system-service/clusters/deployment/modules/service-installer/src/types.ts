@@ -88,6 +88,8 @@ export interface ServiceDeps extends ServiceContext {
   health?: HealthProbe;
   /** Sends a signal to a pid reported by /api/health (fallback stop). */
   kill?: (pid: number, signal: NodeJS.Signals) => void;
+  /** POST /api/system/shutdown of the service on a port; true when it accepted (Windows stop). */
+  requestShutdown?: (port: number) => Promise<boolean>;
   sleep?: (ms: number) => Promise<void>;
   now?: () => Date;
   /** User id for launchctl gui/<uid>. */
@@ -113,6 +115,7 @@ export interface ResolvedDeps {
   spawnDetached: DetachedSpawner;
   health: HealthProbe;
   kill: (pid: number, signal: NodeJS.Signals) => void;
+  requestShutdown: (port: number) => Promise<boolean>;
   sleep: (ms: number) => Promise<void>;
   now: () => Date;
   uid: number;

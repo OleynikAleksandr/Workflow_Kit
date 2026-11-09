@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 366,
+  "revision": 368,
   "rounds": [
     {
       "digest": {
@@ -35,7 +35,16 @@
       "title": "Implementation"
     },
     {
-      "digest": null,
+      "digest": {
+        "contracts": [],
+        "decisions": [
+          "Публикация на GitHub — задача поставки после решения пользователя «Принять и опубликовать»"
+        ],
+        "references": [
+          "docs/evidence/M4-acceptance.md"
+        ],
+        "result": "Принятый результат scope m4-claude-reviewer (релиз 0.4.7) публикуется на GitHub отдельной задачей поставки."
+      },
       "id": "R2",
       "kind": "fixes",
       "status": "OPEN",
@@ -256,7 +265,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -296,8 +305,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 5/7
-- Revision: 366
+- Progress: 6/7
+- Revision: 368
 
 ## Objective
 
@@ -338,12 +347,14 @@ Digest: Ревьюер Claude при основной сессии ChatGPT по�
 
 ### R2 — Fixes (fixes, OPEN)
 
-- [TODO] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R2
   - Files: README.md, docs/architecture/OVERVIEW.md
 - [TODO] T005 — Publish to GitHub (delivery)
   - Commit: chore: record the GitHub publication
   - Files: docs/evidence/M4-acceptance.md
   - Depends on: T004, DOCS-R2
+
+Digest: Принятый результат scope m4-claude-reviewer (релиз 0.4.7) публикуется на GitHub отдельной задачей поставки.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

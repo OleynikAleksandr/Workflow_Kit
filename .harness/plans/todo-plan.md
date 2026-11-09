@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 345,
+  "revision": 347,
   "rounds": [
     {
       "digest": null,
@@ -99,7 +99,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Подготовить README, инструкцию установки, CHANGELOG и состав файлов",
       "why": "Подготовить README, инструкцию установки, CHANGELOG и состав файлов"
     },
@@ -172,8 +172,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 0/3
-- Revision: 345
+- Progress: 1/3
+- Revision: 347
 
 ## Objective
 
@@ -191,7 +191,7 @@
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T001 — Подготовить README, инструкцию установки, CHANGELOG и состав файлов (work)
+- [DONE] T001 — Подготовить README, инструкцию установки, CHANGELOG и состав файлов (work)
   - Commit: docs: prepare installation guide and changelog for GitHub publication
   - Files: README.md, CHANGELOG.md, docs/installation.md, docs/architecture/OVERVIEW.md, .gitignore, docs/evidence/github-publication.md
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)

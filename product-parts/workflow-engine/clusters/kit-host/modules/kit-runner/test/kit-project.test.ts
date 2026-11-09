@@ -189,3 +189,24 @@ test('a project without Kit is listed as not installed without running Kit', asy
   assert.equal(commands, before);
   state.stop();
 });
+
+test('release closes the watchers of a project so Windows can delete its folder; the next sync lists it again', async () => {
+  const root = path.join(tmp, 'released');
+  await mkdir(root);
+  const open = new Set<string>();
+  const watch: WatchFactory = (folder) => {
+    open.add(folder);
+    return { close: () => open.delete(folder) };
+  };
+  const state = createWorkflowState({ runner, listProjects: async () => [{ id: 'gone', path: root }], watch, syncMs: 0 });
+  await state.start();
+  assert.deepEqual([...open].sort(), [root, path.join(root, '.harness')].sort());
+  state.release('gone');
+  assert.deepEqual([...open], []);
+  assert.equal(state.get('gone'), undefined);
+  state.release('unknown');
+  await state.sync();
+  assert.equal(open.size, 2);
+  state.stop();
+  assert.equal(open.size, 0);
+});

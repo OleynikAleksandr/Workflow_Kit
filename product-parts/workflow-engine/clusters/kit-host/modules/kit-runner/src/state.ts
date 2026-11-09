@@ -83,6 +83,11 @@ export interface WorkflowState {
   /** Status of the last successful read (for the session loop), or undefined. */
   status(projectId: string): KitStatus | undefined;
   section(): WorkflowSection;
+  /**
+   * Closes the watchers of a project and forgets it until the next sync lists it again. Windows
+   * keeps a watched folder busy, so the folder is released before it is deleted.
+   */
+  release(projectId: string): void;
   stop(): void;
 }
 
@@ -296,6 +301,12 @@ export function createWorkflowState(options: WorkflowStateOptions): WorkflowStat
       const projects: Record<string, ProjectWorkflow> = {};
       for (const [id, entry] of entries) projects[id] = { ...entry.view };
       return { projects };
+    },
+    release(projectId) {
+      const entry = entries.get(projectId);
+      if (!entry) return;
+      disarm(entry);
+      entries.delete(projectId);
     },
     stop() {
       stopped = true;

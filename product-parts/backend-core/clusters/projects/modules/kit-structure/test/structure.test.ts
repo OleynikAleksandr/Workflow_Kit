@@ -12,6 +12,7 @@ import {
   checkStructure,
   hookCommand,
   installStructure,
+  kitHookEntry,
   normalizeHook,
   sha256,
 } from '../src/index.ts';
@@ -87,9 +88,10 @@ test('an empty folder is "missing"; install writes everything and the result is 
   const claude = JSON.parse(await read(root, '.claude/settings.json'));
   assert.deepEqual(claude, {
     hooks: {
-      SessionStart: [{ hooks: [{ type: 'command', command: hookCommand('claude') }] }],
-      Stop: [{ hooks: [{ type: 'command', command: hookCommand('claude', 'Stop'), timeout: 600 }] }],
-      UserPromptSubmit: [{ hooks: [{ type: 'command', command: hookCommand('claude', 'UserPromptSubmit'), timeout: 30 }] }],
+      // The hook of the running OS: the POSIX command, or the Windows forms (spec M5 section 6).
+      SessionStart: [{ hooks: [kitHookEntry('claude')] }],
+      Stop: [{ hooks: [kitHookEntry('claude', 'Stop')] }],
+      UserPromptSubmit: [{ hooks: [kitHookEntry('claude', 'UserPromptSubmit')] }],
     },
   });
   assert.equal(hookCommand('claude', 'Stop'), '[ -x "$HOME/.local/bin/wfk" ] && "$HOME/.local/bin/wfk" hook stop --client claude; exit 0');
@@ -99,8 +101,11 @@ test('an empty folder is "missing"; install writes everything and the result is 
   );
   const codex = JSON.parse(await read(root, '.codex/hooks.json'));
   assert.equal(codex.hooks.SessionStart[0].hooks[0].command, hookCommand('codex'));
-  assert.deepEqual(codex.hooks.Stop[0].hooks[0], { type: 'command', command: hookCommand('codex', 'Stop'), timeoutSec: 600 });
-  assert.deepEqual(codex.hooks.UserPromptSubmit[0].hooks[0], { type: 'command', command: hookCommand('codex', 'UserPromptSubmit'), timeoutSec: 30 });
+  assert.deepEqual(codex.hooks.SessionStart[0].hooks[0], kitHookEntry('codex'));
+  assert.deepEqual(codex.hooks.Stop[0].hooks[0], kitHookEntry('codex', 'Stop'));
+  assert.deepEqual(codex.hooks.UserPromptSubmit[0].hooks[0], kitHookEntry('codex', 'UserPromptSubmit'));
+  assert.equal(kitHookEntry('claude', 'Stop', { platform: 'darwin', node: '', launcher: '' }).timeout, 600);
+  assert.equal(kitHookEntry('codex', 'UserPromptSubmit', { platform: 'linux', node: '', launcher: '' }).timeoutSec, 30);
   assert.match(agents, /wfk session title/);
 
   const manifest = JSON.parse(await read(root, MANIFEST_PATH));
@@ -147,7 +152,7 @@ test('foreign sections, Harness markers and text outside the Kit markers stay un
 
   const codex = JSON.parse(await read(root, '.codex/hooks.json'));
   assert.deepEqual(codex.hooks.SessionStart[0], HARNESS_CODEX_HOOKS.hooks.SessionStart[0], 'Harness hook keeps position 0');
-  assert.deepEqual(codex.hooks.SessionStart[1], { hooks: [{ type: 'command', command: hookCommand('codex') }] }, 'Kit hook is appended at the end');
+  assert.deepEqual(codex.hooks.SessionStart[1], { hooks: [kitHookEntry('codex')] }, 'Kit hook is appended at the end');
   assert.deepEqual(codex.hooks.Stop[0], HARNESS_CODEX_HOOKS.hooks.Stop[0], 'Harness Stop hook keeps position 0');
   assert.equal(codex.hooks.Stop[1].hooks[0].command, hookCommand('codex', 'Stop'), 'Kit Stop hook is appended at the end');
   assert.equal(codex.hooks.Stop.length, 2);
@@ -156,7 +161,7 @@ test('foreign sections, Harness markers and text outside the Kit markers stay un
   const claude = JSON.parse(await read(root, '.claude/settings.json'));
   assert.deepEqual(claude.permissions, { allow: ['Bash(ls)'] });
   assert.equal(claude.hooks.SessionStart[0].hooks[0].command, 'echo hi');
-  assert.equal(claude.hooks.SessionStart[1].hooks[0].command, hookCommand('claude'));
+  assert.deepEqual(claude.hooks.SessionStart[1].hooks[0], kitHookEntry('claude'));
 
   assert.equal(await read(root, '.gitignore'), 'node_modules/\n\n# wfk:begin\n.workflow-kit/local/\n# wfk:end\n');
 });
@@ -225,7 +230,7 @@ test('a structure v1 project is "outdated" and the update adds the Stop and prom
   assert.ok(updated.written.includes('claude-hook'));
   const claude = JSON.parse(await read(root, '.claude/settings.json'));
   assert.equal(claude.hooks.SessionStart.length, 1);
-  assert.equal(claude.hooks.Stop[0].hooks[0].command, hookCommand('claude', 'Stop'));
+  assert.deepEqual(claude.hooks.Stop[0].hooks[0], kitHookEntry('claude', 'Stop'));
   assert.equal(statusOf(updated.report, 'claude-hook'), 'ok');
 });
 

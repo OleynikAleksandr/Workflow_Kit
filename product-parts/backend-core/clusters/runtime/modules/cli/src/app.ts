@@ -228,6 +228,8 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
     onChange: (projectId) => void publication.refresh(projectId).catch(() => undefined),
   });
   state.add('workflow', () => workflow.section());
+  // Windows keeps a watched folder busy: the project's watchers are released before its folder is deleted.
+  projects.addBeforeDeleteHook(async (project) => workflow.release(project.id));
   // GitHub publication is not a plan task: only with no open scope (spec publication-order).
   const publication = registerPublicationRoutes({ router, state, projects, scopeOpen: (id) => workflow.get(id)?.scope != null, log: options.log });
 
@@ -391,9 +393,7 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
       return { ...bound, urls: panelUrls(bound.port, getInterfaces()) };
     },
     async stop() {
-      workflow.stop();
-      publication.stop();
-      channel.close();
+      workflow.stop(), publication.stop(), channel.close();
       await server.close();
     },
   };

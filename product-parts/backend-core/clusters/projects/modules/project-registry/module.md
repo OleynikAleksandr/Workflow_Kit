@@ -33,12 +33,15 @@
     (иначе `not-archived`, 409) и убирает его из списка; `confirm` — точное
     имя проекта (иначе `confirm-mismatch`, 400); домашняя папка, папка для
     проектов и всё вне домашней не удаляются (`invalid-path`); охранники
-    удаления (`busy`); событие `project.deleted`; `RegistryFs.rm`;
+    удаления (`busy`); событие `project.deleted`; `RegistryFs.rm` (у `nodeFs` —
+    `rm` с `maxRetries: 5`, `retryDelay: 200`: Windows может ещё миг держать папку
+    занятой после закрытия наблюдателей, `EBUSY`/`EPERM`);
   - `addRemovedHook(hook)` — вызывается после `remove` и `deleteFolder` с
     проектом и оставшимися проектами (служба стирает записи его сессий у
     провайдеров); ошибка хука удаление не отменяет;
   - `addBeforeDeleteHook(hook)` — вызывается в `deleteFolder` после проверок, до
-    удаления папки (служба удаляет треды ChatGPT проекта, M3-autostart R5); ошибка
+    удаления папки (служба удаляет треды ChatGPT проекта, M3-autostart R5, и
+    отпускает наблюдатели `workflow.release`); ошибка
     хука удаление не останавливает; `remove` хуки не зовёт;
   - `addArchivedHook(hook)` — вызывается после `archive` / `restore` с проектом
     и `archived` (служба останавливает или поднимает его сессии, раунд R10);

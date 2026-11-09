@@ -44,7 +44,10 @@
   - `refresh(projectId)` — чтение сейчас; одновременные вызовы делят один
     запуск, изменения во время чтения дают ещё один;
   - `get(id)`, `status(id)` (последний успешный `status`), `section()`,
-    `sync()`, `stop()`.
+    `sync()`, `stop()`;
+  - `release(id)` — закрывает наблюдатели проекта и забывает его до следующего
+    `sync()`, где он есть в списке; Windows не даёт удалить папку, за которой
+    следит `fs.watch`, поэтому служба вызывает его перед `deleteFolder`.
 - `ProjectWorkflow`: `projectId`, `installed`, `revision`, `scope`,
   `execution`, `paused`, `proposal`, `plan`, `choice`, `error`
   (`code`, `message`, `nextAction`), `updatedAt`, `refreshing`.

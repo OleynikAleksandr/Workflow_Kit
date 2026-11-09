@@ -90,7 +90,8 @@ before(async () => {
 
 after(async () => {
   await app.stop();
-  await rm(tmp, { recursive: true, force: true });
+  // Windows may keep a folder busy for a moment after its watchers closed.
+  await rm(tmp, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 });
 });
 
 async function send(url: string, body: unknown): Promise<{ status: number; json: Record<string, any> }> {

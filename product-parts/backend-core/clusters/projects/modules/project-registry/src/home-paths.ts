@@ -19,7 +19,8 @@ export const nodeFs: RegistryFs = {
   stat: (target) => stat(target),
   readdir: (target) => readdir(target, { withFileTypes: true }),
   mkdir: (target, options) => mkdir(target, options),
-  rm: (target) => rm(target, { recursive: true, force: true }),
+  // Retries cover a folder Windows still keeps busy for a moment (EBUSY, EPERM) after its watchers closed.
+  rm: (target) => rm(target, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }),
 };
 
 /** Where projects may live: the home folder of the user, checked by realpath. */

@@ -10,6 +10,8 @@ import { createApp } from '../src/index.ts';
 import { codexAppxScript, openCommands } from '../src/open-link.ts';
 import type { App } from '../src/index.ts';
 
+// The app runs with the path rules of the host: macOS commands on macOS and Linux, Windows ones on Windows.
+const PLATFORM = process.platform === 'win32' ? 'win32' : 'darwin';
 let tmp = '';
 let app: App;
 let base = '';
@@ -27,15 +29,15 @@ before(async () => {
     homedir: tmp,
     getInterfaces: () => ({}),
     runCommand: runner,
-    platform: 'darwin',
+    platform: PLATFORM,
     providers: [() => createStubProvider({ id: 'claude', title: 'Claude', task: 'T000' })],
   });
   base = `http://127.0.0.1:${(await app.start()).port}`;
 });
 
 after(async () => {
-  await app.stop();
-  await rm(tmp, { recursive: true, force: true });
+  await app?.stop();
+  await rm(tmp, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 });
 });
 
 async function post(url: unknown): Promise<{ status: number; json: Record<string, unknown> }> {
@@ -47,16 +49,28 @@ async function post(url: unknown): Promise<{ status: number; json: Record<string
   return { status: response.status, json: (await response.json()) as Record<string, unknown> };
 }
 
+/** The first command that opens a link on the host platform (open on macOS). */
+function opener(url: string): { command: string; args: string[] } {
+  const first = openCommands(PLATFORM, url, {})?.[0];
+  assert.ok(first);
+  return first;
+}
+
 test('ChatGPT thread and Claude Desktop session links are opened with open; other links are refused without running anything', async () => {
-  const ok = await post('codex://threads/01a1b764-2649-72d2-b2fe-e8d1d0ca6305');
+  const thread = 'codex://threads/01a1b764-2649-72d2-b2fe-e8d1d0ca6305';
+  const session = 'claude://claude.ai/code/session_01EyVab6pTtGf9vTbJfcu4Qx';
+  const openers = new Set([opener(thread).command, opener(session).command]);
+  const opened = () => calls.filter(([command]) => openers.has(command));
+  if (PLATFORM === 'darwin') assert.deepEqual([...openers], ['open']);
+  const ok = await post(thread);
   assert.deepEqual([ok.status, ok.json], [200, { opened: true }]);
-  assert.deepEqual(calls.filter(([command]) => command === 'open'), [['open', ['codex://threads/01a1b764-2649-72d2-b2fe-e8d1d0ca6305']]]);
-  const claude = await post('claude://claude.ai/code/session_01EyVab6pTtGf9vTbJfcu4Qx');
+  assert.deepEqual(opened(), [[opener(thread).command, opener(thread).args]]);
+  const claude = await post(session);
   assert.equal(claude.status, 200);
   for (const bad of ['https://example.com', 'codex://threads/../x', 'claude://claude.ai/code/session_x/../y', 'claude://evil.com/code/session_1', 'file:///etc/passwd', 42]) {
     assert.equal((await post(bad)).status, 400);
   }
-  assert.equal(calls.filter(([command]) => command === 'open').length, 2);
+  assert.equal(opened().length, 2);
   fail = true;
   const failed = await post('codex://threads/abc');
   assert.equal(failed.status, 502);

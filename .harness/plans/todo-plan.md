@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": "T006",
+  "currentTaskId": null,
   "lastClosed": {
     "closedAt": "2026-11-09T10:12:56.251Z",
     "scopeId": "m5-windows"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 435,
+  "revision": 436,
   "rounds": [
     {
       "digest": {
@@ -343,14 +343,25 @@
         "product-parts/backend-core/clusters/projects/modules/project-registry",
         "product-parts/backend-core/clusters/projects/modules/project-setup",
         "product-parts/backend-core/clusters/runtime/modules/cli",
-        "product-parts/workflow-engine/clusters/kit-host/modules/kit-runner"
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-runner",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/test/structure.test.ts",
+        "product-parts/backend-core/clusters/projects/modules/project-registry/module.md",
+        "product-parts/backend-core/clusters/projects/modules/project-registry/src/home-paths.ts",
+        "product-parts/backend-core/clusters/projects/modules/project-registry/test/registry.test.ts",
+        "product-parts/backend-core/clusters/projects/modules/project-setup/test/setup.test.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/open-link.test.ts",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/module.md",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/src/state.ts",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/test/kit-project.test.ts"
       ],
       "fixes": "T002",
       "id": "T006",
       "iteration": 1,
       "kind": "work",
       "roundId": "R2",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "title": "Backend tests on Windows",
       "why": "CI on Windows: tests use the host platform for hooks, POSIX platforms with Windows paths and leave folders busy"
     },
@@ -522,9 +533,9 @@
 - Scope: m6-cross-platform (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: T006
-- Progress: 6/12
-- Revision: 435
+- Current task: none
+- Progress: 7/12
+- Revision: 436
 
 ## Objective
 
@@ -568,9 +579,9 @@ Digest: R1 of m6-cross-platform: the platform-guard commit check (rules A, B, C)
   - Commit: fix: retry atomic renames on Windows and fix data-store tests
   - Files: product-parts/backend-core/clusters/runtime/modules/data-store, tools/platform-guard/allowlist.json, product-parts/backend-core/clusters/runtime/modules/data-store/module.md, product-parts/backend-core/clusters/runtime/modules/data-store/src/atomic.ts, product-parts/backend-core/clusters/runtime/modules/data-store/src/index.ts, product-parts/backend-core/clusters/runtime/modules/data-store/test/atomic.test.ts, product-parts/backend-core/clusters/runtime/modules/data-store/test/events.test.ts
   - Fixes: T002
-- [IN_PROGRESS] T006 — Backend tests on Windows (work)
+- [DONE] T006 — Backend tests on Windows (work)
   - Commit: test: make kit-structure, registry, setup and cli tests pass on Windows
-  - Files: product-parts/backend-core/clusters/projects/modules/kit-structure, product-parts/backend-core/clusters/projects/modules/project-registry, product-parts/backend-core/clusters/projects/modules/project-setup, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner
+  - Files: product-parts/backend-core/clusters/projects/modules/kit-structure, product-parts/backend-core/clusters/projects/modules/project-registry, product-parts/backend-core/clusters/projects/modules/project-setup, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner, product-parts/backend-core/clusters/projects/modules/kit-structure/test/structure.test.ts, product-parts/backend-core/clusters/projects/modules/project-registry/module.md, product-parts/backend-core/clusters/projects/modules/project-registry/src/home-paths.ts, product-parts/backend-core/clusters/projects/modules/project-registry/test/registry.test.ts, product-parts/backend-core/clusters/projects/modules/project-setup/test/setup.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/open-link.test.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/src/state.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/test/kit-project.test.ts
   - Fixes: T002
 - [TODO] T007 — Claude adapter tests on Windows (work)
   - Commit: test: make provider-claude tests pass on Windows

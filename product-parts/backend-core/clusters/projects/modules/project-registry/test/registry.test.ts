@@ -4,7 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { after, before, test } from 'node:test';
 import { createEventLog } from '#data-store';
-import { ProjectError, createProjectRegistry, listFolders, nodeFs, resolveInsideHome } from '../src/index.ts';
+import { ProjectError, accessHint, createProjectRegistry, listFolders, nodeFs, resolveInsideHome } from '../src/index.ts';
 import type { ProjectRegistryOptions, RegistryFs } from '../src/index.ts';
 
 let tmp = '';
@@ -172,14 +172,18 @@ test('a permission error (macOS TCC) becomes access-denied with a hint', async (
       return nodeFs.readdir(target);
     },
   };
-  const scope = { homedir: home, platform: 'darwin' as const, fs };
+  // Real folders need the path rules of the running OS; the macOS hint is checked on macOS and Linux.
+  const platform = process.platform === 'win32' ? 'win32' : 'darwin';
+  const scope = { homedir: home, platform, fs } as const;
   await assert.rejects(listFolders(denied, scope), (error: unknown) => {
     assert.ok(error instanceof ProjectError);
     assert.equal(error.code, 'access-denied');
-    assert.match(String(error.details?.['hint']), /Конфиденциальность и безопасность/);
+    assert.match(String(error.details?.['hint']), platform === 'darwin' ? /Конфиденциальность и безопасность/ : /Нет прав на чтение/);
     return true;
   });
-  const registry = createProjectRegistry(options({ fs, platform: 'darwin', file: path.join(tmp, 'tcc.json') }));
+  assert.match(accessHint('win32'), /Нет прав на чтение/);
+  assert.match(accessHint('linux'), /Нет прав на чтение/);
+  const registry = createProjectRegistry(options({ fs, platform, file: path.join(tmp, 'tcc.json') }));
   assert.equal(await code(registry.open(denied)), 'access-denied');
 });
 

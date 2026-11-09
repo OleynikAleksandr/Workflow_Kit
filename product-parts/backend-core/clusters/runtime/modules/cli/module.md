@@ -45,7 +45,8 @@ stripping).
   (`AgentChannel`: канал к агентам через хуки), `autopilot`
   (`Autopilot`), `review` (`ReviewToggles`), `titles` (`SessionTitles`), `setup` (`ProjectSetup`), `kit`
   (`KitRunner`: команды Kit проектов), `workflow` (`WorkflowState`: кэш
-  состояния Kit и раздел `workflow`), `start()` (пишет событие
+  состояния Kit и раздел `workflow`; перед `deleteFolder` проекта —
+  `workflow.release(id)`, чтобы Windows отпустила папку), `start()` (пишет событие
   `service.started`, запускает операцию `providers.refresh`: сверка записей
   процессов и `refresh?()` провайдеров, D11, и слежение `workflow.start()`),
   `stop()` (останавливает слежение и сервер). Опции: `env`, `platform`, `homedir`, `getInterfaces`,

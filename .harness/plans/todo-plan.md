@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 385,
+  "revision": 387,
   "rounds": [
     {
       "digest": {
@@ -33,7 +33,7 @@
       },
       "id": "R1",
       "kind": "implementation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Implementation"
     }
   ],
@@ -77,7 +77,7 @@
         "text": "Живую проверку релиза выполняет пользователь"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
@@ -250,7 +250,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: release 0.4.8",
-      "confirmation": null,
+      "confirmation": "Да, собирай 0.4.8",
       "context": [],
       "dependencies": [
         "T001",
@@ -271,7 +271,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Release 0.4.8 without push",
       "why": "The user checks the publication button in the installed app"
     }
@@ -283,11 +283,11 @@
 ## State
 
 - Scope: publication-order (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 5/6
-- Revision: 385
+- Progress: 6/6
+- Revision: 387
 
 ## Objective
 
@@ -303,7 +303,7 @@
 
 ## Rounds
 
-### R1 — Implementation (implementation, OPEN)
+### R1 — Implementation (implementation, CLOSED)
 
 - [DONE] T001 — git-publish module: publication state, publish route and state section (work)
   - Commit: feat: publish a closed scope to the git upstream
@@ -323,7 +323,7 @@
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/publication-order.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, CHANGELOG.md
   - Depends on: T001, T002, T003, T004
-- [TODO] T005 — Release 0.4.8 without push (delivery)
+- [DONE] T005 — Release 0.4.8 without push (delivery)
   - Commit: chore: release 0.4.8
   - Files: package.json, package-lock.json, CHANGELOG.md, docs/evidence/publication-order.md
   - Depends on: T001, T002, T003, T004, DOCS-R1

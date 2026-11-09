@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T005",
   "lastClosed": {
     "closedAt": "2026-11-09T10:12:56.251Z",
     "scopeId": "m5-windows"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 430,
+  "revision": 432,
   "rounds": [
     {
       "digest": {
@@ -301,14 +301,15 @@
       "dependencies": [],
       "docsWaiver": null,
       "files": [
-        "product-parts/backend-core/clusters/runtime/modules/data-store"
+        "product-parts/backend-core/clusters/runtime/modules/data-store",
+        "tools/platform-guard/allowlist.json"
       ],
       "fixes": "T002",
       "id": "T005",
       "iteration": 1,
       "kind": "work",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "Atomic writes on Windows",
       "why": "CI on Windows: concurrent writeFileAtomic fails with EPERM on rename; events test mixes POSIX platform with Windows paths"
     },
@@ -515,9 +516,9 @@
 - Scope: m6-cross-platform (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: none
+- Current task: T005
 - Progress: 5/12
-- Revision: 430
+- Revision: 432
 
 ## Objective
 
@@ -557,9 +558,9 @@ Digest: R1 of m6-cross-platform: the platform-guard commit check (rules A, B, C)
 
 ### R2 — Windows and macOS CI fixes (fixes, OPEN)
 
-- [TODO] T005 — Atomic writes on Windows (work)
+- [IN_PROGRESS] T005 — Atomic writes on Windows (work)
   - Commit: fix: retry atomic renames on Windows and fix data-store tests
-  - Files: product-parts/backend-core/clusters/runtime/modules/data-store
+  - Files: product-parts/backend-core/clusters/runtime/modules/data-store, tools/platform-guard/allowlist.json
   - Fixes: T002
 - [TODO] T006 — Backend tests on Windows (work)
   - Commit: test: make kit-structure, registry, setup and cli tests pass on Windows

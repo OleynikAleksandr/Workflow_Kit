@@ -146,7 +146,8 @@ stripping).
   будящий канал и `wake`)
   (ревьюер — `createSession` провайдера с первым сообщением и `detached`, поиск по
   `listSessions`: `remoteId` или `localId`; сообщения — через будящий канал с
-  источником `review`; открытое предложение — `workflow.proposal` без
+  источником `review`; задание ревьюеру Claude — `deliverToSession` (M4 13.9): очередь канала и
+  сразу `wakeSession` провайдера Claude, не дожидаясь первого `Stop` новой сессии; открытое предложение — `workflow.proposal` без
   `execution`), слушатель `channel.onStop`, маршруты ревью; `toggleLock` —
   блокировка переключателя (ревью идёт или открытый план уже прошёл ревью);
   переключатель (`locked`, `onChange`) вызывает `crossReview.toggled`;

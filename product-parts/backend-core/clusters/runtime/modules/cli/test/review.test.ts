@@ -10,7 +10,7 @@ import type { WorkflowState } from '#kit-runner';
 import { createStubProvider } from '#provider-registry';
 import { createApp } from '../src/index.ts';
 import type { App } from '../src/index.ts';
-import { lateReviewDecider, toggleLock } from '../src/review-wiring.ts';
+import { deliverToSession, lateReviewDecider, toggleLock } from '../src/review-wiring.ts';
 import { PLAN_ASKED, runSessionCommand } from '../src/session-command.ts';
 
 let tmp = '';
@@ -88,4 +88,20 @@ test('wfk session plan posts the question of the calling session; the route chec
   assert.equal((await post({ summary: 'x', cwd: tmp })).status, 400, 'no session id');
   assert.equal((await post({ summary: 'x', cwd: tmp, client: 'claude', sessionId: 's1' })).status, 404, 'not a project folder');
   assert.equal((await fetch(`${base}/api/projects/p1/sessions/claude:s1/plan-decision`, { method: 'POST', headers: H, body: JSON.stringify({ choice: 'review' }) })).status, 404);
+});
+
+test('a brief is queued and a fresh Claude reviewer is woken at once; ChatGPT is only queued (M4 13.9)', async () => {
+  const queued: Array<[string, string, string | undefined, string | undefined]> = [];
+  const woken: string[] = [];
+  const deps = {
+    channel: { enqueue: (key: string, text: string, source?: string, projectId?: string) => (queued.push([key, text, source, projectId]), {}) as never },
+    providers: { get: (id: string) => (id === 'claude' ? { wakeSession: async (_p: unknown, sid: string) => (woken.push(sid), true) } : undefined) } as never,
+    project: async () => ({ id: 'p1' }) as never,
+  };
+  assert.equal(await deliverToSession(deps, 'claude:hook-9', 'Задание', 'p1'), true);
+  assert.deepEqual(queued[0], ['claude:hook-9', 'Задание', 'review', 'p1']);
+  assert.deepEqual(woken, ['hook-9']);
+  assert.equal(await deliverToSession(deps, 'codex:t1', 'Задание', 'p1'), false);
+  assert.equal(queued.length, 2);
+  assert.deepEqual(woken, ['hook-9']);
 });

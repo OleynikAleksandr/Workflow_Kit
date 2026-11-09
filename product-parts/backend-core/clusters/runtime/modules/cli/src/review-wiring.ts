@@ -36,6 +36,31 @@ export function toggleLock(review: CrossReview, workflow: WorkflowState, project
   return open !== null && found.scopeId === open ? 'Этот план уже прошёл ревью' : null;
 }
 
+/**
+ * Hands a message to a session that may not have had a turn yet (spec M4 13.9): it is queued, and a
+ * Claude session is woken at once (session.exp types a short prompt, the prompt hook hands over the
+ * queue) — the usual wake waits for the channel to see the session idle after a Stop.
+ */
+export async function deliverToSession(
+  deps: {
+    channel: Pick<AgentChannel, 'enqueue'>;
+    providers: Pick<ProviderRegistry, 'get'>;
+    project: (id: string) => Promise<Parameters<NonNullable<ReturnType<ProviderRegistry['get']>>['listSessions']>[0]>;
+    log?: (line: string) => void;
+  },
+  key: string,
+  text: string,
+  projectId: string,
+): Promise<boolean> {
+  deps.channel.enqueue(key, text, 'review', projectId);
+  if (!key.startsWith('claude:')) return false;
+  const provider = deps.providers.get('claude');
+  if (!provider?.wakeSession) return false;
+  const woken = await provider.wakeSession(await deps.project(projectId), key.slice('claude:'.length)).catch(() => false);
+  deps.log?.(`review: ${woken ? 'woke' : 'could not wake'} ${key} for its brief`);
+  return woken;
+}
+
 export function wireCrossReview(options: {
   router: Router;
   state: StateRegistry;
@@ -71,6 +96,7 @@ export function wireCrossReview(options: {
       return found?.localId ? `${provider}:${found.localId}` : null;
     },
     enqueue: (key, text, projectId) => void options.messages.enqueue(key, text, 'review', projectId),
+    deliver: (key, text, projectId) => void deliverToSession({ channel: options.channel, providers, project, log: options.log }, key, text, projectId),
     wake: (key) => options.channel.wake(key),
     toggle: (projectId, key) => options.toggles.get(projectId, key),
     proposal: async (projectId) => {

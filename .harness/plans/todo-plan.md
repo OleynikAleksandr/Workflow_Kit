@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 370,
+  "revision": 371,
   "rounds": [
     {
       "digest": {
@@ -60,7 +60,10 @@
       "Путь «основная Claude → ревьюер ChatGPT» работает как прежде",
       "Релиз 0.4.7 установлен, wfk doctor --installed — всё в порядке"
     ],
-    "acceptanceNote": null,
+    "acceptanceNote": {
+      "at": "2026-11-09T08:28:44.032Z",
+      "text": "Принять и опубликовать"
+    },
     "approval": {
       "at": "2026-11-09T08:13:55.083Z",
       "text": "Пользователь: «Разберись, пожалуйста, и сделай все необходимые исправления, чтобы сессии с ChatGPT были абсолютно такие же в плане ревью, как и сессии, начатые с Claude.» | Execution mode chosen by the user: sequential: Выполни самостоятельно последовательно"
@@ -88,7 +91,7 @@
         "text": "Дерево скрывает ревьюера и по reviewerRef, пока ключа нет"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "ACCEPTED",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
@@ -302,11 +305,11 @@
 ## State
 
 - Scope: m4-claude-reviewer (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: ACCEPTED
 - Execution: sequential
 - Current task: none
 - Progress: 7/7
-- Revision: 370
+- Revision: 371
 
 ## Objective
 

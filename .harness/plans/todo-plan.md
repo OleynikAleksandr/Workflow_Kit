@@ -10,10 +10,28 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 423,
+  "revision": 425,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "tools/platform-guard/README.md: rules platform-injected, os-program, spec-os-section, allowlist",
+          "Quality profile: required commit check platform-guard; test check also runs tools/**/test/*.test.ts",
+          "Docs contract: tools/{tool}/*.ts changes with tools/{tool}/README.md"
+        ],
+        "decisions": [
+          "platform-guard checks the whole tree; exceptions live in tools/platform-guard/allowlist.json with all three OSes described",
+          "CI runs before acceptance on branch ci/<scope>; main is pushed only after acceptance and close",
+          "Linux opening of chats is recorded as unsupported in the allowlist, a known parity gap"
+        ],
+        "references": [
+          "docs/planning/M6-cross-platform.md",
+          "docs/planning/TEMPLATE.md",
+          ".github/workflows/ci.yml",
+          "AGENTS.md#Three operating systems"
+        ],
+        "result": "R1 of m6-cross-platform: the platform-guard commit check (rules A, B, C), CI on macOS, Linux, Windows x64 and ARM64, LF line endings and the three-OS rules for agents in AGENTS.md with a spec template."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -210,7 +228,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -264,8 +282,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 3/5
-- Revision: 423
+- Progress: 4/5
+- Revision: 425
 
 ## Objective
 
@@ -292,7 +310,7 @@ Every further change to Workflow Kit covers macOS, Linux and Windows 11: CI on a
 - [DONE] T003 — Three-OS rules for agents (work, parallel-safe)
   - Commit: docs: add three-OS rules and spec template
   - Files: AGENTS.md, docs/planning/TEMPLATE.md, README.md
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M6-cross-platform.md, tools/platform-guard/README.md, AGENTS.md, docs/planning/TEMPLATE.md
   - Depends on: T001, T002, T003
@@ -300,5 +318,7 @@ Every further change to Workflow Kit covers macOS, Linux and Windows 11: CI on a
   - Commit: chore: release 0.5.1
   - Files: package.json, package-lock.json, docs/evidence/M6-acceptance.md
   - Depends on: T001, T002, T003, DOCS-R1
+
+Digest: R1 of m6-cross-platform: the platform-guard commit check (rules A, B, C), CI on macOS, Linux, Windows x64 and ARM64, LF line endings and the three-OS rules for agents in AGENTS.md with a spec template.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

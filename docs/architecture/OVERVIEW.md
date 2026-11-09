@@ -27,8 +27,9 @@ runtime-зависимостей) и веб-панель для Mac и iPad. С�
 - Точка входа `bin/wfk.mjs` (модуль `cli`) проверяет Node ≥ 24 и загружает
   `#cli`. Панель — статические ES-модули из `src/` модулей `control-panel`,
   их JS проверяется `tsc` через JSDoc.
-- Проверки: `npm run typecheck`, `npm test`
-  (`node --test "product-parts/**/test/*.test.ts"`).
+- Проверки: `npm run typecheck`, `npm test`, `npm run check:platforms`
+  (`tools/platform-guard`: платформа параметром, программы ОС в `allowlist.json`,
+  раздел «Поведение на ОС» в спецификациях); CI — macOS, Linux, Windows x64 и ARM64.
 
 ## Части, кластеры, модули
 

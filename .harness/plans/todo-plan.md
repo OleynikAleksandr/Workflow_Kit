@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T006",
   "lastClosed": {
     "closedAt": "2026-11-09T10:12:56.251Z",
     "scopeId": "m5-windows"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 433,
+  "revision": 435,
   "rounds": [
     {
       "digest": {
@@ -342,14 +342,15 @@
         "product-parts/backend-core/clusters/projects/modules/kit-structure",
         "product-parts/backend-core/clusters/projects/modules/project-registry",
         "product-parts/backend-core/clusters/projects/modules/project-setup",
-        "product-parts/backend-core/clusters/runtime/modules/cli"
+        "product-parts/backend-core/clusters/runtime/modules/cli",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-runner"
       ],
       "fixes": "T002",
       "id": "T006",
       "iteration": 1,
       "kind": "work",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "Backend tests on Windows",
       "why": "CI on Windows: tests use the host platform for hooks, POSIX platforms with Windows paths and leave folders busy"
     },
@@ -521,9 +522,9 @@
 - Scope: m6-cross-platform (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: none
+- Current task: T006
 - Progress: 6/12
-- Revision: 433
+- Revision: 435
 
 ## Objective
 
@@ -567,9 +568,9 @@ Digest: R1 of m6-cross-platform: the platform-guard commit check (rules A, B, C)
   - Commit: fix: retry atomic renames on Windows and fix data-store tests
   - Files: product-parts/backend-core/clusters/runtime/modules/data-store, tools/platform-guard/allowlist.json, product-parts/backend-core/clusters/runtime/modules/data-store/module.md, product-parts/backend-core/clusters/runtime/modules/data-store/src/atomic.ts, product-parts/backend-core/clusters/runtime/modules/data-store/src/index.ts, product-parts/backend-core/clusters/runtime/modules/data-store/test/atomic.test.ts, product-parts/backend-core/clusters/runtime/modules/data-store/test/events.test.ts
   - Fixes: T002
-- [TODO] T006 — Backend tests on Windows (work)
+- [IN_PROGRESS] T006 — Backend tests on Windows (work)
   - Commit: test: make kit-structure, registry, setup and cli tests pass on Windows
-  - Files: product-parts/backend-core/clusters/projects/modules/kit-structure, product-parts/backend-core/clusters/projects/modules/project-registry, product-parts/backend-core/clusters/projects/modules/project-setup, product-parts/backend-core/clusters/runtime/modules/cli
+  - Files: product-parts/backend-core/clusters/projects/modules/kit-structure, product-parts/backend-core/clusters/projects/modules/project-registry, product-parts/backend-core/clusters/projects/modules/project-setup, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner
   - Fixes: T002
 - [TODO] T007 — Claude adapter tests on Windows (work)
   - Commit: test: make provider-claude tests pass on Windows

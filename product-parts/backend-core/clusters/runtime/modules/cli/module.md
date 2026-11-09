@@ -35,7 +35,9 @@ stripping).
   состояния, HTTP-сервер с панелью (`panelShellMount()` в корне,
   `projectWizardMount()` под
   `/project-wizard/`, `sessionViewMount()` под `/session-view/`), журнал событий, мьютекс, реестр
-  проектов, операции, учёт процессов и реестр провайдеров. `App`: `dirs`,
+  проектов, операции, учёт процессов и реестр провайдеров, публикация в git (`registerPublicationRoutes`
+  из `git-publish`: `scopeOpen` — у проекта есть scope в `workflow`, обновление после `onChange`
+  состояния плана). `App`: `dirs`,
   `config`, `version`, `os`, `router`, `state`, `server`, `events`
   (`events.jsonl`), `mutex` (D10), `projects` (`ProjectRegistry`),
   `operations` (`Operations`, D10), `providers` (`ProviderRegistry`),

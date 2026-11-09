@@ -15,6 +15,7 @@
     "#autopilot": "./product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/index.ts",
     "#cli": "./product-parts/backend-core/clusters/runtime/modules/cli/src/index.ts",
     "#data-store": "./product-parts/backend-core/clusters/runtime/modules/data-store/src/index.ts",
+    "#git-publish": "./product-parts/backend-core/clusters/projects/modules/git-publish/src/index.ts",
     "#http-server": "./product-parts/backend-core/clusters/http-api/modules/http-server/src/index.ts",
     "#kit-bundle": "./product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/src/index.ts",
     "#kit-runner": "./product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/src/index.ts",

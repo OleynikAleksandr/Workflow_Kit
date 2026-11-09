@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": "T001",
+  "currentTaskId": null,
   "lastClosed": {
     "closedAt": "2026-11-09T08:29:03.967Z",
     "scopeId": "m4-claude-reviewer"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 375,
+  "revision": 376,
   "rounds": [
     {
       "digest": null,
@@ -89,14 +89,20 @@
         "package.json",
         "product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts",
         "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
-        "docs/architecture/OVERVIEW.md"
+        "docs/architecture/OVERVIEW.md",
+        "product-parts/backend-core/clusters/projects/modules/git-publish/module.md",
+        "product-parts/backend-core/clusters/projects/modules/git-publish/src/git.ts",
+        "product-parts/backend-core/clusters/projects/modules/git-publish/src/index.ts",
+        "product-parts/backend-core/clusters/projects/modules/git-publish/src/publication.ts",
+        "product-parts/backend-core/clusters/projects/modules/git-publish/src/routes.ts",
+        "product-parts/backend-core/clusters/projects/modules/git-publish/test/publication.test.ts"
       ],
       "fixes": null,
       "id": "T001",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "title": "git-publish module: publication state, publish route and state section",
       "why": "The service must know when a project can be published and publish it safely"
     },
@@ -250,9 +256,9 @@
 - Scope: publication-order (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: T001
-- Progress: 0/6
-- Revision: 375
+- Current task: none
+- Progress: 1/6
+- Revision: 376
 
 ## Objective
 
@@ -270,9 +276,9 @@
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [IN_PROGRESS] T001 — git-publish module: publication state, publish route and state section (work)
+- [DONE] T001 — git-publish module: publication state, publish route and state section (work)
   - Commit: feat: publish a closed scope to the git upstream
-  - Files: product-parts/backend-core/clusters/projects/modules/git-publish, package.json, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, docs/architecture/OVERVIEW.md
+  - Files: product-parts/backend-core/clusters/projects/modules/git-publish, package.json, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, docs/architecture/OVERVIEW.md, product-parts/backend-core/clusters/projects/modules/git-publish/module.md, product-parts/backend-core/clusters/projects/modules/git-publish/src/git.ts, product-parts/backend-core/clusters/projects/modules/git-publish/src/index.ts, product-parts/backend-core/clusters/projects/modules/git-publish/src/publication.ts, product-parts/backend-core/clusters/projects/modules/git-publish/src/routes.ts, product-parts/backend-core/clusters/projects/modules/git-publish/test/publication.test.ts
 - [TODO] T002 — Panel shows the GitHub line and the publish button (work)
   - Commit: feat: show the GitHub publication in the panel
   - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell

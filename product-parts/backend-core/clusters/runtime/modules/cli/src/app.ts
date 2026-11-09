@@ -20,6 +20,7 @@ import { lateReviewDecider, toggleLock, wireCrossReview } from './review-wiring.
 import { createKitRunner, createWorkflowState } from '#kit-runner';
 import type { KitRunner, WorkflowState } from '#kit-runner';
 import { registerStructureRoutes } from '#kit-structure';
+import { registerPublicationRoutes } from '#git-publish';
 import { panelShellMount } from '#panel-shell';
 import { projectWizardMount } from '#project-wizard';
 import { sessionViewMount } from '#session-view';
@@ -224,8 +225,11 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
     runner: kit,
     listProjects: async () => (await projects.list()).map((project) => ({ id: project.id, path: project.path })),
     log: options.log,
+    onChange: (projectId) => void publication.refresh(projectId).catch(() => undefined),
   });
   state.add('workflow', () => workflow.section());
+  // GitHub publication is not a plan task: only with no open scope (spec publication-order).
+  const publication = registerPublicationRoutes({ router, state, projects, scopeOpen: (id) => workflow.get(id)?.scope != null, log: options.log });
 
   // The deepest registered project that contains a folder (paths compared after realpath).
   const resolveFolderProject = async (folder: string): Promise<{ id: string } | undefined> => {
@@ -388,6 +392,7 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
     },
     async stop() {
       workflow.stop();
+      publication.stop();
       channel.close();
       await server.close();
     },

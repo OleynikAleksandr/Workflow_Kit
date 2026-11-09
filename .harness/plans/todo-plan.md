@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 352,
+  "revision": 353,
   "rounds": [
     {
       "digest": {
@@ -50,7 +50,10 @@
       "Проверены правила исключения, состав файлов и история, предназначенные для публикации",
       "main опубликована в OleynikAleksandr/Workflow_Kit, её SHA совпадает с локальным, документы доступны на GitHub"
     ],
-    "acceptanceNote": null,
+    "acceptanceNote": {
+      "at": "2026-11-09T08:07:02.395Z",
+      "text": "И закрой пожалуйста план. Выполненный."
+    },
     "approval": {
       "at": "2026-11-09T07:54:02.377Z",
       "text": "Пользователь: «сделай тогда, пожалуйста маленький короткий scope для подготовки локального репозитория к публикации на GitHub»; «всю необходимую информацию, как работает данное приложение, как его проинсталлировать, добавь в нужные документы»; «лучше сделать стандартный файл change log»; «подготовь и опубликуй этот репозиторий на GitHub — https://github.com/OleynikAleksandr/Workflow_Kit». | Execution mode chosen by the user: sequential: Пользователь: Хорошо, выполняем последовательно. Подготовь документы и опубликуй репозиторий на GitHub."
@@ -81,7 +84,7 @@
         "text": "CHANGELOG.md является публикуемым документом и не должен игнорироваться"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "ACCEPTED",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "01a1bf43-d699-7e33-9fc4-b3d0406733ca",
@@ -191,11 +194,11 @@
 ## State
 
 - Scope: github-publication (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: ACCEPTED
 - Execution: sequential
 - Current task: none
 - Progress: 3/3
-- Revision: 352
+- Revision: 353
 
 ## Objective
 

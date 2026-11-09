@@ -7,6 +7,7 @@ import type { App, AppOptions } from './app.ts';
 import { readProcessStdin, runHook } from './hook.ts';
 import type { PostJson, RequestJson } from './hook-service.ts';
 import { runSessionCommand } from './session-command.ts';
+import { runProjectCommand } from './project-command.ts';
 import { linkLauncher } from './link.ts';
 import { readPackageVersion } from './system-info.ts';
 
@@ -31,7 +32,7 @@ export interface CliDeps {
 }
 
 /** Top-level commands of wfk, in help order. */
-export const COMMANDS: readonly string[] = ['serve', 'open', 'install', 'uninstall', 'service', 'doctor', 'link', 'hook', 'session'];
+export const COMMANDS: readonly string[] = ['serve', 'open', 'install', 'uninstall', 'service', 'doctor', 'link', 'hook', 'session', 'project'];
 
 /** Exit code for usage errors (unknown command or subcommand). */
 export const EXIT_USAGE = 64;
@@ -52,6 +53,7 @@ const USAGE = `Использование: wfk <команда>
                                 хуки агентов: начало сессии, конец хода, новое сообщение
   session title "<тема>"        имя сессии от агента (один раз, в идущем ходе)
   session plan "<что делаем>"   вопрос пользователю: спецификация и план (с ревью или без)
+  project publish               опубликовать проект папки в upstream git (только при закрытом scope)
   --version                     версия
 `;
 
@@ -181,6 +183,16 @@ export async function main(argv: readonly string[], deps?: Partial<CliDeps>): Pr
         env: full.app?.env ?? process.env,
         cwd: full.cwd ?? process.cwd(),
         readStdin: full.readStdin ?? readProcessStdin,
+      });
+    case 'project':
+      return runProjectCommand(rest, {
+        stdout: full.stdout,
+        stderr: full.stderr,
+        env: full.app?.env ?? process.env,
+        cwd: full.cwd ?? process.cwd(),
+        homedir: full.app?.homedir,
+        platform: full.app?.platform,
+        request: full.requestJson,
       });
     case 'session':
       return runSessionCommand(rest, {

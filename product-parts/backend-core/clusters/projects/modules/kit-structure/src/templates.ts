@@ -63,6 +63,11 @@ only in this chat.
   talk; the answer reaches you as a \`Workflow Kit:\` message. Do not run it
   for discussion, research, explanations or everyday questions, and do not
   run it again for the same task unless the user asks for a plan anew.
+- GitHub publication: \`git push\` is not a plan task, not even a delivery
+  task. Publish only when the user asks and only after the scope is accepted
+  and closed (each by the user's command): the panel button «Опубликовать на
+  GitHub» or \`wfk project publish\`. If the user asks while a scope is open,
+  say that publishing comes after its acceptance and closing.
 - Execution mode and plan start: after \`scripts/workflow scope:propose\` the
   user chooses the mode and starts the plan with buttons in the panel. End
   your turn and wait; the choice reaches you as a message from Workflow Kit.

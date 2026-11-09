@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T002",
   "lastClosed": {
     "closedAt": "2026-11-08T17:17:34.035Z",
     "scopeId": "m4-plan-review"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 349,
+  "revision": 351,
   "rounds": [
     {
       "digest": {
@@ -163,7 +163,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: record GitHub publication verification",
-      "confirmation": null,
+      "confirmation": "Выполни пожалуйста весь план, включая публикацию на GitHub. И только после этого отчитайся.",
       "context": [],
       "dependencies": [
         "T001",
@@ -171,14 +171,15 @@
       ],
       "docsWaiver": null,
       "files": [
-        "docs/evidence/github-publication.md"
+        "docs/evidence/github-publication.md",
+        "LICENSE"
       ],
       "fixes": null,
       "id": "T002",
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "Проверить подготовленный репозиторий и опубликовать main на GitHub",
       "why": "Проверить подготовленный репозиторий и опубликовать main на GitHub"
     }
@@ -192,9 +193,9 @@
 - Scope: github-publication (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: none
+- Current task: T002
 - Progress: 2/3
-- Revision: 349
+- Revision: 351
 
 ## Objective
 
@@ -219,9 +220,9 @@
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/github-publication.md, CHANGELOG.md, docs/installation.md, docs/evidence/github-publication.md
   - Depends on: T001
-- [TODO] T002 — Проверить подготовленный репозиторий и опубликовать main на GitHub (delivery)
+- [IN_PROGRESS] T002 — Проверить подготовленный репозиторий и опубликовать main на GitHub (delivery)
   - Commit: chore: record GitHub publication verification
-  - Files: docs/evidence/github-publication.md
+  - Files: docs/evidence/github-publication.md, LICENSE
   - Depends on: T001, DOCS-R1
 
 Digest: Подготовлены README, установка по ОС, CHANGELOG и правила Git. Документы согласованы; публикация и проверка удалённого SHA остаются задачей T002.

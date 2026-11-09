@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 363,
+  "revision": 365,
   "rounds": [
     {
       "digest": {
@@ -31,7 +31,7 @@
       },
       "id": "R1",
       "kind": "implementation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Implementation"
     }
   ],
@@ -72,7 +72,7 @@
         "text": "Дерево скрывает ревьюера и по reviewerRef, пока ключа нет"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
@@ -206,7 +206,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: release 0.4.7",
-      "confirmation": null,
+      "confirmation": "Выполни самостоятельно последовательно ... и собери новый релиз",
       "context": [],
       "dependencies": [
         "T001",
@@ -225,7 +225,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Release 0.4.7",
       "why": "The user checks the fix in the installed app"
     }
@@ -237,11 +237,11 @@
 ## State
 
 - Scope: m4-claude-reviewer (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 4/5
-- Revision: 363
+- Progress: 5/5
+- Revision: 365
 
 ## Objective
 
@@ -257,7 +257,7 @@
 
 ## Rounds
 
-### R1 — Implementation (implementation, OPEN)
+### R1 — Implementation (implementation, CLOSED)
 
 - [DONE] T001 — Cross review finds the Claude reviewer and delivers its brief by the queue (work)
   - Commit: fix: deliver the brief of a Claude reviewer through the message queue
@@ -273,7 +273,7 @@
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M4-review-failures.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md
   - Depends on: T001, T002, T003
-- [TODO] T004 — Release 0.4.7 (delivery)
+- [DONE] T004 — Release 0.4.7 (delivery)
   - Commit: chore: release 0.4.7
   - Files: package.json, package-lock.json, docs/evidence/M4-acceptance.md
   - Depends on: T001, T002, T003, DOCS-R1

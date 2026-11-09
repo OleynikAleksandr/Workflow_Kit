@@ -7,6 +7,7 @@ import { randomBytes } from 'node:crypto';
 import { chmod, readFile, realpath, rename, rm, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { ProviderError } from '#provider-registry';
+import { claudeFolderKey, findFolderKey } from './folder-key.ts';
 
 /** Attempts of one patch before "trust-lost". */
 export const CONFIG_WRITE_ATTEMPTS = 3;
@@ -53,13 +54,15 @@ function parse(file: string, text: string | null): JsonObject {
   return value;
 }
 
-/** True when projects[folder] holds every key of patch with the same value. */
+/** True when the entry of the folder (findFolderKey) holds every key of patch with the same value. */
 export function hasPatch(text: string | null, folder: string, patch: Readonly<JsonObject>): boolean {
   if (text === null) return false;
   try {
     const value = JSON.parse(text) as unknown;
     const projects = isRecord(value) ? value['projects'] : undefined;
-    const entry = isRecord(projects) ? projects[folder] : undefined;
+    if (!isRecord(projects)) return false;
+    const key = findFolderKey(Object.keys(projects), folder);
+    const entry = key === null ? undefined : projects[key];
     return isRecord(entry) && Object.entries(patch).every(([key, expected]) => entry[key] === expected);
   } catch {
     return false;
@@ -72,6 +75,22 @@ async function targetOf(file: string): Promise<string> {
     return await realpath(file);
   } catch {
     return file;
+  }
+}
+
+/** Error codes of a rename that Windows reports while another process has the file open. */
+const BUSY_CODES = new Set(['EPERM', 'EBUSY', 'EACCES']);
+
+/** rename with retries on Windows sharing violations (5 attempts, 100–500 ms apart). */
+export async function renameRetrying(from: string, to: string, attempts = 5): Promise<void> {
+  for (let attempt = 1; ; attempt += 1) {
+    try {
+      await rename(from, to);
+      return;
+    } catch (error) {
+      if (attempt >= attempts || !BUSY_CODES.has((error as NodeJS.ErrnoException).code ?? '')) throw error;
+      await new Promise((resolve) => setTimeout(resolve, 100 * attempt));
+    }
   }
 }
 
@@ -90,17 +109,19 @@ export async function patchProjectEntry(file: string, folder: string, patch: Rea
     const config = parse(file, before);
     const projects = config['projects'] ?? {};
     if (!isRecord(projects)) throw new ProviderError('config-broken', `${file}: projects — не объект`, { hint: 'Kit не пишет в такой файл: проверьте его вручную.' });
-    const entry = projects[folder];
-    projects[folder] = { ...(isRecord(entry) ? entry : {}), ...patch };
+    // Windows: the entry Claude already has for the folder, whatever its slashes and drive case.
+    const key = findFolderKey(Object.keys(projects), folder) ?? claudeFolderKey(folder);
+    const entry = projects[key];
+    projects[key] = { ...(isRecord(entry) ? entry : {}), ...patch };
     config['projects'] = projects;
     const mode = before === null ? 0o600 : (await stat(target)).mode & 0o777;
     const temp = path.join(path.dirname(target), `.${path.basename(target)}.wfk-${process.pid}-${randomBytes(4).toString('hex')}.tmp`);
     await writeFile(temp, JSON.stringify(config, null, 2), { mode });
     try {
-      await chmod(temp, mode);
+      if (process.platform !== 'win32') await chmod(temp, mode);
       // Claude may have saved the file meanwhile: start over from its version instead of replacing it.
       if ((await readOrNull(target)) !== before) continue;
-      await rename(temp, target);
+      await renameRetrying(temp, target);
     } finally {
       await rm(temp, { force: true });
     }

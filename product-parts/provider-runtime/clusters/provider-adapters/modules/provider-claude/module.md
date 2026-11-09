@@ -10,7 +10,8 @@
 Control (создание, список, возобновление, остановка) и окружение папки
 (`claude remote-control --spawn=same-dir`) как особое действие проекта.
 Интерактивный `claude` работает под pty через `expect` (скрипты
-`src/pty/*.exp` и общий `src/pty/dialogs.tcl`); процессы сессий и окружений
+`src/pty/*.exp` и общий `src/pty/dialogs.tcl`), на Windows — через ConPTY-хост
+`src/pty/win-host.ts` с тем же контрактом (раздел «Windows»); процессы сессий и окружений
 запускает `process-supervisor` (своя группа, вывод в файл, без `CLAUDE*`,
 D5) и останавливает только по своим записям (D9). Kit никогда не нажимает
 клавиш в диалогах Claude: доверие и ответ про внешние импорты он записывает
@@ -40,21 +41,42 @@ D5) и останавливает только по своим записям (D
 
 - Программы: `claude` — `config.programs.claude` (D12), затем PATH
   окружения службы, затем `~/.local/bin`, `~/.claude/local`; `expect` —
-  `config.programs.expect`, PATH, `/usr/bin`. Поиск — только проверка
+  `config.programs.expect`, PATH, `/usr/bin` (на Windows не ищется: `claude.exe`
+  и ConPTY-хост). Поиск — только проверка
   файлов, результат кэшируется до `refresh`.
 - `status()` только читает: пути, версия из последнего `refresh`,
   `~/.claude.json` (кэш по mtime и размеру) — вход (`oauthAccount`);
-  `details`: `expect`, `account`, `config`. Состояния: `not-installed`
+  `details`: `expect` (на Windows — «не нужен (ConPTY)»), `account`, `config`. Состояния: `not-installed`
   («не установлен»), `unavailable` («недоступно», с причиной), `ready`
   («готов»; без входа — `note` с подсказкой `/login`).
 - `refresh()` (старт службы и «Перепроверить») заново ищет программы и
   выполняет `claude --version` (без `CLAUDE*`).
 - `capabilities()`: `createSession`, `resumeSession`, `environment`
-  недоступны на Windows (Q1), без `claude`, без `expect` (на Linux —
-  подсказка установить пакет) и при версии ниже `MIN_CLAUDE_VERSION`;
-  `trust` (запись файла, pty не нужен) недоступна только на Windows и без
-  `claude`; `stopSession` недоступна только на Windows; `sessions` и
-  `hooks` доступны всегда.
+  недоступны без `claude`, без `expect` на macOS и Linux (на Linux —
+  подсказка установить пакет), на Windows — без сборки node-pty для
+  архитектуры (`ptyUnavailable` из `#pty-host`), и при версии ниже
+  `MIN_CLAUDE_VERSION`; `trust` (запись файла, pty не нужен) недоступна
+  только без `claude`; `stopSession`, `sessions` и `hooks` доступны всегда.
+
+### Windows (спецификация M5, раздел 4)
+
+- Запуск: `runtime.requirePty()` возвращает `{ claude, launcher }`; `ptyCommand(launcher,
+  scripts, kind, args)` даёт `expect <скрипт>.exp <args>` или на Windows
+  `node <scripts.host> session|environment <args>` с теми же аргументами (`PtyScripts.host`).
+- `pty/win-host.ts` — вход хоста: разбор аргументов (`parseHostArgs`, первое сообщение из
+  `WFK_FIRST_MESSAGE`, в окружение claude не передаётся), `loadNodePty` и `startTerminal`
+  из `#pty-host`, `uncaughtException` → `HOST_ERROR`. `pty/host.ts` (`runHost`) повторяет
+  `session.exp` и `environment.exp`: те же маркеры и коды выхода (5 — не доверено, 4 — claude
+  завершился до ссылки, 6 — диалог), размеры 160×40 и 120×40, ожидания 90 с и 20 с, экран
+  копируется в журнал до ссылки, файлы `<debug>.rename` и `<debug>.message` раз в 1 с,
+  первое сообщение — 1,5 с, текст, 0,5 с, `\r`. Шаблоны (`pty/screen.ts`) — те же, что в
+  `dialogs.tcl`, на тексте без escape-последовательностей; при диалоге — до 1 с тишины
+  (не дольше 5 с), маркер, затем остановка claude без нажатий.
+- Ключи `~/.claude.json` (`folder-key.ts`): путь Windows совпадает с ключом без учёта регистра
+  и вида косой черты (`folderKey`); запись идёт в уже существующий ключ (`findFolderKey`),
+  новый — как пишет Claude: `/` и заглавная буква диска (`claudeFolderKey`). `rename` при
+  `EPERM`/`EBUSY`/`EACCES` повторяется до 5 раз (`renameRetrying`), `chmod` на Windows не
+  выполняется. Пути POSIX сравниваются точно, как раньше.
 
 ### Доверие (D7)
 
@@ -260,13 +282,15 @@ EnvironmentRecord[] }`. `SessionRecord`: `localId | null`, `remoteId`,
 - Служебные сессии (`WFK_SERVICE_SESSION`) в список не попадают.
 - Зависимости: `#provider-registry`, `#process-supervisor`, `#data-store`
   (`backupFile`, атомарная запись, мьютекс), `#kit-structure` (поиск хука
-  Kit).
+  Kit), `#pty-host` (ConPTY на Windows).
 - Тесты: подставной `claude` (`test/fixtures/fake-claude.mjs`: диалоги
   доверия, внешних импортов и неизвестный печатаются со сдвигами курсора
   вместо пробелов; нажатые в диалоге клавиши пишутся в `<лог>.keys`) под
   настоящими expect-скриптами, временные HOME и `WFK_DATA_DIR`
   (`test/harness.ts`), фикстуры транскриптов; без `expect`
-  интеграционные тесты пропускаются. `trust.test.ts` повторяет машину
+  интеграционные тесты пропускаются. `windows.test.ts` ведёт хост через
+  подставной терминал (маркеры, файлы управления, диалоги, окружение) и проверяет
+  ключи Windows в `~/.claude.json`. `trust.test.ts` повторяет машину
   пользователя: `~` доверена, `~/CLAUDE.md` импортирует `~/AGENTS.md`.
 
 ## Проверить при приёмке

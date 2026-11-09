@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": "T003",
+  "currentTaskId": null,
   "lastClosed": {
     "closedAt": "2026-11-09T08:50:01.775Z",
     "scopeId": "publication-order"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 398,
+  "revision": 399,
   "rounds": [
     {
       "digest": null,
@@ -184,14 +184,30 @@
       "docsWaiver": null,
       "files": [
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude",
-        "docs/planning/M5-windows.md"
+        "docs/planning/M5-windows.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/claude-config.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/config-writer.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/environment.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/folder-key.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/programs.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/provider.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/host.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/screen.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/win-host.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/runtime.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/sessions.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/trust.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parts.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/windows.test.ts"
       ],
       "fixes": null,
       "id": "T003",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "title": "Claude on Windows: session and environment hosts, program search, trust",
       "why": "Claude sessions must work on Windows like on macOS"
     },
@@ -385,9 +401,9 @@
 - Scope: m5-windows (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: T003
-- Progress: 2/9
-- Revision: 398
+- Current task: none
+- Progress: 3/9
+- Revision: 399
 
 ## Objective
 
@@ -411,9 +427,9 @@ Windows 11 (x64 и ARM64): сессии Claude и ChatGPT/Codex, ревью, в�
 - [DONE] T002 — Process supervisor on Windows (work)
   - Commit: feat: supervise session processes on Windows
   - Files: product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/src/index.ts, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/src/supervisor.ts, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/src/windows.ts, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/test/supervisor.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/test/utils.test.ts
-- [IN_PROGRESS] T003 — Claude on Windows: session and environment hosts, program search, trust (work)
+- [DONE] T003 — Claude on Windows: session and environment hosts, program search, trust (work)
   - Commit: feat: run Claude sessions on Windows
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, docs/planning/M5-windows.md
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, docs/planning/M5-windows.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/claude-config.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/config-writer.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/environment.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/folder-key.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/programs.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/host.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/screen.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/win-host.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/runtime.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/trust.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parts.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/windows.test.ts
   - Depends on: T001, T002
 - [TODO] T004 — Kit hooks and the wfk launcher on Windows (work)
   - Commit: feat: install Kit hooks and the launcher on Windows

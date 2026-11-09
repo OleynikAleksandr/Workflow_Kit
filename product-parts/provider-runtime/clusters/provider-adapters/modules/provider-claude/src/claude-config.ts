@@ -5,6 +5,7 @@
 import { readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 import type { TrustState } from '#provider-registry';
+import { folderKey } from './folder-key.ts';
 
 /** Keys of a project entry Kit reads and writes. */
 export const TRUST_KEY = 'hasTrustDialogAccepted';
@@ -75,12 +76,12 @@ export function parseClaudeConfig(file: string, text: string): ClaudeConfigSnaps
     for (const [folder, entry] of Object.entries(entries)) {
       if (!isRecord(entry)) continue;
       const approved = entry[IMPORTS_APPROVED_KEY];
-      projects.set(folder, {
+      projects.set(folderKey(folder), {
         trusted: entry[TRUST_KEY] === true,
         importsApproved: typeof approved === 'boolean' ? approved : null,
         importsDecided: entry[IMPORTS_SHOWN_KEY] === true,
       });
-      if (entry[TRUST_KEY] === true) trusted.add(folder);
+      if (entry[TRUST_KEY] === true) trusted.add(folderKey(folder));
     }
   }
   return { file, exists: true, error: null, trusted, projects, loggedIn: isRecord(value['oauthAccount']) };
@@ -92,7 +93,7 @@ export function trustedParent(snapshot: ClaudeConfigSnapshot, folder: string): s
   for (;;) {
     const parent = path.dirname(current);
     if (parent === current) return null;
-    if (snapshot.trusted.has(parent)) return parent;
+    if (snapshot.trusted.has(folderKey(parent))) return parent;
     current = parent;
   }
 }
@@ -102,7 +103,7 @@ export function trustFromSnapshot(snapshot: ClaudeConfigSnapshot, folder: string
   const { file } = snapshot;
   if (!snapshot.exists) return { trusted: false, note: `${file} ещё нет: Claude Code не запускался` };
   if (snapshot.error) return { trusted: null, note: `${file}: ${snapshot.error}` };
-  if (snapshot.trusted.has(folder)) return { trusted: true };
+  if (snapshot.trusted.has(folderKey(folder))) return { trusted: true };
   const parent = trustedParent(snapshot, folder);
   return parent ? { trusted: false, inherited: { from: parent, note: INHERITED_NOTE } } : { trusted: false };
 }

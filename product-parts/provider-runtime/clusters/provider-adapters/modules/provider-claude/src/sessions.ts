@@ -8,7 +8,7 @@ import type { HookSession, Project, RenameResult, SessionInfo } from '#provider-
 import { ProcessError } from '#process-supervisor';
 import { resumeEnvironment } from './environment.ts';
 import { sessionLinks } from './links.ts';
-import { debugSessionId, dialogError, logTail, parseMarkers, poll, readText } from './pty.ts';
+import { debugSessionId, dialogError, logTail, parseMarkers, poll, ptyCommand, readText } from './pty.ts';
 import type { SessionRecord } from './records.ts';
 import { PROVIDER_ID } from './runtime.ts';
 import type { ClaudeRuntime } from './runtime.ts';
@@ -95,18 +95,17 @@ async function followSession(rt: ClaudeRuntime, processId: string, logFile: stri
 
 /** Starts session.exp (new session, or --resume <localId>) and waits for its Remote Control id. */
 async function startSessionProcess(rt: ClaudeRuntime, project: Project, title: string, resume: string | null, firstMessage?: string): Promise<StartedSession> {
-  const { claude, expect } = await rt.requirePty();
+  const { claude, launcher } = await rt.requirePty();
   await rt.requireTrust(project);
   const key = rt.newKey('session');
   const logFile = path.join(rt.logsDir, `${key}.log`);
   const debugFile = path.join(rt.logsDir, `${key}.debug.log`);
-  const args = [rt.options.scripts.session, project.path, claude, title, debugFile, ...(resume ? [resume] : [])];
+  const run = ptyCommand(launcher, rt.options.scripts, 'session', [project.path, claude, title, debugFile, ...(resume ? [resume] : [])]);
   let record;
   try {
     record = await rt.context.supervisor.spawn({
       owner: { provider: PROVIDER_ID, project: project.id, kind: 'session', ref: resume ?? key },
-      command: expect,
-      args,
+      ...run,
       cwd: project.path,
       // session.exp types the first message into the session once the link is there.
       env: firstMessage ? { ...rt.context.env, WFK_FIRST_MESSAGE: firstMessage.replace(/\s+/g, ' ').trim() } : rt.context.env,

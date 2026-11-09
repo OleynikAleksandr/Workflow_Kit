@@ -1,10 +1,11 @@
-// Locating `claude` and `expect` (D12) and deciding which capabilities this machine has (D4):
+// Locating `claude` and `expect` (D12; Windows uses the ConPTY host instead of expect) and deciding which capabilities this machine has (D4):
 // the OS, the presence of expect and the claude version. Only files are inspected here; the
 // version comes from `claude --version`, which runs at service start and on refresh (D11).
 import { constants } from 'node:fs';
 import { access, stat } from 'node:fs/promises';
 import path from 'node:path';
 import type { Capabilities } from '#provider-registry';
+import { ptyUnavailable } from '#pty-host';
 
 /** Oldest claude known to have `--remote-control` and `remote-control --spawn` (checked on 2.1.x). */
 export const MIN_CLAUDE_VERSION = '2.1.0';
@@ -79,16 +80,17 @@ export function compareVersions(a: string, b: string): number {
 
 /** Why writing trust is unavailable (it needs no pty: Kit writes ~/.claude.json itself); null when available. */
 export function trustUnavailableReason(platform: NodeJS.Platform, programs: ClaudePrograms): string | null {
-  if (platform === 'win32') return 'Windows: Claude пока не поддерживается (Q1)';
   if (!programs.claude) return 'claude не найден: установите Claude Code или укажите путь в config.json → programs.claude';
   return null;
 }
 
 /** Why pty-based actions (sessions, environment) are unavailable; null when they are available. */
-export function ptyUnavailableReason(platform: NodeJS.Platform, programs: ClaudePrograms, version: string | null): string | null {
-  if (platform === 'win32') return 'Windows: pty для Claude пока не поддерживается (Q1)';
+export function ptyUnavailableReason(platform: NodeJS.Platform, programs: ClaudePrograms, version: string | null, arch: string = process.arch): string | null {
   if (!programs.claude) return 'claude не найден: установите Claude Code или укажите путь в config.json → programs.claude';
-  if (!programs.expect) {
+  // Windows: the ConPTY host (node-pty of pty-host) instead of expect (spec M5 section 4).
+  const noPty = platform === 'win32' ? ptyUnavailable(platform, arch) : null;
+  if (noPty) return noPty;
+  if (platform !== 'win32' && !programs.expect) {
     return platform === 'linux' ? 'нет expect: установите пакет expect (например, sudo apt install expect)' : 'нет expect: программа expect не найдена';
   }
   if (version && compareVersions(version, MIN_CLAUDE_VERSION) < 0) {
@@ -101,7 +103,6 @@ export function ptyUnavailableReason(platform: NodeJS.Platform, programs: Claude
 export function claudeCapabilities(platform: NodeJS.Platform, programs: ClaudePrograms, version: string | null): Capabilities {
   const reason = ptyUnavailableReason(platform, programs, version);
   const pty = reason ? { available: false, reason } : { available: true };
-  const stop = platform === 'win32' ? { available: false, reason: 'Windows: процессы сессий не поддерживаются' } : { available: true };
   const trustReason = trustUnavailableReason(platform, programs);
   return {
     trust: trustReason ? { available: false, reason: trustReason } : { available: true },
@@ -109,7 +110,7 @@ export function claudeCapabilities(platform: NodeJS.Platform, programs: ClaudePr
     sessions: { available: true },
     createSession: { ...pty },
     resumeSession: { ...pty },
-    stopSession: stop,
+    stopSession: { available: true },
     environment: { ...pty },
   };
 }

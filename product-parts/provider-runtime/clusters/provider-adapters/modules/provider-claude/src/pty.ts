@@ -7,17 +7,29 @@ import { fileURLToPath } from 'node:url';
 import { ProviderError } from '#provider-registry';
 import { normalizeRemoteId } from './links.ts';
 
-/** Paths of the expect scripts (both source dialogs.tcl from their own folder). */
+/** Paths of the expect scripts (both source dialogs.tcl from their own folder) and the Windows host. */
 export interface PtyScripts {
   session: string;
   environment: string;
+  /** ConPTY host with the same contract (pty/win-host.ts, spec M5 section 4.1). */
+  host: string;
 }
 
 /** The scripts shipped with this module. */
 export const PTY_SCRIPTS: PtyScripts = {
   session: fileURLToPath(new URL('./pty/session.exp', import.meta.url)),
   environment: fileURLToPath(new URL('./pty/environment.exp', import.meta.url)),
+  host: fileURLToPath(new URL('./pty/win-host.ts', import.meta.url)),
 };
+
+/** How a session or environment script starts: expect on macOS and Linux, node + host on Windows. */
+export type PtyLauncher = { kind: 'expect'; expect: string } | { kind: 'host'; node: string };
+
+/** The command line of a script run: the same arguments for both launchers. */
+export function ptyCommand(launcher: PtyLauncher, scripts: PtyScripts, kind: 'session' | 'environment', args: readonly string[]): { command: string; args: string[] } {
+  if (launcher.kind === 'host') return { command: launcher.node, args: [scripts.host, kind, ...args] };
+  return { command: launcher.expect, args: [scripts[kind], ...args] };
+}
 
 /** A dialog the scripts recognised: trust, external imports, or another one. */
 export type DialogKind = 'trust' | 'imports' | 'unknown';

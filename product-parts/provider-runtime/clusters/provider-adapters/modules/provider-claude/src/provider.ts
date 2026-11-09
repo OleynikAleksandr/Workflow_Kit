@@ -28,7 +28,7 @@ async function status(rt: ClaudeRuntime): Promise<ProviderStatus> {
     version: rt.version(),
     path: programs.claude,
     checkedAt: rt.checkedAt(),
-    details: { expect: programs.expect ?? 'не найден', account, config: config.error ? `${config.file}: ${config.error}` : config.file },
+    details: { expect: rt.context.platform === 'win32' ? 'не нужен (ConPTY)' : (programs.expect ?? 'не найден'), account, config: config.error ? `${config.file}: ${config.error}` : config.file },
   };
   if (!programs.claude) return { ...base, state: 'not-installed', label: 'не установлен', note: reason ?? 'claude не найден' };
   if (reason) return { ...base, state: 'unavailable', label: 'недоступно', note: reason };

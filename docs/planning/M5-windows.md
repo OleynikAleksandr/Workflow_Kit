@@ -68,8 +68,9 @@ code.claude.com и CHANGELOG Claude Code 2.1.319, tarball-ы node-pty). Увер
 - `claude.exe`: `config.programs.claude`, PATH, `%USERPROFILE%\.local\bin\claude.exe` (нативный
   установщик, **В**); npm-установка ставит тот же нативный exe (**В**). Минимальная версия — как
   на macOS; Remote Control на Windows официально поддерживается, ошибка `--sdk-url` исправлена в 2.1.69 (**В**).
-- `expect` на Windows не нужен. Вместо `session.exp` и `environment.exp` — Node-скрипты
-  `pty/session-host.mjs` и `pty/environment-host.mjs` с **тем же контрактом**: те же аргументы,
+- `expect` на Windows не нужен. Вместо `session.exp` и `environment.exp` — один Node-хост
+  `pty/win-host.ts` с режимом `session` или `environment` (логика — `pty/host.ts`, шаблоны экрана —
+  `pty/screen.ts`) и с **тем же контрактом**: те же аргументы,
   те же строки-маркеры в журнале (`CLAUDE_PID`, `SESSION_URL`, `FIRST_MESSAGE_SENT`,
   `NO_SESSION_URL`, `SESSION_NOT_TRUSTED`, `SESSION_EXITED`, `DIALOG <вид>`, `RENAMED`, `WOKEN`,
   `SESSION_ENDED`, `ENV_*`), те же файлы управления `<debug>.rename` и `<debug>.message`, те же

@@ -153,10 +153,12 @@ test('capabilities follow the OS, expect and the claude version', async () => {
   const ready = claudeCapabilities('darwin', both, '2.1.318');
   assert.equal(ready['createSession']!.available, true);
   assert.equal(ready['environment']!.available, true);
-  const windows = claudeCapabilities('win32', both, null);
-  assert.equal(windows['trust']!.available, false);
-  assert.match(windows['trust']!.reason ?? '', /Windows/);
-  assert.equal(windows['stopSession']!.available, false);
+  // Windows (spec M5): the ConPTY host replaces expect; trust and stop work as on macOS.
+  const windows = claudeCapabilities('win32', { claude: 'C:\\Users\\u\\.local\\bin\\claude.exe', expect: null }, '2.1.318');
+  assert.equal(windows['trust']!.available, true);
+  assert.equal(windows['stopSession']!.available, true);
+  assert.equal(windows['createSession']!.available, true);
+  assert.equal(windows['environment']!.available, true);
   const linux = claudeCapabilities('linux', { claude: '/bin/claude', expect: null }, null);
   assert.match(linux['createSession']!.reason ?? '', /expect/);
   assert.equal(linux['sessions']!.available, true);

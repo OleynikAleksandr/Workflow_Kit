@@ -6,7 +6,7 @@ import path from 'node:path';
 import { ProviderError } from '#provider-registry';
 import type { Project, ProviderAction } from '#provider-registry';
 import { ProcessError } from '#process-supervisor';
-import { dialogError, logTail, parseMarkers, poll, readText } from './pty.ts';
+import { dialogError, logTail, parseMarkers, poll, ptyCommand, readText } from './pty.ts';
 import type { EnvironmentRecord } from './records.ts';
 import { PROVIDER_ID } from './runtime.ts';
 import type { ClaudeRuntime } from './runtime.ts';
@@ -54,7 +54,7 @@ export async function environmentActions(rt: ClaudeRuntime, project: Project): P
 /** Starts the environment (no-op when it already runs). */
 export async function startEnvironment(rt: ClaudeRuntime, project: Project): Promise<void> {
   if ((await environmentState(rt, project)).running) return;
-  const { claude, expect } = await rt.requirePty();
+  const { claude, launcher } = await rt.requirePty();
   await rt.requireTrust(project);
   const key = rt.newKey('environment');
   const logFile = path.join(rt.logsDir, `${key}.log`);
@@ -62,8 +62,7 @@ export async function startEnvironment(rt: ClaudeRuntime, project: Project): Pro
   const record = await rt.context.supervisor
     .spawn({
       owner: { provider: PROVIDER_ID, project: project.id, kind: 'environment', ref: key },
-      command: expect,
-      args: [rt.options.scripts.environment, project.path, claude, project.name, debugFile],
+      ...ptyCommand(launcher, rt.options.scripts, 'environment', [project.path, claude, project.name, debugFile]),
       cwd: project.path,
       env: rt.context.env,
       logFile,

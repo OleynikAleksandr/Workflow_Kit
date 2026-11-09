@@ -7,7 +7,7 @@ import type { Project, ProviderContext } from '#provider-registry';
 import { claudeConfigFile, createClaudeConfigReader } from './claude-config.ts';
 import type { ClaudeConfigReader } from './claude-config.ts';
 import { PTY_SCRIPTS } from './pty.ts';
-import type { PtyScripts } from './pty.ts';
+import type { PtyLauncher, PtyScripts } from './pty.ts';
 import { findClaudePrograms, parseVersion, ptyUnavailableReason } from './programs.ts';
 import type { ClaudePrograms } from './programs.ts';
 import { createRecordStore } from './records.ts';
@@ -52,7 +52,7 @@ export interface ClaudeRuntime {
   /** Why pty actions are unavailable, or null. */
   ptyReason(): Promise<string | null>;
   /** Programs for a pty action; throws ProviderError("unavailable") with the reason. */
-  requirePty(): Promise<{ claude: string; expect: string }>;
+  requirePty(): Promise<{ claude: string; launcher: PtyLauncher }>;
   /** Throws ProviderError("not-trusted") unless ~/.claude.json trusts the folder. */
   requireTrust(project: Project): Promise<void>;
   /** Cheap liveness of a supervisor record (polling, D11); false for unknown records. */
@@ -109,10 +109,12 @@ export function createRuntime(context: ProviderContext, options: ClaudeProviderO
     async requirePty() {
       const programs = await runtime.programs();
       const reason = ptyUnavailableReason(context.platform, programs, version);
-      if (reason || !programs.claude || !programs.expect) {
+      const launcher: PtyLauncher | null =
+        context.platform === 'win32' ? { kind: 'host', node: process.execPath } : programs.expect ? { kind: 'expect', expect: programs.expect } : null;
+      if (reason || !programs.claude || !launcher) {
         throw new ProviderError('unavailable', `Claude: ${reason ?? 'недоступно'}`, { hint: 'Нажмите «Перепроверить» после установки недостающего.' });
       }
-      return { claude: programs.claude, expect: programs.expect };
+      return { claude: programs.claude, launcher };
     },
     async requireTrust(project) {
       const trust = await runtime.claudeConfig.trustOf(project.path);

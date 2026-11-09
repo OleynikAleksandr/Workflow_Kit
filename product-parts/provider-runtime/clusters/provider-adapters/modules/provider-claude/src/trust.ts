@@ -18,6 +18,7 @@ import type { ImportScan } from './imports.ts';
 import { trustUnavailableReason } from './programs.ts';
 import { PROVIDER_ID } from './runtime.ts';
 import type { ClaudeRuntime } from './runtime.ts';
+import { folderKey } from './folder-key.ts';
 
 /** Id of the external-imports choice and its answers. */
 export const IMPORTS_CHOICE = 'external-imports';
@@ -46,7 +47,7 @@ async function situation(rt: ClaudeRuntime, project: Project): Promise<Situation
     rt.claudeConfig.read(),
     scanExternalImports(project.path, rt.context.homedir),
   ]);
-  const entry = snapshot.projects.get(project.path);
+  const entry = snapshot.projects.get(folderKey(project.path));
   const trust = trustFromSnapshot(snapshot, project.path);
   const importsPending = imports.imports.length > 0 && entry?.importsDecided !== true;
   const fingerprint = createHash('sha256')

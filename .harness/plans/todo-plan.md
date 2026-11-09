@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 449,
+  "revision": 450,
   "rounds": [
     {
       "digest": {
@@ -72,7 +72,10 @@
       "docs/evidence/M6-acceptance.md records the CI result per OS",
       "Version 0.5.1 is installed locally and published to main after acceptance and close"
     ],
-    "acceptanceNote": null,
+    "acceptanceNote": {
+      "at": "2026-11-09T16:19:55.874Z",
+      "text": "Принять и опубликовать"
+    },
     "approval": {
       "at": "2026-11-09T14:54:50.840Z",
       "text": "User: «как сделать так, чтобы все последующие доработки касались всех трех операционных систем?» and, on the proposal of CI on three OSes, a platform guard check and rules in the instructions: «Да, готовь scope»; then «Выполни план и собери новый релиз. Все-таки номер релиза должен быть другой. И после приемки зальешь его на GitHub» | Execution mode chosen by the user: sequential: Пользователь в чате: «Выполни план и собери новый релиз»; рекомендованный режим — последовательно"
@@ -107,7 +110,7 @@
         "text": "After acceptance and close, main with 0.5.1 is pushed to GitHub"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "ACCEPTED",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
@@ -569,11 +572,11 @@
 ## State
 
 - Scope: m6-cross-platform (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: ACCEPTED
 - Execution: sequential
 - Current task: none
 - Progress: 12/12
-- Revision: 449
+- Revision: 450
 
 ## Objective
 

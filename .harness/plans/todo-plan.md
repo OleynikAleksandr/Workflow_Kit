@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T008",
   "lastClosed": {
     "closedAt": "2026-11-09T10:12:56.251Z",
     "scopeId": "m5-windows"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 438,
+  "revision": 440,
   "rounds": [
     {
       "digest": {
@@ -403,7 +403,7 @@
     {
       "acceptance": [
         "The fake daemon listens on a named pipe on Windows and a Unix socket elsewhere",
-        "release, provider, ws-rpc and files-hooks tests pass on Windows without hanging",
+        "ws-rpc and files-hooks tests pass on Windows; the suites of the macOS/Linux fake machine (provider, release) are skipped on Windows with a reason instead of hanging",
         "A product defect found here is fixed with a test, not hidden"
       ],
       "checks": [],
@@ -426,7 +426,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "Codex adapter tests on Windows",
       "why": "CI on Windows: the fake daemon listens on a Unix socket in the temp folder (EACCES) and provider tests hang"
     },
@@ -538,9 +538,9 @@
 - Scope: m6-cross-platform (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: none
+- Current task: T008
 - Progress: 8/12
-- Revision: 438
+- Revision: 440
 
 ## Objective
 
@@ -592,7 +592,7 @@ Digest: R1 of m6-cross-platform: the platform-guard commit check (rules A, B, C)
   - Commit: test: make provider-claude tests pass on Windows
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/imports.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/config.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parts.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/windows.test.ts
   - Fixes: T002
-- [TODO] T008 — Codex adapter tests on Windows (work)
+- [IN_PROGRESS] T008 — Codex adapter tests on Windows (work)
   - Commit: test: run the fake Codex daemon on a named pipe on Windows
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex
   - Fixes: T002

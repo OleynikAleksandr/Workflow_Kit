@@ -1,0 +1,141 @@
+{
+  "autopilot": {
+    "maxContinues": 40
+  },
+  "budget": {
+    "briefBytes": 60000,
+    "documentBytes": 28000,
+    "recoveryBytes": 32000
+  },
+  "docs": {
+    "contracts": [
+      {
+        "code": "product-parts/{part}/clusters/{cluster}/modules/{module}/src/**",
+        "docs": [
+          "product-parts/{part}/clusters/{cluster}/modules/{module}/module.md"
+        ]
+      },
+      {
+        "code": "bin/**",
+        "docs": [
+          "product-parts/backend-core/clusters/runtime/modules/cli/module.md"
+        ]
+      }
+    ]
+  },
+  "policy": {
+    "maxFileLines": 400,
+    "taskFileSoftLimit": null
+  },
+  "quality": {
+    "checks": [
+      {
+        "id": "typecheck",
+        "role": "typecheck",
+        "stage": "commit",
+        "required": true,
+        "timeoutMs": 300000,
+        "command": {
+          "executable": "npx",
+          "args": [
+            "tsc",
+            "--noEmit",
+            "-p",
+            "tsconfig.json"
+          ]
+        },
+        "appliesTo": [
+          "**/*.ts",
+          "**/*.mjs",
+          "product-parts/**/src/**/*.js",
+          "tsconfig.json",
+          "package.json"
+        ]
+      },
+      {
+        "id": "test",
+        "role": "test",
+        "stage": "commit",
+        "required": true,
+        "timeoutMs": 300000,
+        "command": {
+          "executable": "node",
+          "args": [
+            "--test",
+            "product-parts/**/test/*.test.ts"
+          ]
+        },
+        "appliesTo": [
+          "**/*.ts",
+          "**/*.mjs",
+          "product-parts/**/src/**/*.js",
+          "tsconfig.json",
+          "package.json"
+        ]
+      },
+      {
+        "id": "installed-service",
+        "role": "installed",
+        "stage": "delivery",
+        "required": true,
+        "timeoutMs": 120000,
+        "command": {
+          "executable": "node",
+          "args": [
+            "bin/wfk.mjs",
+            "doctor",
+            "--installed"
+          ]
+        },
+        "evidence": "Установленная служба Workflow Kit отвечает на /api/health после перезагрузки и входа пользователя; docs/evidence/M1-acceptance.md"
+      },
+      {
+        "builtin": "kit:doc-size",
+        "id": "kit:doc-size",
+        "required": true,
+        "role": "custom",
+        "stage": "commit",
+        "timeoutMs": 120000
+      },
+      {
+        "builtin": "kit:md-links",
+        "id": "kit:md-links",
+        "required": true,
+        "role": "custom",
+        "stage": "commit",
+        "timeoutMs": 120000
+      },
+      {
+        "builtin": "kit:file-lines",
+        "id": "kit:file-lines",
+        "required": true,
+        "role": "custom",
+        "stage": "commit",
+        "timeoutMs": 120000
+      },
+      {
+        "builtin": "kit:docs-contracts",
+        "id": "kit:docs-contracts",
+        "required": true,
+        "role": "custom",
+        "stage": "commit",
+        "timeoutMs": 120000
+      },
+      {
+        "builtin": "kit:conflict-markers",
+        "id": "kit:conflict-markers",
+        "required": true,
+        "role": "custom",
+        "stage": "commit",
+        "timeoutMs": 120000
+      }
+    ],
+    "packageManager": "npm",
+    "stacks": [
+      "node"
+    ],
+    "status": "CONFIGURED"
+  },
+  "schema": "harness-workflow-config/1",
+  "host": "harness"
+}

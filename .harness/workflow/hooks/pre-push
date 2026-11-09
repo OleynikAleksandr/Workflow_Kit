@@ -1,0 +1,5 @@
+#!/bin/sh
+# Managed by Harness Workflow Kit. Do not edit.
+# workflow-kit:begin
+"$(git rev-parse --show-toplevel)/scripts/workflow" git-hook pre-push "$@" || exit $?
+# workflow-kit:end

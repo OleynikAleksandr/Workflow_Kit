@@ -1,0 +1,120 @@
+/* «Архив» (archive.js): projects and sessions in two columns, Workflow Pilot style. */
+.archive-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .archive-columns {
+    grid-template-columns: 1fr;
+  }
+}
+
+.archive-column {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.archive-column h2 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.archive-column .count {
+  margin-left: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.archive-list {
+  min-height: 220px;
+  max-height: 60vh;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  border: 1px solid var(--card-line);
+  border-radius: 10px;
+  background: var(--card);
+  list-style: none;
+}
+
+.archive-item {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--line);
+  cursor: default;
+  user-select: none;
+}
+
+.archive-item:last-child {
+  border-bottom: 0;
+}
+
+.archive-item:hover {
+  background: var(--hover);
+}
+
+.archive-item.selected {
+  background: var(--teal-soft);
+  box-shadow: inset 3px 0 0 var(--teal);
+}
+
+.archive-item:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: -2px;
+}
+
+.archive-item strong {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.archive-item small {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.archive-item .tag {
+  padding: 1px 5px;
+  border: 1px solid var(--card-line);
+  border-radius: 5px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 550;
+}
+
+.archive-empty {
+  padding: 28px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.archive-delete {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid var(--danger);
+  border-radius: 10px;
+  background: var(--error-bg);
+}
+
+.archive-delete p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.archive-delete .hint {
+  color: var(--muted);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}

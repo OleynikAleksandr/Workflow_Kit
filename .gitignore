@@ -1,0 +1,32 @@
+# workflow-kit:begin
+# Workflow Kit local state
+.harness/workflow/local/
+.harness/runtime/
+.harness/sessions/
+.claude/worktrees/
+.DS_Store
+# Dependency folders: installed by quality:apply, never committed
+node_modules/
+.venv/
+__pycache__/
+# workflow-kit:end
+
+# Local project research and runtime data (not part of a published clone)
+/docs/start/
+/.workflow-kit/local/
+/.claude/settings.local.json
+/tmp/
+/coverage/
+*.log
+*.tmp
+*.swp
+
+# Local credentials; explicitly share only sanitized examples
+.env
+.env.*
+!.env.example
+!.env.sample
+*.pem
+*.key
+
+# README, CHANGELOG, documentation and required Kit bundles stay versioned.

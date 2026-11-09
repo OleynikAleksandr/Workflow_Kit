@@ -1,0 +1,399 @@
+// @ts-check
+// The project wizard (spec section 7): name or folder → preview with one consent → preparation
+// steps with «Отменить подготовку» → the chat of the first session opens by itself. Panel extension:
+// install(shell) fills the "newProject" slot of panel-shell.
+import { buttonViews, chatTarget, choiceViews, findRun, previewView, runView, validAnswers } from './wizard-model.js';
+
+/**
+ * Helpers the panel shell gives to extensions (see panel-shell app.js).
+ * @typedef {object} Shell
+ * @property {typeof import('../../panel-shell/src/slots.js').registerSlot} registerSlot
+ * @property {typeof import('../../panel-shell/src/api.js').api} api
+ * @property {typeof import('../../panel-shell/src/api.js').ApiError} ApiError
+ * @property {typeof import('../../panel-shell/src/folder-picker.js').createFolderPicker} createFolderPicker
+ * @property {typeof import('../../panel-shell/src/folder-picker.js').showError} showError
+ * @property {{ h: typeof import('../../panel-shell/src/dom.js').h, code: typeof import('../../panel-shell/src/dom.js').code, notice: typeof import('../../panel-shell/src/dom.js').notice, plainInput: typeof import('../../panel-shell/src/dom.js').plainInput }} dom
+ */
+
+/** @typedef {import('../../panel-shell/src/slots.js').SlotContext} SlotContext */
+/** @typedef {{ mode: 'create', name: string } | { mode: 'open', path: string }} PreviewRequest */
+
+/**
+ * @param {Shell} shell
+ */
+export function install(shell) {
+  shell.registerSlot('newProject', { create: (ctx) => createWizard(shell, ctx) });
+}
+
+/** How often a preview with a provider that is not ready is read again. */
+const PREVIEW_RECHECK_MS = 5000;
+
+/**
+ * @param {Shell} shell
+ * @param {SlotContext} ctx
+ */
+function createWizard(shell, ctx) {
+  const { h, code, notice, plainInput } = shell.dom;
+  const element = h('div', { class: 'screen wizard' });
+  /** @type {'create' | 'open'} */
+  let mode = 'create';
+  /** @type {'name' | 'preview' | 'run'} */
+  let stage = 'name';
+  /** @type {PreviewRequest | null} */
+  let request = null;
+  /** @type {Record<string, any> | null} */
+  let preview = null;
+  /** @type {Record<string, string>} */
+  let answers = {};
+  /** @type {string | null} */
+  let operationId = null;
+  let opened = false;
+  let navigated = false;
+  let busy = false;
+  let runKey = '';
+  /** @type {Record<string, unknown>} */
+  let state = {};
+  /** When the preview was last read: a provider that is not ready is re-checked every few seconds. */
+  let previewAt = 0;
+  /** Provider actions last drawn under the provider buttons. */
+  let actionKey = '';
+
+  const message = h('div', { class: 'notice', role: 'alert' });
+  message.hidden = true;
+
+  /** @param {unknown} error */
+  const fail = (error) => shell.showError(message, error);
+
+  /** @param {string} label @param {() => void} action @param {string} [cls] @returns {HTMLButtonElement} */
+  const button = (label, action, cls = 'btn') => {
+    const node = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: cls }, [label]));
+    node.addEventListener('click', action);
+    return node;
+  };
+
+  // Stage 1: name (create) or folder (open).
+  const nameInput = plainInput({ id: 'wizard-name', name: 'name', maxlength: '100', 'aria-label': 'Имя проекта' });
+  const rootLine = h('div', { class: 'sub' });
+  const next = /** @type {HTMLButtonElement} */ (h('button', { type: 'submit', class: 'btn primary wide' }, ['Продолжить']));
+  const nameForm = h('form', {}, [
+    button('Изменить расположение папки для проектов', () => ctx.navigate({ screen: 'settings' }), 'btn wide'),
+    rootLine,
+    h('div', { class: 'field' }, [h('label', { for: 'wizard-name' }, ['Имя проекта']), nameInput]),
+    next,
+  ]);
+  nameForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    void loadPreview({ mode: 'create', name: nameInput.value.trim() });
+  });
+  const picker = shell.createFolderPicker({
+    idPrefix: 'wizard-picker',
+    pickLabel: 'Выбрать эту папку',
+    onPick: (path) => loadPreview({ mode: 'open', path }),
+    onClose: () => ctx.navigate({ screen: 'home' }),
+  });
+  const nameTitle = h('h2', {}, ['Новый проект']);
+  const nameLead = h('p', {}, ['Укажите имя проекта.']);
+  const cancelName = button('Отмена', () => ctx.navigate({ screen: 'home' }), 'text-btn');
+  const namePanel = h('div', { class: 'panel panel-form' }, [nameTitle, nameLead, nameForm, picker.element, cancelName]);
+
+  /** @param {PreviewRequest} input */
+  async function loadPreview(input) {
+    if (busy) return;
+    busy = true;
+    next.disabled = true;
+    notice(message, 'muted', '');
+    try {
+      preview = await shell.api('POST', '/api/setup/preview', input);
+      previewAt = Date.now();
+      request = input;
+      answers = {};
+      stage = 'preview';
+      draw();
+    } catch (error) {
+      fail(error);
+    } finally {
+      busy = false;
+      next.disabled = false;
+    }
+  }
+
+  /**
+   * Re-reads the preview of the same request without touching the answers: the readiness of the
+   * provider buttons and the provider actions then come from the same moment.
+   */
+  async function refreshPreview() {
+    if (busy || stage !== 'preview' || !request) return;
+    busy = true;
+    previewAt = Date.now();
+    try {
+      const fresh = await shell.api('POST', '/api/setup/preview', request);
+      if (stage !== 'preview' || !preview) return;
+      const before = JSON.stringify(buttonViews(preview, answers));
+      preview = fresh;
+      if (JSON.stringify(buttonViews(fresh, answers)) !== before) draw();
+    } catch {
+      // The next state update tries again.
+    } finally {
+      busy = false;
+    }
+  }
+
+  /** @param {string} provider */
+  async function apply(provider) {
+    if (busy || !preview) return;
+    busy = true;
+    notice(message, 'muted', '');
+    try {
+      const result = await shell.api('POST', '/api/setup/apply', { token: preview['token'], provider, choices: validAnswers(preview, answers) });
+      operationId = String(result?.operationId ?? '');
+      opened = false;
+      navigated = false;
+      runKey = '';
+      stage = 'run';
+      ctx.requestRefresh();
+      draw();
+    } catch (error) {
+      const stale = error instanceof shell.ApiError && (error.code === 'preview-stale' || error.code === 'preview-expired');
+      if (stale && request) {
+        busy = false;
+        await loadPreview(request);
+        notice(message, 'muted', 'Папка изменилась с момента предпросмотра: проверьте обновлённый список и нажмите кнопку ещё раз.');
+        return;
+      }
+      fail(error);
+    } finally {
+      busy = false;
+    }
+  }
+
+  function previewPanel() {
+    if (!preview) return h('div');
+    const view = previewView(preview, Date.now());
+    const choices = choiceViews(preview, answers).map((choice) =>
+      h('fieldset', { class: 'wizard-choice' }, [
+        h('legend', {}, [choice.title, choice.required && !choice.answered ? h('span', { class: 'wizard-required' }, [' · нужен ответ']) : null]),
+        choice.description ? h('p', {}, [choice.description]) : null,
+        ...choice.options.map((option) => {
+          const input = /** @type {HTMLInputElement} */ (h('input', { type: 'radio', name: `wizard-${choice.id}`, value: option.id }));
+          input.checked = option.checked;
+          input.addEventListener('change', () => {
+            answers = { ...answers, [choice.id]: option.id };
+            draw();
+          });
+          return h('label', { class: 'wizard-option' }, [input, h('span', {}, [option.title, option.description ? h('small', {}, [option.description]) : null])]);
+        }),
+      ]),
+    );
+    const buttons = buttonViews(preview, answers);
+    const reasons = [...new Set(buttons.filter((b) => !b.enabled && b.reason).map((b) => b.reason))];
+    return h('div', { class: 'panel', }, [
+      h('h2', {}, [view.title]),
+      h('p', {}, [view.lead]),
+      h('div', { class: 'path-box' }, [view.path]),
+      h('ul', { class: 'checks' }, view.actions.map((a) => h('li', {}, [h('span', { class: 'ok' }, ['✓']), h('span', {}, [a.title, h('small', {}, [a.detail])])]))),
+      h('details', {}, [h('summary', {}, [view.changesLabel]), h('ul', { class: 'wizard-files' }, view.files.map((f) => h('li', {}, [f])))]),
+      ...choices,
+      view.blocked ? h('div', { class: 'notice notice-error' }, [h('p', {}, [view.blocked.message]), ...view.blocked.commands.map((c) => h('p', {}, [code(c)]))]) : null,
+      ...view.notes.map((n) => h('p', { class: 'wizard-note' }, [n])),
+      view.expired ? h('div', { class: 'notice notice-muted' }, [h('p', {}, ['Предпросмотр устарел.']), button('Обновить предпросмотр', () => request && void loadPreview(request))]) : null,
+      h('div', { class: 'eyebrow' }, ['Первая сессия проекта']),
+      h('div', { class: 'session-start' }, buttons.map((b) => {
+        const node = button('', () => void apply(b.provider), 'btn prov');
+        node.append(h('i', { class: b.provider, 'aria-hidden': 'true' }, [b.letter]), b.label);
+        node.disabled = !b.enabled || view.expired;
+        if (b.reason) node.title = b.reason;
+        return node;
+      })),
+      ...reasons.map((r) => h('p', { class: 'wizard-reason' }, [r])),
+      ...providerActions(buttons),
+      h('p', {}, ['Проект будет создан, и сразу откроется чат. Модель выбирается внутри приложения. Больше вопросов не будет.']),
+      button('Назад', () => {
+        stage = 'name';
+        draw();
+      }, 'text-btn'),
+    ].filter((n) => n !== null));
+  }
+
+  /**
+   * Actions of the providers whose button is off because the provider is not ready (for example
+   * «Запустить демон» of Codex): the settings have no provider cards any more.
+   * @param {Array<{ provider: string, enabled: boolean }>} buttons
+   */
+  function providerActions(buttons) {
+    const summaries = /** @type {any[]} */ (Array.isArray(/** @type {any} */ (state['providers'])?.providers) ? /** @type {any} */ (state['providers']).providers : []);
+    const off = new Set(buttons.filter((b) => !b.enabled).map((b) => b.provider));
+    return summaries
+      .filter((p) => off.has(p?.id) && Array.isArray(p.actions))
+      .flatMap((p) => p.actions.filter((/** @type {any} */ a) => a?.scope === 'provider' && a.enabled).map((/** @type {any} */ a) =>
+        button(`${p.title ?? p.id}: ${a.title}`, () => void runProviderAction(String(p.id), a), 'btn primary')));
+  }
+
+  /** @param {string} provider @param {{ id: string, title: string, confirm?: string }} action */
+  async function runProviderAction(provider, action) {
+    if (action.confirm && !window.confirm(action.confirm)) return;
+    try {
+      notice(message, 'muted', `${action.title}…`);
+      await shell.api('POST', `/api/providers/${encodeURIComponent(provider)}/actions/${encodeURIComponent(action.id)}`);
+      ctx.requestRefresh();
+      // The preview tells whether the provider is ready now.
+      setTimeout(() => {
+        void refreshPreview().then(() => notice(message, 'muted', ''));
+      }, 3000);
+    } catch (error) {
+      // Not needed any more (for example the daemon connected meanwhile): no error, just re-check.
+      if (error instanceof shell.ApiError && error.code === 'action-disabled') {
+        notice(message, 'muted', '');
+        ctx.requestRefresh();
+        void refreshPreview();
+        return;
+      }
+      fail(error);
+    }
+  }
+
+  /** An https link opens in a new tab; an app link (ChatGPT) with the session (ctx.openSession). @param {Record<string, any>} run */
+  function openChat(run) {
+    const target = chatTarget(run['links'] ?? {}, navigator.maxTouchPoints ?? 0);
+    if (target?.newTab) window.open(target.href, '_blank', 'noopener');
+    else if (target && !ctx.openSession) window.location.assign(target.href);
+  }
+
+  function runPanel() {
+    const run = operationId ? findRun(state, operationId) : null;
+    if (!run) return h('div', { class: 'panel' }, [h('h2', {}, ['Готовим проект']), h('ul', { class: 'checks' }, [h('li', {}, [h('span', { class: 'spin' }), 'Запускаем подготовку…'])])]);
+    const view = runView(run);
+    const provider = run['provider'] === 'claude' ? 'Claude' : 'ChatGPT';
+    // The chat opens by itself in the app and the panel goes to the session screen as soon as the
+    // session is listed: no «Открыть чат» / «Перейти к сессии» (user decision 2026-11-06).
+    if (view.status === 'succeeded' && !opened) {
+      opened = true;
+      openChat(run);
+      if (view.projectId) ctx.selectProject(view.projectId);
+    }
+    const actions = [];
+    if (view.canCancel) actions.push(button('Отменить подготовку', () => void cancel()));
+    if (view.status === 'failed' || view.status === 'cancelled') {
+      actions.push(button('Повторить', () => request && void loadPreview(request), 'btn primary'));
+      actions.push(button('Закрыть', () => ctx.navigate(view.projectId ? { screen: 'project', projectId: view.projectId } : { screen: 'home' })));
+    }
+    return h('div', { class: 'screen' }, [
+      h('div', { class: 'screen-head' }, [h('h1', {}, [String(run['name'] ?? '')]), h('div', { class: 'sub' }, [`${String(run['path'] ?? '')} · первая сессия в ${provider}`])]),
+      h('div', { class: 'panel' }, [
+        h('h2', {}, [view.title]),
+        h('ul', { class: 'checks' }, view.steps.map((s) =>
+          h('li', { class: `wizard-step ${s.status}` }, [
+            s.status === 'running' ? h('span', { class: 'spin' }) : h('span', { class: `mark ${s.status}` }, [s.mark]),
+            h('span', {}, [s.title, s.note ? h('small', {}, [s.note]) : null]),
+          ]))),
+        view.error ? h('div', { class: 'notice notice-error' }, [h('p', {}, [view.error.message]), view.error.hint ? h('p', { class: 'notice-hint' }, [view.error.hint]) : null]) : null,
+        h('div', { class: 'row' }, actions),
+      ]),
+    ]);
+  }
+
+  async function cancel() {
+    if (!operationId) return;
+    try {
+      await shell.api('POST', `/api/setup/${encodeURIComponent(operationId)}/cancel`);
+      ctx.requestRefresh();
+    } catch (error) {
+      fail(error);
+    }
+  }
+
+  function draw() {
+    if (stage === 'name') {
+      const open = mode === 'open';
+      nameTitle.textContent = open ? 'Открыть папку проекта' : 'Новый проект';
+      nameLead.textContent = open ? 'Выберите папку проекта: Kit добавит в неё инструкции и план.' : 'Укажите имя проекта.';
+      nameForm.hidden = open;
+      cancelName.hidden = open;
+      picker.element.hidden = !open;
+      element.replaceChildren(message, namePanel);
+    } else if (stage === 'preview') {
+      element.replaceChildren(message, previewPanel());
+    } else {
+      element.replaceChildren(message, runPanel());
+    }
+  }
+
+  return {
+    element,
+    /**
+     * @param {'create' | 'open'} nextMode
+     * @param {Record<string, unknown>} nextState
+     * @param {boolean} entered the route just changed to this screen
+     */
+    show(nextMode, nextState, entered) {
+      state = nextState;
+      const root = /** @type {{ root?: string }} */ (nextState['projects'] ?? {}).root ?? '';
+      rootLine.replaceChildren('Папка для проектов: ', root ? code(root) : '—');
+      if (entered || nextMode !== mode) {
+        // Every entry starts from a clean slate: no name, answers or flags of an earlier run.
+        mode = nextMode;
+        stage = 'name';
+        preview = null;
+        request = null;
+        answers = {};
+        operationId = null;
+        opened = false;
+        navigated = false;
+        runKey = '';
+        actionKey = '';
+        nameInput.value = '';
+        notice(message, 'muted', '');
+        draw();
+        if (mode === 'open') void picker.open().catch(fail);
+        else nameInput.focus();
+        return;
+      }
+      if (stage === 'preview' && preview) {
+        const waiting = buttonViews(preview, answers).some((b) => !b.enabled);
+        if (waiting && Date.now() - previewAt > PREVIEW_RECHECK_MS) void refreshPreview();
+        // The provider actions follow the providers section of the new state (redrawn only on change).
+        const key = waiting ? actionsKey(nextState) : '';
+        if (key !== actionKey) {
+          actionKey = key;
+          draw();
+        }
+        return;
+      }
+      if (stage !== 'run' || !operationId) return;
+      const run = findRun(nextState, operationId);
+      // The session may be listed after the run stopped changing: the check runs on every state.
+      const view = run ? runView(run) : null;
+      if (view?.status === 'succeeded' && view.projectId && view.sessionKey && !navigated && sessionListed(nextState, view.projectId, view.sessionKey)) {
+        navigated = true;
+        // Like a click on its card (ChatGPT: also its chat in the app).
+        (ctx.openSession ?? ((projectId, key) => ctx.navigate({ screen: 'session', projectId, key })))(view.projectId, view.sessionKey);
+        return;
+      }
+      const key = JSON.stringify(run);
+      if (key === runKey) return;
+      runKey = key;
+      draw();
+    },
+  };
+}
+
+/**
+ * The provider-level actions of the state, as a key that changes when any of them changes.
+ * @param {Record<string, unknown>} state
+ */
+function actionsKey(state) {
+  const providers = /** @type {{ providers?: Array<{ id?: unknown, actions?: unknown }> }} */ (state['providers'] ?? {}).providers ?? [];
+  return JSON.stringify(providers.map((p) => [p.id, p.actions]));
+}
+
+/**
+ * True once the providers section lists the session (the tree can show it).
+ * @param {Record<string, unknown>} state
+ * @param {string} projectId
+ * @param {string} key
+ */
+function sessionListed(state, projectId, key) {
+  const projects = /** @type {Record<string, Record<string, { sessions?: Array<{ provider: string, localId?: string }> }>>} */ (
+    /** @type {{ projects?: unknown }} */ (state['providers'] ?? {}).projects ?? {}
+  );
+  return Object.values(projects[projectId] ?? {}).some((p) => (p.sessions ?? []).some((s) => `${s.provider}:${s.localId}` === key));
+}

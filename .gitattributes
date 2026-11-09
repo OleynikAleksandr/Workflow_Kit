@@ -1,0 +1,6 @@
+# workflow-kit:begin
+scripts/workflow text eol=lf
+scripts/workflow.cmd text eol=crlf
+scripts/workflow.ps1 text eol=crlf
+.harness/** text eol=lf
+# workflow-kit:end

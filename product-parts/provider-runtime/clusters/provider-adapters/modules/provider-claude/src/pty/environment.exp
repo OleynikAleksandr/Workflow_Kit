@@ -1,0 +1,28 @@
+# Starts the Remote Control environment of a project folder: iPad and web clients connect to it
+# to start sessions there (claude remote-control --spawn=same-dir).
+# Usage: expect environment.exp <folder> <claude> <name> <debug file>
+# Prints (each on its own line):
+#   CLAUDE_PID <pid>   pid of the spawned claude (D9)
+#   ENV_READY <id>     the screen named the environment (environment=<id>)
+#   ENV_STARTED        no environment id on the screen in time; the process keeps running
+#   ENV_NOT_TRUSTED    the folder is not trusted (exit 5)
+#   ENV_EXITED         claude exited right away (exit 4)
+#   DIALOG <kind>      claude showed a dialog; it was stopped, no key pressed (exit 6)
+set timeout 20
+lassign $argv dir claude name debug
+source [file join [file dirname [info script]] dialogs.tcl]
+cd $dir
+spawn $claude remote-control --name $name --spawn=same-dir --debug-file $debug
+puts "\nCLAUDE_PID [exp_pid]"
+stty rows 40 columns 120 < $spawn_out(slave,name)
+expect {
+  -re {Workspace not trusted} { puts "\nENV_NOT_TRUSTED"; exit 5 }
+  -re {environment=([A-Za-z0-9_-]+)} { puts "\nENV_READY $expect_out(1,string)" }
+  -re $dialog_pattern { stop_on_dialog $expect_out(buffer) }
+  timeout { puts "\nENV_STARTED" }
+  eof { puts "\nENV_EXITED"; exit 4 }
+}
+log_user 0
+set timeout -1
+expect eof
+puts "\nENV_ENDED"

@@ -1,0 +1,84 @@
+/* The project wizard: choices of the preview, step marks of the preparation. */
+.wizard-choice {
+  margin: 10px 0;
+  padding: 10px 12px;
+  border: 1px solid var(--card-line);
+  border-radius: 10px;
+}
+
+.wizard-choice legend {
+  padding: 0 4px;
+  font-weight: 650;
+}
+
+.wizard-required {
+  color: var(--warn);
+  font-weight: 600;
+}
+
+.wizard-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 6px;
+  cursor: pointer;
+}
+
+.wizard-option input {
+  margin-top: 3px;
+  accent-color: var(--teal);
+}
+
+.wizard-option small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.wizard-files {
+  margin: 6px 0 0;
+  padding-left: 14px;
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.wizard details {
+  margin: 8px 0;
+  color: var(--muted);
+}
+
+.wizard summary {
+  cursor: pointer;
+}
+
+.wizard-note,
+.wizard-reason {
+  font-size: 12px;
+}
+
+.wizard-reason {
+  color: var(--warn) !important;
+}
+
+.wizard-step .mark {
+  width: 12px;
+  text-align: center;
+}
+
+.wizard-step .mark.done {
+  color: var(--ok);
+}
+
+.wizard-step .mark.pending,
+.wizard-step .mark.skipped {
+  color: var(--muted);
+}
+
+.wizard-step .mark.failed {
+  color: var(--danger);
+}
+
+.wizard-step.pending {
+  color: var(--muted);
+}

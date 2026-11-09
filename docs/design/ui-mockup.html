@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Workflow Kit — макет интерфейса</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-synthesis:none;
+  --bg:#f4f6f8;--panel:#fff;--text:#243346;--muted:#708092;--line:#e1e7ed;--teal:#087e80;--teal-soft:#e3f2f1;
+  --card:#fff;--card-line:#dfe6ec;--active:#e7f3f2;--active-line:#9fcfcc;--hover:#eef2f5;--input:#fff;--warn:#c9761f;--warn-bg:#fff6ec;--logo:#163f4a;--danger:#b5483a}
+:root[data-theme=dark]{color-scheme:dark;--bg:#16181c;--panel:#1b1d22;--text:#e7edf4;--muted:#9aa8b6;--line:#343b45;--teal:#53bbb7;--teal-soft:#203536;
+  --card:#22272d;--card-line:#363e48;--active:#203536;--active-line:#356061;--hover:#252b32;--input:#20252b;--warn:#e89a4c;--warn-bg:#2a2219;--logo:#284d58;--danger:#e2a39a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-size:13px;min-height:100vh}
+button,input{font:inherit;color:inherit}button{cursor:pointer}
+/* Mockup controls (not part of the product) */
+.mock-bar{position:sticky;top:0;z-index:50;display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 12px;background:#0d0f12;color:#cfd8e2;font-size:12px;border-bottom:1px solid #2a3038}
+.mock-bar b{margin-right:6px;color:#fff}
+.mock-bar button{border:1px solid #39424d;background:#1d2228;border-radius:999px;padding:4px 10px;font-size:12px}
+.mock-bar button.on{background:#53bbb7;color:#0d1416;border-color:#53bbb7}
+.mock-bar .sp{flex:1}
+.mock-note{padding:8px 12px;font-size:12px;color:#9aa8b6;background:#111418;border-bottom:1px solid #2a3038}
+/* App */
+.app{display:grid;grid-template-columns:270px 1fr;min-height:calc(100vh - 52px)}
+.side{background:var(--panel);border-right:1px solid var(--line);padding:18px 15px;display:flex;flex-direction:column;gap:16px;position:relative}
+.brand{display:flex;align-items:center;gap:9px}
+.logo{width:33px;height:33px;border-radius:10px;background:var(--logo);color:#fff;display:grid;place-items:center;font-weight:750;font-size:15px}
+.brand strong{font-size:15px;letter-spacing:-.3px}.brand small{color:var(--muted);font-weight:600;margin-left:4px}
+.icon{border:0;background:transparent;color:var(--muted);border-radius:6px;padding:4px;display:grid;place-items:center}
+.icon:hover{background:var(--hover);color:var(--text)}
+.ml{margin-left:auto}
+.status{display:flex;align-items:center;gap:8px;border:1px solid var(--active-line);background:var(--active);color:var(--teal);border-radius:9px;padding:8px 9px;font-size:12px}
+.status .t{margin-left:auto;color:var(--muted);font-variant-numeric:tabular-nums}
+.spin{width:10px;height:10px;border-radius:50%;border:2px solid var(--teal);border-right-color:transparent;animation:r .9s linear infinite;flex:none}
+@keyframes r{to{transform:rotate(360deg)}}
+.heading{display:flex;align-items:center;gap:6px}
+.projects-btn{border:0;background:transparent;font-size:15px;font-weight:700;color:var(--muted);display:flex;align-items:center;gap:6px;padding:4px 6px;margin-left:-6px;border-radius:8px}
+.projects-btn:hover,.projects-btn.open{background:var(--hover);color:var(--text)}
+.menu{position:absolute;left:15px;right:15px;top:112px;background:var(--panel);border:1px solid var(--card-line);border-radius:10px;padding:8px;box-shadow:0 12px 30px #0006;z-index:10;display:none}
+.menu.show{display:block}
+.search{width:100%;border:2px solid var(--teal);background:var(--input);border-radius:8px;padding:7px 9px;outline:0}
+.menu-item{display:flex;align-items:center;gap:9px;width:100%;border:0;background:transparent;padding:8px 9px;border-radius:7px;text-align:left}
+.menu-item:hover{background:var(--hover)}
+.menu-item small{display:block;color:var(--muted);font-size:11px}
+.menu hr{border:0;border-top:1px solid var(--line);margin:6px 3px}
+.menu-row{display:flex;align-items:center}.menu-row .menu-item{flex:1}.menu-row .link{color:var(--muted);font-size:12px;border:0;background:none;padding:6px}
+.project{border-radius:10px;background:var(--card);border:1px solid var(--card-line);padding:10px 10px 10px 8px;display:flex;align-items:center;gap:8px}
+.project b{display:block;font-size:13px}.project small{color:var(--muted)}
+.chev{color:var(--muted);width:16px;text-align:center}
+.folder{color:var(--teal)}
+.sessions{margin:4px 0 0 16px;border-left:1px solid var(--line);padding:3px 0 0 14px;display:flex;flex-direction:column;gap:6px}
+.session{position:relative;border:1px solid var(--card-line);border-radius:10px;padding:9px 10px;background:var(--card)}
+.session::before{content:"";position:absolute;left:-14px;top:18px;width:14px;border-top:1px solid var(--line)}
+.session.active{background:var(--active);border-color:var(--active-line)}
+.session .title{font-weight:650;color:var(--text);display:flex;align-items:center;gap:6px}
+.session.active .title{color:var(--teal)}
+.session small{color:var(--muted);display:block;margin-top:3px}
+.badge{position:absolute;right:8px;bottom:8px;font-size:11px;border-radius:5px;padding:2px 6px;background:var(--hover);color:var(--muted);border:1px solid var(--card-line)}
+.badge.gpt{color:#7fd0cb}.badge.claude{color:#e0a57a}
+.dots{position:absolute;right:8px;top:6px}
+.empty{color:var(--muted);text-align:center;padding:15px 6px;border:1px dashed var(--card-line);border-radius:10px}
+.foot{margin-top:auto;display:flex;flex-direction:column;gap:8px;color:var(--muted);font-size:12px}
+.toggle{display:flex;align-items:center;justify-content:space-between}
+.sw{width:30px;height:16px;border-radius:749px;background:var(--line);position:relative;border:0}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:#aab5c0;transition:.15s}
+.sw.on{background:var(--active-line)}.sw.on::after{left:16px;background:var(--teal)}
+.review{display:flex;flex-direction:column;gap:4px;color:var(--muted);font-size:13px}
+.review small{font-size:11px;line-height:1.45}
+.review-line{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--muted);margin:2px 0 8px}
+.review-line b{color:var(--text);font-weight:650}
+.conn{display:flex;gap:9px;flex-wrap:wrap}.dot{display:inline-block;width:5px;height:5px;border-radius:50%;background:#4caf7d;margin-right:4px}.dot.off{background:#c9761f}
+/* Main */
+.main{padding:21px 24px;display:flex;flex-direction:column;gap:15px;min-width:0}
+.main h1{margin:0;font-size:17px;letter-spacing:-.2px}
+.main .sub{color:var(--muted);margin-top:3px}
+.panel{border:1px solid var(--card-line);background:var(--card);border-radius:12px;padding:15px;max-width:570px}
+.panel h2{margin:0 0 4px;font-size:14px}
+.panel p{margin:4px 0;color:var(--muted);line-height:1.5}
+.btn{border:1px solid var(--card-line);background:var(--hover);border-radius:8px;padding:8px 12px;font-weight:650}
+.btn:hover{border-color:var(--active-line)}
+.btn.primary{background:var(--teal);color:#fff;border-color:var(--teal)}
+:root[data-theme=dark] .btn.primary{color:#0e1d1d}
+.btn.wide{width:100%;padding:10px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.field{display:flex;flex-direction:column;gap:4px;margin:10px 0}
+.field label{font-weight:650;font-size:12px}
+.field input{border:2px solid var(--teal);background:var(--input);border-radius:8px;padding:9px 10px;outline:0;font-size:13px}
+.path{background:var(--hover);border-radius:8px;padding:9px 10px;font-family:ui-monospace,Menlo,monospace;font-size:12px;word-break:break-all}
+.text-btn{border:0;background:none;color:var(--muted);padding:6px;display:block;margin:4px auto 0}
+.eyebrow{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;font-weight:750;color:var(--muted);margin:14px 0 6px}
+details{margin:8px 0;color:var(--muted)}summary{cursor:pointer}
+details ul{margin:6px 0 0;padding-left:14px;font-family:ui-monospace,Menlo,monospace;font-size:11px;line-height:1.7}
+.checks{list-style:none;padding:0;margin:8px 0;display:flex;flex-direction:column;gap:6px}
+.checks li{display:flex;gap:8px;align-items:flex-start;color:var(--text)}
+.checks li small{display:block;color:var(--muted)}
+.ok{color:#4caf7d}.wait{color:var(--muted)}
+.session-start{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.prov{display:flex;align-items:center;gap:8px;justify-content:center}
+.prov i{font-style:normal;width:16px;height:16px;border-radius:4px;display:grid;place-items:center;font-size:11px;font-weight:800}
+.prov .g{background:#0f3d3b;color:#7fd0cb}.prov .c{background:#3d2616;color:#e0a57a}
+.work{display:flex;align-items:center;gap:9px;border:1px solid var(--active-line);background:var(--active);border-radius:10px;padding:12px}
+.work b{color:var(--text)}.work small{display:block;color:var(--muted);font-family:ui-monospace,Menlo,monospace;margin-top:3px}
+.choice{border:2px solid var(--warn);background:var(--warn-bg);border-radius:12px;padding:15px;max-width:570px}
+.choice .eyebrow{color:var(--warn);margin-top:0}
+.choice h2{margin:0 0 6px;font-size:14px}
+.opt{border:1px solid var(--card-line);background:var(--card);border-radius:10px;padding:10px;margin-top:8px}
+.opt b{display:block}.opt .rec{color:var(--warn);font-weight:700}
+.opt p{margin:4px 0 8px;color:var(--muted)}
+.btn.warn{background:var(--warn);color:#201509;border-color:var(--warn)}
+.btn.warn-o{background:transparent;border-color:var(--warn);color:var(--text)}
+.plan{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:4px}
+.plan li{display:flex;gap:8px;align-items:center;padding:6px 8px;border-radius:7px}
+.plan li.cur{background:var(--active)}
+.tag{font-size:10px;border-radius:4px;padding:1px 5px;border:1px solid var(--card-line);color:var(--muted)}
+.kv{display:grid;grid-template-columns:120px 1fr;gap:6px 10px;font-size:12px}.kv span:nth-child(odd){color:var(--muted)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(225px,1fr));gap:12px;max-width:735px}
+.hide{display:none!important}
+.plan-card{border:1px solid var(--card-line);background:var(--card);border-radius:12px;padding:15px;max-width:570px}
+.plan-card .who{color:var(--muted);font-weight:650}
+.plan-card h2{margin:4px 0 9px;font-size:14px}
+.bar{height:5px;border-radius:74px;background:var(--line);overflow:hidden}.bar i{display:block;height:100%;background:var(--teal);border-radius:74px}
+.count{font-weight:650;margin:8px 0 4px}
+.tasks{list-style:none;margin:0;padding:0}
+.tasks li{display:grid;grid-template-columns:16px 1fr;gap:3px 8px;padding:9px 3px}
+.tasks .ic{margin-top:2px;width:11px;height:11px;border-radius:50%;border:2px solid var(--muted)}
+.tasks .ic.done{border-color:#4caf7d;background:#4caf7d;position:relative}
+.tasks .ic.done::after{content:"✓";position:absolute;inset:-2px 0 0;color:#10231a;font-size:10px;font-weight:900;text-align:center}
+.tasks .ic.run{border-color:var(--teal);border-right-color:transparent;animation:r .9s linear infinite}
+.tasks .tid{color:var(--muted);margin-right:6px;font-variant-numeric:tabular-nums}
+.tasks b{font-weight:650}
+.tasks small{grid-column:2;color:var(--muted)}
+.tasks small .st{color:var(--text)}
+.tasks small .st.done{color:#4caf7d}.tasks small .st.run{color:var(--teal)}
+.plan-card hr{border:0;border-top:1px solid var(--line);margin:6px 0 12px}
+.cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:start;max-width:900px}
+.cols>.plan-card,.cols>.choice,.cols>.panel{max-width:none}
+@media (max-width:1100px){.cols{grid-template-columns:1fr}}
+/* Narrow: iPad portrait / phone */
+@media (max-width:680px){.app{grid-template-columns:1fr;align-content:start}.foot{margin-top:4px}.side{border-right:0;border-bottom:1px solid var(--line)}.main{padding:15px 12px}.session-start{grid-template-columns:1fr}.menu{top:112px}}
+</style>
+</head>
+<body>
+<div class="mock-bar">
+  <b>Макет</b>
+  <span id="steps"></span>
+  <span class="sp"></span>
+  <button id="theme">Светлая / тёмная</button>
+</div>
+<div class="mock-note" id="note"></div>
+
+<div class="app">
+  <aside class="side">
+    <div class="brand">
+      <div class="logo">W</div>
+      <div><strong>Workflow Kit</strong><small>0.1.0</small></div>
+      <button class="icon ml" title="Настройки" data-go="settings">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+      </button>
+    </div>
+
+    <div class="status" data-show="preparing"><span class="spin"></span>Готовим сессию в ChatGPT<span class="t">16 с</span></div>
+
+    <div class="heading">
+      <button class="projects-btn" id="projectsBtn">Ваши проекты
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></button>
+      <button class="icon ml" title="Свернуть все"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 6h10M4 12h10M4 18h10M18 8l2-2 2 2M18 16l2 2 2-2"/></svg></button>
+    </div>
+
+    <div class="menu" id="menu">
+      <input class="search" placeholder="Найти проект">
+      <div style="margin-top:8px" data-show="has-projects">
+        <div class="menu-row"><button class="menu-item"><span><b>F001</b><small>Выбран</small></span></button><button class="link">В архив</button></div>
+        <div class="menu-row"><button class="menu-item"><span><b>Workflow_Pilot</b><small>~/VSCODE/Workflow_Pilot</small></span></button><button class="link">В архив</button></div>
+      </div>
+      <hr>
+      <button class="menu-item" data-go="new-name">＋&nbsp; Создать проект</button>
+      <button class="menu-item" data-go="new-name" data-folder="1">📂&nbsp; Открыть папку проекта</button>
+      <hr>
+      <button class="menu-item">↻&nbsp; Обновить сессии</button>
+      <button class="menu-item">Архив проектов…</button>
+    </div>
+
+    <div id="tree"></div>
+
+    <div class="review" id="review">
+      <div class="toggle">Ревью плана <button class="sw" id="sw"></button></div>
+      <small id="reviewHint"></small>
+    </div>
+
+    <div class="foot">
+      <div class="conn"><span><span class="dot"></span>Служба</span><span><span class="dot"></span>ChatGPT</span><span><span class="dot"></span>Claude</span><span><span class="dot"></span>iPad · Tailscale</span></div>
+    </div>
+  </aside>
+
+  <main class="main" id="main"></main>
+</div>
+
+<script>
+const STEPS = [
+  {id:'welcome', label:'1. Первый запуск', note:'Первый контакт: проектов нет. Одно понятное действие — создать проект или открыть существующую папку. Служебные подробности убраны в «Настройки» (шестерёнка).'},
+  {id:'menu', label:'2. Меню проектов', note:'«Ваши проекты» открывает меню: поиск, список, создать, открыть папку, обновить сессии, архив — как в Workflow Pilot.'},
+  {id:'new-name', label:'3. Новый проект', note:'Шаг 1 из 2: имя и расположение. Папку для проектов можно поменять. «Открыть папку проекта» ведёт сюда же, но с выбором папки через окно выбора.'},
+  {id:'new-confirm', label:'4. Подтверждение', note:'Шаг 2 из 2: одно согласие на всё. Список того, что Kit сделает в папке и в настройках Claude/ChatGPT, и две кнопки первой сессии. После нажатия вопросов больше нет.'},
+  {id:'preparing', label:'5. Подготовка', note:'Всё идёт само: структура, доверие, хук, сессия. Сверху — строка состояния с таймером, карточка сессии уже в дереве («новая»). Под деревом — переключатель «Ревью плана» этой сессии (у каждой сессии Claude и ChatGPT свой): виден, пока пользователь не выбрал путь.'},
+  {id:'working', label:'6. Агент работает', note:'Агент получил задачу и сам переименовал сессию («Склад — анализ остатков»). Справа — что происходит в сессии сейчас.'},
+  {id:'choice', label:'7. Выбор пути', note:'Пользователь выбирает, как агент составит спецификацию и план и как их выполнит: оркестрация или последовательно. После выбора переключатель «Ревью плана» этой сессии исчезает.'},
+  {id:'plan', label:'8. План готов', note:'Агент или оркестратор создал план — он сразу появляется в Kit и остаётся на экране сессии до приёмки всего плана пользователем. Видно, было ли ревью. Метки «Последовательно / Параллельно» — из плана.'},
+  {id:'running', label:'9. Выполнение', note:'План обновляется сам: T001 уже в main, T002 и T003 идут параллельно у исполнителей, у каждой задачи видно состояние и где она сейчас.'},
+  {id:'accept', label:'10. Приёмка', note:'Все задачи в main — Kit предлагает проверить результат и принять план. До этого момента карточка плана не исчезает.'},
+  {id:'settings', label:'11. Настройки', note:'Вся нынешняя «телеметрия» — служба, автозапуск, провайдеры, демон Codex, доверие, хуки — живёт здесь, а не на главном экране.'},
+];
+let cur = 'welcome', provider = 'gpt', folderMode = false, review = false;
+// The review switch belongs to the active session (each Claude or ChatGPT session has its own)
+// and disappears once the user chooses how the plan is made and run.
+const REVIEW_STEPS = ['preparing', 'working', 'choice'];
+const $ = (s) => document.querySelector(s);
+const stepsEl = $('#steps');
+STEPS.forEach((s) => { const b = document.createElement('button'); b.textContent = s.label; b.dataset.go = s.id; stepsEl.appendChild(b); });
+
+function tree() {
+  if (cur === 'welcome' || cur === 'new-name' || cur === 'new-confirm') {
+    return cur === 'welcome' ? '<div class="empty">Проектов пока нет</div>' :
+      `<div class="project"><span class="chev">›</span><span class="folder">📁</span><div><b>Workflow_Pilot</b><small>1 сессия</small></div><span class="ml icon">⋯</span></div>`;
+  }
+  const badge = provider === 'gpt' ? '<span class="badge gpt">ChatGPT</span>' : '<span class="badge claude">Claude</span>';
+  let sessions;
+  if (cur === 'preparing') sessions = `<div class="session active"><span class="dots icon">⋯</span><div class="title">Новая сессия</div><small>06.11, 08:07 · новая · Агент</small>${badge}</div>`;
+  else sessions = `<div class="session active"><span class="dots icon">⋯</span><div class="title">Склад — анализ остатков ${cur === 'working' || cur === 'running' ? '<span class="spin"></span>' : ''}</div><small>06.11, 08:09 · Агент</small>${badge}</div>
+    <div class="session"><span class="dots icon">⋯</span><div class="title">Проверка отчёта по складу</div><small>05.11, 17:40 · Агент</small><span class="badge claude">Claude</span></div>`;
+  return `<div class="project"><span class="chev">⌄</span><span class="folder">📁</span><div><b>F001</b><small>${cur === 'preparing' ? 1 : 2} сессии</small></div><span class="ml icon">⋯</span></div><div class="sessions">${sessions}</div>`;
+}
+
+const TASKS = [
+  {id:'T001', title:'Контрольные данные, общий загрузчик и тесты', mode:'Последовательно'},
+  {id:'T002', title:'Команда закупок и тесты', mode:'Параллельно'},
+  {id:'T003', title:'Команда инвентаризации по зонам и тесты', mode:'Параллельно'},
+  {id:'DOCS', title:'Актуализация всех документов проекта', mode:'Последовательно'},
+];
+const STATES = {
+  ready:   ['todo','todo','todo','todo'],
+  running: ['done','run','run','todo'],
+  accept:  ['done','done','done','done'],
+};
+const STATE_TEXT = {todo:'Не начата', run:'Выполняется', done:'В main'};
+const WHERE = {running:[ '', 'исполнитель 1 · своя рабочая копия', 'исполнитель 2 · своя рабочая копия', '' ]};
+function planCard(kind) {
+  const states = STATES[kind];
+  const done = states.filter((x) => x === 'done').length;
+  const heading = {ready:'План готов', running:'План выполняется', accept:'План выполнен — проверьте результат'}[kind];
+  const items = TASKS.map((t, i) => {
+    const st = states[i];
+    const where = WHERE[kind]?.[i] ? ' · ' + WHERE[kind][i] : '';
+    return `<li><span class="ic ${st === 'todo' ? '' : st}"></span><span><span class="tid">${t.id}</span><b>${t.title}</b></span><small><span class="st ${st}">${STATE_TEXT[st]}</span> · ${t.mode}${where}</small></li>`;
+  }).join('');
+  const action = {
+    ready: '<button class="btn primary wide" data-go="running">Начать выполнение плана</button>',
+    running: '<div class="row"><button class="btn">Пауза</button><button class="btn">Открыть чат оркестратора</button></div>',
+    accept: '<div class="row"><button class="btn primary">Принять план</button><button class="btn">Нужны исправления</button></div>',
+  }[kind];
+  return `<div class="plan-card"><div class="who">Склад — анализ остатков</div><h2>${heading}</h2>
+    <div class="bar"><i style="width:${done / TASKS.length * 100}%"></i></div>
+    <div class="count">в main ${done} из ${TASKS.length}</div>
+    ${kind === 'ready' ? `<div class="review-line">${review ? '<span class="ok">✓</span><span><b>Ревью:</b> спецификация и план проверены, замечания учтены</span>' : '<span class="wait">○</span><span>Без ревью</span>'}</div>` : ''}
+    <ul class="tasks">${items}</ul><hr>${action}</div>`;
+}
+function sessionHead() {
+  return `<div><h1>Склад — анализ остатков</h1><div class="sub">F001 · ${provider === 'gpt' ? 'ChatGPT' : 'Claude'} · начата 08:09 · <a href="#" style="color:var(--teal)">Открыть чат</a></div></div>`;
+}
+
+function main() {
+  switch (cur) {
+    case 'welcome': case 'menu': return `
+      <div><h1>Добро пожаловать в Workflow Kit</h1><div class="sub">Kit ведёт ваши проекты в ChatGPT и Claude: план, задачи, сессии — на Mac и iPad.</div></div>
+      <div class="panel"><h2>Начните с проекта</h2><p>Создайте новую папку проекта или откройте существующую. Kit добавит инструкции, документацию и план, а затем откроет первую сессию.</p>
+        <div class="row" style="margin-top:14px"><button class="btn primary" data-go="new-name">Создать проект</button><button class="btn" data-go="new-name" data-folder="1">Открыть папку проекта</button></div></div>`;
+    case 'new-name': return `
+      <div class="panel" style="max-width:520px"><h2>Новый проект</h2><p>${folderMode ? 'Выбрана папка. Проверьте имя проекта.' : 'Укажите имя проекта.'}</p>
+        ${folderMode ? '<div class="path">/Users/oleksandroliinyk/VSCODE/Sklad</div>' : '<button class="btn wide">Изменить расположение папки для проектов</button><div class="sub" style="margin-top:8px">/Users/oleksandroliinyk/VSCODE</div>'}
+        <div class="field"><label>Имя проекта</label><input value="${folderMode ? 'Sklad' : 'F001'}"></div>
+        <button class="btn primary wide" data-go="new-confirm">Продолжить</button>
+        <button class="text-btn" data-go="welcome">Отмена</button></div>`;
+    case 'new-confirm': return `
+      <div class="panel" style="max-width:560px"><h2>Новый проект</h2><p>Добавим инструкции, документацию и план. Существующие файлы сохранятся.</p>
+        <div class="path">/Users/oleksandroliinyk/VSCODE/F001</div>
+        <ul class="checks">
+          <li><span class="ok">✓</span><span>Структура Kit в папке<small>AGENTS.md, CLAUDE.md, docs/, план, хук начала сессии</small></span></li>
+          <li><span class="ok">✓</span><span>Доверие папке в Claude и ChatGPT<small>копия ~/.claude.json и ~/.codex/config.toml до записи</small></span></li>
+          <li><span class="ok">✓</span><span>Хук Kit для ChatGPT одобрен по хешу<small>чтобы Kit видел сессии проекта</small></span></li>
+          <li><span class="ok">✓</span><span>Будет создана локальная история проекта (git)</span></li>
+        </ul>
+        <details><summary>Изменения в папке · 70 файлов</summary><ul><li>AGENTS.md</li><li>CLAUDE.md</li><li>.harness/workflow/…</li><li>.codex/hooks.json</li><li>.claude/settings.json</li><li>docs/…</li></ul></details>
+        <div class="eyebrow">Первая сессия проекта</div>
+        <div class="session-start">
+          <button class="btn prov" data-go="preparing" data-prov="gpt"><i class="g">G</i>Создать и открыть в ChatGPT</button>
+          <button class="btn prov" data-go="preparing" data-prov="claude"><i class="c">C</i>Создать и открыть в Claude</button>
+        </div>
+        <p style="font-size:13px">Проект будет создан, и сразу откроется чат. Модель выбирается внутри приложения. Больше вопросов не будет.</p>
+        <button class="text-btn" data-go="new-name">Назад</button></div>`;
+    case 'preparing': return `
+      <div><h1>F001</h1><div class="sub">~/VSCODE/F001 · первая сессия в ${provider === 'gpt' ? 'ChatGPT' : 'Claude'}</div></div>
+      <div class="panel"><h2>Готовим проект</h2>
+        <ul class="checks">
+          <li><span class="ok">✓</span><span>Структура Kit записана<small>70 файлов, статус ok</small></span></li>
+          <li><span class="ok">✓</span><span>Доверие папке записано</span></li>
+          <li><span class="ok">✓</span><span>Хук Kit одобрен</span></li>
+          <li><span class="spin"></span><span>Создаём сессию ${provider === 'gpt' ? 'и ждём, пока ChatGPT сможет её открыть' : 'через Remote Control'}<small>обычно до минуты</small></span></li>
+          <li><span class="wait">○</span><span>Откроем чат в ${provider === 'gpt' ? 'ChatGPT' : 'Claude'} на этом устройстве</span></li>
+        </ul>
+        <button class="btn">Отменить подготовку</button></div>`;
+    case 'working': return `
+      <div><h1>Склад — анализ остатков</h1><div class="sub">F001 · ${provider === 'gpt' ? 'ChatGPT' : 'Claude'} · начата 08:09 <a href="#" style="color:var(--teal)">Открыть чат</a></div></div>
+      <div style="max-width:760px"><div class="eyebrow" style="margin-top:0">Workflow · открыт чат агента</div>
+        <div class="work"><span class="spin"></span><div><b>Агент</b> работает над ответом<small>0:15</small></div></div></div>
+      <div class="panel"><h2>План сессии</h2><p>Появится, когда агент предложит план.</p>
+        <ul class="plan"><li class="cur"><span class="spin"></span>Изучить данные склада <span class="tag ml">идёт</span></li><li><span class="wait">○</span>Спецификация отчёта</li><li><span class="wait">○</span>План задач</li></ul></div>`;
+    case 'plan': return `${sessionHead()}
+      <div class="cols">${planCard('ready')}
+        <div><div class="eyebrow" style="margin-top:0">Workflow · открыт чат агента</div>
+        <div class="work"><span class="ok">✓</span><div><b>Агент</b> закончил ответ<small>план записан · ревизия 3</small></div></div></div></div>`;
+    case 'choice': return `${sessionHead()}
+      <div class="choice"><div class="eyebrow">Выбор пользователя</div><h2>Как составить и выполнить план этой сессии?</h2>
+        <p style="color:var(--muted)">Почему рекомендует агент: задача делится на независимые части — закупки и инвентаризацию можно делать параллельно.</p>
+        <div class="opt"><b>Оркестрация с исполнителями <span class="rec">(рекомендую)</span></b><p>Сессия становится оркестратором, задачи выполняют исполнители в своих рабочих копиях, возможна параллельность.</p><button class="btn warn" data-go="plan">Выбрать</button></div>
+        <div class="opt"><b>Выполнить самому, последовательно</b><p>Эта сессия выполняет задачи по порядку. Меньше координации; для небольших и связанных задач.</p><button class="btn warn-o" data-go="plan">Выбрать</button></div>
+        <div class="opt"><b>Сначала доработать спецификацию</b><p>Вернуться к обсуждению до плана.</p><button class="btn warn-o">Выбрать</button></div>
+        <p style="color:var(--muted);margin-top:12px">или напишите ответ в чат своими словами</p></div>`;
+    case 'running': return `${sessionHead()}
+      <div class="cols">${planCard('running')}
+        <div><div class="eyebrow" style="margin-top:0">Workflow · оркестратор</div>
+        <div class="work"><span class="spin"></span><div><b>Оркестратор</b> ждёт исполнителей T002 и T003<small>2 из 3 мест заняты · 4:12</small></div></div></div></div>`;
+    case 'accept': return `${sessionHead()}
+      <div class="cols">${planCard('accept')}
+        <div class="panel"><h2>Как проверить</h2><p>Агент оставил шаги проверки в чате сессии.</p>
+          <ul class="checks"><li><span class="wait">1.</span><span>Открыть отчёт по складу<small>docs/evidence/…</small></span></li><li><span class="wait">2.</span><span>Сверить остатки по зонам</span></li></ul></div></div>`;
+    case 'settings': return `
+      <div><h1>Настройки</h1><div class="sub">Служебные сведения: нужны, когда что-то пошло не так.</div></div>
+      <div class="grid2">
+        <div class="panel"><h2>Служба</h2><div class="kv"><span>Состояние</span><span>работает · pid 12054</span><span>Версия</span><span>0.1.0</span><span>Автозапуск</span><span>LaunchAgent, после входа</span><span>Адрес для iPad</span><span>http://100.81.163.123:4747</span></div><div class="row" style="margin-top:14px"><button class="btn">Перезапустить</button><button class="btn">Диагностика</button></div></div>
+        <div class="panel"><h2>Внешний вид</h2><div class="kv"><span>Тема</span><span>как в системе</span><span>Папка проектов</span><span>~/VSCODE</span></div></div>
+        <div class="panel"><h2>ChatGPT (Codex)</h2><div class="kv"><span>Codex CLI</span><span>0.166.0</span><span>Демон</span><span><span class="dot"></span>подключён к ChatGPT</span><span>Хук Kit</span><span>одобрен в 2 проектах</span></div><div class="row" style="margin-top:14px"><button class="btn">Перезапустить демон</button></div></div>
+        <div class="panel"><h2>Claude</h2><div class="kv"><span>Claude CLI</span><span>2.1.318</span><span>Remote Control</span><span><span class="dot"></span>доступен</span><span>Доверенные папки</span><span>F001, Workflow_Pilot</span></div></div>
+      </div>`;
+  }
+}
+
+function render() {
+  document.querySelectorAll('#steps button').forEach((b) => b.classList.toggle('on', b.dataset.go === cur));
+  $('#note').textContent = STEPS.find((s) => s.id === cur).note;
+  $('#tree').innerHTML = tree();
+  $('#main').innerHTML = main();
+  $('#menu').classList.toggle('show', cur === 'menu');
+  $('#review').classList.toggle('hide', !REVIEW_STEPS.includes(cur));
+  $('#sw').classList.toggle('on', review);
+  $('#reviewHint').textContent = review
+    ? 'Своё для этой сессии. Агент отдаст спецификацию и план на ревью и учтёт замечания.'
+    : 'Своё для этой сессии. Выключено: спецификация и план без ревью. Можно включить, пока не выбран способ выполнения.';
+  $('#projectsBtn').classList.toggle('open', cur === 'menu');
+  document.querySelectorAll('[data-show]').forEach((el) => {
+    const k = el.dataset.show;
+    const on = k === 'has-projects' ? cur !== 'welcome' : k === cur;
+    el.classList.toggle('hide', !on);
+  });
+}
+document.addEventListener('click', (e) => {
+  const t = e.target.closest('[data-go]');
+  if (t) {
+    if (t.dataset.prov) provider = t.dataset.prov;
+    if (t.dataset.go === 'new-name') folderMode = t.dataset.folder === '1';
+    cur = t.dataset.go; render(); window.scrollTo(0, 0); return;
+  }
+  if (e.target.closest('#projectsBtn')) { cur = cur === 'menu' ? 'welcome' : 'menu'; render(); return; }
+  if (e.target.closest('#sw')) { review = !review; render(); return; }
+  if (e.target.closest('#theme')) { const r = document.documentElement; r.dataset.theme = r.dataset.theme === 'dark' ? 'light' : 'dark'; }
+});
+render();
+</script>
+</body>
+</html>

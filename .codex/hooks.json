@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "command": "scripts/workflow hook session-start --client codex",
+            "type": "command"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,281 @@
+/* Panel controls: buttons, text inputs, notices, the folder picker and the structure card. */
+[hidden] {
+  display: none !important;
+}
+
+.card-wide {
+  grid-column: 1 / -1;
+}
+
+/* Controls after the mockup; on touch screens at least 44px tall. */
+.btn {
+  padding: 8px 12px;
+  border: 1px solid var(--card-line);
+  border-radius: 8px;
+  background: var(--hover);
+  color: var(--text);
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.btn:hover:not(:disabled) {
+  border-color: var(--active-line);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.btn-primary,
+.btn.primary {
+  border-color: var(--teal);
+  background: var(--teal);
+  color: var(--on-teal);
+}
+
+.btn.wide {
+  width: 100%;
+  padding: 10px;
+}
+
+.btn-quiet,
+.btn.quiet {
+  border-color: transparent;
+  background: transparent;
+  color: var(--muted);
+}
+
+.btn-quiet:hover:not(:disabled),
+.btn.quiet:hover:not(:disabled) {
+  color: var(--danger);
+  border-color: var(--card-line);
+}
+
+input[type='text'] {
+  padding: 8px 10px;
+  border: 1px solid var(--card-line);
+  border-radius: 8px;
+  background: var(--input);
+  color: var(--text);
+  font: inherit;
+}
+
+input[type='text']:focus {
+  border-color: var(--teal);
+  outline: 1px solid var(--teal);
+}
+
+.btn:focus-visible,
+.folder:focus-visible,
+.icon:focus-visible,
+.menu-item:focus-visible,
+[role='button']:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 1px;
+}
+
+@media (pointer: coarse) {
+  .btn,
+  input[type='text'],
+  .menu-item {
+    min-height: 44px;
+  }
+
+  input[type='text'] {
+    font-size: 16px; /* 16px keeps iPad Safari from zooming on focus */
+  }
+}
+
+.inline-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.inline-form input {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.folder-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.picker {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(0, 1fr);
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg);
+}
+
+.picker-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.picker-current {
+  min-width: 0;
+  flex: 1 1 240px;
+}
+
+.picker-nav,
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.check {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.folder-list {
+  max-height: min(50vh, 420px);
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  -webkit-overflow-scrolling: touch;
+}
+
+.folder-list li + li {
+  border-top: 1px solid var(--border);
+}
+
+.folder-list .empty {
+  padding: 10px 12px;
+}
+
+.folder {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.folder:hover {
+  background: var(--muted-bg);
+}
+
+.folder-icon {
+  flex: none;
+  width: 18px;
+  height: 14px;
+  border-radius: 3px;
+  background: var(--accent);
+  opacity: 0.75;
+}
+
+.folder-name {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.chevron {
+  color: var(--muted);
+}
+
+.notice {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 0.92rem;
+}
+
+.notice p,
+.notice ul {
+  margin: 0;
+}
+
+.notice ul {
+  margin-top: 4px;
+  padding-left: 20px;
+}
+
+.notice-ok {
+  background: var(--ok-bg);
+  color: var(--ok);
+}
+
+.notice-error {
+  background: var(--error-bg);
+  color: var(--error);
+}
+
+.notice-muted {
+  background: var(--muted-bg);
+  color: var(--muted);
+}
+
+.notice-hint {
+  margin-top: 6px !important;
+  color: var(--text);
+}
+
+/* The Kit structure card. */
+.structure .actions {
+  flex: 0 0 auto;
+}
+
+.structure-warn {
+  margin-top: 4px;
+  color: var(--warn);
+  font-size: 0.92rem;
+}
+
+.structure-note {
+  margin-top: 4px;
+  font-size: 0.9rem;
+}
+
+.fragments {
+  margin-top: 6px;
+}
+
+.fragments summary {
+  min-height: 32px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.fragment {
+  padding: 4px 0;
+  overflow-wrap: anywhere;
+}
+
+.fragment-error {
+  font-size: 0.85rem;
+}

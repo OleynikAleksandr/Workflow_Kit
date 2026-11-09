@@ -1,0 +1,178 @@
+import assert from 'node:assert/strict';
+import { readFile, stat } from 'node:fs/promises';
+import path from 'node:path';
+import { test } from 'node:test';
+import { PANEL_ASSETS_DIR, STATE_POLL_MS, panelShellMount } from '../src/index.ts';
+
+test('the panel files live in the module src directory', async () => {
+  const files = [
+    'index.html',
+    'app.js',
+    'styles.css',
+    'controls.css',
+    'cards.js',
+    'dom.js',
+    'api.js',
+    'system-card.js',
+    'new-project.js',
+    'folder-picker.js',
+    'archive.js',
+    'selection.js',
+    'press.js',
+    'buttons.css',
+    'archive.css',
+    'view-model.js',
+    'sidebar.js',
+    'menus.js',
+    'screens.js',
+    'settings.js',
+    'card-grid.js',
+    'slots.js',
+    'actions.js',
+    'layout.css',
+    'tree.css',
+    'manifest.webmanifest',
+    'icons/icon.svg',
+    'icons/icon-180.png',
+    'icons/icon-192.png',
+    'icons/icon-512.png',
+  ];
+  for (const name of files) {
+    assert.ok((await stat(path.join(PANEL_ASSETS_DIR, name))).isFile(), name);
+  }
+  assert.deepEqual(panelShellMount(), { prefix: '/', dir: PANEL_ASSETS_DIR });
+});
+
+test('index.html loads the stylesheet and the app module without inline scripts', async () => {
+  const html = await readFile(path.join(PANEL_ASSETS_DIR, 'index.html'), 'utf8');
+  assert.match(html, /<link rel="stylesheet" href="styles.css"/);
+  assert.match(html, /<link rel="stylesheet" href="controls.css"/);
+  assert.match(html, /<link rel="stylesheet" href="layout.css"/);
+  assert.match(html, /<script type="module" src="app.js"><\/script>/);
+  assert.doesNotMatch(html, /<script(?![^>]*src=)[^>]*>/);
+  assert.doesNotMatch(html, /style="/);
+});
+
+test('app.js polls /api/state at the documented interval', async () => {
+  const app = await readFile(path.join(PANEL_ASSETS_DIR, 'app.js'), 'utf8');
+  assert.equal(STATE_POLL_MS, 3000);
+  assert.match(app, new RegExp(`POLL_MS = ${STATE_POLL_MS};`));
+  assert.match(app, /fetch\('\/api\/state'/);
+});
+
+test('the iPad home screen gets a manifest, icons and the standalone mode', async () => {
+  const html = await readFile(path.join(PANEL_ASSETS_DIR, 'index.html'), 'utf8');
+  assert.match(html, /<link rel="manifest" href="manifest.webmanifest"/);
+  assert.match(html, /<link rel="apple-touch-icon" href="icons\/icon-180.png"/);
+  assert.match(html, /name="apple-mobile-web-app-capable" content="yes"/);
+  assert.match(html, /viewport-fit=cover/);
+  const manifest = JSON.parse(await readFile(path.join(PANEL_ASSETS_DIR, 'manifest.webmanifest'), 'utf8')) as {
+    display: string;
+    start_url: string;
+    icons: Array<{ src: string; sizes: string }>;
+  };
+  assert.equal(manifest.display, 'standalone');
+  assert.equal(manifest.start_url, '/');
+  assert.deepEqual(manifest.icons.map((i) => i.sizes).sort(), ['192x192', '512x512', '512x512']);
+  for (const [name, size] of [['icon-180.png', 180], ['icon-192.png', 192], ['icon-512.png', 512]] as const) {
+    const png = await readFile(path.join(PANEL_ASSETS_DIR, 'icons', name));
+    assert.equal(png.subarray(1, 4).toString('latin1'), 'PNG', name);
+    assert.equal(png.readUInt32BE(16), size, `${name} width`);
+    assert.equal(png.readUInt32BE(20), size, `${name} height`);
+  }
+  const layout = await readFile(path.join(PANEL_ASSETS_DIR, 'layout.css'), 'utf8');
+  assert.match(layout, /grid-template-columns: 270px minmax\(0, 1fr\)/);
+  assert.match(layout, /@media \(max-width: 680px\)/);
+  assert.match(layout, /env\(safe-area-inset-bottom\)/);
+});
+
+test('the new project screen is loaded and text inputs disable iPad autocapitalization and autocorrection', async () => {
+  const app = await readFile(path.join(PANEL_ASSETS_DIR, 'app.js'), 'utf8');
+  assert.match(app, /from '\.\/new-project\.js';/);
+  const dom = await readFile(path.join(PANEL_ASSETS_DIR, 'dom.js'), 'utf8');
+  assert.match(dom, /autocapitalize: 'off'/);
+  assert.match(dom, /autocorrect: 'off'/);
+  for (const name of ['new-project.js', 'folder-picker.js', 'sidebar.js', 'screens.js', 'settings.js', 'menus.js', 'actions.js']) {
+    const source = await readFile(path.join(PANEL_ASSETS_DIR, name), 'utf8');
+    assert.doesNotMatch(source, /h\('input', \{ type: 'text'/, `${name} creates text inputs only via plainInput`);
+    assert.doesNotMatch(source, /innerHTML/, name);
+  }
+  const card = await readFile(path.join(PANEL_ASSETS_DIR, 'new-project.js'), 'utf8');
+  assert.match(card, /'\/api\/projects\/open'/);
+  const actions = await readFile(path.join(PANEL_ASSETS_DIR, 'actions.js'), 'utf8');
+  assert.match(actions, /'DELETE'/);
+  assert.match(actions, /\/archive`/);
+  assert.match(actions, /\/restore`/);
+  const picker = await readFile(path.join(PANEL_ASSETS_DIR, 'folder-picker.js'), 'utf8');
+  assert.match(picker, /\/api\/folders\?/);
+  assert.match(picker, /error\.hint/);
+});
+
+test('the settings have no structure or provider cards; the archive and the press feedback are loaded', async () => {
+  const app = await readFile(path.join(PANEL_ASSETS_DIR, 'app.js'), 'utf8');
+  assert.doesNotMatch(app, /structure-card|provider-cards/);
+  assert.match(app, /createArchiveScreen\(/);
+  assert.match(app, /installPressFeedback\(\);/);
+  const html = await readFile(path.join(PANEL_ASSETS_DIR, 'index.html'), 'utf8');
+  for (const css of ['buttons.css', 'archive.css']) assert.ok(html.includes(`href="${css}"`), css);
+  const buttons = await readFile(path.join(PANEL_ASSETS_DIR, 'buttons.css'), 'utf8');
+  for (const rule of ['.btn:hover:not(:disabled)', 'button.is-pressed', '.just-pressed', '@keyframes wfk-press-ring']) assert.ok(buttons.includes(rule), rule);
+});
+
+test('the System card shows the service from service-installer: instance, autostart, launcher, icon, programs', async () => {
+  const card = await readFile(path.join(PANEL_ASSETS_DIR, 'system-card.js'), 'utf8');
+  for (const label of ["'Служба'", "'Экземпляр'", "'Автозапуск'", "'Запускатель'", "'Значок'", "'Программы'"]) {
+    assert.ok(card.includes(label), label);
+  }
+  for (const field of ['service.version', 'service.instance', 'service.mechanism', 'service.autostartEntry', 'service?.launcher', 'service?.icon', 'service?.programs']) {
+    assert.ok(card.includes(field), field);
+  }
+  for (const name of ["'node'", "'claude'", "'codex'", "'expect'"]) assert.ok(card.includes(name), name);
+  assert.doesNotMatch(card, /innerHTML/);
+});
+
+test('card groups expand into one card per item, sorted by order with the plain cards', async () => {
+  const cards = await import('../src/cards.js');
+  cards.registerCard({ id: 'test-a', title: 'A', order: 5, select: () => 'a', render: () => ({}) as Node });
+  cards.registerCardGroup({
+    id: 'test-group',
+    order: 7,
+    items: (state) => (state['items'] as string[]).map((id) => ({ id, title: id.toUpperCase() })),
+    select: (state, id) => `${String(state['tag'])}:${id}`,
+    render: () => ({}) as Node,
+  });
+  const expanded = cards.expandCards({ items: ['x', 'y'], tag: 't' }).filter((c) => c.id.startsWith('test-'));
+  assert.deepEqual(
+    expanded.map((c) => [c.id, c.title, c.order, c.select({ tag: 't' })]),
+    [
+      ['test-a', 'A', 5, 'a'],
+      ['test-group-x', 'X', 7, 't:x'],
+      ['test-group-y', 'Y', 7, 't:y'],
+    ],
+  );
+  assert.equal(cards.expandCards({ items: [] }).filter((c) => c.id.startsWith('test-group')).length, 0);
+  cards.registerCardGroup({
+    id: 'test-group',
+    order: 7,
+    items: () => {
+      throw new Error('boom');
+    },
+    select: () => null,
+    render: () => ({}) as Node,
+  });
+  const broken = cards.expandCards({}).find((c) => c.id === 'test-group');
+  assert.ok(broken);
+  assert.throws(() => broken.render(null, {}), /boom/);
+});
+
+test('app.js loads panel extensions with the shell helpers and keeps card sections in order', async () => {
+  const app = await readFile(path.join(PANEL_ASSETS_DIR, 'app.js'), 'utf8');
+  assert.match(app, /export const PANEL_EXTENSIONS = \[/);
+  for (const url of ['/project-wizard/project-wizard.js', '/session-view/session-view.js']) assert.ok(app.includes(`'${url}'`), url);
+  assert.match(app, /registerSlot,/);
+  assert.match(app, /extension\.install\(shell\)/);
+  assert.match(app, /renderCards\(settings\.cards, state\)/);
+  const grid = await readFile(path.join(PANEL_ASSETS_DIR, 'card-grid.js'), 'utf8');
+  assert.match(grid, /expandCards\(current\)/);
+  assert.match(grid, /node\.remove\(\)/);
+});

@@ -1,0 +1,32 @@
+node-pty 1.1.0 (Microsoft, MIT) — only the Windows ConPTY part.
+Source: npm registry tarball node-pty-1.1.0.tgz
+  integrity sha512-20JqtutY6JPXTUnL0ij1uad7Qe1baT46lyolh2sSENDd4sTzKZ4nmAFkeAARDKwmlLjPx6XKRlwRUxwjOy+lUg==
+  shasum 161936d45a47751c2e3b694c365e73017417a887
+Taken: lib/*.js needed on Windows (source map comments removed), lib/worker, lib/shared,
+prebuilds/win32-{x64,arm64}: conpty.node, conpty_console_list.node, conpty/conpty.dll, conpty/OpenConsole.exe.
+Left out: winpty (pty.node, winpty-agent.exe, winpty.dll), *.pdb, darwin prebuilds, sources, tests.
+package.json is reduced to name, version, license and main (CommonJS).
+
+SHA-256 of the files:
+a3d60eaf32d2fb09c9d82ef39f14bd6e2c0f3ca7de30daa827486c0d6f8b6e9f  ./LICENSE
+9d400c7dac62ebb2768a5ddf2b7f952d7abc871841fa84cb783723e0a4b0f90b  ./lib/conpty_console_list_agent.js
+63d293a66ff4bde0608795c150e5bea846bf72de3ce1432963998cdeadbd5030  ./lib/eventEmitter2.js
+c800065c2a49f26289752e6143afcab430417ad063172580a2e4d974b1793ca0  ./lib/index.js
+dc648b31988e295ff80c1a742fd6442c1255d543d2c743a2f72f28ae9687415d  ./lib/interfaces.js
+049b48be39b59b3122b028438a6eca3246ad136248729d8c1609b4ca1519a50c  ./lib/shared/conout.js
+5e15afcf0f73cfafef3cccf765590543e317132b262d4bf554d71dffed8cd679  ./lib/terminal.js
+bac90e972f54e7448f2e811168a5562704a30edd555ed476f39a7d0bee289d57  ./lib/types.js
+1d1d7867245d01a48aa7552dc4a919183b0b2be47876c8b587dcd3a25bc3b726  ./lib/utils.js
+1140810598b34f9eea3e59d44f46e8d2d5dd07e34faee7bbeb1481712c914f64  ./lib/windowsConoutConnection.js
+777fd42cc2df09f8062a40bf24912e0d0416f4a526cc140ee449f04ca18c9195  ./lib/windowsPtyAgent.js
+b2bae29af04f5a5f2205dc417f6ecb403b65c64c0a354ada0cd5affb1ec5d705  ./lib/windowsTerminal.js
+c7d3ffa170579a5c318d0fb23bf0b40d54aded2dbf893cc457f7d2238d0493df  ./lib/worker/conoutSocketWorker.js
+950dec32cee9446231488b96c938015cfeb2dd330e1ca2bba2887cfbf928bbd3  ./package.json
+25a06916c5cb1a3aac7acc401424d8e6a6a9e8eea441a3604cd657a0619555cd  ./prebuilds/win32-arm64/conpty.node
+b7763ba27e80d5e84f9e60d1368ec2ddb25dfd10283336c0c9f3f252d35cb2f8  ./prebuilds/win32-arm64/conpty/OpenConsole.exe
+b6cca5f1081111f59e5255eec043d924ebd11a86d09986c0d121b680540b3380  ./prebuilds/win32-arm64/conpty/conpty.dll
+fda76b16afb3bf9a4de085c943b5fb4138ecbeb08e8254c09d5555ea5426bd4e  ./prebuilds/win32-arm64/conpty_console_list.node
+ee8f4e6f4dad71939eecfda11de249400e34bfefe4c8b48af13f3b5476f4035b  ./prebuilds/win32-x64/conpty.node
+d1fe7faa62f9e955e2ac2371f95d7e5513df4d496255097158f979c94782c5fc  ./prebuilds/win32-x64/conpty/OpenConsole.exe
+7c7430632052ff703540b68371ec43821820aa1335d8e11dfbcd9ff00e9daaed  ./prebuilds/win32-x64/conpty/conpty.dll
+879dd94cfc79f1e263a00077597ae9448a5394b7d193381aaa50d992a1f91090  ./prebuilds/win32-x64/conpty_console_list.node

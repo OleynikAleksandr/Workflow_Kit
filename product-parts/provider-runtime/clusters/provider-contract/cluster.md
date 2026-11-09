@@ -12,6 +12,7 @@
 | --- | --- |
 | [provider-registry](modules/provider-registry/module.md) | контракт, реестр провайдеров, журнал хука, токены предпросмотра, маршруты провайдеров |
 | [process-supervisor](modules/process-supervisor/module.md) | запуск, учёт и остановка процессов по своим записям, исполнитель внешних программ |
+| [pty-host](modules/pty-host/module.md) | псевдотерминал Windows (ConPTY, node-pty 1.1.0 в составе) для Claude Code |
 
 ## Границы
 

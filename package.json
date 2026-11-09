@@ -24,6 +24,7 @@
     "#cross-review": "./product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/index.ts",
     "#plan-review": "./product-parts/workflow-engine/clusters/session-loop/modules/plan-review/src/index.ts",
     "#plan-view": "./product-parts/workflow-engine/clusters/kit-host/modules/plan-view/src/index.ts",
+    "#pty-host": "./product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/src/index.ts",
     "#process-supervisor": "./product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/src/index.ts",
     "#project-registry": "./product-parts/backend-core/clusters/projects/modules/project-registry/src/index.ts",
     "#project-setup": "./product-parts/backend-core/clusters/projects/modules/project-setup/src/index.ts",

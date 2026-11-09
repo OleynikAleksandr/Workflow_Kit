@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": "T001",
+  "currentTaskId": null,
   "lastClosed": {
     "closedAt": "2026-11-09T08:50:01.775Z",
     "scopeId": "publication-order"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 392,
+  "revision": 393,
   "rounds": [
     {
       "digest": null,
@@ -99,14 +99,42 @@
       "files": [
         "product-parts/provider-runtime/clusters/provider-contract/modules/pty-host",
         "package.json",
-        "product-parts/provider-runtime/clusters/provider-contract/cluster.md"
+        "product-parts/provider-runtime/clusters/provider-contract/cluster.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/module.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/src/index.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/src/loader.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/src/terminal.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/test/pty-host.test.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/vendor/node-pty-1.1.0/LICENSE",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/vendor/node-pty-1.1.0/PROVENANCE",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/vendor/node-pty-1.1.0/lib/conpty_console_list_agent.js",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/vendor/node-pty-1.1.0/lib/eventEmitter2.js",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/vendor/node-pty-1.1.0/lib/index.js",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/vendor/node-pty-1.1.0/lib/interfaces.js",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/vendor/node-pty-1.1.0/lib/shared/conout.js",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/vendor/node-pty-1.1.0/lib/terminal.js",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/vendor/node-pty-1.1.0/lib/types.js",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/vendor/node-pty-1.1.0/lib/utils.js",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/vendor/node-pty-1.1.0/lib/windowsConoutConnection.js",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/vendor/node-pty-1.1.0/lib/windowsPtyAgent.js",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/vendor/node-pty-1.1.0/lib/windowsTerminal.js",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/vendor/node-pty-1.1.0/lib/worker/conoutSocketWorker.js",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/vendor/node-pty-1.1.0/package.json",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/vendor/node-pty-1.1.0/prebuilds/win32-arm64/conpty.node",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/vendor/node-pty-1.1.0/prebuilds/win32-arm64/conpty/OpenConsole.exe",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/vendor/node-pty-1.1.0/prebuilds/win32-arm64/conpty/conpty.dll",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/vendor/node-pty-1.1.0/prebuilds/win32-arm64/conpty_console_list.node",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/vendor/node-pty-1.1.0/prebuilds/win32-x64/conpty.node",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/vendor/node-pty-1.1.0/prebuilds/win32-x64/conpty/OpenConsole.exe",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/vendor/node-pty-1.1.0/prebuilds/win32-x64/conpty/conpty.dll",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/vendor/node-pty-1.1.0/prebuilds/win32-x64/conpty_console_list.node"
       ],
       "fixes": null,
       "id": "T001",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "title": "pty-host module: vendored node-pty 1.1.0 for Windows and a safe wrapper",
       "why": "Claude Code needs a real terminal; Windows has no expect"
     },
@@ -350,9 +378,9 @@
 - Scope: m5-windows (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: T001
-- Progress: 0/9
-- Revision: 392
+- Current task: none
+- Progress: 1/9
+- Revision: 393
 
 ## Objective
 
@@ -370,9 +398,9 @@ Windows 11 (x64 и ARM64): сессии Claude и ChatGPT/Codex, ревью, в�
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [IN_PROGRESS] T001 — pty-host module: vendored node-pty 1.1.0 for Windows and a safe wrapper (work)
+- [DONE] T001 — pty-host module: vendored node-pty 1.1.0 for Windows and a safe wrapper (work)
   - Commit: feat: add the ConPTY host for Windows
-  - Files: product-parts/provider-runtime/clusters/provider-contract/modules/pty-host, package.json, product-parts/provider-runtime/clusters/provider-contract/cluster.md
+  - Files: product-parts/provider-runtime/clusters/provider-contract/modules/pty-host, package.json, product-parts/provider-runtime/clusters/provider-contract/cluster.md, product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/src/index.ts, product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/src/loader.ts, product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/src/terminal.ts, product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/test/pty-host.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/vendor/node-pty-1.1.0/LICENSE, product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/vendor/node-pty-1.1.0/PROVENANCE, product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/vendor/node-pty-1.1.0/lib/conpty_console_list_agent.js, product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/vendor/node-pty-1.1.0/lib/eventEmitter2.js, product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/vendor/node-pty-1.1.0/lib/index.js, product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/vendor/node-pty-1.1.0/lib/interfaces.js, product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/vendor/node-pty-1.1.0/lib/shared/conout.js, product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/vendor/node-pty-1.1.0/lib/terminal.js, product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/vendor/node-pty-1.1.0/lib/types.js, product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/vendor/node-pty-1.1.0/lib/utils.js, product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/vendor/node-pty-1.1.0/lib/windowsConoutConnection.js, product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/vendor/node-pty-1.1.0/lib/windowsPtyAgent.js, product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/vendor/node-pty-1.1.0/lib/windowsTerminal.js, product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/vendor/node-pty-1.1.0/lib/worker/conoutSocketWorker.js, product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/vendor/node-pty-1.1.0/package.json, product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/vendor/node-pty-1.1.0/prebuilds/win32-arm64/conpty.node, product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/vendor/node-pty-1.1.0/prebuilds/win32-arm64/conpty/OpenConsole.exe, product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/vendor/node-pty-1.1.0/prebuilds/win32-arm64/conpty/conpty.dll, product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/vendor/node-pty-1.1.0/prebuilds/win32-arm64/conpty_console_list.node, product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/vendor/node-pty-1.1.0/prebuilds/win32-x64/conpty.node, product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/vendor/node-pty-1.1.0/prebuilds/win32-x64/conpty/OpenConsole.exe, product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/vendor/node-pty-1.1.0/prebuilds/win32-x64/conpty/conpty.dll, product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/vendor/node-pty-1.1.0/prebuilds/win32-x64/conpty_console_list.node
 - [TODO] T002 — Process supervisor on Windows (work)
   - Commit: feat: supervise session processes on Windows
   - Files: product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor

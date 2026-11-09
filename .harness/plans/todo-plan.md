@@ -10,10 +10,27 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 383,
+  "revision": 385,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "git-publish: раздел publication в /api/state и POST /api/projects/:id/publish",
+          "cli: wfk project publish",
+          "kit-structure: правило GitHub publication в AGENTS_SECTION"
+        ],
+        "decisions": [
+          "Публикация только при закрытом scope, чистом дереве и upstream; push без --force",
+          "Изменения Kit (команда publish, push-хук) — отдельно в harness-ai",
+          "Живую проверку релиза выполняет пользователь"
+        ],
+        "references": [
+          "docs/planning/publication-order.md",
+          "README.md",
+          "CHANGELOG.md"
+        ],
+        "result": "Публикация на GitHub вынесена из плана: служба показывает состояние upstream и публикует только при закрытом scope, панель — строка «GitHub» с кнопкой, агент — правило и команда wfk project publish; CHANGELOG дополнен 0.4.7."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -222,7 +239,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -269,8 +286,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 4/6
-- Revision: 383
+- Progress: 5/6
+- Revision: 385
 
 ## Objective
 
@@ -302,7 +319,7 @@
 - [DONE] T004 — CHANGELOG gets the missing versions (work)
   - Commit: docs: add 0.4.6 and 0.4.7 to the changelog
   - Files: CHANGELOG.md
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/publication-order.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, CHANGELOG.md
   - Depends on: T001, T002, T003, T004
@@ -310,5 +327,7 @@
   - Commit: chore: release 0.4.8
   - Files: package.json, package-lock.json, CHANGELOG.md, docs/evidence/publication-order.md
   - Depends on: T001, T002, T003, T004, DOCS-R1
+
+Digest: Публикация на GitHub вынесена из плана: служба показывает состояние upstream и публикует только при закрытом scope, панель — строка «GitHub» с кнопкой, агент — правило и команда wfk project publish; CHANGELOG дополнен 0.4.7.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

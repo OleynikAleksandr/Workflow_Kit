@@ -10,10 +10,29 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 458,
+  "revision": 460,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "Provider.maintain?(): Promise<string|null>; ProviderRegistry.maintain() -> { done, errors }; cli calls it every MAINTAIN_MS (60 s)",
+          "provider-codex: HANDOVER_REASON, HANDOVER_WAIT_MS, isChatgptAppServer(line, platform), appServerPids(listing, platform); DaemonState.settling; CodexDeps.handover",
+          "project-wizard: listedSessionKey(state, projectId, session)",
+          "session-view: ChoiceView has no waiting field; choiceView is null while a review is ahead"
+        ],
+        "decisions": [
+          "Remote control is handed over by stopping the idle daemon for 60 s and starting it again; one attempt per set of ChatGPT app pids",
+          "No hand-over while a thread is loaded in the daemon or the service creates a session; Linux has no ChatGPT app and does nothing",
+          "An errored daemon without a login error is 'connecting' for 60 s after its start, not a login error",
+          "While a review is ahead choiceView returns null; the waiting field is removed"
+        ],
+        "references": [
+          "docs/planning/M7-test-fixes.md",
+          "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md",
+          "docs/architecture/OVERVIEW.md"
+        ],
+        "result": "Fixes of the 0.5.1 live test: the wizard opens the new Claude session by its listed key; Codex hands remote control to the running ChatGPT app when the daemon is idle, so its chats open on the iPad; the choice card without buttons is gone while a plan review is ahead."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -211,7 +230,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -268,8 +287,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 3/5
-- Revision: 458
+- Progress: 4/5
+- Revision: 460
 
 ## Objective
 
@@ -295,7 +314,7 @@ Fix the defects found in live testing of 0.5.1 and release 0.5.2
 - [DONE] T003 — No choice card while a review is ahead (work)
   - Commit: fix: hide the choice card while a plan review is ahead
   - Files: product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M7-test-fixes.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md
   - Depends on: T001, T002, T003
@@ -303,5 +322,7 @@ Fix the defects found in live testing of 0.5.1 and release 0.5.2
   - Commit: chore: release 0.5.2
   - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/installation.md, docs/architecture/OVERVIEW.md, docs/evidence/M7-acceptance.md
   - Depends on: T001, T002, T003, DOCS-R1
+
+Digest: Fixes of the 0.5.1 live test: the wizard opens the new Claude session by its listed key; Codex hands remote control to the running ChatGPT app when the daemon is idle, so its chats open on the iPad; the choice card without buttons is gone while a plan review is ahead.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

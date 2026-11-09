@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": "T004",
+  "currentTaskId": null,
   "lastClosed": {
     "closedAt": "2026-11-09T10:12:56.251Z",
     "scopeId": "m5-windows"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 428,
+  "revision": 429,
   "rounds": [
     {
       "digest": {
@@ -34,7 +34,7 @@
       },
       "id": "R1",
       "kind": "implementation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Implementation"
     }
   ],
@@ -82,7 +82,7 @@
         "text": "After acceptance and close, main with 0.5.1 is pushed to GitHub"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
@@ -271,7 +271,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "title": "Release 0.5.1 and CI on branch ci/m6-cross-platform",
       "why": "The user asked for a new release number; CI results on real OSes are needed before acceptance without publishing main"
     }
@@ -283,11 +283,11 @@
 ## State
 
 - Scope: m6-cross-platform (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
-- Current task: T004
-- Progress: 4/5
-- Revision: 428
+- Current task: none
+- Progress: 5/5
+- Revision: 429
 
 ## Objective
 
@@ -303,7 +303,7 @@ Every further change to Workflow Kit covers macOS, Linux and Windows 11: CI on a
 
 ## Rounds
 
-### R1 — Implementation (implementation, OPEN)
+### R1 — Implementation (implementation, CLOSED)
 
 - [DONE] T001 — platform-guard check (work, parallel-safe)
   - Commit: feat: add platform-guard check for three-OS code
@@ -318,7 +318,7 @@ Every further change to Workflow Kit covers macOS, Linux and Windows 11: CI on a
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M6-cross-platform.md, tools/platform-guard/README.md, AGENTS.md, docs/planning/TEMPLATE.md
   - Depends on: T001, T002, T003
-- [IN_PROGRESS] T004 — Release 0.5.1 and CI on branch ci/m6-cross-platform (delivery)
+- [DONE] T004 — Release 0.5.1 and CI on branch ci/m6-cross-platform (delivery)
   - Commit: chore: release 0.5.1
   - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/installation.md, docs/architecture/OVERVIEW.md, docs/evidence/M6-acceptance.md
   - Depends on: T001, T002, T003, DOCS-R1

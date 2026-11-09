@@ -2,7 +2,7 @@
 // The project wizard (spec section 7): name or folder → preview with one consent → preparation
 // steps with «Отменить подготовку» → the chat of the first session opens by itself. Panel extension:
 // install(shell) fills the "newProject" slot of panel-shell.
-import { buttonViews, chatTarget, choiceViews, findRun, previewView, runView, validAnswers } from './wizard-model.js';
+import { buttonViews, chatTarget, choiceViews, findRun, listedSessionKey, previewView, runView, validAnswers } from './wizard-model.js';
 
 /**
  * Helpers the panel shell gives to extensions (see panel-shell app.js).
@@ -362,10 +362,11 @@ function createWizard(shell, ctx) {
       const run = findRun(nextState, operationId);
       // The session may be listed after the run stopped changing: the check runs on every state.
       const view = run ? runView(run) : null;
-      if (view?.status === 'succeeded' && view.projectId && view.sessionKey && !navigated && sessionListed(nextState, view.projectId, view.sessionKey)) {
+      const listed = view?.status === 'succeeded' && view.projectId && view.session && !navigated ? listedSessionKey(nextState, view.projectId, view.session) : null;
+      if (view?.projectId && listed) {
         navigated = true;
-        // Like a click on its card (ChatGPT: also its chat in the app).
-        (ctx.openSession ?? ((projectId, key) => ctx.navigate({ screen: 'session', projectId, key })))(view.projectId, view.sessionKey);
+        // Like a click on its card (ChatGPT: also its chat in the app), under the key the tree lists.
+        (ctx.openSession ?? ((projectId, key) => ctx.navigate({ screen: 'session', projectId, key })))(view.projectId, listed);
         return;
       }
       const key = JSON.stringify(run);
@@ -385,15 +386,3 @@ function actionsKey(state) {
   return JSON.stringify(providers.map((p) => [p.id, p.actions]));
 }
 
-/**
- * True once the providers section lists the session (the tree can show it).
- * @param {Record<string, unknown>} state
- * @param {string} projectId
- * @param {string} key
- */
-function sessionListed(state, projectId, key) {
-  const projects = /** @type {Record<string, Record<string, { sessions?: Array<{ provider: string, localId?: string }> }>>} */ (
-    /** @type {{ projects?: unknown }} */ (state['providers'] ?? {}).projects ?? {}
-  );
-  return Object.values(projects[projectId] ?? {}).some((p) => (p.sessions ?? []).some((s) => `${s.provider}:${s.localId}` === key));
-}

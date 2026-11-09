@@ -182,6 +182,7 @@ export function findRun(state, operationId) {
  * @property {boolean} canCancel
  * @property {{ message: string, hint: string | null } | null} error
  * @property {string | null} sessionKey "<provider>:<localId>" of the created session
+ * @property {{ provider: string, localId: string | null, remoteId: string | null } | null} session ids of the created session
  * @property {string | null} projectId
  */
 
@@ -217,8 +218,40 @@ export function runView(run) {
     canCancel: status === 'running' && !run['cancelRequested'],
     error: typeof error['message'] === 'string' ? { message: error['message'], hint: typeof error['hint'] === 'string' ? error['hint'] : null } : null,
     sessionKey: id && typeof session['provider'] === 'string' ? `${session['provider']}:${id}` : null,
+    session: id && typeof session['provider'] === 'string' ? { provider: session['provider'], localId: text(session['localId']), remoteId: text(session['remoteId']) } : null,
     projectId: typeof run['projectId'] === 'string' ? run['projectId'] : null,
   };
+}
+
+/** @param {unknown} value @returns {string | null} */
+function text(value) {
+  return typeof value === 'string' && value !== '' ? value : null;
+}
+
+/**
+ * Key of the run's session as the providers section lists it ("<provider>:<localId>"), or null
+ * while it is not listed. The session is found by its localId or remoteId: a Claude session is
+ * created with its Remote Control id and listed under Claude's own id once the SessionStart hook
+ * reports it (spec M7, remark 1), so the key of the run alone would never match.
+ * @param {Record<string, unknown>} state
+ * @param {string} projectId
+ * @param {{ provider: string, localId: string | null, remoteId: string | null }} session
+ * @returns {string | null}
+ */
+export function listedSessionKey(state, projectId, session) {
+  const projects = record(record(state['providers'])['projects']);
+  const ids = [session.localId, session.remoteId].filter((id) => id !== null);
+  for (const entry of Object.values(record(projects[projectId]))) {
+    for (const listed of Array.isArray(record(entry)['sessions']) ? record(entry)['sessions'] : []) {
+      const s = record(listed);
+      if (s['provider'] !== session.provider) continue;
+      const own = [text(s['localId']), text(s['remoteId'])].filter((id) => id !== null);
+      if (!own.some((id) => ids.includes(id))) continue;
+      const key = text(s['localId']) ?? text(s['remoteId']);
+      return key ? `${session.provider}:${key}` : null;
+    }
+  }
+  return null;
 }
 
 /**

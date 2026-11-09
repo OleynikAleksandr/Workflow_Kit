@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { test } from 'node:test';
 import { PROJECT_WIZARD_ASSETS_DIR, PROJECT_WIZARD_PREFIX, projectWizardMount } from '../src/index.ts';
-import { buttonViews, chatTarget, choiceViews, filesLabel, findRun, previewView, runView, validAnswers } from '../src/wizard-model.js';
+import { buttonViews, chatTarget, choiceViews, filesLabel, findRun, listedSessionKey, previewView, runView, validAnswers } from '../src/wizard-model.js';
 
 const preview = (extra: Record<string, unknown> = {}): Record<string, unknown> => ({
   token: 't',
@@ -104,4 +104,19 @@ test('the chat opens on this device: app links in place, web links in a new tab'
   assert.deepEqual(chatTarget(links, 5), { href: 'https://chatgpt.com/codex/t1', newTab: true });
   assert.equal(chatTarget({ desktop: 'javascript:alert(1)' }, 0), null);
   assert.deepEqual(chatTarget({ web: 'https://claude.ai/code/s' }, 0), { href: 'https://claude.ai/code/s', newTab: true });
+});
+
+test('the run session is found in the tree by localId or remoteId (a Claude session gets its own id from the hook)', () => {
+  const claude = runView({ status: 'succeeded', projectId: 'p', session: { provider: 'claude', localId: 'session_01Ab', remoteId: 'session_01Ab' } });
+  assert.deepEqual(claude.session, { provider: 'claude', localId: 'session_01Ab', remoteId: 'session_01Ab' });
+  const state = (sessions: unknown[]) => ({ providers: { projects: { p: { claude: { sessions }, codex: { sessions: [{ provider: 'codex', localId: 't9', remoteId: null }] } } } } });
+  // Before the hook the tree lists the Remote Control id; after it, Claude's own id.
+  assert.equal(listedSessionKey(state([]), 'p', claude.session!), null);
+  assert.equal(listedSessionKey(state([{ provider: 'claude', localId: 'session_01Ab', remoteId: 'session_01Ab' }]), 'p', claude.session!), 'claude:session_01Ab');
+  assert.equal(listedSessionKey(state([{ provider: 'claude', localId: '7f3c-uuid', remoteId: 'session_01Ab' }]), 'p', claude.session!), 'claude:7f3c-uuid');
+  assert.equal(listedSessionKey(state([{ provider: 'claude', localId: 'other', remoteId: 'session_x' }]), 'p', claude.session!), null);
+  const codex = runView({ status: 'succeeded', projectId: 'p', session: { provider: 'codex', localId: 't9' } });
+  assert.equal(listedSessionKey(state([]), 'p', codex.session!), 'codex:t9');
+  assert.equal(listedSessionKey(state([]), 'other', codex.session!), null);
+  assert.equal(runView({ status: 'running' }).session, null);
 });

@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T001",
   "lastClosed": {
     "closedAt": "2026-11-09T08:50:01.775Z",
     "scopeId": "publication-order"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 390,
+  "revision": 392,
   "rounds": [
     {
       "digest": null,
@@ -98,14 +98,15 @@
       "docsWaiver": null,
       "files": [
         "product-parts/provider-runtime/clusters/provider-contract/modules/pty-host",
-        "package.json"
+        "package.json",
+        "product-parts/provider-runtime/clusters/provider-contract/cluster.md"
       ],
       "fixes": null,
       "id": "T001",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "pty-host module: vendored node-pty 1.1.0 for Windows and a safe wrapper",
       "why": "Claude Code needs a real terminal; Windows has no expect"
     },
@@ -349,9 +350,9 @@
 - Scope: m5-windows (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: none
+- Current task: T001
 - Progress: 0/9
-- Revision: 390
+- Revision: 392
 
 ## Objective
 
@@ -369,9 +370,9 @@ Windows 11 (x64 и ARM64): сессии Claude и ChatGPT/Codex, ревью, в�
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T001 — pty-host module: vendored node-pty 1.1.0 for Windows and a safe wrapper (work)
+- [IN_PROGRESS] T001 — pty-host module: vendored node-pty 1.1.0 for Windows and a safe wrapper (work)
   - Commit: feat: add the ConPTY host for Windows
-  - Files: product-parts/provider-runtime/clusters/provider-contract/modules/pty-host, package.json
+  - Files: product-parts/provider-runtime/clusters/provider-contract/modules/pty-host, package.json, product-parts/provider-runtime/clusters/provider-contract/cluster.md
 - [TODO] T002 — Process supervisor on Windows (work)
   - Commit: feat: supervise session processes on Windows
   - Files: product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor

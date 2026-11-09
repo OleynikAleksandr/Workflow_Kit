@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 365,
+  "revision": 366,
   "rounds": [
     {
       "digest": {
@@ -33,6 +33,13 @@
       "kind": "implementation",
       "status": "CLOSED",
       "title": "Implementation"
+    },
+    {
+      "digest": null,
+      "id": "R2",
+      "kind": "fixes",
+      "status": "OPEN",
+      "title": "Fixes"
     }
   ],
   "schema": "harness-workflow-plan/1",
@@ -72,7 +79,7 @@
         "text": "Дерево скрывает ревьюера и по reviewerRef, пока ключа нет"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "IN_PROGRESS",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
@@ -228,6 +235,55 @@
       "status": "DONE",
       "title": "Release 0.4.7",
       "why": "The user checks the fix in the installed app"
+    },
+    {
+      "acceptance": [
+        "Project-wide documents describe the round result",
+        "The round digest records result, decisions, contracts and references"
+      ],
+      "checks": [],
+      "commitMessage": "docs: reconcile documentation for R2",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/architecture/OVERVIEW.md"
+      ],
+      "fixes": null,
+      "id": "DOCS-R2",
+      "iteration": 1,
+      "kind": "docs",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Reconcile project documentation and write the round digest",
+      "why": "Keep the project context current for the next agent and close the round."
+    },
+    {
+      "acceptance": [
+        "origin/main on GitHub equals the local main with the 0.4.7 release"
+      ],
+      "checks": [],
+      "commitMessage": "chore: record the GitHub publication",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T004",
+        "DOCS-R2"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "docs/evidence/M4-acceptance.md"
+      ],
+      "fixes": null,
+      "id": "T005",
+      "iteration": 1,
+      "kind": "delivery",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Publish to GitHub",
+      "why": "The user asked to publish the accepted result on GitHub"
     }
   ]
 }
@@ -237,11 +293,11 @@
 ## State
 
 - Scope: m4-claude-reviewer (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 5/5
-- Revision: 365
+- Progress: 5/7
+- Revision: 366
 
 ## Objective
 
@@ -279,5 +335,15 @@
   - Depends on: T001, T002, T003, DOCS-R1
 
 Digest: Ревьюер Claude при основной сессии ChatGPT получает задание через очередь и пробуждение, служба находит его ключ по хукам за 3 минуты или завершает ревью видимой ошибкой; дерево скрывает ревьюера по reviewerRef до появления ключа.
+
+### R2 — Fixes (fixes, OPEN)
+
+- [TODO] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
+  - Commit: docs: reconcile documentation for R2
+  - Files: README.md, docs/architecture/OVERVIEW.md
+- [TODO] T005 — Publish to GitHub (delivery)
+  - Commit: chore: record the GitHub publication
+  - Files: docs/evidence/M4-acceptance.md
+  - Depends on: T004, DOCS-R2
 
 State changes only through `scripts/workflow` commands. History lives in Git.

@@ -10,10 +10,25 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 361,
+  "revision": 363,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "cross-review: CrossReviewDeps.deliver?(key, text, projectId) и findReviewer?; типы в src/contract.ts",
+          "cli: deliverToSession — очередь канала и сразу wakeSession Claude",
+          "panel-shell: reviewerMatcher(state) в src/reviewers.js"
+        ],
+        "decisions": [
+          "Задание ревьюеру Claude не набирается в терминал: длинный текст набирался, но не отправлялся",
+          "Ключ ревьюера Claude ищется сразу после создания (2 с, до 3 минут), а не по первому Stop",
+          "Дерево скрывает ревьюера и по reviewerRef для обоих провайдеров"
+        ],
+        "references": [
+          "docs/planning/M4-review-failures.md"
+        ],
+        "result": "Ревьюер Claude при основной сессии ChatGPT получает задание через очередь и пробуждение, служба находит его ключ по хукам за 3 минуты или завершает ревью видимой ошибкой; дерево скрывает ревьюера по reviewerRef до появления ключа."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -180,7 +195,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -225,8 +240,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 3/5
-- Revision: 361
+- Progress: 4/5
+- Revision: 363
 
 ## Objective
 
@@ -254,7 +269,7 @@
 - [DONE] T003 — The tree hides a reviewer by its reference before its key is known (work, parallel-safe)
   - Commit: fix: hide a starting reviewer session in the project tree
   - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/view-model.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/reviewers.js
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M4-review-failures.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md
   - Depends on: T001, T002, T003
@@ -262,5 +277,7 @@
   - Commit: chore: release 0.4.7
   - Files: package.json, package-lock.json, docs/evidence/M4-acceptance.md
   - Depends on: T001, T002, T003, DOCS-R1
+
+Digest: Ревьюер Claude при основной сессии ChatGPT получает задание через очередь и пробуждение, служба находит его ключ по хукам за 3 минуты или завершает ревью видимой ошибкой; дерево скрывает ревьюера по reviewerRef до появления ключа.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

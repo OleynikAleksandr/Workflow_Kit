@@ -10,10 +10,31 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 347,
+  "revision": 349,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "Функциональные API не менялись; уточнены текущие ограничения платформ.",
+          "README — быстрый старт; docs/installation.md — подробная установка и диагностика.",
+          "Отчёт разделяет подготовку документов и подтверждённую публикацию."
+        ],
+        "decisions": [
+          "Версия остаётся 0.4.6; изменения документации описаны в Unreleased.",
+          "CHANGELOG отслеживается; локальные стартовые материалы исключены общим gitignore.",
+          "Историю сохраняем, включая прежние node_modules; force push не использовать.",
+          "Push разрешён пользователем; приёмка и закрытие scope отдельно."
+        ],
+        "references": [
+          "README.md",
+          "docs/installation.md",
+          "CHANGELOG.md",
+          "docs/architecture/OVERVIEW.md",
+          "docs/planning/github-publication.md",
+          "docs/evidence/github-publication.md"
+        ],
+        "result": "Подготовлены README, установка по ОС, CHANGELOG и правила Git. Документы согласованы; публикация и проверка удалённого SHA остаются задачей T002."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -129,7 +150,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -172,8 +193,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 1/3
-- Revision: 347
+- Progress: 2/3
+- Revision: 349
 
 ## Objective
 
@@ -194,7 +215,7 @@
 - [DONE] T001 — Подготовить README, инструкцию установки, CHANGELOG и состав файлов (work)
   - Commit: docs: prepare installation guide and changelog for GitHub publication
   - Files: README.md, CHANGELOG.md, docs/installation.md, docs/architecture/OVERVIEW.md, .gitignore, docs/evidence/github-publication.md
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/github-publication.md, CHANGELOG.md, docs/installation.md, docs/evidence/github-publication.md
   - Depends on: T001
@@ -202,5 +223,7 @@
   - Commit: chore: record GitHub publication verification
   - Files: docs/evidence/github-publication.md
   - Depends on: T001, DOCS-R1
+
+Digest: Подготовлены README, установка по ОС, CHANGELOG и правила Git. Документы согласованы; публикация и проверка удалённого SHA остаются задачей T002.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

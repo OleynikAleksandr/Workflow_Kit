@@ -1,3 +1,12 @@
+# Line endings: LF everywhere; the workflow-kit block below keeps CRLF for its Windows launchers.
+* text=auto eol=lf
+*.node binary
+*.dll binary
+*.exe binary
+*.png binary
+*.ico binary
+*.icns binary
+
 # workflow-kit:begin
 scripts/workflow text eol=lf
 scripts/workflow.cmd text eol=crlf

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 419,
+  "revision": 421,
   "rounds": [
     {
       "digest": null,
@@ -145,7 +145,7 @@
       "kind": "work",
       "parallelSafe": true,
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "CI on three OSes and LF line endings",
       "why": "Tests must run on real Windows and Linux, not only on the Mac"
     },
@@ -264,8 +264,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 1/5
-- Revision: 419
+- Progress: 2/5
+- Revision: 421
 
 ## Objective
 
@@ -286,7 +286,7 @@ Every further change to Workflow Kit covers macOS, Linux and Windows 11: CI on a
 - [DONE] T001 — platform-guard check (work, parallel-safe)
   - Commit: feat: add platform-guard check for three-OS code
   - Files: tools/platform-guard/check.ts, tools/platform-guard/allowlist.json, tools/platform-guard/README.md, tools/platform-guard/test/check.test.ts, package.json, tsconfig.json
-- [TODO] T002 — CI on three OSes and LF line endings (work, parallel-safe)
+- [DONE] T002 — CI on three OSes and LF line endings (work, parallel-safe)
   - Commit: ci: run typecheck, tests and platform-guard on macOS, Linux and Windows
   - Files: .github/workflows/ci.yml, .gitattributes
 - [TODO] T003 — Three-OS rules for agents (work, parallel-safe)

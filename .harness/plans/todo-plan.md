@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T004",
   "lastClosed": {
     "closedAt": "2026-11-09T08:50:01.775Z",
     "scopeId": "publication-order"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 399,
+  "revision": 401,
   "rounds": [
     {
       "digest": null,
@@ -226,15 +226,20 @@
         "product-parts/backend-core/clusters/projects/modules/kit-structure",
         "product-parts/system-service/clusters/deployment/modules/service-installer",
         "product-parts/backend-core/clusters/runtime/modules/cli/src/link.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/commands.ts",
         "product-parts/backend-core/clusters/runtime/modules/cli/test",
-        "product-parts/backend-core/clusters/runtime/modules/cli/module.md"
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/provider.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/autorun.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md",
+        "docs/planning/M5-windows.md"
       ],
       "fixes": null,
       "id": "T004",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "Kit hooks and the wfk launcher on Windows",
       "why": "The POSIX hook command and the launcher path do not work on Windows"
     },
@@ -401,9 +406,9 @@
 - Scope: m5-windows (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: none
+- Current task: T004
 - Progress: 3/9
-- Revision: 399
+- Revision: 401
 
 ## Objective
 
@@ -431,9 +436,9 @@ Windows 11 (x64 и ARM64): сессии Claude и ChatGPT/Codex, ревью, в�
   - Commit: feat: run Claude sessions on Windows
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, docs/planning/M5-windows.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/claude-config.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/config-writer.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/environment.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/folder-key.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/programs.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/host.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/screen.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/win-host.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/runtime.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/trust.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parts.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/windows.test.ts
   - Depends on: T001, T002
-- [TODO] T004 — Kit hooks and the wfk launcher on Windows (work)
+- [IN_PROGRESS] T004 — Kit hooks and the wfk launcher on Windows (work)
   - Commit: feat: install Kit hooks and the launcher on Windows
-  - Files: product-parts/backend-core/clusters/projects/modules/kit-structure, product-parts/system-service/clusters/deployment/modules/service-installer, product-parts/backend-core/clusters/runtime/modules/cli/src/link.ts, product-parts/backend-core/clusters/runtime/modules/cli/test, product-parts/backend-core/clusters/runtime/modules/cli/module.md
+  - Files: product-parts/backend-core/clusters/projects/modules/kit-structure, product-parts/system-service/clusters/deployment/modules/service-installer, product-parts/backend-core/clusters/runtime/modules/cli/src/link.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/commands.ts, product-parts/backend-core/clusters/runtime/modules/cli/test, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/autorun.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, docs/planning/M5-windows.md
 - [TODO] T005 — Codex on Windows: program, proxy transport, daemon pid, config keys, hooks (work)
   - Commit: feat: run Codex sessions on Windows
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex

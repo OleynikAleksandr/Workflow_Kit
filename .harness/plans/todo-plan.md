@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": "T002",
+  "currentTaskId": null,
   "lastClosed": {
     "closedAt": "2026-11-08T17:17:34.035Z",
     "scopeId": "m4-plan-review"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 351,
+  "revision": 352,
   "rounds": [
     {
       "digest": {
@@ -37,7 +37,7 @@
       },
       "id": "R1",
       "kind": "implementation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Implementation"
     }
   ],
@@ -81,7 +81,7 @@
         "text": "CHANGELOG.md является публикуемым документом и не должен игнорироваться"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "01a1bf43-d699-7e33-9fc4-b3d0406733ca",
@@ -179,7 +179,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "title": "Проверить подготовленный репозиторий и опубликовать main на GitHub",
       "why": "Проверить подготовленный репозиторий и опубликовать main на GitHub"
     }
@@ -191,11 +191,11 @@
 ## State
 
 - Scope: github-publication (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
-- Current task: T002
-- Progress: 2/3
-- Revision: 351
+- Current task: none
+- Progress: 3/3
+- Revision: 352
 
 ## Objective
 
@@ -211,7 +211,7 @@
 
 ## Rounds
 
-### R1 — Implementation (implementation, OPEN)
+### R1 — Implementation (implementation, CLOSED)
 
 - [DONE] T001 — Подготовить README, инструкцию установки, CHANGELOG и состав файлов (work)
   - Commit: docs: prepare installation guide and changelog for GitHub publication
@@ -220,7 +220,7 @@
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/github-publication.md, CHANGELOG.md, docs/installation.md, docs/evidence/github-publication.md
   - Depends on: T001
-- [IN_PROGRESS] T002 — Проверить подготовленный репозиторий и опубликовать main на GitHub (delivery)
+- [DONE] T002 — Проверить подготовленный репозиторий и опубликовать main на GitHub (delivery)
   - Commit: chore: record GitHub publication verification
   - Files: docs/evidence/github-publication.md, LICENSE
   - Depends on: T001, DOCS-R1

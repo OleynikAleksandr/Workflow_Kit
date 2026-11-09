@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 421,
+  "revision": 423,
   "rounds": [
     {
       "digest": null,
@@ -178,7 +178,7 @@
       "kind": "work",
       "parallelSafe": true,
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Three-OS rules for agents",
       "why": "Claude and Codex agents must plan and test every change for all three OSes"
     },
@@ -264,8 +264,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 2/5
-- Revision: 421
+- Progress: 3/5
+- Revision: 423
 
 ## Objective
 
@@ -289,7 +289,7 @@ Every further change to Workflow Kit covers macOS, Linux and Windows 11: CI on a
 - [DONE] T002 — CI on three OSes and LF line endings (work, parallel-safe)
   - Commit: ci: run typecheck, tests and platform-guard on macOS, Linux and Windows
   - Files: .github/workflows/ci.yml, .gitattributes
-- [TODO] T003 — Three-OS rules for agents (work, parallel-safe)
+- [DONE] T003 — Three-OS rules for agents (work, parallel-safe)
   - Commit: docs: add three-OS rules and spec template
   - Files: AGENTS.md, docs/planning/TEMPLATE.md, README.md
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)

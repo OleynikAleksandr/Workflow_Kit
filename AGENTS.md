@@ -99,3 +99,32 @@ decisions, open questions and donor-project links this project starts from
 (written in Russian). Take context only from the sources it lists. Do not
 reconstruct context from other projects' transcripts, agent memories, chat
 history or ad-hoc searches of the disk. If something is missing, ask the user.
+
+## Three operating systems
+
+Workflow Kit runs on macOS, Linux and Windows 11 (x64 and ARM64). Every change
+covers all three; a macOS-only change is incomplete. Background:
+`docs/planning/M6-cross-platform.md`.
+
+- Every specification has a level-2 section «Поведение на ОС» with macOS, Linux
+  and Windows columns; say so explicitly when the behaviour is the same
+  everywhere. Start new specifications from `docs/planning/TEMPLATE.md`.
+- Code with OS branches takes the platform as a parameter
+  (`platform ?? process.platform`); never compare `process.platform` directly.
+  Every `win32` and `linux` branch has a test with the platform injected.
+- A call of one OS's program (`launchctl`, `systemctl`, `reg`, `taskkill`,
+  `expect`, …) goes into `tools/platform-guard/allowlist.json` together with
+  what the other two OSes do (or why they need nothing).
+- `npm run check:platforms` (the `platform-guard` commit check) enforces these
+  rules; see `tools/platform-guard/README.md`.
+- In the same commit, update the OS matrix in `docs/architecture/OVERVIEW.md`
+  and the OS section of the module's `module.md`.
+- The acceptance document lists live checks per OS and who runs them: macOS —
+  the user; Windows — a Windows tester; Linux — CI only for now.
+- Use `path` helpers and the injected platform for paths, not `/` joins;
+  files are stored with LF (`.gitattributes`).
+- CI (`.github/workflows/ci.yml`) runs typecheck, tests and the guard on
+  macOS, Linux, Windows x64 and Windows ARM64. A delivery task is not done
+  until CI is green on every OS for the pushed commit; before acceptance it
+  runs on a `ci/<scope>` branch, `main` is pushed only after the scope is
+  accepted and closed.

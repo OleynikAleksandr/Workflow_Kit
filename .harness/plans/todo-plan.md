@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 508,
+  "revision": 509,
   "rounds": [
     {
       "digest": {
@@ -39,6 +39,13 @@
       "kind": "implementation",
       "status": "CLOSED",
       "title": "Implementation"
+    },
+    {
+      "digest": null,
+      "id": "R2",
+      "kind": "fixes",
+      "status": "OPEN",
+      "title": "Fixes of the 0.6.1 live check"
     }
   ],
   "schema": "harness-workflow-plan/1",
@@ -77,7 +84,7 @@
         "text": "Kit never restarts the Kimi Code app; it tells the user to restart it when the app started before the Kit hook was written"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "IN_PROGRESS",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "claude:01493504-12b2-440a-84f4-17acf7bc1c61",
@@ -281,6 +288,100 @@
       "status": "DONE",
       "title": "Release 0.6.1 with green CI",
       "why": "Release 0.6.1 with green CI"
+    },
+    {
+      "acceptance": [
+        "On macOS the service opens the project with open -n -a <Kimi Code.app> --args --workspace=<folder>; on Windows with Start-Process of Kimi Code.exe from the kimi-code handler; on Linux the link as before",
+        "A link with new=1, a missing app path or a failed command falls back to the link",
+        "A click on a Kimi session card on a computer goes through POST /api/open-link; the link is the fallback",
+        "Tests cover macOS, Linux and Windows with the platform injected"
+      ],
+      "checks": [],
+      "commitMessage": "fix: open a Kimi project in the Kimi Code app with --workspace instead of a link that starts a new chat",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M9-kimi-start-fixes.md",
+          "heading": "8.1. Открытие проекта без пустого чата",
+          "required": true
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi",
+        "product-parts/backend-core/clusters/runtime/modules/cli",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell",
+        "tools/platform-guard/allowlist.json",
+        "docs/architecture/OVERVIEW.md"
+      ],
+      "fixes": null,
+      "id": "T005",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Open the Kimi project without an empty chat",
+      "why": "A kimi-code:// link always opens the project with a new empty chat"
+    },
+    {
+      "acceptance": [
+        "A record spawned with renames is alive, adopted and stopped by its start token although its command line changed",
+        "The Kimi server of Kit is spawned with renames and is adopted after a restart of the service",
+        "APP_RESTART_NOTE comes only from the server Kit talks to"
+      ],
+      "checks": [],
+      "commitMessage": "fix: keep the renamed Kimi server in the process records and flag only the server Kit uses",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M9-kimi-start-fixes.md",
+          "heading": "8.2. Ложная пометка о перезапуске и потерянный сервер Kit",
+          "required": true
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi",
+        "docs/architecture/OVERVIEW.md"
+      ],
+      "fixes": null,
+      "id": "T006",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "No false app restart note; the Kit server stays in the process records",
+      "why": "kimi web renames its process, so the records lost the Kit server and its orphan gave a false note"
+    },
+    {
+      "acceptance": [
+        "Project-wide documents describe the round result",
+        "The round digest records result, decisions, contracts and references"
+      ],
+      "checks": [],
+      "commitMessage": "docs: reconcile documentation for R2",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T005",
+        "T006"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/architecture/OVERVIEW.md"
+      ],
+      "fixes": null,
+      "id": "DOCS-R2",
+      "iteration": 1,
+      "kind": "docs",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Reconcile project documentation and write the round digest",
+      "why": "Keep the project context current for the next agent and close the round."
     }
   ]
 }
@@ -290,11 +391,11 @@
 ## State
 
 - Scope: m9-kimi-start-fixes (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 5/5
-- Revision: 508
+- Progress: 5/8
+- Revision: 509
 
 ## Objective
 
@@ -332,5 +433,18 @@ A Kimi session created from the panel is visible in the Kimi Code app with its f
   - Depends on: T001, T002, T003, DOCS-R1
 
 Digest: Kimi sessions start correctly: while the Kimi Code app runs, Kit creates workspaces, sessions and prompts through its server, so the app shows them at once; the Kit server is restarted when its hooks are stale; a Kimi Code app started before the Kit hook is flagged for a restart; wfk session finds a Kimi turn by its session lock when no hook came.
+
+### R2 — Fixes of the 0.6.1 live check (fixes, OPEN)
+
+- [TODO] T005 — Open the Kimi project without an empty chat (work)
+  - Commit: fix: open a Kimi project in the Kimi Code app with --workspace instead of a link that starts a new chat
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/control-panel/clusters/web-panel/modules/panel-shell, tools/platform-guard/allowlist.json, docs/architecture/OVERVIEW.md
+- [TODO] T006 — No false app restart note; the Kit server stays in the process records (work)
+  - Commit: fix: keep the renamed Kimi server in the process records and flag only the server Kit uses
+  - Files: product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi, docs/architecture/OVERVIEW.md
+- [TODO] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
+  - Commit: docs: reconcile documentation for R2
+  - Files: README.md, docs/architecture/OVERVIEW.md
+  - Depends on: T005, T006
 
 State changes only through `scripts/workflow` commands. History lives in Git.

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 527,
+  "revision": 528,
   "rounds": [
     {
       "digest": {
@@ -114,7 +114,10 @@
       "wfk session title|plan finds a Kimi turn by the live session lock when no hook reached the service",
       "0.6.1 is installed locally and CI is green on all four platforms before acceptance"
     ],
-    "acceptanceNote": null,
+    "acceptanceNote": {
+      "at": "2026-11-10T11:09:43.268Z",
+      "text": "Принять и закрыть M9"
+    },
     "approval": {
       "at": "2026-11-10T09:21:06.046Z",
       "text": "User: «Я думаю, что нужно закрыть текущий план приняв его и откроем новый, для замечаний, касающихся в первую очередь, конечно же, провайдера Кими.» and «В общем, прям при старте что-то сильно неправильно работает с провайдером Kimi Code.» | Execution mode chosen by the user: sequential: Да, принимаю этот план, выполняй его и собирай новый релиз для моих тестов"
@@ -141,7 +144,7 @@
         "text": "Kit never restarts the Kimi Code app; it tells the user to restart it when the app started before the Kit hook was written"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "ACCEPTED",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "claude:01493504-12b2-440a-84f4-17acf7bc1c61",
@@ -613,11 +616,11 @@
 ## State
 
 - Scope: m9-kimi-start-fixes (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: ACCEPTED
 - Execution: sequential
 - Current task: none
 - Progress: 13/13
-- Revision: 527
+- Revision: 528
 
 ## Objective
 

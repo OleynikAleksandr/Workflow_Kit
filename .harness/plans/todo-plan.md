@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 518,
+  "revision": 520,
   "rounds": [
     {
       "digest": {
@@ -83,7 +83,7 @@
       },
       "id": "R3",
       "kind": "fixes",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Fixes"
     }
   ],
@@ -123,7 +123,7 @@
         "text": "Kit never restarts the Kimi Code app; it tells the user to restart it when the app started before the Kit hook was written"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "claude:01493504-12b2-440a-84f4-17acf7bc1c61",
@@ -477,7 +477,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: release 0.6.2",
-      "confirmation": null,
+      "confirmation": "Да, заканчивай, собирай новый релиз.",
       "context": [
         {
           "path": "docs/planning/M9-kimi-start-fixes.md",
@@ -506,7 +506,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R3",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Release 0.6.2 with green CI",
       "why": "The user tests the fixes of the 0.6.1 live check in a new release"
     }
@@ -518,11 +518,11 @@
 ## State
 
 - Scope: m9-kimi-start-fixes (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 9/10
-- Revision: 518
+- Progress: 10/10
+- Revision: 520
 
 ## Objective
 
@@ -576,12 +576,12 @@ Digest: Kimi sessions start correctly: while the Kimi Code app runs, Kit creates
 
 Digest: Kimi project opens in the Kimi Code app without an empty chat: the service starts the app with --workspace=<folder> (macOS open -n -a, Windows Start-Process of the kimi-code handler), the link is the fallback and stays for Linux and new sessions. The renamed kimi web server stays in the process records, and the app restart note comes only from the server of the app.
 
-### R3 — Fixes (fixes, OPEN)
+### R3 — Fixes (fixes, CLOSED)
 
 - [DONE] DOCS-R3 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R3
   - Files: README.md, docs/architecture/OVERVIEW.md
-- [TODO] T007 — Release 0.6.2 with green CI (delivery)
+- [DONE] T007 — Release 0.6.2 with green CI (delivery)
   - Commit: chore: release 0.6.2
   - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/installation.md, docs/architecture/OVERVIEW.md, docs/evidence/M9-acceptance.md
   - Depends on: T005, T006, DOCS-R2, DOCS-R3

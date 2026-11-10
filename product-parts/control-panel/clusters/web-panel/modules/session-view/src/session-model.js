@@ -130,7 +130,39 @@ export function choiceView(state, projectId, key) {
  * @property {Array<{ id: string, title: string, state: string, stateLabel: string, modeLabel: string | null, where: string | null, current: boolean }>} tasks
  * @property {Array<{ action: string, label: string, route: string, primary: boolean }>} buttons
  * @property {boolean} delivery the autopilot waits for «Подтвердить выпуск»
+ * @property {StartingView | null} starting the press of «Начать выполнение плана» Kit has not seen yet (spec M11)
  */
+
+/**
+ * @typedef {object} StartingView
+ * @property {'sending' | 'delivered'} step
+ * @property {string} stepText
+ * @property {string} since the press (ISO)
+ * @property {boolean} slow
+ * @property {string | null} problem why the start failed: the card offers «Начать заново»
+ */
+
+/** Text of the spinner per start step (spec M11 2.4). */
+export const START_STEPS = Object.freeze({
+  sending: 'команда ждёт отправки агенту',
+  delivered: 'агент получил команду и готовится к первой задаче',
+});
+export const START_SLOW_TEXT = 'агент готовится дольше обычного — это не ошибка, можно подождать';
+export const START_AGAIN_LABEL = 'Начать заново';
+
+/**
+ * The start of the plan in its ready phase, from the autopilot of the session (spec M11 2.4).
+ * @param {Record<string, any> | undefined} pilot
+ * @param {string} phase
+ * @returns {StartingView | null}
+ */
+function startingOf(pilot, phase) {
+  const start = record(pilot?.start);
+  if (phase !== 'ready' || typeof start['at'] !== 'string') return null;
+  const step = start['step'] === 'delivered' ? 'delivered' : 'sending';
+  const problem = record(start['problem'])['text'];
+  return { step, stepText: START_STEPS[step], since: start['at'], slow: Boolean(start['slow']), problem: typeof problem === 'string' && problem ? problem : null };
+}
 
 /**
  * The plan card of the session that owns the plan (any session while the plan has no owner).
@@ -150,10 +182,14 @@ export function planView(state, projectId, key) {
   const pilot = array(record(state['autopilot'])['sessions']).find((s) => s && s.key === key);
   const delivery = record(pilot?.last)['reason'] === 'delivery-confirmation';
   const actions = array(plan['actions']).map(String);
+  const phase = String(plan['phase'] ?? '');
+  const starting = startingOf(pilot, phase);
+  // M11 2.4: while a start runs the button gives way to the spinner; after a problem it starts anew.
+  const shown = starting && !starting.problem ? actions.filter((action) => action !== 'start') : actions;
   return {
     scopeId: plan['scopeId'],
-    phase: String(plan['phase'] ?? ''),
-    heading: String(plan['phaseLabel'] ?? ''),
+    phase,
+    heading: starting && !starting.problem ? 'План запускается' : String(plan['phaseLabel'] ?? ''),
     percent: total > 0 ? Math.round((done / total) * 100) : 0,
     progressLabel: String(plan['progressLabel'] ?? `в main ${done} из ${total}`),
     blockedReason: typeof plan['blockedReason'] === 'string' ? plan['blockedReason'] : null,
@@ -167,9 +203,10 @@ export function planView(state, projectId, key) {
       current: Boolean(t.current),
     })),
     buttons: Object.entries(ACTION_BUTTONS)
-      .filter(([action]) => actions.includes(action))
-      .map(([action, b]) => ({ action, label: b.label, route: b.route, primary: b.primary })),
+      .filter(([action]) => shown.includes(action))
+      .map(([action, b]) => ({ action, label: action === 'start' && starting?.problem ? START_AGAIN_LABEL : b.label, route: b.route, primary: b.primary })),
     delivery,
+    starting,
   };
 }
 

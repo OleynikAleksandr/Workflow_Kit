@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 543,
+  "revision": 545,
   "rounds": [
     {
       "digest": null,
@@ -139,14 +139,19 @@
       ],
       "docsWaiver": null,
       "files": [
-        "product-parts/control-panel/clusters/web-panel/modules/session-view"
+        "product-parts/control-panel/clusters/web-panel/modules/session-view",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.css",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts"
       ],
       "fixes": null,
       "id": "T002",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Plan card spinner and failed start",
       "why": "The user must see that the press was taken and what happens until the work starts"
     },
@@ -223,8 +228,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 1/4
-- Revision: 543
+- Progress: 2/4
+- Revision: 545
 
 ## Objective
 
@@ -244,9 +249,9 @@ Pressing «Начать выполнение плана» shows a spinner with t
 - [DONE] T001 — Start state in the autopilot (work)
   - Commit: feat: track the plan start in the autopilot
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/channel.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/detached.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/types.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/channel.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/autopilot.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/start.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/texts.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/orchestration.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/start.test.ts
-- [TODO] T002 — Plan card spinner and failed start (work)
+- [DONE] T002 — Plan card spinner and failed start (work)
   - Commit: feat: show the plan start progress on the plan card
-  - Files: product-parts/control-panel/clusters/web-panel/modules/session-view
+  - Files: product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.css, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts
   - Depends on: T001
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1

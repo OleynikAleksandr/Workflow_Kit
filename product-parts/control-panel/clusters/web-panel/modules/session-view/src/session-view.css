@@ -29,6 +29,24 @@
   color: var(--warn);
 }
 
+/* The plan start under way (spec M11): the spinner takes the place of the start button. */
+.sv-starting {
+  display: flex;
+  flex: 1 1 100%;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 12px;
+  border: 1px solid var(--active-line);
+  border-radius: 10px;
+  background: var(--active);
+}
+
+.sv-starting small {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+}
+
 .work {
   display: flex;
   align-items: center;

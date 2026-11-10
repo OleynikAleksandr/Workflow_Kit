@@ -2,7 +2,7 @@
 // The session screen body (activity line, path choice, plan card, delivery confirmation) and
 // «Ревью плана» in the sidebar. Panel extension: install(shell) fills the "sessionBody" and
 // "sessionReview" slots of panel-shell. Typed text lives in inputs kept per session.
-import { activityView, choiceView, crossReviewView, planQuestionView, planView, reviewView, timer } from './session-model.js';
+import { START_SLOW_TEXT, START_STEPS, activityView, choiceView, crossReviewView, planQuestionView, planView, reviewView, timer } from './session-model.js';
 
 /**
  * Helpers the panel shell gives to extensions (see panel-shell app.js).
@@ -20,7 +20,7 @@ import { activityView, choiceView, crossReviewView, planQuestionView, planView, 
  */
 export function install(shell) {
   const { h } = shell.dom;
-  /** @type {Map<string, { fixes: HTMLTextAreaElement, delivery: HTMLTextAreaElement, fixesOpen: boolean }>} */
+  /** @type {Map<string, { fixes: HTMLTextAreaElement, delivery: HTMLTextAreaElement, fixesOpen: boolean, pressed: string | null }>} */
   const inputs = new Map();
   let busy = false;
 
@@ -29,7 +29,7 @@ export function install(shell) {
     let entry = inputs.get(key);
     if (!entry) {
       const area = (/** @type {string} */ label) => /** @type {HTMLTextAreaElement} */ (h('textarea', { rows: '3', 'aria-label': label, autocapitalize: 'sentences' }));
-      entry = { fixes: area('Что исправить'), delivery: area('Подтверждение выпуска'), fixesOpen: false };
+      entry = { fixes: area('Что исправить'), delivery: area('Подтверждение выпуска'), fixesOpen: false, pressed: null };
       inputs.set(key, entry);
     }
     return entry;
@@ -164,6 +164,47 @@ export function install(shell) {
   }
 
   /**
+   * The spinner of a plan start (spec M11 2.4): the step, the time since the press, the slow hint.
+   * @param {{ stepText: string, since: string, slow: boolean }} view
+   */
+  function startingBlock(view) {
+    return h('div', { class: 'sv-starting', role: 'status' }, [
+      h('span', { class: 'spin' }),
+      h('div', {}, [
+        h('b', {}, ['Запускаю план']),
+        ` · ${view.stepText} · `,
+        h('span', { 'data-since': view.since }, [timer(view.since, Date.now())]),
+        view.slow ? h('small', {}, [START_SLOW_TEXT]) : null,
+      ].filter((n) => n !== null)),
+    ]);
+  }
+
+  /**
+   * «Начать выполнение плана» / «Начать заново»: the spinner replaces the button at once and stays
+   * while the request runs; a refused request brings the button back with the error (M11 2.4).
+   * @param {SlotContext} ctx
+   * @param {string} projectId
+   * @param {string} key
+   * @param {Element} row
+   */
+  async function startPlan(ctx, projectId, key, row) {
+    if (busy) return;
+    busy = true;
+    const fields = inputsOf(key);
+    fields.pressed = new Date().toISOString();
+    row.replaceChildren(startingBlock({ stepText: START_STEPS.sending, since: fields.pressed, slow: false }));
+    try {
+      await shell.api('POST', `/api/projects/${encodeURIComponent(projectId)}/workflow/start`, { session: key });
+    } catch (error) {
+      ctx.say('error', 'Не удалось начать выполнение плана', error);
+    } finally {
+      fields.pressed = null;
+      busy = false;
+      ctx.requestRefresh();
+    }
+  }
+
+  /**
    * @param {NonNullable<ReturnType<typeof planView>>} plan
    * @param {SessionContext} session
    * @param {SlotContext} ctx
@@ -180,7 +221,11 @@ export function install(shell) {
         h('span', {}, [h('span', { class: 'tid' }, [t.id]), h('b', {}, [t.title])]),
         h('small', {}, [h('span', { class: `st ${t.state}` }, [t.stateLabel]), t.modeLabel ? ` · ${t.modeLabel}` : '', t.where ? ` · ${t.where}` : '']),
       ])));
-    const actions = plan.buttons.map((b) => {
+    // M11 2.4: the start of the service, or the press whose request is still on its way.
+    const local = fields.pressed && plan.phase === 'ready' ? { stepText: START_STEPS.sending, since: fields.pressed, slow: false } : null;
+    const spinner = plan.starting && !plan.starting.problem ? plan.starting : local;
+    const row = h('div', { class: 'row' }, []);
+    const actions = plan.buttons.filter((b) => !(spinner && b.action === 'start')).map((b) => {
       if (b.action === 'request-fixes') {
         return button(b.label, () => {
           fields.fixesOpen = !fields.fixesOpen;
@@ -188,14 +233,16 @@ export function install(shell) {
           if (fields.fixesOpen) fields.fixes.focus();
         });
       }
+      if (b.action === 'start') return button(b.label, () => void startPlan(ctx, projectId, key, row), 'btn primary wide');
       const body = { session: key };
       const run = () => {
         if (b.action === 'accept' && !window.confirm('Принять план? Kit отметит результат как принятый вами.')) return;
         if (b.action === 'close' && !window.confirm('Закрыть план? После этого карточка плана исчезнет.')) return;
         void send(ctx, projectId, b.route, body, `Не удалось: ${b.label}`);
       };
-      return button(b.label, run, b.primary ? `btn primary${b.action === 'start' ? ' wide' : ''}` : 'btn');
+      return button(b.label, run, b.primary ? 'btn primary' : 'btn');
     });
+    row.append(...(spinner ? [startingBlock(spinner)] : []), ...actions);
     const fixesForm = h('div', { class: 'sv-form' }, [
       h('label', {}, ['Что исправить — сообщение уйдёт агенту']),
       fields.fixes,
@@ -217,7 +264,8 @@ export function install(shell) {
       plan.blockedReason ? h('p', { class: 'sv-warn' }, [plan.blockedReason]) : null,
       tasks,
       h('hr'),
-      h('div', { class: 'row' }, actions),
+      plan.starting?.problem ? h('p', { class: 'sv-warn' }, [plan.starting.problem]) : null,
+      row,
       fixesForm,
     ].filter((n) => n !== null));
   }

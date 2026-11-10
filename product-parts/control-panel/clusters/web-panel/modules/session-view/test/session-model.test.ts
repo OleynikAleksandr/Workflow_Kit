@@ -252,3 +252,34 @@ test('activity during a review tells its step; service waits are not the user\'s
   (st['channel'] as any).sessions[0].holdReason = 'paused';
   assert.deepEqual([activityView(st, 'p', 'claude:s1').text, activityView(st, 'p', 'claude:s1').detail], ['остановлен', 'Пауза']);
 });
+
+test('a plan start under way: the spinner instead of the button, then «Начать заново» after a problem (M11)', () => {
+  const plan = { scopeId: 's1', phase: 'ready', phaseLabel: 'План готов', ownerSession: 's1', progress: { done: 0, total: 2 }, tasks: [], actions: ['start'] };
+  const s = state();
+  (s['workflow'] as any).projects.p.plan = plan;
+  const pilot = (s['autopilot'] as any).sessions[0];
+  assert.equal(planView(s, 'p', 'claude:s1')?.starting, null, 'nothing pressed yet');
+  assert.deepEqual(planView(s, 'p', 'claude:s1')?.buttons.map((b) => b.label), ['Начать выполнение плана']);
+
+  pilot.start = { at: '2026-11-10T10:00:00Z', messageId: 'm1', step: 'sending', slow: false, problem: null };
+  let view = planView(s, 'p', 'claude:s1')!;
+  assert.deepEqual(view.starting, { step: 'sending', stepText: 'команда ждёт отправки агенту', since: '2026-11-10T10:00:00Z', slow: false, problem: null });
+  assert.equal(view.heading, 'План запускается');
+  assert.deepEqual(view.buttons, [], 'no start button while it runs');
+
+  pilot.start = { ...pilot.start, step: 'delivered', slow: true };
+  view = planView(s, 'p', 'claude:s1')!;
+  assert.equal(view.starting?.stepText, 'агент получил команду и готовится к первой задаче');
+  assert.equal(view.starting?.slow, true);
+
+  pilot.start = { ...pilot.start, problem: { code: 'turn-ended', text: 'Агент закончил ход, не начав первую задачу.' } };
+  view = planView(s, 'p', 'claude:s1')!;
+  assert.equal(view.starting?.problem, 'Агент закончил ход, не начав первую задачу.');
+  assert.equal(view.heading, 'План готов');
+  assert.deepEqual(view.buttons.map((b) => [b.label, b.route]), [['Начать заново', 'start']]);
+
+  (s['workflow'] as any).projects.p.plan = { ...plan, phase: 'running', phaseLabel: 'План выполняется', actions: ['pause'] };
+  view = planView(s, 'p', 'claude:s1')!;
+  assert.equal(view.starting, null, 'Kit recorded the work: the card is the usual one');
+  assert.deepEqual(view.buttons.map((b) => b.label), ['Пауза']);
+});

@@ -16,8 +16,9 @@ test('macOS: open -n -a with the bundle of the app and --workspace=<folder>; no 
   try {
     const check = { platform: 'darwin' as const, env: {}, homedir: root, runCommand: async () => assert.fail('no program runs to find the app'), appFolders: [path.join(root, 'system'), path.join(root, 'user')] };
     assert.equal(await kimiWorkspaceCommand(check, '/Users/me/My project'), null);
-    const bundle = path.join(root, 'user', KIMI_APP_NAME);
-    await mkdir(bundle, { recursive: true });
+    await mkdir(path.join(root, 'user', KIMI_APP_NAME), { recursive: true });
+    // The bundle path is joined by the macOS rules whatever the host is.
+    const bundle = path.posix.join(path.join(root, 'user'), KIMI_APP_NAME);
     assert.deepEqual(await kimiWorkspaceCommand(check, '/Users/me/My project'), { command: 'open', args: ['-n', '-a', bundle, '--args', '--workspace=/Users/me/My project'] });
   } finally {
     await rm(root, { recursive: true, force: true });

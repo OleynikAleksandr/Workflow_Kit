@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 521,
+  "revision": 523,
   "rounds": [
     {
       "digest": {
@@ -538,7 +538,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R4",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Host-independent tests of the Kimi launch and of renames",
       "why": "CI of 0.6.2 failed on Windows x64 and ARM64: a macOS path expected with host separators, and live test children locked their working folder (EBUSY)"
     },
@@ -605,8 +605,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 10/13
-- Revision: 521
+- Progress: 11/13
+- Revision: 523
 
 ## Objective
 
@@ -674,7 +674,7 @@ Digest: Round R3 delivers release 0.6.2 with the R2 fixes of the 0.6.1 live chec
 
 ### R4 — Windows CI fixes of the 0.6.2 tests (fixes, OPEN)
 
-- [TODO] T008 — Host-independent tests of the Kimi launch and of renames (work)
+- [DONE] T008 — Host-independent tests of the Kimi launch and of renames (work)
   - Commit: test: make the Kimi launch and renames tests pass on Windows hosts
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/workspace-launch.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/test/supervisor.test.ts
   - Fixes: T005

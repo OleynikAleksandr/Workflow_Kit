@@ -18,7 +18,8 @@ before(async () => {
 
 after(async () => {
   if (supervisor) for (const record of await supervisor.list()) await supervisor.stop(record.id, { graceMs: 200 });
-  await rm(tmp, { recursive: true, force: true });
+  // Windows: a child that has just ended may still hold a folder for a moment.
+  await rm(tmp, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
 });
 
 function exists(pid: number): boolean {
@@ -245,8 +246,10 @@ test('a record spawned with renames is alive, kept and stopped by its start time
       },
     });
     const script = 'setTimeout(() => {}, 10)';
-    const renamed = await fake.spawn({ owner: { ...owner, ref: 'kimi' }, command: process.execPath, args: ['-e', script], cwd: dir, env: process.env, logFile: null, renames: true });
-    const plain = await fake.spawn({ owner: { ...owner, ref: 'plain' }, command: process.execPath, args: ['-e', script], cwd: dir, env: process.env, logFile: null });
+    // The children run outside the folder the test removes (Windows locks the folder of a running process).
+    const cwd = os.tmpdir();
+    const renamed = await fake.spawn({ owner: { ...owner, ref: 'kimi' }, command: process.execPath, args: ['-e', script], cwd, env: process.env, logFile: null, renames: true });
+    const plain = await fake.spawn({ owner: { ...owner, ref: 'plain' }, command: process.execPath, args: ['-e', script], cwd, env: process.env, logFile: null });
     assert.equal(renamed.renames, true, platform);
     assert.equal('renames' in plain, false, platform);
     starting = false;

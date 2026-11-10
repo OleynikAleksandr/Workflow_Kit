@@ -10,10 +10,31 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 504,
+  "revision": 506,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "provider-kimi KimiServer: current(), ensure(), own(), app(), owner(), retire(), stop(), startedWith(), startedAt(), foreign(); KimiInstance.startedAt.",
+          "provider-kimi KimiHooks: kitKey(), appRestart(); APP_RESTART_NOTE, HOOK_RECORD; KimiRuntime.appRestart().",
+          "provider-kimi status details.server app | kit | null; APP_SERVER_NOTE; actions disabled with APP_SERVER_REASON; ProviderError kimi-app-server (409).",
+          "session-titles option listedRunning(projectId); cli wires it from listSessions with state running."
+        ],
+        "decisions": [
+          "A Kimi server takes hooks only at its start; GET /api/v1/config is not a proof that hooks run.",
+          "The server of the Kimi Code app (any live foreign record of server/instances answering healthz) is the only server Kit talks to while it runs; Kit's own kimi web is started only without it and retired when the app appears and no foreign turn would be cut.",
+          "Kit never restarts the Kimi Code app nor changes its Remote Control; it shows APP_RESTART_NOTE instead.",
+          "The time Kit last changed its hook blocks is kept in sessions/kimi-hook.json; blocks of earlier versions count from the config.toml mtime at the first check.",
+          "wfk session without hooks takes the only project session the providers list as running; several stay session-ambiguous."
+        ],
+        "references": [
+          "docs/planning/M9-kimi-start-fixes.md",
+          "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/server.md",
+          "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md",
+          "product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md"
+        ],
+        "result": "Kimi sessions start correctly: while the Kimi Code app runs, Kit creates workspaces, sessions and prompts through its server, so the app shows them at once; the Kit server is restarted when its hooks are stale; a Kimi Code app started before the Kit hook is flagged for a restart; wfk session finds a Kimi turn by its session lock when no hook came."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -215,7 +236,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -272,8 +293,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 3/5
-- Revision: 504
+- Progress: 4/5
+- Revision: 506
 
 ## Objective
 
@@ -301,7 +322,7 @@ A Kimi session created from the panel is visible in the Kimi Code app with its f
 - [DONE] T003 — wfk session finds a turn by the lists of the providers (work)
   - Commit: fix: find the running session of wfk session by the session lists of the providers
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/session-titles, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/session-running.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/titles.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/test/titles.test.ts
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M9-kimi-start-fixes.md
   - Depends on: T001, T002, T003
@@ -309,5 +330,7 @@ A Kimi session created from the panel is visible in the Kimi Code app with its f
   - Commit: chore: release 0.6.1
   - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/installation.md, docs/architecture/OVERVIEW.md, docs/evidence/M9-acceptance.md
   - Depends on: T001, T002, T003, DOCS-R1
+
+Digest: Kimi sessions start correctly: while the Kimi Code app runs, Kit creates workspaces, sessions and prompts through its server, so the app shows them at once; the Kit server is restarted when its hooks are stale; a Kimi Code app started before the Kit hook is flagged for a restart; wfk session finds a Kimi turn by its session lock when no hook came.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

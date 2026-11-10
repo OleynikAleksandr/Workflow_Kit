@@ -8,6 +8,8 @@ import type { ProviderRegistry } from '#provider-registry';
 export interface ProviderLifecycle {
   /** Archive or restore of one session ('<provider>:<id>') from the panel (session titles). */
   sessionArchived(projectId: string, key: string, archived: boolean): Promise<void>;
+  /** Ends the periodic work (retries of deletions, upkeep, autostart attempts): the service stops. */
+  stop(): void;
 }
 
 /** Attempts of the autostart at the start of the service and the pause between them. */
@@ -53,15 +55,23 @@ export function wireProviderLifecycle(options: {
   });
   // Sessions an app refused to delete (its chat still open) are tried again every minute and at
   // the start (spec M3-autostart section 8); the providers log what they deleted.
+  // After stop() nothing periodic runs: a stopped service must not start provider servers.
+  let stopped = false;
+  const timers: Array<ReturnType<typeof setInterval>> = [];
+  const every = (run: () => void, ms: number): void => {
+    const timer = setInterval(run, ms);
+    timer.unref?.();
+    timers.push(timer);
+  };
   const retryDeletes = (): void => void providers.retryDeletes().then(({ errors }) => report('retry deletions', errors), () => undefined);
-  setInterval(retryDeletes, options.deleteRetryMs ?? DELETE_RETRY_MS).unref?.();
+  every(retryDeletes, options.deleteRetryMs ?? DELETE_RETRY_MS);
   retryDeletes();
 
   // Every minute the providers keep up what changes outside the service (spec M7 remark 2: the
   // ChatGPT app opened after the daemon took remote control). One upkeep runs at a time.
   let maintaining = false;
   const maintain = (): void => {
-    if (maintaining) return;
+    if (maintaining || stopped) return;
     maintaining = true;
     void providers
       .maintain()
@@ -72,7 +82,7 @@ export function wireProviderLifecycle(options: {
       .finally(() => (maintaining = false));
   };
   const maintainMs = options.maintainMs ?? MAINTAIN_MS;
-  if (maintainMs > 0) setInterval(maintain, maintainMs).unref?.();
+  if (maintainMs > 0) every(maintain, maintainMs);
 
   // An archive waits for the stops (a removal right after it is not blocked by them); a restore
   // brings the sessions back in the background.
@@ -89,7 +99,7 @@ export function wireProviderLifecycle(options: {
     const { started, errors } = await providers.autostart();
     if (started.length > 0) log(`providers: autostart ${started.join('; ')}`);
     report(`autostart (attempt ${attempt} of ${AUTOSTART_ATTEMPTS})`, errors);
-    if (Object.keys(errors).length === 0 || attempt >= AUTOSTART_ATTEMPTS) return;
+    if (Object.keys(errors).length === 0 || attempt >= AUTOSTART_ATTEMPTS || stopped) return;
     setTimeout(() => void autostart(attempt + 1).catch(() => undefined), options.autostartPauseMs ?? AUTOSTART_PAUSE_MS).unref?.();
   };
   void autostart(1).catch(() => undefined);
@@ -113,6 +123,10 @@ export function wireProviderLifecycle(options: {
       if (!project) return;
       if (archived) await change(project, key, true);
       else void change(project, key, false).catch(() => undefined);
+    },
+    stop() {
+      stopped = true;
+      for (const timer of timers.splice(0)) clearInterval(timer);
     },
   };
 }

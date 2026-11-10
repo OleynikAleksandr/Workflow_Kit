@@ -131,6 +131,9 @@ export async function fakeKimi(): Promise<FakeKimi> {
   await writeFile(paths.token, 'test-token\n', { mode: 0o600 });
   const servers = new Map<string, { record: ProcessRecord; server: http.Server; instance: string }>();
   let count = 0;
+  // A closed machine starts nothing: late work of a service that outlives its test must not
+  // leave a listening server behind (the test process would never exit).
+  let closed = false;
 
   const end = async (id: string): Promise<void> => {
     const entry = servers.get(id);
@@ -148,6 +151,7 @@ export async function fakeKimi(): Promise<FakeKimi> {
       const failure = machine.failSpawn;
       machine.failSpawn = null;
       if (failure === 'throw') throw new ProcessError('start-failed', `${spec.command}: ENOENT`);
+      if (closed) throw new ProcessError('start-failed', `${spec.command}: the fake machine is closed`);
       count += 1;
       const id = `proc-${count}`;
       const pid = 40_000 + count;
@@ -170,6 +174,10 @@ export async function fakeKimi(): Promise<FakeKimi> {
         });
       });
       await new Promise<void>((resolve, reject) => server.once('error', reject).listen(port, '127.0.0.1', () => resolve()));
+      if (closed) {
+        await new Promise<void>((resolve) => server.close(() => resolve()));
+        throw new ProcessError('start-failed', `${spec.command}: the fake machine is closed`);
+      }
       const instance = path.join(paths.instances, `server-${count}.json`);
       await mkdir(paths.instances, { recursive: true });
       await writeFile(instance, JSON.stringify({ server_id: `server-${count}`, pid, host: '127.0.0.1', port, started_at: Date.now(), heartbeat_at: Date.now(), host_version: machine.version }));
@@ -237,6 +245,7 @@ export async function fakeKimi(): Promise<FakeKimi> {
     },
     seen: (method, url) => machine.api.requests.filter((request) => request.method === method && request.url === url),
     async close() {
+      closed = true;
       await machine.crash();
       // Events are appended without waiting: a late write may land while the folder is removed.
       await rm(root, { recursive: true, force: true, maxRetries: 10, retryDelay: 50 });

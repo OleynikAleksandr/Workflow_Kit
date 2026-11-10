@@ -297,7 +297,7 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
       return { ...bound, urls: panelUrls(bound.port, getInterfaces()) };
     },
     async stop() {
-      workflow.stop(), publication.stop(), channel.close();
+      workflow.stop(), publication.stop(), channel.close(), lifecycle.stop();
       await server.close();
     },
   };

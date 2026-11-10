@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": "T012",
+  "currentTaskId": null,
   "lastClosed": {
     "closedAt": "2026-11-09T17:29:49.064Z",
     "scopeId": "m7-test-fixes"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 494,
+  "revision": 495,
   "rounds": [
     {
       "digest": {
@@ -47,7 +47,7 @@
       },
       "id": "R1",
       "kind": "implementation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Implementation"
     }
   ],
@@ -111,7 +111,7 @@
         "text": "Sessions open in the Kimi Code app by kimi-code://open?root=<project>; on a tablet through Remote Control"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 1,
       "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
@@ -907,14 +907,20 @@
         "docs/architecture/OVERVIEW.md",
         "docs/evidence/M8-acceptance.md",
         "product-parts/backend-core/clusters/runtime/modules/cli",
-        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi"
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/provider-lifecycle.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/providers.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/helpers.ts"
       ],
       "fixes": null,
       "id": "T012",
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "title": "Release 0.6.0 with green CI",
       "why": "Release 0.6.0 with green CI"
     }
@@ -926,11 +932,11 @@
 ## State
 
 - Scope: m8-kimi-provider (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
-- Current task: T012
-- Progress: 12/13
-- Revision: 494
+- Current task: none
+- Progress: 13/13
+- Revision: 495
 
 ## Objective
 
@@ -946,7 +952,7 @@ Add Kimi Code as the third provider of Workflow Kit and release 0.6.0
 
 ## Rounds
 
-### R1 — Implementation (implementation, OPEN)
+### R1 — Implementation (implementation, CLOSED)
 
 - [DONE] T001 — Hook clients and dialects from the registry (work)
   - Commit: refactor: take hook clients and reply dialects from the provider registry
@@ -995,9 +1001,9 @@ Add Kimi Code as the third provider of Workflow Kit and release 0.6.0
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M8-kimi-provider.md, product-parts/provider-runtime/clusters/provider-adapters/cluster.md
   - Depends on: T001, T002, T003, T004, T005, T006, T007, T008, T009, T010, T011
-- [IN_PROGRESS] T012 — Release 0.6.0 with green CI (delivery)
+- [DONE] T012 — Release 0.6.0 with green CI (delivery)
   - Commit: chore: release 0.6.0
-  - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/installation.md, docs/architecture/OVERVIEW.md, docs/evidence/M8-acceptance.md, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi
+  - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/installation.md, docs/architecture/OVERVIEW.md, docs/evidence/M8-acceptance.md, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/provider-lifecycle.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/providers.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/helpers.ts
   - Depends on: T011, DOCS-R1
 
 Digest: Kimi Code is the third provider: Kit runs its own `kimi web` server, sets workspace trust and the Kit hook in config.toml after a preview, creates, lists, renames, archives and deletes sessions, delivers autopilot and review messages as prompts after the turn ends, opens the Kimi Code app and Remote Control. Provider lists, names and hook clients come from the registry in the backend, the wizard and the panel.

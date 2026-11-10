@@ -312,9 +312,16 @@ test('the providers are kept up on an interval, one upkeep at a time; their line
     },
   });
   const lines: string[] = [];
-  wireProviderLifecycle({ projects, providers, log: (line) => void lines.push(line), maintainMs: 5 });
+  const lifecycle = wireProviderLifecycle({ projects, providers, log: (line) => void lines.push(line), maintainMs: 5 });
   await new Promise((resolve) => setTimeout(resolve, 120));
   assert.ok(runs >= 2, `runs: ${runs}`);
   assert.equal(overlapped, false);
   assert.deepEqual(lines.filter((l) => l.includes('remote control')), ['providers: codex: remote control handed to the ChatGPT app']);
+
+  // A stopped service keeps nothing up: no provider server is started behind its back.
+  lifecycle.stop();
+  await new Promise((resolve) => setTimeout(resolve, 40)); // An upkeep that was running ends.
+  const after = runs;
+  await new Promise((resolve) => setTimeout(resolve, 60));
+  assert.equal(runs, after, 'no upkeep after stop()');
 });

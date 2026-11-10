@@ -1,8 +1,8 @@
 {
   "name": "workflow-kit",
-  "version": "0.5.2",
+  "version": "0.6.0",
   "private": true,
-  "description": "Workflow Kit: an orchestrator over the native Claude and ChatGPT/Codex apps",
+  "description": "Workflow Kit: an orchestrator over the native Claude, ChatGPT/Codex and Kimi Code apps",
   "type": "module",
   "engines": {
     "node": ">=24"

@@ -10,10 +10,25 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 534,
+  "revision": 536,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "provider-kimi: capabilities().orchestration available while Kimi is installed and supported",
+          "autopilot: EXECUTOR_HOWTO.kimi { text, repeat: true }",
+          "kit-structure: the agents-section text changed; projects show outdated until the structure update"
+        ],
+        "decisions": [
+          "Kimi executors follow the Codex procedure; AgentSwarm, the Tower mode and background executors are not used",
+          "EXECUTOR_HOWTO.kimi has repeat true: Kimi reads AGENTS.md only at the start of a session",
+          "The mechanism for providers without orchestration stays; no provider of Kit uses it now"
+        ],
+        "references": [
+          "docs/planning/M10-kimi-orchestration.md"
+        ],
+        "result": "Kimi Code sessions orchestrate like Claude and ChatGPT: the provider declares orchestration, the autopilot sends the Kimi executor procedure (worktree by the orchestrator, Agent tool in the foreground with cwd, integration by SHA) with the start and every continue, and the AGENTS.md section explicitly allows the Agent tool, also for helpers in the sequential mode."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -167,7 +182,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -223,8 +238,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 2/4
-- Revision: 534
+- Progress: 3/4
+- Revision: 536
 
 ## Objective
 
@@ -248,7 +263,7 @@ A Kimi Code session runs a scope with executors in worktrees and uses helper sub
   - Commit: feat: describe the Kimi executor procedure and helper subagents in AGENTS.md
   - Files: product-parts/backend-core/clusters/projects/modules/kit-structure, product-parts/backend-core/clusters/projects/modules/kit-structure/module.md, product-parts/backend-core/clusters/projects/modules/kit-structure/src/templates.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/test/structure.test.ts
   - Depends on: T001
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M10-kimi-orchestration.md
   - Depends on: T001, T002
@@ -256,5 +271,7 @@ A Kimi Code session runs a scope with executors in worktrees and uses helper sub
   - Commit: chore: release 0.6.3
   - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/installation.md, docs/architecture/OVERVIEW.md, docs/evidence/M10-acceptance.md
   - Depends on: T001, T002, DOCS-R1
+
+Digest: Kimi Code sessions orchestrate like Claude and ChatGPT: the provider declares orchestration, the autopilot sends the Kimi executor procedure (worktree by the orchestrator, Agent tool in the foreground with cwd, integration by SHA) with the start and every continue, and the AGENTS.md section explicitly allows the Agent tool, also for helpers in the sequential mode.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 547,
+  "revision": 549,
   "rounds": [
     {
       "digest": {
@@ -30,7 +30,7 @@
       },
       "id": "R1",
       "kind": "implementation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Implementation"
     }
   ],
@@ -73,7 +73,7 @@
         "text": "Release number 0.6.4"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "claude:01493504-12b2-440a-84f4-17acf7bc1c61",
@@ -206,7 +206,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: release 0.6.4",
-      "confirmation": null,
+      "confirmation": "Да, собирай 0.6.4",
       "context": [],
       "dependencies": [
         "T002",
@@ -227,7 +227,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Release 0.6.4",
       "why": "The user checks the fix live in the installed app"
     }
@@ -239,11 +239,11 @@
 ## State
 
 - Scope: m11-plan-start (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 3/4
-- Revision: 547
+- Progress: 4/4
+- Revision: 549
 
 ## Objective
 
@@ -258,7 +258,7 @@ Pressing «Начать выполнение плана» shows a spinner with t
 
 ## Rounds
 
-### R1 — Implementation (implementation, OPEN)
+### R1 — Implementation (implementation, CLOSED)
 
 - [DONE] T001 — Start state in the autopilot (work)
   - Commit: feat: track the plan start in the autopilot
@@ -271,7 +271,7 @@ Pressing «Начать выполнение плана» shows a spinner with t
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M11-plan-start.md
   - Depends on: T001, T002
-- [TODO] T003 — Release 0.6.4 (delivery)
+- [DONE] T003 — Release 0.6.4 (delivery)
   - Commit: chore: release 0.6.4
   - Files: package.json, package-lock.json, README.md, docs/installation.md, docs/architecture/OVERVIEW.md, CHANGELOG.md, docs/evidence/M11-acceptance.md
   - Depends on: T002, DOCS-R1

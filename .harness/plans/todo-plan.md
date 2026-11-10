@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 520,
+  "revision": 521,
   "rounds": [
     {
       "digest": {
@@ -85,6 +85,13 @@
       "kind": "fixes",
       "status": "CLOSED",
       "title": "Fixes"
+    },
+    {
+      "digest": null,
+      "id": "R4",
+      "kind": "fixes",
+      "status": "OPEN",
+      "title": "Windows CI fixes of the 0.6.2 tests"
     }
   ],
   "schema": "harness-workflow-plan/1",
@@ -123,7 +130,7 @@
         "text": "Kit never restarts the Kimi Code app; it tells the user to restart it when the app started before the Kit hook was written"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "IN_PROGRESS",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "claude:01493504-12b2-440a-84f4-17acf7bc1c61",
@@ -509,6 +516,83 @@
       "status": "DONE",
       "title": "Release 0.6.2 with green CI",
       "why": "The user tests the fixes of the 0.6.1 live check in a new release"
+    },
+    {
+      "acceptance": [
+        "The macOS launch test expects the bundle path joined with the macOS separator on every host",
+        "The renames test starts its children outside the temporary folder it removes, and the folder is removed with retries",
+        "npm test passes locally"
+      ],
+      "checks": [],
+      "commitMessage": "test: make the Kimi launch and renames tests pass on Windows hosts",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [],
+      "docsWaiver": "Only tests change; the contracts stay as documented",
+      "files": [
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/workspace-launch.test.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/test/supervisor.test.ts"
+      ],
+      "fixes": "T005",
+      "id": "T008",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R4",
+      "status": "TODO",
+      "title": "Host-independent tests of the Kimi launch and of renames",
+      "why": "CI of 0.6.2 failed on Windows x64 and ARM64: a macOS path expected with host separators, and live test children locked their working folder (EBUSY)"
+    },
+    {
+      "acceptance": [
+        "Project-wide documents describe the round result",
+        "The round digest records result, decisions, contracts and references"
+      ],
+      "checks": [],
+      "commitMessage": "docs: reconcile documentation for R4",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T008"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/architecture/OVERVIEW.md"
+      ],
+      "fixes": null,
+      "id": "DOCS-R4",
+      "iteration": 1,
+      "kind": "docs",
+      "roundId": "R4",
+      "status": "TODO",
+      "title": "Reconcile project documentation and write the round digest",
+      "why": "Keep the project context current for the next agent and close the round."
+    },
+    {
+      "acceptance": [
+        "CI on ci/m9-kimi-start-fixes is green on macOS, Linux, Windows x64 and ARM64 for the pushed commit",
+        "The acceptance document records the run and the failed first run of 0.6.2"
+      ],
+      "checks": [],
+      "commitMessage": "docs: record the CI run of 0.6.2",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T008",
+        "DOCS-R4"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "docs/evidence/M9-acceptance.md"
+      ],
+      "fixes": null,
+      "id": "T009",
+      "iteration": 1,
+      "kind": "delivery",
+      "roundId": "R4",
+      "status": "TODO",
+      "title": "Green CI for 0.6.2",
+      "why": "The release is done only with CI green on all four platforms"
     }
   ]
 }
@@ -518,11 +602,11 @@
 ## State
 
 - Scope: m9-kimi-start-fixes (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 10/10
-- Revision: 520
+- Progress: 10/13
+- Revision: 521
 
 ## Objective
 
@@ -587,5 +671,20 @@ Digest: Kimi project opens in the Kimi Code app without an empty chat: the servi
   - Depends on: T005, T006, DOCS-R2, DOCS-R3
 
 Digest: Round R3 delivers release 0.6.2 with the R2 fixes of the 0.6.1 live check; README says that a click on a Kimi session opens its project in the app without a new empty chat (macOS and Windows).
+
+### R4 — Windows CI fixes of the 0.6.2 tests (fixes, OPEN)
+
+- [TODO] T008 — Host-independent tests of the Kimi launch and of renames (work)
+  - Commit: test: make the Kimi launch and renames tests pass on Windows hosts
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/workspace-launch.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/test/supervisor.test.ts
+  - Fixes: T005
+- [TODO] DOCS-R4 — Reconcile project documentation and write the round digest (docs)
+  - Commit: docs: reconcile documentation for R4
+  - Files: README.md, docs/architecture/OVERVIEW.md
+  - Depends on: T008
+- [TODO] T009 — Green CI for 0.6.2 (delivery)
+  - Commit: docs: record the CI run of 0.6.2
+  - Files: docs/evidence/M9-acceptance.md
+  - Depends on: T008, DOCS-R4
 
 State changes only through `scripts/workflow` commands. History lives in Git.

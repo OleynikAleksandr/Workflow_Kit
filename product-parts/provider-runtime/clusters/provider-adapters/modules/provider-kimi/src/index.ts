@@ -12,7 +12,7 @@ export { REMOTE_BUSY_NOTE, REMOTE_CACHE_MS, REMOTE_OFF_ACTION, REMOTE_ON_ACTION,
 export type { KimiRemote, KimiRemoteOptions } from './remote.ts';
 export { KIMI_CODES, KIMI_TIMEOUT_MS, KimiError, createKimiClient, describeKimiError } from './client.ts';
 export type { KimiClient, KimiClientOptions, KimiErrorKind, KimiRequestOptions } from './client.ts';
-export { HOOK_SCOPE_NOTE, REMOVE_HOOK_ACTION, createKimiHooks } from './hooks.ts';
+export { APP_RESTART_NOTE, HOOK_RECORD, HOOK_SCOPE_NOTE, REMOVE_HOOK_ACTION, createKimiHooks } from './hooks.ts';
 export type { KimiHookDeps, KimiHooks, KimiHooksOptions } from './hooks.ts';
 export { hookFingerprint, planHookFile } from './hook-file.ts';
 export type { FoundHook, HookFilePlan } from './hook-file.ts';

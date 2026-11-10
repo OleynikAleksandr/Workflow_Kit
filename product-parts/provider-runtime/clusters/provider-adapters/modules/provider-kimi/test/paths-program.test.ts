@@ -92,7 +92,9 @@ test('shapes: the captured 2.5.2 answers are read; a missing field is a shape er
   for (const broken of [() => parseMeta({ server_version: '2.5.2' }), () => parseAuth({}), () => parseConfig({ default_model: 5 }), () => parseWorkspaces({ items: {} }), () => parseTrusted(null)]) {
     assert.throws(broken, (error: unknown) => error instanceof KimiError && error.kind === 'shape');
   }
-  assert.deepEqual(parseInstance({ server_id: 's', pid: 7, host: '127.0.0.1', port: 9 }), { serverId: 's', pid: 7, port: 9 });
+  assert.deepEqual(parseInstance({ server_id: 's', pid: 7, host: '127.0.0.1', port: 9 }), { serverId: 's', pid: 7, port: 9, startedAt: null });
+  assert.equal(parseInstance({ server_id: 's', pid: 7, port: 9, started_at: 1794301293978 })?.startedAt, 1794301293978);
+  assert.equal(parseInstance({ server_id: 's', pid: 7, port: 9, started_at: '2026-11-10T09:01:34.061Z' })?.startedAt, Date.parse('2026-11-10T09:01:34.061Z'));
   assert.equal(parseInstance({ server_id: 's', pid: 7, host: '10.0.0.5', port: 9 }), undefined);
   assert.equal(parseInstance({ server_id: 's', pid: '7', port: 9 }), undefined);
 });

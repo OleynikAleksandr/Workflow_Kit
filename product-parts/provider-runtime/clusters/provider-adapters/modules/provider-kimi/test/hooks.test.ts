@@ -1,8 +1,7 @@
 // The Kit hook at the level of the provider: hooks(), approveHooks(), the remove action and the
-// restart of the server of Kit for new hooks. Everything runs in a temporary Kimi home.
+// restart of the server of Kit is in hook-sync.test.ts. Everything runs in a temporary Kimi home.
 import assert from 'node:assert/strict';
-import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
-import path from 'node:path';
+import { readFile, rm, writeFile } from 'node:fs/promises';
 import { test } from 'node:test';
 import { defaultHookHost, kimiHookBlocks, kimiHooksSection } from '#kit-structure';
 import type { HookHost, KimiHookBlock } from '#kit-structure';
@@ -10,7 +9,6 @@ import type { CommandRunner, RunResult } from '#process-supervisor';
 import { ProviderError } from '#provider-registry';
 import type { HookState, Provider } from '#provider-registry';
 import { HOOK_SCOPE_NOTE, REMOVE_HOOK_ACTION } from '../src/hooks.ts';
-import type { Liveness } from '../src/locks.ts';
 import { createKimiRuntime } from '../src/provider.ts';
 import type { KimiDeps, KimiRuntime } from '../src/provider.ts';
 import { fakeKimi } from './helpers.ts';
@@ -238,56 +236,4 @@ test('Linux: the POSIX command of the launcher, as on macOS', async () => {
   } finally {
     await machine.close();
   }
-});
-
-test('the server of Kit is restarted for changed hooks between turns, once per text of the file', async () => {
-  const alive = new Set<number>();
-  const liveness: Liveness = { pidAlive: (pid) => alive.has(pid), bootTime: () => 0, hostname: () => 'this-host' };
-  await bench(async (b) => {
-    const restarted = 'server restarted: the Kit hooks in config.toml changed';
-    await b.provider.refresh!();
-    await b.runtime.requireReady();
-    assert.equal(await b.provider.maintain!(), null, 'no Kit hooks in the file and none in the server');
-
-    // A turn runs: its session holds a live lock.
-    await mkdir(b.machine.paths.locks, { recursive: true });
-    const lock = path.join(b.machine.paths.locks, 'session-1.lock');
-    await writeFile(lock, JSON.stringify({ version: 1, token: 't', pid: 777, hostname: 'this-host', startedAt: Date.now() }));
-    alive.add(777);
-    assert.equal((await b.approve(shownOf(await b.hooks()))).kitHook?.status, 'approved');
-    assert.equal(await b.provider.maintain!(), null);
-    assert.equal(b.machine.spawned.length, 1, 'the running turn is not cut');
-
-    // The turn ended: the next upkeep restarts the server.
-    alive.clear();
-    assert.equal(await b.provider.maintain!(), restarted);
-    assert.equal(b.machine.seen('POST', '/api/v1/shutdown').length, 1);
-    assert.equal(b.machine.spawned.length, 2);
-    assert.ok(await b.runtime.server.current());
-    // The stand-in server never shows the hooks; the same text is not a reason to restart twice.
-    assert.equal(await b.provider.maintain!(), null);
-    assert.equal(b.machine.spawned.length, 2);
-
-    // The server has the hooks of Kit; they are removed from the file: one more restart, right away.
-    b.machine.api.config = { ...(b.machine.api.config as object), hooks: b.blocks };
-    await b.provider.runAction(REMOVE_HOOK_ACTION, null);
-    assert.equal(b.machine.spawned.length, 3);
-    assert.deepEqual(b.log.filter((line) => line.includes('restarted')), [`[kimi] ${restarted}`]);
-  }, { liveness });
-});
-
-test('a server that already runs with the hooks of the file is left alone', async () => {
-  await bench(async (b) => {
-    await writeFile(b.file, `${OTHER}\n${b.section}`);
-    b.machine.api.config = { ...(b.machine.api.config as object), hooks: [{ event: 'Stop', command: 'python3 /home/user/hooklog.py Stop', timeout: 10 }, ...b.blocks] };
-    await b.provider.refresh!();
-    await b.runtime.requireReady();
-    assert.equal(await b.provider.maintain!(), null);
-    assert.equal(b.machine.spawned.length, 1);
-    // A shape of /config that is not known is reported, not acted on.
-    b.machine.api.config = { ...(b.machine.api.config as object), hooks: 'none' };
-    await writeFile(b.file, OTHER);
-    assert.match((await b.provider.maintain!()) ?? '', /^hooks not checked: /);
-    assert.equal(b.machine.spawned.length, 1);
-  });
 });

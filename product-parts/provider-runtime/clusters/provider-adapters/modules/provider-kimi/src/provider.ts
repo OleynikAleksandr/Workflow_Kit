@@ -7,7 +7,7 @@ import type { Capabilities, Provider, ProviderAction, ProviderContext, ProviderS
 import { kimiAppFound } from './app-link.ts';
 import { KIMI_CODES, KimiError, describeKimiError } from './client.ts';
 import type { KimiClient } from './client.ts';
-import { REMOVE_HOOK_ACTION, createKimiHooks } from './hooks.ts';
+import { APP_RESTART_NOTE, REMOVE_HOOK_ACTION, createKimiHooks } from './hooks.ts';
 import type { KimiHookDeps } from './hooks.ts';
 import { kimiHome, kimiPaths } from './paths.ts';
 import type { KimiPaths } from './paths.ts';
@@ -62,6 +62,8 @@ export interface KimiRuntime {
   requireProgram(): void;
   /** Whether the Kimi Code app is installed; null until the first refresh() (external programs run only there). */
   appFound(): boolean | null;
+  /** APP_RESTART_NOTE while the Kimi Code app runs without the Kit hook (by the last check), else null. */
+  appRestart(): string | null;
   remote: KimiRemote;
 }
 
@@ -89,12 +91,14 @@ export function createKimiRuntime(context: ProviderContext, deps: KimiDeps = {})
   let probe: KimiProbe | null = null;
   let serverError: string | null = null;
   let app: boolean | null = null;
-  const server = createKimiServer({ ...deps, context, paths, program: () => (program.installed ? program.path : null) });
+  let appRestart = false;
+  // Kimi reads its hooks only at the start: the server keeps what config.toml had then.
+  const server = createKimiServer({ ...deps, context, paths, program: () => (program.installed ? program.path : null), snapshot: () => hooks.kitKey() });
 
   const usable = (): boolean => program.installed === true && !program.unsupported && !program.error;
 
   const notes = (...first: Array<string | null>): string | undefined => {
-    const all = [...first, remote.note()].filter((item): item is string => Boolean(item));
+    const all = [...first, remote.note(), appRestart ? APP_RESTART_NOTE : null].filter((item): item is string => Boolean(item));
     if (program.version && !testedVersion(program.version)) all.push(`версия ${program.version} не проверялась с Workflow Kit`);
     if (platform !== 'darwin') all.push(UNTESTED_OS_NOTE);
     return all.length > 0 ? all.join('; ') : undefined;
@@ -146,8 +150,19 @@ export function createKimiRuntime(context: ProviderContext, deps: KimiDeps = {})
     return program.path ?? paths.program;
   };
 
+  // A server started before the Kit hook was written gets it now, before a session or a message.
+  const syncHooks = async (): Promise<void> => {
+    const line = await hooks.syncServer().catch((error: unknown) => `server not restarted for the new hooks: ${error instanceof Error ? error.message : String(error)}`);
+    if (line) context.log(`[kimi] ${line}`);
+  };
+  const checkApp = async (): Promise<void> => {
+    appRestart = await hooks.appRestart().catch(() => false);
+  };
+
   const requireReady = async (): Promise<KimiClient> => {
     await programPath();
+    await ensureServer();
+    await syncHooks();
     const client = await ensureServer();
     if (probe?.state !== 'ready') probe = await probeServer(client, program.version);
     if (probe.state !== 'ready') throw new ProviderError('kimi-not-ready', `Kimi не готов: ${probe.note}`, { hint: RECHECK_HINT });
@@ -183,12 +198,13 @@ export function createKimiRuntime(context: ProviderContext, deps: KimiDeps = {})
     }
     if (client) serverError = null;
     probe = client ? await probeServer(client, program.version) : null;
+    await checkApp();
     return started ? 'started' : 'idle';
   };
 
   const trust = createKimiTrust({ platform, paths, tokens, workspaces, current: () => server.current(), requireReady, requireProgram, notReady, version: () => program.version, log: context.log });
   const hooks = createKimiHooks({ context, paths, server, ensureServer, programPath, ...(deps.hookHost ? { hookHost: deps.hookHost } : {}), ...(deps.liveness ? { liveness: deps.liveness } : {}), ...(deps.beforeRename ? { beforeRename: deps.beforeRename } : {}) });
-  const runtime: KimiRuntime = { context, paths, server, workspaces, program: () => program, requireReady, requireServer, requireProgram, appFound: () => app, remote };
+  const runtime: KimiRuntime = { context, paths, server, workspaces, program: () => program, requireReady, requireServer, requireProgram, appFound: () => app, appRestart: () => (appRestart ? APP_RESTART_NOTE : null), remote };
   const sessions = createKimiSessions(runtime, deps);
 
   const provider: Provider = {
@@ -238,8 +254,15 @@ export function createKimiRuntime(context: ProviderContext, deps: KimiDeps = {})
     trust: (project) => trust.trust(project),
     previewTrust: (project) => trust.previewTrust(project),
     grantTrust: (project, token) => trust.grantTrust(project, token),
-    hooks: () => hooks.hooks(),
-    approveHooks: (_project, expected) => hooks.approveHooks(expected),
+    async hooks() {
+      await checkApp();
+      return hooks.hooks();
+    },
+    async approveHooks(_project, expected) {
+      const state = await hooks.approveHooks(expected);
+      await checkApp();
+      return state;
+    },
     ...sessions,
     async actions(project): Promise<ProviderAction[]> {
       if (project !== null) return [];

@@ -73,6 +73,8 @@ export interface KimiInstance {
   serverId: string;
   pid: number;
   port: number;
+  /** started_at of the record, ms; null when absent. */
+  startedAt: number | null;
 }
 
 /** A server record; undefined for a file that is not one (it is being written, or of another version). */
@@ -82,7 +84,9 @@ export function parseInstance(data: unknown): KimiInstance | undefined {
   const { server_id: serverId, pid, port } = item;
   if (typeof serverId !== 'string' || !Number.isInteger(pid) || !Number.isInteger(port)) return undefined;
   if (typeof item['host'] === 'string' && item['host'] !== '127.0.0.1' && item['host'] !== 'localhost') return undefined;
-  return { serverId, pid: pid as number, port: port as number };
+  const started = item['started_at'];
+  const startedAt = typeof started === 'number' && Number.isFinite(started) ? started : typeof started === 'string' && !Number.isNaN(Date.parse(started)) ? Date.parse(started) : null;
+  return { serverId, pid: pid as number, port: port as number, startedAt };
 }
 
 /** GET /api/v1/config: the hooks the server has loaded (none when the key is absent). */

@@ -204,7 +204,8 @@ export function createKimiSessionList(rt: KimiRuntime, store: KimiStore, livenes
       const result = [...byId.values()].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
       for (const info of result) {
         info.links = { ...links.links };
-        const parts = [...(common ? [common] : []), ...(fetched && !fetched.value.complete ? [PARTIAL_NOTE] : []), ...(flags.get(info.localId) ?? [])];
+        const restart = rt.appRestart();
+        const parts = [...(common ? [common] : []), ...(restart ? [restart] : []), ...(fetched && !fetched.value.complete ? [PARTIAL_NOTE] : []), ...(flags.get(info.localId) ?? [])];
         // A session the complete list of the server does not have (a newer one may not be in the cached answer yet).
         if (fetched?.value.complete && !flags.has(info.localId) && Date.parse(info.createdAt) < fetched.at) parts.push(GONE_NOTE);
         for (const note of notes.get(info.localId)) if (!parts.includes(note)) parts.push(note);

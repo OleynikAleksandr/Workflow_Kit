@@ -24,8 +24,8 @@ ChatGPT и Claude).
   `hookHost`, `liveness`, `beforeRename`, для доставки — `retryDelaysMs`,
   для ссылок — `appFound`. `KimiRuntime` (`context`, `paths`, `server`,
   `workspaces`, `program()`, `requireReady()`, `requireServer()`,
-  `requireProgram()`, `appFound()`, `remote`) — общая часть для хука и
-  сессий.
+  `requireProgram()`, `appFound()`, `appRestart()`, `remote`) — общая часть
+  для хука и сессий.
 - Константы: `PROVIDER_ID` = `kimi`, `PROVIDER_TITLE`, `RESTART_ACTION` =
   `restart-kimi-server`, `LOGIN_NOTE`, `MODEL_NOTE`, `UNTESTED_OS_NOTE`,
   `ON_DEMAND_NOTE`, `MIN_KIMI_VERSION` = `2.5.2`, `KIMI_HOME_ENV` =
@@ -41,14 +41,16 @@ ChatGPT и Claude).
 - Формы ответов: `parseMeta`, `parseAuth`, `parseConfig`, `parseWorkspace`,
   `parseWorkspaces`, `parseTrusted`, `parseInstance`, `parseSessionPage`,
   `parseSession`, `parseMessages`, `parsePrompt`, `parseBatch`.
-- Сервер: `createKimiServer(deps)` → `{ current(), ensure(), stop(), used }`,
-  `freeLocalPort()`, `readInstances(dir)`.
+- Сервер: `createKimiServer(deps)` → `{ current(), ensure(), stop(), used,
+  startedWith(), startedAt(), foreign() }` (`deps.snapshot` — отпечаток
+  блоков Kit перед запуском, `deps.liveness`), `freeLocalPort()`,
+  `readInstances(dir)`; `KimiInstance { serverId, pid, port, startedAt }`.
 - Рабочие области и доверие: `createKimiWorkspaces(platform)` →
   `{ find, ensure }`, `pickWorkspace`, `workspaceKey`, `realFolder`,
   `folderTrusted(paths, folder, platform)`, `createKimiTrust(deps)`.
 - Хук: `createKimiHooks(options)` → `{ hooks, approveHooks, action, remove,
-  syncServer }`, `REMOVE_HOOK_ACTION` = `remove-kimi-hook`,
-  `HOOK_SCOPE_NOTE`; `planHookFile(current, blocks)` → `HookFilePlan
+  syncServer, kitKey, appRestart }`, `REMOVE_HOOK_ACTION` = `remove-kimi-hook`,
+  `HOOK_SCOPE_NOTE`, `APP_RESTART_NOTE`, `HOOK_RECORD` (`kimi-hook`); `planHookFile(current, blocks)` → `HookFilePlan
   { status, reason, section, target, cleaned, found }`, `hookFingerprint`;
   `changeConfig(deps, build)`, `readConfig`, `KEPT_BACKUPS` (3),
   `UNREADABLE_LOCK_MS` (30 с); `scanToml`, `tomlValue`, `TomlScanError`;
@@ -88,7 +90,10 @@ ChatGPT и Claude).
 `config.toml.wfk-backup-<время>` (хранятся три последние). Рабочую область
 (`projects.json`) и файл доверия создаёт сервер Kimi по запросу Kit.
 
-В каталоге состояния службы модуль ведёт два файла:
+В каталоге состояния службы модуль ведёт три файла: `sessions/kimi-hook.json`
+— `{ version: 1, changedAt }` (когда Kit последний раз менял свои блоки в
+`config.toml`; для блоков, записанных раньше этой версии, — время изменения
+файла при первой проверке),
 `sessions/kimi.json` — `{ version: 1, sessions: [{ sessionId, projectId,
 projectPath, workspaceId, title, createdAt }], projectArchives? }` (сессии,
 созданные из панели, и id сессий, которые Kit отправил в архив Kimi вместе
@@ -119,12 +124,13 @@ Kit есть записи сессий Kimi; сам сервер ради ста
 | всё на месте | `ready` | «готов» |
 
 К `note` добавляются: «версия X не проверялась с Workflow Kit» (версия не
-2.5.x, но формы ответов известны — провайдер остаётся `ready`) и «на этой
-ОС не проверялся» (Linux и Windows). `details.kimiHome` — каталог Kimi.
+2.5.x, но формы ответов известны — провайдер остаётся `ready`), «на этой
+ОС не проверялся» (Linux и Windows) и `APP_RESTART_NOTE` (см. «Хук Kit»). `details.kimiHome` — каталог Kimi.
 
 `requireReady()` — вход создания сессии, доставки и доверия: перечитывает
 программу, если прошлой проверкой она не найдена или не подошла, запускает
-сервер, проверяет вход и модель; иначе `ProviderError` (`not-installed`,
+сервер, перезапускает его для нового хука (`syncServer`), проверяет вход и
+модель; иначе `ProviderError` (`not-installed`,
 `unsupported-version`, `kimi-program`, `kimi-server`, `kimi-not-ready`).
 `requireServer()` — то же без проверки входа и модели: для имени, архива,
 удаления и чтения ответа.
@@ -218,13 +224,21 @@ Kit есть записи сессий Kimi; сам сервер ради ста
   второе после перезапуска сервера, с подтверждением) убирает только блоки
   Kit. Выключено с причиной, когда блоков нет, файл в состоянии `unknown`
   или нет программы.
-- Сервер Kit читает `config.toml` при запуске. После записи и в
-  `maintain()` (`syncServer`) блоки Kit из `GET /api/v1/config` сверяются с
-  файлом; при расхождении сервер перезапускается, когда нет живых замков
-  ходов, и не чаще одного раза на один текст файла. Строка об этом идёт в
-  журнал службы (`[kimi] …`).
-- Приложение Kimi Code и открытые в терминале `kimi` подхватывают хук после
-  своего перезапуска — Kit их не трогает.
+- Сервер Kimi берёт хуки только при своём запуске (M9, раздел 1);
+  `GET /api/v1/config` после создания сессии показывает новые хуки, но они не
+  выполняются, поэтому Kit на него не опирается. Перед запуском своего
+  сервера Kit запоминает отпечаток блоков Kit в файле (`kitKey`: событие и
+  команда). `syncServer` (после записи и удаления, в `requireReady()` и в
+  `maintain()`) перезапускает сервер, когда отпечаток в файле другой; у
+  сервера, подхваченного после перезапуска службы, отпечаток неизвестен —
+  решает `startedAt` записи `server/instances` против `changedAt`.
+  Перезапуск — только без живых замков ходов; строка `[kimi] …` — в журнал.
+- Приложение Kimi Code и открытые в терминале `kimi` Kit не перезапускает.
+  Живая запись `server/instances`, не принадлежащая Kit (`foreign()`), с
+  `startedAt` раньше `changedAt` при блоках Kit в файле — пометка
+  `APP_RESTART_NOTE` «Перезапустите приложение Kimi Code: хук Kit
+  заработает в его сессиях только после перезапуска…» в статусе, в `note`
+  состояния хука (шаг мастера) и у сессий проекта.
 
 ### Сессии
 
@@ -286,6 +300,10 @@ Kit есть записи сессий Kimi; сам сервер ради ста
 - `kimi doctor config`: код 0 для файла с пятью блоками Kit (строка POSIX и
   строка Windows) и для пустого файла, код 1 для битого TOML;
   `GET /api/v1/config` → `hooks: [{ event, command, timeout }]`.
+- Хуки выполняются только те, что были в `config.toml` при запуске сервера;
+  `GET /api/v1/config` перечитывает файл при создании сессии (стенд 2.5.2).
+  Приложение Kimi Code держит свой сервер внутри процесса (запись
+  `server/instances`, `started_at` в мс).
 
 ## Инварианты
 

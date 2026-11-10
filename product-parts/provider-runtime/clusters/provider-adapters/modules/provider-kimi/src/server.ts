@@ -11,6 +11,8 @@ import { ProviderError } from '#provider-registry';
 import type { ProviderContext } from '#provider-registry';
 import { createKimiClient } from './client.ts';
 import type { KimiClient } from './client.ts';
+import { defaultLiveness } from './locks.ts';
+import type { Liveness } from './locks.ts';
 import { envWithout } from './paths.ts';
 import type { KimiPaths } from './paths.ts';
 import { parseInstance } from './shapes.ts';
@@ -32,6 +34,15 @@ export interface KimiServer {
   stop(): Promise<boolean>;
   /** A server was started or adopted in this run of the service. */
   readonly used: boolean;
+  /**
+   * The Kit hooks config.toml had when this run of the service started the server (snapshot);
+   * undefined when it is not known (a server adopted after a restart of the service).
+   */
+  startedWith(): string | null | undefined;
+  /** Start of the running server of Kit, ms (its record in server/instances); null when unknown. */
+  startedAt(): number | null;
+  /** Live records of server/instances that are not a server of Kit: the Kimi Code app, a `kimi web` of the user. */
+  foreign(): Promise<KimiInstance[]>;
 }
 
 /** Inputs; the waits and the port are injectable for tests. */
@@ -47,6 +58,9 @@ export interface KimiServerDeps {
   stopWaitMs?: number;
   pollMs?: number;
   freePort?: () => Promise<number>;
+  /** Fingerprint of the Kit hooks in config.toml, taken right before a start (Kimi reads hooks only then). */
+  snapshot?: () => Promise<string | null>;
+  liveness?: Liveness;
 }
 
 const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
@@ -86,7 +100,8 @@ export function createKimiServer(deps: KimiServerDeps): KimiServer {
   const { context, paths } = deps;
   const { supervisor } = context;
   const pollMs = deps.pollMs ?? 200;
-  let active: { id: string; client: KimiClient } | null = null;
+  const live = deps.liveness ?? defaultLiveness();
+  let active: { id: string; client: KimiClient; pid: number; startedAt: number | null; startedWith: string | null | undefined } | null = null;
   let starting: Promise<KimiClient> | null = null;
   let used = false;
 
@@ -108,7 +123,7 @@ export function createKimiServer(deps: KimiServerDeps): KimiServer {
   };
 
   // A server left by the previous run of the service: its process record and its instance record.
-  const adopt = async (): Promise<{ id: string; client: KimiClient } | null> => {
+  const adopt = async (): Promise<typeof active> => {
     for (const record of await supervisor.list(SERVER_OWNER)) {
       const state = await supervisor.check(record.id).catch(() => 'gone' as const);
       if (state === 'gone' || state === 'mismatch') {
@@ -117,7 +132,7 @@ export function createKimiServer(deps: KimiServerDeps): KimiServer {
       }
       if (state !== 'alive') continue;
       const instance = await instanceOf(record);
-      if (instance) return { id: record.id, client: clientOf(instance.port) };
+      if (instance) return { id: record.id, client: clientOf(instance.port), pid: record.pid, startedAt: instance.startedAt, startedWith: undefined };
     }
     return null;
   };
@@ -138,6 +153,7 @@ export function createKimiServer(deps: KimiServerDeps): KimiServer {
     const command = deps.program();
     if (!command) throw new ProviderError('not-installed', 'Kimi Code не найден', { hint: 'Установите Kimi Code и нажмите «Перепроверить».' });
     const port = await (deps.freePort ?? freeLocalPort)();
+    const startedWith = deps.snapshot ? await deps.snapshot().catch(() => undefined) : undefined;
     let record: ProcessRecord;
     try {
       record = await supervisor.spawn({
@@ -163,7 +179,7 @@ export function createKimiServer(deps: KimiServerDeps): KimiServer {
         const client = clientOf(instance.port);
         try {
           await client.get('/api/v1/healthz', { auth: false, timeoutMs: 2000 });
-          active = { id: record.id, client };
+          active = { id: record.id, client, pid: record.pid, startedAt: instance.startedAt, startedWith };
           used = true;
           context.log(`kimi: server started, pid ${record.pid}, port ${instance.port}`);
           return client;
@@ -196,6 +212,13 @@ export function createKimiServer(deps: KimiServerDeps): KimiServer {
     },
     get used() {
       return used;
+    },
+    startedWith: () => active?.startedWith,
+    startedAt: () => active?.startedAt ?? null,
+    async foreign() {
+      const own = new Set((await supervisor.list(SERVER_OWNER).catch(() => [] as ProcessRecord[])).map((record) => record.pid));
+      if (active) own.add(active.pid);
+      return (await readInstances(paths.instances)).filter((item) => !own.has(item.pid) && live.pidAlive(item.pid));
     },
   };
 }

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 498,
+  "revision": 500,
   "rounds": [
     {
       "digest": null,
@@ -88,14 +88,24 @@
       "dependencies": [],
       "docsWaiver": null,
       "files": [
-        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi"
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/hooks.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/index.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/provider.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/server.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/session-list.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/shapes.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/hook-sync.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/hooks.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/paths-program.test.ts"
       ],
       "fixes": null,
       "id": "T001",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Hooks of the Kit server by fingerprint; app restart note",
       "why": "Kimi loads hooks only when its server starts; Kit compared the file with GET /api/v1/config, which shows new hooks without running them"
     },
@@ -246,8 +256,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 0/5
-- Revision: 498
+- Progress: 1/5
+- Revision: 500
 
 ## Objective
 
@@ -265,9 +275,9 @@ A Kimi session created from the panel is visible in the Kimi Code app with its f
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T001 — Hooks of the Kit server by fingerprint; app restart note (work)
+- [DONE] T001 — Hooks of the Kit server by fingerprint; app restart note (work)
   - Commit: fix: restart the Kit server of Kimi for changed hooks and ask to restart the Kimi Code app
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/hooks.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/server.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/session-list.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/shapes.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/hook-sync.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/hooks.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/paths-program.test.ts
 - [TODO] T002 — The server of the Kimi Code app as the only server (work)
   - Commit: fix: use the server of the Kimi Code app for Kimi sessions while it runs
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi, docs/architecture/OVERVIEW.md

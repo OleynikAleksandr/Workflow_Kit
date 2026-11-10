@@ -1,12 +1,15 @@
 // The Kit hook of Kimi Code (spec M8 section 2.3): five [[hooks]] blocks in the user-wide
 // config.toml. hooks() reads the file and shows what an approval would write; approveHooks()
-// writes exactly the shown change; the remove action takes the Kit blocks out again. The server
-// of Kit reads the config at its start, so after a change it is restarted once no session has a
-// live lock.
+// writes exactly the shown change; the remove action takes the Kit blocks out again. A Kimi
+// server takes its hooks only when it starts (spec M9 section 1): the server of Kit is restarted
+// once no session has a live lock, and the Kimi Code app started before the hook is asked to be
+// restarted by the user.
+import { stat } from 'node:fs/promises';
+import { readJsonFile, writeJsonAtomic } from '#data-store';
 import { cleanEnv } from '#process-supervisor';
-import { ProviderError } from '#provider-registry';
+import { ProviderError, providerSessionsFile } from '#provider-registry';
 import type { HookEntry, HookState, ProviderAction, ProviderContext } from '#provider-registry';
-import { defaultHookHost, isKimiKitCommand, kimiHookBlocks } from '#kit-structure';
+import { defaultHookHost, kimiHookBlocks } from '#kit-structure';
 import type { HookHost, KimiHookBlock } from '#kit-structure';
 import type { KimiClient } from './client.ts';
 import { hookFingerprint, planHookFile } from './hook-file.ts';
@@ -16,12 +19,15 @@ import type { ConfigChangeDeps } from './hook-writer.ts';
 import { defaultLiveness, liveSessionLocks } from './locks.ts';
 import type { Liveness } from './locks.ts';
 import type { KimiPaths } from './paths.ts';
-import { parseConfigHooks } from './shapes.ts';
 import type { KimiServer } from './server.ts';
 
 /** Action of the provider: removes the Kit blocks from config.toml. */
 export const REMOVE_HOOK_ACTION = 'remove-kimi-hook';
 export const HOOK_SCOPE_NOTE = 'хук общий для всех проектов; действует после перезапуска приложения Kimi Code и открытых в терминале kimi';
+/** Note of the status, the hook step and the sessions: the app runs without the Kit hook. */
+export const APP_RESTART_NOTE = 'Перезапустите приложение Kimi Code: хук Kit заработает в его сессиях только после перезапуска; до этого автопилот и ревью в них не работают';
+/** Record of the time Kit last changed its blocks in config.toml: sessions/kimi-hook.json. */
+export const HOOK_RECORD = 'kimi-hook';
 const REMOVE_CONFIRM = 'Блоки хука Kit будут убраны из config.toml Kimi. Автопилот и ревью плана перестанут узнавать о конце хода сессий Kimi во всех проектах.';
 const DOCTOR_TIMEOUT_MS = 30_000;
 
@@ -52,6 +58,10 @@ export interface KimiHooks {
   remove(): Promise<void>;
   /** Restarts the server of Kit when it runs with other Kit hooks than the file has; a log line or null. */
   syncServer(): Promise<string | null>;
+  /** Fingerprint of the Kit blocks in config.toml ('' without them); null when the file cannot be read as Kimi does. */
+  kitKey(): Promise<string | null>;
+  /** True when a server of the Kimi Code app (or of the user) started before the Kit hook was written. */
+  appRestart(): Promise<boolean>;
 }
 
 const firstLines = (text: string): string => text.trim().split(/\r?\n/).slice(0, 6).join(' ').slice(0, 400);
@@ -59,8 +69,6 @@ const firstLines = (text: string): string => text.trim().split(/\r?\n/).slice(0,
 export function createKimiHooks(options: KimiHooksOptions): KimiHooks {
   const { context, paths, server } = options;
   const live = options.liveness ?? defaultLiveness();
-  /** File text the running server is known to agree with, or was already restarted for. */
-  let settled: string | null = null;
 
   const blocks = (): { ok: true; blocks: KimiHookBlock[] } | { ok: false; reason: string } =>
     kimiHookBlocks(options.hookHost ?? defaultHookHost(context.env, context.homedir, context.platform));
@@ -94,30 +102,58 @@ export function createKimiHooks(options: KimiHooksOptions): KimiHooks {
     }
     const kitHook = entry(plan.section, hookFingerprint(text, plan.target), plan.status);
     const writes = plan.status === 'approved' ? [] : [{ file: paths.config, value: plan.section, description: plan.status === 'modified' ? 'блоки хука Kit заменяются свежими в конце файла' : 'блоки хука Kit добавляются в конец файла' }];
-    return { kitHook, hooks: [kitHook], complete: plan.status === 'approved', note: HOOK_SCOPE_NOTE, writes };
+    const note = plan.status === 'approved' && (await appRestart()) ? `${APP_RESTART_NOTE}; ${HOOK_SCOPE_NOTE}` : HOOK_SCOPE_NOTE;
+    return { kitHook, hooks: [kitHook], complete: plan.status === 'approved', note, writes };
+  };
+
+  // The Kit blocks as Kimi would load them: event and command, in a stable order.
+  const kitKey = async (): Promise<string | null> => {
+    const wanted = blocks();
+    const { plan } = await read(wanted.ok ? wanted.blocks : []);
+    if (plan.status === 'unknown') return null;
+    return plan.found.map((item) => `${item.event}\n${item.command}`).sort().join('\n\n');
+  };
+
+  // When Kit last changed its blocks; a file with Kit blocks and no record (an earlier version of
+  // Kit wrote them) counts from its modification time, which is then kept.
+  const record = providerSessionsFile(context.dirs, HOOK_RECORD);
+  const remember = (changedAt: number): Promise<void> => writeJsonAtomic(record, { version: 1, changedAt });
+  const changedAt = async (key: string | null): Promise<number | null> => {
+    const data = await readJsonFile(record).catch(() => undefined);
+    const known = typeof data === 'object' && data !== null ? (data as Record<string, unknown>)['changedAt'] : undefined;
+    if (typeof known === 'number' && Number.isFinite(known)) return known;
+    if (!key) return null;
+    const modified = (await stat(paths.config).catch(() => null))?.mtimeMs ?? null;
+    if (modified !== null) await remember(modified).catch(() => undefined);
+    return modified;
+  };
+
+  const appRestart = async (): Promise<boolean> => {
+    const key = await kitKey().catch(() => null);
+    if (!key) return false;
+    const since = await changedAt(key);
+    if (since === null) return false;
+    return (await server.foreign()).some((item) => item.startedAt !== null && item.startedAt < since);
   };
 
   const syncServer = async (): Promise<string | null> => {
-    const client = await server.current();
-    const wanted = blocks();
-    if (!client || !wanted.ok) return null;
-    const { text, plan } = await read(wanted.blocks);
-    if (plan.status === 'unknown' || text === settled) return null;
-    const key = (items: ReadonlyArray<{ event: string | null; command: string }>): string => items.map((item) => `${item.event}\n${item.command}`).sort().join('\n\n');
-    const loaded = parseConfigHooks(await client.get('/api/v1/config')).filter((item) => isKimiKitCommand(item.command));
-    if (key(loaded) === key(plan.found)) {
-      settled = text;
-      return null;
-    }
+    if (!(await server.current())) return null;
+    const key = await kitKey();
+    if (key === null) return null;
+    const startedWith = server.startedWith();
+    // A server adopted after a restart of the service: by the time of its start.
+    const since = startedWith === undefined ? await changedAt(key) : null;
+    const stale = startedWith !== undefined ? startedWith !== key : since !== null && (server.startedAt() ?? 0) < since;
+    if (!stale) return null;
     // A turn that runs now would be cut; the next upkeep tries again.
     if ((await liveSessionLocks(paths.locks, live)).length > 0) return null;
-    settled = text;
     await server.stop();
     await options.ensureServer();
     return 'server restarted: the Kit hooks in config.toml changed';
   };
 
-  const afterChange = async (): Promise<void> => {
+  const afterChange = async (changed: boolean): Promise<void> => {
+    if (changed) await remember(Date.now()).catch(() => undefined);
     const line = await syncServer().catch((error: unknown) => `server not restarted for the new hooks: ${error instanceof Error ? error.message : String(error)}`);
     if (line) context.log(`[kimi] ${line}`);
   };
@@ -125,20 +161,24 @@ export function createKimiHooks(options: KimiHooksOptions): KimiHooks {
   return {
     hooks,
     syncServer,
+    kitKey,
+    appRestart,
     async approveHooks(expected) {
       const wanted = blocks();
       if (!wanted.ok) throw refuse(wanted.reason);
       await options.programPath();
+      let changed = false;
       await changeConfig(change(), (current) => {
         const plan = planHookFile(current, wanted.blocks);
         if (plan.status === 'unknown' || plan.target === null) throw refuse(plan.reason ?? 'файл не разбирается');
         if (plan.status === 'approved') return current;
+        changed = true;
         if (plan.section !== expected.command || hookFingerprint(current, plan.target) !== expected.hash) {
           throw new ProviderError('hooks-changed', 'config.toml Kimi изменился после предпросмотра', { status: 409, hint: 'Проверьте предпросмотр ещё раз.' });
         }
         return plan.target;
       });
-      await afterChange();
+      await afterChange(changed);
       return hooks();
     },
     async action(blocked) {
@@ -152,12 +192,14 @@ export function createKimiHooks(options: KimiHooksOptions): KimiHooks {
     async remove() {
       const wanted = blocks();
       await options.programPath();
+      let changed = false;
       await changeConfig(change(), (current) => {
         const plan = planHookFile(current, wanted.ok ? wanted.blocks : []);
         if (plan.cleaned === null) throw refuse(plan.reason ?? 'файл не разбирается');
+        changed = plan.cleaned !== current;
         return plan.cleaned;
       });
-      await afterChange();
+      await afterChange(changed);
     },
   };
 }

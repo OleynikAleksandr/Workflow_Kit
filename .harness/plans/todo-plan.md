@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 516,
+  "revision": 518,
   "rounds": [
     {
       "digest": {
@@ -68,7 +68,19 @@
       "title": "Fixes of the 0.6.1 live check"
     },
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "No contract changes in R3"
+        ],
+        "decisions": [
+          "The release round holds only the delivery task; the code and the module documents were reconciled in R2"
+        ],
+        "references": [
+          "docs/planning/M9-kimi-start-fixes.md#8",
+          "README.md"
+        ],
+        "result": "Round R3 delivers release 0.6.2 with the R2 fixes of the 0.6.1 live check; README says that a click on a Kimi session opens its project in the app without a new empty chat (macOS and Windows)."
+      },
       "id": "R3",
       "kind": "fixes",
       "status": "OPEN",
@@ -452,7 +464,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R3",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -509,8 +521,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 8/10
-- Revision: 516
+- Progress: 9/10
+- Revision: 518
 
 ## Objective
 
@@ -566,12 +578,14 @@ Digest: Kimi project opens in the Kimi Code app without an empty chat: the servi
 
 ### R3 — Fixes (fixes, OPEN)
 
-- [TODO] DOCS-R3 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R3 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R3
   - Files: README.md, docs/architecture/OVERVIEW.md
 - [TODO] T007 — Release 0.6.2 with green CI (delivery)
   - Commit: chore: release 0.6.2
   - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/installation.md, docs/architecture/OVERVIEW.md, docs/evidence/M9-acceptance.md
   - Depends on: T005, T006, DOCS-R2, DOCS-R3
+
+Digest: Round R3 delivers release 0.6.2 with the R2 fixes of the 0.6.1 live check; README says that a click on a Kimi session opens its project in the app without a new empty chat (macOS and Windows).
 
 State changes only through `scripts/workflow` commands. History lives in Git.

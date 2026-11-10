@@ -32,6 +32,10 @@ export const LOGIN_NOTE = 'нужен вход: `kimi login`';
 export const MODEL_NOTE = 'в Kimi не выбрана модель';
 export const UNTESTED_OS_NOTE = 'на этой ОС не проверялся';
 export const ON_DEMAND_NOTE = 'сервер Kimi запускается по требованию';
+/** Note of the status while Kit talks to the server of the Kimi Code app. */
+export const APP_SERVER_NOTE = 'сессии Kimi ведёт сервер приложения Kimi Code';
+/** Why the server and Remote Control actions are off while the app serves Kimi. */
+export const APP_SERVER_REASON = 'сервер Kimi сейчас ведёт приложение Kimi Code';
 const RECHECK_HINT = 'Исправьте и нажмите «Перепроверить».';
 
 /** What the last questions to the server told. */
@@ -98,14 +102,14 @@ export function createKimiRuntime(context: ProviderContext, deps: KimiDeps = {})
   const usable = (): boolean => program.installed === true && !program.unsupported && !program.error;
 
   const notes = (...first: Array<string | null>): string | undefined => {
-    const all = [...first, remote.note(), appRestart ? APP_RESTART_NOTE : null].filter((item): item is string => Boolean(item));
+    const all = [...first, server.owner() === 'app' ? APP_SERVER_NOTE : null, remote.note(), appRestart ? APP_RESTART_NOTE : null].filter((item): item is string => Boolean(item));
     if (program.version && !testedVersion(program.version)) all.push(`версия ${program.version} не проверялась с Workflow Kit`);
     if (platform !== 'darwin') all.push(UNTESTED_OS_NOTE);
     return all.length > 0 ? all.join('; ') : undefined;
   };
 
   const buildStatus = (): ProviderStatus => {
-    const base = { implemented: true, installed: program.installed, version: program.version, path: program.path, checkedAt: program.checkedAt, details: { kimiHome: paths.home } };
+    const base = { implemented: true, installed: program.installed, version: program.version, path: program.path, checkedAt: program.checkedAt, details: { kimiHome: paths.home, server: server.owner() } };
     const withNote = (status: Omit<ProviderStatus, keyof typeof base | 'note'>, ...first: Array<string | null>): ProviderStatus => {
       const note = notes(...first);
       return { ...base, ...status, ...(note ? { note } : {}) };
@@ -247,6 +251,9 @@ export function createKimiRuntime(context: ProviderContext, deps: KimiDeps = {})
       if (!usable()) return null;
       const result = await check(server.used || (await hasSessions()));
       if (result === 'failed') return `server not started: ${serverError}`;
+      // The app came up while the server of Kit runs: Kit moves to the app once no turn would be cut.
+      const retired = await server.retire().catch(() => null);
+      if (retired) return retired;
       // A server that still runs with the hooks of an older config.toml is restarted between turns.
       const synced = await hooks.syncServer().catch((error: unknown) => `hooks not checked: ${error instanceof Error ? error.message : String(error)}`);
       return result === 'started' ? 'server started again' : synced;
@@ -266,18 +273,20 @@ export function createKimiRuntime(context: ProviderContext, deps: KimiDeps = {})
     ...sessions,
     async actions(project): Promise<ProviderAction[]> {
       if (project !== null) return [];
-      const running = (await server.current()) !== null;
+      const byApp = (await server.app()) !== null;
+      const running = (await server.own()) !== null;
       const missing = program.installed === false ? 'Kimi Code не найден' : (program.unsupported ?? program.error);
-      const remoteOn = running && (await remote.enabled());
-      const remoteAction = (id: string, title: string, enabled: boolean, reason: string, confirm: string): ProviderAction => ({ id, title, scope: 'provider', enabled: !missing && enabled, ...(missing || !enabled ? { reason: missing ?? reason } : {}), confirm });
+      const blocked = missing ?? (byApp ? APP_SERVER_REASON : null);
+      const remoteOn = running && !byApp && (await remote.enabled());
+      const remoteAction = (id: string, title: string, enabled: boolean, reason: string, confirm: string): ProviderAction => ({ id, title, scope: 'provider', enabled: !blocked && enabled, ...(blocked || !enabled ? { reason: blocked ?? reason } : {}), confirm });
       return [
         {
           id: RESTART_ACTION,
           title: running ? 'Перезапустить сервер Kimi' : 'Запустить сервер Kimi',
           scope: 'provider',
-          enabled: !missing,
-          ...(missing ? { reason: missing } : {}),
-          ...(running ? { confirm: 'Сервер Kimi будет перезапущен: ходы сессий Kimi, идущие сейчас, прервутся.' } : {}),
+          enabled: !blocked,
+          ...(blocked ? { reason: blocked } : {}),
+          ...(running && !blocked ? { confirm: 'Сервер Kimi будет перезапущен: ходы сессий Kimi, идущие сейчас, прервутся.' } : {}),
         },
         remoteAction(REMOTE_ON_ACTION, 'Включить Remote Control Kimi', !remoteOn, 'Remote Control Kimi уже включён', 'Remote Control Kimi будет включён: сессии Kimi этого компьютера станут доступны с телефона через code-rc.kimi.com.'),
         remoteAction(REMOTE_OFF_ACTION, 'Выключить Remote Control Kimi', remoteOn, 'Remote Control Kimi выключен', 'Remote Control Kimi будет выключен: ссылки на сессии Kimi с телефона перестанут открываться.'),
@@ -290,6 +299,8 @@ export function createKimiRuntime(context: ProviderContext, deps: KimiDeps = {})
         await hooks.remove();
         return buildStatus();
       }
+      // Kit never changes the server, the login or Remote Control of the app.
+      if (id !== REMOVE_HOOK_ACTION && (await server.app())) throw new ProviderError('kimi-app-server', APP_SERVER_REASON, { status: 409, hint: 'Управляйте сервером и Remote Control в приложении Kimi Code.' });
       if (id === REMOTE_ON_ACTION || id === REMOTE_OFF_ACTION) {
         await remote.set(id === REMOTE_ON_ACTION);
         return buildStatus();

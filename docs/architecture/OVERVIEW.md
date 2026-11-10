@@ -47,7 +47,7 @@ runtime-зависимостей) и веб-панель для Mac и iPad. С�
 | | | [pty-host](../../product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/module.md) | ConPTY на Windows (node-pty 1.1.0) |
 | | [provider-adapters](../../product-parts/provider-runtime/clusters/provider-adapters/cluster.md) | [provider-claude](../../product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md) | доверие (прямая запись `~/.claude.json`, выбор о внешних импортах CLAUDE.md), сессии Remote Control, окружение папки (pty через `expect`) |
 | | | [provider-codex](../../product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md) | демон app-server, доверие, одобрение хука Kit, сессии (треды; после служебного хода — `thread/unsubscribe`) |
-| | | [provider-kimi](../../product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md) | сервер `kimi web`, доверие, хук Kit в `config.toml`, сессии, ссылки |
+| | | [provider-kimi](../../product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md) | сервер приложения или `kimi web`, доверие, хук, сессии, ссылки |
 | [workflow-engine](../../product-parts/workflow-engine/product-part.md) | [kit-host](../../product-parts/workflow-engine/clusters/kit-host/cluster.md) | [kit-bundle](../../product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md) | вендорный бандл Kit 2.2.2 с проверкой хеша |
 | | | [kit-runner](../../product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/module.md) | команды Kit проекта, установка, слежение за планом, раздел `workflow` |
 | | | [plan-view](../../product-parts/workflow-engine/clusters/kit-host/modules/plan-view/module.md) | модели карточек плана и выбора пути (порт правил Harness) |
@@ -237,7 +237,7 @@ Linux `$XDG_CONFIG_HOME`, `$XDG_STATE_HOME`, `$XDG_DATA_HOME` +
 | Claude: сессии, окружение (pty) | да | если есть `expect` | да, ConPTY (`pty-host`) |
 | Codex: демон, доверие, хуки, сессии | да | да | да, Codex 0.160+, через `proxy` |
 | Codex: управление — приложению ChatGPT | да, `ps` | нет приложения | CIM codex.exe (**П**) |
-| Kimi: сервер, доверие, сессии, автопилот | да | тесты (**П**) | тесты (**П**) |
+| Kimi: серверы, доверие, сессии | да | тесты (**П**) | тесты (**П**) |
 | Kimi: хук Kit в `config.toml` | `/bin/sh` | то же, тесты | `cmd.exe`, тесты (**П**) |
 | Kimi: приложение, ссылка проекта | `Kimi Code.app`, `open` | `xdg-mime`, `xdg-open` | `reg`, `rundll32` (**П**) |
 | Запуск и остановка процессов сессий | да | да | да (CIM, `taskkill`) |

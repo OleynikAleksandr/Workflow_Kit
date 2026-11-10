@@ -15,7 +15,8 @@
 - Приложения нет — ссылки нет, а пометка сессии заканчивается строкой
   `resumeNote(id)`: «продолжить: `kimi -S <id>` в терминале проекта»
   (после остальных пометок, через «; »).
-- `links.mobile` — адрес Remote Control сервера Kit, и только точного вида
+- `links.mobile` — адрес Remote Control сервера, с которым говорит Kit
+  (сервер приложения Kimi Code или сервер Kit, [server.md](server.md)), и только точного вида
   `https://code-rc.kimi.com/devices/<id>/` (`parseRemote`); другой адрес в
   ответе Kimi ссылкой не становится.
 - `parseKimiProjectLink(url)` → `{ root, fresh } | null`: ровно один `root`,
@@ -35,6 +36,9 @@
 | Программы нет, таймаут 5 с, ненулевой код | — | приложения нет | приложения нет |
 
 ## Remote Control
+
+Пока работает сервер приложения Kimi Code, действия ниже выключены
+(`APP_SERVER_REASON`), а состояние только читается у него.
 
 `createKimiRemote({ current, requireServer, now, version })`:
 

@@ -137,7 +137,8 @@ export function createKimiHooks(options: KimiHooksOptions): KimiHooks {
   };
 
   const syncServer = async (): Promise<string | null> => {
-    if (!(await server.current())) return null;
+    // While the app serves Kimi the server of Kit is retired, not restarted.
+    if ((await server.app()) || !(await server.own())) return null;
     const key = await kitKey();
     if (key === null) return null;
     const startedWith = server.startedWith();

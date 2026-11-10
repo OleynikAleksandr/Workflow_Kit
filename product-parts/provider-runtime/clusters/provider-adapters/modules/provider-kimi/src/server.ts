@@ -1,6 +1,8 @@
-// The Kimi Code server of Workflow Kit (spec M8, section 2.2): `kimi web --no-open --port <free>`
-// started through the supervisor without a saved output (the program prints its token), found by
-// its pid in <home>/server/instances and adopted again after a restart of the service.
+// The Kimi Code server Kit talks to (spec M9 section 2.1): the server of the Kimi Code app (any
+// live record of <home>/server/instances that is not Kit's) while it runs, so the app sees the
+// sessions of Kit at once; else the server of Kit, `kimi web --no-open --port <free>`, started
+// through the supervisor without a saved output (the program prints its token), found by its pid
+// in server/instances and adopted again after a restart of the service.
 import { readdir } from 'node:fs/promises';
 import net from 'node:net';
 import path from 'node:path';
@@ -11,7 +13,7 @@ import { ProviderError } from '#provider-registry';
 import type { ProviderContext } from '#provider-registry';
 import { createKimiClient } from './client.ts';
 import type { KimiClient } from './client.ts';
-import { defaultLiveness } from './locks.ts';
+import { defaultLiveness, liveSessionLockHolders } from './locks.ts';
 import type { Liveness } from './locks.ts';
 import { envWithout } from './paths.ts';
 import type { KimiPaths } from './paths.ts';
@@ -24,13 +26,30 @@ export const SERVER_OWNER = { provider: 'kimi', project: null, kind: 'server' } 
 /** A switch of Kimi that turns session locks off; the server of Kit never gets it. */
 export const LOCK_SWITCH = 'KIMI_CODE_SESSION_LOCK';
 
-/** The server of Kit. */
+/** How long a health answer of the server of the app is reused. */
+export const APP_SERVER_CACHE_MS = 5000;
+
+/** Whose server Kit talks to. */
+export type KimiServerOwner = 'app' | 'kit';
+
+/** The server Kit talks to. */
 export interface KimiServer {
-  /** Client of the running server of Kit, or null; never starts one. */
+  /** Client of the server of the app, else of the running server of Kit, or null; never starts one. */
   current(): Promise<KimiClient | null>;
-  /** Client of the server, started when it does not run. */
+  /** Client of the server of the app, else of the server of Kit, started when it does not run. */
   ensure(): Promise<KimiClient>;
-  /** Asks the server to shut down and ends its process; false when none ran. */
+  /** Client of the running server of Kit only (hooks, restart), or null. */
+  own(): Promise<KimiClient | null>;
+  /** The live, answering server of the app (the newest one), or null. */
+  app(): Promise<{ client: KimiClient; instance: KimiInstance } | null>;
+  /** Whose server the last current() or ensure() gave; null when none. */
+  owner(): KimiServerOwner | null;
+  /**
+   * Stops the server of Kit while the server of the app runs and no turn holds a lock of
+   * another process than the app; a log line or null.
+   */
+  retire(): Promise<string | null>;
+  /** Asks the server of Kit to shut down and ends its process; false when none ran. */
   stop(): Promise<boolean>;
   /** A server was started or adopted in this run of the service. */
   readonly used: boolean;
@@ -104,6 +123,8 @@ export function createKimiServer(deps: KimiServerDeps): KimiServer {
   let active: { id: string; client: KimiClient; pid: number; startedAt: number | null; startedWith: string | null | undefined } | null = null;
   let starting: Promise<KimiClient> | null = null;
   let used = false;
+  let last: KimiServerOwner | null = null;
+  const health = new Map<string, { at: number; ok: boolean }>();
 
   const clientOf = (port: number): KimiClient => createKimiClient({ port, tokenFile: paths.token, ...(deps.fetch ? { fetch: deps.fetch } : {}) });
 
@@ -137,11 +158,46 @@ export function createKimiServer(deps: KimiServerDeps): KimiServer {
     return null;
   };
 
-  const current = async (): Promise<KimiClient | null> => {
+  const own = async (): Promise<KimiClient | null> => {
     if (active && !(await alive(active.id))) active = null;
     if (!active) active = await adopt();
     if (active) used = true;
     return active?.client ?? null;
+  };
+
+  const foreign = async (): Promise<KimiInstance[]> => {
+    const mine = new Set((await supervisor.list(SERVER_OWNER).catch(() => [] as ProcessRecord[])).map((record) => record.pid));
+    if (active) mine.add(active.pid);
+    return (await readInstances(paths.instances)).filter((item) => !mine.has(item.pid) && live.pidAlive(item.pid));
+  };
+
+  // The newest live record that answers healthz; answers are kept a few seconds.
+  const app = async (): Promise<{ client: KimiClient; instance: KimiInstance } | null> => {
+    const candidates = (await foreign()).sort((a, b) => (b.startedAt ?? 0) - (a.startedAt ?? 0));
+    for (const instance of candidates) {
+      const client = clientOf(instance.port);
+      const key = `${instance.serverId}:${instance.pid}:${instance.port}`;
+      const known = health.get(key);
+      let ok = known && Date.now() - known.at < APP_SERVER_CACHE_MS ? known.ok : null;
+      if (ok === null) {
+        ok = await client.get('/api/v1/healthz', { auth: false, timeoutMs: 2000 }).then(() => true, () => false);
+        health.set(key, { at: Date.now(), ok });
+      }
+      if (ok) return { client, instance };
+    }
+    return null;
+  };
+
+  const current = async (): Promise<KimiClient | null> => {
+    const found = await app();
+    if (found) {
+      used = true;
+      last = 'app';
+      return found.client;
+    }
+    const client = await own();
+    last = client ? 'kit' : null;
+    return client;
   };
 
   const failed = (reason: string): ProviderError =>
@@ -181,6 +237,7 @@ export function createKimiServer(deps: KimiServerDeps): KimiServer {
           await client.get('/api/v1/healthz', { auth: false, timeoutMs: 2000 });
           active = { id: record.id, client, pid: record.pid, startedAt: instance.startedAt, startedWith };
           used = true;
+          last = 'kit';
           context.log(`kimi: server started, pid ${record.pid}, port ${instance.port}`);
           return client;
         } catch (error) {
@@ -194,31 +251,42 @@ export function createKimiServer(deps: KimiServerDeps): KimiServer {
     throw failed(reason);
   };
 
+  const stop = async (): Promise<boolean> => {
+    const client = await own();
+    if (!client || !active) return false;
+    const { id } = active;
+    await client.post('/api/v1/shutdown', {}, { timeoutMs: 3000 }).catch(() => undefined);
+    const deadline = Date.now() + (deps.stopWaitMs ?? 5000);
+    while (Date.now() < deadline && (await alive(id))) await sleep(pollMs);
+    // stop() ends a process that is still there and drops the record either way.
+    await supervisor.stop(id).catch(() => undefined);
+    active = null;
+    if (last === 'kit') last = null;
+    context.log('kimi: server stopped');
+    return true;
+  };
+
   return {
     current,
+    own,
+    app,
+    owner: () => last,
     ensure: () => (starting ??= start().finally(() => (starting = null))),
-    async stop() {
-      const client = await current();
-      if (!client || !active) return false;
-      const { id } = active;
-      await client.post('/api/v1/shutdown', {}, { timeoutMs: 3000 }).catch(() => undefined);
-      const deadline = Date.now() + (deps.stopWaitMs ?? 5000);
-      while (Date.now() < deadline && (await alive(id))) await sleep(pollMs);
-      // stop() ends a process that is still there and drops the record either way.
-      await supervisor.stop(id).catch(() => undefined);
-      active = null;
-      context.log('kimi: server stopped');
-      return true;
+    stop,
+    async retire() {
+      const found = await app();
+      if (!found || !(await own())) return null;
+      // A turn of the server of Kit (or one whose holder is not known) would be cut.
+      const holders = await liveSessionLockHolders(paths.locks, live);
+      if (holders.some((holder) => holder.pid !== found.instance.pid)) return null;
+      await stop();
+      return 'server of Kit stopped: the Kimi Code app serves the Kimi sessions';
     },
     get used() {
       return used;
     },
     startedWith: () => active?.startedWith,
     startedAt: () => active?.startedAt ?? null,
-    async foreign() {
-      const own = new Set((await supervisor.list(SERVER_OWNER).catch(() => [] as ProcessRecord[])).map((record) => record.pid));
-      if (active) own.add(active.pid);
-      return (await readInstances(paths.instances)).filter((item) => !own.has(item.pid) && live.pidAlive(item.pid));
-    },
+    foreign,
   };
 }

@@ -53,8 +53,13 @@ export function holderAlive(holder: { pid: unknown; startedAt: unknown }, live: 
  * started after the boot. A file that cannot be read counts as alive (it is being written).
  */
 export async function liveSessionLocks(dir: string, live: Liveness): Promise<string[]> {
+  return (await liveSessionLockHolders(dir, live)).map((holder) => holder.id);
+}
+
+/** The live session locks with the pid that holds each (null: not known, e.g. a file being written). */
+export async function liveSessionLockHolders(dir: string, live: Liveness): Promise<Array<{ id: string; pid: number | null }>> {
   const names = await readdir(dir).catch(() => [] as string[]);
-  const alive: string[] = [];
+  const alive: Array<{ id: string; pid: number | null }> = [];
   for (const name of names.filter((item) => item.endsWith('.lock')).sort()) {
     const id = name.slice(0, -'.lock'.length);
     let lock: Record<string, unknown>;
@@ -64,11 +69,12 @@ export async function liveSessionLocks(dir: string, live: Liveness): Promise<str
       lock = parsed as Record<string, unknown>;
     } catch (error) {
       // Released between readdir and readFile: no lock.
-      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') alive.push(id);
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') alive.push({ id, pid: null });
       continue;
     }
     const foreign = typeof lock['hostname'] === 'string' && lock['hostname'] !== live.hostname();
-    if (foreign || holderAlive({ pid: lock['pid'], startedAt: lock['startedAt'] }, live)) alive.push(id);
+    const pid = typeof lock['pid'] === 'number' && Number.isInteger(lock['pid']) ? lock['pid'] : null;
+    if (foreign || holderAlive({ pid: lock['pid'], startedAt: lock['startedAt'] }, live)) alive.push({ id, pid: foreign ? null : pid });
   }
   return alive;
 }

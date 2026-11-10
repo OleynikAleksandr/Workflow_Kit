@@ -28,6 +28,8 @@ export interface SeenRequest {
   url: string;
   authorization: string | undefined;
   body: unknown;
+  /** Which fake server got it: the server of Kit or the server of the Kimi Code app. */
+  via?: 'kit' | 'app';
 }
 
 /** A raw answer of the fake server. */
@@ -75,6 +77,11 @@ export interface FakeKimi {
   crash(): Promise<void>;
   /** Requests of one route. */
   seen(method: string, url: string): SeenRequest[];
+  /**
+   * Starts a server of the Kimi Code app: the same routes on a port of its own, its record in
+   * server/instances with the pid of this test process (alive). Resolves to its stop.
+   */
+  startApp(startedAt?: number): Promise<() => Promise<void>>;
   close(): Promise<void>;
 }
 
@@ -130,6 +137,20 @@ export async function fakeKimi(): Promise<FakeKimi> {
   await mkdir(paths.home, { recursive: true });
   await writeFile(paths.token, 'test-token\n', { mode: 0o600 });
   const servers = new Map<string, { record: ProcessRecord; server: http.Server; instance: string }>();
+  const apps = new Set<() => Promise<void>>();
+  const serve = (via: 'kit' | 'app', end: () => void): http.Server =>
+    http.createServer((request, response) => {
+      const chunks: Buffer[] = [];
+      request.on('data', (chunk: Buffer) => chunks.push(chunk));
+      request.on('end', () => {
+        const text = Buffer.concat(chunks).toString('utf8');
+        const seen: SeenRequest = { method: request.method ?? '', url: request.url ?? '', authorization: request.headers.authorization, body: text === '' ? undefined : JSON.parse(text), via };
+        machine.api.requests.push(seen);
+        const answer = route(machine, seen, end);
+        response.writeHead(answer.status ?? 200, { 'content-type': 'application/json', ...answer.headers });
+        response.end(answer.body);
+      });
+    });
   let count = 0;
   // A closed machine starts nothing: late work of a service that outlives its test must not
   // leave a listening server behind (the test process would never exit).
@@ -161,18 +182,7 @@ export async function fakeKimi(): Promise<FakeKimi> {
         startToken: 'token', startedAt: new Date().toISOString(), commandLine: [spec.command, ...spec.args].join(' '), bootId: null, children: [],
       };
       if (failure === 'exit') return record;
-      const server = http.createServer((request, response) => {
-        const chunks: Buffer[] = [];
-        request.on('data', (chunk: Buffer) => chunks.push(chunk));
-        request.on('end', () => {
-          const text = Buffer.concat(chunks).toString('utf8');
-          const seen: SeenRequest = { method: request.method ?? '', url: request.url ?? '', authorization: request.headers.authorization, body: text === '' ? undefined : JSON.parse(text) };
-          machine.api.requests.push(seen);
-          const answer = route(machine, seen, () => void end(id));
-          response.writeHead(answer.status ?? 200, { 'content-type': 'application/json', ...answer.headers });
-          response.end(answer.body);
-        });
-      });
+      const server = serve('kit', () => void end(id));
       await new Promise<void>((resolve, reject) => server.once('error', reject).listen(port, '127.0.0.1', () => resolve()));
       if (closed) {
         await new Promise<void>((resolve) => server.close(() => resolve()));
@@ -244,8 +254,26 @@ export async function fakeKimi(): Promise<FakeKimi> {
       for (const id of [...servers.keys()]) await end(id);
     },
     seen: (method, url) => machine.api.requests.filter((request) => request.method === method && request.url === url),
+    async startApp(startedAt = Date.now()) {
+      const server = serve('app', () => undefined);
+      await new Promise<void>((resolve, reject) => server.once('error', reject).listen(0, '127.0.0.1', () => resolve()));
+      const address = server.address();
+      const port = typeof address === 'object' && address ? address.port : 0;
+      const instance = path.join(paths.instances, 'app.json');
+      await mkdir(paths.instances, { recursive: true });
+      await writeFile(instance, JSON.stringify({ server_id: 'app', pid: process.pid, host: '127.0.0.1', port, started_at: startedAt, host_version: '2.5.1' }));
+      const stop = async (): Promise<void> => {
+        if (!apps.delete(stop)) return;
+        server.closeAllConnections();
+        await new Promise<void>((resolve) => server.close(() => resolve()));
+        await rm(instance, { force: true });
+      };
+      apps.add(stop);
+      return stop;
+    },
     async close() {
       closed = true;
+      for (const stop of [...apps]) await stop();
       await machine.crash();
       // Events are appended without waiting: a late write may land while the folder is removed.
       await rm(root, { recursive: true, force: true, maxRetries: 10, retryDelay: 50 });

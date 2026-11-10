@@ -26,7 +26,8 @@ ChatGPT и Claude).
   `workspaces`, `program()`, `requireReady()`, `requireServer()`,
   `requireProgram()`, `appFound()`, `appRestart()`, `remote`) — общая часть
   для хука и сессий.
-- Константы: `PROVIDER_ID` = `kimi`, `PROVIDER_TITLE`, `RESTART_ACTION` =
+- Константы: `PROVIDER_ID` = `kimi`, `PROVIDER_TITLE`, `APP_SERVER_NOTE`,
+  `APP_SERVER_REASON`, `RESTART_ACTION` =
   `restart-kimi-server`, `LOGIN_NOTE`, `MODEL_NOTE`, `UNTESTED_OS_NOTE`,
   `ON_DEMAND_NOTE`, `MIN_KIMI_VERSION` = `2.5.2`, `KIMI_HOME_ENV` =
   `KIMI_CODE_HOME`, `LOCK_SWITCH` = `KIMI_CODE_SESSION_LOCK`,
@@ -41,8 +42,9 @@ ChatGPT и Claude).
 - Формы ответов: `parseMeta`, `parseAuth`, `parseConfig`, `parseWorkspace`,
   `parseWorkspaces`, `parseTrusted`, `parseInstance`, `parseSessionPage`,
   `parseSession`, `parseMessages`, `parsePrompt`, `parseBatch`.
-- Сервер: `createKimiServer(deps)` → `{ current(), ensure(), stop(), used,
-  startedWith(), startedAt(), foreign() }` (`deps.snapshot` — отпечаток
+- Сервер ([server.md](server.md)): `createKimiServer(deps)` → `{ current(),
+  ensure(), own(), app(), owner(), retire(), stop(), used, startedWith(),
+  startedAt(), foreign() }`, `APP_SERVER_CACHE_MS` (`deps.snapshot` — отпечаток
   блоков Kit перед запуском, `deps.liveness`), `freeLocalPort()`,
   `readInstances(dir)`; `KimiInstance { serverId, pid, port, startedAt }`.
 - Рабочие области и доверие: `createKimiWorkspaces(platform)` →
@@ -135,26 +137,10 @@ Kit есть записи сессий Kimi; сам сервер ради ста
 `requireServer()` — то же без проверки входа и модели: для имени, архива,
 удаления и чтения ответа.
 
-### Сервер Kit
+### Серверы
 
-- Запуск: `kimi web --no-open --port <свободный порт>` через
-  `process-supervisor` с владельцем `{ provider: 'kimi', project: null,
-  kind: 'server' }`, `logFile: null` (вывод отбрасывается: в нём ссылка с
-  токеном), рабочий каталог — домашний, из окружения убран
-  `KIMI_CODE_SESSION_LOCK`. Готовность: запись `server/instances` с pid
-  процесса (или его портом) и ответ `GET /api/v1/healthz`, не дольше 15 с;
-  иначе процесс завершается и операция отказывает `kimi-server`.
-- Запуск по требованию (`requireReady()`); в `autostart()` — только при
-  записях сессий Kimi; `maintain()` поднимает упавший сервер, если он уже
-  использовался этой службой или есть записи сессий. Одновременные запросы
-  делят один запуск.
-- После перезапуска службы сервер находится по записи учёта процессов
-  (`check` → `alive`) и записи `server/instances`; исчезнувший или чужой
-  процесс из учёта убирается.
-- Действие `restart-kimi-server` (область `provider`): при работающем
-  сервере — «Перезапустить сервер Kimi» с подтверждением
-  (`POST /api/v1/shutdown`, через 5 с — завершение процесса, затем новый
-  запуск); при неработающем — «Запустить сервер Kimi».
+Сервер приложения Kimi Code, пока оно работает, иначе свой `kimi web`;
+запуск по требованию, перезапуск, переход и возврат — в [server.md](server.md).
 
 ### Клиент
 

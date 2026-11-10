@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 525,
+  "revision": 527,
   "rounds": [
     {
       "digest": {
@@ -101,7 +101,7 @@
       },
       "id": "R4",
       "kind": "fixes",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Windows CI fixes of the 0.6.2 tests"
     }
   ],
@@ -141,7 +141,7 @@
         "text": "Kit never restarts the Kimi Code app; it tells the user to restart it when the app started before the Kit hook was written"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "claude:01493504-12b2-440a-84f4-17acf7bc1c61",
@@ -586,7 +586,7 @@
       ],
       "checks": [],
       "commitMessage": "docs: record the CI run of 0.6.2",
-      "confirmation": null,
+      "confirmation": "Да, заканчивай, собирай новый релиз.",
       "context": [],
       "dependencies": [
         "T008",
@@ -601,7 +601,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R4",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Green CI for 0.6.2",
       "why": "The release is done only with CI green on all four platforms"
     }
@@ -613,11 +613,11 @@
 ## State
 
 - Scope: m9-kimi-start-fixes (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 12/13
-- Revision: 525
+- Progress: 13/13
+- Revision: 527
 
 ## Objective
 
@@ -683,7 +683,7 @@ Digest: Kimi project opens in the Kimi Code app without an empty chat: the servi
 
 Digest: Round R3 delivers release 0.6.2 with the R2 fixes of the 0.6.1 live check; README says that a click on a Kimi session opens its project in the app without a new empty chat (macOS and Windows).
 
-### R4 — Windows CI fixes of the 0.6.2 tests (fixes, OPEN)
+### R4 — Windows CI fixes of the 0.6.2 tests (fixes, CLOSED)
 
 - [DONE] T008 — Host-independent tests of the Kimi launch and of renames (work)
   - Commit: test: make the Kimi launch and renames tests pass on Windows hosts
@@ -693,7 +693,7 @@ Digest: Round R3 delivers release 0.6.2 with the R2 fixes of the 0.6.1 live chec
   - Commit: docs: reconcile documentation for R4
   - Files: README.md, docs/architecture/OVERVIEW.md
   - Depends on: T008
-- [TODO] T009 — Green CI for 0.6.2 (delivery)
+- [DONE] T009 — Green CI for 0.6.2 (delivery)
   - Commit: docs: record the CI run of 0.6.2
   - Files: docs/evidence/M9-acceptance.md
   - Depends on: T008, DOCS-R4

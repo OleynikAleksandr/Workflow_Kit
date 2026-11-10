@@ -62,6 +62,14 @@
 - Локально (macOS): `npm test` — 577 тестов, 576 прошли, 1 пропущен (не для macOS);
   проверка типов — без ошибок; `npm run check:platforms` — ok; `node bin/wfk.mjs install`
   (обновление с 0.6.1) и `wfk doctor --installed` — «всё в порядке», служба 0.6.2.
+- CI: релизный коммит `fc6b56d` в ветке `ci/m9-kimi-start-fixes`,
+  [запуск 42801545383](https://github.com/OleynikAleksandr/Workflow_Kit/actions/runs/42801545383) —
+  успех на macOS ARM64 и Linux x64, отказ двух тестов на Windows x64 и ARM64 (тест ждал путь
+  macOS с разделителем Windows; дочерние процессы теста держали удаляемую папку, EBUSY). Код
+  продукта не менялся; раунд R4: T008 `799cc04` исправил тесты, DOCS `6c67fb6`. Коммит
+  `6c67fb6`, [запуск 42802361544](https://github.com/OleynikAleksandr/Workflow_Kit/actions/runs/42802361544) —
+  успех на macOS ARM64, Linux x64, Windows x64 и Windows ARM64 (typecheck, тесты,
+  `check:platforms`).
 
 ### Живые проверки 0.6.2
 

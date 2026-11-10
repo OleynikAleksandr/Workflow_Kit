@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 506,
+  "revision": 508,
   "rounds": [
     {
       "digest": {
@@ -37,7 +37,7 @@
       },
       "id": "R1",
       "kind": "implementation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Implementation"
     }
   ],
@@ -77,7 +77,7 @@
         "text": "Kit never restarts the Kimi Code app; it tells the user to restart it when the app started before the Kit hook was written"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "claude:01493504-12b2-440a-84f4-17acf7bc1c61",
@@ -249,7 +249,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: release 0.6.1",
-      "confirmation": null,
+      "confirmation": "Да, принимаю этот план, выполняй его и собирай новый релиз для моих тестов",
       "context": [
         {
           "path": "docs/planning/M9-kimi-start-fixes.md",
@@ -278,7 +278,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Release 0.6.1 with green CI",
       "why": "Release 0.6.1 with green CI"
     }
@@ -290,11 +290,11 @@
 ## State
 
 - Scope: m9-kimi-start-fixes (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 4/5
-- Revision: 506
+- Progress: 5/5
+- Revision: 508
 
 ## Objective
 
@@ -310,7 +310,7 @@ A Kimi session created from the panel is visible in the Kimi Code app with its f
 
 ## Rounds
 
-### R1 — Implementation (implementation, OPEN)
+### R1 — Implementation (implementation, CLOSED)
 
 - [DONE] T001 — Hooks of the Kit server by fingerprint; app restart note (work)
   - Commit: fix: restart the Kit server of Kimi for changed hooks and ask to restart the Kimi Code app
@@ -326,7 +326,7 @@ A Kimi session created from the panel is visible in the Kimi Code app with its f
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M9-kimi-start-fixes.md
   - Depends on: T001, T002, T003
-- [TODO] T004 — Release 0.6.1 with green CI (delivery)
+- [DONE] T004 — Release 0.6.1 with green CI (delivery)
   - Commit: chore: release 0.6.1
   - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/installation.md, docs/architecture/OVERVIEW.md, docs/evidence/M9-acceptance.md
   - Depends on: T001, T002, T003, DOCS-R1

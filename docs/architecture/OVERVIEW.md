@@ -2,7 +2,7 @@
 
 Состояние: вехи 1–4 приняты (приёмки [M1](../evidence/M1-acceptance.md)–[M4](../evidence/M4-acceptance.md);
 веха 4 — перекрёстное ревью плана, [M4-plan-review.md](../planning/M4-plan-review.md));
-веха 8 — Kimi Code ([M8](../planning/M8-kimi-provider.md)), версия 0.6.0. Документ
+веха 8 — Kimi Code ([M8](../planning/M8-kimi-provider.md)), версия 0.6.1. Документ
 поддерживает задача DOCS каждого раунда; подробности — в контрактах модулей
 (`module.md`). Спецификации вех и факты о провайдерах — в `docs/planning/`.
 

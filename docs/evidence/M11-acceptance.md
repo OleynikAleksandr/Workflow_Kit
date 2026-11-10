@@ -16,6 +16,10 @@
 - Локально (macOS): `npm test` — 586 тестов, 585 прошли, 1 пропущен (не для macOS); проверка
   типов и `check:platforms` — ok; `node bin/wfk.mjs install` (обновление с 0.6.3) и
   `wfk doctor --installed` — «всё в порядке», служба 0.6.4.
+- CI: релизный коммит `e5afdb3` в ветке `ci/m11-plan-start`,
+  [запуск 42838149352](https://github.com/OleynikAleksandr/Workflow_Kit/actions/runs/42838149352) —
+  успех на macOS ARM64, Linux x64, Windows x64 и Windows ARM64 (typecheck, тесты,
+  `check:platforms`).
 
 ## Живые проверки
 

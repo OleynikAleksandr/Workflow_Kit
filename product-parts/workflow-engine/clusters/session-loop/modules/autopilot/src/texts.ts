@@ -50,6 +50,17 @@ export function executorHowto(key: string): string {
   return EXECUTOR_HOWTO[key.slice(0, Math.max(0, key.indexOf(':')))]?.text ?? '';
 }
 
+/**
+ * Added to the sequential texts of a session whose provider has no orchestration (spec M8
+ * section 5; for now Kimi Code): the agent must not start it by itself either.
+ */
+export function sequentialOnlyNote(client: string): string {
+  return (
+    ` Sessions of this app (${client}) run a scope only sequentially: orchestration is not started from here. ` +
+    'Never run `scripts/workflow assignment:*` or `integration:*` and do not hand plan tasks to subagents in worktrees.'
+  );
+}
+
 /** "Начать выполнение плана": the Harness mode texts. */
 export const START_MESSAGES: Readonly<Record<'sequential' | 'orchestrated', string>> = {
   orchestrated: `${PREFIX} the user started the plan. Execution mode: orchestrated. You are the orchestrator: do not implement the work and DOCS tasks yourself (QUALITY and delivery tasks you run yourself in main). Hand out the tasks with \`scripts/workflow assignment:next\` and \`scripts/workflow assignment:create --task <ID>\` to subagents of your app, check their results and integrate them.`,

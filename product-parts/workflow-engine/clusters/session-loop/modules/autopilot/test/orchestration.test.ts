@@ -37,3 +37,27 @@ test('choose refuses orchestrated for a provider without orchestration, before a
   await assert.rejects(autopilot.choose('p', { session: 'codex:t1', generation: 1, option: 'orchestrated' }), (error: unknown) => !(error instanceof WorkflowActionError && error.code === 'orchestration-unavailable'));
   assert.deepEqual(asked, ['kimi', 'codex']);
 });
+
+test('a session without orchestration is told so in the sequential texts; the others are not', async () => {
+  const sent: Array<{ key: string; text: string }> = [];
+  const autopilot = createAutopilot({
+    runner: { run: async () => ({ ok: true, result: {} }), installed: () => false } as unknown as KitRunner,
+    workflow: { refresh: async () => null, status: () => null } as unknown as WorkflowState,
+    channel: { list: () => [], enqueue: (key: string, text: string) => void sent.push({ key, text }) } as unknown as AgentChannel,
+    projectPath: async () => '/nowhere',
+    orchestration: async (client) => (client === 'kimi' ? { available: false, reason: 'нет исполнителей' } : { available: true }),
+  });
+  for (const key of ['kimi:session_k1', 'codex:t1']) {
+    await autopilot.choose('p', { session: key, generation: 1, option: 'sequential' });
+    await autopilot.start('p', key);
+  }
+  const note = /run a scope only sequentially: orchestration is not started from here\. Never run `scripts\/workflow assignment:\*` or `integration:\*`/;
+  assert.deepEqual(sent.map((message) => [message.key, note.test(message.text)]), [
+    ['kimi:session_k1', true],
+    ['kimi:session_k1', true],
+    ['codex:t1', false],
+    ['codex:t1', false],
+  ]);
+  assert.match(sent[0]!.text, /execution mode chosen: sequential.*Sessions of this app \(kimi\)/s);
+  assert.match(sent[1]!.text, /Execution mode: sequential.*Sessions of this app \(kimi\)/s);
+});

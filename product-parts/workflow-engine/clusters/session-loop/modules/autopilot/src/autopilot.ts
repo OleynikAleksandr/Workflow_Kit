@@ -16,6 +16,7 @@ import {
   EXECUTOR_HOWTO,
   START_MESSAGES,
   executorHowto,
+  sequentialOnlyNote,
   STOP_LABELS,
   deliveryMessage,
   fixesMessage,
@@ -141,6 +142,12 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
     if (!capability || capability.available) return;
     const reason = capability.reason ?? 'сессии этого провайдера не запускают исполнителей';
     throw new WorkflowActionError('orchestration-unavailable', `Оркестрация недоступна: ${reason}`, 409, 'Выберите «Выполнить самому, последовательно».');
+  }
+
+  /** The note for the sequential texts of a session that cannot orchestrate; '' for the others. */
+  async function sequentialOnly(key: string): Promise<string> {
+    const capability = await options.orchestration?.(clientOf(key));
+    return capability && !capability.available ? sequentialOnlyNote(clientOf(key)) : '';
   }
 
   async function root(projectId: string): Promise<string> {
@@ -289,7 +296,8 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
         options.channel.enqueue(request.session, REFINE_MESSAGE, 'panel');
       } else {
         owners.set(projectId, request.session);
-        options.channel.enqueue(request.session, CHOSEN_WAIT[request.option], 'panel');
+        const only = request.option === 'sequential' ? await sequentialOnly(request.session) : '';
+        options.channel.enqueue(request.session, `${CHOSEN_WAIT[request.option]}${only}`, 'panel');
       }
       return { option: request.option, owner: request.session };
     },
@@ -299,7 +307,7 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
       const mode = await strategy(projectId);
       if (mode === 'orchestrated') await requireOrchestration(key);
       // Orchestration runs with the subagents of the session's app: the procedure differs.
-      await enable(projectId, key, mode === 'orchestrated' ? `${START_MESSAGES.orchestrated} ${executorHowto(key)}` : START_MESSAGES[mode]);
+      await enable(projectId, key, mode === 'orchestrated' ? `${START_MESSAGES.orchestrated} ${executorHowto(key)}` : `${START_MESSAGES[mode]}${await sequentialOnly(key)}`);
       return { owner: key };
     },
 

@@ -3,7 +3,7 @@
 // They are read by agents of any project, so they are written in English.
 
 /** Version of the Kit structure; bump it whenever a managed text below changes. */
-export const STRUCTURE_VERSION = 2;
+export const STRUCTURE_VERSION = 3;
 
 /** Markers of the Kit section in AGENTS.md. */
 export const AGENTS_BEGIN = '<!-- wfk:begin -->';
@@ -95,6 +95,10 @@ the SHA the subagent replies with:
   with \`spawn_agent\`, give it the brief and the line "Your worktree is
   <absolute path>; run every command with that workdir", and wait for its
   SHA with \`wait_agent\`. Kit removes the worktree after the integration.
+- Kimi Code: orchestration is not started from a Kimi Code session. It runs
+  a scope only sequentially (the panel offers no orchestrated mode for it):
+  never run \`scripts/workflow assignment:*\` or \`integration:*\` there and
+  do not hand plan tasks to subagents in worktrees.
 
 ### Architecture: product-parts
 

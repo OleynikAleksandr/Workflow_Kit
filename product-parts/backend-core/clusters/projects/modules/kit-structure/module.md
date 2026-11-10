@@ -14,7 +14,7 @@ SessionStart, Stop и UserPromptSubmit, приём хука SessionStart.
 
 | id | Файл | Как хранится |
 | --- | --- | --- |
-| `agents-section` | `AGENTS.md` | текст между `<!-- wfk:begin -->` и `<!-- wfk:end -->`: работа с панелью (тема сессии через `wfk session title` в первом ходе с задачей, не в служебном приветствии; вопрос о плане `wfk session plan` перед спецификацией задачи разработки — не для разговоров и исследований, M4 раздел 12; публикация на GitHub — не задача плана: только по просьбе пользователя после приёмки и закрытия scope, кнопкой панели или `wfk project publish`, publication-order 3.3; оркестрация встроенными подагентами приложения — Claude: Agent с `isolation: "worktree"`, ChatGPT/Codex: своя `git worktree add --detach .workflow-kit/local/worktrees/<id> <baseCommit>` и `spawn_agent`; выбор пути и запуск плана кнопками, сообщения `Workflow Kit:`) и соглашение product-parts |
+| `agents-section` | `AGENTS.md` | текст между `<!-- wfk:begin -->` и `<!-- wfk:end -->`: работа с панелью (тема сессии через `wfk session title` в первом ходе с задачей, не в служебном приветствии; вопрос о плане `wfk session plan` перед спецификацией задачи разработки — не для разговоров и исследований, M4 раздел 12; публикация на GitHub — не задача плана: только по просьбе пользователя после приёмки и закрытия scope, кнопкой панели или `wfk project publish`, publication-order 3.3; оркестрация встроенными подагентами приложения — Claude: Agent с `isolation: "worktree"`, ChatGPT/Codex: своя `git worktree add --detach .workflow-kit/local/worktrees/<id> <baseCommit>` и `spawn_agent`, Kimi Code: оркестрация из его сессии не запускается, скоуп идёт только последовательно (M8, раздел 5); выбор пути и запуск плана кнопками, сообщения `Workflow Kit:`) и соглашение product-parts |
 | `claude-md` | `CLAUDE.md` | `@AGENTS.md`, создаётся только если файла нет; не хешируется (дальше файл пользователя) |
 | `claude-hook` | `.claude/settings.json` | по группе в `hooks.SessionStart`, `hooks.Stop` (`timeout` 600 с) и `hooks.UserPromptSubmit` (`timeout` 30 с) |
 | `codex-hook` | `.codex/hooks.json` | то же, тайм-аут в поле `timeoutSec`; новая группа — только в конец списка события (одобрение Codex позиционное) |
@@ -42,7 +42,7 @@ UserPromptSubmit в конец их списков.
 - `checkStructure(root) → StructureReport` — только читает. Отчёт:
   `status` (общий: самый серьёзный из фрагментов, порядок
   `modified > newer > outdated > missing > ok`; без манифеста не выше
-  `missing`), `version` (`STRUCTURE_VERSION` = 2), `installedVersion`
+  `missing`), `version` (`STRUCTURE_VERSION` = 3), `installedVersion`
   (из манифеста или `null`), `fragments` (`id`, `path`, `kind`, `status`,
   `error?`), `warnings` (CLAUDE.md без `@AGENTS.md`, повреждённый манифест),
   `notes` (каталог product-parts уже есть), `installable` (установка без

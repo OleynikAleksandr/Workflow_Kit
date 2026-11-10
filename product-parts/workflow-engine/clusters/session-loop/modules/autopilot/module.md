@@ -49,6 +49,10 @@
     `orchestration(client)`; иначе `choose` с `orchestrated` и `start`
     оркестрируемого плана — 409 `orchestration-unavailable`, M8, раздел 5); агенту — «режим
     выбран, ждите кнопку запуска» или текст «доработать спецификацию».
+    Сессии провайдера без оркестрации (пока Kimi Code) к текстам
+    последовательного режима в `choose` и `start` добавляется
+    `sequentialOnlyNote(client)`: оркестрация отсюда не запускается,
+    `assignment:*`/`integration:*` и подагенты в worktree запрещены.
   - `start` (текст режима Harness: последовательно или оркестратор; у
     оркестратора — процедура исполнителя его приложения `executorHowto`
     из таблицы `EXECUTOR_HOWTO` по id провайдера (`{ text, repeat }`):
@@ -76,7 +80,7 @@
   раздел `autopilot` в `/api/state`.
 - Тексты: `PREFIX` (`Workflow Kit:`), `CHOICE_NOTES`, `CHOSEN_WAIT`,
   `START_MESSAGES`, `EXECUTOR_HOWTO`,
-  `executorHowto(key)`, `REFINE_MESSAGE`, `RESUME_MESSAGE`, `fixesMessage`,
+  `executorHowto(key)`, `sequentialOnlyNote(client)`, `REFINE_MESSAGE`, `RESUME_MESSAGE`, `fixesMessage`,
   `deliveryMessage`, `STOP_LABELS`.
 
 ## Инварианты

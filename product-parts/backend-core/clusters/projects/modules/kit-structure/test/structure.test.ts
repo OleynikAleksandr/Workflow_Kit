@@ -107,6 +107,8 @@ test('an empty folder is "missing"; install writes everything and the result is 
   assert.equal(kitHookEntry('claude', 'Stop', { platform: 'darwin', node: '', launcher: '' }).timeout, 600);
   assert.equal(kitHookEntry('codex', 'UserPromptSubmit', { platform: 'linux', node: '', launcher: '' }).timeoutSec, 30);
   assert.match(agents, /wfk session title/);
+  // Spec M8 section 5: Kimi Code runs a scope only sequentially and is told so.
+  assert.match(agents, /Kimi Code: orchestration is not started from a Kimi Code session\. It runs\s+a scope only sequentially/);
 
   const manifest = JSON.parse(await read(root, MANIFEST_PATH));
   assert.equal(manifest.version, STRUCTURE_VERSION);

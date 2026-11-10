@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 488,
+  "revision": 490,
   "rounds": [
     {
       "digest": null,
@@ -785,14 +785,25 @@
         "product-parts/workflow-engine/clusters/session-loop/modules/plan-review",
         "product-parts/backend-core/clusters/projects/modules/kit-structure",
         "product-parts/backend-core/clusters/runtime/modules/cli",
-        "docs/architecture/OVERVIEW.md"
+        "docs/architecture/OVERVIEW.md",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/module.md",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/src/templates.ts",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/test/structure.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/scenario-world.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/scenarios.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/autopilot.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/index.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/texts.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/orchestration.test.ts"
       ],
       "fixes": null,
       "id": "T011",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Scenario tests, autopilot texts and AGENTS template for Kimi",
       "why": "The whole chain must be proven on real fixtures before the release"
     },
@@ -885,8 +896,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 10/13
-- Revision: 488
+- Progress: 11/13
+- Revision: 490
 
 ## Objective
 
@@ -943,9 +954,9 @@ Add Kimi Code as the third provider of Workflow Kit and release 0.6.0
   - Commit: feat: open Kimi sessions in the Kimi Code app and through Remote Control
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/control-panel/clusters/web-panel/modules/session-view, tools/platform-guard/allowlist.json, docs/architecture/OVERVIEW.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/open-link.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/open-link.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/actions.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/styles.css, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/tree.css, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/view-model.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/links.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/app-link.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/remote.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/session-list.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/shapes.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/app-remote.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fake-sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/helpers.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/hooks.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/provider.test.ts
   - Depends on: T009
-- [TODO] T011 — Scenario tests, autopilot texts and AGENTS template for Kimi (work)
+- [DONE] T011 — Scenario tests, autopilot texts and AGENTS template for Kimi (work)
   - Commit: test: cover Kimi autopilot and review scenarios; say that Kimi runs scopes sequentially
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel, product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/workflow-engine/clusters/session-loop/modules/cross-review, product-parts/workflow-engine/clusters/session-loop/modules/plan-review, product-parts/backend-core/clusters/projects/modules/kit-structure, product-parts/backend-core/clusters/runtime/modules/cli, docs/architecture/OVERVIEW.md
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel, product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/workflow-engine/clusters/session-loop/modules/cross-review, product-parts/workflow-engine/clusters/session-loop/modules/plan-review, product-parts/backend-core/clusters/projects/modules/kit-structure, product-parts/backend-core/clusters/runtime/modules/cli, docs/architecture/OVERVIEW.md, product-parts/backend-core/clusters/projects/modules/kit-structure/module.md, product-parts/backend-core/clusters/projects/modules/kit-structure/src/templates.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/test/structure.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/scenario-world.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/scenarios.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/autopilot.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/texts.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/orchestration.test.ts
   - Depends on: T010
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1

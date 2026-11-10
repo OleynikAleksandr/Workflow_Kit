@@ -29,6 +29,11 @@
   Kimi уже закрытого теста (проявляется, когда файл сценариев идёт дольше минуты;
   воспроизведено на macOS под нагрузкой). Исправлено в релизном коммите:
   `lifecycle.stop()` в `cli` и отказ закрытой подставной машины запускать серверы.
+- CI, релизный коммит `5c2b1f5` в ветке `ci/m8-kimi-provider`,
+  [запуск 42779716378](https://github.com/OleynikAleksandr/Workflow_Kit/actions/runs/42779716378) —
+  успех на macOS ARM64, Linux x64, Windows x64 и Windows ARM64 (typecheck, тесты,
+  `check:platforms`). После коммита 0.6.0 переустановлен из него: `wfk doctor --installed` —
+  «всё в порядке».
 
 ## Живые проверки
 

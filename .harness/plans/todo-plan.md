@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 515,
+  "revision": 516,
   "rounds": [
     {
       "digest": {
@@ -66,6 +66,13 @@
       "kind": "fixes",
       "status": "CLOSED",
       "title": "Fixes of the 0.6.1 live check"
+    },
+    {
+      "digest": null,
+      "id": "R3",
+      "kind": "fixes",
+      "status": "OPEN",
+      "title": "Fixes"
     }
   ],
   "schema": "harness-workflow-plan/1",
@@ -104,7 +111,7 @@
         "text": "Kit never restarts the Kimi Code app; it tells the user to restart it when the app started before the Kit hook was written"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "IN_PROGRESS",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "claude:01493504-12b2-440a-84f4-17acf7bc1c61",
@@ -424,6 +431,72 @@
       "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
+    },
+    {
+      "acceptance": [
+        "Project-wide documents describe the round result",
+        "The round digest records result, decisions, contracts and references"
+      ],
+      "checks": [],
+      "commitMessage": "docs: reconcile documentation for R3",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/architecture/OVERVIEW.md"
+      ],
+      "fixes": null,
+      "id": "DOCS-R3",
+      "iteration": 1,
+      "kind": "docs",
+      "roundId": "R3",
+      "status": "TODO",
+      "title": "Reconcile project documentation and write the round digest",
+      "why": "Keep the project context current for the next agent and close the round."
+    },
+    {
+      "acceptance": [
+        "Version 0.6.2 in package files and docs; CHANGELOG entry",
+        "node bin/wfk.mjs install and wfk doctor --installed pass",
+        "CI on ci/m9-kimi-start-fixes is green on macOS, Linux, Windows x64 and ARM64",
+        "The acceptance document lists the live checks of R2 per OS; items not checked live are recorded as unverified"
+      ],
+      "checks": [],
+      "commitMessage": "chore: release 0.6.2",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M9-kimi-start-fixes.md",
+          "heading": "8. Раунд исправлений R2 (живая проверка 0.6.1)",
+          "required": true
+        }
+      ],
+      "dependencies": [
+        "T005",
+        "T006",
+        "DOCS-R2",
+        "DOCS-R3"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "package.json",
+        "package-lock.json",
+        "CHANGELOG.md",
+        "README.md",
+        "docs/installation.md",
+        "docs/architecture/OVERVIEW.md",
+        "docs/evidence/M9-acceptance.md"
+      ],
+      "fixes": null,
+      "id": "T007",
+      "iteration": 1,
+      "kind": "delivery",
+      "roundId": "R3",
+      "status": "TODO",
+      "title": "Release 0.6.2 with green CI",
+      "why": "The user tests the fixes of the 0.6.1 live check in a new release"
     }
   ]
 }
@@ -433,11 +506,11 @@
 ## State
 
 - Scope: m9-kimi-start-fixes (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 8/8
-- Revision: 515
+- Progress: 8/10
+- Revision: 516
 
 ## Objective
 
@@ -490,5 +563,15 @@ Digest: Kimi sessions start correctly: while the Kimi Code app runs, Kit creates
   - Depends on: T005, T006
 
 Digest: Kimi project opens in the Kimi Code app without an empty chat: the service starts the app with --workspace=<folder> (macOS open -n -a, Windows Start-Process of the kimi-code handler), the link is the fallback and stays for Linux and new sessions. The renamed kimi web server stays in the process records, and the app restart note comes only from the server of the app.
+
+### R3 — Fixes (fixes, OPEN)
+
+- [TODO] DOCS-R3 — Reconcile project documentation and write the round digest (docs)
+  - Commit: docs: reconcile documentation for R3
+  - Files: README.md, docs/architecture/OVERVIEW.md
+- [TODO] T007 — Release 0.6.2 with green CI (delivery)
+  - Commit: chore: release 0.6.2
+  - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/installation.md, docs/architecture/OVERVIEW.md, docs/evidence/M9-acceptance.md
+  - Depends on: T005, T006, DOCS-R2, DOCS-R3
 
 State changes only through `scripts/workflow` commands. History lives in Git.

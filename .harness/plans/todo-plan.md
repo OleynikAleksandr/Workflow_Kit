@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 532,
+  "revision": 534,
   "rounds": [
     {
       "digest": null,
@@ -129,14 +129,17 @@
       ],
       "docsWaiver": null,
       "files": [
-        "product-parts/backend-core/clusters/projects/modules/kit-structure"
+        "product-parts/backend-core/clusters/projects/modules/kit-structure",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/module.md",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/src/templates.ts",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/test/structure.test.ts"
       ],
       "fixes": null,
       "id": "T002",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "AGENTS.md section allows the Agent tool in Kimi sessions",
       "why": "Kimi launches subagents only when AGENTS.md or the user explicitly allows them"
     },
@@ -220,8 +223,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 1/4
-- Revision: 532
+- Progress: 2/4
+- Revision: 534
 
 ## Objective
 
@@ -241,9 +244,9 @@ A Kimi Code session runs a scope with executors in worktrees and uses helper sub
 - [DONE] T001 — Orchestration in Kimi sessions (work)
   - Commit: feat: let Kimi sessions orchestrate executors with the Agent tool
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi, product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/workflow-engine/clusters/kit-host/modules/plan-view, docs/architecture/OVERVIEW.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/scenarios.test.ts, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/module.md, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/test/plan-view.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/texts.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/decide.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/orchestration.test.ts
-- [TODO] T002 — AGENTS.md section allows the Agent tool in Kimi sessions (work)
+- [DONE] T002 — AGENTS.md section allows the Agent tool in Kimi sessions (work)
   - Commit: feat: describe the Kimi executor procedure and helper subagents in AGENTS.md
-  - Files: product-parts/backend-core/clusters/projects/modules/kit-structure
+  - Files: product-parts/backend-core/clusters/projects/modules/kit-structure, product-parts/backend-core/clusters/projects/modules/kit-structure/module.md, product-parts/backend-core/clusters/projects/modules/kit-structure/src/templates.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/test/structure.test.ts
   - Depends on: T001
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1

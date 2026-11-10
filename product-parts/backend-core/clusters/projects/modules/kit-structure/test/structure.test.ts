@@ -107,8 +107,12 @@ test('an empty folder is "missing"; install writes everything and the result is 
   assert.equal(kitHookEntry('claude', 'Stop', { platform: 'darwin', node: '', launcher: '' }).timeout, 600);
   assert.equal(kitHookEntry('codex', 'UserPromptSubmit', { platform: 'linux', node: '', launcher: '' }).timeoutSec, 30);
   assert.match(agents, /wfk session title/);
-  // Spec M8 section 5: Kimi Code runs a scope only sequentially and is told so.
-  assert.match(agents, /Kimi Code: orchestration is not started from a Kimi Code session\. It runs\s+a scope only sequentially/);
+  // Spec M10 section 2.3: Kimi launches subagents only when AGENTS.md allows them explicitly.
+  assert.match(agents, /Kimi Code: this section explicitly allows the Agent tool in a Kimi Code\s+session/);
+  assert.match(agents, /start the subagent with the Agent tool in the foreground/);
+  assert.match(agents, /pass it as cwd to every Bash call/);
+  assert.match(agents, /In the sequential mode Agent helpers may search,\s+read and check for the current task: they work in main, never commit/);
+  assert.doesNotMatch(agents, /orchestration is not started from a Kimi Code session/);
 
   const manifest = JSON.parse(await read(root, MANIFEST_PATH));
   assert.equal(manifest.version, STRUCTURE_VERSION);

@@ -95,10 +95,17 @@ the SHA the subagent replies with:
   with \`spawn_agent\`, give it the brief and the line "Your worktree is
   <absolute path>; run every command with that workdir", and wait for its
   SHA with \`wait_agent\`. Kit removes the worktree after the integration.
-- Kimi Code: orchestration is not started from a Kimi Code session. It runs
-  a scope only sequentially (the panel offers no orchestrated mode for it):
-  never run \`scripts/workflow assignment:*\` or \`integration:*\` there and
-  do not hand plan tasks to subagents in worktrees.
+- Kimi Code: this section explicitly allows the Agent tool in a Kimi Code
+  session. Executors: make the worktree yourself as for Codex
+  (\`git worktree add --detach .workflow-kit/local/worktrees/<assignment id> <baseCommit>\`),
+  start the subagent with the Agent tool in the foreground (no
+  \`run_in_background\`), give it the brief and the line "Your worktree is
+  <absolute path>; pass it as cwd to every Bash call and use absolute paths
+  inside it for Read, Edit and Write"; independent assignments go as several
+  Agent calls in one message. Do not use AgentSwarm. Kit removes the worktree
+  after the integration. In the sequential mode Agent helpers may search,
+  read and check for the current task: they work in main, never commit and
+  never run \`scripts/workflow\`.
 
 ### Architecture: product-parts
 

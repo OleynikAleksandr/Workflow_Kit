@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 523,
+  "revision": 525,
   "rounds": [
     {
       "digest": {
@@ -87,7 +87,18 @@
       "title": "Fixes"
     },
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "No contract changes in R4"
+        ],
+        "decisions": [
+          "Tests that inject a platform build expected paths by the rules of that platform, not of the host"
+        ],
+        "references": [
+          "docs/evidence/M9-acceptance.md"
+        ],
+        "result": "The tests of the Kimi launch and of renames pass on Windows hosts: the macOS bundle path is expected with the macOS separator, and the renames children run outside the removed folder. No product code or contract changed."
+      },
       "id": "R4",
       "kind": "fixes",
       "status": "OPEN",
@@ -564,7 +575,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R4",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -605,8 +616,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 11/13
-- Revision: 523
+- Progress: 12/13
+- Revision: 525
 
 ## Objective
 
@@ -678,7 +689,7 @@ Digest: Round R3 delivers release 0.6.2 with the R2 fixes of the 0.6.1 live chec
   - Commit: test: make the Kimi launch and renames tests pass on Windows hosts
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/workspace-launch.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/test/supervisor.test.ts
   - Fixes: T005
-- [TODO] DOCS-R4 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R4 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R4
   - Files: README.md, docs/architecture/OVERVIEW.md
   - Depends on: T008
@@ -686,5 +697,7 @@ Digest: Round R3 delivers release 0.6.2 with the R2 fixes of the 0.6.1 live chec
   - Commit: docs: record the CI run of 0.6.2
   - Files: docs/evidence/M9-acceptance.md
   - Depends on: T008, DOCS-R4
+
+Digest: The tests of the Kimi launch and of renames pass on Windows hosts: the macOS bundle path is expected with the macOS separator, and the renames children run outside the removed folder. No product code or contract changed.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

@@ -36,6 +36,19 @@ const CLAUDE_EXECUTOR_HOWTO =
   '`scripts/workflow integration:start --id <assignment id> --source <sha>`.';
 
 /**
+ * How a Kimi Code orchestrator runs an executor (spec M10 section 2.2): like Codex the orchestrator
+ * makes the worktree; the Agent tool has no isolation, so the subagent works in it through the cwd
+ * of Bash and absolute paths. In the foreground: the SHA is needed in this turn.
+ */
+const KIMI_EXECUTOR_HOWTO =
+  'For each assignment: `git worktree add --detach .workflow-kit/local/worktrees/<assignment id> <baseCommit>` ' +
+  '(baseCommit from the assignment:create output); start a subagent with the Agent tool in the foreground (no run_in_background), ' +
+  'give it the brief and the line "Your worktree is <absolute path>; pass it as cwd to every Bash call and use absolute paths ' +
+  'inside it for Read, Edit and Write"; independent assignments go as several Agent calls in one message (up to maxWorkers); ' +
+  'do not use AgentSwarm; then `scripts/workflow integration:start --id <assignment id> --source <sha>` with the SHA the subagent ' +
+  'replies with; Kit removes the worktree after the integration.';
+
+/**
  * The executor procedure of every provider whose sessions may orchestrate, by provider id — the
  * only place that knows them. `repeat`: the autopilot adds the procedure to every continue of an
  * orchestrated scope (the app does not keep it in mind between turns).
@@ -43,6 +56,8 @@ const CLAUDE_EXECUTOR_HOWTO =
 export const EXECUTOR_HOWTO: Readonly<Record<string, { text: string; repeat: boolean }>> = Object.freeze({
   claude: { text: CLAUDE_EXECUTOR_HOWTO, repeat: false },
   codex: { text: CODEX_EXECUTOR_HOWTO, repeat: true },
+  // Kimi reads AGENTS.md only when its session starts: the procedure goes with every continue.
+  kimi: { text: KIMI_EXECUTOR_HOWTO, repeat: true },
 });
 
 /** The executor procedure of the app of a session key ('<provider>:<id>'); '' when it has none. */
@@ -52,7 +67,7 @@ export function executorHowto(key: string): string {
 
 /**
  * Added to the sequential texts of a session whose provider has no orchestration (spec M8
- * section 5; for now Kimi Code): the agent must not start it by itself either.
+ * section 5; since M10 every provider of Kit has it): the agent must not start it by itself either.
  */
 export function sequentialOnlyNote(client: string): string {
   return (

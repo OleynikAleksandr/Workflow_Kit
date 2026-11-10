@@ -49,7 +49,7 @@
     `orchestration(client)`; иначе `choose` с `orchestrated` и `start`
     оркестрируемого плана — 409 `orchestration-unavailable`, M8, раздел 5); агенту — «режим
     выбран, ждите кнопку запуска» или текст «доработать спецификацию».
-    Сессии провайдера без оркестрации (пока Kimi Code) к текстам
+    Сессии провайдера без оркестрации (с M10 такого провайдера в Kit нет) к текстам
     последовательного режима в `choose` и `start` добавляется
     `sequentialOnlyNote(client)`: оркестрация отсюда не запускается,
     `assignment:*`/`integration:*` и подагенты в worktree запрещены.
@@ -58,8 +58,12 @@
     из таблицы `EXECUTOR_HOWTO` по id провайдера (`{ text, repeat }`):
     Claude — Agent с `isolation: "worktree"`, Codex — `git worktree add
     --detach .workflow-kit/local/worktrees/<id> <baseCommit>`, `spawn_agent`
-    с `workdir`, `wait_agent`, `integration:start`; продолжения автопилота
-    в оркестрации дополняются процедурой у провайдера с `repeat` — Codex),
+    с `workdir`, `wait_agent`, `integration:start`; Kimi (M10, раздел 2.2) —
+    тот же `git worktree add`, сабагент — инструмент `Agent` на переднем плане
+    (без `run_in_background`, без `AgentSwarm`), worktree — `cwd` каждого
+    `Bash`, независимые задания — несколько вызовов `Agent` в одном сообщении,
+    `integration:start` по SHA; продолжения автопилота в оркестрации
+    дополняются процедурой у провайдера с `repeat` — Codex и Kimi),
     `pause` (`pause:set --on`), `resume` (`pause:set --off` при паузе и
     «продолжай»), `accept` (`accept --note`, слова пользователя или текст по
     умолчанию), `close` (`close --scope <id> --note`), `fixes` (текст

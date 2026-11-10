@@ -36,7 +36,8 @@ test('the provider is Kimi Code with the kimi hook dialect; the OS note is on Li
     assert.equal((await createKimiProvider(machine.context({ platform: 'darwin' })).status()).note, undefined);
     const capabilities = await provider.capabilities();
     assert.equal(capabilities['trust']?.available, true);
-    assert.equal(capabilities['orchestration']?.available, false);
+    // Spec M10: executors through the Agent tool; without the program the reason is the program's.
+    assert.equal(capabilities['orchestration']?.available, true);
     assert.equal(capabilities['reviewer']?.available, false);
   });
 });
@@ -46,6 +47,7 @@ test('status: not installed, an old version, ready on demand without starting th
     const provider = createKimiProvider(machine.context(), FAST);
     assert.deepEqual(brief(await provider.refresh!()), ['not-installed', 'Kimi Code не найден', note()]);
     assert.equal((await provider.capabilities())['trust']?.reason, 'Kimi Code не найден');
+    assert.deepEqual((await provider.capabilities())['orchestration'], { available: false, reason: 'Kimi Code не найден' });
     await machine.installProgram();
     machine.version = '2.5.1';
     assert.deepEqual(brief(await provider.refresh!()), ['unavailable', 'нужна версия Kimi Code не ниже 2.5.2', note()]);

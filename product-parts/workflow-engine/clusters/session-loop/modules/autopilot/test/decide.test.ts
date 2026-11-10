@@ -46,13 +46,14 @@ test('a user message resets the continue counter', () => {
   assert.equal(nextAutopilotState({ ...state, continues: 7 }, decision).continues, 0);
 });
 
-test('orchestration runs with the subagents of the session app: Claude Agent with a worktree, Codex spawn_agent in a worktree it makes', () => {
+test('orchestration runs with the subagents of the session app: Claude Agent with a worktree, Codex spawn_agent and Kimi Agent in a worktree they make', () => {
   assert.match(executorHowto('claude:s1'), /Agent tool and isolation: "worktree"/);
   assert.match(executorHowto('codex:t1'), /git worktree add --detach \.workflow-kit\/local\/worktrees\/<assignment id> <baseCommit>/);
   assert.match(executorHowto('codex:t1'), /spawn_agent/);
   assert.match(executorHowto('codex:t1'), /integration:start/);
-  // One table by provider id: a provider without a line (Kimi: no orchestration) has no procedure.
-  assert.deepEqual(Object.keys(EXECUTOR_HOWTO).sort(), ['claude', 'codex']);
-  assert.deepEqual([EXECUTOR_HOWTO['claude']!.repeat, EXECUTOR_HOWTO['codex']!.repeat], [false, true]);
-  assert.equal(executorHowto('kimi:session_k1'), '');
+  assert.match(executorHowto('kimi:session_k1'), /git worktree add --detach .*Agent tool in the foreground/);
+  // One table by provider id (Kimi since M10); a provider without a line has no procedure.
+  assert.deepEqual(Object.keys(EXECUTOR_HOWTO).sort(), ['claude', 'codex', 'kimi']);
+  assert.deepEqual([EXECUTOR_HOWTO['claude']!.repeat, EXECUTOR_HOWTO['codex']!.repeat, EXECUTOR_HOWTO['kimi']!.repeat], [false, true, true]);
+  assert.equal(executorHowto('other:s1'), '');
 });

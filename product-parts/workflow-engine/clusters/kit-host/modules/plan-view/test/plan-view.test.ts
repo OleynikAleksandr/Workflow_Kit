@@ -114,7 +114,8 @@ test('choice card: recommended first, refine last, orchestration only for a prov
   assert.equal(card.options[2]!.title, 'Сначала доработать спецификацию');
   assert.equal(card.generation, 2);
   assert.deepEqual(choiceOptionsFor(card, true).map((o) => o.option), ['orchestrated', 'sequential', 'refine']);
-  // A provider without the orchestration capability (Kimi) runs a scope only sequentially.
+  // A provider without the orchestration capability runs a scope only sequentially (since M10
+  // Kimi has it, like Claude and ChatGPT).
   assert.deepEqual(choiceOptionsFor(card, false).map((o) => o.option), ['sequential', 'refine']);
   assert.equal(card.options.length, 3, 'the card itself is not changed');
   const sequential = buildChoiceCard({ ...proposal, recommended: 'sequential' })!;

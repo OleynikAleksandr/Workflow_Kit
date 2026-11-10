@@ -1,10 +1,12 @@
 // Scenarios of spec M8 section 7 on the whole chain (scenario-world.ts): the autopilot continues a
 // Kimi session twice in a row, and a plan of Kimi goes through a full review round with ChatGPT.
+// Since M10 a Kimi session may orchestrate: the start carries the Kimi executor procedure.
 import assert from 'node:assert/strict';
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { test } from 'node:test';
 import { sessionKey } from '#agent-channel';
+import { EXECUTOR_HOWTO } from '#autopilot';
 import { PLAN_REQUEST } from '#cross-review';
 import { PLAN, withScenario } from './scenario-world.ts';
 
@@ -27,11 +29,11 @@ test('the autopilot runs a plan in a Kimi session: two continuations in a row, a
     assert.equal(app.autopilot.get(key)?.origin, 'user');
     assert.deepEqual(world.sent(), [], 'nothing is sent while the user decides');
 
-    // The choice of the panel goes as a prompt; Kimi is told that it never orchestrates.
+    // The choice of the panel goes as a prompt; since M10 nothing forbids subagents to Kimi.
     await app.autopilot.choose(projectId, { session: key, generation: 1, option: 'sequential' });
     const chosen = await world.prompts(1);
     assert.match(chosen.text, /execution mode chosen: sequential/);
-    assert.match(chosen.text, ONLY_SEQUENTIAL);
+    assert.doesNotMatch(chosen.text, ONLY_SEQUENTIAL);
     await world.turn(session, chosen.text, 'План создан, жду запуска.');
     await world.until(() => hold() === 'waiting-for-plan-start', 'the plan waits for the start button');
     assert.equal(app.autopilot.get(key)?.origin, 'kit', 'the prompt of the service is not a turn of the user');
@@ -39,7 +41,7 @@ test('the autopilot runs a plan in a Kimi session: two continuations in a row, a
     await app.autopilot.start(projectId);
     const started = await world.prompts(2);
     assert.match(started.text, /Execution mode: sequential/);
-    assert.match(started.text, ONLY_SEQUENTIAL);
+    assert.doesNotMatch(started.text, ONLY_SEQUENTIAL);
 
     // QUALITY; a subagent of Kimi ends in the middle of the turn: its Stop sends nothing.
     await world.turn(session, started.text, 'Проверки выбраны.', async () => {
@@ -78,6 +80,39 @@ test('the autopilot runs a plan in a Kimi session: two continuations in a row, a
     assert.ok(sent.every((prompt) => prompt.sessionId === session.id && /^kit-[0-9a-f-]{36}$/.test(prompt.id)), 'every prompt has the id of its delivery');
     assert.equal(new Set(sent.map((prompt) => prompt.id)).size, 4);
     assert.equal(app.channel.get(key)?.note ?? null, null, 'the session lock was seen at every Stop');
+  });
+});
+
+test('a Kimi session orchestrates (spec M10): the orchestrated choice and start reach it with the Kimi executor procedure', async () => {
+  await withScenario(async (world) => {
+    const { app, projectId } = world;
+    const session = world.session('Параллельно');
+    const key = sessionKey('kimi', session.id);
+    const hold = (): string | null | undefined => app.channel.get(key)?.holdReason;
+    await app.review.set(projectId, key, false);
+    const plan = {
+      ...PLAN,
+      tasks: [
+        { id: 'T001', title: 'Файл A', commitMessage: 'feat: add a', acceptance: ['a'], files: ['src/a.txt'], parallelSafe: true },
+        { id: 'T002', title: 'Файл B', commitMessage: 'feat: add b', acceptance: ['b'], files: ['src/b.txt'], parallelSafe: true },
+      ],
+    };
+    await world.turn(session, 'Напиши спецификацию и предложи план', 'План предложен.', async () => {
+      await world.kit('scope:propose', '--input', await world.input('plan.json', plan), '--recommended', 'orchestrated', '--reason', 'Две независимые задачи');
+    });
+    await world.until(() => hold() === 'waiting-for-mode-choice', 'the proposing session waits for the mode');
+
+    await app.autopilot.choose(projectId, { session: key, generation: 1, option: 'orchestrated' });
+    const chosen = await world.prompts(1);
+    assert.match(chosen.text, /execution mode chosen: orchestrated/);
+    assert.doesNotMatch(chosen.text, ONLY_SEQUENTIAL);
+    await world.turn(session, chosen.text, 'План создан, жду запуска.');
+    await world.until(() => hold() === 'waiting-for-plan-start', 'the plan waits for the start button');
+
+    await app.autopilot.start(projectId);
+    const started = await world.prompts(2);
+    assert.match(started.text, /Execution mode: orchestrated/);
+    assert.ok(started.text.includes(EXECUTOR_HOWTO['kimi']!.text), 'the start carries the Kimi executor procedure');
   });
 });
 

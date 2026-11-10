@@ -38,7 +38,8 @@
   у варианта `title`, `description` (тексты макета), `recommended`.
 - `choiceOptionsFor(card, orchestration)` — варианты для сессии: `orchestration` —
   возможность её провайдера (оркестрация идёт встроенными подагентами приложения, веха 3,
-  раунд 7); без неё вариант `orchestrated` не показывается (M8, раздел 5).
+  раунд 7); без неё вариант `orchestrated` не показывается (M8, раздел 5). С M10
+  возможность есть у всех провайдеров Kit, Kimi Code тоже.
 - Константы подписей `PHASE_LABELS`, `TASK_STATE_LABELS`, `MODE_LABELS`.
 
 ## Инварианты

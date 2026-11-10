@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 530,
+  "revision": 532,
   "rounds": [
     {
       "digest": null,
@@ -87,14 +87,24 @@
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi",
         "product-parts/workflow-engine/clusters/session-loop/modules/autopilot",
         "product-parts/workflow-engine/clusters/kit-host/modules/plan-view",
-        "docs/architecture/OVERVIEW.md"
+        "docs/architecture/OVERVIEW.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/provider.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/provider.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/scenarios.test.ts",
+        "product-parts/workflow-engine/clusters/kit-host/modules/plan-view/module.md",
+        "product-parts/workflow-engine/clusters/kit-host/modules/plan-view/test/plan-view.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/texts.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/decide.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/orchestration.test.ts"
       ],
       "fixes": null,
       "id": "T001",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Orchestration in Kimi sessions",
       "why": "Kit declares that Kimi has no orchestration and tells Kimi never to use subagents"
     },
@@ -210,8 +220,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 0/4
-- Revision: 530
+- Progress: 1/4
+- Revision: 532
 
 ## Objective
 
@@ -228,9 +238,9 @@ A Kimi Code session runs a scope with executors in worktrees and uses helper sub
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T001 — Orchestration in Kimi sessions (work)
+- [DONE] T001 — Orchestration in Kimi sessions (work)
   - Commit: feat: let Kimi sessions orchestrate executors with the Agent tool
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi, product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/workflow-engine/clusters/kit-host/modules/plan-view, docs/architecture/OVERVIEW.md
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi, product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/workflow-engine/clusters/kit-host/modules/plan-view, docs/architecture/OVERVIEW.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/scenarios.test.ts, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/module.md, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/test/plan-view.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/texts.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/decide.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/orchestration.test.ts
 - [TODO] T002 — AGENTS.md section allows the Agent tool in Kimi sessions (work)
   - Commit: feat: describe the Kimi executor procedure and helper subagents in AGENTS.md
   - Files: product-parts/backend-core/clusters/projects/modules/kit-structure

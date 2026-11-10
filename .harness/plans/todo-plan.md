@@ -10,10 +10,41 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 490,
+  "revision": 492,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "provider-registry: Provider.hookDialect, sessionIdle, lastAnswer, sendMessage(project, sid, text, { id }), lockSwitch, capabilities orchestration and reviewer, HookState.writes, provider actions with scope 'provider'.",
+          "agent-channel: POST /api/hooks/turn-end { client, sessionId, cwd, event }, detached Stop, outbox per slot, channel.flush(key), session note.",
+          "cli: `wfk hook turn-end --client <id>`, hook clients from the registry, 409 session-ambiguous, PROVIDER_ENTRIES order codex, claude, kimi.",
+          "provider-kimi: createProvider, actions restart-kimi-server, kimi-remote, kimi-remote-off, remove-kimi-hook; error codes hooks-busy, hooks-changed, hooks-unknown, hooks-invalid, kimi-server, kimi-not-ready, kimi-trust.",
+          "kit-structure: kimiHookBlocks, kimiHooksSection, isKimiKitCommand, STRUCTURE_VERSION 3.",
+          "autopilot: sequentialOnlyNote(client); choiceOptionsFor hides orchestrated for a provider without orchestration.",
+          "service-installer: kimi is an optional program in PROGRAMS, shown by wfk status and wfk doctor."
+        ],
+        "decisions": [
+          "Kimi turn end is detached: the hook answers at once, a watcher waits for the session lock to go and the next message is sent as a prompt with prompt_id kit-<delivery id>; a subagent Stop delivers nothing.",
+          "The Kimi server is started on demand (requireReady), not at service start; status never starts it; the provider action starts or restarts it.",
+          "Provider differences are read from the contract (hookDialect, sendMessage, sessionIdle, resumeSession, capabilities orchestration and reviewer), never from the provider id.",
+          "Hook approval of any provider takes the command and hash shown in the preview; a changed file is refused with hooks-changed.",
+          "A Kimi session runs a scope only sequentially and is never a reviewer; the review pair is kimi -> codex. AGENTS.md template says so (STRUCTURE_VERSION 3).",
+          "Deleting a Kimi session while the server is unreachable leaves an intent kept for 7 days and retried; the panel archive is mirrored to Kimi.",
+          "`wfk session` without a client picks the only project session with a running turn, otherwise answers 409 session-ambiguous.",
+          "Kimi is live-checked on macOS only; Linux and Windows carry the status note and are covered by tests with an injected platform."
+        ],
+        "references": [
+          "docs/planning/M8-kimi-provider.md",
+          "docs/planning/M8-kimi-protocol.md",
+          "docs/evidence/M8-kimi-captures.md",
+          "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md",
+          "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/sessions.md",
+          "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/links.md",
+          "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md",
+          "docs/architecture/OVERVIEW.md"
+        ],
+        "result": "Kimi Code is the third provider: Kit runs its own `kimi web` server, sets workspace trust and the Kit hook in config.toml after a preview, creates, lists, renames, archives and deletes sessions, delivers autopilot and review messages as prompts after the turn ends, opens the Kimi Code app and Remote Control. Provider lists, names and hook clients come from the registry in the backend, the wizard and the panel."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -841,7 +872,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -896,8 +927,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 11/13
-- Revision: 490
+- Progress: 12/13
+- Revision: 492
 
 ## Objective
 
@@ -958,7 +989,7 @@ Add Kimi Code as the third provider of Workflow Kit and release 0.6.0
   - Commit: test: cover Kimi autopilot and review scenarios; say that Kimi runs scopes sequentially
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel, product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/workflow-engine/clusters/session-loop/modules/cross-review, product-parts/workflow-engine/clusters/session-loop/modules/plan-review, product-parts/backend-core/clusters/projects/modules/kit-structure, product-parts/backend-core/clusters/runtime/modules/cli, docs/architecture/OVERVIEW.md, product-parts/backend-core/clusters/projects/modules/kit-structure/module.md, product-parts/backend-core/clusters/projects/modules/kit-structure/src/templates.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/test/structure.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/scenario-world.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/scenarios.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/autopilot.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/texts.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/orchestration.test.ts
   - Depends on: T010
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M8-kimi-provider.md, product-parts/provider-runtime/clusters/provider-adapters/cluster.md
   - Depends on: T001, T002, T003, T004, T005, T006, T007, T008, T009, T010, T011
@@ -966,5 +997,7 @@ Add Kimi Code as the third provider of Workflow Kit and release 0.6.0
   - Commit: chore: release 0.6.0
   - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/installation.md, docs/architecture/OVERVIEW.md, docs/evidence/M8-acceptance.md
   - Depends on: T011, DOCS-R1
+
+Digest: Kimi Code is the third provider: Kit runs its own `kimi web` server, sets workspace trust and the Kit hook in config.toml after a preview, creates, lists, renames, archives and deletes sessions, delivers autopilot and review messages as prompts after the turn ends, opens the Kimi Code app and Remote Control. Provider lists, names and hook clients come from the registry in the backend, the wizard and the panel.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

@@ -77,6 +77,11 @@ export interface SessionTitlesOptions {
    */
   listed?: (projectId: string) => Promise<ReadonlySet<string>>;
   /**
+   * Keys of the sessions the providers list for a project with state running (a Kimi turn is
+   * seen by its session lock even when no hook reached the service, spec M9 2.3).
+   */
+  listedRunning?: (projectId: string) => Promise<ReadonlySet<string>>;
+  /**
    * The provider's app takes a name from the prompt hook answer, and a rename is safe only
    * outside a turn (Provider.promptTitle). Default: no provider does.
    */
@@ -260,6 +265,12 @@ export function createSessionTitles(options: SessionTitlesOptions): SessionTitle
     let running = all.filter((s) => s.state === 'working');
     if (running.length > 1) running = known(running);
     if (running.length === 1) return running[0]!.key;
+    // No turn in the channel (no hook came): the turns the providers see themselves.
+    if (running.length === 0 && options.listedRunning) {
+      const busy = [...((await options.listedRunning(projectId).catch(() => null)) ?? [])];
+      if (busy.length === 1) return busy[0]!;
+      if (busy.length > 1) running = busy.map((key) => ({ key, projectId, state: 'working' }));
+    }
     const candidates: SessionCandidate[] = (running.length > 1 ? running : known(all)).slice(0, MAX_CANDIDATES).map((s) => ({
       client: clientOf(s.key),
       session: s.key.slice(s.key.indexOf(':') + 1),

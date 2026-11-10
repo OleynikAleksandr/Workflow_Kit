@@ -14,7 +14,7 @@ import type { ReviewToggles } from '#plan-review';
 import type { Project, ProjectRegistry } from '#project-registry';
 import { SERVICE_MESSAGE_MARK } from '#project-setup';
 import { providerCapability, providerLabel } from '#provider-registry';
-import type { HookDialect, Provider, ProviderRegistry } from '#provider-registry';
+import type { HookDialect, Provider, ProviderRegistry, SessionInfo } from '#provider-registry';
 import { createSessionTitles, registerTitleRoutes } from '#session-titles';
 import type { SessionTitles, SessionTitlesOptions } from '#session-titles';
 import { lateReviewDecider, toggleLock, wireCrossReview } from './review-wiring.ts';
@@ -146,20 +146,24 @@ export function wireSessions(options: SessionWiringOptions): SessionWiring {
   });
   registerReviewRoutes({ router, state, toggles: review });
 
+  // Keys of the sessions the providers list for a project, filtered by their state.
+  const listedKeys = async (id: string, keep: (info: SessionInfo) => boolean): Promise<Set<string>> => {
+    const project = await projects.get(id);
+    const keys = new Set<string>();
+    if (!project) return keys;
+    for (const provider of providers.list()) {
+      for (const info of await provider.listSessions(project).catch(() => [])) if (keep(info)) keys.add(`${info.provider}:${info.localId}`);
+    }
+    return keys;
+  };
+
   const titles = createSessionTitles({
     listProjects: async () => (await projects.list()).map((project) => ({ id: project.id, path: project.path })),
     resolveProject: resolveFolderProject,
     sessions: () => channel.list(),
     promptTitle: (client) => providers.get(client)?.promptTitle === true,
-    listed: async (id) => {
-      const project = await projects.get(id);
-      const keys = new Set<string>();
-      if (!project) return keys;
-      for (const provider of providers.list()) {
-        for (const info of await provider.listSessions(project).catch(() => [])) keys.add(`${info.provider}:${info.localId}`);
-      }
-      return keys;
-    },
+    listed: (id) => listedKeys(id, () => true),
+    listedRunning: (id) => listedKeys(id, (info) => info.state === 'running'),
     scope: (id) => {
       const view = workflow.get(id);
       return view?.scope ? { objective: view.scope.objective, ownerSession: view.execution?.ownerSession ?? null } : null;

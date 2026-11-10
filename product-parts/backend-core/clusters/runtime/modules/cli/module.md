@@ -141,7 +141,9 @@ stripping).
 - `session-titles` (веха 2, T005): `createSessionTitles` (проект по папке
   — тот же поиск, что у канала, с `realpath` ближайшей существующей
   папки; сессии — из канала; цель плана — из раздела `workflow`;
-  переименование — `renameSession` провайдера по префиксу ключа сессии),
+  переименование — `renameSession` провайдера по префиксу ключа сессии;
+  `listed` и `listedRunning` — ключи из `listSessions` всех провайдеров, второе
+  только со `state: 'running'`, M9 2.3),
   `load()` при `start()`, `onTurn`, `setServiceTurn` (приветствие панели — `SERVICE_MESSAGE_MARK` из `#project-setup`) и `appTitle` из хука `prompt` (опция `promptTitle` — свойство `promptTitle` провайдера), `onStop` из хука `stop`,
   `registerTitleRoutes` — маршруты имён и раздел `titles`; `isClient` — провайдер есть в реестре.
 - `autopilot` (веха 2, T003): `createAutopilot` получает канал-обёртку,

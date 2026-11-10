@@ -12,7 +12,7 @@ ChatGPT) → «Новая сессия».
 ## Публичный интерфейс (`src/index.ts`)
 
 - `createSessionTitles({ listProjects, resolveProject, sessions, scope,
-  listed?, rename?, log? }) → SessionTitles`:
+  listed?, listedRunning?, rename?, log? }) → SessionTitles`:
   - `load()` — читает имена из
     `<проект>/.workflow-kit/local/sessions/<client>.<id>.json` (поля
     `title` — ручное, `topic` — тема агента, `synced`, `archivedAt`, `forgottenAt`; другие поля файла,
@@ -34,7 +34,9 @@ ChatGPT) → «Новая сессия».
     раз), `service-turn`, `project-not-found`, `bad-title` (длиннее 80 знаков или пусто);
   - `running(projectId) → Promise<key>` — единственная сессия проекта с идущим ходом по
     данным канала (из нескольких — та, что есть в `listed(projectId)`, списке провайдеров);
-    ни одной или несколько — `TitleError` `session-ambiguous` (409) с
+    если по каналу хода нет (хуки не дошли), — единственная сессия из
+    `listedRunning(projectId)` (провайдеры показывают её `running`; у Kimi — по живому замку
+    хода, M9, раздел 2.3), а несколько таких — кандидаты; ни одной или несколько — `TitleError` `session-ambiguous` (409) с
     `details.candidates` (`{ client, session, state, name }`, до 20: идущие сессии, а без
     них — все сессии проекта) и просьбой повторить с `--client <id> --session <id>`
     (`SESSION_FLAGS_HINT`); по времени Kit не угадывает (M8, раздел 5);

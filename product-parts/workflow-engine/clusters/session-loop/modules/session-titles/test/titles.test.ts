@@ -109,6 +109,29 @@ test('none or several running turns: session-ambiguous with the candidates, neve
   active = [];
 });
 
+test('no hook reached the service: the only session the providers list as running is used (M9 2.3)', async () => {
+  let busy: string[] = [];
+  const titles = createSessionTitles({ ...options(), rename: undefined, listedRunning: async (id) => new Set(id === 'p' ? busy : []) });
+  active = [{ key: 'kimi:session_old', projectId: 'p', state: 'waiting' }];
+  busy = ['kimi:session_live'];
+  assert.equal(await titles.running('p'), 'kimi:session_live');
+  assert.equal((await titles.setTopic(folder, 'Склад')).key, 'kimi:session_live');
+
+  busy = ['kimi:session_a', 'kimi:session_b'];
+  const several = await titles.running('p').then(() => null, (error: unknown) => error as TitleError);
+  assert.equal(several?.code, 'session-ambiguous');
+  assert.deepEqual((several?.details!['candidates'] as Array<{ session: string }>).map((c) => c.session), ['session_a', 'session_b']);
+
+  busy = [];
+  const none = await titles.running('p').then(() => null, (error: unknown) => error as TitleError);
+  assert.match(none?.message ?? '', /Не найдена сессия проекта с идущим ходом/);
+  // A turn the channel knows wins over the lists.
+  active = [{ key: 'codex:thread', projectId: 'p', state: 'working' }];
+  busy = ['kimi:session_live'];
+  assert.equal(await titles.running('p'), 'codex:thread');
+  active = [];
+});
+
 test('a request names its session by a registered client and an id, or names none', () => {
   const isClient = (client: string): boolean => ['claude', 'codex', 'kimi'].includes(client);
   const bad = (error: unknown): boolean => error instanceof HttpError && error.status === 400 && error.code === 'bad-session';

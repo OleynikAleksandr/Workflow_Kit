@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T012",
   "lastClosed": {
     "closedAt": "2026-11-09T17:29:49.064Z",
     "scopeId": "m7-test-fixes"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 492,
+  "revision": 494,
   "rounds": [
     {
       "digest": {
@@ -885,7 +885,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: release 0.6.0",
-      "confirmation": null,
+      "confirmation": "Как только пройдешь ревью спецификации и плана и подправишь их в соответствии с замечаниями, приступай к выполнению плана вплоть до сборки нового релиза и проверки а потом отчитайся.",
       "context": [
         {
           "path": "docs/planning/M8-kimi-provider.md",
@@ -905,14 +905,16 @@
         "README.md",
         "docs/installation.md",
         "docs/architecture/OVERVIEW.md",
-        "docs/evidence/M8-acceptance.md"
+        "docs/evidence/M8-acceptance.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi"
       ],
       "fixes": null,
       "id": "T012",
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "Release 0.6.0 with green CI",
       "why": "Release 0.6.0 with green CI"
     }
@@ -926,9 +928,9 @@
 - Scope: m8-kimi-provider (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: none
+- Current task: T012
 - Progress: 12/13
-- Revision: 492
+- Revision: 494
 
 ## Objective
 
@@ -993,9 +995,9 @@ Add Kimi Code as the third provider of Workflow Kit and release 0.6.0
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M8-kimi-provider.md, product-parts/provider-runtime/clusters/provider-adapters/cluster.md
   - Depends on: T001, T002, T003, T004, T005, T006, T007, T008, T009, T010, T011
-- [TODO] T012 — Release 0.6.0 with green CI (delivery)
+- [IN_PROGRESS] T012 — Release 0.6.0 with green CI (delivery)
   - Commit: chore: release 0.6.0
-  - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/installation.md, docs/architecture/OVERVIEW.md, docs/evidence/M8-acceptance.md
+  - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/installation.md, docs/architecture/OVERVIEW.md, docs/evidence/M8-acceptance.md, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi
   - Depends on: T011, DOCS-R1
 
 Digest: Kimi Code is the third provider: Kit runs its own `kimi web` server, sets workspace trust and the Kit hook in config.toml after a preview, creates, lists, renames, archives and deletes sessions, delivers autopilot and review messages as prompts after the turn ends, opens the Kimi Code app and Remote Control. Provider lists, names and hook clients come from the registry in the backend, the wizard and the panel.

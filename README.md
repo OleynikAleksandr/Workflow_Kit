@@ -37,6 +37,64 @@ Kit использует локальные программы Claude Code, Code
 не запускает службу в облаке. Для удалённой работы компьютер со службой
 должен оставаться включённым и доступным.
 
+## Что установить до Workflow Kit
+
+Kit не скачивает и не авторизует программы провайдеров: их нужно один раз поставить и войти
+в них самому. Нужен хотя бы один провайдер. Для перекрёстного ревью нужны оба провайдера пары:
+Claude и ChatGPT проверяют планы друг друга, план Kimi проверяет ChatGPT. Без провайдера
+панель всё равно запустится и покажет, что недоступно и почему.
+
+**Общее**
+
+- [Node.js](https://nodejs.org) **24+** и [Git](https://git-scm.com/downloads). На Windows —
+  Git for Windows: его Git Bash нужен и Kimi Code.
+- Для Claude на macOS и Linux — `expect`. На macOS он уже есть (`/usr/bin/expect`), на Linux
+  поставьте пакет `expect` (например, `sudo apt install expect`). На Windows он не нужен.
+- На Windows ставьте всё из обычного терминала, не от имени администратора.
+
+**Claude**
+
+- Claude Code CLI (`claude`) **2.1.0+**
+  ([инструкция](https://code.claude.com/docs/en/setup)):
+  - macOS и Linux: `curl -fsSL https://claude.ai/install.sh | bash`
+  - Windows (PowerShell): `irm https://claude.ai/install.ps1 | iex`
+
+  Вход: запустите `claude` и войдите через браузер. Нужна подписка Pro, Max, Team, Enterprise
+  или аккаунт Console.
+- Приложение **Claude Desktop** — [claude.com/download](https://claude.com/download): в нём
+  открываются чаты Claude.
+
+**ChatGPT (Codex)**
+
+- Codex CLI (`codex`) **0.160+** ([инструкция](https://github.com/openai/codex)):
+  - macOS и Linux: `curl -fsSL https://chatgpt.com/codex/install.sh | sh`
+  - Windows (PowerShell): `powershell -ExecutionPolicy ByPass -c "irm https://chatgpt.com/codex/install.ps1 | iex"`
+  - или на любой ОС: `npm install -g @openai/codex`
+
+  Вход: запустите `codex` и выберите «Sign in with ChatGPT».
+- Приложение **ChatGPT** — [openai.com/chatgpt/download](https://openai.com/chatgpt/download/):
+  в нём открываются чаты Codex.
+
+**Kimi Code**
+
+- Kimi Code CLI (`kimi`) **2.5.2+** ([инструкция](https://moonshotai.github.io/kimi-code/)):
+  - macOS и Linux: `curl -fsSL https://code.kimi.com/kimi-code/install.sh | bash`
+  - Windows (PowerShell, после Git for Windows): `irm https://code.kimi.com/kimi-code/install.ps1 | iex`
+
+  Вход: `kimi login`, затем запустите `kimi` и выберите модель.
+- Приложение **Kimi Code** — именно оно, а не «Kimi». У Moonshot два настольных приложения:
+  - **Kimi Code** (`Kimi Code.app`) — пара к CLI: видит сессии `kimi`, в нём Kit открывает
+    проекты Kimi. Страница — [kimi.com/code](https://www.kimi.com/code); `kimi install-desktop`
+    открывает её же. Прямые ссылки:
+    [macOS Apple Silicon](https://cdn.kimi.com/kimi-code/desktop/download/KimiCode-mac-arm64.dmg),
+    [macOS Intel](https://cdn.kimi.com/kimi-code/desktop/download/KimiCode-mac-x64.dmg),
+    [Windows x64](https://cdn.kimi.com/kimi-code/desktop/download/KimiCode-win-x64.exe),
+    [Linux AppImage](https://cdn.kimi.com/kimi-code/desktop/download/KimiCode-linux-x86_64.AppImage).
+  - **Kimi** (`Kimi.app`) — общий чат Kimi со своим агентом. Сессий Kimi Code CLI оно не
+    видит, и Kit с ним не работает.
+
+Проверка после установки: `claude --version`, `codex --version`, `kimi --version`.
+
 ## Установка с нуля
 
 Готовых установочных пакетов `.dmg`, `.pkg`, `.exe`, `.msi`, `.deb` и `.rpm`
@@ -82,17 +140,11 @@ Kit использует локальные программы Claude Code, Code
    `open` запускает службу при необходимости и открывает панель.
    Если команда `wfk` не найдена, см. [запускатель и PATH](docs/installation.md#запускатель-и-path).
 
-Для работы агентов отдельно нужны установленные и авторизованные **Claude Code**
-(`claude`, версия 2.1.0+) и/или **Codex** (`codex`); для сессий Claude на macOS
-и Linux нужен `expect`, на Windows он не нужен, а Codex нужен версии 0.160+.
-Третий провайдер — **Kimi Code** (`kimi`, версия 2.5.2+, вход `kimi login`): пока открыто
-приложение Kimi Code, Kit работает через его сервер, иначе запускает свой `kimi web`. Хук
+Программы провайдеров ставятся отдельно — см. [что установить до Workflow Kit](#что-установить-до-workflow-kit).
+Пока открыто приложение Kimi Code, Kit работает через его сервер, иначе запускает свой `kimi web`. Хук
 Kit приложение подхватывает только после своего перезапуска. Щелчок по сессии Kimi открывает
 её проект в приложении без нового пустого чата (macOS и Windows). Скоуп в сессии Kimi идёт
 последовательно или с исполнителями (инструмент `Agent` Kimi в отдельных worktree), ревьюером Kimi не бывает. Живая проверка Kimi — только на macOS.
-На Windows устанавливайте из обычного терминала, не от имени администратора.
-Для открытия чатов нужны соответствующие приложения Claude Desktop, ChatGPT и Kimi Code. Отсутствие провайдера не запрещает запуск панели: она показывает
-недоступные возможности и причину. Для перекрёстного ревью нужны оба провайдера пары (для плана Kimi — ChatGPT).
 Когда открыто приложение ChatGPT, служба передаёт ему удалённое управление Codex
 (демон в это время не держит чатов), чтобы его чаты открывались и на iPad.
 

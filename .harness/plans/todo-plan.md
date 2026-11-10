@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 495,
+  "revision": 496,
   "rounds": [
     {
       "digest": {
@@ -60,7 +60,10 @@
       "Provider lists and names in the backend and the panel come from the registry",
       "0.6.0 is installed locally and CI is green on all four platforms before acceptance"
     ],
-    "acceptanceNote": null,
+    "acceptanceNote": {
+      "at": "2026-11-10T09:06:05.635Z",
+      "text": "Я думаю, что нужно закрыть текущий план приняв его и откроем новый, для замечаний, касающихся в первую очередь, конечно же, провайдера Кими."
+    },
     "approval": {
       "at": "2026-11-09T20:23:56.841Z",
       "text": "User 2026-11-09: «Как полноценного провайдера третьего», «речь идёт о Kimi Code»; «Как только пройдешь ревью спецификации и плана и подправишь их в соответствии с замечаниями, приступай к выполнению плана вплоть до сборки нового релиза и проверки а потом отчитайся.» | Execution mode chosen by the user: sequential: Как только пройдешь ревью спецификации и плана и подправишь их в соответствии с замечаниями, приступай к выполнению плана вплоть до сборки нового релиза и проверки а потом отчитайся. … И, пожалуйста, потом без пауз."
@@ -111,7 +114,7 @@
         "text": "Sessions open in the Kimi Code app by kimi-code://open?root=<project>; on a tablet through Remote Control"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "ACCEPTED",
     "execution": {
       "maxWorkers": 1,
       "ownerSession": "cb3d513d-4c3d-4df1-87cc-0504037096d6",
@@ -932,11 +935,11 @@
 ## State
 
 - Scope: m8-kimi-provider (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: ACCEPTED
 - Execution: sequential
 - Current task: none
 - Progress: 13/13
-- Revision: 495
+- Revision: 496
 
 ## Objective
 

@@ -217,6 +217,8 @@ Code», «приступай к выполнению плана вплоть д�
   (Kimi) ведёт скоуп только последовательно: `choiceOptionsFor` не показывает
   `orchestrated` для сессии Kimi, тексты автопилота и шаблон `AGENTS.md`
   (`kit-structure/templates.ts`) говорят, что из Kimi оркестрация не запускается.
+  **Изменено в M10** ([M10-kimi-orchestration.md](M10-kimi-orchestration.md)): сессия Kimi
+  ведёт скоуп и с исполнителями (инструмент `Agent` в worktree оркестратора).
 
 ## 6. Поведение на ОС
 

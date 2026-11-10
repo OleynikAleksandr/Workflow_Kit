@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 549,
+  "revision": 550,
   "rounds": [
     {
       "digest": {
@@ -42,7 +42,10 @@
       "A repeated start while a start is under way sends no second message to the agent",
       "0.6.4 is installed locally and CI is green on all four platforms before acceptance"
     ],
-    "acceptanceNote": null,
+    "acceptanceNote": {
+      "at": "2026-11-10T14:57:29.540Z",
+      "text": "Да, принять и залить"
+    },
     "approval": {
       "at": "2026-11-10T14:37:12.447Z",
       "text": "Пользователь: «Да, нужно сделать так, как предложил ты, но если вдруг по какой-то причине нажатая кнопка не приведет к запуску плана, нужно, чтобы состояние этой кнопки менялось с пауза на объяснение проблемы или на предложение повторно начать выполнение… Может сделать какой-то спиннер… Когда реально прошла команда по всем ступенькам и работа начата, появляется кнопка «Пауза».» | Execution mode chosen by the user: sequential: Последовательно"
@@ -73,7 +76,7 @@
         "text": "Release number 0.6.4"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "ACCEPTED",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "claude:01493504-12b2-440a-84f4-17acf7bc1c61",
@@ -239,11 +242,11 @@
 ## State
 
 - Scope: m11-plan-start (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: ACCEPTED
 - Execution: sequential
 - Current task: none
 - Progress: 4/4
-- Revision: 549
+- Revision: 550
 
 ## Objective
 

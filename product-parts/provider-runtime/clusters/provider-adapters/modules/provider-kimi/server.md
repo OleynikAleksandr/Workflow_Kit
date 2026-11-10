@@ -36,7 +36,8 @@
 - Статус: `details.server` — `app`, `kit` или `null`; при сервере приложения
   в `note` — `APP_SERVER_NOTE` «сессии Kimi ведёт сервер приложения Kimi Code».
 - Хуки сервера приложения Kit не обновляет: при старом запуске приложения —
-  `APP_RESTART_NOTE` (см. «Хук Kit» в [module.md](module.md)).
+  `APP_RESTART_NOTE` (см. «Хук Kit» в [module.md](module.md)). Её даёт только
+  `server.app()`, другие записи `server/instances` не учитываются.
 
 ## Сервер Kit
 
@@ -44,7 +45,8 @@
   `process-supervisor` с владельцем `{ provider: 'kimi', project: null,
   kind: 'server' }`, `logFile: null` (вывод отбрасывается: в нём ссылка с
   токеном), рабочий каталог — домашний, из окружения убран
-  `KIMI_CODE_SESSION_LOCK`. Готовность: запись `server/instances` с pid
+  `KIMI_CODE_SESSION_LOCK`, `renames: true` (`kimi web` меняет имя процесса
+  на `kimi-code`, запись узнаётся по времени старта, M9 раздел 8.2). Готовность: запись `server/instances` с pid
   процесса (или его портом) и ответ `GET /api/v1/healthz`, не дольше 15 с;
   иначе процесс завершается и операция отказывает `kimi-server`.
 - Запуск по требованию (`requireReady()`); в `autostart()` — только при

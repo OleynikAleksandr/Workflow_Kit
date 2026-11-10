@@ -216,3 +216,53 @@ test('spawn with logFile null: the output is dropped and no file is created (eve
   assert.deepEqual((await readdir(dir)).sort(), ['processes.json', 'ran.txt']);
   assert.equal((await quiet.list())[0]?.logFile, null);
 });
+
+test('a record spawned with renames is alive, kept and stopped by its start time although the command line changed (M9 8.2)', async () => {
+  for (const platform of ['darwin', 'linux', 'win32'] as const) {
+    const dir = path.join(tmp, `renames-${platform}`);
+    await mkdir(dir, { recursive: true });
+    const live = new Map<number, ProcessInfo>();
+    const sent: string[] = [];
+    // While spawning, the started process shows its first name.
+    let starting = true;
+    const fake = createProcessSupervisor({
+      file: path.join(dir, 'processes.json'),
+      platform,
+      graceMs: 60,
+      killWaitMs: 60,
+      pollMs: 10,
+      bootId: async () => `${platform}:1`,
+      inspect: async (pid) => live.get(pid) ?? (starting ? { pid, pgid: platform === 'win32' ? null : pid, startToken: 'start-1', startedAt: null, commandLine: 'kimi web --port 1' } : undefined),
+      signal: (pid, sig) => {
+        if (sig === 0 && !live.has(Math.abs(pid))) throw Object.assign(new Error('ESRCH'), { code: 'ESRCH' });
+        if (sig !== 0) sent.push(`${pid}:${sig}`);
+        if (sig === 'SIGTERM') live.delete(Math.abs(pid));
+      },
+      run: async (_command, args) => {
+        sent.push(args.join(' '));
+        live.delete(Number(args[1]));
+        return { code: 0, signal: null, stdout: '', stderr: '', timedOut: false, startError: null };
+      },
+    });
+    const script = 'setTimeout(() => {}, 10)';
+    const renamed = await fake.spawn({ owner: { ...owner, ref: 'kimi' }, command: process.execPath, args: ['-e', script], cwd: dir, env: process.env, logFile: null, renames: true });
+    const plain = await fake.spawn({ owner: { ...owner, ref: 'plain' }, command: process.execPath, args: ['-e', script], cwd: dir, env: process.env, logFile: null });
+    assert.equal(renamed.renames, true, platform);
+    assert.equal('renames' in plain, false, platform);
+    starting = false;
+    // Both processes now show another name (kimi web → kimi-code); the start time is the same.
+    for (const record of [renamed, plain]) live.set(record.pid, { pid: record.pid, pgid: record.pgid, startToken: 'start-1', startedAt: null, commandLine: 'kimi-code' });
+    assert.equal(await fake.check(renamed.id), 'alive', platform);
+    assert.equal(await fake.check(plain.id), 'mismatch', platform);
+    assert.deepEqual((await fake.reconcile()).removed.map((r) => r.id), [plain.id], platform);
+    assert.deepEqual((await fake.list()).map((r) => r.id), [renamed.id], platform);
+    // A reused pid (another start time) is never taken for the renamed process.
+    live.set(renamed.pid, { pid: renamed.pid, pgid: renamed.pgid, startToken: 'start-2', startedAt: null, commandLine: 'kimi-code' });
+    assert.equal(await fake.check(renamed.id), 'mismatch', platform);
+    live.set(renamed.pid, { pid: renamed.pid, pgid: renamed.pgid, startToken: 'start-1', startedAt: null, commandLine: 'kimi-code' });
+    sent.length = 0;
+    assert.equal((await fake.stop(renamed.id)).outcome, 'stopped', platform);
+    assert.equal(sent.length, 1, `${platform}: one polite stop of the renamed process`);
+    assert.deepEqual(await fake.list(), [], platform);
+  }
+});

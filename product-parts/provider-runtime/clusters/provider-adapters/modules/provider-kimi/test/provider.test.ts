@@ -133,6 +133,8 @@ test('a server left by the previous run of the service is adopted by its pid, no
     assert.equal((await after.runtime.server.current())?.port, port);
     assert.equal(await after.provider.autostart!(), null);
     assert.equal(machine.spawned.length, 1);
+    // kimi web renames its process: the record is kept by its start time (spec M9 8.2).
+    assert.equal(machine.spawned[0]?.renames, true);
   });
 });
 

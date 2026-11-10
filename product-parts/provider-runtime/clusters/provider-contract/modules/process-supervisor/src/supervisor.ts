@@ -48,6 +48,8 @@ export interface ProcessRecord {
   commandLine: string;
   bootId: string | null;
   children: TrackedPid[];
+  /** The process changes its own name (kimi web): it is recognized by its start time only. */
+  renames?: boolean;
 }
 
 /** Liveness of a record: alive (identity matches), gone, mismatch (pid reused) or unverifiable. */
@@ -71,6 +73,11 @@ export interface SpawnSpec {
   extraEnv?: Readonly<Record<string, string | undefined>>;
   /** stdout and stderr go here (appended, mode 0600). */
   logFile: string | null;
+  /**
+   * The process changes its own name after the start (kimi web shows as kimi-code): its record
+   * is recognized by pid and start time without the command line (spec M9 section 8.2).
+   */
+  renames?: boolean;
 }
 
 /** Errors of the supervisor; providers turn them into their own messages. */
@@ -130,9 +137,10 @@ export function processesFile(stateDir: string): string {
 
 const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
 
-function matches(info: ProcessInfo | undefined, expected: { startToken: string; commandLine: string }): ProcessCheck {
+function matches(info: ProcessInfo | undefined, expected: { startToken: string; commandLine: string; renames?: boolean }): ProcessCheck {
   if (!info) return 'gone';
-  return info.startToken === expected.startToken && info.commandLine === expected.commandLine ? 'alive' : 'mismatch';
+  if (info.startToken !== expected.startToken) return 'mismatch';
+  return expected.renames === true || info.commandLine === expected.commandLine ? 'alive' : 'mismatch';
 }
 
 /** Creates a supervisor over processes.json. */
@@ -186,12 +194,12 @@ export function createProcessSupervisor(options: SupervisorOptions): ProcessSupe
   }
 
   /** Targets of a stop: the record (its group when it leads one) and the tracked children. */
-  function targets(record: ProcessRecord): Array<{ pid: number; group: boolean; identity: TrackedPid }> {
-    const leader = { pid: record.pid, startToken: record.startToken, commandLine: record.commandLine };
+  function targets(record: ProcessRecord): Array<{ pid: number; group: boolean; identity: TrackedPid & { renames?: boolean } }> {
+    const leader = { pid: record.pid, startToken: record.startToken, commandLine: record.commandLine, renames: record.renames === true };
     return [{ pid: record.pid, group: record.pgid === record.pid, identity: leader }, ...record.children.map((c) => ({ pid: c.pid, group: false, identity: c }))];
   }
 
-  async function aliveTarget(t: { pid: number; group: boolean; identity: TrackedPid }): Promise<boolean> {
+  async function aliveTarget(t: { pid: number; group: boolean; identity: TrackedPid & { renames?: boolean } }): Promise<boolean> {
     if (matches(await inspect(t.pid), t.identity) === 'alive') return true;
     // A group that outlived its leader still consists only of processes started from our record.
     return t.group && exists(-t.pid);
@@ -266,6 +274,7 @@ export function createProcessSupervisor(options: SupervisorOptions): ProcessSupe
         commandLine: info.commandLine,
         bootId: await bootId(),
         children: [],
+        ...(spec.renames === true ? { renames: true } : {}),
       };
       await update((records) => void records.push(record));
       return record;

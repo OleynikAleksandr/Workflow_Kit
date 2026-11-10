@@ -26,7 +26,10 @@
     и командная строка; запись `ProcessRecord`: `id`, `owner` (`provider`,
     `project`, `kind`, `ref`), `pid`, `pgid`, `command`, `args`, `cwd`,
     `logFile`, `startToken`, `startedAt`, `commandLine`, `bootId`,
-    `children`. Процесс, завершившийся до проверки, — `ProcessError`
+    `children`, `renames` (только `true`). `SpawnSpec.renames` — процесс сам
+    меняет своё имя после старта (`kimi web` виден как `kimi-code`, M9 раздел
+    8.2): такую запись `check`, `stop` и `reconcile` узнают по pid и времени
+    старта без сравнения командной строки. Процесс, завершившийся до проверки, — `ProcessError`
     `exited`. Windows (M5, раздел 3): `detached` + `windowsHide` (процесс
     переживает службу, его консоль скрыта), группы нет (`pgid: null`).
   - `track(id, pid)` — добавить проверенный pid к записи (например, pid
@@ -102,3 +105,6 @@
   `already-gone`, `mismatch`, `still-running`.
 - Опция `run` диспетчера — исполнитель `taskkill` и PowerShell (тесты
   передают подделку).
+- `renames` одинаков на macOS, Linux и Windows: сверяется `startToken`
+  (`ps lstart` или `CreationDate`) без `commandLine`; тест — с подставленной
+  платформой для всех трёх ОС.

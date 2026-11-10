@@ -1,6 +1,7 @@
 // A Kimi server takes its hooks only when it starts (spec M9 section 1): the server of Kit is
 // restarted by the fingerprint of the Kit blocks it started with (GET /api/v1/config shows new
-// hooks without running them), and a Kimi Code app started before the hook gets a restart note.
+// hooks without running them), and a Kimi Code app started before the hook gets a restart note;
+// another server (an orphan of an earlier Kit) never gives it (spec M9 section 8.2).
 import assert from 'node:assert/strict';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -20,7 +21,7 @@ import type { FakeKimi } from './helpers.ts';
 
 const FAST = { startWaitMs: 2000, stopWaitMs: 500, pollMs: 10 };
 const RESTARTED = 'server restarted: the Kit hooks in config.toml changed';
-const APP_PID = 90_001;
+const ORPHAN_PID = 90_001;
 
 interface Bench {
   machine: FakeKimi;
@@ -35,8 +36,10 @@ interface Bench {
   /** A second service on the same machine (a restart of the service). */
   restart(): { provider: Provider; runtime: KimiRuntime };
   approve(): Promise<HookState>;
-  /** A server of the Kimi Code app in server/instances. */
+  /** A server of the Kimi Code app that answers, in server/instances (it replaces the previous one). */
   app(startedAt: number): Promise<void>;
+  /** A live server in server/instances that does not answer (an orphan of an earlier Kit). */
+  orphan(startedAt: number): Promise<void>;
 }
 
 async function bench(run: (b: Bench) => Promise<void>): Promise<void> {
@@ -44,6 +47,7 @@ async function bench(run: (b: Bench) => Promise<void>): Promise<void> {
   try {
     await machine.installProgram();
     const ok: RunResult = { code: 0, signal: null, stdout: '', stderr: '', timedOut: false, startError: null };
+    let stopApp: (() => Promise<void>) | null = null;
     const runCommand: CommandRunner = async (_command, args) => ({ ...ok, stdout: args[0] === 'doctor' ? '' : `${machine.version}\n` });
     const log: string[] = [];
     const alive = new Set<number>();
@@ -62,9 +66,14 @@ async function bench(run: (b: Bench) => Promise<void>): Promise<void> {
         return provider.approveHooks!(project, { command: shown.kitHook!.command, hash: shown.kitHook!.hash });
       },
       async app(startedAt) {
+        await stopApp?.();
+        stopApp = await machine.startApp(startedAt);
+        alive.add(process.pid);
+      },
+      async orphan(startedAt) {
         await mkdir(machine.paths.instances, { recursive: true });
-        await writeFile(path.join(machine.paths.instances, 'app.json'), JSON.stringify({ server_id: 'app', pid: APP_PID, host: '127.0.0.1', port: 1, started_at: startedAt }));
-        alive.add(APP_PID);
+        await writeFile(path.join(machine.paths.instances, 'orphan.json'), JSON.stringify({ server_id: 'orphan', pid: ORPHAN_PID, host: '127.0.0.1', port: 1, started_at: startedAt }));
+        alive.add(ORPHAN_PID);
       },
     });
   } finally {
@@ -159,7 +168,19 @@ test('the Kimi Code app started before the Kit hook is asked to be restarted; st
     assert.doesNotMatch((await b.provider.refresh!()).note ?? '', /Перезапустите приложение/);
     // The app was closed: a record of a dead process does not count.
     await b.app(Date.now() - 60_000);
-    b.alive.delete(APP_PID);
+    b.alive.delete(process.pid);
+    assert.equal((await b.provider.refresh!(), b.runtime.appRestart()), null);
+  });
+});
+
+test('a server Kit does not talk to (an orphan of an earlier Kit, older than the hook) gives no restart note', async () => {
+  await bench(async (b) => {
+    await b.approve();
+    await b.orphan(Date.now() - 60_000);
+    assert.doesNotMatch((await b.provider.hooks(b.project)).note ?? '', /Перезапустите приложение/);
+    assert.equal((await b.provider.refresh!(), b.runtime.appRestart()), null);
+    // The app that answers, started after the hook, gives none either.
+    await b.app(Date.now() + 1000);
     assert.equal((await b.provider.refresh!(), b.runtime.appRestart()), null);
   });
 });
@@ -179,13 +200,12 @@ test('Kit blocks written by an earlier version count from the time config.toml w
 });
 
 test('the sessions of the project carry the restart note while the app runs without the hook', async () => {
-  const liveness: Liveness = { pidAlive: (pid) => pid === APP_PID, bootTime: () => 0, hostname: () => 'this-host' };
+  const liveness: Liveness = { pidAlive: (pid) => pid === process.pid, bootTime: () => 0, hostname: () => 'this-host' };
   await withSessions(async ({ machine, api, project, provider, runtime, workspace }) => {
     const host = kimiHookBlocks(defaultHookHost(machine.context().env, machine.home, process.platform));
     assert.ok(host.ok);
     await writeFile(machine.paths.config, kimiHooksSection(host.blocks));
-    await mkdir(machine.paths.instances, { recursive: true });
-    await writeFile(path.join(machine.paths.instances, 'app.json'), JSON.stringify({ server_id: 'app', pid: APP_PID, host: '127.0.0.1', port: 1, started_at: Date.now() - 60_000 }));
+    await machine.startApp(Date.now() - 60_000);
     await provider.refresh!();
     await runtime.requireReady();
     api.add({ workspace: workspace(project.path), cwd: project.path, title: 'Сессия' });

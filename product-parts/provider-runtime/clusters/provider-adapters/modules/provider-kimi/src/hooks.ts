@@ -60,7 +60,10 @@ export interface KimiHooks {
   syncServer(): Promise<string | null>;
   /** Fingerprint of the Kit blocks in config.toml ('' without them); null when the file cannot be read as Kimi does. */
   kitKey(): Promise<string | null>;
-  /** True when a server of the Kimi Code app (or of the user) started before the Kit hook was written. */
+  /**
+   * True when the server of the Kimi Code app that Kit talks to started before the Kit hook was
+   * written. Other servers are not looked at: an orphan of an earlier Kit gave a false note.
+   */
   appRestart(): Promise<boolean>;
 }
 
@@ -133,7 +136,8 @@ export function createKimiHooks(options: KimiHooksOptions): KimiHooks {
     if (!key) return false;
     const since = await changedAt(key);
     if (since === null) return false;
-    return (await server.foreign()).some((item) => item.startedAt !== null && item.startedAt < since);
+    const started = (await server.app())?.instance.startedAt ?? null;
+    return started !== null && started < since;
   };
 
   const syncServer = async (): Promise<string | null> => {

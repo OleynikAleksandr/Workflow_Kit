@@ -219,6 +219,8 @@ export function createKimiServer(deps: KimiServerDeps): KimiServer {
         cwd: context.homedir,
         env: envWithout(context.env, LOCK_SWITCH, context.platform),
         logFile: null,
+        // kimi web shows itself as kimi-code: the record is kept by its start time (spec M9 8.2).
+        renames: true,
       });
     } catch (error) {
       throw failed(error instanceof ProcessError ? error.message : String(error));

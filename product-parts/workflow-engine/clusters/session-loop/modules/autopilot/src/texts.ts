@@ -114,3 +114,12 @@ export const STOP_LABELS: Readonly<Record<string, string>> = {
   'waiting-for-review': 'Ревью плана: ждёт ответа ревьюера',
   'waiting-for-main': 'Ревью плана: ждёт ответа основного агента',
 };
+
+/**
+ * Why a press of «Начать выполнение плана» did not start the plan (spec M11 section 2.2); the
+ * reason of the channel, when it has one, goes after the colon of not-delivered.
+ */
+export function startProblemText(code: 'not-delivered' | 'turn-ended', reason: string | null = null): string {
+  if (code === 'turn-ended') return 'Агент закончил ход, не начав первую задачу. Посмотрите его ответ в чате и начните заново.';
+  return `Агент не получил команду запуска${reason ? `: ${reason}` : ''}. Проверьте, что сессия открыта, и начните заново.`;
+}

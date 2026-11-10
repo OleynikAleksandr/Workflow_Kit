@@ -181,6 +181,8 @@ export interface AgentChannel {
   get(key: string): SessionActivity | undefined;
   list(): SessionActivity[];
   queued(key: string): QueuedMessage[];
+  /** True while the message waits for delivery: in the queue or in an unsent outbox. */
+  waiting(key: string, id: string): boolean;
   section(): { sessions: SessionActivity[] };
   /** Releases every held Stop and stops the watchers (service shutdown). */
   close(): void;

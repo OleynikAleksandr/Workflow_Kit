@@ -10,6 +10,8 @@ import type { DetachedDelivery, SessionRef, StopDecision, TurnEndEvent, TurnOrig
 
 /** Refused sends in a row after which maintain() stops retrying. */
 export const MAX_SEND_FAILURES = 5;
+/** Start of the activity note of a message that was refused MAX_SEND_FAILURES times. */
+export const UNDELIVERED_NOTE = 'сообщение не доставлено';
 const ANSWER_TRIES = 3;
 
 const reasonOf = (error: unknown): string => (error instanceof Error ? error.message : String(error));
@@ -254,7 +256,7 @@ export function createDetached(core: ChannelCore, deps: DetachedDelivery): Detac
     if (!ok) {
       slot.failures += 1;
       core.log(`channel: message for ${slot.activity.key} was not delivered (${slot.failures}): ${why}`);
-      if (same) core.setState(slot, 'waiting', slot.failures >= MAX_SEND_FAILURES ? { note: `сообщение не доставлено: ${why}` } : {});
+      if (same) core.setState(slot, 'waiting', slot.failures >= MAX_SEND_FAILURES ? { note: `${UNDELIVERED_NOTE}: ${why}` } : {});
       return;
     }
     slot.outbox = null;

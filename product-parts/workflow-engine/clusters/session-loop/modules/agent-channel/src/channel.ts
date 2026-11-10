@@ -256,6 +256,10 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
     },
     list: () => [...slots.values()].map((slot) => ({ ...slot.activity })),
     queued: (key) => [...(slots.get(key)?.queue ?? [])],
+    waiting: (key, id) => {
+      const slot = slots.get(key);
+      return Boolean(slot && (slot.queue.some((m) => m.id === id) || slot.outbox?.messages.some((m) => m.id === id)));
+    },
     section: () => ({ sessions: [...slots.values()].map((slot) => ({ ...slot.activity })) }),
     close() {
       closed = true;

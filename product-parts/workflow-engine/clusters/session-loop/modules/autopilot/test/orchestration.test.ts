@@ -44,7 +44,7 @@ test('a session without orchestration is told so in the sequential texts; the ot
   const autopilot = createAutopilot({
     runner: { run: async () => ({ ok: true, result: {} }), installed: () => false } as unknown as KitRunner,
     workflow: { refresh: async () => null, status: () => null } as unknown as WorkflowState,
-    channel: { list: () => [], enqueue: (key: string, text: string) => void sent.push({ key, text }) } as unknown as AgentChannel,
+    channel: { list: () => [], enqueue: (key: string, text: string) => ({ id: String(sent.push({ key, text })) }) } as unknown as AgentChannel,
     projectPath: async () => '/nowhere',
     orchestration: async (client) => (client === 'other' ? { available: false, reason: 'нет исполнителей' } : { available: true }),
   });

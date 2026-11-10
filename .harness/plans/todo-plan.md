@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 541,
+  "revision": 543,
   "rounds": [
     {
       "digest": null,
@@ -93,14 +93,27 @@
       "docsWaiver": null,
       "files": [
         "product-parts/workflow-engine/clusters/session-loop/modules/autopilot",
-        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel"
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/channel.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/detached.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/index.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/types.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/channel.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/autopilot.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/index.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/start.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/texts.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/orchestration.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/start.test.ts"
       ],
       "fixes": null,
       "id": "T001",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Start state in the autopilot",
       "why": "The panel needs to know whether the start message reached the agent and whether the start failed"
     },
@@ -210,8 +223,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 0/4
-- Revision: 541
+- Progress: 1/4
+- Revision: 543
 
 ## Objective
 
@@ -228,9 +241,9 @@ Pressing «Начать выполнение плана» shows a spinner with t
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T001 — Start state in the autopilot (work)
+- [DONE] T001 — Start state in the autopilot (work)
   - Commit: feat: track the plan start in the autopilot
-  - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/channel.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/detached.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/types.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/channel.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/autopilot.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/start.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/texts.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/orchestration.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/start.test.ts
 - [TODO] T002 — Plan card spinner and failed start (work)
   - Commit: feat: show the plan start progress on the plan card
   - Files: product-parts/control-panel/clusters/web-panel/modules/session-view

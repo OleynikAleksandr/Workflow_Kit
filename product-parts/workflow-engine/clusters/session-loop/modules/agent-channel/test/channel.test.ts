@@ -253,3 +253,23 @@ test('UserPromptSubmit of a kimi-dialect client is answered with { message }; cl
   const claude = await ch.prompt(input('claude', { ...CLAUDE_STOP, hook_event_name: 'UserPromptSubmit', prompt: 'x' }));
   assert.deepEqual(claude.answer, { hookSpecificOutput: { hookEventName: 'UserPromptSubmit', additionalContext: 'три' } });
 });
+
+test('waiting tells a message on its way from a delivered one (spec M11)', async () => {
+  const ch = channel();
+  try {
+    const input = parseHookInput('claude', CLAUDE_STOP)!;
+    const key = sessionKey('claude', CLAUDE_STOP.session_id);
+    const message = ch.enqueue(key, 'go');
+    assert.equal(ch.waiting(key, message.id), true);
+    assert.equal(ch.waiting(key, 'other'), false);
+    const unsent = await ch.stop(input);
+    unsent.nack();
+    assert.equal(ch.waiting(key, message.id), true, 'an answer that was not sent puts it back');
+    const sent = await ch.stop(input);
+    sent.ack();
+    assert.equal(ch.waiting(key, message.id), false);
+    assert.equal(ch.waiting('claude:nobody', message.id), false);
+  } finally {
+    ch.close();
+  }
+});

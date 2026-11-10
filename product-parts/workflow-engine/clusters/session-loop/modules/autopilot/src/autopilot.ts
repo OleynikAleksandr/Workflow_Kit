@@ -21,6 +21,8 @@ import {
   deliveryMessage,
   fixesMessage,
 } from './texts.ts';
+import { createPlanStarts } from './start.ts';
+import type { PlanStart } from './start.ts';
 
 /** Stops that wait for a user decision in the panel: the Stop hook is held. */
 const HOLDING: ReadonlySet<string> = new Set(['waiting-for-mode-choice', 'waiting-for-plan-start', 'delivery-confirmation', 'ready-for-acceptance']);
@@ -51,6 +53,8 @@ export interface SessionAutopilot {
   /** Who started the current turn: the user typing in the chat or a panel message. */
   origin: 'user' | 'kit' | null;
   last: { action: 'continue' | 'hold' | 'release'; reason: AutopilotReason | null; label: string | null; detail: string; at: string } | null;
+  /** The plan start under way (spec M11), or null. */
+  start: PlanStart | null;
 }
 
 /** A Kit refusal of a panel action. */
@@ -95,7 +99,8 @@ export interface Autopilot {
   /** A UserPromptSubmit of a session: `delivered` when it carried panel messages. */
   onPrompt(key: string, delivered: boolean): void;
   choose(projectId: string, request: ChooseRequest): Promise<{ option: KitChoiceOption; owner: string }>;
-  start(projectId: string, session?: string): Promise<{ owner: string }>;
+  /** `already` — a start runs without a problem: nothing was sent again (spec M11 2.3). */
+  start(projectId: string, session?: string): Promise<{ owner: string; already?: boolean }>;
   pause(projectId: string): Promise<void>;
   resume(projectId: string, session?: string): Promise<{ owner: string }>;
   accept(projectId: string, note?: string): Promise<void>;
@@ -121,11 +126,13 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
   const states = new Map<string, SessionAutopilot>();
   /** Owner session key per project, remembered at the choice. */
   const owners = new Map<string, string>();
+  /** Plan starts by session key (spec M11). */
+  const starts = createPlanStarts({ channel: options.channel, workflow: options.workflow, now });
 
   function state(key: string, projectId: string | null = null): SessionAutopilot {
     let entry = states.get(key);
     if (!entry) {
-      entry = { key, projectId, enabled: false, continues: 0, maxContinues: max, orchestrationKey: null, before: null, origin: null, last: null };
+      entry = { key, projectId, enabled: false, continues: 0, maxContinues: max, orchestrationKey: null, before: null, origin: null, last: null, start: null };
       states.set(key, entry);
     }
     if (projectId) entry.projectId = projectId;
@@ -183,7 +190,7 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
     throw new WorkflowActionError('no-owner', 'Не найдена сессия-владелец плана', 409, 'Откройте сессию, в которой агент предложил план.');
   }
 
-  async function enable(projectId: string, key: string, text: string): Promise<void> {
+  async function enable(projectId: string, key: string, text: string): Promise<string> {
     const entry = state(key, projectId);
     const status = await autopilotStatus(projectId);
     entry.enabled = true;
@@ -192,7 +199,7 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
     entry.before = status ? { head: status.head, revision: status.revision } : null;
     entry.origin = 'kit';
     note(entry, 'continue', null, 'Сообщение из панели отправлено агенту');
-    options.channel.enqueue(key, text, 'panel');
+    return options.channel.enqueue(key, text, 'panel').id;
   }
 
   async function strategy(projectId: string): Promise<'sequential' | 'orchestrated'> {
@@ -227,6 +234,12 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
       if (status.proposalPending && !other) return hold('waiting-for-mode-choice', 'План предложен: выберите путь в панели');
       const view = (await options.workflow.refresh(context.projectId)) ?? options.workflow.get(context.projectId);
       const plan = view?.plan ?? null;
+      // M11 2.2: the turn begun by the start message ended and Kit records no started work.
+      if (starts.turnEnded(context.key, plan?.phase ?? null)) {
+        entry.enabled = false;
+        owners.set(context.projectId, context.key);
+        return hold('waiting-for-plan-start', 'Запуск плана не удался: агент закончил ход, не начав первую задачу');
+      }
       if (plan && !entry.enabled && plan.phase === 'ready' && plan.ownerSession === context.sessionId) {
         owners.set(context.projectId, context.key);
         return hold('waiting-for-plan-start', 'План готов: нажмите «Начать выполнение плана»');
@@ -304,10 +317,22 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
 
     async start(projectId, session) {
       const key = await owner(projectId, session);
+      const entry = state(key, projectId);
+      // M11 2.3: a start under way without a problem is not sent again.
+      const current = starts.view(key);
+      if (current && !current.problem) return { owner: key, already: true };
       const mode = await strategy(projectId);
       if (mode === 'orchestrated') await requireOrchestration(key);
+      if (starts.restart(key)) {
+        // The old message still waits: no duplicate, the wait starts anew and the channel retries.
+        entry.enabled = true;
+        note(entry, 'continue', null, 'Запуск плана повторён: команда ждёт отправки агенту');
+        await options.channel.flush(key);
+        return { owner: key };
+      }
       // Orchestration runs with the subagents of the session's app: the procedure differs.
-      await enable(projectId, key, mode === 'orchestrated' ? `${START_MESSAGES.orchestrated} ${executorHowto(key)}` : `${START_MESSAGES[mode]}${await sequentialOnly(key)}`);
+      const messageId = await enable(projectId, key, mode === 'orchestrated' ? `${START_MESSAGES.orchestrated} ${executorHowto(key)}` : `${START_MESSAGES[mode]}${await sequentialOnly(key)}`);
+      starts.begin(key, projectId, messageId);
       return { owner: key };
     },
 
@@ -325,6 +350,7 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
 
     async accept(projectId, words) {
       await kit(projectId, ['accept', '--note', words && words.trim().length >= 3 ? words.trim() : 'Пользователь принял план в панели Workflow Kit']);
+      starts.forgetProject(projectId);
       for (const entry of states.values()) if (entry.projectId === projectId) entry.enabled = false;
     },
 
@@ -333,6 +359,7 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
       if (!scope) throw new WorkflowActionError('no-scope', 'Нет активного плана', 409);
       await kit(projectId, ['close', '--scope', scope.id, '--note', words && words.trim().length >= 10 ? words.trim() : 'Пользователь закрыл план в панели Workflow Kit']);
       owners.delete(projectId);
+      starts.forgetProject(projectId);
     },
 
     async fixes(projectId, text, session) {
@@ -354,8 +381,8 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
 
     get: (key) => {
       const entry = states.get(key);
-      return entry ? { ...entry } : undefined;
+      return entry ? { ...entry, start: starts.view(entry.key) } : undefined;
     },
-    section: () => ({ sessions: [...states.values()].map((entry) => ({ ...entry })) }),
+    section: () => ({ sessions: [...states.values()].map((entry) => ({ ...entry, start: starts.view(entry.key) })) }),
   };
 }

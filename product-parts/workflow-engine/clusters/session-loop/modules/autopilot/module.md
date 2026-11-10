@@ -29,7 +29,10 @@
     (`waiting-for-review`, `waiting-for-main`, `waiting-for-plan-decision` — вопрос о
     плане, M4 раздел 12, отпустить) — окончательное,
     сессия ревьюера без решения ревью отпускается; открыто предложение плана — держать
-    (`waiting-for-mode-choice`, одна сессия проекта); план готов, автопилот
+    (`waiting-for-mode-choice`, одна сессия проекта); план готов, а ход, начатый
+    стартовым сообщением, закончился без записи Kit о начатой работе — проблема
+    запуска `turn-ended`, автопилот выключается, держать
+    (`waiting-for-plan-start`, M11 2.2); план готов, автопилот
     сессии выключен и она владелец (`execution.ownerSession`) — держать
     (`waiting-for-plan-start`); автопилот выключен — отпустить; иначе
     `decideAutopilot` по `autopilot:status`: продолжение — ответ
@@ -71,12 +74,27 @@
     `confirmDelivery` (слова пользователя агенту для `task:start
     --confirmed`). `start`, `resume`, `fixes`, `confirmDelivery` включают
     автопилот сессии-владельца (счётчик продолжений с нуля).
+  - Запуск плана (M11): `start` запоминает id стартового сообщения и время
+    нажатия. Пока запуск идёт без проблемы, повторный `start` ничего не шлёт и
+    отвечает `{ owner, already: true }`. После проблемы `start` повторяет
+    запуск: сообщение, ещё ждущее доставки (`channel.waiting`), не ставится
+    второй раз — отсчёт начинается заново и канал отправляет его снова
+    (`channel.flush`); иначе ставится новое сообщение. Запуск забывается, когда
+    фаза плана уходит из `ready`, при `accept` и `close`.
   - Отказ Kit — `WorkflowActionError` (`code` Kit, `message`, `nextAction`,
     `status` 409); владелец: сессия из запроса, запомненная при выборе или
     найденная по `execution.ownerSession` среди сессий канала.
   - `get(key)`, `section()` — `SessionAutopilot`: `enabled`, `continues`,
     `maxContinues`, `before` (ревизия и HEAD в начале хода), `origin`,
-    `last` (`action`, `reason`, `label` по-русски, `detail`, `at`).
+    `last` (`action`, `reason`, `label` по-русски, `detail`, `at`), `start`
+    (`PlanStart` или `null`: `at`, `messageId`, `step` — `sending`, пока
+    сообщение в очереди или неотправленном исходящем, иначе `delivered`;
+    `slow` — доставлено и прошло `START_SLOW_MS` (3 мин) с нажатия;
+    `problem` — `{ code, text }`: `not-delivered` после `START_DELIVERY_MS`
+    (60 с) ожидания или с пометкой канала `UNDELIVERED_NOTE` (её причина идёт в
+    текст), `turn-ended`; тексты — `startProblemText`). Ступень считается при
+    каждом чтении. Состояние ведёт `createPlanStarts` (`src/start.ts`):
+    `begin`, `view`, `restart`, `turnEnded`, `forgetProject`.
 - `registerAutopilotRoutes({ router, state, autopilot, mutex? })` —
   `POST /api/projects/:id/workflow/choose|start|pause|resume|accept|close|
   fixes|confirm-delivery` (тело: `session`, `generation`, `option`,
@@ -85,7 +103,7 @@
 - Тексты: `PREFIX` (`Workflow Kit:`), `CHOICE_NOTES`, `CHOSEN_WAIT`,
   `START_MESSAGES`, `EXECUTOR_HOWTO`,
   `executorHowto(key)`, `sequentialOnlyNote(client)`, `REFINE_MESSAGE`, `RESUME_MESSAGE`, `fixesMessage`,
-  `deliveryMessage`, `STOP_LABELS`.
+  `deliveryMessage`, `STOP_LABELS`, `startProblemText(code, reason?)`.
 
 ## Инварианты
 
@@ -95,7 +113,8 @@
   плана, подтверждение выпуска; не дольше 9 минут (`agent-channel`).
 - Не больше 40 продолжений подряд; сообщение пользователя в чате
   останавливает автопилот до кнопки панели.
-- Состояние живёт в памяти службы.
+- Состояние живёт в памяти службы; после перезапуска службы запуск плана
+  забыт, и карточка снова предлагает «Начать выполнение плана».
 
 ## Зависимости
 

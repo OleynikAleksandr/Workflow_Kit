@@ -4,13 +4,16 @@
 // computer (loopback) and only the links the providers give: the chat links
 // codex://threads/<id> and claude://claude.ai/code/session_<id> (macOS and Windows) and the
 // project link of Kimi Code, kimi-code://open?root=<folder of a registered project> (spec M8
-// section 2.6; also Linux, through xdg-open).
+// section 2.6; also Linux, through xdg-open). The link always adds an empty chat to the project,
+// so on macOS and Windows the service first starts the app with --workspace=<folder>, which opens
+// the project as it is (spec M9 section 8.1); the link stays the fallback.
 // POST /api/system/shutdown: the graceful stop of the service on request from this computer
 // (Windows has no SIGTERM; the installer stops the service this way before it kills it).
 import { HttpError, classifyAddress } from '#http-server';
 import type { Router } from '#http-server';
 import type { CommandRunner } from '#process-supervisor';
-import { KIMI_LINK_PREFIX, kimiAppFound, kimiProjectLink, parseKimiProjectLink, sameFolder } from '#provider-kimi';
+import { KIMI_LINK_PREFIX, kimiAppFound, kimiProjectLink, kimiWorkspaceCommand, parseKimiProjectLink, sameFolder } from '#provider-kimi';
+import type { KimiLaunch } from '#provider-kimi';
 
 /** Chat links the service opens. */
 export const OPENABLE_LINK = /^(?:codex:\/\/threads\/[A-Za-z0-9_-]{1,128}|claude:\/\/claude\.ai\/code\/session_[A-Za-z0-9]{1,128})$/;
@@ -58,26 +61,34 @@ export function registerOpenLinkRoute(options: {
   homedir: string;
   /** Whether the Kimi Code app is installed (default: kimiAppFound; tests replace it). */
   kimiApp?: () => Promise<boolean>;
+  /** The start of the app with --workspace=<folder> (default: kimiWorkspaceCommand; tests replace it). */
+  kimiCommand?: (folder: string) => Promise<KimiLaunch | null>;
 }): { shutdownRequested: Promise<void> } {
   let requestShutdown: () => void = () => undefined;
   const shutdownRequested = new Promise<void>((resolve) => (requestShutdown = resolve));
   const { platform } = options;
   const env = options.env ?? process.env;
-  const kimiApp = options.kimiApp ?? (() => kimiAppFound({ platform, env, homedir: options.homedir, runCommand: options.runCommand }));
+  const check = { platform, env, homedir: options.homedir, runCommand: options.runCommand };
+  const kimiApp = options.kimiApp ?? (() => kimiAppFound(check));
+  const kimiCommand = options.kimiCommand ?? ((folder: string) => kimiWorkspaceCommand(check, folder));
   // The link is built again from the registered folder: nothing of the request reaches the program as it came.
-  const kimiLink = async (url: string): Promise<string> => {
+  const kimiLink = async (url: string): Promise<{ link: string; launch: KimiLaunch | null }> => {
     const parsed = parseKimiProjectLink(url);
     const project = parsed ? (await options.projects.list()).find((item) => sameFolder(item.path, parsed.root, platform)) : undefined;
     if (!parsed || !project) throw new HttpError(400, 'bad-link', 'Ссылка Kimi Code открывается только для папки зарегистрированного проекта: kimi-code://open?root=<папка>');
     if (!(await kimiApp())) throw new HttpError(501, 'no-handler', 'Приложение Kimi Code не найдено: сессию продолжает команда `kimi -S <id>` в терминале проекта');
-    return kimiProjectLink(project.path, parsed.fresh);
+    // A new chat is asked for by the link itself (new=1); --workspace opens the project as it is.
+    const launch = parsed.fresh ? null : await kimiCommand(project.path).catch(() => null);
+    return { link: kimiProjectLink(project.path, parsed.fresh), launch };
   };
   options.router.post('/api/open-link', async ({ body, req }) => {
     loopbackOnly(req.socket.remoteAddress, 'Ссылку открывает только панель на этом компьютере');
     const asked = typeof body === 'object' && body !== null ? (body as Record<string, unknown>)['url'] : undefined;
     const kimi = typeof asked === 'string' && asked.startsWith('kimi-code:');
-    const url = kimi ? await kimiLink(asked) : asked;
-    const commands = openCommands(platform, typeof url === 'string' ? url : '', env);
+    const opened = kimi ? await kimiLink(asked) : null;
+    const url = opened ? opened.link : asked;
+    const links = openCommands(platform, typeof url === 'string' ? url : '', env);
+    const commands = links && opened?.launch ? [opened.launch, ...links] : links;
     if (!commands) throw new HttpError(501, 'not-supported', 'Ссылки чатов ChatGPT и Claude служба открывает только на macOS и Windows');
     if (typeof url !== 'string' || (!kimi && !OPENABLE_LINK.test(url))) throw new HttpError(400, 'bad-link', 'Ожидается ссылка чата codex://threads/<id> или claude://claude.ai/code/session_<id> либо ссылка проекта kimi-code://open?root=<папка>');
     let reason = '';

@@ -327,6 +327,16 @@ export function opensByItself(link, maxTouchPoints) {
   return !(maxTouchPoints > 1 && /^https?:/i.test(link));
 }
 
+/**
+ * Whether a click on a session card opens its link through the service (POST /api/open-link),
+ * not in the browser: the project link of Kimi Code on a computer. The service starts the app
+ * with --workspace=<folder>, which opens the project without the empty chat the link adds
+ * (spec M9 section 8.1). @param {string} link @param {number} maxTouchPoints @returns {boolean}
+ */
+export function clickOpensThroughService(link, maxTouchPoints) {
+  return maxTouchPoints <= 1 && link.startsWith('kimi-code:');
+}
+
 /** How long the panel waits for a session it asked for to appear in the tree. */
 export const ARRIVAL_WAIT_MS = 180_000;
 

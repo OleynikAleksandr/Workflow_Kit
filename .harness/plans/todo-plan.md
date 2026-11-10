@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 509,
+  "revision": 511,
   "rounds": [
     {
       "digest": {
@@ -313,14 +313,27 @@
         "product-parts/backend-core/clusters/runtime/modules/cli",
         "product-parts/control-panel/clusters/web-panel/modules/panel-shell",
         "tools/platform-guard/allowlist.json",
-        "docs/architecture/OVERVIEW.md"
+        "docs/architecture/OVERVIEW.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/open-link.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/open-link.test.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/actions.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/view-model.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/links.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/app-link.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/index.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/workspace-launch.test.ts"
       ],
       "fixes": null,
       "id": "T005",
       "iteration": 1,
       "kind": "work",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Open the Kimi project without an empty chat",
       "why": "A kimi-code:// link always opens the project with a new empty chat"
     },
@@ -394,8 +407,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 5/8
-- Revision: 509
+- Progress: 6/8
+- Revision: 511
 
 ## Objective
 
@@ -436,9 +449,9 @@ Digest: Kimi sessions start correctly: while the Kimi Code app runs, Kit creates
 
 ### R2 — Fixes of the 0.6.1 live check (fixes, OPEN)
 
-- [TODO] T005 — Open the Kimi project without an empty chat (work)
+- [DONE] T005 — Open the Kimi project without an empty chat (work)
   - Commit: fix: open a Kimi project in the Kimi Code app with --workspace instead of a link that starts a new chat
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/control-panel/clusters/web-panel/modules/panel-shell, tools/platform-guard/allowlist.json, docs/architecture/OVERVIEW.md
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/control-panel/clusters/web-panel/modules/panel-shell, tools/platform-guard/allowlist.json, docs/architecture/OVERVIEW.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/open-link.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/open-link.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/actions.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/view-model.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/links.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/app-link.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/workspace-launch.test.ts
 - [TODO] T006 — No false app restart note; the Kit server stays in the process records (work)
   - Commit: fix: keep the renamed Kimi server in the process records and flag only the server Kit uses
   - Files: product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi, docs/architecture/OVERVIEW.md

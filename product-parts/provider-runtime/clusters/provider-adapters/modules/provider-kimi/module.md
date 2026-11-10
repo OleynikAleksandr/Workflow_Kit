@@ -68,7 +68,8 @@ ChatGPT и Claude).
   `WAITING_NOTE`, `GONE_NOTE`, `PARTIAL_NOTE`, `ARCHIVE_STALE_NOTE`,
   `FOREIGN_RENAME_NOTE`, `SERVER_DOWN`, `unavailableNote`, `deliveryNote`).
 - Ссылки и приложение: `kimiProjectLink`, `parseKimiProjectLink`,
-  `resumeNote`, `kimiAppFound(check)`, `KIMI_LINK_PREFIX`, `KIMI_APP_NAME`,
+  `resumeNote`, `kimiAppFound(check)`, `kimiWorkspaceCommand(check, folder)`,
+  `parseHandlerProgram`, `KimiLaunch`, `KIMI_LINK_PREFIX`, `KIMI_APP_NAME`,
   `KIMI_SCHEME_KEYS`, `KIMI_SCHEME_MIME`, `sessionLinks(runtime, project)`.
 - Remote Control: `createKimiRemote(options)` → `{ mobile, enabled, set,
   note, reset }`, `REMOTE_ON_ACTION` = `kimi-remote`, `REMOTE_OFF_ACTION` =

@@ -6,8 +6,8 @@ import { createKimiProvider } from './provider.ts';
 
 export { APP_SERVER_NOTE, APP_SERVER_REASON, LOGIN_NOTE, MODEL_NOTE, ON_DEMAND_NOTE, PROVIDER_ID, PROVIDER_TITLE, RESTART_ACTION, UNTESTED_OS_NOTE, createKimiProvider, createKimiRuntime, probeServer } from './provider.ts';
 export type { KimiDeps, KimiProbe, KimiRuntime } from './provider.ts';
-export { KIMI_APP_NAME, KIMI_LINK_PREFIX, KIMI_SCHEME_KEYS, KIMI_SCHEME_MIME, kimiAppFound, kimiProjectLink, parseKimiProjectLink, resumeNote } from './app-link.ts';
-export type { KimiAppCheck } from './app-link.ts';
+export { KIMI_APP_NAME, KIMI_LINK_PREFIX, KIMI_SCHEME_KEYS, KIMI_SCHEME_MIME, kimiAppFound, kimiProjectLink, kimiWorkspaceCommand, parseHandlerProgram, parseKimiProjectLink, resumeNote } from './app-link.ts';
+export type { KimiAppCheck, KimiLaunch } from './app-link.ts';
 export { REMOTE_BUSY_NOTE, REMOTE_CACHE_MS, REMOTE_OFF_ACTION, REMOTE_ON_ACTION, createKimiRemote } from './remote.ts';
 export type { KimiRemote, KimiRemoteOptions } from './remote.ts';
 export { KIMI_CODES, KIMI_TIMEOUT_MS, KimiError, createKimiClient, describeKimiError } from './client.ts';

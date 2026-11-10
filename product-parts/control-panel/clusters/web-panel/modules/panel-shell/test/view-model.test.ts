@@ -5,6 +5,7 @@ import {
   chatStatus,
   deviceLink,
   opensByItself,
+  clickOpensThroughService,
   filterProjects,
   formatElapsed,
   ownerObjective,
@@ -208,6 +209,8 @@ test('a Kimi session: the card opens the project in the app; the Remote Control 
   assert.equal(chatStatus({ note: 'продолжить: `kimi -S s1` в терминале проекта' }, null).text, 'продолжить: `kimi -S s1` в терминале проекта');
   // Without a click: an app link opens on every device, a web page only on a computer.
   assert.deepEqual([opensByItself(links.desktop, 0), opensByItself(links.mobile, 0), opensByItself(links.mobile, 5), opensByItself('codex://threads/t1', 5)], [true, true, false, true]);
+  // A click on the project link on a computer goes through the service (no empty chat), other links open in the browser.
+  assert.deepEqual([clickOpensThroughService(links.desktop, 0), clickOpensThroughService(links.desktop, 1), clickOpensThroughService(links.mobile, 0), clickOpensThroughService('codex://threads/t1', 0), clickOpensThroughService(links.desktop, 5)], [true, true, false, false, false]);
 });
 
 test('an awaited session is found by its key, or as the newest of the provider created after the request', () => {

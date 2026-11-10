@@ -196,16 +196,16 @@
     {
       "file": "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/app-link.ts",
       "program": "reg",
-      "darwin": "папка Kimi Code.app в /Applications или ~/Applications (stat, без программы)",
-      "linux": "xdg-mime query default x-scheme-handler/kimi-code",
-      "win32": "reg query HKCU\\Software\\Classes\\kimi-code, затем HKCR\\kimi-code"
+      "darwin": "папка Kimi Code.app в /Applications или ~/Applications (stat, без программы); проект открывает open -n -a <Kimi Code.app> --args --workspace=<папка>",
+      "linux": "xdg-mime query default x-scheme-handler/kimi-code; приложения для Linux нет — проект открывает ссылка kimi-code:// через xdg-open",
+      "win32": "reg query HKCU\\Software\\Classes\\kimi-code, затем HKCR\\kimi-code; программа из <ключ>\\shell\\open\\command, проект открывает PowerShell Start-Process <Kimi Code.exe> --workspace=\"<папка>\""
     },
     {
       "file": "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/app-link.ts",
       "program": "xdg-mime",
-      "darwin": "папка Kimi Code.app в /Applications или ~/Applications (stat, без программы)",
-      "linux": "xdg-mime query default x-scheme-handler/kimi-code",
-      "win32": "reg query HKCU\\Software\\Classes\\kimi-code, затем HKCR\\kimi-code"
+      "darwin": "папка Kimi Code.app в /Applications или ~/Applications (stat, без программы); проект открывает open -n -a <Kimi Code.app> --args --workspace=<папка>",
+      "linux": "xdg-mime query default x-scheme-handler/kimi-code; приложения для Linux нет — проект открывает ссылка kimi-code:// через xdg-open",
+      "win32": "reg query HKCU\\Software\\Classes\\kimi-code, затем HKCR\\kimi-code; программа из <ключ>\\shell\\open\\command, проект открывает PowerShell Start-Process <Kimi Code.exe> --workspace=\"<папка>\""
     }
   ],
   "legacySpecs": [

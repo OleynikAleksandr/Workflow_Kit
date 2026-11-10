@@ -65,6 +65,8 @@ export interface AppOptions {
   supervisor?: ProcessSupervisor;
   /** Whether the Kimi Code app is installed, for POST /api/open-link (default: the check of the OS). */
   kimiApp?: () => Promise<boolean>;
+  /** The start of the Kimi Code app with --workspace=<folder>, for POST /api/open-link (default: the command of the OS). */
+  kimiCommand?: (folder: string) => Promise<{ command: string; args: string[] } | null>;
 }
 
 /** The assembled backend: data, routes, state sections and the HTTP server. */
@@ -160,7 +162,7 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
   });
 
   registerCoreRoutes(router, state, () => ({ version, pid: process.pid, startedAt }));
-  const system = registerOpenLinkRoute({ router, runCommand: options.runCommand ?? runCommand, platform, env, log: options.log, projects, homedir, ...(options.kimiApp ? { kimiApp: options.kimiApp } : {}) });
+  const system = registerOpenLinkRoute({ router, runCommand: options.runCommand ?? runCommand, platform, env, log: options.log, projects, homedir, ...(options.kimiApp ? { kimiApp: options.kimiApp } : {}), ...(options.kimiCommand ? { kimiCommand: options.kimiCommand } : {}) });
   state.add('system', (): SystemSection => ({
     version,
     os: osInfo,

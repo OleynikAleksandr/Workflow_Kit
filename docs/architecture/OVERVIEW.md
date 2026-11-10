@@ -239,7 +239,7 @@ Linux `$XDG_CONFIG_HOME`, `$XDG_STATE_HOME`, `$XDG_DATA_HOME` +
 | Codex: управление — приложению ChatGPT | да, `ps` | нет приложения | CIM codex.exe (**П**) |
 | Kimi: серверы, доверие, сессии | да | тесты (**П**) | тесты (**П**) |
 | Kimi: хук Kit в `config.toml` | `/bin/sh` | то же, тесты | `cmd.exe`, тесты (**П**) |
-| Kimi: приложение, ссылка проекта | `Kimi Code.app`, `open` | `xdg-mime`, `xdg-open` | `reg`, `rundll32` (**П**) |
+| Kimi: приложение, проект в нём | `open -a`, `--workspace` | `xdg-mime`, `xdg-open` | `reg`, `--workspace` (**П**) |
 | Запуск и остановка процессов сессий | да | да | да (CIM, `taskkill`) |
 | Живые проверки | есть, см. документы приёмки M1–M4 | нет, только тесты | нет, только тесты |
 

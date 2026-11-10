@@ -7,6 +7,7 @@ import path from 'node:path';
 import { after, before, test } from 'node:test';
 import type { CommandRunner } from '#process-supervisor';
 import { kimiProjectLink } from '#provider-kimi';
+import type { KimiLaunch } from '#provider-kimi';
 import { createStubProvider } from '#provider-registry';
 import { createApp } from '../src/index.ts';
 import { codexAppxScript, openCommands } from '../src/open-link.ts';
@@ -20,9 +21,14 @@ let base = '';
 const calls: Array<[string, readonly string[]]> = [];
 let fail = false;
 let kimiInstalled = true;
+// The start of the Kimi app with --workspace; null as for Linux, where only the link opens it.
+let kimiLaunch: KimiLaunch | null = null;
+const launchFolders: string[] = [];
+const failing = new Set<string>();
 const runner: CommandRunner = async (command, args) => {
   calls.push([command, args]);
-  return { code: fail ? 1 : 0, signal: null, stdout: '', stderr: fail ? 'no app' : '', timedOut: false, startError: null };
+  const failed = fail || failing.has(command);
+  return { code: failed ? 1 : 0, signal: null, stdout: '', stderr: failed ? 'no app' : '', timedOut: false, startError: null };
 };
 
 before(async () => {
@@ -34,6 +40,10 @@ before(async () => {
     runCommand: runner,
     platform: PLATFORM,
     kimiApp: async () => kimiInstalled,
+    kimiCommand: async (folder) => {
+      launchFolders.push(folder);
+      return kimiLaunch;
+    },
     providers: [() => createStubProvider({ id: 'claude', title: 'Claude', task: 'T000' })],
   });
   base = `http://127.0.0.1:${(await app.start()).port}`;
@@ -112,6 +122,35 @@ test('a Kimi Code link is opened only for the folder of a registered project and
   assert.deepEqual([missing.status, (missing.json['error'] as Record<string, unknown>)?.['code']], [501, 'no-handler']);
   assert.match(String((missing.json['error'] as Record<string, unknown>)?.['message']), /kimi -S/);
   assert.equal(calls.length, 0, 'nothing runs for a refused link');
+});
+
+test('a Kimi project opens through the start of the app with --workspace (no empty chat); the link is the fallback and asks for a new chat', async () => {
+  const project = await app.projects.create('kimi-workspace');
+  const link = kimiProjectLink(project.path);
+  kimiLaunch = { command: 'kimi-start', args: [`--workspace=${project.path}`] };
+  calls.length = 0;
+  launchFolders.length = 0;
+  try {
+    assert.equal((await post(link)).status, 200);
+    assert.deepEqual(calls, [['kimi-start', [`--workspace=${project.path}`]]], 'the start of the app goes first and is enough');
+    assert.deepEqual(launchFolders, [project.path], 'the registered folder, not the one of the request');
+    // The start failed: the link opens the project.
+    calls.length = 0;
+    failing.add('kimi-start');
+    assert.equal((await post(link)).status, 200);
+    assert.deepEqual(calls.map(([command]) => command), ['kimi-start', opener(link).command]);
+    assert.equal(calls.at(-1)?.[1].at(-1), link);
+    failing.delete('kimi-start');
+    // A new session asks for a new chat: only the link with new=1 does that.
+    calls.length = 0;
+    launchFolders.length = 0;
+    assert.equal((await post(`${link}&new=1`)).status, 200);
+    assert.deepEqual(launchFolders, []);
+    assert.deepEqual(calls, [[opener(link).command, [...opener(link).args.slice(0, -1), kimiProjectLink(project.path, true)]]]);
+  } finally {
+    kimiLaunch = null;
+    failing.clear();
+  }
 });
 
 test('Windows (spec M5 section 7): claude:// through rundll32, codex:// through the AppX app, rundll32 as the fallback', () => {

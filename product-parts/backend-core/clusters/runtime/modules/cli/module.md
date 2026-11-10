@@ -168,7 +168,11 @@ stripping).
   для папки зарегистрированного проекта (`sameFolder`, иначе 400 `bad-link`) и только когда
   приложение найдено (`kimiAppFound`, подмена — `AppOptions.kimiApp`; иначе 501 `no-handler`
   с подсказкой `kimi -S <id>`); служба открывает ссылку, собранную заново из папки проекта:
-  macOS — `open`, Linux — `xdg-open`, Windows — `rundll32`.
+  macOS — `open`, Linux — `xdg-open`, Windows — `rundll32`. Ссылка без `new=1` добавляет
+  пустой чат (M9, раздел 8.1), поэтому первой идёт команда `kimiWorkspaceCommand` для папки
+  проекта (подмена — `AppOptions.kimiCommand`): macOS — `open -n -a <Kimi Code.app> --args
+  --workspace=<папка>`, Windows — PowerShell `Start-Process` программы обработчика
+  `kimi-code`, Linux — команды нет; её неудача — ссылка следом.
 - `POST /api/system/shutdown` (там же, M5 раздел 7): только loopback (и Origin, как у любого
   изменения); отвечает `{ stopping: true }` и через 50 мс выполняет `app.shutdownRequested` —
   `wfk serve` останавливается так же, как по SIGTERM (на Windows сигналов нет; так службу

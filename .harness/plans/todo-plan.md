@@ -10,10 +10,24 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 545,
+  "revision": 547,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "agent-channel: waiting(key, id) and UNDELIVERED_NOTE",
+          "autopilot: SessionAutopilot.start (PlanStart), start() answers already: true while a start runs, createPlanStarts in src/start.ts",
+          "session-view: planView.starting, START_STEPS, START_SLOW_TEXT, START_AGAIN_LABEL"
+        ],
+        "decisions": [
+          "The plan phase stays computed from Kit status only; the start is autopilot state over the ready phase",
+          "The start step is read anew from the channel each time; it lives in service memory"
+        ],
+        "references": [
+          "docs/planning/M11-plan-start.md"
+        ],
+        "result": "The plan card shows the start of the plan: a spinner with the step (sending, delivered, slow) replaces «Начать выполнение плана» until Kit records the started work; a failed start (not delivered in 60 s or turn ended without started work) shows the reason and «Начать заново»; a repeated start sends nothing twice."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -179,7 +193,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -228,8 +242,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 2/4
-- Revision: 545
+- Progress: 3/4
+- Revision: 547
 
 ## Objective
 
@@ -253,7 +267,7 @@ Pressing «Начать выполнение плана» shows a spinner with t
   - Commit: feat: show the plan start progress on the plan card
   - Files: product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.css, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts
   - Depends on: T001
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M11-plan-start.md
   - Depends on: T001, T002
@@ -261,5 +275,7 @@ Pressing «Начать выполнение плана» shows a spinner with t
   - Commit: chore: release 0.6.4
   - Files: package.json, package-lock.json, README.md, docs/installation.md, docs/architecture/OVERVIEW.md, CHANGELOG.md, docs/evidence/M11-acceptance.md
   - Depends on: T002, DOCS-R1
+
+Digest: The plan card shows the start of the plan: a spinner with the step (sending, delivered, slow) replaces «Начать выполнение плана» until Kit records the started work; a failed start (not delivered in 60 s or turn ended without started work) shows the reason and «Начать заново»; a repeated start sends nothing twice.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

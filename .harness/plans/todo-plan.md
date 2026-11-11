@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 585,
+  "revision": 587,
   "rounds": [
     {
       "digest": {
@@ -38,7 +38,7 @@
       },
       "id": "R1",
       "kind": "implementation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Implementation"
     }
   ],
@@ -92,7 +92,7 @@
         "text": "WSL как SSH-цель не рассматривается"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "e9c04a9c-cd7c-4f6c-b4f7-f6b07802530e",
@@ -295,7 +295,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: release 0.8.0",
-      "confirmation": null,
+      "confirmation": "Да, выпускай 0.8.0",
       "context": [],
       "dependencies": [
         "T004",
@@ -316,7 +316,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Релиз 0.8.0",
       "why": "Релиз 0.8.0"
     }
@@ -328,11 +328,11 @@
 ## State
 
 - Scope: m13-windows-shared-daemon (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 5/6
-- Revision: 585
+- Progress: 6/6
+- Revision: 587
 
 ## Objective
 
@@ -349,7 +349,7 @@ ChatGPT на Windows 11 работает через общий демон Codex 
 
 ## Rounds
 
-### R1 — Implementation (implementation, OPEN)
+### R1 — Implementation (implementation, CLOSED)
 
 - [DONE] T001 — Диагностика общего доступа на Windows и документ пробы (work)
   - Commit: feat: diagnose the shared ChatGPT access on Windows
@@ -370,7 +370,7 @@ ChatGPT на Windows 11 работает через общий демон Codex 
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M13-windows-shared-daemon.md, docs/evidence/M13-windows-probe.md, docs/installation.md
   - Depends on: T001, T002, T003, T004
-- [TODO] T005 — Релиз 0.8.0 (delivery)
+- [DONE] T005 — Релиз 0.8.0 (delivery)
   - Commit: chore: release 0.8.0
   - Files: package.json, package-lock.json, CHANGELOG.md, docs/evidence/M13-acceptance.md, README.md, docs/installation.md, docs/architecture/OVERVIEW.md
   - Depends on: T004, DOCS-R1

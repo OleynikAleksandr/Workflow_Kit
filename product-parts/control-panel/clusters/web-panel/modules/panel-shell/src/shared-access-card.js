@@ -47,6 +47,8 @@ function view(provider) {
   /** @type {Preview | null} */
   let preview = null;
   let scriptShown = false;
+  // The message shows the note of an operation (M14): it goes as soon as the operation ends.
+  let opShown = false;
   /** @type {{ shared: SharedAccessData | null, op: SharedOperation | null }} */
   let last = { shared: null, op: null };
 
@@ -149,8 +151,13 @@ function view(provider) {
       }),
     );
     const opNote = operationNote(op);
-    if (opNote) notice(message, opNote.tone, opNote.text);
-    else if (message.textContent === 'Настройка запущена…') notice(message, 'muted', '');
+    if (opNote) {
+      notice(message, opNote.tone, opNote.text);
+      opShown = true;
+    } else if (opShown || message.textContent === 'Настройка запущена…') {
+      notice(message, 'muted', '');
+      opShown = false;
+    }
   };
 
   const entry = { node, draw };

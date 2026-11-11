@@ -139,6 +139,18 @@ export function sharedTone(shared) {
 }
 
 /**
+ * True when the card shows the administrator script (Windows, M14): while it is still to be run
+ * (needs-admin-setup), when something broke, and the rollback after a removal; not once it works.
+ * @param {SharedAccessData | null} shared
+ * @returns {boolean}
+ */
+export function showsAdminStep(shared) {
+  if (!shared?.admin) return false;
+  if (shared.state === 'needs-admin-setup' || shared.state === 'broken') return true;
+  return shared.state === 'not-configured' && shared.admin.purpose === 'rollback';
+}
+
+/**
  * Buttons of a state, the main one first.
  * @param {SharedAccessData | null} shared
  * @returns {SharedAccessButton[]}
@@ -150,7 +162,7 @@ export function sharedButtons(shared) {
   const rollback = shared.admin?.purpose === 'rollback';
   // Windows: the administrator script is shown and its command copied; Kit never runs it.
   /** @type {SharedAccessButton[]} */
-  const admin = shared.admin
+  const admin = showsAdminStep(shared)
     ? [
         { id: 'copy-command', label: 'Скопировать команду запуска', primary: false },
         { id: 'show-script', label: rollback ? 'Показать скрипт отката' : 'Показать скрипт', primary: false },
@@ -181,7 +193,7 @@ export function sharedButtons(shared) {
  */
 export function adminNote(shared) {
   const admin = shared?.admin;
-  if (!admin) return null;
+  if (!admin || !showsAdminStep(shared)) return null;
   if (admin.purpose === 'rollback') {
     return 'Чтобы откатить шаги администратора (DefaultShell и ключ), откройте PowerShell от имени администратора и выполните команду ниже. Сервер OpenSSH останется.';
   }
@@ -199,7 +211,9 @@ export function sharedSummary(shared) {
     const now = shared.connected === true ? 'приложение ChatGPT подключено сейчас' : 'приложение ChatGPT сейчас не подключено — откройте его';
     return `Чаты Kit открываются в ChatGPT на компьютере, iPad и телефоне одновременно; ${now}.`;
   }
-  return [shared.reason, shared.hint].filter(Boolean).join(' ') || shared.label;
+  // The reason and the hint are two sentences (M14): a period between them when the reason has none.
+  const reason = shared.reason && !/[.!?…]$/.test(shared.reason) ? `${shared.reason}.` : shared.reason;
+  return [reason, shared.hint].filter(Boolean).join(' ') || shared.label;
 }
 
 /**

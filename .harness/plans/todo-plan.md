@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 596,
+  "revision": 598,
   "rounds": [
     {
       "digest": null,
@@ -210,14 +210,19 @@
       ],
       "docsWaiver": null,
       "files": [
-        "product-parts/control-panel/clusters/web-panel/modules/panel-shell"
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/shared-access-card.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/shared-access-model.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/styles.css",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/shared-access-model.test.ts"
       ],
       "fixes": null,
       "id": "T004",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Карточка общего доступа",
       "why": "Находки 3–6: лишний блок администратора, обрезанная команда, нет точки, зависшая заметка"
     },
@@ -361,8 +366,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 3/8
-- Revision: 596
+- Progress: 4/8
+- Revision: 598
 
 ## Objective
 
@@ -391,9 +396,9 @@
 - [DONE] T003 — UAC и правило подключения ChatGPT (work)
   - Commit: fix: name a disabled UAC and count only real ChatGPT connections
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/shared-access.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/elevation.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/shared-access.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/shared-windows.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/elevation.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/shared-machine.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/shared-windows-setup.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/shared-windows.test.ts
-- [TODO] T004 — Карточка общего доступа (work)
+- [DONE] T004 — Карточка общего доступа (work)
   - Commit: fix: tidy the shared access card
-  - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell
+  - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/shared-access-card.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/shared-access-model.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/styles.css, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/shared-access-model.test.ts
   - Depends on: T003
 - [TODO] T005 — Папка проектов на любом диске (work)
   - Commit: feat: choose the projects folder on any local drive

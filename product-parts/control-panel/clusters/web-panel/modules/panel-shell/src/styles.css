@@ -164,6 +164,11 @@ input {
   overflow-wrap: anywhere;
 }
 
+/* A command or a script in a card wraps instead of running past its right edge (M14). */
+pre.path {
+  white-space: pre-wrap;
+}
+
 .plain {
   margin: 0;
   padding: 0;

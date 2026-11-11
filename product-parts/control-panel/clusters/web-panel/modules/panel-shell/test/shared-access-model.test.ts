@@ -6,6 +6,7 @@ import {
   REMOVE_CONFIRM_WINDOWS,
   adminNote,
   operationNote,
+  showsAdminStep,
   removeConfirm,
   sharedAccessOf,
   sharedAccessProviders,
@@ -56,7 +57,8 @@ test('tone and summary: active says what works, the others say why and what to d
   assert.equal(sharedTone(shared('unsupported') as never), 'muted');
   assert.match(sharedSummary(shared('active', { connected: true }) as never), /iPad.*подключено сейчас/);
   assert.match(sharedSummary(shared('active', { connected: false }) as never), /не подключено/);
-  assert.equal(sharedSummary(shared('broken') as never), 'причина broken что делать broken');
+  assert.equal(sharedSummary(shared('broken') as never), 'причина broken. что делать broken');
+  assert.equal(sharedSummary(shared('broken', { reason: 'уже с точкой.' }) as never), 'уже с точкой. что делать broken', 'no second period');
   assert.equal(sharedSummary(null), 'Ещё не проверено.');
 });
 
@@ -91,4 +93,18 @@ test('Windows: the administrator step gets copy and show, the main one first; th
   assert.equal(adminNote(shared('active') as never), null);
   assert.equal(removeConfirm(needs as never), REMOVE_CONFIRM_WINDOWS);
   assert.equal(removeConfirm(shared('active') as never), REMOVE_CONFIRM);
+});
+
+test('the administrator step is shown only while it matters, not once it works (M14)', () => {
+  const step = { purpose: 'setup', file: 'C:\\d\\a.ps1', command: 'powershell -File a.ps1', text: '#' };
+  for (const state of ['active', 'needs-connection']) {
+    const value = shared(state, { admin: step }) as never;
+    assert.equal(showsAdminStep(value), false, state);
+    assert.equal(adminNote(value), null, state);
+    assert.ok(!sharedButtons(value).some((b) => b.id === 'copy-command' || b.id === 'show-script'), state);
+  }
+  assert.equal(showsAdminStep(shared('not-configured', { admin: step }) as never), false, 'a setup script before the setup is not shown');
+  assert.equal(showsAdminStep(shared('needs-admin-setup', { admin: step }) as never), true);
+  assert.equal(showsAdminStep(shared('broken', { admin: step }) as never), true);
+  assert.equal(showsAdminStep(shared('not-configured', { admin: { ...step, purpose: 'rollback' } }) as never), true);
 });

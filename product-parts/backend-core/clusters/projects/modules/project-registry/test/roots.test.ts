@@ -95,11 +95,14 @@ test('win32: another system drive letter is taken from SystemDrive', async () =>
   assert.deepEqual((await allowedRoots(scope)).map((r) => r.path), ['D:\\Users\\alex', 'C:\\']);
 });
 
-test('darwin: volumes under /Volumes are roots, the boot volume link is not', async () => {
+test('darwin: volumes under /Volumes are roots; the boot volume link, hidden and com.apple.* volumes are not', async () => {
   const scope: HomeScope = {
     homedir: '/Users/alex',
     platform: 'darwin',
-    fs: fakeFs(['/', '/Users/alex', '/Volumes', '/Volumes/Backup', '/Volumes/Backup/Projects', '/private/tmp'], { '/Volumes/Macintosh HD': '/' }),
+    fs: fakeFs(
+      ['/', '/Users/alex', '/Volumes', '/Volumes/Backup', '/Volumes/Backup/Projects', '/private/tmp', '/Volumes/.timemachine', '/Volumes/com.apple.TimeMachine.localsnapshots'],
+      { '/Volumes/Macintosh HD': '/' },
+    ),
   };
   assert.deepEqual(await allowedRoots(scope), [
     { name: 'Домой', path: '/Users/alex', kind: 'home' },
@@ -111,12 +114,12 @@ test('darwin: volumes under /Volumes are roots, the boot volume link is not', as
   assert.equal(await code(resolveInsideRoots('/Users/alex', scope)), 'invalid-path');
 });
 
-test('linux: /media/<user>, /run/media/<user> and /mnt mounts are roots', async () => {
+test('linux: /media/<user>, /run/media/<user> and /mnt mounts are roots, hidden ones are not', async () => {
   const scope: HomeScope = {
     homedir: '/home/alex',
     platform: 'linux',
     env: { USER: 'alex' },
-    fs: fakeFs(['/home/alex', '/media/alex', '/media/alex/USB', '/run/media/alex/Disk', '/mnt', '/mnt/data', '/media/bob/Other', '/srv']),
+    fs: fakeFs(['/home/alex', '/media/alex', '/media/alex/USB', '/run/media/alex/Disk', '/mnt', '/mnt/data', '/mnt/.snapshots', '/media/bob/Other', '/srv']),
   };
   assert.deepEqual((await allowedRoots(scope)).map((r) => r.path), ['/home/alex', '/media/alex/USB', '/run/media/alex/Disk', '/mnt/data']);
   assert.equal(await code(resolveInsideRoots('/media/bob/Other', scope)), 'outside-roots');

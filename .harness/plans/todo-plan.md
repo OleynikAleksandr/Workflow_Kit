@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": "T007",
+  "currentTaskId": null,
   "lastClosed": {
     "closedAt": "2026-11-11T11:00:43.337Z",
     "scopeId": "m13-windows-shared-daemon"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 606,
+  "revision": 607,
   "rounds": [
     {
       "digest": {
@@ -37,7 +37,7 @@
       },
       "id": "R1",
       "kind": "implementation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Implementation"
     }
   ],
@@ -88,7 +88,7 @@
         "text": "Выпуск — 0.8.1"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "e9c04a9c-cd7c-4f6c-b4f7-f6b07802530e",
@@ -386,14 +386,17 @@
         "README.md",
         "docs/installation.md",
         "docs/architecture/OVERVIEW.md",
-        "product-parts/backend-core/clusters/projects/modules/project-registry"
+        "product-parts/backend-core/clusters/projects/modules/project-registry",
+        "product-parts/backend-core/clusters/projects/modules/project-registry/module.md",
+        "product-parts/backend-core/clusters/projects/modules/project-registry/src/roots.ts",
+        "product-parts/backend-core/clusters/projects/modules/project-registry/test/roots.test.ts"
       ],
       "fixes": null,
       "id": "T007",
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "title": "Релиз 0.8.1",
       "why": "Выпустить исправления для проверки на Windows"
     }
@@ -405,11 +408,11 @@
 ## State
 
 - Scope: m14-windows-fixes (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
-- Current task: T007
-- Progress: 7/8
-- Revision: 606
+- Current task: none
+- Progress: 8/8
+- Revision: 607
 
 ## Objective
 
@@ -427,7 +430,7 @@
 
 ## Rounds
 
-### R1 — Implementation (implementation, OPEN)
+### R1 — Implementation (implementation, CLOSED)
 
 - [DONE] T001 — Окна git скрыты на Windows (work, parallel-safe)
   - Commit: fix: hide the console windows of git on Windows
@@ -454,9 +457,9 @@
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M14-windows-fixes.md, product-parts/backend-core/clusters/projects/modules/git-publish/module.md, docs/installation.md
   - Depends on: T001, T002, T003, T004, T005, T006
-- [IN_PROGRESS] T007 — Релиз 0.8.1 (delivery)
+- [DONE] T007 — Релиз 0.8.1 (delivery)
   - Commit: chore: release 0.8.1
-  - Files: package.json, package-lock.json, CHANGELOG.md, docs/evidence/M14-acceptance.md, README.md, docs/installation.md, docs/architecture/OVERVIEW.md, product-parts/backend-core/clusters/projects/modules/project-registry
+  - Files: package.json, package-lock.json, CHANGELOG.md, docs/evidence/M14-acceptance.md, README.md, docs/installation.md, docs/architecture/OVERVIEW.md, product-parts/backend-core/clusters/projects/modules/project-registry, product-parts/backend-core/clusters/projects/modules/project-registry/module.md, product-parts/backend-core/clusters/projects/modules/project-registry/src/roots.ts, product-parts/backend-core/clusters/projects/modules/project-registry/test/roots.test.ts
   - Depends on: T006, DOCS-R1
 
 Digest: Исправлены находки живой проверки 0.8.0 на Windows: git без мелькающих окон, выключенный UAC назван причиной, «Работает» только при работающем демоне, аккуратная карточка общего доступа, панель в Chrome, подсказка про wfk, папка проектов на любом локальном диске.

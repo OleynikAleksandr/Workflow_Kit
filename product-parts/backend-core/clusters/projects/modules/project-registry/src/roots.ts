@@ -60,6 +60,11 @@ async function windowsDrives(scope: HomeScope): Promise<AllowedRoot[]> {
   return found.filter((letter): letter is string => letter !== undefined).map((letter) => ({ name: `${letter}:\\`, path: `${letter}:\\`, kind: 'drive' }));
 }
 
+/** Hidden mount points (".timemachine") and macOS service volumes ("com.apple.TimeMachine.localsnapshots"). */
+function serviceMount(name: string, platform: NodeJS.Platform): boolean {
+  return name.startsWith('.') || (platform === 'darwin' && name.startsWith('com.apple.'));
+}
+
 /** Folders one level below a mount base (/Volumes, /mnt, /media/<user>); links to "/" are skipped. */
 async function mountsBelow(base: string, scope: HomeScope): Promise<AllowedRoot[]> {
   const fs = scope.fs ?? nodeFs;
@@ -68,6 +73,7 @@ async function mountsBelow(base: string, scope: HomeScope): Promise<AllowedRoot[
   const roots: AllowedRoot[] = [];
   for (const entry of entries) {
     if (!entry.isDirectory() && !entry.isSymbolicLink()) continue;
+    if (serviceMount(entry.name, scope.platform)) continue;
     const full = path.posix.join(base, entry.name);
     const real = await within(fs.realpath(full), DRIVE_PROBE_TIMEOUT_MS);
     if (!real || real === '/' || !(await isDir(real, scope))) continue;

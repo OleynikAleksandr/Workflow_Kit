@@ -1,8 +1,6 @@
 # Workflow Kit — обзор архитектуры
 
-Состояние: вехи 1–4 приняты (приёмки [M1](../evidence/M1-acceptance.md)–[M4](../evidence/M4-acceptance.md);
-веха 4 — перекрёстное ревью плана, [M4-plan-review.md](../planning/M4-plan-review.md));
-веха 8 — Kimi Code ([M8](../planning/M8-kimi-provider.md)), версия 0.8.2. Документ
+Состояние: вехи M1–M15 приняты (приёмки — [docs/evidence/](../evidence/)), версия 0.8.2. Документ
 поддерживает задача DOCS каждого раунда; подробности — в контрактах модулей
 (`module.md`). Спецификации вех и факты о провайдерах — в `docs/planning/`.
 
@@ -242,12 +240,12 @@ Linux `$XDG_CONFIG_HOME`, `$XDG_STATE_HOME`, `$XDG_DATA_HOME` +
 | Kimi: приложение, проект в нём | `open -a`, `--workspace` | `xdg-mime`, `xdg-open` | `reg`, `--workspace` (**П**) |
 | Запуск и остановка процессов сессий | да | да | да (CIM, `taskkill`) |
 | Корни папки проектов (M14) | дом, `/Volumes/*` | дом, `/media/<u>/*`, `/run/media/<u>/*`, `/mnt/*` | дом и диски, кроме системного |
-| Живые проверки | есть, см. документы приёмки M1–M4 | нет, только тесты | установка и общий доступ (M13, M14) |
+| Живые проверки | есть, `docs/evidence/` | нет, только тесты | установка, общий доступ, путь до запуска плана (M13–M16) |
 
 ## Известные ограничения
 
 - Основная проверенная ОС — macOS. Linux и Windows проверены тестами и CI с подставными
-  программами; на Windows вживую — установка и общий доступ ChatGPT (M13, M14). На Linux Claude требует `expect`, чаты ChatGPT и Claude служба не открывает. Инструкция — [установка](../installation.md).
+  программами; Windows проверен и вживую (M13–M16). На Linux Claude требует `expect`, чаты ChatGPT и Claude служба не открывает.
 - macOS: установка проверена в M3/M4; окно значка собирается через `swiftc`,
   без сборки открывается браузер. Windows/Linux открывают окно браузера (Windows — сначала
   Chrome, M14).
@@ -255,6 +253,8 @@ Linux `$XDG_CONFIG_HOME`, `$XDG_STATE_HOME`, `$XDG_DATA_HOME` +
   остановленные — нет. Состояние сессии Codex бывает `unknown`; будит её Kit
   (`thread/resume`) только в режиме общего демона (M12/M13, macOS и Windows; опирается на
   недокументированное поведение ChatGPT, Kit проверяет его раз в минуту).
+- Сессии канала живут в памяти службы: после перезапуска команды панели будят их снова;
+  карточку выбора прячут только сессии проекта у провайдера (M16).
 - Доверие Claude записывается в `~/.claude.json`; при неожиданном диалоге
   сессия останавливается с ошибкой без нажатий, лишь на предложение новой функции Kit
   отвечает «Not now» (M15). Codex сохраняет пользовательские политики служебного хода.
@@ -271,9 +271,8 @@ Linux `$XDG_CONFIG_HOME`, `$XDG_STATE_HOME`, `$XDG_DATA_HOME` +
 
 - Спецификации вех: `docs/planning/M*.md` — ядро
   [M1](../planning/M1-orchestrator-core.md), интерфейс [M2](../planning/M2-interface-and-process.md)
-  (макет [ui-mockup.html](../design/ui-mockup.html)), [M3](../planning/M3-fixes.md), общий демон
-  ChatGPT [M12](../planning/M12-codex-shared-daemon.md), Windows [M13](../planning/M13-windows-shared-daemon.md), [M14](../planning/M14-windows-fixes.md),
-  диалоги Claude [M15](../planning/M15-claude-promo-dialogs.md).
+  (макет [ui-mockup.html](../design/ui-mockup.html)), [M3](../planning/M3-fixes.md); остальные
+  вехи — `docs/planning/M<номер>-*.md`, список — `scripts/workflow context --list`.
 - Контракт провайдера, факты о Claude и Codex: [M1-providers.md](../planning/M1-providers.md);
   первая приёмка: [M1-acceptance.md](../evidence/M1-acceptance.md).
 - [README.md](../../README.md), [установка по ОС](../installation.md), [CHANGELOG.md](../../CHANGELOG.md).

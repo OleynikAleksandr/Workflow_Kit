@@ -10,10 +10,26 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 637,
+  "revision": 639,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "autopilot: опция owns(projectId, key); все enqueue с projectId",
+          "cli: owns автопилота — ownsSession",
+          "session-view: reviewComing учитывает только сессии из state.providers.projects[id][client].sessions"
+        ],
+        "decisions": [
+          "Карточку выбора и выбор режима блокируют только сессии, которые провайдер числит за проектом; без списка провайдера или при ошибке сессия считается",
+          "Автопилот передаёт projectId во все сообщения канала"
+        ],
+        "references": [
+          "docs/planning/M16-plan-start-after-review.md",
+          "docs/architecture/OVERVIEW.md",
+          "README.md"
+        ],
+        "result": "После ревью карточка выбора режима не прячется посторонней сессией канала, которой провайдер не числит за проектом; выбор режима не блокируется такой сессией; команды автопилота (выбор режима, запуск, доработка) передают projectId, поэтому после перезапуска службы агент будится сразу."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -161,7 +177,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -209,8 +225,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 2/4
-- Revision: 637
+- Progress: 3/4
+- Revision: 639
 
 ## Objective
 
@@ -233,7 +249,7 @@
   - Commit: fix: show the mode choice despite a stray session
   - Files: product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts
   - Depends on: T001
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M16-plan-start-after-review.md
   - Depends on: T001, T002
@@ -241,5 +257,7 @@
   - Commit: chore: release 0.8.3
   - Files: package.json, package-lock.json, CHANGELOG.md, docs/evidence/M16-acceptance.md, README.md, docs/installation.md, docs/architecture/OVERVIEW.md
   - Depends on: T002, DOCS-R1
+
+Digest: После ревью карточка выбора режима не прячется посторонней сессией канала, которой провайдер не числит за проектом; выбор режима не блокируется такой сессией; команды автопилота (выбор режима, запуск, доработка) передают projectId, поэтому после перезапуска службы агент будится сразу.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

@@ -11,6 +11,7 @@
 #   SESSION_NOT_TRUSTED       the folder is not trusted (exit 5)
 #   SESSION_EXITED            claude exited before a link appeared (exit 4)
 #   DIALOG <kind>             claude showed a dialog; it was stopped, no key pressed (exit 6)
+#   PROMO_DECLINED <n>        a feature offer got "Not now" (option <n>); the wait goes on (M15)
 #   RENAMED                   the name from <debug file>.rename was typed as /rename <name>
 #   WOKEN                     <debug file>.message asked to wake the idle session: a short prompt
 #                             was typed, the prompt hook then hands the panel's queue to the agent
@@ -48,7 +49,7 @@ expect {
     }
   }
   -re {Workspace not trusted} { puts "\nSESSION_NOT_TRUSTED"; exit 5 }
-  -re $dialog_pattern { stop_on_dialog $expect_out(buffer) }
+  -re $dialog_pattern { if {[handle_dialog $expect_out(buffer)] eq "declined"} { exp_continue } }
   timeout { puts "\nNO_SESSION_URL" }
   eof { puts "\nSESSION_EXITED"; exit 4 }
 }

@@ -13,7 +13,9 @@
 //   but Remote Control then answers "Workspace not trusted"); the external-imports dialog when
 //   FAKE_CLAUDE_EXTERNAL_IMPORTS names a file and projects[cwd] has no recorded answer. A dialog
 //   waits for keys forever and only records them (FAKE_CLAUDE_LOG + ".keys"): Kit must press none.
-// FAKE_CLAUDE_MODE: "debug-only" (no link on the screen), "exit" (fail right away), "trust-dialog"
+// FAKE_CLAUDE_MODE: "offer" (a feature offer first; "Not now" — down arrow and Enter — lets the
+//   session start, any other answer is recorded in FAKE_CLAUDE_LOG + ".keys" too), "theme" (the
+//   first-run theme picker, no footer), "debug-only" (no link on the screen), "exit" (fail right away), "trust-dialog"
 //   (the trust dialog even in a trusted folder), "unknown-dialog" (another dialog, also for
 //   remote-control).
 // FAKE_CLAUDE_LOG: JSON lines with argv, cwd and the CLAUDE*/WFK_* variables seen.
@@ -120,6 +122,26 @@ function importsDialog(file) {
   ];
 }
 
+/** A feature offer like Claude Code 2.1.319 showed (spec M15). */
+const OFFER_DIALOG = ['Try the new fullscreen renderer?', '· Flicker-free output', '❯ 1. Yes, try it', '  2. Not now', 'Enter to confirm · Esc to cancel'];
+/** The first-run theme picker: no footer. */
+const THEME_SCREEN = ['Choose the text style that looks best with your terminal', '1 function greet() {', 'Syntax theme: Monokai Extended (ctrl+t to disable)'];
+
+/** Shows the offer and calls next once Enter is pressed; the keys go to the ".keys" log. */
+function offer(next) {
+  process.stdout.write(`${OFFER_DIALOG.join('\r\n').replace(/ /g, '\x1b[1C')}\r\n`);
+  if (process.stdin.isTTY) process.stdin.setRawMode(true);
+  let keys = '';
+  const onData = (chunk) => {
+    keys += chunk.toString('utf8');
+    if (!keys.includes('\r')) return;
+    process.stdin.off('data', onData);
+    if (process.env.FAKE_CLAUDE_LOG) appendFileSync(`${process.env.FAKE_CLAUDE_LOG}.offer`, `${JSON.stringify({ pid: process.pid, keys })}\n`);
+    next();
+  };
+  process.stdin.on('data', onData);
+}
+
 const UNKNOWN_DIALOG = ['New MCP server found in .mcp.json: late', '❯ 1. Use this and all future MCP servers in this project', '  2. Continue without using this MCP server', 'Enter to confirm · Esc to cancel'];
 
 if (argv[0] === 'purge') {
@@ -161,7 +183,17 @@ if (argv[0] === 'remote-control') {
     process.exit(1);
   } else if (imports && entryOf(cwd).hasClaudeMdExternalIncludesWarningShown !== true) dialog(importsDialog(imports));
   else if (mode === 'unknown-dialog') dialog(UNKNOWN_DIALOG);
-  else {
+  else if (mode === 'theme') dialog(THEME_SCREEN);
+  else if (mode === 'offer') offer(startSession);
+  else startSession();
+} else {
+  process.stdout.write(`unexpected arguments: ${argv.join(' ')}\n`);
+  process.exit(2);
+}
+
+/** The session itself: transcript, hook, debug file, the link and the typed input. */
+function startSession() {
+  {
     const resume = option('--resume');
     const localId = resume ?? randomUUID();
     const transcript = transcriptFile(localId);
@@ -186,7 +218,4 @@ if (argv[0] === 'remote-control') {
     });
     stayAlive();
   }
-} else {
-  process.stdout.write(`unexpected arguments: ${argv.join(' ')}\n`);
-  process.exit(2);
 }

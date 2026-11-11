@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 619,
+  "revision": 621,
   "rounds": [
     {
       "digest": null,
@@ -128,14 +128,17 @@
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/session.exp",
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/environment.exp",
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test",
-        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md"
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/dialogs.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/fixtures/fake-claude.mjs",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/trust.test.ts"
       ],
       "fixes": null,
       "id": "T002",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Предложения и первый запуск в expect-скриптах",
       "why": "Те же экраны Claude на macOS и Linux"
     },
@@ -274,8 +277,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 1/6
-- Revision: 619
+- Progress: 2/6
+- Revision: 621
 
 ## Objective
 
@@ -296,9 +299,9 @@
 - [DONE] T001 — Предложения и первый запуск в хосте Windows (work)
   - Commit: feat: decline Claude feature offers in the Windows pty host
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/screen.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/host.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/dialogs.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/windows.test.ts
-- [TODO] T002 — Предложения и первый запуск в expect-скриптах (work)
+- [DONE] T002 — Предложения и первый запуск в expect-скриптах (work)
   - Commit: feat: decline Claude feature offers in the expect scripts
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/dialogs.tcl, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/session.exp, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/environment.exp, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/dialogs.tcl, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/session.exp, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/environment.exp, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/dialogs.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/fixtures/fake-claude.mjs, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/trust.test.ts
   - Depends on: T001
 - [TODO] T003 — Тексты ошибок первого запуска и незнакомого диалога (work)
   - Commit: fix: explain Claude's first run and unknown dialogs

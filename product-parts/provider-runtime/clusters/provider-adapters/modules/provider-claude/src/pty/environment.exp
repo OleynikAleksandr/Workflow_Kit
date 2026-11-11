@@ -8,6 +8,7 @@
 #   ENV_NOT_TRUSTED    the folder is not trusted (exit 5)
 #   ENV_EXITED         claude exited right away (exit 4)
 #   DIALOG <kind>      claude showed a dialog; it was stopped, no key pressed (exit 6)
+#   PROMO_DECLINED <n> a feature offer got "Not now" (option <n>); the wait goes on (M15)
 set timeout 20
 lassign $argv dir claude name debug
 source [file join [file dirname [info script]] dialogs.tcl]
@@ -18,7 +19,7 @@ stty rows 40 columns 120 < $spawn_out(slave,name)
 expect {
   -re {Workspace not trusted} { puts "\nENV_NOT_TRUSTED"; exit 5 }
   -re {environment=([A-Za-z0-9_-]+)} { puts "\nENV_READY $expect_out(1,string)" }
-  -re $dialog_pattern { stop_on_dialog $expect_out(buffer) }
+  -re $dialog_pattern { if {[handle_dialog $expect_out(buffer)] eq "declined"} { exp_continue } }
   timeout { puts "\nENV_STARTED" }
   eof { puts "\nENV_EXITED"; exit 4 }
 }

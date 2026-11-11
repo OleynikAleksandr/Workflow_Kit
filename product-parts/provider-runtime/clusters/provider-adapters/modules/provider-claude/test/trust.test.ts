@@ -137,6 +137,21 @@ test('trust and unknown dialogs stop claude with their text: sessions and the fo
   for (const call of (await h.fakeCalls()).slice(-3)) assert.throws(() => process.kill(call.pid, 0), 'the dialog process was stopped');
 });
 
+test('a feature offer gets "Not now" and the session starts; the theme picker stops claude at once (M15)', { skip }, async () => {
+  const offering = h.withEnv({ FAKE_CLAUDE_MODE: 'offer' });
+  const session = await offering.createSession(beta, { title: 'offer' });
+  assert.match(session.remoteId ?? '', /^session_FAKE/);
+  const answers = (await readFile(`${h.fakeLog}.offer`, 'utf8')).trim().split('\n').map((line) => (JSON.parse(line) as { keys: string }).keys);
+  assert.deepEqual(answers, ['\u001b[B\r']);
+  await offering.stopSession!(beta, session.remoteId!);
+
+  const theme = h.withEnv({ FAKE_CLAUDE_MODE: 'theme' });
+  const started = Date.now();
+  await assert.rejects(theme.createSession(beta, { title: 'theme' }), code('onboarding-dialog'));
+  assert.ok(Date.now() - started < 15_000, 'no wait for the link timeout');
+  assert.deepEqual(await h.dialogKeys(), [], 'no key was pressed on the first-run screen');
+});
+
 test('a write lost to a concurrent save of Claude is repeated; three losses fail with trust-lost', { skip }, async () => {
   const gamma = await h.project('Gamma');
   let stale = await readFile(h.configFile, 'utf8');

@@ -42,8 +42,14 @@ Claude в скрытом терминале сессии или окружени
 - За один запуск — не больше `MAX_OFFERS_DECLINED` (3) ответов; то же предложение после
   ответа (`offerQuestion`) и предложение без варианта «Not now» — диалог `unknown`.
 - `parseMarkers` считает ответы (`offersDeclined`); строки остаются в журнале сессии.
+- macOS и Linux: процедура `handle_dialog` в `dialogs.tcl` (вместо прежней `stop_on_dialog`)
+  возвращает `declined`, и ветка диалога в `session.exp` и `environment.exp` делает
+  `exp_continue`; сравнение идёт по тексту без escape-последовательностей (`plain_text`).
 
 ## Тесты
 
+- `test/trust.test.ts` под `expect` с поддельным claude (`test/fixtures/fake-claude.mjs`,
+  режимы `offer` и `theme`): «Not now» — стрелка вниз и Enter (`<лог>.offer`), сессия
+  создаётся; выбор темы сразу даёт `onboarding-dialog` без нажатий.
 - `test/windows.test.ts` — хост Windows с подставным терминалом: предложение из живой проверки
   0.8.1 (без пробелов), курсор ниже «Not now», повтор, четвёртое предложение, выбор темы.

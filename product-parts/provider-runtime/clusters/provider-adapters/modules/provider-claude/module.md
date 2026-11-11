@@ -10,7 +10,7 @@
 Control (создание, список, возобновление, остановка) и окружение папки
 (`claude remote-control --spawn=same-dir`) как особое действие проекта.
 Интерактивный `claude` работает под pty через `expect` (скрипты
-`src/pty/*.exp` и общий `src/pty/dialogs.tcl`), на Windows — через ConPTY-хост
+`src/pty/*.exp` и общий `src/pty/dialogs.tcl` с `handle_dialog`, M15), на Windows — через ConPTY-хост
 `src/pty/win-host.ts` с тем же контрактом (раздел «Windows»); процессы сессий и окружений
 запускает `process-supervisor` (своя группа, вывод в файл, без `CLAUDE*`,
 D5) и останавливает только по своим записям (D9). Kit не нажимает клавиш в

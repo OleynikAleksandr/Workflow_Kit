@@ -10,17 +10,389 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 589,
-  "rounds": [],
+  "revision": 590,
+  "rounds": [
+    {
+      "digest": null,
+      "id": "R1",
+      "kind": "implementation",
+      "status": "OPEN",
+      "title": "Implementation"
+    }
+  ],
   "schema": "harness-workflow-plan/1",
-  "scope": null,
-  "tasks": []
+  "scope": {
+    "acceptance": [
+      "Пока открыта панель на Windows, окна терминала не мелькают",
+      "При выключенном UAC Kit называет причину и что сделать в статусе ChatGPT, карточке и wfk doctor",
+      "«Работает» появляется только после настоящего подключения приложения ChatGPT при работающем демоне",
+      "Карточка общего доступа: блок администратора только в нужных состояниях, команда не обрезается, текст с точкой, заметка операции не зависает",
+      "На Windows панель открывается в Chrome, если он установлен; после установки понятно, как запустить wfk",
+      "Папку проектов можно выбрать на другом диске (Windows), томе (macOS) или в /media и /mnt (Linux)",
+      "CI зелёный на macOS, Linux, Windows x64 и ARM64; живые проверки записаны в документе приёмки"
+    ],
+    "acceptanceNote": null,
+    "approval": {
+      "at": "2026-11-11T15:18:44.384Z",
+      "text": "Пользователь, 2026-11-11: «Я открываю скоп и Еще два замечания. Первое. Можно ли Workflow Kit открывать не в Edge, а в Chrome? И второй при выборе диска папки, вернее, в которую писать проекты, присутствует только диск C. А нужно иметь выбор любого диска.» | Execution mode chosen by the user: sequential: Поэтому, выполняя работу последовательно, собери, пожалуйста, новый релиз."
+    },
+    "baselineCommit": "bc56d12ded8d5a1eae5e3d1b6b42b31ea58aa475",
+    "blockedReason": null,
+    "context": [
+      {
+        "path": "docs/planning/M14-windows-fixes.md",
+        "required": true
+      },
+      {
+        "path": "docs/evidence/M13-acceptance.md",
+        "required": false,
+        "heading": "Находки живой проверки на Windows (2026-11-11, виртуальная машина Windows 11, администратор)"
+      }
+    ],
+    "decisions": [
+      {
+        "at": "2026-11-11T15:18:44.384Z",
+        "text": "Kit не меняет UAC и терминал по умолчанию сам: называет причину и что сделать"
+      },
+      {
+        "at": "2026-11-11T15:18:44.384Z",
+        "text": "На системном диске Windows проекты по-прежнему только внутри домашней папки; другие диски — целиком"
+      },
+      {
+        "at": "2026-11-11T15:18:44.384Z",
+        "text": "Подключение ChatGPT засчитывается только при работающем демоне; на Windows — процесс ssh.exe не моложе 15 с"
+      },
+      {
+        "at": "2026-11-11T15:18:44.384Z",
+        "text": "Выпуск — 0.8.1"
+      }
+    ],
+    "delivery": "IN_PROGRESS",
+    "execution": {
+      "maxWorkers": 3,
+      "ownerSession": "e9c04a9c-cd7c-4f6c-b4f7-f6b07802530e",
+      "strategy": "sequential"
+    },
+    "id": "m14-windows-fixes",
+    "objective": "Исправить находки живой проверки 0.8.0 на Windows и замечания пользователя: окна git не мелькают, UAC и ложное «Работает» названы верно, карточка общего доступа аккуратна, панель открывается в Chrome, папку проектов можно выбрать на любом диске",
+    "spec": "docs/planning/M14-windows-fixes.md",
+    "status": "ACTIVE"
+  },
+  "tasks": [
+    {
+      "acceptance": [
+        "runGit запускает git с windowsHide: true; тест проверяет параметры execFile",
+        "module.md git-publish обновлён"
+      ],
+      "checks": [],
+      "commitMessage": "fix: hide the console windows of git on Windows",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M14-windows-fixes.md",
+          "required": true,
+          "heading": "2.1. Мелькающие окна `git` (находка 8)"
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/backend-core/clusters/projects/modules/git-publish/src/git.ts",
+        "product-parts/backend-core/clusters/projects/modules/git-publish/test/publication.test.ts",
+        "product-parts/backend-core/clusters/projects/modules/git-publish/module.md"
+      ],
+      "fixes": null,
+      "id": "T001",
+      "iteration": 1,
+      "kind": "work",
+      "parallelSafe": true,
+      "roundId": "R1",
+      "status": "TODO",
+      "title": "Окна git скрыты на Windows",
+      "why": "Служба раз в 30 с запускает git без windowsHide, Windows Terminal мелькает"
+    },
+    {
+      "acceptance": [
+        "browserPlan на win32: chrome.exe раньше msedge.exe; тест с подставленной платформой",
+        "Итог установки на Windows напоминает про новое окно терминала и печатает прямую команду wfk.cmd",
+        "module.md service-installer обновлён"
+      ],
+      "checks": [],
+      "commitMessage": "fix: open the panel in Chrome on Windows and explain the new wfk command",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M14-windows-fixes.md",
+          "required": true
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/system-service/clusters/deployment/modules/service-installer"
+      ],
+      "fixes": null,
+      "id": "T002",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R1",
+      "status": "TODO",
+      "title": "Chrome первым на Windows; сообщение о wfk после установки",
+      "why": "Пользователь хочет панель в Chrome; команда wfk не находилась в открытом Windows Terminal"
+    },
+    {
+      "acceptance": [
+        "startDaemon: daemon-elevated с причиной и подсказкой про UAC",
+        "Проверка elevation (EnableLUA) и вердикт broken на win32",
+        "connectionSeenAt пишется только при работающем демоне; на Windows ssh.exe не моложе 15 с",
+        "Тесты с подставленной платформой; module.md и shared-access.md обновлены"
+      ],
+      "checks": [],
+      "commitMessage": "fix: name a disabled UAC and count only real ChatGPT connections",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M14-windows-fixes.md",
+          "required": true
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex"
+      ],
+      "fixes": null,
+      "id": "T003",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R1",
+      "status": "TODO",
+      "title": "UAC и правило подключения ChatGPT",
+      "why": "При выключенном UAC демон не поднимается молча; Kit принимал неудачную попытку приложения за подключение"
+    },
+    {
+      "acceptance": [
+        "Блок администратора только в needs-admin-setup, broken и not-configured со скриптом отката",
+        "Команда переносится по ширине",
+        "Причина и подсказка через точку",
+        "Заметка операции исчезает после её окончания",
+        "Тесты модели; module.md panel-shell обновлён"
+      ],
+      "checks": [],
+      "commitMessage": "fix: tidy the shared access card",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M14-windows-fixes.md",
+          "required": true,
+          "heading": "2.4. Карточка «Общий доступ к чатам» (находки 3–6)"
+        }
+      ],
+      "dependencies": [
+        "T003"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell"
+      ],
+      "fixes": null,
+      "id": "T004",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R1",
+      "status": "TODO",
+      "title": "Карточка общего доступа",
+      "why": "Находки 3–6: лишний блок администратора, обрезанная команда, нет точки, зависшая заметка"
+    },
+    {
+      "acceptance": [
+        "allowedRoots и resolveInsideRoots для win32, darwin и linux с подставленной файловой системой",
+        "GET /api/folders отдаёт roots; выбор папки переключает корни",
+        "Создание и открытие проекта и мастер принимают пути других дисков; системный диск Windows — только домашняя папка",
+        "module.md project-registry, project-setup, panel-shell обновлены"
+      ],
+      "checks": [],
+      "commitMessage": "feat: choose the projects folder on any local drive",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M14-windows-fixes.md",
+          "required": true,
+          "heading": "2.7. Папка проектов на любом диске (замечание 2)"
+        }
+      ],
+      "dependencies": [
+        "T004"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/backend-core/clusters/projects/modules/project-registry",
+        "product-parts/backend-core/clusters/projects/modules/project-setup",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell",
+        "product-parts/backend-core/clusters/runtime/modules/cli"
+      ],
+      "fixes": null,
+      "id": "T005",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R1",
+      "status": "TODO",
+      "title": "Папка проектов на любом диске",
+      "why": "Пользователь хочет хранить проекты не только на диске C"
+    },
+    {
+      "acceptance": [
+        "README: UAC включён — требование Windows; панель в Chrome; папка проектов на любом диске",
+        "docs/installation.md: «Запускатель и PATH» про Windows Terminal, неполадка UAC, матрица ОС"
+      ],
+      "checks": [],
+      "commitMessage": "docs: describe UAC, the panel browser and project drives",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T005"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/installation.md"
+      ],
+      "fixes": null,
+      "id": "T006",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R1",
+      "status": "TODO",
+      "title": "README и руководство",
+      "why": "Пользователь Windows должен знать про UAC, Chrome, диски и команду wfk"
+    },
+    {
+      "acceptance": [
+        "Project-wide documents describe the round result",
+        "The round digest records result, decisions, contracts and references"
+      ],
+      "checks": [],
+      "commitMessage": "docs: reconcile documentation for R1",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T001",
+        "T002",
+        "T003",
+        "T004",
+        "T005",
+        "T006"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/architecture/OVERVIEW.md",
+        "docs/planning/M14-windows-fixes.md",
+        "product-parts/backend-core/clusters/projects/modules/git-publish/module.md",
+        "docs/installation.md"
+      ],
+      "fixes": null,
+      "id": "DOCS-R1",
+      "iteration": 1,
+      "kind": "docs",
+      "roundId": "R1",
+      "status": "TODO",
+      "title": "Reconcile project documentation and write the round digest",
+      "why": "Keep the project context current for the next agent and close the round."
+    },
+    {
+      "acceptance": [
+        "Версия 0.8.1, CHANGELOG, документ приёмки M14 с живыми проверками по ОС",
+        "CI зелёный на macOS, Linux, Windows x64 и ARM64 на ветке ci/m14-windows-fixes",
+        "Служба переустановлена на macOS"
+      ],
+      "checks": [],
+      "commitMessage": "chore: release 0.8.1",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T006",
+        "DOCS-R1"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "package.json",
+        "package-lock.json",
+        "CHANGELOG.md",
+        "docs/evidence/M14-acceptance.md",
+        "README.md",
+        "docs/installation.md",
+        "docs/architecture/OVERVIEW.md"
+      ],
+      "fixes": null,
+      "id": "T007",
+      "iteration": 1,
+      "kind": "delivery",
+      "roundId": "R1",
+      "status": "TODO",
+      "title": "Релиз 0.8.1",
+      "why": "Выпустить исправления для проверки на Windows"
+    }
+  ]
 }
 ```
 <!-- harness-workflow:end -->
 
 ## State
 
-No active scope. Last closed scope: m13-windows-shared-daemon.
+- Scope: m14-windows-fixes (ACTIVE)
+- Delivery: IN_PROGRESS
+- Execution: sequential
+- Current task: none
+- Progress: 0/8
+- Revision: 590
+
+## Objective
+
+Исправить находки живой проверки 0.8.0 на Windows и замечания пользователя: окна git не мелькают, UAC и ложное «Работает» названы верно, карточка общего доступа аккуратна, панель открывается в Chrome, папку проектов можно выбрать на любом диске
+
+## Acceptance
+
+- Пока открыта панель на Windows, окна терминала не мелькают
+- При выключенном UAC Kit называет причину и что сделать в статусе ChatGPT, карточке и wfk doctor
+- «Работает» появляется только после настоящего подключения приложения ChatGPT при работающем демоне
+- Карточка общего доступа: блок администратора только в нужных состояниях, команда не обрезается, текст с точкой, заметка операции не зависает
+- На Windows панель открывается в Chrome, если он установлен; после установки понятно, как запустить wfk
+- Папку проектов можно выбрать на другом диске (Windows), томе (macOS) или в /media и /mnt (Linux)
+- CI зелёный на macOS, Linux, Windows x64 и ARM64; живые проверки записаны в документе приёмки
+
+## Rounds
+
+### R1 — Implementation (implementation, OPEN)
+
+- [TODO] T001 — Окна git скрыты на Windows (work, parallel-safe)
+  - Commit: fix: hide the console windows of git on Windows
+  - Files: product-parts/backend-core/clusters/projects/modules/git-publish/src/git.ts, product-parts/backend-core/clusters/projects/modules/git-publish/test/publication.test.ts, product-parts/backend-core/clusters/projects/modules/git-publish/module.md
+- [TODO] T002 — Chrome первым на Windows; сообщение о wfk после установки (work)
+  - Commit: fix: open the panel in Chrome on Windows and explain the new wfk command
+  - Files: product-parts/system-service/clusters/deployment/modules/service-installer
+- [TODO] T003 — UAC и правило подключения ChatGPT (work)
+  - Commit: fix: name a disabled UAC and count only real ChatGPT connections
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex
+- [TODO] T004 — Карточка общего доступа (work)
+  - Commit: fix: tidy the shared access card
+  - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell
+  - Depends on: T003
+- [TODO] T005 — Папка проектов на любом диске (work)
+  - Commit: feat: choose the projects folder on any local drive
+  - Files: product-parts/backend-core/clusters/projects/modules/project-registry, product-parts/backend-core/clusters/projects/modules/project-setup, product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/backend-core/clusters/runtime/modules/cli
+  - Depends on: T004
+- [TODO] T006 — README и руководство (work)
+  - Commit: docs: describe UAC, the panel browser and project drives
+  - Files: README.md, docs/installation.md
+  - Depends on: T005
+- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+  - Commit: docs: reconcile documentation for R1
+  - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M14-windows-fixes.md, product-parts/backend-core/clusters/projects/modules/git-publish/module.md, docs/installation.md
+  - Depends on: T001, T002, T003, T004, T005, T006
+- [TODO] T007 — Релиз 0.8.1 (delivery)
+  - Commit: chore: release 0.8.1
+  - Files: package.json, package-lock.json, CHANGELOG.md, docs/evidence/M14-acceptance.md, README.md, docs/installation.md, docs/architecture/OVERVIEW.md
+  - Depends on: T006, DOCS-R1
 
 State changes only through `scripts/workflow` commands. History lives in Git.

@@ -3,6 +3,7 @@
 import { ProviderError } from '#provider-registry';
 import type { Capabilities, Project, ProjectProviderState, Provider, ProviderAction, ProviderContext, ProviderStatus, SharedAccessState } from '#provider-registry';
 import { createHandover, HANDOVER_REASON } from './handover.ts';
+import { ELEVATED_HINT, ELEVATED_REASON, isElevatedRefusal } from './elevation.ts';
 import { createSharedAccess } from './shared-access.ts';
 import { appOwnerNote, createSharedMode } from './shared-mode.ts';
 import { wakeThread } from './thread-ops.ts';
@@ -65,7 +66,7 @@ function loginProblem(daemon: DaemonState): boolean {
   return daemon.running && !daemon.staleLogin && !daemon.settling && daemon.remoteOwner !== 'app' && (daemon.remoteControl === 'errored' || (daemon.remoteControl !== 'connected' && daemon.tokenError !== null));
 }
 
-function buildStatus(rt: CodexRuntime, daemon: DaemonState, handingOver = false, shared: SharedAccessState | null = null): ProviderStatus {
+function buildStatus(rt: CodexRuntime, daemon: DaemonState, handingOver = false, shared: SharedAccessState | null = null, refused: string | null = null): ProviderStatus {
   const program = rt.program;
   const details: Record<string, unknown> = {
     daemon: { running: daemon.running, pid: daemon.pid, remoteControl: daemon.remoteControl, serverName: daemon.serverName },
@@ -82,6 +83,8 @@ function buildStatus(rt: CodexRuntime, daemon: DaemonState, handingOver = false,
   if (loginProblem(daemon)) {
     return { ...base, state: 'error', label: 'ошибка входа', note: `${daemon.tokenError ?? 'соединение с ChatGPT в ошибке'}. ${LOGIN_HINT}` };
   }
+  // Windows with UAC off (M14): codex refused to start the daemon, a new attempt would too.
+  if (!daemon.running && refused) return { ...base, state: 'error', label: 'демон не запускается', note: `${refused}. ${ELEVATED_HINT}` };
   if (!daemon.running) return { ...base, state: 'unavailable', label: 'демон не запущен', note: 'Сессии создаются через демон: «Запустить демон».' };
   if (daemon.error) return { ...base, state: 'error', label: 'демон не отвечает', note: daemon.error };
   if (linked(daemon)) {
@@ -99,6 +102,8 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
   const rt = createCodexRuntime(context, deps);
   // Sessions being created through the daemon: the hand-over never stops it under them.
   let creating = 0;
+  // The refusal of the last daemon start (elevated process, M14); cleared by a start that works.
+  let refused: string | null = null;
   const shared = createSharedAccess(rt, deps.sharedAccess);
   const sharedMode = createSharedMode(shared);
   const handover = createHandover(rt, { ...deps.handover, busy: () => creating > 0, shared: () => sharedMode.active() });
@@ -116,6 +121,7 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
     const daemon = await rt.daemon();
     let create: string | null = missing;
     if (!create && handover.active) create = HANDOVER_REASON;
+    if (!create && !daemon.running && refused) create = refused;
     if (!create && !daemon.running) create = 'демон Codex не запущен — «Запустить демон»';
     else if (!create && daemon.staleLogin && daemon.remoteControl !== 'connected') create = STALE_LOGIN_REASON;
     else if (!create && loginProblem(daemon)) create = `ошибка входа Codex — ${LOGIN_HINT}`;
@@ -169,12 +175,17 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
       timeoutMs: 90_000,
     });
     rt.forgetDaemon();
+    if (isElevatedRefusal(`${result.stdout}\n${result.stderr}`)) {
+      refused = ELEVATED_REASON;
+      throw new ProviderError('daemon-elevated', ELEVATED_REASON, { hint: ELEVATED_HINT });
+    }
+    refused = null;
     if (result.startError) throw new ProviderError('start-failed', `codex не запустился: ${result.startError}`, { hint: 'Проверьте путь к codex и нажмите «Перепроверить».' });
     const parsed = parseRemoteControlStart(`${result.stdout}\n${result.stderr}`);
     const daemon = await rt.daemon(true);
     if (parsed.status === 'connected' || linked(daemon)) {
       context.log('codex: daemon started');
-      return buildStatus(rt, daemon);
+      return buildStatus(rt, daemon, false, shared.cached(), refused);
     }
     if (parsed.error?.includes('errored') || parsed.status === 'errored' || loginProblem(daemon)) {
       throw new ProviderError('codex-login', 'Демон Codex запущен, но соединение с ChatGPT в ошибке (вероятно, истёк вход)', { hint: LOGIN_HINT });
@@ -209,13 +220,13 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
     sharedAccess: shared,
     capabilities,
     async status() {
-      return buildStatus(rt, await rt.daemon(), handover.active, shared.cached());
+      return buildStatus(rt, await rt.daemon(), handover.active, shared.cached(), refused);
     },
     async refresh() {
       await rt.refreshProgram();
       rt.forgetDaemon();
       trustParts.clearCache();
-      return buildStatus(rt, await rt.daemon(true), handover.active, shared.cached());
+      return buildStatus(rt, await rt.daemon(true), handover.active, shared.cached(), refused);
     },
     trust: (project) => trustParts.trust(project),
     previewTrust: (project) => trustParts.previewTrust(project),

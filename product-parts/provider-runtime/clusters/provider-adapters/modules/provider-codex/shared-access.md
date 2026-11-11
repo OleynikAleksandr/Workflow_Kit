@@ -1,5 +1,10 @@
 # provider-codex: общий доступ к чатам (M12, раздел 2.2)
 
+Файлы: `src/shared-access.ts` (проверки, запись, удаление), `src/shared-plan.ts` (план записей),
+`src/shared-files.ts` (текст блоков и строк), `src/shared-mode.ts` (режим сессий),
+`src/thread-ops.ts` (выгрузка и пробуждение треда), Windows (M13): `src/shared-windows.ts`
+(проверки), `src/shared-windows-setup.ts` (скрипт администратора), `src/elevation.ts` (UAC, M14).
+
 `src/shared-access.ts` (и чистые функции текста в `src/shared-files.ts`), поле провайдера `sharedAccess` (контракт `SharedAccess`). Приложение
 ChatGPT подключается к этому Mac по SSH (`wfk-local`) и через `codex app-server proxy`
 становится клиентом демона Kit; Kit пишет всё, что может, после предпросмотра.
@@ -67,16 +72,22 @@ ChatGPT подключается к этому Mac по SSH (`wfk-local`) и ч�
 ## Windows (M13)
 
 Проверки — `src/shared-windows.ts`, `diagnoseWindows` (только чтение): один вызов PowerShell
-(`WINDOWS_PROBE_SCRIPT`: служба `sshd`, `HKLM\SOFTWARE\OpenSSH\DefaultShell`, пакет
-`OpenAI.Codex`, процессы `ssh.exe` и `codex.exe` через CIM), `ssh.exe` в PATH, `sh.exe` Git for
+(`WINDOWS_PROBE_SCRIPT`: служба `sshd`, `HKLM\SOFTWARE\OpenSSH\DefaultShell`, `EnableLUA`
+(UAC), пакет `OpenAI.Codex`, процессы `ssh.exe` и `codex.exe` через CIM строками «pid возраст
+команда»), `ssh.exe` в PATH, `sh.exe` Git for
 Windows (рядом с `git.exe` или в Program Files), `Host wfk-local`, SSH-проверка
 (`SSH_CHECK_COMMAND`) при работающем `sshd`, оболочке Git и `Host`, подключение приложения
-(`isWindowsSharedConnection`) и второй app-server. `windowsVerdict` по порядку: нет `codex`,
-приложения, `ssh.exe` или Git → `unsupported`; PowerShell молчит → `broken`; есть записи →
+(`isSettledConnection`: строка `isWindowsSharedConnection` и процесс не моложе
+`CONNECTION_MIN_AGE_S` = 15 с — неудачные попытки приложения короче, M14) и второй app-server.
+`windowsVerdict` по порядку: нет `codex` → `unsupported`; PowerShell молчит → `broken`; UAC
+выключен (`EnableLUA = 0`, проверка `elevation`) → `broken` с `ELEVATED_REASON` и подсказкой
+включить UAC (codex не запускает демон с правами администратора, M14); нет приложения,
+`ssh.exe` или Git → `unsupported`; есть записи →
 `not-configured`; `sshd` не работает или `DefaultShell` не Git → `needs-admin-setup`;
 администратору отказано в ключе (`Permission denied`) → `needs-admin-setup`; иная неудача
 SSH-сеанса или второй app-server → `broken`; иначе подключение решает, как на macOS
-(`needs-connection` / `active`). Подсказка заканчивается `checksText`: «Проверено: … Не
+(`needs-connection` / `active`). На всех ОС подключение засчитывается (и `connectionSeenAt`
+пишется), только пока демон Kit работает (`rt.daemon().running`, M14). Подсказка заканчивается `checksText`: «Проверено: … Не
 прошло: … Не проверено: …» (её же печатает `wfk doctor`). Шаги пробы —
 `docs/evidence/M13-windows-probe.md`.
 

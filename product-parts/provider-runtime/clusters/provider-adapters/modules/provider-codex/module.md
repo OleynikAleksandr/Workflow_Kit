@@ -99,8 +99,9 @@ app-server на весь Mac, доверие к папке, одобрение �
   демона действие нужно только при выключенной или упавшей связи — тогда
   оно называется «Подключить к ChatGPT»; при `staleLogin` — «Перезапустить
   демон»: `codex remote-control stop` (ошибка — `daemon-stop-failed`),
-  затем `start`; пока связь подключается или
-  подключена, оно выключено с причиной. Проектных действий нет.
+  затем `start`; пока связь подключается или подключена, оно выключено с
+  причиной. Отказ Windows-процессу с правами администратора (UAC выключен,
+  M14, `src/elevation.ts`) — `daemon-elevated`, статус «демон не запускается».
 - **Соединение у приложения ChatGPT** (M3-autostart, раздел 4): встроенный
   `codex app-server` приложения ChatGPT сам включает удалённое управление той
   же установки, и сервер не пускает демон (`409 … Remote app server already
@@ -266,13 +267,10 @@ app-server на весь Mac, доверие к папке, одобрение �
 
 ## Общий доступ к чатам (M12)
 
-`src/shared-access.ts` (проверки, запись, удаление), `src/shared-files.ts` (текст блоков и
-строк), `src/shared-mode.ts` (режим сессий) и `src/thread-ops.ts` (выгрузка и пробуждение
-треда): приложение ChatGPT по SSH становится клиентом демона Kit. Пока доступ `active`, сессии
-создаются без выгрузки, ссылка Mac — с `hostId`, у провайдера работает `wakeSession`, задание
-ревьюеру — первым сообщением (`reviewBrief: 'first-message'`). План записей —
-`src/shared-plan.ts`; Windows (M13): проверки `src/shared-windows.ts`, скрипт администратора
-`src/shared-windows-setup.ts`. Подробно — [shared-access.md](shared-access.md).
+Приложение ChatGPT по SSH становится клиентом демона Kit; пока доступ `active`, сессии
+создаются без выгрузки, ссылка — с `hostId`, работает `wakeSession`, ревьюер получает задание
+первым сообщением. Файлы `src/shared-*.ts`, `src/thread-ops.ts`, `src/elevation.ts` —
+[shared-access.md](shared-access.md).
 
 ## Инварианты
 

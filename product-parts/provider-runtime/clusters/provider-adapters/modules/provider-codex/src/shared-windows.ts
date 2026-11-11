@@ -7,31 +7,41 @@ import path from 'node:path';
 import { powershell } from '#process-supervisor';
 import type { CommandRunner } from '#process-supervisor';
 import type { SharedAccessStateName } from '#provider-registry';
+import { ELEVATED_HINT, ELEVATED_REASON } from './elevation.ts';
 import { SHARED_ALIAS, SSH_CHECK_COMMAND, parseSshCheck } from './shared-files.ts';
 import { isSecondAppServer } from './shared-mode.ts';
 
 /** Package of the ChatGPT app on Windows (the same one open-link starts). */
 export const WINDOWS_APP_PACKAGE = 'OpenAI.Codex';
 
-/** Read-only PowerShell script: sshd status, DefaultShell, the app package, ssh/codex processes as JSON. */
+/** A connection of the app counts once its ssh.exe lives this long: failed attempts end sooner (M14). */
+export const CONNECTION_MIN_AGE_S = 15;
+
+/**
+ * Read-only PowerShell script as JSON: sshd status, DefaultShell, EnableLUA (UAC), the app package
+ * and the ssh/codex processes as "<pid> <age in seconds> <command line>".
+ */
 export const WINDOWS_PROBE_SCRIPT = [
   '$s = Get-Service sshd -ErrorAction SilentlyContinue',
   "$d = (Get-ItemProperty -Path 'HKLM:\\SOFTWARE\\OpenSSH' -Name DefaultShell -ErrorAction SilentlyContinue).DefaultShell",
   `$a = Get-AppxPackage -Name '${WINDOWS_APP_PACKAGE}' -ErrorAction SilentlyContinue | Select-Object -First 1`,
-  "$p = @(Get-CimInstance Win32_Process -Filter \"Name='ssh.exe' OR Name='codex.exe'\" | ForEach-Object { \"$($_.ProcessId) $($_.CommandLine)\" })",
-  "[pscustomobject]@{ sshd = $(if ($s) { [string]$s.Status } else { '' }); defaultShell = [string]$d; app = $(if ($a) { [string]$a.InstallLocation } else { '' }); processes = $p } | ConvertTo-Json -Compress",
+  "$u = (Get-ItemProperty -Path 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System' -Name EnableLUA -ErrorAction SilentlyContinue).EnableLUA",
+  "$p = @(Get-CimInstance Win32_Process -Filter \"Name='ssh.exe' OR Name='codex.exe'\" | ForEach-Object { \"$($_.ProcessId) $([int]((Get-Date) - $_.CreationDate).TotalSeconds) $($_.CommandLine)\" })",
+  "[pscustomobject]@{ sshd = $(if ($s) { [string]$s.Status } else { '' }); defaultShell = [string]$d; uac = [string]$u; app = $(if ($a) { [string]$a.InstallLocation } else { '' }); processes = $p } | ConvertTo-Json -Compress",
 ].join('; ');
 
 /** What the probe script found; null fields are not known. */
 export interface WindowsFacts {
   sshd: string | null;
   defaultShell: string | null;
+  /** EnableLUA: "1" UAC on, "0" off. */
+  uac: string | null;
   appLocation: string | null;
   processes: string[];
 }
 
 /** Stable names of the checks (the text names are for people). */
-export type WindowsCheckId = 'codex' | 'facts' | 'app' | 'ssh-client' | 'git-shell' | 'sshd' | 'shell' | 'host' | 'session' | 'connection' | 'second-server';
+export type WindowsCheckId = 'codex' | 'facts' | 'elevation' | 'app' | 'ssh-client' | 'git-shell' | 'sshd' | 'shell' | 'host' | 'session' | 'connection' | 'second-server';
 
 /** One line of the diagnosis. */
 export interface WindowsCheck {
@@ -48,7 +58,7 @@ export function parseWindowsFacts(stdout: string | null): WindowsFacts | null {
     const value = JSON.parse(stdout.replace(/^﻿/, '').trim()) as Record<string, unknown>;
     const text = (key: string): string | null => (typeof value[key] === 'string' && value[key] !== '' ? (value[key] as string) : null);
     const list = Array.isArray(value['processes']) ? value['processes'] : typeof value['processes'] === 'string' ? [value['processes']] : [];
-    return { sshd: text('sshd'), defaultShell: text('defaultShell'), appLocation: text('app'), processes: list.filter((p): p is string => typeof p === 'string') };
+    return { sshd: text('sshd'), defaultShell: text('defaultShell'), uac: text('uac'), appLocation: text('app'), processes: list.filter((p): p is string => typeof p === 'string') };
   } catch {
     return null;
   }
@@ -62,6 +72,17 @@ export function isGitShell(file: string | null): boolean {
 /** True for the ssh.exe of the ChatGPT app connected through the alias. */
 export function isWindowsSharedConnection(commandLine: string, alias: string = SHARED_ALIAS): boolean {
   return /(^|[\s\\/"])ssh(\.exe)?"?(\s|$)/i.test(commandLine) && commandLine.split(/\s+/).includes(alias) && /app-server\s+proxy/.test(commandLine);
+}
+
+/** Age in seconds of a "<pid> <age> <command line>" line of the probe script; null without one. */
+export function processAge(line: string): number | null {
+  const match = /^\s*\d+\s+(\d+)\s/.exec(line);
+  return match ? Number(match[1]) : null;
+}
+
+/** True for a connection of the app that lived CONNECTION_MIN_AGE_S, not a failed attempt. */
+export function isSettledConnection(line: string): boolean {
+  return isWindowsSharedConnection(line) && (processAge(line) ?? 0) >= CONNECTION_MIN_AGE_S;
 }
 
 /** True when ~/.ssh/config has a Host line naming the alias (written by Kit or by hand). */
@@ -100,6 +121,7 @@ export function windowsVerdict(checks: readonly WindowsCheck[], options: { confi
   const make = (state: SharedAccessStateName, reason: string, hint: string): WindowsVerdict => ({ state, reason, hint: `${hint} ${text}` });
   if (failed('codex')) return make('unsupported', 'codex не найден', 'Установите Codex CLI и нажмите «Перепроверить».');
   if (failed('facts')) return make('broken', 'PowerShell не ответил: состояние Windows не прочитано', 'Нажмите «Перепроверить».');
+  if (failed('elevation')) return make('broken', ELEVATED_REASON, ELEVATED_HINT);
   if (failed('app')) return make('unsupported', 'приложение ChatGPT для Windows не установлено', 'Установите ChatGPT из Microsoft Store и нажмите «Перепроверить».');
   if (failed('ssh-client')) return make('unsupported', 'нет клиента OpenSSH (ssh.exe)', 'Параметры → Система → Дополнительные компоненты → «Клиент OpenSSH», затем «Перепроверить».');
   if (failed('git-shell')) return make('unsupported', 'не найден Git for Windows (sh.exe)', 'Установите Git for Windows и нажмите «Перепроверить».');
@@ -133,6 +155,7 @@ export async function diagnoseWindows(inputs: WindowsInputs): Promise<WindowsChe
   add('codex', 'codex', inputs.codexInstalled === true ? 'ok' : 'fail', inputs.codexInstalled === true ? 'найден' : 'не найден');
   const facts = parseWindowsFacts(await powershell(inputs.runCommand, WINDOWS_PROBE_SCRIPT, 20_000));
   if (!facts) add('facts', 'сведения Windows', 'fail', 'PowerShell не ответил');
+  if (facts) add('elevation', 'контроль учётных записей', facts.uac === '0' ? 'fail' : facts.uac === '1' ? 'ok' : 'unknown', facts.uac === '0' ? 'UAC выключен (EnableLUA = 0)' : facts.uac === '1' ? 'UAC включён' : 'EnableLUA не прочитан');
   add('app', 'приложение ChatGPT', facts?.appLocation ? 'ok' : facts ? 'fail' : 'unknown', facts?.appLocation ? 'пакет найден' : `нет пакета ${WINDOWS_APP_PACKAGE}`);
   add('ssh-client', 'клиент OpenSSH', inputs.sshFound ? 'ok' : 'fail', inputs.sshFound ? 'ssh.exe найден' : 'ssh.exe не найден');
   add('git-shell', 'Git for Windows', inputs.gitShell ? 'ok' : 'fail', inputs.gitShell ?? 'sh.exe не найден');
@@ -154,7 +177,7 @@ export async function diagnoseWindows(inputs: WindowsInputs): Promise<WindowsChe
     add('session', 'SSH-сеанс', 'unknown', 'нужны сервер OpenSSH, оболочка Git и Host wfk-local');
   }
   const processes = facts?.processes ?? [];
-  const connected = processes.some((line) => isWindowsSharedConnection(line));
+  const connected = processes.some((line) => isSettledConnection(line));
   add('connection', 'подключение ChatGPT', connected ? 'ok' : 'unknown', connected ? 'приложение подключено' : 'подключение не найдено');
   if (processes.some((line) => isSecondAppServer(line))) add('second-server', 'второй app-server', 'fail', 'приложение подняло второй app-server');
   return checks;

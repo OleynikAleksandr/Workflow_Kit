@@ -13,9 +13,9 @@ import { PUB, deps, machine } from './shared-machine.ts';
 import type { Machine } from './shared-machine.ts';
 
 const GIT_SH = 'C:\\Program Files\\Git\\bin\\sh.exe';
-const CONNECTION = '5120 "C:\\Windows\\System32\\OpenSSH\\ssh.exe" -T wfk-local sh -c codex app-server proxy';
+const CONNECTION = '5120 60 "C:\\Windows\\System32\\OpenSSH\\ssh.exe" -T wfk-local sh -c codex app-server proxy';
 const facts = (over: Record<string, unknown> = {}) =>
-  JSON.stringify({ sshd: '', defaultShell: '', app: 'C:\\Program Files\\WindowsApps\\OpenAI.Codex_1', processes: [], ...over });
+  JSON.stringify({ uac: '1', sshd: '', defaultShell: '', app: 'C:\\Program Files\\WindowsApps\\OpenAI.Codex_1', processes: [], ...over });
 const ready = { sshd: 'Running', defaultShell: GIT_SH };
 
 test('Git Bash paths, Git shell candidates and PowerShell literals', () => {
@@ -79,7 +79,11 @@ test('win32, plain user: preview, write, needs-admin-setup, connection, removal 
     m.world.ps.facts = facts(ready);
     const waiting = await shared.state(true);
     assert.equal(waiting.state, 'needs-connection', waiting.hint ?? '');
+    // M14: without the Kit daemon the app's ssh.exe is no connection.
     m.world.ps.facts = facts({ ...ready, processes: [CONNECTION] });
+    m.world.daemon = false;
+    assert.equal((await shared.state(true)).state, 'needs-connection', 'no daemon, no connection');
+    m.world.daemon = true;
     const active = await shared.state(true);
     assert.equal(active.state, 'active');
     assert.equal(active.connected, true);

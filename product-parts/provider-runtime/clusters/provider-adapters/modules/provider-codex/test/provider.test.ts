@@ -244,6 +244,7 @@ test('daemon start is a special action: codex remote-control start --json; an er
   await failing.refresh!();
   await assert.rejects(failing.runAction('daemon-start', null), (error: unknown) => (error as { code: string }).code === 'codex-login');
   await assert.rejects(local.runAction('nope', null), code('unknown-action'));
+
 });
 
 test('autostart starts a stopped daemon, leaves a connected one, and does nothing without codex', async () => {

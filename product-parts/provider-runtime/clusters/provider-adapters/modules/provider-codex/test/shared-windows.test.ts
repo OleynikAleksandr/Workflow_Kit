@@ -3,19 +3,23 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import type { CommandRunner } from '#process-supervisor';
+import { ELEVATED_REASON, isElevatedRefusal } from '../src/elevation.ts';
 import {
+  CONNECTION_MIN_AGE_S,
   checksText,
   diagnoseWindows,
   hasHostAlias,
   isGitShell,
   isWindowsSharedConnection,
+  isSettledConnection,
   parseWindowsFacts,
+  processAge,
   windowsVerdict,
 } from '../src/shared-windows.ts';
 
-const CONNECTION = '5120 "C:\\Windows\\System32\\OpenSSH\\ssh.exe" -T -o BatchMode=yes wfk-local sh -c codex app-server proxy';
+const CONNECTION = '5120 60 "C:\\Windows\\System32\\OpenSSH\\ssh.exe" -T -o BatchMode=yes wfk-local sh -c codex app-server proxy';
 const facts = (over: Record<string, unknown> = {}) =>
-  JSON.stringify({ sshd: 'Running', defaultShell: 'C:\\Program Files\\Git\\bin\\sh.exe', app: 'C:\\Program Files\\WindowsApps\\OpenAI.Codex_1', processes: [CONNECTION], ...over });
+  JSON.stringify({ uac: '1', sshd: 'Running', defaultShell: 'C:\\Program Files\\Git\\bin\\sh.exe', app: 'C:\\Program Files\\WindowsApps\\OpenAI.Codex_1', processes: [CONNECTION], ...over });
 
 function runner(answers: { ps: string | null; ssh?: { code: number; stdout: string; stderr: string } }): { run: CommandRunner; calls: string[] } {
   const calls: string[] = [];
@@ -61,7 +65,7 @@ test('everything in place: every check passes and the connection decides', async
   const checks = await diagnoseWindows(inputs(fake.run));
   assert.ok(checks.every((c) => c.status === 'ok'), JSON.stringify(checks));
   assert.deepEqual(fake.calls, ['powershell.exe', 'ssh']);
-  assert.match(checksText(checks), /^Проверено: codex, приложение ChatGPT, клиент OpenSSH, Git for Windows, .*SSH-сеанс, подключение ChatGPT\.$/);
+  assert.match(checksText(checks), /^Проверено: codex, контроль учётных записей, приложение ChatGPT, клиент OpenSSH, Git for Windows, .*SSH-сеанс, подключение ChatGPT\.$/);
   assert.equal(windowsVerdict(checks, { configured: true, admin: false }), null);
   assert.equal(windowsVerdict(checks, { configured: false, admin: false })?.state, 'not-configured');
 });
@@ -109,4 +113,27 @@ test('no Host alias, a failing ssh, a second app-server and a silent PowerShell 
   assert.equal(second.find((c) => c.name === 'второй app-server')?.status, 'fail');
   const silent = await diagnoseWindows(inputs(runner({ ps: null }).run));
   assert.equal(silent.find((c) => c.name === 'сведения Windows')?.status, 'fail');
+});
+
+test('UAC off: the elevation check fails and the verdict names it (M14)', async () => {
+  const checks = await diagnoseWindows(inputs(runner({ ps: facts({ uac: '0' }) }).run));
+  assert.equal(checks.find((c) => c.id === 'elevation')?.status, 'fail');
+  const verdict = windowsVerdict(checks, { configured: true, admin: true });
+  assert.equal(verdict?.state, 'broken');
+  assert.equal(verdict?.reason, ELEVATED_REASON);
+  assert.match(verdict?.hint ?? '', /EnableLUA -Value 1/);
+  assert.equal((await diagnoseWindows(inputs(runner({ ps: facts({ uac: '' }) }).run))).find((c) => c.id === 'elevation')?.status, 'unknown');
+  assert.ok(isElevatedRefusal('Error: start the Windows daemon from a non-elevated terminal; shared clients must not inherit administrator privileges'));
+  assert.ok(!isElevatedRefusal('Error: connection is errored'));
+});
+
+test('a connection counts only after CONNECTION_MIN_AGE_S: a failed attempt is younger (M14)', async () => {
+  const young = CONNECTION.replace(' 60 ', ' 3 ');
+  assert.equal(processAge(CONNECTION), 60);
+  assert.equal(processAge('garbage'), null);
+  assert.equal(isSettledConnection(CONNECTION), true);
+  assert.equal(isSettledConnection(young), false);
+  assert.equal(isSettledConnection(CONNECTION.replace(' 60 ', ` ${CONNECTION_MIN_AGE_S} `)), true);
+  const checks = await diagnoseWindows(inputs(runner({ ps: facts({ processes: [young] }) }).run));
+  assert.equal(checks.find((c) => c.id === 'connection')?.status, 'unknown');
 });

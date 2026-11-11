@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 594,
+  "revision": 596,
   "rounds": [
     {
       "digest": null,
@@ -165,14 +165,25 @@
       "dependencies": [],
       "docsWaiver": null,
       "files": [
-        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex"
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/shared-access.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/elevation.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/shared-access.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/shared-windows.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/elevation.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/shared-machine.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/shared-windows-setup.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/shared-windows.test.ts"
       ],
       "fixes": null,
       "id": "T003",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "UAC и правило подключения ChatGPT",
       "why": "При выключенном UAC демон не поднимается молча; Kit принимал неудачную попытку приложения за подключение"
     },
@@ -350,8 +361,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 2/8
-- Revision: 594
+- Progress: 3/8
+- Revision: 596
 
 ## Objective
 
@@ -377,9 +388,9 @@
 - [DONE] T002 — Chrome первым на Windows; сообщение о wfk после установки (work)
   - Commit: fix: open the panel in Chrome on Windows and explain the new wfk command
   - Files: product-parts/system-service/clusters/deployment/modules/service-installer, product-parts/system-service/clusters/deployment/modules/service-installer/module.md, product-parts/system-service/clusters/deployment/modules/service-installer/src/open.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/run.ts, product-parts/system-service/clusters/deployment/modules/service-installer/test/control.test.ts, product-parts/system-service/clusters/deployment/modules/service-installer/test/install.test.ts
-- [TODO] T003 — UAC и правило подключения ChatGPT (work)
+- [DONE] T003 — UAC и правило подключения ChatGPT (work)
   - Commit: fix: name a disabled UAC and count only real ChatGPT connections
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/shared-access.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/elevation.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/shared-access.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/shared-windows.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/elevation.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/shared-machine.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/shared-windows-setup.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/shared-windows.test.ts
 - [TODO] T004 — Карточка общего доступа (work)
   - Commit: fix: tidy the shared access card
   - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell

@@ -19,7 +19,7 @@ export interface Machine {
   home: string;
   data: string;
   calls: string[];
-  world: { port: boolean; ssh: { code: number; stdout: string; stderr: string }; listing: string; ps: FakePowerShell };
+  world: { port: boolean; daemon: boolean; ssh: { code: number; stdout: string; stderr: string }; listing: string; ps: FakePowerShell };
   rt: CodexRuntime;
   close(): Promise<void>;
 }
@@ -36,6 +36,7 @@ export async function machine(platform: NodeJS.Platform = 'darwin'): Promise<Mac
   if (platform === 'win32') await writeFile(path.join(bin, 'ssh.exe'), '');
   const world = {
     port: true,
+    daemon: true,
     ssh: { code: 0, stdout: '/u/bin/codex|true\n', stderr: '' },
     listing: '  1 /sbin/launchd\n',
     ps: { facts: null, admin: 'False', scripts: [] } as FakePowerShell,
@@ -69,6 +70,8 @@ export async function machine(platform: NodeJS.Platform = 'darwin'): Promise<Mac
       },
     },
     program: { installed: true, path: '/u/bin/codex', unsupported: null },
+    // The Kit daemon: a connection of the app counts only while it runs (M14).
+    daemon: async () => ({ running: world.daemon }),
     tokens: createTokenStore(),
   } as unknown as CodexRuntime;
   return { home, data, calls, world, rt, close: () => rm(root, { recursive: true, force: true }) };

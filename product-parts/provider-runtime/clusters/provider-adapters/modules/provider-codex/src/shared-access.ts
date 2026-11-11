@@ -161,8 +161,12 @@ export function createSharedAccess(rt: CodexRuntime, deps: SharedAccessDeps = {}
     return null;
   };
 
-  /** needs-connection until the app was seen connected once, then active. */
-  const byConnection = async (base: Partial<SharedAccessState>, connected: boolean | null): Promise<SharedAccessState> => {
+  /**
+   * needs-connection until the app was seen connected once, then active. A connection counts only
+   * while the Kit daemon runs (M14): without it the app's attempt cannot work.
+   */
+  const byConnection = async (base: Partial<SharedAccessState>, seenProcess: boolean | null): Promise<SharedAccessState> => {
+    const connected = seenProcess === true && !(await rt.daemon()).running ? false : seenProcess;
     let seen = await readSeen();
     if (connected && !seen) {
       seen = context.now().toISOString();

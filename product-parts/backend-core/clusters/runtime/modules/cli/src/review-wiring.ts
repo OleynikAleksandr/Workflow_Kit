@@ -12,7 +12,7 @@ import { ANSWER_MESSAGES, registerPlanQuestionRoute } from '#plan-review';
 import type { ReviewToggles } from '#plan-review';
 import type { ProjectRegistry } from '#project-registry';
 import { providerCapability, providerLabel } from '#provider-registry';
-import type { ProviderRegistry } from '#provider-registry';
+import type { Provider, ProviderRegistry } from '#provider-registry';
 import { TitleError, namedSession } from '#session-titles';
 import type { SessionTitles } from '#session-titles';
 
@@ -63,6 +63,13 @@ export async function deliverToSession(
   const woken = await provider.wakeSession(await deps.project(projectId), key.slice(colon + 1)).catch(() => false);
   deps.log?.(`review: ${woken ? 'woke' : 'could not wake'} ${key} for its brief`);
   return woken;
+}
+
+/** True when the reviewer of this provider reads its brief from the queue (spec M12 section 2.3). */
+export function briefByQueue(provider: Pick<Provider, 'reviewBrief' | 'wakeSession'> | undefined): boolean {
+  if (!provider) return false;
+  if (provider.reviewBrief) return provider.reviewBrief === 'queue';
+  return typeof provider.wakeSession === 'function';
 }
 
 export function wireCrossReview(options: {
@@ -125,8 +132,9 @@ export function wireCrossReview(options: {
       const capability = await providerCapability(providers.get(id), 'reviewer');
       return capability.available ? null : (capability.reason ?? 'провайдер не может вести ревью');
     },
-    // A provider that can wake its session reads the brief from the queue; the others get it typed.
-    briefByQueue: (id) => typeof providers.get(id)?.wakeSession === 'function',
+    // The provider says how its reviewer gets the brief (reviewBrief, M12); without it a provider
+    // that can wake its session reads the brief from the queue, the others get it typed.
+    briefByQueue: (id) => briefByQueue(providers.get(id)),
     log: options.log,
   });
   // The plan question (spec M4 12): `wfk session plan` opens it, the answer reaches the agent. The

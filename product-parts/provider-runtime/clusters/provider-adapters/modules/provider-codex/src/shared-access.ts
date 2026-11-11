@@ -13,6 +13,7 @@ import { backupFile } from '#data-store';
 import { ProviderError } from '#provider-registry';
 import type { SharedAccess, SharedAccessPreview, SharedAccessState, SharedAccessStateName, SharedAccessTarget, TrustWrite } from '#provider-registry';
 import { processListing } from './handover.ts';
+import { isSecondAppServer } from './shared-mode.ts';
 import type { CodexRuntime } from './runtime.ts';
 import {
   SHARED_ALIAS,
@@ -287,6 +288,9 @@ export function createSharedAccess(rt: CodexRuntime, deps: SharedAccessDeps = {}
     if (!answer.skip) return result('broken', { ...base, reason: 'в SSH-сеансе не задан CODEX_SSH_SKIP_APP_SERVER_BOOT', hint: manualProfile ? 'Вставьте блок в профиль оболочки.' : 'Нажмите «Настроить» ещё раз.' });
     const listing = await processListing(rt);
     const connected = listing === null ? null : listing.split(/\r?\n/).some((line) => isSharedConnection(line));
+    if (listing !== null && listing.split(/\r?\n/).some((line) => isSecondAppServer(line))) {
+      return result('broken', { ...base, connected, reason: 'приложение ChatGPT подняло по SSH второй app-server рядом с демоном Kit', hint: 'Закройте ChatGPT, нажмите «Настроить» ещё раз и откройте ChatGPT снова.' });
+    }
     let seen = connectionSeenAt;
     if (connected && !seen) {
       seen = context.now().toISOString();

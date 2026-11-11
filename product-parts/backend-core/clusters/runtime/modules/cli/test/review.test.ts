@@ -10,7 +10,7 @@ import type { WorkflowState } from '#kit-runner';
 import { createStubProvider } from '#provider-registry';
 import { createApp } from '../src/index.ts';
 import type { App } from '../src/index.ts';
-import { deliverToSession, lateReviewDecider, toggleLock } from '../src/review-wiring.ts';
+import { briefByQueue, deliverToSession, lateReviewDecider, toggleLock } from '../src/review-wiring.ts';
 import { PLAN_ASKED, SESSION_USAGE, callingSession, runSessionCommand, sessionFlags } from '../src/session-command.ts';
 
 let tmp = '';
@@ -184,4 +184,13 @@ test('a brief is queued and a reviewer whose provider can wake it is woken at on
   assert.equal(await deliverToSession(deps, 'codex:t1', 'Задание', 'p1'), false);
   assert.equal(queued.length, 2);
   assert.deepEqual(woken, ['hook-9']);
+});
+
+test('the brief of a reviewer: the provider says how (reviewBrief), else wakeSession decides (M12)', () => {
+  const wake = async () => true;
+  assert.equal(briefByQueue(undefined), false);
+  assert.equal(briefByQueue({ wakeSession: wake }), true, 'Claude: queued, the session is woken');
+  assert.equal(briefByQueue({}), false);
+  assert.equal(briefByQueue({ wakeSession: wake, reviewBrief: 'first-message' }), false, 'Codex in the shared mode keeps the first message');
+  assert.equal(briefByQueue({ reviewBrief: 'queue' }), true);
 });

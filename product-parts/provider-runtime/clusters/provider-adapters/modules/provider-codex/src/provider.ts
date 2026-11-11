@@ -4,6 +4,8 @@ import { ProviderError } from '#provider-registry';
 import type { Capabilities, Project, ProjectProviderState, Provider, ProviderAction, ProviderContext, ProviderStatus, SharedAccessState } from '#provider-registry';
 import { createHandover, HANDOVER_REASON } from './handover.ts';
 import { createSharedAccess } from './shared-access.ts';
+import { appOwnerNote, createSharedMode } from './shared-mode.ts';
+import { wakeThread } from './thread-ops.ts';
 import { createCodexRuntime } from './runtime.ts';
 import type { CodexDeps, CodexRuntime, DaemonState } from './runtime.ts';
 import { createSessionParts } from './sessions.ts';
@@ -84,7 +86,9 @@ function buildStatus(rt: CodexRuntime, daemon: DaemonState, handingOver = false,
   if (daemon.error) return { ...base, state: 'error', label: 'демон не отвечает', note: daemon.error };
   if (linked(daemon)) {
     const label = daemon.remoteControl === 'connected' ? 'демон подключён' : 'через приложение ChatGPT';
-    return { ...base, state: program.installed === null ? 'unknown' : 'ready', label, ...(program.error ? { note: program.error } : {}) };
+    // Shared daemon mode (M12): the app should not hold remote control, the user can fix it.
+    const note = appOwnerNote(shared, daemon.remoteOwner) ?? program.error;
+    return { ...base, state: program.installed === null ? 'unknown' : 'ready', label, ...(note ? { note } : {}) };
   }
   if (connecting(daemon)) return { ...base, state: 'unavailable', label: 'подключается к ChatGPT', note: CONNECTING_REASON };
   return { ...base, state: 'unavailable', label: `связь с ChatGPT: ${daemon.remoteControl}`, note: 'Удалённое управление выключено; «Подключить к ChatGPT».' };
@@ -95,10 +99,12 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
   const rt = createCodexRuntime(context, deps);
   // Sessions being created through the daemon: the hand-over never stops it under them.
   let creating = 0;
-  const handover = createHandover(rt, { ...deps.handover, busy: () => creating > 0 });
-  const trustParts = createTrustParts(rt);
   const shared = createSharedAccess(rt, deps.sharedAccess);
+  const sharedMode = createSharedMode(shared);
+  const handover = createHandover(rt, { ...deps.handover, busy: () => creating > 0, shared: () => sharedMode.active() });
+  const trustParts = createTrustParts(rt);
   const sessionParts = createSessionParts(rt, {
+    shared: sharedMode,
     ...(deps.serviceTurnWaitMs === undefined ? {} : { serviceTurnWaitMs: deps.serviceTurnWaitMs }),
     ...(deps.releaseWaitMs === undefined ? {} : { releaseWaitMs: deps.releaseWaitMs }),
     ...(deps.firstTurnWaitMs === undefined ? {} : { firstTurnWaitMs: deps.firstTurnWaitMs }),
@@ -209,7 +215,7 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
       await rt.refreshProgram();
       rt.forgetDaemon();
       trustParts.clearCache();
-      return buildStatus(rt, await rt.daemon(true), handover.active);
+      return buildStatus(rt, await rt.daemon(true), handover.active, shared.cached());
     },
     trust: (project) => trustParts.trust(project),
     previewTrust: (project) => trustParts.previewTrust(project),
@@ -229,6 +235,16 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
       } finally {
         creating -= 1;
       }
+    },
+    // The brief of a cross review goes as the first message of the reviewer's chat (M4 11.1), not
+    // through the queue, although Codex can wake a session in the shared mode.
+    reviewBrief: 'first-message',
+    // Shared daemon mode only (spec M12 section 2.3): a short turn, the prompt hook hands over the queue.
+    async wakeSession(_project, sessionId) {
+      if (!(await sharedMode.refresh()) || !/^[A-Za-z0-9_-]{1,128}$/.test(sessionId)) return false;
+      await rt.withDaemon((session) => wakeThread(session, sessionId), 30_000);
+      context.log(`codex: thread ${sessionId} woken in the shared daemon`);
+      return true;
     },
     async renameSession(project, sessionId, name) {
       requireCodex(rt);

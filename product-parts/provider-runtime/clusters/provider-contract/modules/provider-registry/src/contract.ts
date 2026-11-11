@@ -299,6 +299,12 @@ export interface Provider {
    */
   wakeSession?(project: Project, sessionId: string): Promise<boolean>;
   /**
+   * How a cross reviewer of this provider gets its brief: 'queue' (queued, the session is woken)
+   * or 'first-message' (the first message of the reviewer's chat). Absent means 'queue' when the
+   * provider has wakeSession, else 'first-message'.
+   */
+  readonly reviewBrief?: 'queue' | 'first-message';
+  /**
    * For a provider whose Stop hook cannot be held (spec M8 section 3): no turn runs in the session
    * now (no live session lock), the text of its last answer (null for a turn without text; rejects
    * when it cannot be read) and a message sent as a prompt (true when it was accepted; delivery.id

@@ -16,3 +16,7 @@
 | macOS | Linux | Windows |
 |---|---|---|
 | `ps -axo pid=,command=`: `/ChatGPT.app/` и `app-server` | приложения нет — ничего | CIM `Win32_Process` codex.exe через PowerShell, папка с `OpenAI.Codex`/`ChatGPT` (**П**) |
+
+В режиме общего демона (M12, [shared-access.md](shared-access.md)) `maintain()` передачу не
+делает (`HandoverDeps.shared`): приложение ChatGPT — клиент демона, управление остаётся у
+демона.

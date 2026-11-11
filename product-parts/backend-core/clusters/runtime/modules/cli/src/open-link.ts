@@ -16,7 +16,7 @@ import { KIMI_LINK_PREFIX, kimiAppFound, kimiProjectLink, kimiWorkspaceCommand, 
 import type { KimiLaunch } from '#provider-kimi';
 
 /** Chat links the service opens. */
-export const OPENABLE_LINK = /^(?:codex:\/\/threads\/[A-Za-z0-9_-]{1,128}|claude:\/\/claude\.ai\/code\/session_[A-Za-z0-9]{1,128})$/;
+export const OPENABLE_LINK = /^(?:codex:\/\/threads\/[A-Za-z0-9_-]{1,128}(?:\?hostId=remote-ssh-discovered%3A[A-Za-z0-9._-]{1,64})?|claude:\/\/claude\.ai\/code\/session_[A-Za-z0-9]{1,128})$/;
 
 /** Package name of the ChatGPT/Codex desktop app on Windows. */
 export const CODEX_APPX = 'OpenAI.Codex';

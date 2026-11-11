@@ -264,9 +264,12 @@ app-server на весь Mac, доверие к папке, одобрение �
 
 ## Общий доступ к чатам (M12)
 
-`src/shared-access.ts` (проверки, запись, удаление) и `src/shared-files.ts` (текст блоков и
-строк): приложение ChatGPT по SSH становится клиентом демона Kit. Состояния, файлы, проба
-ссылок и поведение на ОС — [shared-access.md](shared-access.md).
+`src/shared-access.ts` (проверки, запись, удаление), `src/shared-files.ts` (текст блоков и
+строк), `src/shared-mode.ts` (режим сессий) и `src/thread-ops.ts` (выгрузка и пробуждение
+треда): приложение ChatGPT по SSH становится клиентом демона Kit. Пока доступ `active`, сессии
+создаются без выгрузки, ссылка Mac — с `hostId`, у провайдера работает `wakeSession`, задание
+ревьюеру — первым сообщением (`reviewBrief: 'first-message'`). Подробно —
+[shared-access.md](shared-access.md).
 
 ## Инварианты
 

@@ -148,6 +148,12 @@ export async function startFakeDaemon(requested: string, options: FakeDaemonOpti
           loaded.add(threadId);
           subscribers.set(threadId, new Set([...(subscribers.get(threadId) ?? []), socket]));
           answer(message.id, { thread: { id: threadId }, model: 'gpt-fake' });
+        } else if (message.method === 'thread/resume') {
+          // Loads a thread again (an idle chat woken in the shared daemon mode, M12).
+          const id = String((message.params as { threadId?: unknown } | undefined)?.threadId ?? '');
+          loaded.add(id);
+          subscribers.set(id, new Set([...(subscribers.get(id) ?? []), socket]));
+          answer(message.id, { thread: { id } });
         } else if (message.method === 'thread/name/set' && options.nameError) {
           sendJson(socket, { jsonrpc: '2.0', id: message.id, error: { code: -32000, message: options.nameError } }, tricky);
         } else if (message.method === 'thread/name/set') {

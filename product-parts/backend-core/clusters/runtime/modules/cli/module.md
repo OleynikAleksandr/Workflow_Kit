@@ -156,7 +156,7 @@ stripping).
   сообщения панели (`POST …/sessions/:sid/message`) идут через ту же
   будящую обёртку (опция `messages` маршрутов канала, раунд R8);
 - `POST /api/open-link { url }` (`src/open-link.ts`, M3-autostart раздел 7): служба
-  открывает ссылку чата ChatGPT (`codex://threads/<id>`) или сессии Claude Desktop
+  открывает ссылку чата ChatGPT (`codex://threads/<id>`, в режиме общего демона M12 — с `?hostId=remote-ssh-discovered%3A<alias>`, другие параметры не принимаются) или сессии Claude Desktop
   (`claude://claude.ai/code/session_<id>`, раздел 11), `OPENABLE_LINK`, командой `open` —
   только с этого компьютера (loopback, иначе 403), только macOS и Windows (иначе 501
   `not-supported`); другая ссылка — 400 без запуска, неудача всех команд — 502 и строка в
@@ -184,7 +184,7 @@ stripping).
   providers, workflow, toggles, titles, resolveFolderProject, isClient, log })` — `createCrossReview` (с вопросом о плане:
   `question`, `asking`, `decided`, `askProposal` из `toggles`; `providerTitle` — название
   провайдера из реестра, `reviewerBlocked` — причина недоступной возможности `reviewer`,
-  `briefByQueue` — у провайдера есть `wakeSession`; маршрут
+  `briefByQueue(provider)` — по `reviewBrief` провайдера (M12), без него — есть ли `wakeSession`; маршрут
   `registerPlanQuestionRoute` с проектом по папке (`resolveFolderProject`, как у канала) и
   сессией запроса (`sessionKey`: названная — `namedSession`, иначе `titles.running`; его
   `TitleError` уходит как `HttpError` с кандидатами); ответ — `ANSWER_MESSAGES` агенту через

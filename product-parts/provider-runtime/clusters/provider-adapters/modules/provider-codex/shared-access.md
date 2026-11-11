@@ -40,6 +40,30 @@ ChatGPT подключается к этому Mac по SSH (`wfk-local`) и ч�
 только `codex://settings/connections/ssh` — Kit открывает её, дальше пользователь включает
 `wfk-local`. Приложение запускает по SSH `sh -c` → `exec "$SHELL" -l -i -c …`.
 
+## Сессии в режиме общего демона (раздел 2.3)
+
+`createSharedMode(shared)`: `active()` — последняя проверка доступа дала `active`,
+`refresh()` — проверка, если прошлой больше `SHARED_TTL_MS`. В режиме:
+
+- ссылки — `sharedThreadLinks(id)`: `desktop` =
+  `codex://threads/<id>?hostId=remote-ssh-discovered%3Awfk-local` (без `hostId` Mac открывает
+  локальную копию, где ввод заблокирован), `mobile` — без `hostId`;
+- `createSession`: `thread/start`, имя, первый ход, `thread/unsubscribe` — и всё: ни ожидания
+  `turn/completed`, ни `thread/archive` + `unarchive`, ни `thread/loaded/list`; заметки
+  `HELD_NOTE` и `BUSY_NOTE` нет (чат открывается и во время хода);
+- `wakeSession(project, id)` → `wakeThread`: `thread/resume`, если демон не держит тред,
+  `turn/start` с `WAKE_TEXT`, `thread/unsubscribe`; очередь отдаёт хук `UserPromptSubmit`. Вне
+  режима — `false` (бэкенд будит только простаивающую сессию);
+- `reviewBrief: 'first-message'` всегда: ревьюер получает задание первым сообщением
+  (`detached`, M4 11.1), хотя `wakeSession` есть;
+- передача управления (`handover.ts`) пропускается: удалённое управление остаётся у демона. Если
+  его держит приложение (`remoteOwner: 'app'`), статус провайдера даёт `appOwnerNote` →
+  `SHARED_APP_OWNER_REASON` («закройте ChatGPT, дождитесь «подключён» и откройте снова»);
+- самопроверка: `maintain()` раз в минуту обновляет состояние; второй app-server приложения
+  (`isSecondAppServer`: `app-server --listen` с `code_mode_host` вне `ChatGPT.app`) или любая
+  неудачная проверка дают `broken` — режим выключается сам, сессии идут прежним путём, и
+  включается снова, когда проверки проходят.
+
 | macOS | Linux | Windows |
 |---|---|---|
 | полная настройка | `unsupported`: приложения ChatGPT нет; ничего не пишется | `unsupported`: OpenSSH-сервер и `$SHELL` не проверены; ничего не пишется |

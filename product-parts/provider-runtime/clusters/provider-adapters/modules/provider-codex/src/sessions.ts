@@ -7,6 +7,11 @@ import type { Project, RenameResult, SessionInfo, SessionLinks } from '#provider
 import { parseSessionIndex, projectTrustLevel } from './codex-files.ts';
 import { createDeleteQueue } from './deleting.ts';
 import type { RpcSession } from './rpc.ts';
+import { UNSUBSCRIBE_TIMEOUT_MS, isLoaded, unloadNow } from './thread-ops.ts';
+import { sharedThreadLinks } from './shared-mode.ts';
+import type { SharedMode } from './shared-mode.ts';
+
+export { UNLOAD_METHODS, UNSUBSCRIBE_TIMEOUT_MS } from './thread-ops.ts';
 import type { CodexRuntime } from './runtime.ts';
 
 /** A session created by the panel (sessions/codex.json). */
@@ -29,9 +34,6 @@ export const SERVICE_TURN_WAIT_MS = 15_000;
 /** How long the first message of a new session may run before the thread is released. */
 export const FIRST_TURN_WAIT_MS = 180_000;
 
-/** Timeout of thread/unsubscribe after the service turn. */
-export const UNSUBSCRIBE_TIMEOUT_MS = 5_000;
-
 /**
  * The daemon keeps a thread without subscribers loaded for about 60 s ("has no subscribers and is
  * idle; shutting down", verified 2026-11-05) and stays its only writer meanwhile: ChatGPT then
@@ -42,14 +44,6 @@ export const RELEASE_WAIT_MS = 90_000;
 
 /** Interval of the thread/loaded/list polls while the daemon still holds the thread. */
 export const RELEASE_POLL_MS = 2_000;
-
-/**
- * thread/archive unloads a loaded thread at once and thread/unarchive returns it to the lists
- * without loading it again (verified 2026-11-06 on codex-cli 0.167.0: loaded/list is empty right
- * after archive, the rollout and the name stay). createSession uses the pair instead of waiting
- * out the daemon's idle minute; a daemon without thread/archive falls back to the wait.
- */
-export const UNLOAD_METHODS = ['thread/archive', 'thread/unarchive'] as const;
 
 /** Note of a session whose thread the daemon still holds (no link until it is released). */
 export const RELEASING_NOTE = 'Codex ещё держит чат (до минуты после создания): ссылка появится, когда он его отпустит.';
@@ -116,6 +110,8 @@ export interface SessionOptions {
   serviceTurnWaitMs?: number;
   releaseWaitMs?: number;
   releasePollMs?: number;
+  /** The shared daemon mode (spec M12 section 2.3); absent means always off. */
+  shared?: SharedMode;
 }
 
 /** A thread created by this backend that the daemon may still hold. */
@@ -127,48 +123,6 @@ interface Releasing {
 }
 
 const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
-
-/**
- * Unloads an idle thread now: thread/archive, then thread/unarchive (tried twice, so the chat does
- * not stay in ChatGPT's archive). False when the daemon refused the archive (nothing changed).
- */
-async function unloadNow(session: RpcSession, threadId: string, log: (line: string) => void): Promise<boolean> {
-  try {
-    await session.request(UNLOAD_METHODS[0], { threadId }, UNSUBSCRIBE_TIMEOUT_MS);
-  } catch (error) {
-    log(`codex: thread ${threadId} not unloaded by thread/archive: ${error instanceof Error ? error.message : String(error)}`);
-    return false;
-  }
-  for (let attempt = 1; ; attempt += 1) {
-    try {
-      await session.request(UNLOAD_METHODS[1], { threadId }, UNSUBSCRIBE_TIMEOUT_MS);
-      log(`codex: thread ${threadId} unloaded by thread/archive and thread/unarchive`);
-      return true;
-    } catch (error) {
-      if (attempt < 2) continue;
-      log(`codex: thread ${threadId} stays archived, thread/unarchive failed: ${error instanceof Error ? error.message : String(error)}`);
-      return true;
-    }
-  }
-}
-
-/** Whether thread/loaded/list (all pages) has the thread; null when the daemon did not answer. */
-async function isLoaded(session: RpcSession, threadId: string): Promise<boolean | null> {
-  let cursor: string | null = null;
-  for (let page = 0; page < 20; page += 1) {
-    let answer: unknown;
-    try {
-      answer = await session.request('thread/loaded/list', cursor ? { cursor } : {}, UNSUBSCRIBE_TIMEOUT_MS);
-    } catch {
-      return null;
-    }
-    const data = isObject(answer) && Array.isArray(answer['data']) ? answer['data'] : [];
-    if (data.includes(threadId)) return true;
-    cursor = isObject(answer) && typeof answer['nextCursor'] === 'string' ? answer['nextCursor'] : null;
-    if (!cursor) return false;
-  }
-  return false;
-}
 
 /** Creates the session methods over the runtime. */
 export function createSessionParts(rt: CodexRuntime, options: SessionOptions = {}): SessionParts {
@@ -196,7 +150,7 @@ export function createSessionParts(rt: CodexRuntime, options: SessionOptions = {
     }
   };
 
-  const links = (id: string): SessionLinks => threadLinks(id);
+  const links = (id: string): SessionLinks => (options.shared?.active() ? sharedThreadLinks(id) : threadLinks(id));
 
   /**
    * thread/start, name, service turn, thread/unsubscribe, then waits until the daemon unloads the
@@ -210,6 +164,7 @@ export function createSessionParts(rt: CodexRuntime, options: SessionOptions = {
     started: { id: string | null },
     firstMessage: string | undefined,
     detached: boolean,
+    shared: boolean,
   ): Promise<{ threadId: string; model?: string; held: boolean }> => {
     const answer = await session.request<{ thread?: { id?: unknown }; model?: unknown }>('thread/start', { cwd: project.path });
     const threadId = answer?.thread?.id;
@@ -220,7 +175,7 @@ export function createSessionParts(rt: CodexRuntime, options: SessionOptions = {
     try {
       await session.request('thread/name/set', { threadId, name: title });
       await session.request('turn/start', { threadId, input: [{ type: 'text', text: firstMessage ?? serviceTurnText(project.name) }] });
-      if (!detached) completed = (await session.waitForNotification('turn/completed', firstMessage ? firstTurnWaitMs : turnWaitMs)) !== undefined;
+      if (!detached && !shared) completed = (await session.waitForNotification('turn/completed', firstMessage ? firstTurnWaitMs : turnWaitMs)) !== undefined;
     } finally {
       // While this connection stays subscribed the daemon keeps the thread loaded and ChatGPT
       // says the chat is open in another app (D1): release it before the connection closes.
@@ -229,9 +184,11 @@ export function createSessionParts(rt: CodexRuntime, options: SessionOptions = {
         (error: unknown) => context.log(`codex: thread/unsubscribe ${threadId} failed: ${error instanceof Error ? error.message : String(error)}`),
       );
     }
-    if (detached) {
-      context.log(`codex: thread ${threadId} detached, its first turn goes on in the daemon`);
-      return { threadId, ...(typeof answer.model === 'string' ? { model: answer.model } : {}), held: true };
+    if (detached || shared) {
+      // Shared daemon mode: the ChatGPT app opens the chat through the daemon itself, a running
+      // turn included, so nothing waits and nothing is unloaded (spec M12 section 2.3).
+      context.log(`codex: thread ${threadId} ${shared ? 'left loaded in the shared daemon' : 'detached, its first turn goes on in the daemon'}`);
+      return { threadId, ...(typeof answer.model === 'string' ? { model: answer.model } : {}), held: !shared };
     }
     // The daemon unloads an idle thread only about a minute after the unsubscribe; until then
     // ChatGPT cannot open it, so the session is handed out only once the thread is unloaded. A
@@ -333,10 +290,11 @@ export function createSessionParts(rt: CodexRuntime, options: SessionOptions = {
       }
       const started: { id: string | null } = { id: null };
       const detached = opts.detached === true;
+      const shared = (await options.shared?.refresh()) === true;
       try {
         const created = await rt.withDaemon(
-          (session) => startThread(session, project, opts.title, started, opts.firstMessage, detached),
-          detached ? UNSUBSCRIBE_TIMEOUT_MS + 30_000 : (opts.firstMessage ? firstTurnWaitMs : turnWaitMs) + UNSUBSCRIBE_TIMEOUT_MS + releaseWaitMs + 30_000,
+          (session) => startThread(session, project, opts.title, started, opts.firstMessage, detached, shared),
+          detached || shared ? UNSUBSCRIBE_TIMEOUT_MS + 30_000 : (opts.firstMessage ? firstTurnWaitMs : turnWaitMs) + UNSUBSCRIBE_TIMEOUT_MS + releaseWaitMs + 30_000,
         );
         const record: CodexRecord = {
           threadId: created.threadId,
@@ -360,7 +318,9 @@ export function createSessionParts(rt: CodexRuntime, options: SessionOptions = {
           cwd: project.path,
         };
         if (record.model) info.model = record.model;
-        if (detached) info.note = BUSY_NOTE;
+        if (shared) {
+          // No note: the chat opens at once, its first turn may still run.
+        } else if (detached) info.note = BUSY_NOTE;
         else if (created.held) info.note = HELD_NOTE;
         return info;
       } finally {

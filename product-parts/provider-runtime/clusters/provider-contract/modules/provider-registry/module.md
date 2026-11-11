@@ -113,6 +113,10 @@
 - `providerSessionsFile(dirs, id)` — `<state>/sessions/<id>.json` (записи
   панели); `providerLogsDir(dirs, id)` — `<logs>/<id>`.
 
+Задание ревьюеру (M12): `Provider.reviewBrief?: 'queue' | 'first-message'` — как ревьюер этого
+провайдера получает задание; без поля — `queue`, если есть `wakeSession`, иначе первым
+сообщением.
+
 Общий доступ к чатам (M12): необязательное поле `Provider.sharedAccess: SharedAccess` —
 `state(force?)`, `cached()`, `preview()`, `apply(token)`, `remove()`, `open(target)`; типы
 `SharedAccessState` (`state`: `unsupported` | `not-configured` | `needs-remote-login` |

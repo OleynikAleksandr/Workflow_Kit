@@ -10,6 +10,7 @@ import { kimiProjectLink } from '#provider-kimi';
 import type { KimiLaunch } from '#provider-kimi';
 import { createStubProvider } from '#provider-registry';
 import { createApp } from '../src/index.ts';
+import { OPENABLE_LINK } from '../src/open-link.ts';
 import { codexAppxScript, openCommands } from '../src/open-link.ts';
 import type { App } from '../src/index.ts';
 
@@ -180,4 +181,12 @@ test('POST /api/system/shutdown asks wfk serve to stop (loopback, Origin as for 
   assert.deepEqual([response.status, await response.json()], [200, { stopping: true }]);
   await new Promise((resolve) => setTimeout(resolve, 120));
   assert.equal(requested, true);
+});
+
+test('openable links: a Codex chat with the hostId of the shared SSH connection (M12), nothing else after it', () => {
+  assert.ok(OPENABLE_LINK.test('codex://threads/019a-1'));
+  assert.ok(OPENABLE_LINK.test('codex://threads/019a-1?hostId=remote-ssh-discovered%3Awfk-local'));
+  assert.ok(!OPENABLE_LINK.test('codex://threads/019a-1?hostId=local'));
+  assert.ok(!OPENABLE_LINK.test('codex://threads/019a-1?hostId=remote-ssh-discovered%3Awfk-local&prompt=x'));
+  assert.ok(!OPENABLE_LINK.test('codex://threads/019a-1?prompt=x'));
 });

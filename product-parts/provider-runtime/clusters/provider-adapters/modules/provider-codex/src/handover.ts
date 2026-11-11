@@ -51,6 +51,8 @@ export interface HandoverDeps {
   sleep?: (ms: number) => Promise<void>;
   /** True while Kit itself works through the daemon (a session is being created). */
   busy?: () => boolean;
+  /** True in the shared daemon mode (spec M12 section 2.3): remote control stays with the daemon. */
+  shared?: () => boolean;
 }
 
 export interface Handover {
@@ -76,6 +78,8 @@ export function createHandover(rt: CodexRuntime, deps: HandoverDeps = {}): Hando
     async maintain() {
       const platform = rt.context.platform;
       if (active || deps.busy?.() || (platform !== 'darwin' && platform !== 'win32')) return null;
+      // The ChatGPT app is a client of the daemon in the shared mode: nothing to hand over.
+      if (deps.shared?.()) return null;
       if (rt.program.installed !== true || rt.program.unsupported) return null;
       const daemon = await rt.daemon(true);
       if (!daemon.running || daemon.pid === null || daemon.remoteControl !== 'connected') return null;

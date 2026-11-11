@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 563,
+  "revision": 565,
   "rounds": [
     {
       "digest": {
@@ -38,7 +38,7 @@
       },
       "id": "R1",
       "kind": "implementation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Implementation"
     }
   ],
@@ -92,7 +92,7 @@
         "text": "При сбое схемы Kit сам возвращается к прежнему поведению"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "e9c04a9c-cd7c-4f6c-b4f7-f6b07802530e",
@@ -335,7 +335,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: release 0.7.0",
-      "confirmation": null,
+      "confirmation": "Пользователь, 2026-11-11: «Приступая к выполнению плана и созданию нового релиза для моей проверки. Если что-то пойдет не так, откатимся.»; затем: «Двигайся дальше… не останавливайся только в том случае, если у тебя есть ко мне вопросы.»",
       "context": [],
       "dependencies": [
         "T004",
@@ -356,7 +356,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Релиз 0.7.0",
       "why": "Релиз 0.7.0"
     }
@@ -368,11 +368,11 @@
 ## State
 
 - Scope: m12-codex-shared-daemon (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 5/6
-- Revision: 563
+- Progress: 6/6
+- Revision: 565
 
 ## Objective
 
@@ -389,7 +389,7 @@ ChatGPT на macOS работает через один демон Codex: чат
 
 ## Rounds
 
-### R1 — Implementation (implementation, OPEN)
+### R1 — Implementation (implementation, CLOSED)
 
 - [DONE] T001 — Настройка общего доступа к чатам ChatGPT (work)
   - Commit: feat: set up the shared Codex daemon access from Kit
@@ -410,7 +410,7 @@ ChatGPT на macOS работает через один демон Codex: чат
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M12-codex-shared-daemon.md, docs/installation.md
   - Depends on: T001, T002, T003, T004
-- [TODO] T005 — Релиз 0.7.0 (delivery)
+- [DONE] T005 — Релиз 0.7.0 (delivery)
   - Commit: chore: release 0.7.0
   - Files: package.json, package-lock.json, CHANGELOG.md, docs/evidence/M12-acceptance.md, README.md, docs/installation.md, docs/architecture/OVERVIEW.md
   - Depends on: T004, DOCS-R1

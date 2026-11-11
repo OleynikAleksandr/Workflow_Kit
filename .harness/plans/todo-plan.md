@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T001",
   "lastClosed": {
     "closedAt": "2026-11-11T17:40:50.251Z",
     "scopeId": "m16-plan-start-after-review"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 645,
+  "revision": 647,
   "rounds": [
     {
       "digest": null,
@@ -89,14 +89,15 @@
         "product-parts/backend-core/clusters/runtime/modules/cli/src/commands.ts",
         "product-parts/backend-core/clusters/runtime/modules/cli/src/service-path.ts",
         "product-parts/backend-core/clusters/runtime/modules/cli/test",
-        "product-parts/backend-core/clusters/runtime/modules/cli/module.md"
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/system-service/product-part.md"
       ],
       "fixes": null,
       "id": "T001",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "Каталог wfk в PATH службы и wfk service restart",
       "why": "Демон и агенты, запущенные службой, не находили wfk после первой установки"
     },
@@ -239,9 +240,9 @@
 - Scope: m17-wfk-on-agent-path (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: none
+- Current task: T001
 - Progress: 0/5
-- Revision: 645
+- Revision: 647
 
 ## Objective
 
@@ -259,9 +260,9 @@
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T001 — Каталог wfk в PATH службы и wfk service restart (work)
+- [IN_PROGRESS] T001 — Каталог wfk в PATH службы и wfk service restart (work)
   - Commit: fix: keep the wfk directory on the service PATH
-  - Files: product-parts/system-service/clusters/deployment/modules/service-installer, product-parts/backend-core/clusters/runtime/modules/cli/src/commands.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/service-path.ts, product-parts/backend-core/clusters/runtime/modules/cli/test, product-parts/backend-core/clusters/runtime/modules/cli/module.md
+  - Files: product-parts/system-service/clusters/deployment/modules/service-installer, product-parts/backend-core/clusters/runtime/modules/cli/src/commands.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/service-path.ts, product-parts/backend-core/clusters/runtime/modules/cli/test, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/system-service/product-part.md
 - [TODO] T002 — Полный путь wfk в AGENTS.md (work)
   - Commit: fix: name the full wfk path in the AGENTS.md section
   - Files: product-parts/backend-core/clusters/projects/modules/kit-structure

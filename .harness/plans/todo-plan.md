@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 627,
+  "revision": 629,
   "rounds": [
     {
       "digest": {
@@ -32,7 +32,7 @@
       },
       "id": "R1",
       "kind": "implementation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Implementation"
     }
   ],
@@ -72,7 +72,7 @@
         "text": "Выпуск 0.8.2"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "e9c04a9c-cd7c-4f6c-b4f7-f6b07802530e",
@@ -260,7 +260,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: release 0.8.2",
-      "confirmation": null,
+      "confirmation": "И сразу закрывай скоп и заливай на GitHub новый релиз.",
       "context": [],
       "dependencies": [
         "T004",
@@ -281,7 +281,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Выпуск 0.8.2",
       "why": "Выпустить исправление для проверки на Windows"
     }
@@ -293,11 +293,11 @@
 ## State
 
 - Scope: m15-claude-promo-dialogs (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 5/6
-- Revision: 627
+- Progress: 6/6
+- Revision: 629
 
 ## Objective
 
@@ -313,7 +313,7 @@
 
 ## Rounds
 
-### R1 — Implementation (implementation, OPEN)
+### R1 — Implementation (implementation, CLOSED)
 
 - [DONE] T001 — Предложения и первый запуск в хосте Windows (work)
   - Commit: feat: decline Claude feature offers in the Windows pty host
@@ -334,7 +334,7 @@
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M15-claude-promo-dialogs.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, docs/installation.md
   - Depends on: T001, T002, T003, T004
-- [TODO] T005 — Выпуск 0.8.2 (delivery)
+- [DONE] T005 — Выпуск 0.8.2 (delivery)
   - Commit: chore: release 0.8.2
   - Files: package.json, package-lock.json, CHANGELOG.md, docs/evidence/M15-acceptance.md, README.md, docs/installation.md, docs/architecture/OVERVIEW.md
   - Depends on: T004, DOCS-R1

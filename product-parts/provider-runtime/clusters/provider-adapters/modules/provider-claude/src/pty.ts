@@ -96,14 +96,26 @@ export function dialogText(log: string, lines = 16): string {
   return logTail(pid ? screen.slice(pid.index + pid[0].length) : screen, lines);
 }
 
+const TRUST_HINT = (logFile: string): string =>
+  `Решите это в предпросмотре доверия: «Предпросмотр доверия…» → выбор → «Доверять», затем повторите. Журнал: ${logFile}`;
+
+/** What to do after each dialog (spec M15 section 2.3). */
+export const DIALOG_HINTS: Readonly<Record<DialogKind, (logFile: string) => string>> = {
+  trust: TRUST_HINT,
+  imports: TRUST_HINT,
+  onboarding: (logFile) =>
+    `Запустите claude в терминале, выберите тему и войдите, затем «Повторить». Если команда claude не находится, путь к программе — в «Настройки» → «Система». Журнал: ${logFile}`,
+  unknown: (logFile) => `Запустите claude в папке проекта в терминале, ответьте на этот вопрос и повторите. Журнал: ${logFile}`,
+};
+
 /** The error of an operation stopped by a Claude dialog: the dialog text and where to resolve it. */
 export function dialogError(kind: DialogKind, log: string, logFile: string): ProviderError {
-  const text = dialogText(log);
-  const message = `Claude показал ${DIALOG_TITLES[kind]}; Kit не нажимает клавиш в диалогах и остановил процесс.${text ? `\nТекст диалога:\n${text}` : ''}`;
-  const hint =
-    kind === 'unknown'
-      ? `Решите это в предпросмотре доверия («Предпросмотр доверия…» → «Доверять»); если диалога там нет — запустите claude в папке вручную и ответьте сами. Журнал: ${logFile}`
-      : `Решите это в предпросмотре доверия: «Предпросмотр доверия…» → выбор → «Доверять», затем повторите. Журнал: ${logFile}`;
+  const text = kind === 'onboarding' ? '' : dialogText(log);
+  const message =
+    kind === 'onboarding'
+      ? 'Claude не завершил первый запуск (выбор темы или вход).'
+      : `Claude показал ${DIALOG_TITLES[kind]}; Kit не нажимает клавиш в диалогах и остановил процесс.${text ? `\nТекст диалога:\n${text}` : ''}`;
+  const hint = DIALOG_HINTS[kind](logFile);
   return new ProviderError(DIALOG_CODES[kind], message, { hint, details: { log: logFile, dialog: kind } });
 }
 

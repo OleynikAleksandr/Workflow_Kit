@@ -54,7 +54,15 @@ test('markers of the expect scripts and the debug-file fallback', () => {
   assert.equal(error.code, 'imports-dialog');
   assert.match(error.message, /Текст диалога:\nAllow external CLAUDE\.md file imports\?$/);
   assert.match(error.hint ?? '', /предпросмотре доверия.*\/logs\/s\.log/);
-  assert.equal(dialogError('unknown', 'x', '/l').code, 'unknown-dialog');
+  const unknown = dialogError('unknown', 'x', '/l');
+  assert.equal(unknown.code, 'unknown-dialog');
+  assert.match(unknown.hint ?? '', /в папке проекта в терминале/);
+  assert.doesNotMatch(unknown.hint ?? '', /предпросмотре доверия/);
+  // Claude's first run (spec M15 section 2.3): the reason and what to do, no screen dump.
+  const onboarding = dialogError('onboarding', '\nCLAUDE_PID 7\nSyntax theme: Monokai\n\nDIALOG onboarding\n', '/l');
+  assert.equal(onboarding.code, 'onboarding-dialog');
+  assert.equal(onboarding.message, 'Claude не завершил первый запуск (выбор темы или вход).');
+  assert.match(onboarding.hint ?? '', /выберите тему и войдите, затем «Повторить»/);
   assert.equal(stripAnsi('a\x1b[3Cb\x1b[Cc'), 'a   b c');
   assert.deepEqual([parseMarkers('\nENV_READY env_1\n').envId, parseMarkers('\nENV_STARTED\n').envStarted], ['env_1', true]);
   assert.equal(debugSessionId('x\nCreated session cse_Old1\nserver title t\nCreated session cse_New2\n'), 'session_New2');

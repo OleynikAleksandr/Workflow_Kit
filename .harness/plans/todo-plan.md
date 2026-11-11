@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 621,
+  "revision": 623,
   "rounds": [
     {
       "digest": null,
@@ -164,14 +164,17 @@
       "files": [
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty.ts",
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test",
-        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md"
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/dialogs.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parts.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/trust.test.ts"
       ],
       "fixes": null,
       "id": "T003",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Тексты ошибок первого запуска и незнакомого диалога",
       "why": "Подсказка отправляла в предпросмотр доверия, где такого вопроса нет"
     },
@@ -277,8 +280,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 2/6
-- Revision: 621
+- Progress: 3/6
+- Revision: 623
 
 ## Objective
 
@@ -303,9 +306,9 @@
   - Commit: feat: decline Claude feature offers in the expect scripts
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/dialogs.tcl, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/session.exp, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/environment.exp, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/dialogs.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/fixtures/fake-claude.mjs, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/trust.test.ts
   - Depends on: T001
-- [TODO] T003 — Тексты ошибок первого запуска и незнакомого диалога (work)
+- [DONE] T003 — Тексты ошибок первого запуска и незнакомого диалога (work)
   - Commit: fix: explain Claude's first run and unknown dialogs
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/dialogs.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parts.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/trust.test.ts
   - Depends on: T002
 - [TODO] T004 — README и руководство: неполадки Claude (work)
   - Commit: docs: describe Claude's first run and feature offers

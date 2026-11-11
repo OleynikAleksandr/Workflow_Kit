@@ -129,7 +129,7 @@ test('trust and unknown dialogs stop claude with their text: sessions and the fo
   const unknown = h.withEnv({ FAKE_CLAUDE_MODE: 'unknown-dialog' });
   await assert.rejects(unknown.createSession(beta, { title: 'b' }), (error: unknown) => {
     const e = error as ProviderError;
-    return e.code === 'unknown-dialog' && /New MCP server found/.test(e.message) && /предпросмотре доверия/.test(e.hint ?? '');
+    return e.code === 'unknown-dialog' && /New MCP server found/.test(e.message) && /в папке проекта в терминале/.test(e.hint ?? '') && !/предпросмотре доверия/.test(e.hint ?? '');
   });
   await assert.rejects(unknown.runAction(ENVIRONMENT_START, beta), code('unknown-dialog'));
   assert.deepEqual(await h.dialogKeys(), [], 'no key was pressed in any dialog');
@@ -147,7 +147,10 @@ test('a feature offer gets "Not now" and the session starts; the theme picker st
 
   const theme = h.withEnv({ FAKE_CLAUDE_MODE: 'theme' });
   const started = Date.now();
-  await assert.rejects(theme.createSession(beta, { title: 'theme' }), code('onboarding-dialog'));
+  await assert.rejects(theme.createSession(beta, { title: 'theme' }), (error: unknown) => {
+    const e = error as ProviderError;
+    return e.code === 'onboarding-dialog' && /не завершил первый запуск/.test(e.message) && /выберите тему и войдите/.test(e.hint ?? '');
+  });
   assert.ok(Date.now() - started < 15_000, 'no wait for the link timeout');
   assert.deepEqual(await h.dialogKeys(), [], 'no key was pressed on the first-run screen');
 });

@@ -12,6 +12,14 @@ import { PROGRAMS } from './programs.ts';
 import { describeStatus } from './status.ts';
 import type { ResolvedDeps, ServiceCommand, ServiceCommandResult, ServiceDeps } from './types.ts';
 
+/**
+ * Windows (M14): the PATH of the user changes at once, but a Windows Terminal that was already
+ * open gives its new tabs the old environment, so wfk is not found there until it restarts.
+ */
+export function windowsLauncherHint(launcher: string): string {
+  return `команда wfk появится в новом окне терминала; если Windows Terminal был открыт, закройте его полностью. Сейчас: & "${launcher}" open`;
+}
+
 function installText(report: InstallReport, deps: ResolvedDeps): string {
   const kind =
     report.previousVersion === null
@@ -26,6 +34,7 @@ function installText(report: InstallReport, deps: ResolvedDeps): string {
   } else {
     const record = report.record;
     lines.push(`запускатель: ${record.launcher ?? '—'}`);
+    if (deps.platform === 'win32' && record.launcher) lines.push(windowsLauncherHint(record.launcher));
     const how = report.icon?.kind === 'app' ? ' (приложение с окном панели)' : report.icon && deps.platform === 'darwin' ? ' (окно браузера)' : '';
     lines.push(`значок: ${record.icon ?? '—'}${how}${report.icon?.note ? `; ${report.icon.note}` : ''}`);
     if (record.mechanism) lines.push(`автозапуск: ${mechanismLabel(record.mechanism)} (${record.autostartEntry ?? '—'})`);

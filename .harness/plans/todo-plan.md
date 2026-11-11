@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 592,
+  "revision": 594,
   "rounds": [
     {
       "digest": null,
@@ -130,14 +130,19 @@
       "dependencies": [],
       "docsWaiver": null,
       "files": [
-        "product-parts/system-service/clusters/deployment/modules/service-installer"
+        "product-parts/system-service/clusters/deployment/modules/service-installer",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/module.md",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/open.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/run.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/test/control.test.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/test/install.test.ts"
       ],
       "fixes": null,
       "id": "T002",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Chrome первым на Windows; сообщение о wfk после установки",
       "why": "Пользователь хочет панель в Chrome; команда wfk не находилась в открытом Windows Terminal"
     },
@@ -345,8 +350,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 1/8
-- Revision: 592
+- Progress: 2/8
+- Revision: 594
 
 ## Objective
 
@@ -369,9 +374,9 @@
 - [DONE] T001 — Окна git скрыты на Windows (work, parallel-safe)
   - Commit: fix: hide the console windows of git on Windows
   - Files: product-parts/backend-core/clusters/projects/modules/git-publish/src/git.ts, product-parts/backend-core/clusters/projects/modules/git-publish/test/publication.test.ts, product-parts/backend-core/clusters/projects/modules/git-publish/module.md, product-parts/backend-core/clusters/projects/modules/git-publish/src/index.ts
-- [TODO] T002 — Chrome первым на Windows; сообщение о wfk после установки (work)
+- [DONE] T002 — Chrome первым на Windows; сообщение о wfk после установки (work)
   - Commit: fix: open the panel in Chrome on Windows and explain the new wfk command
-  - Files: product-parts/system-service/clusters/deployment/modules/service-installer
+  - Files: product-parts/system-service/clusters/deployment/modules/service-installer, product-parts/system-service/clusters/deployment/modules/service-installer/module.md, product-parts/system-service/clusters/deployment/modules/service-installer/src/open.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/run.ts, product-parts/system-service/clusters/deployment/modules/service-installer/test/control.test.ts, product-parts/system-service/clusters/deployment/modules/service-installer/test/install.test.ts
 - [TODO] T003 — UAC и правило подключения ChatGPT (work)
   - Commit: fix: name a disabled UAC and count only real ChatGPT connections
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex

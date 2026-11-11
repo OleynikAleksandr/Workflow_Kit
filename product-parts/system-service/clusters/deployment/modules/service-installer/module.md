@@ -128,7 +128,10 @@ login-shell (D12), запускатель `wfk`, значок «Workflow Kit», 
      `Run …, 0` — без окна консоли); `reg add HKCU\…\Run /v WorkflowKit`
      со значением `"%SystemRoot%\System32\wscript.exe" "…\wfk-service.vbs"`;
      PATH пользователя и ярлык в «Пуске» — через PowerShell. Прав
-     администратора не нужно.
+     администратора не нужно. Итог установки добавляет строку
+     `windowsLauncherHint` (M14): `wfk` появится в новом окне терминала,
+     открытый Windows Terminal нужно закрыть полностью, сейчас —
+     `& "<данные>\wfk.cmd" open`.
 5. `app/current.json` (0600): `version`, `appPath`, `entry`, `node`,
    `installedAt`, `integrated`, `mechanism`, `autostartEntry`, `launcher`,
    `icon`. Без симлинков.
@@ -176,7 +179,8 @@ unit, `daemon-reload`; XDG-файл; `reg delete`, `.vbs`, PATH пользова
   `WFKEntry`), иначе `open -na "<Chrome|Edge|Chromium>.app"
   --args --app=… --user-data-dir=<состояние>/panel-browser`; Linux —
   первый из `google-chrome`, `microsoft-edge`, `chromium` в PATH; Windows —
-  `msedge.exe` или `chrome.exe` из Program Files; иначе браузер по
+  `chrome.exe`, затем `msedge.exe` из Program Files и LOCALAPPDATA (M14: Chrome
+  первым, как на macOS и Linux); иначе браузер по
   умолчанию (`open`, `xdg-open`, `rundll32 url.dll`). Порт 0 — отказ.
   `open --url-only` (его вызывает приложение macOS) только запускает
   службу при необходимости и выводит `панель: <адрес>`; другой аргумент —

@@ -109,6 +109,11 @@ test('browserPlan for the three OS with and without Chrome or Edge', () => {
   const edge = browserPlan({ ...base, platform: 'win32', env: winEnv, homedir: 'C:\\Users\\me', exists: (file) => file === 'C:\\PF\\Microsoft\\Edge\\Application\\msedge.exe', findInPath: () => null });
   assert.equal(edge.command, 'C:\\PF\\Microsoft\\Edge\\Application\\msedge.exe');
   assert.equal(edge.kind, 'app-window');
+  // Chrome comes before Edge on Windows (M14).
+  const both = new Set(['C:\\PF\\Microsoft\\Edge\\Application\\msedge.exe', 'C:\\Users\\me\\AppData\\Local\\Google\\Chrome\\Application\\chrome.exe']);
+  const chrome = browserPlan({ ...base, platform: 'win32', env: { ...winEnv, LOCALAPPDATA: 'C:\\Users\\me\\AppData\\Local' }, homedir: 'C:\\Users\\me', exists: (file) => both.has(file), findInPath: () => null });
+  assert.equal(chrome.command, 'C:\\Users\\me\\AppData\\Local\\Google\\Chrome\\Application\\chrome.exe');
+  assert.ok(chrome.args[0]?.startsWith('--app='));
   const winDefault = browserPlan({ ...base, ...none, platform: 'win32', env: winEnv, homedir: 'C:\\Users\\me' });
   assert.deepEqual([winDefault.command, ...winDefault.args], ['C:\\Windows\\System32\\rundll32.exe', 'url.dll,FileProtocolHandler', 'http://127.0.0.1:4747/']);
   const linux = browserPlan({ ...base, platform: 'linux', env: {}, homedir: '/home/me', exists: () => false, findInPath: (name) => (name === 'xdg-open' ? '/usr/bin/xdg-open' : null) });

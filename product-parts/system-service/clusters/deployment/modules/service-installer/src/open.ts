@@ -1,5 +1,5 @@
 // wfk open (and the icon): make sure the backend answers, then open the panel: on macOS in the
-// Workflow Kit app when install built it, else in an app window of Chrome or Edge (--app=),
+// Workflow Kit app when install built it, else in an app window of Chrome or Edge (--app=, Chrome first),
 // otherwise in the default browser. `wfk open --url-only` (what the macOS app runs) only makes
 // sure the backend answers and prints the URL.
 import { cleanEnv } from '#process-supervisor';
@@ -66,9 +66,10 @@ export function browserPlan(input: BrowserPlanInput): BrowserPlan {
     const p = pathApi('win32');
     const env = input.env;
     const roots = [env['ProgramFiles(x86)'], env['ProgramFiles'], env['LOCALAPPDATA']].filter((root): root is string => Boolean(root));
+    // Chrome first, as on macOS and Linux (M14); Edge, which every Windows 11 has, after it.
     const candidates = [
-      ...roots.map((root) => p.join(root, 'Microsoft', 'Edge', 'Application', 'msedge.exe')),
       ...roots.map((root) => p.join(root, 'Google', 'Chrome', 'Application', 'chrome.exe')),
+      ...roots.map((root) => p.join(root, 'Microsoft', 'Edge', 'Application', 'msedge.exe')),
     ];
     const exe = candidates.find((candidate) => input.exists(candidate));
     if (exe) return { command: exe, args, detached: true, kind: 'app-window' };

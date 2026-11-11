@@ -222,6 +222,8 @@ test('Windows: wfk.cmd, hidden Run value, user PATH, Start menu shortcut', async
   const result = await runServiceCommand('install', m.deps);
   assert.equal(result.exitCode, 0, result.message);
   const data = 'C:\\Users\\me\\AppData\\Local\\Workflow Kit';
+  // M14: an open Windows Terminal keeps the old PATH; the install says how to run wfk now.
+  assert.ok(result.message.includes(`команда wfk появится в новом окне терминала; если Windows Terminal был открыт, закройте его полностью. Сейчас: & "${data}\\wfk.cmd" open`), result.message);
   const entry = `${data}\\app\\0.1.0\\bin\\wfk.mjs`;
   assert.equal(
     m.fs.readTextSync(`${data}\\wfk.cmd`),

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 614,
+  "revision": 615,
   "rounds": [
     {
       "digest": {
@@ -69,7 +69,10 @@
       "Папку проектов можно выбрать на другом диске (Windows), томе (macOS) или в /media и /mnt (Linux)",
       "CI зелёный на macOS, Linux, Windows x64 и ARM64; живые проверки записаны в документе приёмки"
     ],
-    "acceptanceNote": null,
+    "acceptanceNote": {
+      "at": "2026-11-11T16:01:49.028Z",
+      "text": "И можешь сразу принять этот скоп и залить новый релиз на GitHub."
+    },
     "approval": {
       "at": "2026-11-11T15:18:44.384Z",
       "text": "Пользователь, 2026-11-11: «Я открываю скоп и Еще два замечания. Первое. Можно ли Workflow Kit открывать не в Edge, а в Chrome? И второй при выборе диска папки, вернее, в которую писать проекты, присутствует только диск C. А нужно иметь выбор любого диска.» | Execution mode chosen by the user: sequential: Поэтому, выполняя работу последовательно, собери, пожалуйста, новый релиз."
@@ -105,7 +108,7 @@
         "text": "Выпуск — 0.8.1"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "ACCEPTED",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "e9c04a9c-cd7c-4f6c-b4f7-f6b07802530e",
@@ -500,11 +503,11 @@
 ## State
 
 - Scope: m14-windows-fixes (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: ACCEPTED
 - Execution: sequential
 - Current task: none
 - Progress: 11/11
-- Revision: 614
+- Revision: 615
 
 ## Objective
 

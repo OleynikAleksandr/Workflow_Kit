@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 656,
+  "revision": 657,
   "rounds": [
     {
       "digest": {
@@ -47,7 +47,10 @@
       "wfk service restart работает",
       "Выпуск 0.8.4; CI зелёный на macOS, Linux, Windows x64 и ARM64"
     ],
-    "acceptanceNote": null,
+    "acceptanceNote": {
+      "at": "2026-11-11T18:25:21.320Z",
+      "text": "Да, именно так… А ты начинай. Без остановки."
+    },
     "approval": {
       "at": "2026-11-11T18:11:04.430Z",
       "text": "Пользователь, 2026-11-11: «Да, именно так… А ты начинай. Без остановки. Если нужно будет, я тебя остановлю.» — три слоя исправления и выпуск 0.8.4 | Execution mode chosen by the user: sequential: Пользователь: «А ты начинай. Без остановки.» — последовательно, как в M16"
@@ -69,7 +72,7 @@
         "text": "Выпуск 0.8.4"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "ACCEPTED",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "e9c04a9c-cd7c-4f6c-b4f7-f6b07802530e",
@@ -271,11 +274,11 @@
 ## State
 
 - Scope: m17-wfk-on-agent-path (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: ACCEPTED
 - Execution: sequential
 - Current task: none
 - Progress: 5/5
-- Revision: 656
+- Revision: 657
 
 ## Objective
 

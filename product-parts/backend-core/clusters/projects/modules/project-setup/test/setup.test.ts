@@ -252,8 +252,10 @@ test('projects: archive and restore keep the folder; the projects folder can cha
   assert.equal(app.projects.root, root.json['root']);
   const config = JSON.parse(await readFile(path.join(tmp, 'data', 'config.json'), 'utf8'));
   assert.equal(config.projectsRoot, root.json['root']);
-  const outside = await send('/api/settings/projects-root', { path: '/etc' });
+  // The temporary folder lies outside home and, on Windows, on the system drive: outside the roots on every OS.
+  const outside = await send('/api/settings/projects-root', { path: path.join(tmp, 'elsewhere') });
   assert.equal(outside.status, 400);
+  assert.equal(outside.json['error'].code, 'outside-roots');
 });
 
 test('the other provider\'s trust is best effort; the chosen provider\'s trust is required', async () => {

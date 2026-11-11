@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 608,
+  "revision": 610,
   "rounds": [
     {
       "digest": {
@@ -426,7 +426,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Тест мастера: папка вне разрешённых корней на любой ОС",
       "why": "CI Windows x64 (run 43051852047): /etc на раннере — D:\\etc, несистемный диск, по правилу M14 разрешён; тест ждал 400"
     },
@@ -493,8 +493,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 8/11
-- Revision: 608
+- Progress: 9/11
+- Revision: 610
 
 ## Objective
 
@@ -548,7 +548,7 @@ Digest: Исправлены находки живой проверки 0.8.0 н
 
 ### R2 — Тест папки проектов на Windows CI (fixes, OPEN)
 
-- [TODO] T008 — Тест мастера: папка вне разрешённых корней на любой ОС (work)
+- [DONE] T008 — Тест мастера: папка вне разрешённых корней на любой ОС (work)
   - Commit: test: refuse a projects folder outside the roots on every OS
   - Files: product-parts/backend-core/clusters/projects/modules/project-setup/test/setup.test.ts
   - Fixes: T005

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 587,
+  "revision": 588,
   "rounds": [
     {
       "digest": {
@@ -52,7 +52,10 @@
       "README и docs/installation.md описывают настройку на Windows",
       "CI зелёный на macOS, Linux, Windows x64 и ARM64; живая проверка на Windows записана в документе приёмки"
     ],
-    "acceptanceNote": null,
+    "acceptanceNote": {
+      "at": "2026-11-11T11:00:35.259Z",
+      "text": "Понимаю и залей обновленную версию на GitHub. И закрываем этот скоб. Дальше будем заниматься тестированием и исправлением того, что найдем."
+    },
     "approval": {
       "at": "2026-11-11T10:27:38.541Z",
       "text": "Пользователь, 2026-11-11: «нам обязательно нужно выделить скоп для решения проблем Windows. Чтобы работа ChatGPT и там была через SSH.» | Execution mode chosen by the user: sequential: Пользователь в чате на вопрос «Режим выполнения плана M13 для Windows?»: «Последовательно»"
@@ -92,7 +95,7 @@
         "text": "WSL как SSH-цель не рассматривается"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "ACCEPTED",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "e9c04a9c-cd7c-4f6c-b4f7-f6b07802530e",
@@ -328,11 +331,11 @@
 ## State
 
 - Scope: m13-windows-shared-daemon (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: ACCEPTED
 - Execution: sequential
 - Current task: none
 - Progress: 6/6
-- Revision: 587
+- Revision: 588
 
 ## Objective
 

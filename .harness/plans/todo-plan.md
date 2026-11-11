@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 654,
+  "revision": 656,
   "rounds": [
     {
       "digest": {
@@ -34,7 +34,7 @@
       },
       "id": "R1",
       "kind": "implementation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Implementation"
     }
   ],
@@ -69,7 +69,7 @@
         "text": "Выпуск 0.8.4"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "e9c04a9c-cd7c-4f6c-b4f7-f6b07802530e",
@@ -238,7 +238,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: release 0.8.4",
-      "confirmation": null,
+      "confirmation": "Да, именно так… А ты начинай. Без остановки.",
       "context": [],
       "dependencies": [
         "T003",
@@ -259,7 +259,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Выпуск 0.8.4",
       "why": "Выпустить исправление для проверки на Windows"
     }
@@ -271,11 +271,11 @@
 ## State
 
 - Scope: m17-wfk-on-agent-path (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 4/5
-- Revision: 654
+- Progress: 5/5
+- Revision: 656
 
 ## Objective
 
@@ -291,7 +291,7 @@
 
 ## Rounds
 
-### R1 — Implementation (implementation, OPEN)
+### R1 — Implementation (implementation, CLOSED)
 
 - [DONE] T001 — Каталог wfk в PATH службы и wfk service restart (work)
   - Commit: fix: keep the wfk directory on the service PATH
@@ -308,7 +308,7 @@
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M17-wfk-on-agent-path.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md
   - Depends on: T001, T002, T003
-- [TODO] T004 — Выпуск 0.8.4 (delivery)
+- [DONE] T004 — Выпуск 0.8.4 (delivery)
   - Commit: chore: release 0.8.4
   - Files: package.json, package-lock.json, CHANGELOG.md, docs/evidence/M17-acceptance.md, README.md, docs/installation.md, docs/architecture/OVERVIEW.md
   - Depends on: T003, DOCS-R1

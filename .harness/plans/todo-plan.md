@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 570,
+  "revision": 572,
   "rounds": [
     {
       "digest": {
@@ -54,7 +54,7 @@
       },
       "id": "R2",
       "kind": "fixes",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "CI Windows: права файлов в тесте общего доступа"
     }
   ],
@@ -108,7 +108,7 @@
         "text": "При сбое схемы Kit сам возвращается к прежнему поведению"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "e9c04a9c-cd7c-4f6c-b4f7-f6b07802530e",
@@ -433,7 +433,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: record the green CI of release 0.7.0",
-      "confirmation": null,
+      "confirmation": "Пользователь, 2026-11-11: «Приступая к выполнению плана и созданию нового релиза для моей проверки. Если что-то пойдет не так, откатимся.»; «Двигайся дальше… не останавливайся только в том случае, если у тебя есть ко мне вопросы.»",
       "context": [],
       "dependencies": [
         "T006",
@@ -448,7 +448,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Выпуск 0.7.0 с зелёным CI",
       "why": "Выпуск 0.7.0 с зелёным CI"
     }
@@ -460,11 +460,11 @@
 ## State
 
 - Scope: m12-codex-shared-daemon (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 8/9
-- Revision: 570
+- Progress: 9/9
+- Revision: 572
 
 ## Objective
 
@@ -509,7 +509,7 @@ ChatGPT на macOS работает через один демон Codex: чат
 
 Digest: macOS: Kit сам настраивает SSH-доступ ChatGPT к своему демону Codex (карточка «Общий доступ к чатам», маршруты shared-access, строка wfk doctor). В режиме общего демона чаты Kit (и ревьюера) открываются в ChatGPT на Mac, iPad и из Kit одновременно: ссылка с hostId, без выгрузки, wakeSession, управление у демона, самопроверка с откатом. Linux и Windows — unsupported, поведение 0.6.4.
 
-### R2 — CI Windows: права файлов в тесте общего доступа (fixes, OPEN)
+### R2 — CI Windows: права файлов в тесте общего доступа (fixes, CLOSED)
 
 - [DONE] T006 — Тест общего доступа без проверки POSIX-прав на Windows (work)
   - Commit: test: skip the POSIX file mode check of the shared access test on Windows hosts
@@ -519,7 +519,7 @@ Digest: macOS: Kit сам настраивает SSH-доступ ChatGPT к с�
   - Commit: docs: reconcile documentation for R2
   - Files: README.md, docs/architecture/OVERVIEW.md
   - Depends on: T006
-- [TODO] T007 — Выпуск 0.7.0 с зелёным CI (delivery)
+- [DONE] T007 — Выпуск 0.7.0 с зелёным CI (delivery)
   - Commit: chore: record the green CI of release 0.7.0
   - Files: docs/evidence/M12-acceptance.md
   - Depends on: T006, DOCS-R2

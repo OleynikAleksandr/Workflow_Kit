@@ -26,7 +26,14 @@
 - Панель 0.7.0 (встроенный браузер): карточка «Общий доступ к чатам · ChatGPT» — «Не
   настроено», «Настроить» показывает предпросмотр (`authorized_keys`, `config`, `.zshenv`,
   заметки о замене блоков пробы); закрыт «Отменой», файлы не менялись.
-- CI ветки `ci/m12-codex-shared-daemon` — записывается после запуска.
+- CI ветки `ci/m12-codex-shared-daemon`:
+  - релизный коммит `ad01008`, [запуск 42999966626](https://github.com/OleynikAleksandr/Workflow_Kit/actions/runs/42999966626) —
+    macOS ARM64 и Linux x64 успех, Windows x64 и ARM64 — падение теста настройки: он ждал
+    права `0600`, а файловая система Windows отдаёт `0666` (продукт на Windows эти файлы не
+    пишет). Раунд R2: T006 `c16ebd1` — проверка прав только на POSIX-хостах, DOCS `a1fc284`;
+  - коммит `a1fc284`, [запуск 43000743026](https://github.com/OleynikAleksandr/Workflow_Kit/actions/runs/43000743026) —
+    успех на macOS ARM64, Linux x64, Windows x64 и Windows ARM64 (typecheck, тесты,
+    `check:platforms`).
 
 ## Живые проверки
 

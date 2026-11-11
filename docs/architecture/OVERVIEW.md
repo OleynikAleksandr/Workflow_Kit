@@ -39,13 +39,13 @@ runtime-зависимостей) и веб-панель для Mac и iPad. С�
 | | | [data-store](../../product-parts/backend-core/clusters/runtime/modules/data-store/module.md) | каталоги по ОС, `config.json`, атомарная запись, журнал событий, мьютексы, операции, копии чужих конфигов |
 | | [http-api](../../product-parts/backend-core/clusters/http-api/cluster.md) | [http-server](../../product-parts/backend-core/clusters/http-api/modules/http-server/module.md) | HTTP, фильтр доступа (D8), реестр маршрутов и разделов `/api/state`, раздача панели |
 | | [projects](../../product-parts/backend-core/clusters/projects/cluster.md) | [project-registry](../../product-parts/backend-core/clusters/projects/modules/project-registry/module.md) | `projects.json`, проверка имён и путей, выбор папки |
-| | | [kit-structure](../../product-parts/backend-core/clusters/projects/modules/kit-structure/module.md) | структура Kit v2 в папке проекта (хуки SessionStart, Stop, UserPromptSubmit), приём хука SessionStart |
+| | | [kit-structure](../../product-parts/backend-core/clusters/projects/modules/kit-structure/module.md) | структура Kit v2 в папке проекта, хуки агентов, приём хука SessionStart |
 | | | [git-publish](../../product-parts/backend-core/clusters/projects/modules/git-publish/module.md) | push при закрытом scope |
 | | | [project-setup](../../product-parts/backend-core/clusters/projects/modules/project-setup/module.md) | мастер проекта: предпросмотр и одно согласие — git, структура, Kit 2.2.2, доверие, хуки, первая сессия |
 | [provider-runtime](../../product-parts/provider-runtime/product-part.md) | [provider-contract](../../product-parts/provider-runtime/clusters/provider-contract/cluster.md) | [provider-registry](../../product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md) | контракт провайдера, реестр, журнал хука, токены предпросмотра, маршруты провайдеров |
 | | | [process-supervisor](../../product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/module.md) | запуск, учёт и остановка процессов (D5, D9), исполнитель внешних программ |
 | | | [pty-host](../../product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/module.md) | ConPTY на Windows (node-pty 1.1.0) |
-| | [provider-adapters](../../product-parts/provider-runtime/clusters/provider-adapters/cluster.md) | [provider-claude](../../product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md) | доверие (прямая запись `~/.claude.json`, выбор о внешних импортах CLAUDE.md), сессии Remote Control, окружение папки (pty через `expect`) |
+| | [provider-adapters](../../product-parts/provider-runtime/clusters/provider-adapters/cluster.md) | [provider-claude](../../product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md) | доверие (`~/.claude.json`, импорты CLAUDE.md), сессии Remote Control, окружение папки (pty) |
 | | | [provider-codex](../../product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md) | демон app-server, доверие, одобрение хука Kit, сессии (треды; после служебного хода — `thread/unsubscribe`) |
 | | | [provider-kimi](../../product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md) | сервер приложения или `kimi web`, доверие, хук, сессии, ссылки |
 | [workflow-engine](../../product-parts/workflow-engine/product-part.md) | [kit-host](../../product-parts/workflow-engine/clusters/kit-host/cluster.md) | [kit-bundle](../../product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md) | вендорный бандл Kit 2.2.2 с проверкой хеша |
@@ -55,7 +55,7 @@ runtime-зависимостей) и веб-панель для Mac и iPad. С�
 | | | [autopilot](../../product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md) | «продолжать, держать или отпустить» после хода; действия с планом из панели |
 | | | [plan-review](../../product-parts/workflow-engine/clusters/session-loop/modules/plan-review/module.md) | решение о ревью и вопрос о плане |
 | | | [cross-review](../../product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md) | ревью плана сессией другого провайдера (M4) |
-| | | [session-titles](../../product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md) | имена сессий (ручное, тема агента, цель плана), синхронизация с ChatGPT, архив сессий |
+| | | [session-titles](../../product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md) | имена сессий, синхронизация с ChatGPT, архив сессий |
 | [control-panel](../../product-parts/control-panel/product-part.md) | [web-panel](../../product-parts/control-panel/clusters/web-panel/cluster.md) | [panel-shell](../../product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md) | раскладка по макету, маршруты, опрос, дерево проектов и сессий, «Настройки», слоты расширений, экран «Домой» iPad |
 | | | [project-wizard](../../product-parts/control-panel/clusters/web-panel/modules/project-wizard/module.md) | мастер проекта в панели: предпросмотр, кнопки первой сессии, шаги подготовки, открытие чата |
 | | | [session-view](../../product-parts/control-panel/clusters/web-panel/modules/session-view/module.md) | экран сессии: активность агента, выбор пути, карточка плана, вопрос о плане |
@@ -154,7 +154,7 @@ context)` только читает файлы и наполняет `system.ser
 «Система». `install` копирует `bin`, `product-parts`, `package.json` в
 `app/<версия>/`, пишет `app/current.json`, пути программ и login PATH в
 `config.json` (D12), ставит запускатель, значок и автозапуск при входе
-пользователя, запускает службу. HTTP API и панель работают в одном процессе.
+пользователя, запускает службу.
 Установка по ОС — [руководство](../installation.md). Контракт —
 [service-installer/module.md](../../product-parts/system-service/clusters/deployment/modules/service-installer/module.md).
 
@@ -203,10 +203,9 @@ loopback): `Stop` держится до 9 минут, пока пользова�
 значки). Опрос `GET /api/state` раз в 3 с. Расширения других каталогов
 подключаются через `PANEL_EXTENSIONS` и `install(shell)`: карточки —
 `registerCard`/`registerCardGroup`, мастер и экран сессии — слоты
-`registerSlot`. Карточек провайдеров и «Структуры Kit» в «Настройках»
-нет (решение пользователя 2026-11-06): архив проектов и сессий —
-карточка «Архив», действия провайдеров (например, «Запустить демон»)
-показывает мастер проекта. Контракты —
+`registerSlot`. Карточек провайдеров и «Структуры Kit» в «Настройках» нет
+(2026-11-06): действия провайдеров показывает мастер проекта, архив — карточка
+«Архив». Контракты —
 [panel-shell/module.md](../../product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md),
 [project-wizard/module.md](../../product-parts/control-panel/clusters/web-panel/modules/project-wizard/module.md),
 [session-view/module.md](../../product-parts/control-panel/clusters/web-panel/modules/session-view/module.md).
@@ -237,20 +236,21 @@ Linux `$XDG_CONFIG_HOME`, `$XDG_STATE_HOME`, `$XDG_DATA_HOME` +
 | Claude: сессии, окружение (pty) | да | если есть `expect` | да, ConPTY (`pty-host`) |
 | Codex: демон, доверие, хуки, сессии | да | да | да, Codex 0.160+, через `proxy` |
 | Codex: управление — приложению ChatGPT | да, `ps`; не в режиме общего демона | нет приложения | CIM codex.exe (**П**) |
-| Codex: общий демон (M12/M13, SSH `wfk-local`) | да, Kit настраивает | `unsupported` | Kit + скрипт администратора (**П**) |
+| Codex: общий демон (M12/M13, SSH `wfk-local`) | да, Kit настраивает | `unsupported` | Kit + скрипт администратора; нужен UAC (M14) |
 | Kimi: серверы, сессии, исполнители | да | тесты (**П**) | тесты (**П**) |
 | Kimi: хук Kit в `config.toml` | `/bin/sh` | то же, тесты | `cmd.exe`, тесты (**П**) |
 | Kimi: приложение, проект в нём | `open -a`, `--workspace` | `xdg-mime`, `xdg-open` | `reg`, `--workspace` (**П**) |
 | Запуск и остановка процессов сессий | да | да | да (CIM, `taskkill`) |
-| Живые проверки | есть, см. документы приёмки M1–M4 | нет, только тесты | нет, только тесты |
+| Корни папки проектов (M14) | дом, `/Volumes/*` | дом, `/media/<u>/*`, `/run/media/<u>/*`, `/mnt/*` | дом и диски, кроме системного |
+| Живые проверки | есть, см. документы приёмки M1–M4 | нет, только тесты | установка и общий доступ (M13, M14) |
 
 ## Известные ограничения
 
-- Основная проверенная ОС — macOS. Linux и Windows проверены тестами (и в CI на
-  них) с подставными программами; полного сценария на устройствах нет (Windows —
-  живая проверка M5 впереди). На Linux Claude требует `expect`, чаты ChatGPT и Claude служба не открывает. Инструкция — [установка](../installation.md).
+- Основная проверенная ОС — macOS. Linux и Windows проверены тестами и CI с подставными
+  программами; на Windows вживую — установка и общий доступ ChatGPT (M13, M14). На Linux Claude требует `expect`, чаты ChatGPT и Claude служба не открывает. Инструкция — [установка](../installation.md).
 - macOS: установка проверена в M3/M4; окно значка собирается через `swiftc`,
-  без сборки открывается браузер. Windows/Linux открывают браузер.
+  без сборки открывается браузер. Windows/Linux открывают окно браузера (Windows — сначала
+  Chrome, M14).
 - Прерванные сессии Claude поднимаются при старте службы и открытии, архивные и
   остановленные — нет. Состояние сессии Codex бывает `unknown`; будит её Kit
   (`thread/resume`) только в режиме общего демона (M12/M13, macOS и Windows; опирается на
@@ -260,7 +260,8 @@ Linux `$XDG_CONFIG_HOME`, `$XDG_STATE_HOME`, `$XDG_DATA_HOME` +
   Codex сохраняет пользовательские политики служебного хода. Подробности —
   в контрактах провайдеров и документах приёмки.
 - Панель доступна через loopback и Tailscale, без отдельной авторизации.
-  Публичное размещение HTTP-панели не предусмотрено. Удалённый клиент
+  Публичное размещение HTTP-панели не предусмотрено. В выборе папки видны имена папок
+  домашней папки и других дисков (M14). Удалённый клиент
   зависит от работающего компьютера со службой и связи через Tailscale.
 - iPad может не открыть чат сам: щёлкните карточку сессии.
 - «Перезапустить службу» и «Диагностика» в панели нет — `wfk service`, `wfk doctor`.
@@ -272,7 +273,7 @@ Linux `$XDG_CONFIG_HOME`, `$XDG_STATE_HOME`, `$XDG_DATA_HOME` +
 - Спецификации вех: `docs/planning/M*.md` — ядро
   [M1](../planning/M1-orchestrator-core.md), интерфейс [M2](../planning/M2-interface-and-process.md)
   (макет [ui-mockup.html](../design/ui-mockup.html)), [M3](../planning/M3-fixes.md), общий демон
-  ChatGPT [M12](../planning/M12-codex-shared-daemon.md), Windows [M13](../planning/M13-windows-shared-daemon.md).
+  ChatGPT [M12](../planning/M12-codex-shared-daemon.md), Windows [M13](../planning/M13-windows-shared-daemon.md), [M14](../planning/M14-windows-fixes.md).
 - Контракт провайдера, факты о Claude и Codex: [M1-providers.md](../planning/M1-providers.md);
   первая приёмка: [M1-acceptance.md](../evidence/M1-acceptance.md).
 - [README.md](../../README.md), [установка по ОС](../installation.md), [CHANGELOG.md](../../CHANGELOG.md).

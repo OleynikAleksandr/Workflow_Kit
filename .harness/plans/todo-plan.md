@@ -10,10 +10,31 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 602,
+  "revision": 604,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "project-registry: allowedRoots, resolveInsideRoots, FolderListing.roots, ошибка outside-roots вместо outside-home",
+          "provider-codex: ProviderError daemon-elevated, проверка elevation в diagnoseWindows",
+          "git-publish: gitExecOptions с windowsHide",
+          "service-installer: windowsLauncherHint, Chrome первым на Windows",
+          "panel-shell: folder-roots.js rootState, folder-picker allowDriveRoot, showsAdminStep"
+        ],
+        "decisions": [
+          "Windows: на системном диске разрешена только домашняя папка, другие диски — целиком",
+          "macOS: тома /Volumes без загрузочного; Linux: /media/<user>, /run/media/<user>, /mnt",
+          "Диск, не ответивший за 1,5 с, пропускается; корни кэшируются на 5 с",
+          "Выключенный UAC: вердикт broken и состояние error провайдера, Kit настройку пользователя не меняет",
+          "Подключение ChatGPT засчитывается при работающем демоне и ssh.exe старше 15 с"
+        ],
+        "references": [
+          "docs/planning/M14-windows-fixes.md",
+          "product-parts/backend-core/clusters/projects/modules/project-registry/module.md",
+          "docs/installation.md"
+        ],
+        "result": "Исправлены находки живой проверки 0.8.0 на Windows: git без мелькающих окон, выключенный UAC назван причиной, «Работает» только при работающем демоне, аккуратная карточка общего доступа, панель в Chrome, подсказка про wfk, папка проектов на любом локальном диске."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -337,7 +358,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -385,8 +406,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 6/8
-- Revision: 602
+- Progress: 7/8
+- Revision: 604
 
 ## Objective
 
@@ -427,7 +448,7 @@
   - Commit: docs: describe UAC, the panel browser and project drives
   - Files: README.md, docs/installation.md
   - Depends on: T005
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M14-windows-fixes.md, product-parts/backend-core/clusters/projects/modules/git-publish/module.md, docs/installation.md
   - Depends on: T001, T002, T003, T004, T005, T006
@@ -435,5 +456,7 @@
   - Commit: chore: release 0.8.1
   - Files: package.json, package-lock.json, CHANGELOG.md, docs/evidence/M14-acceptance.md, README.md, docs/installation.md, docs/architecture/OVERVIEW.md
   - Depends on: T006, DOCS-R1
+
+Digest: Исправлены находки живой проверки 0.8.0 на Windows: git без мелькающих окон, выключенный UAC назван причиной, «Работает» только при работающем демоне, аккуратная карточка общего доступа, панель в Chrome, подсказка про wfk, папка проектов на любом локальном диске.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

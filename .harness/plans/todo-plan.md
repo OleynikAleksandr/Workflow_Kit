@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 590,
+  "revision": 592,
   "rounds": [
     {
       "digest": null,
@@ -99,7 +99,8 @@
       "files": [
         "product-parts/backend-core/clusters/projects/modules/git-publish/src/git.ts",
         "product-parts/backend-core/clusters/projects/modules/git-publish/test/publication.test.ts",
-        "product-parts/backend-core/clusters/projects/modules/git-publish/module.md"
+        "product-parts/backend-core/clusters/projects/modules/git-publish/module.md",
+        "product-parts/backend-core/clusters/projects/modules/git-publish/src/index.ts"
       ],
       "fixes": null,
       "id": "T001",
@@ -107,7 +108,7 @@
       "kind": "work",
       "parallelSafe": true,
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Окна git скрыты на Windows",
       "why": "Служба раз в 30 с запускает git без windowsHide, Windows Terminal мелькает"
     },
@@ -344,8 +345,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 0/8
-- Revision: 590
+- Progress: 1/8
+- Revision: 592
 
 ## Objective
 
@@ -365,9 +366,9 @@
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T001 — Окна git скрыты на Windows (work, parallel-safe)
+- [DONE] T001 — Окна git скрыты на Windows (work, parallel-safe)
   - Commit: fix: hide the console windows of git on Windows
-  - Files: product-parts/backend-core/clusters/projects/modules/git-publish/src/git.ts, product-parts/backend-core/clusters/projects/modules/git-publish/test/publication.test.ts, product-parts/backend-core/clusters/projects/modules/git-publish/module.md
+  - Files: product-parts/backend-core/clusters/projects/modules/git-publish/src/git.ts, product-parts/backend-core/clusters/projects/modules/git-publish/test/publication.test.ts, product-parts/backend-core/clusters/projects/modules/git-publish/module.md, product-parts/backend-core/clusters/projects/modules/git-publish/src/index.ts
 - [TODO] T002 — Chrome первым на Windows; сообщение о wfk после установки (work)
   - Commit: fix: open the panel in Chrome on Windows and explain the new wfk command
   - Files: product-parts/system-service/clusters/deployment/modules/service-installer

@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
 import { createRouter, createStateRegistry, HttpError } from '#http-server';
-import { PublishError, publish, readPublication, registerPublicationRoutes, runGit } from '../src/index.ts';
+import { PublishError, gitExecOptions, publish, readPublication, registerPublicationRoutes, runGit } from '../src/index.ts';
 
 const ENV = { ...process.env, GIT_AUTHOR_NAME: 't', GIT_AUTHOR_EMAIL: 't@t', GIT_COMMITTER_NAME: 't', GIT_COMMITTER_EMAIL: 't@t' };
 const sh = (cwd: string, ...args: string[]) => execFileSync('git', args, { cwd, env: ENV, stdio: 'pipe' }).toString().trim();
@@ -110,4 +110,12 @@ test('the route publishes, refuses with 409 and the section shows the cached sta
   assert.equal(pub.section().projects['p1']!.status, 'up-to-date');
   pub.stop();
   await r.cleanup();
+});
+
+test('git runs without a console window on Windows and without prompts (M14)', () => {
+  const options = gitExecOptions('/p', { PATH: '/bin' });
+  assert.equal(options.windowsHide, true);
+  assert.equal(options.env['GIT_TERMINAL_PROMPT'], '0');
+  assert.equal(options.env['PATH'], '/bin');
+  assert.equal(options.cwd, '/p');
 });

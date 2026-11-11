@@ -27,7 +27,7 @@
   - `POST /api/projects/:id/publish` — `{ published: true, from, to, sha, commits }`; отказы —
     409 с кодом причины, ошибка git — 502 `push-failed` с `details.output`; 404 — нет проекта;
     409 `publishing` — публикация проекта уже идёт; после попытки кэш проекта обновляется.
-- `runGit` — `execFile('git')` с `GIT_TERMINAL_PROMPT=0` и пределом 60 с; `GitRunner` для тестов.
+- `runGit` — `execFile('git')` с `gitExecOptions`: `GIT_TERMINAL_PROMPT=0`, предел 60 с и `windowsHide` (M14: на Windows без этого каждый вызов открывал окно консоли, и Windows Terminal мелькал); `GitRunner` для тестов.
 
 ## Инварианты
 

@@ -178,6 +178,22 @@ test('the choice card is hidden while the plan review is ahead of the toggled wo
   assert.ok(choiceView(reviewed, 'p', 'claude:s1'));
 });
 
+test('a working session its provider does not list for the project does not hide the choice card (M16 2.1)', () => {
+  const stray = { key: 'codex:stray', projectId: 'p', state: 'working' };
+  const st = {
+    workflow: { projects: { p: { choice: { generation: 1, reason: 'r', options: [{ option: 'sequential', title: 'Сам', description: '' }] }, proposal: { scopeId: 's1' } } } },
+    review: { projects: { p: { visible: true, sessions: {} } } },
+    channel: { sessions: [{ key: 'claude:s1', projectId: 'p', state: 'holding', holdReason: 'waiting-for-mode-choice' }, stray] },
+    reviews: { projects: { p: [] } },
+    providers: { projects: { p: { codex: { sessions: [{ localId: 'rev', remoteId: 'thread-r' }] } } } },
+  };
+  assert.ok(choiceView(st, 'p', 'claude:s1'), 'the stray session is not a review source');
+  const listed = { ...st, channel: { sessions: [st.channel.sessions[0], { ...stray, key: 'codex:thread-r' }] } };
+  assert.equal(choiceView(listed, 'p', 'claude:s1'), null, 'a listed working session still hides the card');
+  const unknown = { ...st, providers: { projects: { p: {} } } };
+  assert.equal(choiceView(unknown, 'p', 'claude:s1'), null, 'before the provider list arrives the session counts');
+});
+
 test('the plan question card: agent question with three answers, proposal question with two; the choice waits (M4 12)', () => {
   const st = {
     workflow: { projects: { p: { choice: { generation: 1, reason: 'r', options: [{ option: 'sequential', title: 'Сам', description: '' }] }, proposal: { scopeId: 's1' } } } },

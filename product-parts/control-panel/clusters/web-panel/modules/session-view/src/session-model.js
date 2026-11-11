@@ -86,8 +86,11 @@ function reviewComing(state, projectId) {
   };
   const toggles = record(record(record(record(state['review'])['projects'])[projectId])['sessions']);
   const reviews = projectReviews(state, projectId);
+  const lists = record(record(record(state['providers'])['projects'])[projectId]);
+  // M16 2.1: a session its provider does not list for the project (a stray app thread) is no review source.
+  const listed = (/** @type {string} */ key) => { const known = record(lists[key.slice(0, key.indexOf(':'))])['sessions']; return !Array.isArray(known) || known.some((p) => p && (p.localId === sessionId(key) || p.remoteId === sessionId(key))); };
   return array(record(state['channel'])['sessions']).some((s) =>
-    s && s.projectId === projectId && pending(s) && toggles[String(s.key)] !== false &&
+    s && s.projectId === projectId && pending(s) && toggles[String(s.key)] !== false && listed(String(s.key)) &&
     !reviews.some((r) => r.reviewerKey === s.key) &&
     !reviews.some((r) => r.mainKey === s.key && r.scopeId === scopeId));
 }

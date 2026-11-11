@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 635,
+  "revision": 637,
   "rounds": [
     {
       "digest": null,
@@ -123,14 +123,17 @@
       ],
       "docsWaiver": null,
       "files": [
-        "product-parts/control-panel/clusters/web-panel/modules/session-view"
+        "product-parts/control-panel/clusters/web-panel/modules/session-view",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts"
       ],
       "fixes": null,
       "id": "T002",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Посторонняя сессия не прячет карточку выбора",
       "why": "Фоновая сессия ChatGPT вне проекта спрятала карточку выбора режима"
     },
@@ -206,8 +209,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 1/4
-- Revision: 635
+- Progress: 2/4
+- Revision: 637
 
 ## Objective
 
@@ -226,9 +229,9 @@
 - [DONE] T001 — Команды автопилота знают проект (work)
   - Commit: fix: wake the agent for plan commands after a service restart
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/autopilot.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/restart.test.ts
-- [TODO] T002 — Посторонняя сессия не прячет карточку выбора (work)
+- [DONE] T002 — Посторонняя сессия не прячет карточку выбора (work)
   - Commit: fix: show the mode choice despite a stray session
-  - Files: product-parts/control-panel/clusters/web-panel/modules/session-view
+  - Files: product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts
   - Depends on: T001
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1

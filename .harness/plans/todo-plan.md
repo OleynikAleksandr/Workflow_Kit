@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 568,
+  "revision": 570,
   "rounds": [
     {
       "digest": {
@@ -42,7 +42,16 @@
       "title": "Implementation"
     },
     {
-      "digest": null,
+      "digest": {
+        "contracts": [],
+        "decisions": [
+          "Права файлов проверяются тестом только на POSIX-хостах; на Windows общий доступ unsupported"
+        ],
+        "references": [
+          "docs/evidence/M12-acceptance.md"
+        ],
+        "result": "Первый CI выпуска 0.7.0 упал на Windows x64 и ARM64: тест настройки общего доступа ждал права 0600, а файловая система Windows отдаёт 0666. Проверка прав в тесте теперь идёт только на POSIX-хостах; продукт на Windows эти файлы не пишет (режим unsupported). Общие документы не менялись."
+      },
       "id": "R2",
       "kind": "fixes",
       "status": "OPEN",
@@ -412,7 +421,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -454,8 +463,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 7/9
-- Revision: 568
+- Progress: 8/9
+- Revision: 570
 
 ## Objective
 
@@ -506,7 +515,7 @@ Digest: macOS: Kit сам настраивает SSH-доступ ChatGPT к с�
   - Commit: test: skip the POSIX file mode check of the shared access test on Windows hosts
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/shared-access.test.ts
   - Fixes: T001
-- [TODO] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R2
   - Files: README.md, docs/architecture/OVERVIEW.md
   - Depends on: T006
@@ -514,5 +523,7 @@ Digest: macOS: Kit сам настраивает SSH-доступ ChatGPT к с�
   - Commit: chore: record the green CI of release 0.7.0
   - Files: docs/evidence/M12-acceptance.md
   - Depends on: T006, DOCS-R2
+
+Digest: Первый CI выпуска 0.7.0 упал на Windows x64 и ARM64: тест настройки общего доступа ждал права 0600, а файловая система Windows отдаёт 0666. Проверка прав в тесте теперь идёт только на POSIX-хостах; продукт на Windows эти файлы не пишет (режим unsupported). Общие документы не менялись.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

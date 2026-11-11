@@ -222,6 +222,22 @@ test('a fragment written by an older Kit is "outdated", by a newer Kit "newer"',
   assert.equal(updated.report.status, 'ok');
 });
 
+test('the AGENTS.md section names the full wfk path on every OS; a section of an older Kit is updated (M17 2.2)', async () => {
+  const root = await project();
+  await installStructure(root);
+  const paths = [/"\$HOME\/\.local\/bin\/wfk"/, /& "\$env:LOCALAPPDATA\\Workflow Kit\\wfk\.cmd"/, /"\$LOCALAPPDATA\/Workflow Kit\/wfk"/];
+  for (const pattern of paths) assert.match(await read(root, 'AGENTS.md'), pattern);
+  const oldBody = '## Workflow Kit (managed section, do not edit by hand)\n\nRun `wfk session plan`.\n';
+  await writeFile(path.join(root, 'AGENTS.md'), `${AGENTS_BEGIN}\n${oldBody}${AGENTS_END}\n`);
+  const manifestFile = path.join(root, MANIFEST_PATH);
+  const manifest = JSON.parse(await readFile(manifestFile, 'utf8'));
+  manifest.fragments['agents-section'] = { path: 'AGENTS.md', sha256: sha256(oldBody), version: STRUCTURE_VERSION };
+  await writeFile(manifestFile, JSON.stringify(manifest));
+  assert.equal(statusOf(await checkStructure(root), 'agents-section'), 'outdated');
+  assert.ok((await installStructure(root)).written.includes('agents-section'));
+  for (const pattern of paths) assert.match(await read(root, 'AGENTS.md'), pattern);
+});
+
 test('a structure v1 project is "outdated" and the update adds the Stop and prompt hooks', async () => {
   const v1Hook = { type: 'command', command: hookCommand('claude') };
   const root = await project({ '.claude/settings.json': JSON.stringify({ hooks: { SessionStart: [{ hooks: [v1Hook] }] } }) });

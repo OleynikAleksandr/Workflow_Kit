@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 648,
+  "revision": 650,
   "rounds": [
     {
       "digest": null,
@@ -130,14 +130,17 @@
       ],
       "docsWaiver": null,
       "files": [
-        "product-parts/backend-core/clusters/projects/modules/kit-structure"
+        "product-parts/backend-core/clusters/projects/modules/kit-structure",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/module.md",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/src/templates.ts",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/test/structure.test.ts"
       ],
       "fixes": null,
       "id": "T002",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Полный путь wfk в AGENTS.md",
       "why": "Приложения и демоны со старым окружением не находят wfk"
     },
@@ -249,8 +252,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 1/5
-- Revision: 648
+- Progress: 2/5
+- Revision: 650
 
 ## Objective
 
@@ -271,9 +274,9 @@
 - [DONE] T001 — Каталог wfk в PATH службы и wfk service restart (work)
   - Commit: fix: keep the wfk directory on the service PATH
   - Files: product-parts/system-service/clusters/deployment/modules/service-installer, product-parts/backend-core/clusters/runtime/modules/cli/src/commands.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/service-path.ts, product-parts/backend-core/clusters/runtime/modules/cli/test, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/system-service/product-part.md, product-parts/backend-core/clusters/runtime/modules/cli/test/commands.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/service-path.test.ts, product-parts/system-service/clusters/deployment/modules/service-installer/module.md, product-parts/system-service/clusters/deployment/modules/service-installer/src/index.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/install.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/layout.ts, product-parts/system-service/clusters/deployment/modules/service-installer/test/install.test.ts, product-parts/system-service/clusters/deployment/modules/service-installer/test/node-path.test.ts
-- [TODO] T002 — Полный путь wfk в AGENTS.md (work)
+- [DONE] T002 — Полный путь wfk в AGENTS.md (work)
   - Commit: fix: name the full wfk path in the AGENTS.md section
-  - Files: product-parts/backend-core/clusters/projects/modules/kit-structure
+  - Files: product-parts/backend-core/clusters/projects/modules/kit-structure, product-parts/backend-core/clusters/projects/modules/kit-structure/module.md, product-parts/backend-core/clusters/projects/modules/kit-structure/src/templates.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/test/structure.test.ts
   - Depends on: T001
 - [TODO] T003 — Устаревший демон Codex: подсказка и перезапуск (work)
   - Commit: feat: show a stale Codex daemon and restart it on request

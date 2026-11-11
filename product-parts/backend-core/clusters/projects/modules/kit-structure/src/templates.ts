@@ -49,6 +49,10 @@ UserPromptSubmit hook entries in \`.claude/settings.json\` and \`.codex/hooks.js
 The user follows this project in the Workflow Kit panel (Mac and iPad), not
 only in this chat.
 
+- The \`wfk\` command: if your shell does not find it, call it by its full
+  path: macOS and Linux \`"$HOME/.local/bin/wfk"\`; Windows PowerShell
+  \`& "$env:LOCALAPPDATA\\Workflow Kit\\wfk.cmd"\`, Git Bash
+  \`"$LOCALAPPDATA/Workflow Kit/wfk"\`.
 - Session title: in the first turn where the user gives you a task, run
   \`wfk session title "<short title of that task in the user's language>"\`
   once. The first message «Проект «…» создан панелью Workflow Kit…» is a

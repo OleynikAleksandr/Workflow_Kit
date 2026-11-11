@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": "T003",
+  "currentTaskId": null,
   "lastClosed": {
     "closedAt": "2026-11-11T16:49:08.593Z",
     "scopeId": "m15-claude-promo-dialogs"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 641,
+  "revision": 642,
   "rounds": [
     {
       "digest": {
@@ -32,7 +32,7 @@
       },
       "id": "R1",
       "kind": "implementation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Implementation"
     }
   ],
@@ -70,7 +70,7 @@
         "text": "Выпуск 0.8.3"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "e9c04a9c-cd7c-4f6c-b4f7-f6b07802530e",
@@ -211,7 +211,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "title": "Выпуск 0.8.3",
       "why": "Выпустить исправления для проверки на Windows"
     }
@@ -223,11 +223,11 @@
 ## State
 
 - Scope: m16-plan-start-after-review (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
-- Current task: T003
-- Progress: 3/4
-- Revision: 641
+- Current task: none
+- Progress: 4/4
+- Revision: 642
 
 ## Objective
 
@@ -241,7 +241,7 @@
 
 ## Rounds
 
-### R1 — Implementation (implementation, OPEN)
+### R1 — Implementation (implementation, CLOSED)
 
 - [DONE] T001 — Команды автопилота знают проект (work)
   - Commit: fix: wake the agent for plan commands after a service restart
@@ -254,7 +254,7 @@
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M16-plan-start-after-review.md
   - Depends on: T001, T002
-- [IN_PROGRESS] T003 — Выпуск 0.8.3 (delivery)
+- [DONE] T003 — Выпуск 0.8.3 (delivery)
   - Commit: chore: release 0.8.3
   - Files: package.json, package-lock.json, CHANGELOG.md, docs/changelog/CHANGELOG-0.1-0.4.md, docs/evidence/M16-acceptance.md, README.md, docs/installation.md, docs/architecture/OVERVIEW.md
   - Depends on: T002, DOCS-R1

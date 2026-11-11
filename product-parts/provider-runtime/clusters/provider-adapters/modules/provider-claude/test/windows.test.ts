@@ -167,6 +167,64 @@ test('session host: Workspace not trusted and dialogs stop claude without a key 
   }
 });
 
+// The offer from the live check of 0.8.1 on Windows (spec M15): ConPTY drops the spaces.
+const OFFER = 'Trythenewfullscreenrenderer? ·Flicker-freeoutput\r\n \u276f1.Yes,tryit\r\n 2.Notnow\r\n Entertoconfirm·Esctocancel';
+
+test('session host: a feature offer is declined with "Not now" and the wait for the link goes on (M15)', async () => {
+  const host = fakeHost();
+  const done = runHost(session(), host.deps, TIMINGS);
+  host.emit(OFFER);
+  await until(() => host.out().includes('PROMO_DECLINED'));
+  assert.deepEqual(host.written, ['\u001b[B', '\r']);
+  assert.equal(host.killed(), 0);
+  host.emit('Remote Control: https://claude.ai/code/session_abc123');
+  await until(() => host.out().includes('SESSION_URL'));
+  host.exit(0);
+  await done;
+  const markers = parseMarkers(host.out());
+  assert.equal(markers.sessionId, 'session_abc123');
+  assert.equal(markers.offersDeclined, 1);
+  assert.equal(markers.dialog, null);
+  assert.deepEqual(host.codes, [0]);
+});
+
+test('session host: the same offer again, a fourth offer and the theme picker stop claude (M15)', async () => {
+  const again = fakeHost();
+  const againDone = runHost(session(), again.deps, TIMINGS);
+  again.emit(OFFER);
+  await until(() => again.out().includes('PROMO_DECLINED'));
+  again.emit(OFFER);
+  await againDone;
+  assert.equal(parseMarkers(again.out()).dialog, 'unknown');
+  assert.deepEqual(again.written, ['\u001b[B', '\r']);
+
+  const many = fakeHost();
+  const manyDone = runHost(session(), many.deps, TIMINGS);
+  for (const [index, name] of ['alpha', 'beta', 'gamma', 'delta'].entries()) {
+    many.emit(`Would you like to try ${name}?\r\n > 1. Yes\r\n 2. Not now\r\n Enter to confirm`);
+    await until(() => parseMarkers(many.out()).offersDeclined > index || many.codes.length > 0);
+  }
+  await manyDone;
+  assert.equal(parseMarkers(many.out()).offersDeclined, 3);
+  assert.equal(parseMarkers(many.out()).dialog, 'unknown');
+
+  const cursor = fakeHost();
+  const cursorDone = runHost(session(), cursor.deps, TIMINGS);
+  cursor.emit('Try the new thing?\r\n 1. Not now\r\n \u276f 2. Yes\r\n Esc to cancel');
+  await until(() => cursor.out().includes('PROMO_DECLINED 1'));
+  assert.deepEqual(cursor.written, ['\u001b[A', '\r']);
+  cursor.exit(0);
+  await cursorDone;
+
+  const theme = fakeHost();
+  const themeDone = runHost(session(), theme.deps, TIMINGS);
+  theme.emit('1 function greet() {\r\n Syntaxtheme:MonokaiExtended(ctrl+ttodisable)');
+  await themeDone;
+  assert.equal(parseMarkers(theme.out()).dialog, 'onboarding');
+  assert.deepEqual(theme.written, []);
+  assert.deepEqual(theme.codes, [6]);
+});
+
 test('environment host: ENV_READY, ENV_ENDED and the arguments of environment.exp', async () => {
   const host = fakeHost();
   const mode: HostMode = { kind: 'environment', claude: 'claude.exe', name: 'Проект', debug: DEBUG };

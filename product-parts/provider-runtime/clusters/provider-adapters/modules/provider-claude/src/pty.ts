@@ -31,8 +31,8 @@ export function ptyCommand(launcher: PtyLauncher, scripts: PtyScripts, kind: 'se
   return { command: launcher.expect, args: [scripts[kind], ...args] };
 }
 
-/** A dialog the scripts recognised: trust, external imports, or another one. */
-export type DialogKind = 'trust' | 'imports' | 'unknown';
+/** A dialog the scripts stopped on: trust, external imports, Claude's first run, or another one. */
+export type DialogKind = 'trust' | 'imports' | 'onboarding' | 'unknown';
 
 /** What a script has printed so far. */
 export interface PtyMarkers {
@@ -45,6 +45,8 @@ export interface PtyMarkers {
   envId: string | null;
   /** DIALOG <kind>: claude showed a dialog and was stopped without a key pressed. */
   dialog: DialogKind | null;
+  /** PROMO_DECLINED lines: feature offers answered "Not now" (spec M15). */
+  offersDeclined: number;
   failure: 'not-trusted' | 'exited' | 'dialog' | null;
 }
 
@@ -54,7 +56,7 @@ export function parseMarkers(text: string): PtyMarkers {
   const pid = line('CLAUDE_PID (\\d+)');
   const session = line('SESSION_URL (session_[A-Za-z0-9]+)');
   const env = line('ENV_READY (\\S+)');
-  const dialog = line('DIALOG (trust|imports|unknown)');
+  const dialog = line('DIALOG (trust|imports|onboarding|unknown)');
   let failure: PtyMarkers['failure'] = null;
   if (dialog) failure = 'dialog';
   else if (line('(?:SESSION|ENV)_NOT_TRUSTED')) failure = 'not-trusted';
@@ -66,6 +68,7 @@ export function parseMarkers(text: string): PtyMarkers {
     envStarted: env !== null || line('ENV_STARTED') !== null,
     envId: env?.[1] ?? null,
     dialog: (dialog?.[1] as DialogKind | undefined) ?? null,
+    offersDeclined: (text.match(/^PROMO_DECLINED \d+\s*$/gm) ?? []).length,
     failure,
   };
 }
@@ -74,18 +77,20 @@ export function parseMarkers(text: string): PtyMarkers {
 export const DIALOG_CODES: Readonly<Record<DialogKind, string>> = {
   trust: 'trust-dialog',
   imports: 'imports-dialog',
+  onboarding: 'onboarding-dialog',
   unknown: 'unknown-dialog',
 };
 
 const DIALOG_TITLES: Readonly<Record<DialogKind, string>> = {
   trust: 'диалог доверия к папке',
   imports: 'диалог внешних импортов CLAUDE.md («Allow external CLAUDE.md file imports?»)',
+  onboarding: 'экран первого запуска (выбор темы или вход)',
   unknown: 'неизвестный диалог',
 };
 
 /** The screen text a script saw before DIALOG (escape sequences removed, cursor moves as spaces). */
 export function dialogText(log: string, lines = 16): string {
-  const marker = /^DIALOG (?:trust|imports|unknown)\s*$/m.exec(log);
+  const marker = /^DIALOG (?:trust|imports|onboarding|unknown)\s*$/m.exec(log);
   const screen = marker ? log.slice(0, marker.index) : log;
   const pid = /^CLAUDE_PID \d+\s*$/m.exec(screen);
   return logTail(pid ? screen.slice(pid.index + pid[0].length) : screen, lines);

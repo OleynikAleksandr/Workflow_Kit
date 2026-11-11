@@ -2,7 +2,10 @@
 // the same arguments, marker lines on stdout (the supervisor's log file), control files
 // <debug>.rename and <debug>.message, timeouts and terminal size — over ConPTY instead of expect.
 // Pure logic with injected terminal, files and clock; win-host.ts runs it for real.
-import { DIALOG, ENVIRONMENT_ID, NOT_TRUSTED, SESSION_URL, WAKE_TEXT, dialogKind, screenText } from './screen.ts';
+import { DIALOG, ENVIRONMENT_ID, NOT_TRUSTED, SESSION_URL, WAKE_TEXT, dialogKind, notNowKeys, offerQuestion, screenText } from './screen.ts';
+
+/** Feature offers one launch declines at most (spec M15 section 1). */
+export const MAX_OFFERS_DECLINED = 3;
 
 /** The terminal the host drives (pty-host's Terminal). */
 export interface HostTerminal {
@@ -72,20 +75,49 @@ export function runHost(mode: HostMode, deps: HostDeps, timings: HostTimings = H
     resolveDone();
   };
 
-  const timeout = setTimeout(() => {
-    if (phase !== 'waiting') return;
-    deps.print(session ? '\nNO_SESSION_URL\n' : '\nENV_STARTED\n');
-    void running(null);
-  }, session ? timings.sessionMs : timings.environmentMs);
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  /** (Re)starts the wait for the link; a declined offer starts it again. */
+  const arm = (): void => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => {
+      if (phase !== 'waiting') return;
+      deps.print(session ? '\nNO_SESSION_URL\n' : '\nENV_STARTED\n');
+      void running(null);
+    }, session ? timings.sessionMs : timings.environmentMs);
+  };
+  arm();
+  const declined: string[] = [];
 
-  async function stopOnDialog(): Promise<void> {
+  /**
+   * A dialog: a feature offer is answered "Not now" (spec M15 section 2.2) and the wait goes on;
+   * anything else stops claude without a key pressed.
+   */
+  async function onDialog(): Promise<void> {
     phase = 'dialog';
     clearTimeout(timeout);
     // Let the dialog finish drawing: 1 s of silence, 5 s at most (dialogs.tcl).
     const deadline = deps.now() + 5000;
     while (deps.now() < deadline && deps.now() - lastData < 1000) await deps.sleep(100);
+    if (phase !== 'dialog') return;
+    let kind = dialogKind(screen);
+    const question = offerQuestion(screen);
+    const keys = kind === 'promo' ? notNowKeys(screen) : null;
+    if (kind === 'promo' && (!keys || declined.length >= MAX_OFFERS_DECLINED || declined.includes(question))) kind = 'unknown';
+    if (kind === 'promo' && keys) {
+      declined.push(question);
+      for (const arrow of keys.arrows) {
+        term.write(arrow);
+        await deps.sleep(100);
+      }
+      term.write('\r');
+      deps.print(`\nPROMO_DECLINED ${keys.option}\n`);
+      screen = '';
+      phase = 'waiting';
+      arm();
+      return;
+    }
     // The marker first: the exit event of the killed claude must not overwrite it.
-    finish(`DIALOG ${dialogKind(screen)}`, 6);
+    finish(`DIALOG ${kind}`, 6);
     term.kill();
   }
 
@@ -144,7 +176,7 @@ export function runHost(mode: HostMode, deps: HostDeps, timings: HostTimings = H
       term.kill();
       return;
     }
-    if (DIALOG.test(plain)) void stopOnDialog();
+    if (DIALOG.test(plain)) void onDialog();
   });
 
   term.onExit(() => {

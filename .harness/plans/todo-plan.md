@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 617,
+  "revision": 619,
   "rounds": [
     {
       "digest": null,
@@ -91,14 +91,16 @@
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/host.ts",
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty.ts",
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test",
-        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md"
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/dialogs.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/windows.test.ts"
       ],
       "fixes": null,
       "id": "T001",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Предложения и первый запуск в хосте Windows",
       "why": "Сессия Claude на Windows падала на «Try the new fullscreen renderer?» и ждала 2 минуты на выборе темы"
     },
@@ -272,8 +274,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 0/6
-- Revision: 617
+- Progress: 1/6
+- Revision: 619
 
 ## Objective
 
@@ -291,9 +293,9 @@
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T001 — Предложения и первый запуск в хосте Windows (work)
+- [DONE] T001 — Предложения и первый запуск в хосте Windows (work)
   - Commit: feat: decline Claude feature offers in the Windows pty host
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/screen.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/host.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/screen.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/host.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/dialogs.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/windows.test.ts
 - [TODO] T002 — Предложения и первый запуск в expect-скриптах (work)
   - Commit: feat: decline Claude feature offers in the expect scripts
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/dialogs.tcl, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/session.exp, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/environment.exp, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md

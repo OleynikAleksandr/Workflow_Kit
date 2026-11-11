@@ -102,6 +102,14 @@ export function serviceLayout(input: LayoutInput): ServiceLayout {
   };
 }
 
+/**
+ * Directory of the wfk launcher that agents find on PATH (spec M17 2.1): ~/.local/bin, on Windows
+ * the data directory; null for a development instance, which has no launcher.
+ */
+export function launcherDir(layout: ServiceLayout): string | null {
+  return layout.development ? null : pathApi(layout.platform).dirname(layout.launcher);
+}
+
 /** Directory of an installed version. */
 export function versionDir(layout: ServiceLayout, version: string): string {
   return pathApi(layout.platform).join(layout.appRoot, version);

@@ -76,8 +76,8 @@ stripping).
 
 | Команда | Поведение |
 | --- | --- |
-| `serve` | собирает приложение, слушает `config.port` (4747, `WFK_PORT`), печатает адреса панели, останавливается по SIGINT/SIGTERM |
-| `install`, `uninstall`, `service start/stop/status`, `open [--url-only]` | передаются в `runServiceCommand` из `service-installer` с контекстом `{ env, platform, homedir, ...deps.service }` (по умолчанию — текущий процесс и `os.homedir()`); сообщение — в stdout (успех) или stderr (ошибка), код выхода — из результата |
+| `serve` | дописывает `launcherDir` в PATH своего окружения (`service-path.ts` `withLauncherDir`, M17), собирает приложение, слушает `config.port` (4747, `WFK_PORT`), печатает адреса панели, останавливается по SIGINT/SIGTERM |
+| `install`, `uninstall`, `service start/stop/restart/status` (`restart` — `stop`, затем `start`), `open [--url-only]` | передаются в `runServiceCommand` из `service-installer` с контекстом `{ env, platform, homedir, ...deps.service }` (по умолчанию — текущий процесс и `os.homedir()`); сообщение — в stdout (успех) или stderr (ошибка), код выхода — из результата |
 | `doctor [--installed]` | то же, `--installed` передаётся аргументом; другие аргументы — справка, код 64 |
 | `link [--force]` | пишет запускатель `~/.local/bin/wfk` (0755, `#!/bin/sh`, строка-метка `# Workflow Kit launcher`), который запускает `bin/wfk.mjs` этого клона абсолютным `node`; чужой файл заменяется только с `--force`; предупреждает, если каталога нет в PATH; на Windows пишет те же три запускателя, что `wfk install` (`wfk.cmd`, `wfk` для Git Bash, `wfk.mjs` для хуков), в `%LOCALAPPDATA%\Workflow Kit` (M5, раздел 6) |
 | `hook session-start --client <id провайдера>` | клиент не из `PROVIDER_IDS` (`CliDeps.hookClients` в тестах) — ничего не пишет; читает JSON хука из stdin (до 1 с, терминал — пусто) и передаёт `recordSessionStart` из `kit-structure`; весь бюджет 1,5 с; stdout пуст, код всегда 0; неизвестные подкоманды `hook` игнорируются |

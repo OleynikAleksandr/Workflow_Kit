@@ -35,7 +35,7 @@ test('macOS install: copy, current.json, programs, launcher, icon, LaunchAgent a
   assert.equal(config['port'], 4800, 'other keys stay');
   assert.equal(config['projectsRoot'], '/Users/me/P');
   assert.deepEqual(config['programs'], { node: '/opt/homebrew/bin/node', claude: '/opt/homebrew/bin/claude', codex: '/opt/homebrew/bin/codex' });
-  assert.equal(config['loginPath'], LOGIN_PATH['darwin']);
+  assert.equal(config['loginPath'], `${LOGIN_PATH['darwin']}:/Users/me/.local/bin`, 'M17: the launcher directory goes last');
 
   const launcher = m.fs.readTextSync('/Users/me/.local/bin/wfk') ?? '';
   assert.match(launcher, /^#!\/bin\/sh\n# Workflow Kit launcher/);
@@ -50,7 +50,7 @@ test('macOS install: copy, current.json, programs, launcher, icon, LaunchAgent a
   const plist = m.fs.readTextSync(MAC_PLIST) ?? '';
   for (const key of ['RunAtLoad', 'KeepAlive', 'AbandonProcessGroup']) assert.match(plist, new RegExp(`<key>${key}</key>\\s*<true/>`));
   assert.match(plist, /<string>\/opt\/homebrew\/bin\/node<\/string>/);
-  assert.match(plist, /<key>PATH<\/key>\s*<string>\/opt\/homebrew\/bin:\/usr\/bin:\/bin<\/string>/);
+  assert.match(plist, /<key>PATH<\/key>\s*<string>\/opt\/homebrew\/bin:\/usr\/bin:\/bin:\/Users\/me\/\.local\/bin<\/string>/);
 
   const launchctl = m.lines().filter((line) => line.startsWith('/bin/launchctl'));
   assert.deepEqual(launchctl, [
@@ -255,6 +255,10 @@ test('Windows: wfk.cmd, hidden Run value, user PATH, Start menu shortcut', async
   assert.match(scripts[1] ?? '', /CreateShortcut\('C:\\Users\\me\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Workflow Kit\.lnk'\)/);
   assert.match(m.fs.readTextSync(`${data}\\wfk-open.vbs`) ?? '', /"" open", 0, False/);
   assert.deepEqual(m.spawned[0]?.args, [entry, 'serve']);
+  // M17 2.1: the service PATH has the wfk.cmd directory before the user PATH has it.
+  const saved = JSON.parse(m.fs.readTextSync(`${data}\\config.json`) ?? '{}') as { loginPath?: string };
+  assert.ok(saved.loginPath?.endsWith(`;${data}`), saved.loginPath);
+  assert.match(m.spawned[0]?.env['Path'] ?? m.spawned[0]?.env['PATH'] ?? '', /;C:\\Users\\me\\AppData\\Local\\Workflow Kit$/);
   const status = getServiceStatus('win32', m.deps);
   assert.equal(status.mechanism, 'hkcu-run');
   assert.equal(status.autostart, true);
@@ -278,6 +282,8 @@ test('a development instance (WFK_DATA_DIR) gets the copy and the service, no la
   assert.ok(!m.fs.existsSync(MAC_PLIST));
   assert.ok(!m.fs.existsSync('/Users/me/Applications/Workflow Kit.app'));
   assert.ok(!m.lines().some((line) => line.startsWith('/bin/launchctl')), 'launchd is never touched');
+  const devConfig = JSON.parse(m.fs.readTextSync('/tmp/wfk-dev/config.json') ?? '{}') as { loginPath?: string };
+  assert.doesNotMatch(devConfig.loginPath ?? '', /\.local\/bin/, 'a development instance has no launcher directory');
   assert.equal(m.spawned[0]?.env['WFK_DATA_DIR'], '/tmp/wfk-dev');
   const status = getServiceStatus('darwin', m.deps);
   assert.equal(status.instance, 'development');

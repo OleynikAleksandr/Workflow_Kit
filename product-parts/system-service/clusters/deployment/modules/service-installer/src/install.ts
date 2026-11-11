@@ -7,9 +7,9 @@ import { copyApp, pruneVersions, readCurrent, readSourceVersion, saveProgramPath
 import type { CurrentRecord } from './deploy.ts';
 import { checkConflicts, registerAutostart, removeIntegration, writeIcon, writeLauncher } from './integrate.ts';
 import type { IconResult } from './integrate.ts';
-import { autostartEntry, entryOf, serviceLayout, versionDir } from './layout.ts';
+import { autostartEntry, entryOf, launcherDir, serviceLayout, versionDir } from './layout.ts';
 import type { ServiceLayout } from './layout.ts';
-import { detectPrograms } from './programs.ts';
+import { detectPrograms, mergePath } from './programs.ts';
 import type { ServiceProgram } from './templates.ts';
 import type { ResolvedDeps } from './types.ts';
 
@@ -98,7 +98,10 @@ export async function install(deps: ResolvedDeps): Promise<InstallReport> {
   for (const dir of [layout.dirs.configDir, layout.dirs.stateDir, layout.dirs.appDir, layout.dirs.logsDir, layout.appRoot]) {
     await deps.fs.ensureDir(dir);
   }
-  const detected = await detectPrograms(deps);
+  const found = await detectPrograms(deps);
+  // M17 2.1: the launcher directory is on the service PATH even before the user PATH has it.
+  const dir = launcherDir(layout);
+  const detected = dir ? { ...found, loginPath: mergePath(deps.platform, found.loginPath, dir) } : found;
   const copied = await copyApp(deps.fs, layout, deps.sourceRoot, version);
   const appPath = versionDir(layout, version);
   await saveProgramPaths(deps.fs, layout, detected.programs, detected.loginPath);

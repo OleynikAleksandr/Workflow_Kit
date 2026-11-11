@@ -45,7 +45,7 @@ test('install takes the node of the login PATH that resolves to the running Cell
   assert.doesNotMatch(plist, /Cellar/);
   assert.match(plist, /<string>\/opt\/homebrew\/bin\/node<\/string>/);
   assert.doesNotMatch(m.fs.readTextSync('/Users/me/.local/bin/wfk') ?? '', /Cellar/);
-  assert.equal(loginPath, '/opt/homebrew/bin:/usr/bin:/bin');
+  assert.equal(loginPath, '/opt/homebrew/bin:/usr/bin:/bin:/Users/me/.local/bin');
 });
 
 test('a login PATH node of another version is skipped; the Homebrew opt link is taken', async () => {

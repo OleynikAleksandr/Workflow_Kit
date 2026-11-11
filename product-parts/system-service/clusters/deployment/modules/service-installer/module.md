@@ -34,6 +34,9 @@ login-shell (D12), запускатель `wfk`, значок «Workflow Kit», 
   `fromInstalledCopy` (код запущен из `app/<версия>`, а не из клона),
   `autostartEntry`, `launcher` и `icon` (`{ path, present }`), `programs`
   (найденные программы `PROGRAMS` из `config.json`), `loginPath`.
+- `launcherDir(layout)` — каталог запускателя для PATH (M17 2.1): `~/.local/bin`, на
+  Windows — каталог данных с `wfk.cmd`; `null` у экземпляра разработки. `mergePath(platform,
+  ...lists)` — объединение PATH без повторов (Windows — без учёта регистра).
 - `PROGRAMS` — `node`, `claude`, `codex`, `kimi`, `expect`: программы, пути
   которых ищет и сохраняет `install`. Обязателен только `node`; программы
   провайдеров и `expect` необязательны — отсутствующая показана («—» в
@@ -70,6 +73,7 @@ login-shell (D12), запускатель `wfk`, значок «Workflow Kit», 
 | значок | `~/Applications/Workflow Kit.app` | `$XDG_DATA_HOME/applications/workflow-kit.desktop` | `…\Start Menu\Programs\Workflow Kit.lnk` |
 | автозапуск | `~/Library/LaunchAgents/ai.workflowkit.backend.plist` | `$XDG_CONFIG_HOME/systemd/user/workflow-kit.service`, без systemd — `$XDG_CONFIG_HOME/autostart/workflow-kit.desktop` | `HKCU\…\Run` → `WorkflowKit` |
 | журналы | `<состояние>/logs/service.log`, `open.log` | то же | то же |
+| каталог `wfk` в PATH службы (M17) | `~/.local/bin` | `~/.local/bin` | каталог данных |
 
 ## Установка (`install`)
 
@@ -93,7 +97,9 @@ login-shell (D12), запускатель `wfk`, значок «Workflow Kit», 
    Windows оставляет `process.execPath`. Каталог выбранного `node` идёт в
    PATH службы первым. Этот же `node` пишется в `config.json`
    (`programs.node`), `app/current.json`, запускатель, значок и
-   автозапуск. В `config.json` пишутся `programs` и `loginPath`, остальные
+   автозапуск. `launcherDir` дописывается в конец PATH службы (M17 2.1: служба и её
+   программы знают `wfk` и до того, как его узнает PATH пользователя). В `config.json`
+   пишутся `programs` и `loginPath`, остальные
    ключи сохраняются; невалидный JSON — отказ.
 4. Запускатель (метка `# Workflow Kit launcher`; `wfk link` с той же меткой
    заменяется), значок, автозапуск:
@@ -223,7 +229,7 @@ unit, `daemon-reload`; XDG-файл; `reg delete`, `.vbs`, PATH пользова
 
 - `cli` передаёт `runServiceCommand(command, { env, platform, homedir,
   ...deps.service }, args)` для `install`, `uninstall`,
-  `service start|stop|status`, `open [--url-only]` и `doctor [--installed]`; тесты
+  `service start|stop|status` (`restart` — `stop`, затем `start`, M17), `open [--url-only]` и `doctor [--installed]`; тесты
   `cli` подставляют эффекты через `CliDeps.service`.
 - Раздел `system` бэкенда вызывает `getServiceStatus(platform, { env,
   homedir, serving: true })`.

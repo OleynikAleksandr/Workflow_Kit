@@ -9,6 +9,7 @@ import type { PostJson, RequestJson } from './hook-service.ts';
 import { runSessionCommand } from './session-command.ts';
 import { runProjectCommand } from './project-command.ts';
 import { linkLauncher } from './link.ts';
+import { withLauncherDir } from './service-path.ts';
 import { readPackageVersion } from './system-info.ts';
 
 /** Output streams and process hooks of the CLI; injected for tests. */
@@ -48,7 +49,8 @@ const USAGE = `Использование: wfk <команда>
   open [--url-only]             открыть панель (запустит службу при необходимости);
                                 --url-only — только запустить службу и вывести адрес
   install | uninstall           установить или снять службу и автозапуск
-  service start|stop|status     управление службой
+  service start|stop|restart|status
+                                управление службой (restart — stop, затем start)
   doctor [--installed]          проверка установки
   link [--force]                запускатель ~/.local/bin/wfk на текущий клон (разработка)
   hook session-start|stop|prompt|turn-end --client <провайдер>
@@ -76,6 +78,8 @@ function defaultShutdown(app: App): Promise<void> {
 
 async function serve(deps: CliDeps): Promise<number> {
   let app: App;
+  const added = withLauncherDir(deps.app?.env ?? process.env, deps.app?.platform ?? process.platform, deps.app?.homedir ?? os.homedir());
+  if (added) deps.stderr(`wfk serve: каталог wfk добавлен в PATH службы: ${added}\n`);
   try {
     app = await createApp({ log: (line) => deps.stderr(`${line}\n`), ...deps.app });
   } catch (error) {
@@ -101,8 +105,13 @@ async function serve(deps: CliDeps): Promise<number> {
 
 async function service(args: string[], deps: CliDeps): Promise<number> {
   const sub = args[0];
+  if (sub === 'restart') {
+    // M17 2.1: stop, then start; a stop that found no service does not prevent the start.
+    await printServiceResult('stop', deps);
+    return printServiceResult('start', deps);
+  }
   if (sub !== 'start' && sub !== 'stop' && sub !== 'status') {
-    deps.stderr('Использование: wfk service start|stop|status\n');
+    deps.stderr('Использование: wfk service start|stop|restart|status\n');
     return EXIT_USAGE;
   }
   return printServiceResult(sub, deps);

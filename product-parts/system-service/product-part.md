@@ -21,4 +21,4 @@ autostart, Windows ключ `HKCU\…\Run`), запускатель `wfk`, зн�
   и systemd: внешние программы вызываются через внедряемый исполнитель.
 - Модуль `service-installer` реализован (T008) и подключён к `cli` и
   карточке «Система» (T010): `wfk install`, `uninstall`,
-  `service start|stop|status`, `open`, `doctor [--installed]`.
+  `service start|stop|restart|status`, `open`, `doctor [--installed]`.

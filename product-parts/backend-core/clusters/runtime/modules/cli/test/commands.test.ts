@@ -56,6 +56,11 @@ test('service commands go to service-installer with the machine context and inje
     assert.equal(start.code, 1);
     assert.match(start.err, /не ответила на \/api\/health/);
     assert.equal(spawned[0]?.at(-1), 'serve');
+    // M17 2.1: restart is stop, then start.
+    const restart = await run(deps, 'service', 'restart');
+    assert.equal(restart.code, 1);
+    assert.equal(spawned.length, 2, 'restart starts the service again');
+    assert.match(restart.err, /не ответила на \/api\/health/);
     const doctor = await run(deps, 'doctor', '--installed');
     assert.equal(doctor.code, 1);
     assert.match(doctor.out + doctor.err, /нет .*current\.json/);

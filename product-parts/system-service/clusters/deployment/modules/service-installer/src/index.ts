@@ -20,14 +20,14 @@ export type {
 export type { InstallerFs } from './fs.ts';
 export { COPY_EXCLUDED_DIRS, nodeFs } from './fs.ts';
 export type { ServiceLayout } from './layout.ts';
-export { ICON_BUNDLE_ID, LAUNCH_AGENT_LABEL, RUN_KEY, RUN_VALUE_NAME, SYSTEMD_UNIT, serviceLayout } from './layout.ts';
+export { ICON_BUNDLE_ID, LAUNCH_AGENT_LABEL, RUN_KEY, RUN_VALUE_NAME, SYSTEMD_UNIT, launcherDir, serviceLayout } from './layout.ts';
 export { DESKTOP_MARK, LAUNCHER_MARK, UNIT_MARK, gitBashLauncher, hookLauncherScript, isOwnLauncher, windowsLauncher } from './templates.ts';
 export type { CurrentRecord } from './deploy.ts';
 export { APP_PARTS } from './deploy.ts';
 export type { BrowserPlan, BrowserPlanInput } from './open.ts';
 export { browserPlan } from './open.ts';
 export type { DoctorCheck, DoctorReport } from './doctor.ts';
-export { PROGRAMS } from './programs.ts';
+export { PROGRAMS, mergePath } from './programs.ts';
 export { ServiceError } from './control.ts';
 export { SOURCE_ROOT, fetchHealth, spawnDetachedProcess } from './context.ts';
 export { autostartMechanism };

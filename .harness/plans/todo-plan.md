@@ -10,10 +10,32 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 583,
+  "revision": 585,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "SharedAccessStateName: + needs-admin-setup",
+          "SharedAccessState.admin: SharedAccessAdminStep | null (purpose, file, command, text)",
+          "provider-codex: shared-plan.ts buildPlan; shared-windows.ts windowsVerdict, checksText; shared-windows-setup.ts adminScript, adminRollbackScript, adminCommand, openInAppScript",
+          "unsupportedReason('win32') = null; open('remote-login') на Windows — not-supported",
+          "panel-shell: sharedButtons copy-command/show-script, adminNote, removeConfirm"
+        ],
+        "decisions": [
+          "Kit не повышает права: скрипт администратора пишет Kit, запускает пользователь",
+          "Режим на Windows включают проверки (active), а не версия Kit",
+          "Администратор определяется по whoami /groups (S-1-5-32-544); его ключ пишет скрипт в administrators_authorized_keys",
+          "Скрипт: UTF-8 с BOM, CRLF, только ASCII; откат снимает DefaultShell и ключ, sshd остаётся",
+          "Собственный app-server приложения в WindowsApps\\OpenAI.Codex не считается вторым"
+        ],
+        "references": [
+          "docs/planning/M13-windows-shared-daemon.md",
+          "docs/evidence/M13-windows-probe.md",
+          "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/shared-access.md",
+          "docs/installation.md#общий-доступ-к-чатам-chatgpt"
+        ],
+        "result": "Windows: общий доступ ChatGPT через SSH — диагностика, настройка Kit (ключ, ~/.ssh/config, профиль Git Bash, authorized_keys) и скрипт администратора (sshd, DefaultShell = sh.exe Git, ключ администратора), состояние needs-admin-setup, откат скриптом; режим сессий и ссылки с hostId — общий код M12; карточка показывает скрипт и копирует команду; README и руководство описывают Windows."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -261,7 +283,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -309,8 +331,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 4/6
-- Revision: 583
+- Progress: 5/6
+- Revision: 585
 
 ## Objective
 
@@ -344,7 +366,7 @@ ChatGPT на Windows 11 работает через общий демон Codex 
   - Commit: docs: describe the shared ChatGPT access setup on Windows
   - Files: README.md, docs/installation.md
   - Depends on: T003
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M13-windows-shared-daemon.md, docs/evidence/M13-windows-probe.md, docs/installation.md
   - Depends on: T001, T002, T003, T004
@@ -352,5 +374,7 @@ ChatGPT на Windows 11 работает через общий демон Codex 
   - Commit: chore: release 0.8.0
   - Files: package.json, package-lock.json, CHANGELOG.md, docs/evidence/M13-acceptance.md, README.md, docs/installation.md, docs/architecture/OVERVIEW.md
   - Depends on: T004, DOCS-R1
+
+Digest: Windows: общий доступ ChatGPT через SSH — диагностика, настройка Kit (ключ, ~/.ssh/config, профиль Git Bash, authorized_keys) и скрипт администратора (sshd, DefaultShell = sh.exe Git, ключ администратора), состояние needs-admin-setup, откат скриптом; режим сессий и ссылки с hostId — общий код M12; карточка показывает скрипт и копирует команду; README и руководство описывают Windows.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

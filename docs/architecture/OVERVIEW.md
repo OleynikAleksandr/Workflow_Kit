@@ -237,7 +237,7 @@ Linux `$XDG_CONFIG_HOME`, `$XDG_STATE_HOME`, `$XDG_DATA_HOME` +
 | Claude: сессии, окружение (pty) | да | если есть `expect` | да, ConPTY (`pty-host`) |
 | Codex: демон, доверие, хуки, сессии | да | да | да, Codex 0.160+, через `proxy` |
 | Codex: управление — приложению ChatGPT | да, `ps`; не в режиме общего демона | нет приложения | CIM codex.exe (**П**) |
-| Codex: общий демон (M12, SSH `wfk-local`) | да, Kit настраивает | `unsupported` | `unsupported` |
+| Codex: общий демон (M12/M13, SSH `wfk-local`) | да, Kit настраивает | `unsupported` | Kit + скрипт администратора (**П**) |
 | Kimi: серверы, сессии, исполнители | да | тесты (**П**) | тесты (**П**) |
 | Kimi: хук Kit в `config.toml` | `/bin/sh` | то же, тесты | `cmd.exe`, тесты (**П**) |
 | Kimi: приложение, проект в нём | `open -a`, `--workspace` | `xdg-mime`, `xdg-open` | `reg`, `--workspace` (**П**) |
@@ -253,7 +253,7 @@ Linux `$XDG_CONFIG_HOME`, `$XDG_STATE_HOME`, `$XDG_DATA_HOME` +
   без сборки открывается браузер. Windows/Linux открывают браузер.
 - Прерванные сессии Claude поднимаются при старте службы и открытии, архивные и
   остановленные — нет. Состояние сессии Codex бывает `unknown`; будит её Kit
-  (`thread/resume`) только в режиме общего демона (M12, только macOS; опирается на
+  (`thread/resume`) только в режиме общего демона (M12/M13, macOS и Windows; опирается на
   недокументированное поведение ChatGPT, Kit проверяет его раз в минуту).
 - Доверие Claude записывается в `~/.claude.json`; при неожиданном диалоге
   сессия останавливается с ошибкой, клавиши автоматически не нажимаются.
@@ -272,7 +272,7 @@ Linux `$XDG_CONFIG_HOME`, `$XDG_STATE_HOME`, `$XDG_DATA_HOME` +
 - Спецификации вех: `docs/planning/M*.md` — ядро
   [M1](../planning/M1-orchestrator-core.md), интерфейс [M2](../planning/M2-interface-and-process.md)
   (макет [ui-mockup.html](../design/ui-mockup.html)), [M3](../planning/M3-fixes.md), общий демон
-  ChatGPT [M12](../planning/M12-codex-shared-daemon.md).
+  ChatGPT [M12](../planning/M12-codex-shared-daemon.md), Windows [M13](../planning/M13-windows-shared-daemon.md).
 - Контракт провайдера, факты о Claude и Codex: [M1-providers.md](../planning/M1-providers.md);
   первая приёмка: [M1-acceptance.md](../evidence/M1-acceptance.md).
 - [README.md](../../README.md), [установка по ОС](../installation.md), [CHANGELOG.md](../../CHANGELOG.md).

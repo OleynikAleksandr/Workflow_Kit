@@ -162,8 +162,8 @@ stripping).
   `not-supported`); другая ссылка — 400 без запуска, неудача всех команд — 502 и строка в
   журнале. Windows (`openCommands`, M5 раздел 7): `claude://` — `rundll32
   url.dll,FileProtocolHandler`; `codex://` — приложение из AppX-пакета `OpenAI.Codex`
-  (`codexAppxScript`, PowerShell `shell:AppsFolder\<семейство>!<id>` с адресом; без пакета —
-  выход 3), затем `rundll32`. Ссылка проекта Kimi Code (M8, раздел 2.6):
+  (`codexAppxScript`, PowerShell `shell:AppsFolder\<семейство>!<id>` с адресом целиком, с
+  `hostId` M13, одним аргументом в кавычках; без пакета — выход 3), затем `rundll32`. Ссылка проекта Kimi Code (M8, раздел 2.6):
   `kimi-code://open?root=<папка>` с необязательным `new=1` (`parseKimiProjectLink`) — только
   для папки зарегистрированного проекта (`sameFolder`, иначе 400 `bad-link`) и только когда
   приложение найдено (`kimiAppFound`, подмена — `AppOptions.kimiApp`; иначе 501 `no-handler`

@@ -1,11 +1,11 @@
 // @ts-check
-// Model of the «Общий доступ к чатам» card (spec M12 section 2.2): which providers have a shared
-// access, what its state means for the user and which buttons it gets, the last operation of the
-// setup. No DOM; node --test.
+// Model of the «Общий доступ к чатам» card (spec M12 section 2.2; the administrator step of
+// Windows: M13 section 2.3): which providers have a shared access, what its state means for the
+// user and which buttons it gets, the last operation of the setup. No DOM; node --test.
 
 /**
  * @typedef {object} SharedAccessData
- * @property {string} state unsupported | not-configured | needs-remote-login | needs-connection | active | broken
+ * @property {string} state unsupported | not-configured | needs-remote-login | needs-admin-setup | needs-connection | active | broken
  * @property {string} label
  * @property {string | null} reason
  * @property {string | null} hint
@@ -14,11 +14,20 @@
  * @property {boolean | null} connected
  * @property {string} alias
  * @property {string | null} manualProfile
+ * @property {AdminStep | null} [admin] the script to run as administrator (Windows)
+ */
+
+/**
+ * @typedef {object} AdminStep
+ * @property {'setup' | 'rollback'} purpose
+ * @property {string} file
+ * @property {string} command
+ * @property {string} text
  */
 
 /**
  * @typedef {object} SharedAccessButton
- * @property {'setup' | 'remote-login' | 'connections' | 'recheck' | 'remove'} id
+ * @property {'setup' | 'remote-login' | 'connections' | 'copy-command' | 'show-script' | 'recheck' | 'remove'} id
  * @property {string} label
  * @property {boolean} primary
  */
@@ -34,6 +43,19 @@
 /** Question before the removal. */
 export const REMOVE_CONFIRM =
   'Убрать настройку общего доступа?\n\nKit удалит свой ключ, строку в authorized_keys и свои блоки в ~/.ssh/config и профиле оболочки (с копиями). Подключение в ChatGPT и «Удалённый вход» выключите сами.';
+
+/** Question before the removal on Windows (the administrator step is undone by its own script). */
+export const REMOVE_CONFIRM_WINDOWS =
+  'Убрать настройку общего доступа?\n\nKit удалит свой ключ, строку в authorized_keys, свои блоки в ~/.ssh/config и ~/.bash_profile и скрипт администратора (с копиями) и запишет скрипт отката: его запускаете вы от имени администратора. Подключение в ChatGPT выключите сами.';
+
+/**
+ * The question before the removal.
+ * @param {SharedAccessData | null} shared
+ * @returns {string}
+ */
+export function removeConfirm(shared) {
+  return shared?.admin ? REMOVE_CONFIRM_WINDOWS : REMOVE_CONFIRM;
+}
 
 /**
  * @param {unknown} value
@@ -125,20 +147,45 @@ export function sharedButtons(shared) {
   const recheck = /** @type {SharedAccessButton} */ ({ id: 'recheck', label: 'Перепроверить', primary: false });
   const remove = /** @type {SharedAccessButton} */ ({ id: 'remove', label: 'Убрать настройку', primary: false });
   if (!shared) return [{ ...recheck, label: 'Проверить', primary: true }];
+  const rollback = shared.admin?.purpose === 'rollback';
+  // Windows: the administrator script is shown and its command copied; Kit never runs it.
+  /** @type {SharedAccessButton[]} */
+  const admin = shared.admin
+    ? [
+        { id: 'copy-command', label: 'Скопировать команду запуска', primary: false },
+        { id: 'show-script', label: rollback ? 'Показать скрипт отката' : 'Показать скрипт', primary: false },
+      ]
+    : [];
   switch (shared.state) {
     case 'unsupported':
       return [];
     case 'not-configured':
-      return [{ id: 'setup', label: 'Настроить', primary: true }];
+      return [{ id: 'setup', label: 'Настроить', primary: true }, ...admin];
     case 'needs-remote-login':
       return [{ id: 'remote-login', label: 'Открыть настройки macOS', primary: true }, recheck, remove];
+    case 'needs-admin-setup':
+      return [...admin.map((b, i) => ({ ...b, primary: i === 0 })), recheck, remove];
     case 'needs-connection':
       return [{ id: 'connections', label: 'Открыть подключения ChatGPT', primary: true }, recheck, remove];
     case 'active':
       return [recheck, remove];
     default:
-      return [{ id: 'setup', label: 'Настроить ещё раз', primary: true }, recheck, remove];
+      return [{ id: 'setup', label: 'Настроить ещё раз', primary: true }, ...admin, recheck, remove];
   }
+}
+
+/**
+ * What the user does with the administrator script; null without one.
+ * @param {SharedAccessData | null} shared
+ * @returns {string | null}
+ */
+export function adminNote(shared) {
+  const admin = shared?.admin;
+  if (!admin) return null;
+  if (admin.purpose === 'rollback') {
+    return 'Чтобы откатить шаги администратора (DefaultShell и ключ), откройте PowerShell от имени администратора и выполните команду ниже. Сервер OpenSSH останется.';
+  }
+  return 'Откройте PowerShell от имени администратора и выполните команду ниже: скрипт ставит и запускает сервер OpenSSH и задаёт его оболочку Git. Kit его не запускает; текст — «Показать скрипт».';
 }
 
 /**

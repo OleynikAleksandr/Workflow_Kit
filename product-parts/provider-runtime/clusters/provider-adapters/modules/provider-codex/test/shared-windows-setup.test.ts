@@ -6,6 +6,7 @@ import { readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { test } from 'node:test';
 import { createSharedAccess } from '../src/shared-access.ts';
+import { createSharedMode, sharedThreadLinks } from '../src/shared-mode.ts';
 import { CONNECTIONS_LINK, authorizedLine } from '../src/shared-files.ts';
 import { adminCommand, adminRollbackScript, adminScript, gitShellCandidates, openInAppScript, psLiteral, toGitBashPath } from '../src/shared-windows-setup.ts';
 import { PUB, deps, machine } from './shared-machine.ts';
@@ -82,6 +83,9 @@ test('win32, plain user: preview, write, needs-admin-setup, connection, removal 
     const active = await shared.state(true);
     assert.equal(active.state, 'active');
     assert.equal(active.connected, true);
+    // The session parts of M12 follow the same state on Windows: links with hostId, no unload.
+    assert.equal(createSharedMode(shared).active(), true);
+    assert.equal(sharedThreadLinks('t-1').desktop, 'codex://threads/t-1?hostId=remote-ssh-discovered%3Awfk-local');
 
     await assert.rejects(shared.open('remote-login'), { code: 'not-supported' });
     await shared.open('connections');

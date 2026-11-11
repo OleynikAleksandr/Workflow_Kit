@@ -247,8 +247,8 @@ app-server на весь Mac, доверие к папке, одобрение �
   вида косой черты (`sameFolder`). Хуки: команда сравнения — `commandWindows` (`localHooks`,
   `kitCodexCommand`), ключи одобрения — из `hooks/list` (`sameHookKey` сопоставляет их с
   локальными). Ссылки `codex://` открывает служба (`open-link`). Без CLI — `not-installed`.
-  Общий доступ к чатам (M13): сервер OpenSSH и `DefaultShell` Git — скрипт администратора,
-  остальное пишет Kit ([shared-access.md](shared-access.md)); Linux — `unsupported`.
+  Общий доступ к чатам (M13): OpenSSH и `DefaultShell` Git — скрипт администратора, остальное
+  пишет Kit; режим и ссылки — общий код M12 ([shared-access.md](shared-access.md)).
 
 ## Проверить при приёмке (на устройстве)
 

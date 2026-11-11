@@ -1,8 +1,12 @@
-// Model of the «Общий доступ к чатам» card (spec M12 section 2.2).
+// Model of the «Общий доступ к чатам» card (spec M12 section 2.2; Windows: M13 section 2.3).
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
+  REMOVE_CONFIRM,
+  REMOVE_CONFIRM_WINDOWS,
+  adminNote,
   operationNote,
+  removeConfirm,
   sharedAccessOf,
   sharedAccessProviders,
   sharedButtons,
@@ -69,4 +73,22 @@ test('the newest setup operation of the provider is found and explained', () => 
   assert.deepEqual(operationNote(failed), { tone: 'error', text: 'Настройка не удалась: ssh-keygen: нет' });
   assert.equal(operationNote({ id: 'x', kind: 'apply', status: 'succeeded', error: null }), null);
   assert.equal(sharedOperation(panelState(null, ops), 'claude'), null);
+});
+
+test('Windows: the administrator step gets copy and show, the main one first; the rollback too', () => {
+  const step = { purpose: 'setup', file: 'C:\\d\\shared-access-admin.ps1', command: 'powershell -NoProfile -ExecutionPolicy Bypass -File "C:\\d\\shared-access-admin.ps1"', text: '# Workflow Kit' };
+  const ids = (value: unknown) => sharedButtons(value as never).map((b) => b.id);
+  const needs = shared('needs-admin-setup', { admin: step, configured: true });
+  assert.deepEqual(ids(needs), ['copy-command', 'show-script', 'recheck', 'remove']);
+  assert.equal(sharedButtons(needs as never)[0]?.primary, true);
+  assert.equal(sharedTone(needs as never), 'warn');
+  assert.match(adminNote(needs as never) ?? '', /от имени администратора/);
+  assert.deepEqual(ids(shared('broken', { admin: step })), ['setup', 'copy-command', 'show-script', 'recheck', 'remove']);
+  const undo = shared('not-configured', { admin: { ...step, purpose: 'rollback' } });
+  assert.deepEqual(ids(undo), ['setup', 'copy-command', 'show-script']);
+  assert.equal(sharedButtons(undo as never)[2]?.label, 'Показать скрипт отката');
+  assert.match(adminNote(undo as never) ?? '', /откатить/);
+  assert.equal(adminNote(shared('active') as never), null);
+  assert.equal(removeConfirm(needs as never), REMOVE_CONFIRM_WINDOWS);
+  assert.equal(removeConfirm(shared('active') as never), REMOVE_CONFIRM);
 });

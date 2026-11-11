@@ -19,6 +19,9 @@ test('the second app-server of the ChatGPT app is told from the Kit daemon and t
   assert.equal(isSecondAppServer('  77 /Users/u/.npm-global/bin/codex -c features.code_mode_host=true app-server --listen unix://'), true);
   assert.equal(isSecondAppServer('  12 /Users/u/.codex/packages/app-server-daemon/bin/codex app-server --remote-control --listen unix://'), false);
   assert.equal(isSecondAppServer('  13 /Applications/ChatGPT.app/Contents/Resources/codex -c features.code_mode_host=true app-server'), false);
+  // Windows (M13): CIM command lines with quoted paths; the app's own server is in its package.
+  assert.equal(isSecondAppServer('9 "C:\\Users\\u\\AppData\\Roaming\\npm\\codex.exe" -c features.code_mode_host=true app-server --listen unix://'), true);
+  assert.equal(isSecondAppServer('8 "C:\\Program Files\\WindowsApps\\OpenAI.Codex_26.1106.0_x64__abc\\app\\codex.exe" -c features.code_mode_host=true app-server --listen unix://'), false);
 });
 
 test('the mode is on only while the shared access is active', async () => {

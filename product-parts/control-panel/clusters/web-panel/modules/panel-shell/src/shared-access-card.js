@@ -2,11 +2,13 @@
 // The «Общий доступ к чатам» card of the settings (spec M12 section 2.2): one card per provider
 // with a shared access. «Настроить» shows the preview of every write and writes only after the
 // second press; the other buttons open the macOS sharing settings or the connections of the
-// ChatGPT app, check again or remove what Kit wrote. The model is in shared-access-model.js.
+// ChatGPT app, check again or remove what Kit wrote. On Windows (M13 section 2.3) the card shows
+// the administrator script, its path and the command to copy; Kit never runs it. The model is in
+// shared-access-model.js.
 import { api } from './api.js';
 import { registerCardGroup, requestRefresh } from './cards.js';
 import { code, h, notice, pill } from './dom.js';
-import { REMOVE_CONFIRM, operationNote, sharedAccessOf, sharedAccessProviders, sharedButtons, sharedOperation, sharedSummary, sharedTone } from './shared-access-model.js';
+import { adminNote, operationNote, removeConfirm, sharedAccessOf, sharedAccessProviders, sharedButtons, sharedOperation, sharedSummary, sharedTone } from './shared-access-model.js';
 
 /** @typedef {import('./shared-access-model.js').SharedAccessData} SharedAccessData */
 /** @typedef {import('./shared-access-model.js').SharedOperation} SharedOperation */
@@ -36,13 +38,15 @@ function view(provider) {
   const head = h('div', { class: 'row' });
   const summary = h('p', { class: 'muted' });
   const manual = h('div');
+  const adminArea = h('div');
   const buttons = h('div', { class: 'actions' });
   const previewArea = h('div');
   const message = h('div', { class: 'notice', role: 'status' });
   message.hidden = true;
-  const node = h('div', {}, [head, summary, manual, buttons, previewArea, message]);
+  const node = h('div', {}, [head, summary, manual, adminArea, buttons, previewArea, message]);
   /** @type {Preview | null} */
   let preview = null;
+  let scriptShown = false;
   /** @type {{ shared: SharedAccessData | null, op: SharedOperation | null }} */
   let last = { shared: null, op: null };
 
@@ -93,10 +97,21 @@ function view(provider) {
         drawPreview();
       });
     }
+    if (button.id === 'show-script') {
+      scriptShown = !scriptShown;
+      return draw(last);
+    }
+    if (button.id === 'copy-command') {
+      const command = last.shared?.admin?.command ?? '';
+      return void act('Не удалось скопировать команду', async () => {
+        await navigator.clipboard.writeText(command);
+        notice(message, 'muted', 'Команда скопирована: вставьте её в PowerShell, запущенный от имени администратора.');
+      });
+    }
     if (button.id === 'remote-login' || button.id === 'connections') {
       return void act('Не удалось открыть', () => api('POST', `${base(provider)}/open`, { target: button.id }));
     }
-    if (button.id === 'remove' && !window.confirm(REMOVE_CONFIRM)) return;
+    if (button.id === 'remove' && !window.confirm(removeConfirm(last.shared))) return;
     if (button.id === 'remove') return void act('Не удалось убрать настройку', () => api('POST', `${base(provider)}/remove`));
     return void act('Не удалось проверить', () => api('POST', `${base(provider)}/recheck`, {}, 30_000));
   };
@@ -112,17 +127,29 @@ function view(provider) {
         ? [h('p', {}, ['Вставьте этот блок в профиль вашей оболочки (Kit его не меняет):']), h('pre', { class: 'path' }, [shared.manualProfile])]
         : []),
     );
+    const step = shared?.admin ?? null;
+    const note = adminNote(shared);
+    adminArea.replaceChildren(
+      ...(step && note
+        ? [
+            h('p', {}, [note]),
+            h('pre', { class: 'path' }, [step.command]),
+            ...(scriptShown ? [h('p', { class: 'muted' }, ['Файл: ', code(step.file)]), h('pre', { class: 'path' }, [step.text])] : []),
+          ]
+        : []),
+    );
     const running = op?.status === 'running' || op?.status === 'queued';
     buttons.replaceChildren(
       ...sharedButtons(shared).map((button) => {
-        const node = h('button', { type: 'button', class: button.primary ? 'btn primary' : 'btn' }, [button.label]);
+        const label = button.id === 'show-script' && scriptShown ? 'Скрыть скрипт' : button.label;
+        const node = h('button', { type: 'button', class: button.primary ? 'btn primary' : 'btn' }, [label]);
         if (running) node.setAttribute('disabled', '');
         node.addEventListener('click', () => press(button));
         return node;
       }),
     );
-    const note = operationNote(op);
-    if (note) notice(message, note.tone, note.text);
+    const opNote = operationNote(op);
+    if (opNote) notice(message, opNote.tone, opNote.text);
     else if (message.textContent === 'Настройка запущена…') notice(message, 'muted', '');
   };
 

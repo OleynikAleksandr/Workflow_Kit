@@ -164,6 +164,10 @@ test('Windows (spec M5 section 7): claude:// through rundll32, codex:// through 
   assert.equal(appx?.args.at(-1), codexAppxScript(codex));
   assert.match(codexAppxScript(codex), /Get-AppxPackage -Name 'OpenAI\.Codex'.*exit 3.*shell:AppsFolder.*-ArgumentList 'codex:\/\/threads\/01a1-b2'$/);
   assert.deepEqual(fallback?.args, ['url.dll,FileProtocolHandler', codex]);
+  // The shared SSH connection (M13): the hostId reaches the AppX app whole, as one quoted argument.
+  const shared = 'codex://threads/01a1-b2?hostId=remote-ssh-discovered%3Awfk-local';
+  const [sharedAppx] = openCommands('win32', shared, env) ?? [];
+  assert.ok(sharedAppx?.args.at(-1)?.endsWith(`-ArgumentList '${shared}'`));
   assert.equal(openCommands('linux', codex, env), null);
   // The project link of Kimi Code: open, xdg-open and rundll32 by platform.
   const kimi = kimiProjectLink('/home/me/app');

@@ -95,6 +95,12 @@ CRLF, только ASCII) Kit пишет, но не запускает: `Add-Win
 остаётся); новая настройка удаляет скрипт отката. `open('connections')` — PowerShell и пакет
 `OpenAI.Codex` (`openInAppScript`), `open('remote-login')` → `not-supported`.
 
+Сессии на Windows — общий код M12 без веток ОС: режим включает то же состояние `active`
+(`createSharedMode`), ссылки с `hostId` открывает служба (`open-link`, ссылка целиком одним
+аргументом PowerShell), создание без выгрузки, `wakeSession`, ревьюер первым сообщением.
+`isSecondAppServer` разбирает и командные строки CIM (пути в кавычках); собственный
+app-server приложения — в пакете `WindowsApps\OpenAI.Codex…` — вторым не считается.
+
 | macOS | Linux | Windows |
 |---|---|---|
 | полная настройка, «Удалённый вход» — пользователь | `unsupported`: приложения ChatGPT нет; ничего не пишется | проверки, настройка Kit и скрипт администратора, который запускает пользователь; `active` после проверок |

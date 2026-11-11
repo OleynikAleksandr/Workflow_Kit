@@ -29,10 +29,12 @@ export function sharedThreadLinks(threadId: string): SessionLinks {
 /**
  * True for an app-server the ChatGPT app started over SSH next to the Kit daemon (no
  * CODEX_SSH_SKIP_APP_SERVER_BOOT in the session): `codex -c features.code_mode_host=true app-server
- * --listen unix://` (seen in ChatGPT 26.1106). Two servers on one socket break the mode.
+ * --listen unix://` (seen in ChatGPT 26.1106). Two servers on one socket break the mode. The app's
+ * own server (macOS: inside ChatGPT.app; Windows: inside its WindowsApps package) is not one.
  */
 export function isSecondAppServer(commandLine: string): boolean {
-  return /(^|\s)app-server(\s|$)/.test(commandLine) && commandLine.includes('--listen') && commandLine.includes('code_mode_host') && !commandLine.includes('/ChatGPT.app/');
+  const ownApp = commandLine.includes('/ChatGPT.app/') || /[\\/]WindowsApps[\\/]OpenAI\.Codex/i.test(commandLine);
+  return /(^|\s|")app-server(\s|$)/.test(commandLine) && commandLine.includes('--listen') && commandLine.includes('code_mode_host') && !ownApp;
 }
 
 /** The mode as the session parts see it. */

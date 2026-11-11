@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 558,
+  "revision": 560,
   "rounds": [
     {
       "digest": null,
@@ -270,7 +270,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "README и инструкция по установке",
       "why": "Пользователь просил описать настройку ChatGPT в README"
     },
@@ -346,8 +346,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 3/6
-- Revision: 558
+- Progress: 4/6
+- Revision: 560
 
 ## Objective
 
@@ -377,7 +377,7 @@ ChatGPT на macOS работает через один демон Codex: чат
   - Commit: feat: show the shared access setup and the reviewer chat link in the panel
   - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/shared-access-card.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/shared-access-model.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/panel-shell.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/shared-access-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts
   - Depends on: T002
-- [TODO] T004 — README и инструкция по установке (work)
+- [DONE] T004 — README и инструкция по установке (work)
   - Commit: docs: describe the shared chat access setup for ChatGPT
   - Files: README.md, docs/installation.md
   - Depends on: T003

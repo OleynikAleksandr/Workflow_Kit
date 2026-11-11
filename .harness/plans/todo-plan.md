@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 612,
+  "revision": 614,
   "rounds": [
     {
       "digest": {
@@ -54,7 +54,7 @@
       },
       "id": "R2",
       "kind": "fixes",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Тест папки проектов на Windows CI"
     }
   ],
@@ -105,7 +105,7 @@
         "text": "Выпуск — 0.8.1"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "e9c04a9c-cd7c-4f6c-b4f7-f6b07802530e",
@@ -473,7 +473,7 @@
       ],
       "checks": [],
       "commitMessage": "docs: record the 0.8.1 CI run",
-      "confirmation": null,
+      "confirmation": "Поэтому, выполняя работу последовательно, собери, пожалуйста, новый релиз. И можешь сразу принять этот скоп и залить новый релиз на GitHub.",
       "context": [],
       "dependencies": [
         "T008",
@@ -488,7 +488,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Повтор выпуска 0.8.1: CI на всех ОС",
       "why": "Выпуск 0.8.1 должен пройти CI на macOS, Linux, Windows x64 и ARM64"
     }
@@ -500,11 +500,11 @@
 ## State
 
 - Scope: m14-windows-fixes (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 10/11
-- Revision: 612
+- Progress: 11/11
+- Revision: 614
 
 ## Objective
 
@@ -556,7 +556,7 @@
 
 Digest: Исправлены находки живой проверки 0.8.0 на Windows: git без мелькающих окон, выключенный UAC назван причиной, «Работает» только при работающем демоне, аккуратная карточка общего доступа, панель в Chrome, подсказка про wfk, папка проектов на любом локальном диске.
 
-### R2 — Тест папки проектов на Windows CI (fixes, OPEN)
+### R2 — Тест папки проектов на Windows CI (fixes, CLOSED)
 
 - [DONE] T008 — Тест мастера: папка вне разрешённых корней на любой ОС (work)
   - Commit: test: refuse a projects folder outside the roots on every OS
@@ -566,7 +566,7 @@ Digest: Исправлены находки живой проверки 0.8.0 н
   - Commit: docs: reconcile documentation for R2
   - Files: README.md, docs/architecture/OVERVIEW.md
   - Depends on: T008
-- [TODO] T009 — Повтор выпуска 0.8.1: CI на всех ОС (delivery)
+- [DONE] T009 — Повтор выпуска 0.8.1: CI на всех ОС (delivery)
   - Commit: docs: record the 0.8.1 CI run
   - Files: docs/evidence/M14-acceptance.md
   - Depends on: T008, DOCS-R2

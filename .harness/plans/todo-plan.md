@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 562,
+  "revision": 563,
   "rounds": [
     {
       "digest": {
@@ -346,7 +346,10 @@
         "package.json",
         "package-lock.json",
         "CHANGELOG.md",
-        "docs/evidence/M12-acceptance.md"
+        "docs/evidence/M12-acceptance.md",
+        "README.md",
+        "docs/installation.md",
+        "docs/architecture/OVERVIEW.md"
       ],
       "fixes": null,
       "id": "T005",
@@ -369,7 +372,7 @@
 - Execution: sequential
 - Current task: none
 - Progress: 5/6
-- Revision: 562
+- Revision: 563
 
 ## Objective
 
@@ -409,7 +412,7 @@ ChatGPT на macOS работает через один демон Codex: чат
   - Depends on: T001, T002, T003, T004
 - [TODO] T005 — Релиз 0.7.0 (delivery)
   - Commit: chore: release 0.7.0
-  - Files: package.json, package-lock.json, CHANGELOG.md, docs/evidence/M12-acceptance.md
+  - Files: package.json, package-lock.json, CHANGELOG.md, docs/evidence/M12-acceptance.md, README.md, docs/installation.md, docs/architecture/OVERVIEW.md
   - Depends on: T004, DOCS-R1
 
 Digest: macOS: Kit сам настраивает SSH-доступ ChatGPT к своему демону Codex (карточка «Общий доступ к чатам», маршруты shared-access, строка wfk doctor). В режиме общего демона чаты Kit (и ревьюера) открываются в ChatGPT на Mac, iPad и из Kit одновременно: ссылка с hostId, без выгрузки, wakeSession, управление у демона, самопроверка с откатом. Linux и Windows — unsupported, поведение 0.6.4.

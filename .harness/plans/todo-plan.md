@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 642,
+  "revision": 643,
   "rounds": [
     {
       "digest": {
@@ -43,7 +43,10 @@
       "После перезапуска службы выбор режима и «Начать выполнение плана» будят агента",
       "Выпуск 0.8.3; CI зелёный на macOS, Linux, Windows x64 и ARM64"
     ],
-    "acceptanceNote": null,
+    "acceptanceNote": {
+      "at": "2026-11-11T17:40:42.937Z",
+      "text": "Да, с выпуском"
+    },
     "approval": {
       "at": "2026-11-11T17:27:19.820Z",
       "text": "Пользователь, 2026-11-11: «Мне важно, чтобы этими тестами мы настроили работающую программу для Windows.» — исправить зависания после ревью, найденные на Windows | Execution mode chosen by the user: sequential: Да, с выпуском"
@@ -70,7 +73,7 @@
         "text": "Выпуск 0.8.3"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "ACCEPTED",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "e9c04a9c-cd7c-4f6c-b4f7-f6b07802530e",
@@ -223,11 +226,11 @@
 ## State
 
 - Scope: m16-plan-start-after-review (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: ACCEPTED
 - Execution: sequential
 - Current task: none
 - Progress: 4/4
-- Revision: 642
+- Revision: 643
 
 ## Objective
 

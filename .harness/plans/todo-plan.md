@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 623,
+  "revision": 625,
   "rounds": [
     {
       "digest": null,
@@ -200,7 +200,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "README и руководство: неполадки Claude",
       "why": "Пользователь должен знать про первый запуск Claude и PATH"
     },
@@ -280,8 +280,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 3/6
-- Revision: 623
+- Progress: 4/6
+- Revision: 625
 
 ## Objective
 
@@ -310,7 +310,7 @@
   - Commit: fix: explain Claude's first run and unknown dialogs
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/dialogs.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parts.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/trust.test.ts
   - Depends on: T002
-- [TODO] T004 — README и руководство: неполадки Claude (work)
+- [DONE] T004 — README и руководство: неполадки Claude (work)
   - Commit: docs: describe Claude's first run and feature offers
   - Files: README.md, docs/installation.md
   - Depends on: T003

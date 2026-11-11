@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 581,
+  "revision": 583,
   "rounds": [
     {
       "digest": null,
@@ -229,7 +229,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "README и инструкция по установке для Windows",
       "why": "Пользователь Windows должен знать, что делает Kit и что запускает он сам"
     },
@@ -309,8 +309,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 3/6
-- Revision: 581
+- Progress: 4/6
+- Revision: 583
 
 ## Objective
 
@@ -340,7 +340,7 @@ ChatGPT на Windows 11 работает через общий демон Codex 
   - Commit: feat: run ChatGPT sessions through the shared daemon on Windows
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/test/open-link.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/shared-access-card.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/shared-access-model.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/shared-access-model.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/shared-access.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/shared-mode.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/shared-mode.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/shared-windows-setup.test.ts
   - Depends on: T002
-- [TODO] T004 — README и инструкция по установке для Windows (work)
+- [DONE] T004 — README и инструкция по установке для Windows (work)
   - Commit: docs: describe the shared ChatGPT access setup on Windows
   - Files: README.md, docs/installation.md
   - Depends on: T003

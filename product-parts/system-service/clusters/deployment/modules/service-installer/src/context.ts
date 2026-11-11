@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { setTimeout as delay } from 'node:timers/promises';
 import { runCommand } from '#process-supervisor';
 import { nodeFs } from './fs.ts';
-import type { DetachedSpawner, HealthInfo, HealthProbe, ResolvedDeps, ServiceDeps } from './types.ts';
+import type { DetachedSpawner, HealthInfo, HealthProbe, ResolvedDeps, ServiceDeps, SharedAccessProbe } from './types.ts';
 
 /** Root of the code this module runs from (a clone or an installed app/<version>). */
 export const SOURCE_ROOT: string = fileURLToPath(new URL('../../../../../../../', import.meta.url));
@@ -32,6 +32,23 @@ export const fetchHealth: HealthProbe = async (port) => {
     const info: HealthInfo = { ok: true, version: body['version'], pid: body['pid'] };
     if (typeof body['startedAt'] === 'string') info.startedAt = body['startedAt'];
     return info;
+  } catch {
+    return null;
+  }
+};
+
+/** Reads GET /api/providers/codex/shared-access (spec M12); null when the service cannot answer. */
+export const fetchSharedAccess: SharedAccessProbe = async (port) => {
+  if (port === 0) return null;
+  try {
+    const response = await fetch(`http://127.0.0.1:${port}/api/providers/codex/shared-access`, {
+      headers: { Origin: `http://127.0.0.1:${port}` },
+      signal: AbortSignal.timeout(20_000),
+    });
+    if (!response.ok) return null;
+    const body: unknown = await response.json();
+    if (!isRecord(body) || typeof body['state'] !== 'string') return null;
+    return { state: body['state'], label: typeof body['label'] === 'string' ? body['label'] : body['state'], reason: typeof body['reason'] === 'string' ? body['reason'] : null };
   } catch {
     return null;
   }
@@ -90,6 +107,7 @@ export function resolveDeps(deps: ServiceDeps = {}): ResolvedDeps {
     run: deps.run ?? runCommand,
     spawnDetached: deps.spawnDetached ?? spawnDetachedProcess,
     health: deps.health ?? fetchHealth,
+    sharedAccess: deps.sharedAccess ?? fetchSharedAccess,
     kill: deps.kill ?? ((pid, signal) => process.kill(pid, signal)),
     requestShutdown: deps.requestShutdown ?? postShutdown,
     sleep: deps.sleep ?? ((ms) => delay(ms)),

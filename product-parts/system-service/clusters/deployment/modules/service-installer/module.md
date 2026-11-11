@@ -186,7 +186,11 @@ unit, `daemon-reload`; XDG-файл; `reg delete`, `.vbs`, PATH пользова
   `current.json`, точка входа, `node` службы, запускатель указывает на
   копию, значок, автозапуск (файл содержит точку входа; `launchctl print`,
   `systemctl --user is-enabled`, `reg query` совпадает с ожидаемым),
-  `/api/health` отвечает версией установки. Ошибка — код 1.
+  `/api/health` отвечает версией установки. Ошибка — код 1. Если служба отвечает —
+  строка «ChatGPT: общий доступ к чатам» (`sharedAccess`, `fetchSharedAccess`: `GET
+  /api/providers/codex/shared-access` с Origin): `active`, `unsupported`, `not-configured` —
+  `ok`, остальные — предупреждение (M12). Строка одинакова на всех ОС; вне macOS там
+  `unsupported`.
 
 ## Инварианты
 

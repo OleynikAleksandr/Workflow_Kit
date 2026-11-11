@@ -1,8 +1,9 @@
 // The Codex provider (docs/planning/M1-providers.md, section 3): status of the CLI and of the
 // Mac-wide daemon, its start as a special action, trust, the Kit hook and sessions.
 import { ProviderError } from '#provider-registry';
-import type { Capabilities, Project, ProjectProviderState, Provider, ProviderAction, ProviderContext, ProviderStatus } from '#provider-registry';
+import type { Capabilities, Project, ProjectProviderState, Provider, ProviderAction, ProviderContext, ProviderStatus, SharedAccessState } from '#provider-registry';
 import { createHandover, HANDOVER_REASON } from './handover.ts';
+import { createSharedAccess } from './shared-access.ts';
 import { createCodexRuntime } from './runtime.ts';
 import type { CodexDeps, CodexRuntime, DaemonState } from './runtime.ts';
 import { createSessionParts } from './sessions.ts';
@@ -62,11 +63,12 @@ function loginProblem(daemon: DaemonState): boolean {
   return daemon.running && !daemon.staleLogin && !daemon.settling && daemon.remoteOwner !== 'app' && (daemon.remoteControl === 'errored' || (daemon.remoteControl !== 'connected' && daemon.tokenError !== null));
 }
 
-function buildStatus(rt: CodexRuntime, daemon: DaemonState, handingOver = false): ProviderStatus {
+function buildStatus(rt: CodexRuntime, daemon: DaemonState, handingOver = false, shared: SharedAccessState | null = null): ProviderStatus {
   const program = rt.program;
   const details: Record<string, unknown> = {
     daemon: { running: daemon.running, pid: daemon.pid, remoteControl: daemon.remoteControl, serverName: daemon.serverName },
     codexHome: rt.paths.home,
+    sharedAccess: shared,
   };
   const base = { implemented: true, installed: program.installed, version: program.version, path: program.path, checkedAt: program.checkedAt, details };
   if (program.installed === false) return { ...base, state: 'not-installed', label: 'не установлен', note: program.error ?? 'codex не найден' };
@@ -95,6 +97,7 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
   let creating = 0;
   const handover = createHandover(rt, { ...deps.handover, busy: () => creating > 0 });
   const trustParts = createTrustParts(rt);
+  const shared = createSharedAccess(rt, deps.sharedAccess);
   const sessionParts = createSessionParts(rt, {
     ...(deps.serviceTurnWaitMs === undefined ? {} : { serviceTurnWaitMs: deps.serviceTurnWaitMs }),
     ...(deps.releaseWaitMs === undefined ? {} : { releaseWaitMs: deps.releaseWaitMs }),
@@ -191,10 +194,16 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
     label: 'ChatGPT',
     mark: 'G',
     autostart,
-    maintain: () => handover.maintain(),
+    // Upkeep: the hand-over, then a fresh check of the shared access (reused for SHARED_TTL_MS).
+    maintain: async () => {
+      const line = await handover.maintain();
+      await shared.state(false).catch((error: unknown) => context.log(`codex: shared access check failed: ${(error as Error).message}`));
+      return line;
+    },
+    sharedAccess: shared,
     capabilities,
     async status() {
-      return buildStatus(rt, await rt.daemon(), handover.active);
+      return buildStatus(rt, await rt.daemon(), handover.active, shared.cached());
     },
     async refresh() {
       await rt.refreshProgram();

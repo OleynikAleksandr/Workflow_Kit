@@ -64,6 +64,16 @@ export interface HealthInfo {
 /** Asks a backend on 127.0.0.1:<port> for /api/health; null when nothing answers. */
 export type HealthProbe = (port: number) => Promise<HealthInfo | null>;
 
+/** State of the shared access to the ChatGPT chats as the service reports it (spec M12). */
+export interface SharedAccessInfo {
+  state: string;
+  label: string;
+  reason: string | null;
+}
+
+/** Asks a backend on 127.0.0.1:<port> for the shared access of ChatGPT; null when it cannot. */
+export type SharedAccessProbe = (port: number) => Promise<SharedAccessInfo | null>;
+
 /** Starts a program in the background, detached from the caller, output appended to logFile. */
 export type DetachedSpawner = (
   command: string,
@@ -86,6 +96,7 @@ export interface ServiceDeps extends ServiceContext {
   run?: CommandRunner;
   spawnDetached?: DetachedSpawner;
   health?: HealthProbe;
+  sharedAccess?: SharedAccessProbe;
   /** Sends a signal to a pid reported by /api/health (fallback stop). */
   kill?: (pid: number, signal: NodeJS.Signals) => void;
   /** POST /api/system/shutdown of the service on a port; true when it accepted (Windows stop). */
@@ -114,6 +125,7 @@ export interface ResolvedDeps {
   run: CommandRunner;
   spawnDetached: DetachedSpawner;
   health: HealthProbe;
+  sharedAccess: SharedAccessProbe;
   kill: (pid: number, signal: NodeJS.Signals) => void;
   requestShutdown: (port: number) => Promise<boolean>;
   sleep: (ms: number) => Promise<void>;

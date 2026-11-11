@@ -11,7 +11,7 @@ import type { Router, StateRegistry } from '#http-server';
 import { createProjectRegistry } from '#project-registry';
 import type { Project, ProjectRegistry } from '#project-registry';
 import { createProviderRegistry, defaultSessionTitle, registerProviderRoutes } from '../src/index.ts';
-import type { ProviderRegistry, ProvidersSection, TrustPreview } from '../src/index.ts';
+import type { ProviderRegistry, ProvidersSection, SharedAccess, SharedAccessState, TrustPreview } from '../src/index.ts';
 import { createFakeProvider } from './fake-provider.ts';
 import type { FakeProvider } from './fake-provider.ts';
 
@@ -321,3 +321,38 @@ test('retryDeletes collects what every provider deleted now; a failure stays wit
   assert.deepEqual(Object.keys(result.errors), ['broken']);
 });
 
+
+test('shared access (M12): state, recheck, preview, apply and remove as operations, open; 409 without it', async () => {
+  const calls: string[] = [];
+  const state = (name: SharedAccessState['state']): SharedAccessState => ({
+    state: name, label: name, reason: null, hint: null, configured: name === 'active', connectionSeenAt: null, connected: null, alias: 'wfk-local', manualProfile: null, checkedAt: '',
+  });
+  const shared: SharedAccess = {
+    state: async (force) => (calls.push(`state:${String(force)}`), state('not-configured')),
+    cached: () => null,
+    preview: async () => ({ writes: [], token: 'tok', expiresAt: '', notes: [] }),
+    apply: async (token) => (calls.push(`apply:${token}`), state('active')),
+    remove: async () => (calls.push('remove'), state('not-configured')),
+    open: async (target) => void calls.push(`open:${target}`),
+  };
+  Object.assign(fake, { sharedAccess: shared });
+  try {
+    assert.equal((await call('GET', '/api/providers/fake/shared-access')).body['state'], 'not-configured');
+    await call('POST', '/api/providers/fake/shared-access/recheck');
+    assert.equal((await call('GET', '/api/providers/fake/shared-access/preview')).body['token'], 'tok');
+    assert.equal(errorCode(await call('POST', '/api/providers/fake/shared-access/apply', {})), 'invalid-body');
+    const applied = await finished(await call('POST', '/api/providers/fake/shared-access/apply', { token: 'tok' }));
+    assert.equal(applied.status, 'succeeded');
+    assert.equal((applied.result as SharedAccessState).state, 'active');
+    assert.equal((await finished(await call('POST', '/api/providers/fake/shared-access/remove'))).status, 'succeeded');
+    assert.equal(errorCode(await call('POST', '/api/providers/fake/shared-access/open', { target: 'https://x' })), 'invalid-body');
+    assert.equal((await call('POST', '/api/providers/fake/shared-access/open', { target: 'connections' })).body['opened'], 'connections');
+    assert.deepEqual(calls, ['state:false', 'state:true', 'apply:tok', 'remove', 'open:connections']);
+    const types = await eventTypes();
+    assert.ok(types.includes('provider.shared-access.applied'));
+    assert.ok(types.includes('provider.shared-access.removed'));
+    assert.equal(errorCode(await call('GET', '/api/providers/bare/shared-access')), 'not-supported');
+  } finally {
+    Object.assign(fake, { sharedAccess: undefined });
+  }
+});

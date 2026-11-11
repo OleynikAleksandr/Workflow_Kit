@@ -9,6 +9,7 @@ import { accessHint } from '#project-registry';
 import type { ProjectRegistry } from '#project-registry';
 import { ProviderError } from './contract.ts';
 import type { Project, Provider, ProviderStatus, SessionInfo, TrustChoices } from './contract.ts';
+import { registerSharedAccessRoutes } from './shared-access-routes.ts';
 import { clearHookSessionsCache } from './hook-sessions.ts';
 import type { ProviderRegistry } from './registry.ts';
 import { errorInfo } from './registry.ts';
@@ -42,6 +43,8 @@ export const OPERATION_EVENTS: Readonly<Record<string, string>> = {
   'provider.session.resume': 'provider.session.resumed',
   'provider.session.stop': 'provider.session.stopped',
   'provider.action': 'provider.action.completed',
+  'provider.shared-access.apply': 'provider.shared-access.applied',
+  'provider.shared-access.remove': 'provider.shared-access.removed',
   'providers.refresh': 'providers.refreshed',
 };
 
@@ -318,6 +321,8 @@ export function registerProviderRoutes(options: ProviderRoutesOptions): Provider
       run: () => provider.runAction(actionId, project),
     });
   });
+
+  registerSharedAccessRoutes({ router, providerOf, startOperation, toHttpError, bodyObject, requiredText });
 
   function refresh(): StartedOperation {
     return operations.start({

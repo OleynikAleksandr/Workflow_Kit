@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 552,
+  "revision": 554,
   "rounds": [
     {
       "digest": null,
@@ -107,14 +107,37 @@
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex",
         "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry",
         "product-parts/system-service/clusters/deployment/modules/service-installer",
-        "tools/platform-guard/allowlist.json"
+        "tools/platform-guard/allowlist.json",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/handover.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/shared-access.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/handover.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/runtime.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/shared-access.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/shared-files.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/shared-access.test.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/routes.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/shared-access-routes.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/shared-access.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/routes.test.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/module.md",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/context.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/doctor.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/types.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/test/control.test.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/test/fakes.ts"
       ],
       "fixes": null,
       "id": "T001",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Настройка общего доступа к чатам ChatGPT",
       "why": "Пользователь не должен настраивать SSH руками"
     },
@@ -293,8 +316,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 0/6
-- Revision: 552
+- Progress: 1/6
+- Revision: 554
 
 ## Objective
 
@@ -313,9 +336,9 @@ ChatGPT на macOS работает через один демон Codex: чат
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T001 — Настройка общего доступа к чатам ChatGPT (work)
+- [DONE] T001 — Настройка общего доступа к чатам ChatGPT (work)
   - Commit: feat: set up the shared Codex daemon access from Kit
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/system-service/clusters/deployment/modules/service-installer, tools/platform-guard/allowlist.json
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/system-service/clusters/deployment/modules/service-installer, tools/platform-guard/allowlist.json, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/handover.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/shared-access.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/handover.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/runtime.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/shared-access.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/shared-files.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/shared-access.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/routes.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/shared-access-routes.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/shared-access.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/routes.test.ts, product-parts/system-service/clusters/deployment/modules/service-installer/module.md, product-parts/system-service/clusters/deployment/modules/service-installer/src/context.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/doctor.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/types.ts, product-parts/system-service/clusters/deployment/modules/service-installer/test/control.test.ts, product-parts/system-service/clusters/deployment/modules/service-installer/test/fakes.ts
 - [TODO] T002 — Сессии ChatGPT в режиме общего демона (work)
   - Commit: feat: run ChatGPT sessions through the shared Codex daemon
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/backend-core/clusters/runtime/modules/cli

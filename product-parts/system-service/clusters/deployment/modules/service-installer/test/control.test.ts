@@ -136,3 +136,15 @@ test('doctor --installed checks the installed service and /api/health', async ()
   const plain = await runServiceCommand('doctor', m.deps);
   assert.equal(plain.exitCode, 0, 'without --installed only the environment is checked');
 });
+
+test('doctor shows the shared access of ChatGPT (M12): a state that needs the user warns', async () => {
+  const m = standardMachine('darwin');
+  await runServiceCommand('install', m.deps);
+  assert.doesNotMatch((await runServiceCommand('doctor', m.deps)).message, /общий доступ/, 'no line when the service does not answer it');
+  m.backend.sharedAccess = { state: 'active', label: 'Работает', reason: null };
+  assert.match((await runServiceCommand('doctor', m.deps)).message, /\[ok\]\s+ChatGPT: общий доступ к чатам: Работает/);
+  m.backend.sharedAccess = { state: 'needs-remote-login', label: 'Нужен «Удалённый вход»', reason: 'порт 22 не отвечает' };
+  const warn = await runServiceCommand('doctor', m.deps);
+  assert.match(warn.message, /\[предупреждение\] ChatGPT: общий доступ к чатам: Нужен «Удалённый вход» — порт 22 не отвечает/);
+  assert.equal(warn.exitCode, 0, 'a warning does not fail doctor');
+});

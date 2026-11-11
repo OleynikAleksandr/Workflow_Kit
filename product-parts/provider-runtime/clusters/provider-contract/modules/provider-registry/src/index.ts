@@ -27,6 +27,7 @@ export type {
   TrustState,
   TrustWrite,
 } from './contract.ts';
+export type { SharedAccess, SharedAccessPreview, SharedAccessState, SharedAccessStateName, SharedAccessTarget } from './shared-access.ts';
 export { ProviderError, providerCapability, providerLabel, providerLogsDir, providerMark, providerSessionsFile } from './contract.ts';
 export type { HookSession, ReadHookSessionsOptions } from './hook-sessions.ts';
 export {

@@ -74,6 +74,14 @@ export async function doctor(deps: ResolvedDeps, options: { installed: boolean; 
   } else {
     add('служба (/api/health)', options.installed ? 'fail' : 'warn', `не отвечает на порту ${port ?? '?'}`);
   }
+  if (health && port !== null) {
+    // Spec M12: shared access to the ChatGPT chats; only a state that needs the user warns.
+    const shared = await deps.sharedAccess(port);
+    if (shared) {
+      const quiet = shared.state === 'active' || shared.state === 'unsupported' || shared.state === 'not-configured';
+      add('ChatGPT: общий доступ к чатам', quiet ? 'ok' : 'warn', `${shared.label}${shared.reason ? ` — ${shared.reason}` : ''}`);
+    }
+  }
   return { ok: checks.every((check) => check.level !== 'fail'), checks };
 }
 

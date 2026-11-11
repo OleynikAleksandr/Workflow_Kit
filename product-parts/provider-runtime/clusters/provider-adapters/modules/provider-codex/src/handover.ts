@@ -36,7 +36,7 @@ export function appServerPids(listing: string, platform: NodeJS.Platform): numbe
 }
 
 /** Lists "<pid> <command line>" of the running processes (null when the list cannot be read). */
-async function processListing(rt: CodexRuntime): Promise<string | null> {
+export async function processListing(rt: CodexRuntime): Promise<string | null> {
   const { platform, runCommand } = rt.context;
   if (platform === 'win32') {
     const script = "Get-CimInstance Win32_Process -Filter \"Name='codex.exe'\" | ForEach-Object { \"$($_.ProcessId) $($_.CommandLine)\" }";

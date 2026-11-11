@@ -11,6 +11,7 @@ import type { CodexPaths } from './codex-files.ts';
 import { createRpcSession, initializeSession } from './rpc.ts';
 import type { InitializeResult, RpcSession, RpcTransport } from './rpc.ts';
 import { spawnAppServer } from './stdio.ts';
+import type { SharedAccessDeps } from './shared-access.ts';
 import type { AppServerOpener } from './stdio.ts';
 import { connectProxyWebSocket } from './proxy.ts';
 import { connectUnixWebSocket } from './ws.ts';
@@ -36,6 +37,8 @@ export interface CodexDeps {
   releasePollMs?: number;
   /** Hand-over of remote control to the ChatGPT app: pause and sleep (tests make them instant). */
   handover?: { waitMs?: number; sleep?: (ms: number) => Promise<void> };
+  /** Shared access (spec M12): port probe, login shell, user, app presence (tests make them fake). */
+  sharedAccess?: SharedAccessDeps;
 }
 
 /** What the last daemon probe found. */

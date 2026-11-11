@@ -113,6 +113,13 @@
 - `providerSessionsFile(dirs, id)` — `<state>/sessions/<id>.json` (записи
   панели); `providerLogsDir(dirs, id)` — `<logs>/<id>`.
 
+Общий доступ к чатам (M12): необязательное поле `Provider.sharedAccess: SharedAccess` —
+`state(force?)`, `cached()`, `preview()`, `apply(token)`, `remove()`, `open(target)`; типы
+`SharedAccessState` (`state`: `unsupported` | `not-configured` | `needs-remote-login` |
+`needs-connection` | `active` | `broken`, `label`, `reason`, `hint`, `configured`,
+`connectionSeenAt`, `connected`, `alias`, `manualProfile`, `checkedAt`),
+`SharedAccessPreview`, `SharedAccessTarget` (`remote-login` | `connections`).
+
 ### Журнал хука (`hook-sessions.ts`)
 
 - `readHookSessions(project, client, { includeService?, maxBytes? }) →
@@ -196,6 +203,12 @@ mutex, events?, platform, now?, onRefresh? }) → { refresh() }` регистр�
 | `POST …/sessions/:sid/resume`, `…/sessions/:sid/stop` | 202, `provider.session.resume` / `provider.session.stop` |
 | `POST /api/providers/:p/actions/:a` | 202, `provider.action` → `runAction(a, null)` |
 | `POST /api/projects/:id/providers/:p/actions/:a` | 202, `provider.action` → `runAction(a, project)` |
+| `GET /api/providers/:p/shared-access` | `SharedAccessState` (`state(false)`, M12) |
+| `POST /api/providers/:p/shared-access/recheck` | `SharedAccessState` после всех проверок (`state(true)`) |
+| `GET /api/providers/:p/shared-access/preview` | `SharedAccessPreview` (`writes`, `token`, `expiresAt`, `notes`) |
+| `POST /api/providers/:p/shared-access/apply` `{token}` | 202, `provider.shared-access.apply` → `apply(token)` |
+| `POST /api/providers/:p/shared-access/remove` | 202, `provider.shared-access.remove` → `remove()` |
+| `POST /api/providers/:p/shared-access/open` `{target}` | `{ opened }`; `target` — `remote-login` или `connections`, иначе 400 |
 | `POST /api/refresh` | 202, `providers.refresh`: сброс кэша журнала, `onRefresh` (сверка процессов), `refresh?()` каждого провайдера |
 
 Долгий POST отвечает 202 `{ operationId, operation, existing }`; ход и
@@ -207,6 +220,7 @@ mutex, events?, platform, now?, onRefresh? }) → { refresh() }` регистр�
 очереди». Итог пишется в `events.jsonl` (`OPERATION_EVENTS`):
 `provider.trust.granted`, `provider.hooks.approved`,
 `provider.session.created|resumed|stopped`, `provider.action.completed`,
+`provider.shared-access.applied|removed`,
 `providers.refreshed`; неудача — `provider.operation.failed` (`kind`,
 `error`). В событии — `operationId`, `provider`, `project`,
 `projectName`, `projectPath` и краткий итог (id сессии, `trusted`,
@@ -215,7 +229,7 @@ mutex, events?, platform, now?, onRefresh? }) → { refresh() }` регистр�
 Ошибки до запуска операции — `{ error: { code, message, ...details } }`:
 400 `invalid-body`, `invalid-session`; 403 `access-denied` (с `hint`); 404
 `unknown-provider`, `not-found`, `unknown-action`; 409 `project-missing`,
-`not-supported` (нет необязательного метода), `action-disabled` (с
+`not-supported` (нет необязательного метода или `sharedAccess`), `action-disabled` (с
 `hint` = `reason`); `ProviderError` предпросмотра — со своим статусом
 (у заглушки 501 `not-implemented`).
 

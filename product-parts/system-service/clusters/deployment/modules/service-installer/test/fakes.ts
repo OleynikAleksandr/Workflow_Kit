@@ -3,7 +3,7 @@
 import path from 'node:path';
 import type { RunOptions, RunResult } from '#process-supervisor';
 import type { InstallerFs } from '../src/fs.ts';
-import type { HealthInfo, ServiceDeps } from '../src/types.ts';
+import type { HealthInfo, ServiceDeps, SharedAccessInfo } from '../src/types.ts';
 
 interface Entry {
   text: string;
@@ -149,7 +149,7 @@ export interface Machine {
   killed: number[];
   /** Ports that got POST /api/system/shutdown (the service stops at once). */
   shutdowns: number[];
-  backend: { health: HealthInfo | null };
+  backend: { health: HealthInfo | null; sharedAccess: SharedAccessInfo | null };
   /** Command lines of the calls, for compact assertions. */
   lines(): string[];
   /** Makes the backend answer with the version of app/current.json (what a start would run). */
@@ -208,7 +208,7 @@ export function makeMachine(platform: NodeJS.Platform, options: { handler?: Hand
   const spawned: Machine['spawned'] = [];
   const killed: number[] = [];
   const shutdowns: number[] = [];
-  const backend: Machine['backend'] = { health: null };
+  const backend: Machine['backend'] = { health: null, sharedAccess: null };
   let pid = 1000;
   const env = { ...base.env, ...options.env };
   const machine: Machine = {
@@ -238,6 +238,7 @@ export function makeMachine(platform: NodeJS.Platform, options: { handler?: Hand
       readyTimeoutMs: 1000,
       stopTimeoutMs: 1000,
       health: async () => backend.health,
+      sharedAccess: async () => backend.sharedAccess,
       kill: (target) => {
         killed.push(target);
         backend.health = null;

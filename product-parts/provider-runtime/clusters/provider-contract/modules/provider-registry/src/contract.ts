@@ -4,6 +4,7 @@ import path from 'node:path';
 import type { DataDirs, EventLog, WfkConfig } from '#data-store';
 import type { CommandRunner, ProcessSupervisor } from '#process-supervisor';
 import type { Project } from '#project-registry';
+import type { SharedAccess } from './shared-access.ts';
 
 export type { Project };
 
@@ -332,6 +333,8 @@ export interface Provider {
    * spec M7 remark 2). Resolves to a line for the log, or null when nothing had to be done.
    */
   maintain?(): Promise<string | null>;
+  /** Shared access to the provider's chats (spec M12); absent where the provider has none. */
+  readonly sharedAccess?: SharedAccess;
   /**
    * Deletion of the project from disk: deletes its sessions in the provider app (Codex:
    * thread/delete). Resolves to the ids deleted; the ones the app refuses wait for retryDeletes.

@@ -9,6 +9,8 @@ export type { CodexDeps, DaemonOpener, DaemonState, ProgramState } from './runti
 export type { AppServerOpener, AppServerSpec } from './stdio.ts';
 export type { RpcTransport } from './rpc.ts';
 export { HANDOVER_REASON, HANDOVER_WAIT_MS, appServerPids, isChatgptAppServer } from './handover.ts';
+export { BLOCK_BEGIN, BLOCK_END, CONNECTIONS_LINK, REMOTE_LOGIN_LINK, SHARED_ALIAS, SHARED_HOST_ID, createSharedAccess } from './shared-access.ts';
+export type { SharedAccessDeps } from './shared-access.ts';
 export { KIT_HOOK_COMMAND, KIT_HOOK_COMMANDS, isExactKitCommand } from './hooks.ts';
 export { HELD_NOTE, RELEASE_POLL_MS, RELEASE_WAIT_MS, FIRST_TURN_WAIT_MS, RELEASING_NOTE, SERVICE_TURN_WAIT_MS, UNSUBSCRIBE_TIMEOUT_MS, serviceTurnText, threadLinks } from './sessions.ts';
 export type { CodexRecord } from './sessions.ts';

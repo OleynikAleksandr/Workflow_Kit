@@ -20,7 +20,8 @@ app-server на весь Mac, доверие к папке, одобрение �
   `isAlive(pid)`, `tokens` (`TokenStore`), `daemonTtlMs`,
   `serviceTurnWaitMs` (ожидание `turn/completed` служебного хода),
   `releaseWaitMs` и `releasePollMs` (ожидание выгрузки треда демоном),
-  `handover` (`waitMs`, `sleep` передачи управления).
+  `handover` (`waitMs`, `sleep` передачи управления), `sharedAccess`
+  (`SharedAccessDeps`: `probePort`, `loginShell`, `userName`, `appInstalled`, `nodeDir`).
 - Константы: `PROVIDER_ID` = `codex`, `PROVIDER_TITLE`,
   `DAEMON_START_ACTION` = `daemon-start`, `LOGIN_HINT`, `CONNECTING_REASON`,
   `STALE_LOGIN_REASON`, `HANDOVER_REASON`, `HANDOVER_WAIT_MS` (60 с),
@@ -34,6 +35,9 @@ app-server на весь Mac, доверие к папке, одобрение �
   `UNLOAD_METHODS` (`thread/archive`, `thread/unarchive`; в `sessions.ts`),
   `HELD_NOTE`; функции `serviceTurnText(name)`,
   `threadLinks(id)`, `parseRemoteControlStart(stdout)`.
+- Общий доступ к чатам (M12): `createSharedAccess(rt, deps?)`, `SHARED_ALIAS` (`wfk-local`),
+  `SHARED_HOST_ID` (`remote-ssh-discovered:wfk-local`), `CONNECTIONS_LINK`,
+  `REMOTE_LOGIN_LINK`, `BLOCK_BEGIN`/`BLOCK_END`; тип `SharedAccessDeps`.
 - Типы: `CodexDeps`, `DaemonOpener`, `DaemonState`, `ProgramState`,
   `AppServerOpener`, `AppServerSpec`, `RpcTransport`, `CodexRecord`.
 
@@ -253,24 +257,16 @@ app-server на весь Mac, доверие к папке, одобрение �
 чат»), в журнале — `codex: thread <id> released by the daemon`; настройки треда —
 пользовательские; хук Kit после одобрения срабатывает с первым ходом.
 
-## Передача удалённого управления приложению ChatGPT (M7, замечание 2)
+## Передача удалённого управления (M7)
 
-У треда один писатель, удалённое управление получает подключившийся первым: если его
-держит демон, а приложение ChatGPT открыто, чат приложения не открывается на iPad
-(«используется в другом сеансе Codex»). `src/handover.ts`, `maintain()` (бэкенд
-зовёт раз в минуту): демон `connected`, работает app-server приложения, в демоне нет
-загруженных тредов (`thread/loaded/list`) и не идёт `createSession` — тогда
-`remote-control stop`, пауза `HANDOVER_WAIT_MS` (приложение берёт управление само,
-≤ 65 с), `start --json`; демон остаётся локальным app-server Kit (`remoteOwner:
-'app'`). Одна попытка на набор pid приложения. Во время передачи статус «передаёт
-управление ChatGPT», создание сессий и действие демона выключены (`HANDOVER_REASON`),
-`createSession` — `codex-handover`. `DaemonState.settling` (`isSettling`, `SETTLE_MS`
-60 с): `errored` без ошибки входа в первую минуту демона — «подключается», не
-«ошибка входа».
+`src/handover.ts`, `maintain()`: правило, состояния и поведение на ОС —
+[handover.md](handover.md).
 
-| macOS | Linux | Windows |
-|---|---|---|
-| `ps -axo pid=,command=`: `/ChatGPT.app/` и `app-server` | приложения нет — ничего | CIM `Win32_Process` codex.exe через PowerShell, папка с `OpenAI.Codex`/`ChatGPT` (**П**) |
+## Общий доступ к чатам (M12)
+
+`src/shared-access.ts` (проверки, запись, удаление) и `src/shared-files.ts` (текст блоков и
+строк): приложение ChatGPT по SSH становится клиентом демона Kit. Состояния, файлы, проба
+ссылок и поведение на ОС — [shared-access.md](shared-access.md).
 
 ## Инварианты
 

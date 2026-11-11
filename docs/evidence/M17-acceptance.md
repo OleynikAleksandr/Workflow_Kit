@@ -28,7 +28,8 @@
   демон: чужой `pid`, прежний PATH, перезапуск пишет новую запись, без записи — не устарел.
 - `node bin/wfk.mjs install` (обновление с 0.8.3) и `wfk doctor --installed` — «всё в
   порядке», служба 0.8.4; PATH LaunchAgent содержит `~/.local/bin`.
-- CI ветки `ci/m17-wfk-on-agent-path` — результат в разделе «Приёмка».
+- CI ветки `ci/m17-wfk-on-agent-path`, коммит `a9af920`, запуск 43076995815 — зелёный с первой
+  попытки: macOS ARM64, Linux x64, Windows x64, Windows ARM64.
 
 ## Живые проверки по ОС
 

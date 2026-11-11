@@ -10,10 +10,26 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 625,
+  "revision": 627,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "provider-claude: виды диалога onboarding и promo, маркер PROMO_DECLINED, PtyMarkers.offersDeclined",
+          "provider-claude: ошибка onboarding-dialog, DIALOG_HINTS",
+          "dialogs.tcl: handle_dialog вместо stop_on_dialog; screen.ts: notNowKeys, offerQuestion"
+        ],
+        "decisions": [
+          "Kit отвечает только на «Try the new …?» / «Would you like to try …?» с вариантом «Not now», не больше 3 раз за запуск; повтор — незнакомый диалог",
+          "Выбор темы и вход Claude Kit не проходит сам, а называет причину",
+          "Номер варианта «Not now» — цифра прямо перед текстом; курсор ❯/›/>, без курсора — вариант 1"
+        ],
+        "references": [
+          "docs/planning/M15-claude-promo-dialogs.md",
+          "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/dialogs.md"
+        ],
+        "result": "Первая сессия Claude больше не падает на предложениях новых функций: Kit отвечает «Not now» и ждёт ссылку дальше (macOS, Linux, Windows). Экран первого запуска Claude сразу даёт понятную ошибку, подсказка незнакомого диалога ведёт в терминал, а не в предпросмотр доверия."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -232,7 +248,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -280,8 +296,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 4/6
-- Revision: 625
+- Progress: 5/6
+- Revision: 627
 
 ## Objective
 
@@ -314,7 +330,7 @@
   - Commit: docs: describe Claude's first run and feature offers
   - Files: README.md, docs/installation.md
   - Depends on: T003
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M15-claude-promo-dialogs.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, docs/installation.md
   - Depends on: T001, T002, T003, T004
@@ -322,5 +338,7 @@
   - Commit: chore: release 0.8.2
   - Files: package.json, package-lock.json, CHANGELOG.md, docs/evidence/M15-acceptance.md, README.md, docs/installation.md, docs/architecture/OVERVIEW.md
   - Depends on: T004, DOCS-R1
+
+Digest: Первая сессия Claude больше не падает на предложениях новых функций: Kit отвечает «Not now» и ждёт ссылку дальше (macOS, Linux, Windows). Экран первого запуска Claude сразу даёт понятную ошибку, подсказка незнакомого диалога ведёт в терминал, а не в предпросмотр доверия.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

@@ -50,8 +50,11 @@
 - Windows: `pty/host.ts` (фаза `dialog` → обратно `waiting`). macOS и Linux: процедура
   `handle_dialog` в `dialogs.tcl` возвращает `declined`, ветка `session.exp` и
   `environment.exp` делает `exp_continue`.
-- Бэкенд (`pty.ts`): `parseMarkers` считает `PROMO_DECLINED`; служба пишет в журнал
-  `claude: declined a feature offer`, пользователю ничего не показывается.
+- Бэкенд (`pty.ts`): `parseMarkers` считает `PROMO_DECLINED` (`offersDeclined`); строки
+  остаются в журнале сессии, пользователю ничего не показывается.
+- Сделано (T001–T003): отдельной строки в журнале службы нет — маркер в журнале сессии;
+  шаблон «Not now» требует цифру прямо перед текстом (`2. Not now`), иначе широкий промежуток
+  захватывал номер соседнего варианта. Подробности — `provider-claude/dialogs.md`.
 
 ### 2.3. Тексты ошибок (`pty.ts`, `dialogError`)
 

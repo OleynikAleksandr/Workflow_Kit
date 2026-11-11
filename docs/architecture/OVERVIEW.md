@@ -256,9 +256,8 @@ Linux `$XDG_CONFIG_HOME`, `$XDG_STATE_HOME`, `$XDG_DATA_HOME` +
   (`thread/resume`) только в режиме общего демона (M12/M13, macOS и Windows; опирается на
   недокументированное поведение ChatGPT, Kit проверяет его раз в минуту).
 - Доверие Claude записывается в `~/.claude.json`; при неожиданном диалоге
-  сессия останавливается с ошибкой, клавиши автоматически не нажимаются.
-  Codex сохраняет пользовательские политики служебного хода. Подробности —
-  в контрактах провайдеров и документах приёмки.
+  сессия останавливается с ошибкой без нажатий, лишь на предложение новой функции Kit
+  отвечает «Not now» (M15). Codex сохраняет пользовательские политики служебного хода.
 - Панель доступна через loopback и Tailscale, без отдельной авторизации.
   Публичное размещение HTTP-панели не предусмотрено. В выборе папки видны имена папок
   домашней папки и других дисков (M14). Удалённый клиент
@@ -273,7 +272,8 @@ Linux `$XDG_CONFIG_HOME`, `$XDG_STATE_HOME`, `$XDG_DATA_HOME` +
 - Спецификации вех: `docs/planning/M*.md` — ядро
   [M1](../planning/M1-orchestrator-core.md), интерфейс [M2](../planning/M2-interface-and-process.md)
   (макет [ui-mockup.html](../design/ui-mockup.html)), [M3](../planning/M3-fixes.md), общий демон
-  ChatGPT [M12](../planning/M12-codex-shared-daemon.md), Windows [M13](../planning/M13-windows-shared-daemon.md), [M14](../planning/M14-windows-fixes.md).
+  ChatGPT [M12](../planning/M12-codex-shared-daemon.md), Windows [M13](../planning/M13-windows-shared-daemon.md), [M14](../planning/M14-windows-fixes.md),
+  диалоги Claude [M15](../planning/M15-claude-promo-dialogs.md).
 - Контракт провайдера, факты о Claude и Codex: [M1-providers.md](../planning/M1-providers.md);
   первая приёмка: [M1-acceptance.md](../evidence/M1-acceptance.md).
 - [README.md](../../README.md), [установка по ОС](../installation.md), [CHANGELOG.md](../../CHANGELOG.md).

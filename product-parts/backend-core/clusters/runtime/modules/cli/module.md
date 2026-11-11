@@ -148,7 +148,7 @@ stripping).
   `registerTitleRoutes` — маршруты имён и раздел `titles`; `isClient` — провайдер есть в реестре.
 - `autopilot` (веха 2, T003): `createAutopilot` получает канал-обёртку,
   чей `enqueue` будит простаивающую (`waiting`) сессию через `wakeSession` её
-  провайдера (есть метод — будит; сейчас он только у Claude); опция `orchestration` —
+  провайдера (есть метод — будит; сейчас он только у Claude); `owns` — `ownsSession` (M16); опция `orchestration` —
   возможность `orchestration` провайдера сессии (недоступна — скоуп только
   последовательно); решатель `Stop` канала
   (`channel.setDecider`); маршруты хуков получают канал-обёртку, чей

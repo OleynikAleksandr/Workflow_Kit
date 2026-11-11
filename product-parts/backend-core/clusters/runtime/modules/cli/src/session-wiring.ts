@@ -98,6 +98,8 @@ export function wireSessions(options: SessionWiringOptions): SessionWiring {
     review: reviewDecider,
     projectPath: async (id) => (await projects.get(id))?.path,
     orchestration: (client) => providerCapability(providers.get(client), 'orchestration'),
+    // Called only after start, when ownsSession below is defined.
+    owns: (projectId, key) => ownsSession(projectId, key),
     log: options.log,
   });
   channel.setDecider((context) => autopilot.decide(context));

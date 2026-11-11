@@ -82,6 +82,8 @@ export interface AutopilotOptions {
    * capability). Default: every provider may.
    */
   orchestration?: (client: string) => Promise<{ available: boolean; reason?: string }>;
+  /** Whether the project lists the session (its provider knows it); absent — every session counts. */
+  owns?: (projectId: string, key: string) => Promise<boolean>;
   maxContinues?: number;
   now?: () => Date;
   log?: (line: string) => void;
@@ -199,7 +201,7 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
     entry.before = status ? { head: status.head, revision: status.revision } : null;
     entry.origin = 'kit';
     note(entry, 'continue', null, 'Сообщение из панели отправлено агенту');
-    return options.channel.enqueue(key, text, 'panel').id;
+    return options.channel.enqueue(key, text, 'panel', projectId).id;
   }
 
   async function strategy(projectId: string): Promise<'sequential' | 'orchestrated'> {
@@ -288,7 +290,10 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
       }
       if (request.option === 'orchestrated') await requireOrchestration(request.session);
       if (request.option !== 'refine' && options.review?.choiceBlocked) {
-        const working = options.channel.list().filter((a) => a.projectId === projectId && a.state === 'working').map((a) => a.key);
+        const busy = options.channel.list().filter((a) => a.projectId === projectId && a.state === 'working').map((a) => a.key);
+        // A stray session the project does not list (M16: a background thread of an app) is no review source.
+        const listed = await Promise.all(busy.map(async (key) => (options.owns ? options.owns(projectId, key).catch(() => true) : true)));
+        const working = busy.filter((_, index) => listed[index]);
         const blocked = await options.review.choiceBlocked(projectId, working);
         if (blocked) throw new WorkflowActionError('review-pending', blocked, 409, 'Дождитесь ревью плана: карточка выбора вернётся после него.');
       }
@@ -306,11 +311,11 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
       const entry = state(request.session, projectId);
       if (request.option === 'refine') {
         entry.enabled = false;
-        options.channel.enqueue(request.session, REFINE_MESSAGE, 'panel');
+        options.channel.enqueue(request.session, REFINE_MESSAGE, 'panel', projectId);
       } else {
         owners.set(projectId, request.session);
         const only = request.option === 'sequential' ? await sequentialOnly(request.session) : '';
-        options.channel.enqueue(request.session, `${CHOSEN_WAIT[request.option]}${only}`, 'panel');
+        options.channel.enqueue(request.session, `${CHOSEN_WAIT[request.option]}${only}`, 'panel', projectId);
       }
       return { option: request.option, owner: request.session };
     },

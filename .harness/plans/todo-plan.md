@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": "T001",
+  "currentTaskId": null,
   "lastClosed": {
     "closedAt": "2026-11-11T16:49:08.593Z",
     "scopeId": "m15-claude-promo-dialogs"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 634,
+  "revision": 635,
   "rounds": [
     {
       "digest": null,
@@ -88,14 +88,17 @@
       "files": [
         "product-parts/workflow-engine/clusters/session-loop/modules/autopilot",
         "product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts",
-        "product-parts/backend-core/clusters/runtime/modules/cli/module.md"
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/autopilot.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/restart.test.ts"
       ],
       "fixes": null,
       "id": "T001",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "title": "Команды автопилота знают проект",
       "why": "После перезапуска службы команда запуска плана не будила агента"
     },
@@ -202,9 +205,9 @@
 - Scope: m16-plan-start-after-review (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: T001
-- Progress: 0/4
-- Revision: 634
+- Current task: none
+- Progress: 1/4
+- Revision: 635
 
 ## Objective
 
@@ -220,9 +223,9 @@
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [IN_PROGRESS] T001 — Команды автопилота знают проект (work)
+- [DONE] T001 — Команды автопилота знают проект (work)
   - Commit: fix: wake the agent for plan commands after a service restart
-  - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/autopilot.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/restart.test.ts
 - [TODO] T002 — Посторонняя сессия не прячет карточку выбора (work)
   - Commit: fix: show the mode choice despite a stray session
   - Files: product-parts/control-panel/clusters/web-panel/modules/session-view

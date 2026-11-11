@@ -294,6 +294,19 @@ export function install(shell) {
   }
 
   /**
+   * The reviewer's chat in its app (M12): a computer asks the service to open the desktop link, a
+   * touch device follows the mobile one.
+   * @param {Record<string, string>} links
+   */
+  function openReviewerChat(links) {
+    const touch = (navigator.maxTouchPoints ?? 0) > 1;
+    const link = touch ? (links['mobile'] ?? links['web']) : (links['desktop'] ?? links['web']);
+    if (!link) return;
+    if (touch) window.location.assign(link);
+    else void shell.api('POST', '/api/open-link', { url: link }).catch(() => window.location.assign(link));
+  }
+
+  /**
    * «Ревью плана» (spec M4 section 6): the reviewer, the round, who answers, the journal; the
    * reviewer's screen points to the reviewed session.
    * @param {NonNullable<ReturnType<typeof crossReviewView>>} review
@@ -310,6 +323,7 @@ export function install(shell) {
       : `${review.statusLabel}${review.reason ? `: ${review.reason}` : ''}`;
     const buttons = [
       other && review.canOpenOther ? button(review.role === 'main' ? 'Открыть сессию ревьюера' : 'Открыть основную сессию', () => open(other), 'btn') : null,
+      review.reviewerLinks ? button('Открыть чат ревьюера', () => openReviewerChat(review.reviewerLinks ?? {}), 'btn') : null,
       review.active && review.role === 'main'
         ? button('Прервать ревью', async () => {
             try {

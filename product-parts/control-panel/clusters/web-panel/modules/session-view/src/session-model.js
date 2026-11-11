@@ -300,6 +300,31 @@ function projectReviews(state, projectId) {
 }
 
 /**
+ * Chat links of a reviewer session ("<provider>:<id>"): only when its provider reports an active
+ * shared access (spec M12 section 2.3) — then the app can write in the chat while Kit holds the
+ * reviewer's turn. Otherwise null: the reviewer's chat is not offered (M4 13.4).
+ * @param {Record<string, unknown>} state
+ * @param {string} projectId
+ * @param {string} reviewerKey
+ * @returns {Record<string, string> | null}
+ */
+export function reviewerChatLinks(state, projectId, reviewerKey) {
+  const colon = reviewerKey.indexOf(':');
+  if (colon <= 0) return null;
+  const provider = reviewerKey.slice(0, colon);
+  const id = reviewerKey.slice(colon + 1);
+  const summary = array(record(state['providers'])['providers']).find((p) => p && p.id === provider);
+  if (record(record(record(summary)['status'])['details'])['sharedAccess']?.state !== 'active') return null;
+  const sessions = array(record(record(record(record(state['providers'])['projects'])[projectId])[provider])['sessions']);
+  const session = sessions.find((s) => s && (s.localId === id || s.remoteId === id));
+  const links = record(session?.links);
+  /** @type {Record<string, string>} */
+  const usable = {};
+  for (const [kind, value] of Object.entries(links)) if (typeof value === 'string' && value !== '') usable[kind] = value;
+  return Object.keys(usable).length > 0 ? usable : null;
+}
+
+/**
  * @typedef {object} CrossReviewView
  * @property {'main' | 'reviewer'} role the session is the reviewed one or the reviewer
  * @property {boolean} active
@@ -312,6 +337,8 @@ function projectReviews(state, projectId) {
  * @property {number} maxRounds
  * @property {string} reviewerName provider of the reviewer
  * @property {string | null} reviewerKey
+ * @property {Record<string, string> | null} reviewerLinks chat links of the reviewer, only when its
+ *   provider shares the chats with its apps (M12: shared access active), else null (M4 13.4)
  * @property {string} mainKey
  * @property {string} mainTitle
  * @property {string | null} scopeId
@@ -357,6 +384,7 @@ export function crossReviewView(state, projectId, key) {
     maxRounds: Number(found.maxRounds) || 5,
     reviewerName,
     reviewerKey: typeof found.reviewerKey === 'string' ? found.reviewerKey : null,
+    reviewerLinks: role === 'main' && typeof found.reviewerKey === 'string' ? reviewerChatLinks(state, projectId, found.reviewerKey) : null,
     mainKey: String(found.mainKey),
     mainTitle: String(found.mainTitle ?? ''),
     scopeId: typeof found.scopeId === 'string' ? found.scopeId : null,

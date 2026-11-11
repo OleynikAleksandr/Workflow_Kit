@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 556,
+  "revision": 558,
   "rounds": [
     {
       "digest": null,
@@ -220,14 +220,24 @@
       "docsWaiver": null,
       "files": [
         "product-parts/control-panel/clusters/web-panel/modules/panel-shell",
-        "product-parts/control-panel/clusters/web-panel/modules/session-view"
+        "product-parts/control-panel/clusters/web-panel/modules/session-view",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/shared-access-card.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/shared-access-model.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/panel-shell.test.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/shared-access-model.test.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts"
       ],
       "fixes": null,
       "id": "T003",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Панель: блок общего доступа и чат ревьюера",
       "why": "Настройка и состояние режима должны быть видны и управляемы из панели"
     },
@@ -336,8 +346,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 2/6
-- Revision: 556
+- Progress: 3/6
+- Revision: 558
 
 ## Objective
 
@@ -363,9 +373,9 @@ ChatGPT на macOS работает через один демон Codex: чат
   - Commit: feat: run ChatGPT sessions through the shared Codex daemon
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/open-link.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/review-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/open-link.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/review.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/handover.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/shared-access.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/handover.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/shared-access.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/shared-mode.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/thread-ops.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/shared-mode.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/shared-sessions.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts
   - Depends on: T001
-- [TODO] T003 — Панель: блок общего доступа и чат ревьюера (work)
+- [DONE] T003 — Панель: блок общего доступа и чат ревьюера (work)
   - Commit: feat: show the shared access setup and the reviewer chat link in the panel
-  - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/control-panel/clusters/web-panel/modules/session-view
+  - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/shared-access-card.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/shared-access-model.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/panel-shell.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/shared-access-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts
   - Depends on: T002
 - [TODO] T004 — README и инструкция по установке (work)
   - Commit: docs: describe the shared chat access setup for ChatGPT

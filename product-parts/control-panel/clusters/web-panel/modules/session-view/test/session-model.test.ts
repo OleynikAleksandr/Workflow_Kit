@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { test } from 'node:test';
 import { SESSION_VIEW_ASSETS_DIR, SESSION_VIEW_PREFIX, sessionViewMount } from '../src/index.ts';
-import { activityView, choiceView, crossReviewView, planQuestionView, planView, reviewView, timer } from '../src/session-model.js';
+import { activityView, choiceView, crossReviewView, planQuestionView, planView, reviewView, reviewerChatLinks, timer } from '../src/session-model.js';
 
 /** The "providers" section as the service reports it: the panel takes the names from it. */
 const PROVIDERS = { providers: [{ id: 'codex', title: 'ChatGPT (Codex)', label: 'ChatGPT' }, { id: 'claude', title: 'Claude', label: 'Claude' }, { id: 'kimi', title: 'Kimi Code' }] };
@@ -282,4 +282,23 @@ test('a plan start under way: the spinner instead of the button, then «Нача
   view = planView(s, 'p', 'claude:s1')!;
   assert.equal(view.starting, null, 'Kit recorded the work: the card is the usual one');
   assert.deepEqual(view.buttons.map((b) => b.label), ['Пауза']);
+});
+
+test('the reviewer chat is offered only while its provider shares the chats (M12), and only to the main session', () => {
+  const links = { desktop: 'codex://threads/r1?hostId=remote-ssh-discovered%3Awfk-local', mobile: 'codex://threads/r1' };
+  const state = (sharedState: string | null): Record<string, unknown> => ({
+    providers: {
+      providers: [{ id: 'codex', label: 'ChatGPT', status: { details: sharedState ? { sharedAccess: { state: sharedState } } : {} } }],
+      projects: { p1: { codex: { sessions: [{ localId: 'r1', links }] } } },
+    },
+    reviews: { projects: { p1: [{ mainKey: 'claude:m1', reviewerKey: 'codex:r1', reviewerProvider: 'codex', mainProvider: 'claude', status: 'reviewing', active: true, updatedAt: '1', entries: [] }] } },
+  });
+  assert.deepEqual(reviewerChatLinks(state('active'), 'p1', 'codex:r1'), links);
+  assert.equal(reviewerChatLinks(state('broken'), 'p1', 'codex:r1'), null);
+  assert.equal(reviewerChatLinks(state(null), 'p1', 'codex:r1'), null);
+  assert.equal(reviewerChatLinks(state('active'), 'p1', 'codex:other'), null);
+  assert.equal(reviewerChatLinks(state('active'), 'p1', 'bad'), null);
+  assert.deepEqual(crossReviewView(state('active'), 'p1', 'claude:m1')?.reviewerLinks, links);
+  assert.equal(crossReviewView(state('active'), 'p1', 'codex:r1')?.reviewerLinks, null, 'the reviewer screen does not offer itself');
+  assert.equal(crossReviewView(state('needs-connection'), 'p1', 'claude:m1')?.reviewerLinks, null);
 });

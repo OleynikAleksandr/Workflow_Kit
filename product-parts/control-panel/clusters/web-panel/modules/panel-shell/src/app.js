@@ -21,6 +21,7 @@ import { registerSlot, slots } from './slots.js';
 import { indicators, providerNames, providerViews } from './providers.js';
 import { deviceLink, parseRoute, projectLists, projectTree, routeHash, settingsExit, shortPath, statusLine } from './view-model.js';
 import './system-card.js';
+import './shared-access-card.js';
 
 /**
  * Panel extensions mounted by the backend under their own prefix; each exports install(shell).

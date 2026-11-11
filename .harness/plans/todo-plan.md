@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T007",
   "lastClosed": {
     "closedAt": "2026-11-11T11:00:43.337Z",
     "scopeId": "m13-windows-shared-daemon"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 604,
+  "revision": 606,
   "rounds": [
     {
       "digest": {
@@ -366,11 +366,12 @@
       "acceptance": [
         "Версия 0.8.1, CHANGELOG, документ приёмки M14 с живыми проверками по ОС",
         "CI зелёный на macOS, Linux, Windows x64 и ARM64 на ветке ci/m14-windows-fixes",
-        "Служба переустановлена на macOS"
+        "Служба переустановлена на macOS",
+        "Живая проверка выпуска: скрытые и служебные тома (.timemachine, com.apple.*) не попадают в корни выбора папки"
       ],
       "checks": [],
       "commitMessage": "chore: release 0.8.1",
-      "confirmation": null,
+      "confirmation": "Поэтому, выполняя работу последовательно, собери, пожалуйста, новый релиз. И можешь сразу принять этот скоп и залить новый релиз на GitHub.",
       "context": [],
       "dependencies": [
         "T006",
@@ -384,14 +385,15 @@
         "docs/evidence/M14-acceptance.md",
         "README.md",
         "docs/installation.md",
-        "docs/architecture/OVERVIEW.md"
+        "docs/architecture/OVERVIEW.md",
+        "product-parts/backend-core/clusters/projects/modules/project-registry"
       ],
       "fixes": null,
       "id": "T007",
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "Релиз 0.8.1",
       "why": "Выпустить исправления для проверки на Windows"
     }
@@ -405,9 +407,9 @@
 - Scope: m14-windows-fixes (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: none
+- Current task: T007
 - Progress: 7/8
-- Revision: 604
+- Revision: 606
 
 ## Objective
 
@@ -452,9 +454,9 @@
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M14-windows-fixes.md, product-parts/backend-core/clusters/projects/modules/git-publish/module.md, docs/installation.md
   - Depends on: T001, T002, T003, T004, T005, T006
-- [TODO] T007 — Релиз 0.8.1 (delivery)
+- [IN_PROGRESS] T007 — Релиз 0.8.1 (delivery)
   - Commit: chore: release 0.8.1
-  - Files: package.json, package-lock.json, CHANGELOG.md, docs/evidence/M14-acceptance.md, README.md, docs/installation.md, docs/architecture/OVERVIEW.md
+  - Files: package.json, package-lock.json, CHANGELOG.md, docs/evidence/M14-acceptance.md, README.md, docs/installation.md, docs/architecture/OVERVIEW.md, product-parts/backend-core/clusters/projects/modules/project-registry
   - Depends on: T006, DOCS-R1
 
 Digest: Исправлены находки живой проверки 0.8.0 на Windows: git без мелькающих окон, выключенный UAC назван причиной, «Работает» только при работающем демоне, аккуратная карточка общего доступа, панель в Chrome, подсказка про wfk, папка проектов на любом локальном диске.

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 565,
+  "revision": 566,
   "rounds": [
     {
       "digest": {
@@ -40,6 +40,13 @@
       "kind": "implementation",
       "status": "CLOSED",
       "title": "Implementation"
+    },
+    {
+      "digest": null,
+      "id": "R2",
+      "kind": "fixes",
+      "status": "OPEN",
+      "title": "CI Windows: права файлов в тесте общего доступа"
     }
   ],
   "schema": "harness-workflow-plan/1",
@@ -92,7 +99,7 @@
         "text": "При сбое схемы Kit сам возвращается к прежнему поведению"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "IN_PROGRESS",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "e9c04a9c-cd7c-4f6c-b4f7-f6b07802530e",
@@ -359,6 +366,82 @@
       "status": "DONE",
       "title": "Релиз 0.7.0",
       "why": "Релиз 0.7.0"
+    },
+    {
+      "acceptance": [
+        "Проверка прав 0600 в тесте настройки идёт только на хостах с POSIX-правами (не Windows)",
+        "Остальные проверки теста идут на всех ОС"
+      ],
+      "checks": [],
+      "commitMessage": "test: skip the POSIX file mode check of the shared access test on Windows hosts",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [],
+      "docsWaiver": "меняется только тест, контракт модуля не меняется",
+      "files": [
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/shared-access.test.ts"
+      ],
+      "fixes": "T001",
+      "id": "T006",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Тест общего доступа без проверки POSIX-прав на Windows",
+      "why": "CI 42999966626: на Windows x64 и ARM64 тест ждёт права 0600, а файловая система Windows отдаёт 0666; продукт на Windows эти файлы не пишет"
+    },
+    {
+      "acceptance": [
+        "Project-wide documents describe the round result",
+        "The round digest records result, decisions, contracts and references"
+      ],
+      "checks": [],
+      "commitMessage": "docs: reconcile documentation for R2",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T006"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/architecture/OVERVIEW.md"
+      ],
+      "fixes": null,
+      "id": "DOCS-R2",
+      "iteration": 1,
+      "kind": "docs",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Reconcile project documentation and write the round digest",
+      "why": "Keep the project context current for the next agent and close the round."
+    },
+    {
+      "acceptance": [
+        "CI зелёный на macOS, Linux, Windows x64 и ARM64 на ветке ci/m12-codex-shared-daemon",
+        "Документ приёмки записывает запуск CI и падение первого запуска",
+        "Служба 0.7.0 установлена, wfk doctor --installed — всё в порядке"
+      ],
+      "checks": [],
+      "commitMessage": "chore: record the green CI of release 0.7.0",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T006",
+        "DOCS-R2"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "docs/evidence/M12-acceptance.md"
+      ],
+      "fixes": null,
+      "id": "T007",
+      "iteration": 1,
+      "kind": "delivery",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Выпуск 0.7.0 с зелёным CI",
+      "why": "Выпуск 0.7.0 с зелёным CI"
     }
   ]
 }
@@ -368,11 +451,11 @@
 ## State
 
 - Scope: m12-codex-shared-daemon (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 6/6
-- Revision: 565
+- Progress: 6/9
+- Revision: 566
 
 ## Objective
 
@@ -416,5 +499,20 @@ ChatGPT на macOS работает через один демон Codex: чат
   - Depends on: T004, DOCS-R1
 
 Digest: macOS: Kit сам настраивает SSH-доступ ChatGPT к своему демону Codex (карточка «Общий доступ к чатам», маршруты shared-access, строка wfk doctor). В режиме общего демона чаты Kit (и ревьюера) открываются в ChatGPT на Mac, iPad и из Kit одновременно: ссылка с hostId, без выгрузки, wakeSession, управление у демона, самопроверка с откатом. Linux и Windows — unsupported, поведение 0.6.4.
+
+### R2 — CI Windows: права файлов в тесте общего доступа (fixes, OPEN)
+
+- [TODO] T006 — Тест общего доступа без проверки POSIX-прав на Windows (work)
+  - Commit: test: skip the POSIX file mode check of the shared access test on Windows hosts
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/shared-access.test.ts
+  - Fixes: T001
+- [TODO] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
+  - Commit: docs: reconcile documentation for R2
+  - Files: README.md, docs/architecture/OVERVIEW.md
+  - Depends on: T006
+- [TODO] T007 — Выпуск 0.7.0 с зелёным CI (delivery)
+  - Commit: chore: record the green CI of release 0.7.0
+  - Files: docs/evidence/M12-acceptance.md
+  - Depends on: T006, DOCS-R2
 
 State changes only through `scripts/workflow` commands. History lives in Git.

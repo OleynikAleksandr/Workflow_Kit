@@ -10,10 +10,32 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 560,
+  "revision": 562,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "provider-registry: Provider.sharedAccess (SharedAccess: state, cached, preview, apply, remove, open) и Provider.reviewBrief",
+          "routes: GET/POST /api/providers/:p/shared-access[/recheck|/preview|/apply|/remove|/open]",
+          "provider-codex: createSharedAccess, createSharedMode, sharedThreadLinks, wakeThread; status.details.sharedAccess",
+          "cli: briefByQueue(provider) по reviewBrief; OPENABLE_LINK принимает ?hostId=remote-ssh-discovered%3A<alias>",
+          "service-installer: doctor — строка «ChatGPT: общий доступ к чатам» (deps.sharedAccess)"
+        ],
+        "decisions": [
+          "Режим только на macOS; Linux и Windows — unsupported",
+          "Kit пишет ключ, authorized_keys (from=127.0.0.1,::1), блок Host wfk-local и блок профиля после предпросмотра; «Удалённый вход» и переключатель wfk-local в ChatGPT — пользователь",
+          "Подключение открывается ссылкой codex://settings/connections/ssh: добавить его ссылкой нельзя (проба 2026-11-11)",
+          "Профиль: zsh — ~/.zshenv, bash — первый login-профиль; приложение запускает $SHELL -l -i -c",
+          "Ревьюер ChatGPT получает задание первым сообщением (reviewBrief), его чат предлагается только при active",
+          "Сбой проверки (в т.ч. второй app-server) переводит в broken и возвращает прежнее поведение"
+        ],
+        "references": [
+          "docs/planning/M12-codex-shared-daemon.md",
+          "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/shared-access.md",
+          "docs/installation.md#общий-доступ-к-чатам-chatgpt-macos"
+        ],
+        "result": "macOS: Kit сам настраивает SSH-доступ ChatGPT к своему демону Codex (карточка «Общий доступ к чатам», маршруты shared-access, строка wfk doctor). В режиме общего демона чаты Kit (и ревьюера) открываются в ChatGPT на Mac, iPad и из Kit одновременно: ссылка с hostId, без выгрузки, wakeSession, управление у демона, самопроверка с откатом. Linux и Windows — unsupported, поведение 0.6.4."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -301,7 +323,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -346,8 +368,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 4/6
-- Revision: 560
+- Progress: 5/6
+- Revision: 562
 
 ## Objective
 
@@ -381,7 +403,7 @@ ChatGPT на macOS работает через один демон Codex: чат
   - Commit: docs: describe the shared chat access setup for ChatGPT
   - Files: README.md, docs/installation.md
   - Depends on: T003
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M12-codex-shared-daemon.md, docs/installation.md
   - Depends on: T001, T002, T003, T004
@@ -389,5 +411,7 @@ ChatGPT на macOS работает через один демон Codex: чат
   - Commit: chore: release 0.7.0
   - Files: package.json, package-lock.json, CHANGELOG.md, docs/evidence/M12-acceptance.md
   - Depends on: T004, DOCS-R1
+
+Digest: macOS: Kit сам настраивает SSH-доступ ChatGPT к своему демону Codex (карточка «Общий доступ к чатам», маршруты shared-access, строка wfk doctor). В режиме общего демона чаты Kit (и ревьюера) открываются в ChatGPT на Mac, iPad и из Kit одновременно: ссылка с hostId, без выгрузки, wakeSession, управление у демона, самопроверка с откатом. Linux и Windows — unsupported, поведение 0.6.4.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

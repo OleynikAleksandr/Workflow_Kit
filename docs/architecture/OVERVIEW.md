@@ -236,7 +236,8 @@ Linux `$XDG_CONFIG_HOME`, `$XDG_STATE_HOME`, `$XDG_DATA_HOME` +
 | Claude: доверие (запись `~/.claude.json`) | да | да | да |
 | Claude: сессии, окружение (pty) | да | если есть `expect` | да, ConPTY (`pty-host`) |
 | Codex: демон, доверие, хуки, сессии | да | да | да, Codex 0.160+, через `proxy` |
-| Codex: управление — приложению ChatGPT | да, `ps` | нет приложения | CIM codex.exe (**П**) |
+| Codex: управление — приложению ChatGPT | да, `ps`; не в режиме общего демона | нет приложения | CIM codex.exe (**П**) |
+| Codex: общий демон (M12, SSH `wfk-local`) | да, Kit настраивает | `unsupported` | `unsupported` |
 | Kimi: серверы, сессии, исполнители | да | тесты (**П**) | тесты (**П**) |
 | Kimi: хук Kit в `config.toml` | `/bin/sh` | то же, тесты | `cmd.exe`, тесты (**П**) |
 | Kimi: приложение, проект в нём | `open -a`, `--workspace` | `xdg-mime`, `xdg-open` | `reg`, `--workspace` (**П**) |
@@ -250,9 +251,10 @@ Linux `$XDG_CONFIG_HOME`, `$XDG_STATE_HOME`, `$XDG_DATA_HOME` +
   живая проверка M5 впереди). На Linux Claude требует `expect`, чаты ChatGPT и Claude служба не открывает. Инструкция — [установка](../installation.md).
 - macOS: установка проверена в M3/M4; окно значка собирается через `swiftc`,
   без сборки открывается браузер. Windows/Linux открывают браузер.
-- Прерванные сессии Claude восстанавливаются при старте службы и открытии;
-  архивные и остановленные намеренно сами не поднимаются. У Codex нет
-  `thread/resume` в контракте Kit, состояние сессии бывает `unknown`.
+- Прерванные сессии Claude поднимаются при старте службы и открытии, архивные и
+  остановленные — нет. Состояние сессии Codex бывает `unknown`; будит её Kit
+  (`thread/resume`) только в режиме общего демона (M12, только macOS; опирается на
+  недокументированное поведение ChatGPT, Kit проверяет его раз в минуту).
 - Доверие Claude записывается в `~/.claude.json`; при неожиданном диалоге
   сессия останавливается с ошибкой, клавиши автоматически не нажимаются.
   Codex сохраняет пользовательские политики служебного хода. Подробности —
@@ -260,21 +262,17 @@ Linux `$XDG_CONFIG_HOME`, `$XDG_STATE_HOME`, `$XDG_DATA_HOME` +
 - Панель доступна через loopback и Tailscale, без отдельной авторизации.
   Публичное размещение HTTP-панели не предусмотрено. Удалённый клиент
   зависит от работающего компьютера со службой и связи через Tailscale.
-- Браузер на iPad может блокировать автоматическое открытие чата;
-  используйте щелчок по карточке сессии.
-- «Перезапустить службу» и «Диагностика» в панели не реализованы;
-  используйте команды `wfk service` и `wfk doctor`. Операции в памяти
-  пропадают при перезапуске службы; остановка службы сама по себе
-  не завершает процессы провайдеров.
+- iPad может не открыть чат сам: щёлкните карточку сессии.
+- «Перезапустить службу» и «Диагностика» в панели нет — `wfk service`, `wfk doctor`.
+  Операции в памяти пропадают при перезапуске; остановка службы не завершает
+  процессы провайдеров.
 
 ## Документы
 
-- Спецификация вехи 1: [docs/planning/M1-orchestrator-core.md](../planning/M1-orchestrator-core.md).
-- Спецификация вехи 3: [docs/planning/M3-fixes.md](../planning/M3-fixes.md).
-- Спецификация вехи 2: [docs/planning/M2-interface-and-process.md](../planning/M2-interface-and-process.md);
-  макет: [docs/design/ui-mockup.html](../design/ui-mockup.html).
-- Контракт провайдера и факты о Claude и Codex: [docs/planning/M1-providers.md](../planning/M1-providers.md).
-- Первая приёмка на Mac и найденные дефекты: [docs/evidence/M1-acceptance.md](../evidence/M1-acceptance.md).
-- Описание и быстрый старт: [README.md](../../README.md).
-- Установка, обновление и диагностика по ОС: [docs/installation.md](../installation.md).
-- История выпусков: [CHANGELOG.md](../../CHANGELOG.md).
+- Спецификации вех: `docs/planning/M*.md` — ядро
+  [M1](../planning/M1-orchestrator-core.md), интерфейс [M2](../planning/M2-interface-and-process.md)
+  (макет [ui-mockup.html](../design/ui-mockup.html)), [M3](../planning/M3-fixes.md), общий демон
+  ChatGPT [M12](../planning/M12-codex-shared-daemon.md).
+- Контракт провайдера, факты о Claude и Codex: [M1-providers.md](../planning/M1-providers.md);
+  первая приёмка: [M1-acceptance.md](../evidence/M1-acceptance.md).
+- [README.md](../../README.md), [установка по ОС](../installation.md), [CHANGELOG.md](../../CHANGELOG.md).

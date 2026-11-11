@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T003",
   "lastClosed": {
     "closedAt": "2026-11-11T16:49:08.593Z",
     "scopeId": "m15-claude-promo-dialogs"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 639,
+  "revision": 641,
   "rounds": [
     {
       "digest": {
@@ -189,7 +189,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: release 0.8.3",
-      "confirmation": null,
+      "confirmation": "Да, с выпуском",
       "context": [],
       "dependencies": [
         "T002",
@@ -200,6 +200,7 @@
         "package.json",
         "package-lock.json",
         "CHANGELOG.md",
+        "docs/changelog/CHANGELOG-0.1-0.4.md",
         "docs/evidence/M16-acceptance.md",
         "README.md",
         "docs/installation.md",
@@ -210,7 +211,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "Выпуск 0.8.3",
       "why": "Выпустить исправления для проверки на Windows"
     }
@@ -224,9 +225,9 @@
 - Scope: m16-plan-start-after-review (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: none
+- Current task: T003
 - Progress: 3/4
-- Revision: 639
+- Revision: 641
 
 ## Objective
 
@@ -253,9 +254,9 @@
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M16-plan-start-after-review.md
   - Depends on: T001, T002
-- [TODO] T003 — Выпуск 0.8.3 (delivery)
+- [IN_PROGRESS] T003 — Выпуск 0.8.3 (delivery)
   - Commit: chore: release 0.8.3
-  - Files: package.json, package-lock.json, CHANGELOG.md, docs/evidence/M16-acceptance.md, README.md, docs/installation.md, docs/architecture/OVERVIEW.md
+  - Files: package.json, package-lock.json, CHANGELOG.md, docs/changelog/CHANGELOG-0.1-0.4.md, docs/evidence/M16-acceptance.md, README.md, docs/installation.md, docs/architecture/OVERVIEW.md
   - Depends on: T002, DOCS-R1
 
 Digest: После ревью карточка выбора режима не прячется посторонней сессией канала, которой провайдер не числит за проектом; выбор режима не блокируется такой сессией; команды автопилота (выбор режима, запуск, доработка) передают projectId, поэтому после перезапуска службы агент будится сразу.

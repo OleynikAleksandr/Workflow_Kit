@@ -36,7 +36,7 @@ Git Bash, карточка покажет причину, а сессии ChatGP
 
 | Пункт | Результат |
 | --- | --- |
-| 1. SSH-подключения в ChatGPT для Windows | не проверено |
+| 1. SSH-подключения в ChatGPT для Windows | есть (2026-11-11, снимок пользователя): Settings → Connections → вкладки «Control this PC», «Control other devices», «SSH»; «SSH connections from this PC» с кнопкой «Add»; список пуст (`Host wfk-local` ещё не записан) |
 | 2. sshd с `DefaultShell` = Git `sh.exe` принимает команду приложения | не проверено |
 | 3. `codex app-server proxy` находит демон Kit | не проверено |
 | 4. подключение и второй app-server в списке процессов CIM | не проверено |

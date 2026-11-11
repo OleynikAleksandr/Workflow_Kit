@@ -69,6 +69,8 @@ export interface SharedAccessInfo {
   state: string;
   label: string;
   reason: string | null;
+  /** What to do or, on Windows (M13), what the checks found; null when nothing. */
+  hint?: string | null;
 }
 
 /** Asks a backend on 127.0.0.1:<port> for the shared access of ChatGPT; null when it cannot. */

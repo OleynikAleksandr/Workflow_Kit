@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 575,
+  "revision": 577,
   "rounds": [
     {
       "digest": null,
@@ -100,14 +100,25 @@
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex",
         "product-parts/system-service/clusters/deployment/modules/service-installer",
         "tools/platform-guard/allowlist.json",
-        "docs/evidence/M13-windows-probe.md"
+        "docs/evidence/M13-windows-probe.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/shared-access.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/shared-access.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/shared-windows.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/shared-access.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/shared-windows.test.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/module.md",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/context.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/doctor.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/types.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/test/control.test.ts"
       ],
       "fixes": null,
       "id": "T001",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Диагностика общего доступа на Windows и документ пробы",
       "why": "Схему на Windows надо проверить по шагам; проверяющему нужны точные причины"
     },
@@ -272,8 +283,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 0/6
-- Revision: 575
+- Progress: 1/6
+- Revision: 577
 
 ## Objective
 
@@ -292,9 +303,9 @@ ChatGPT на Windows 11 работает через общий демон Codex 
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T001 — Диагностика общего доступа на Windows и документ пробы (work)
+- [DONE] T001 — Диагностика общего доступа на Windows и документ пробы (work)
   - Commit: feat: diagnose the shared ChatGPT access on Windows
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, product-parts/system-service/clusters/deployment/modules/service-installer, tools/platform-guard/allowlist.json, docs/evidence/M13-windows-probe.md
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, product-parts/system-service/clusters/deployment/modules/service-installer, tools/platform-guard/allowlist.json, docs/evidence/M13-windows-probe.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/shared-access.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/shared-access.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/shared-windows.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/shared-access.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/shared-windows.test.ts, product-parts/system-service/clusters/deployment/modules/service-installer/module.md, product-parts/system-service/clusters/deployment/modules/service-installer/src/context.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/doctor.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/types.ts, product-parts/system-service/clusters/deployment/modules/service-installer/test/control.test.ts
 - [TODO] T002 — Настройка на Windows: файлы Kit и скрипт администратора (work)
   - Commit: feat: set up the shared ChatGPT access on Windows with an administrator script
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, tools/platform-guard/allowlist.json

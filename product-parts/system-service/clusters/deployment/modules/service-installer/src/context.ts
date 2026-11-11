@@ -48,7 +48,7 @@ export const fetchSharedAccess: SharedAccessProbe = async (port) => {
     if (!response.ok) return null;
     const body: unknown = await response.json();
     if (!isRecord(body) || typeof body['state'] !== 'string') return null;
-    return { state: body['state'], label: typeof body['label'] === 'string' ? body['label'] : body['state'], reason: typeof body['reason'] === 'string' ? body['reason'] : null };
+    return { state: body['state'], label: typeof body['label'] === 'string' ? body['label'] : body['state'], reason: typeof body['reason'] === 'string' ? body['reason'] : null, hint: typeof body['hint'] === 'string' ? body['hint'] : null };
   } catch {
     return null;
   }

@@ -15,6 +15,8 @@ import type { SharedAccess, SharedAccessPreview, SharedAccessState, SharedAccess
 import { processListing } from './handover.ts';
 import { isSecondAppServer } from './shared-mode.ts';
 import type { CodexRuntime } from './runtime.ts';
+import { findProgram } from './runtime.ts';
+import { diagnoseWindows, windowsSummary } from './shared-windows.ts';
 import {
   SHARED_ALIAS,
   SHARED_HOST_ID,
@@ -259,6 +261,12 @@ export function createSharedAccess(rt: CodexRuntime, deps: SharedAccessDeps = {}
   };
 
   const check = async (): Promise<SharedAccessState> => {
+    // Windows (M13): every check runs read-only; the mode stays off until a probe confirms it.
+    if (context.platform === 'win32') {
+      const sshFound = (await findProgram('ssh', context.env, 'win32')) !== null;
+      const checks = await diagnoseWindows({ runCommand: context.runCommand, homedir: home, codexInstalled: rt.program.installed, sshFound, readText: readOrNull });
+      return result('unsupported', windowsSummary(checks));
+    }
     const reason = unsupportedReason(context.platform);
     if (reason) return result('unsupported', { reason });
     if (rt.program.installed === false) return result('unsupported', { reason: 'codex не найден', hint: 'Установите Codex CLI и нажмите «Перепроверить».' });

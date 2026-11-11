@@ -147,4 +147,13 @@ test('doctor shows the shared access of ChatGPT (M12): a state that needs the us
   const warn = await runServiceCommand('doctor', m.deps);
   assert.match(warn.message, /\[предупреждение\] ChatGPT: общий доступ к чатам: Нужен «Удалённый вход» — порт 22 не отвечает/);
   assert.equal(warn.exitCode, 0, 'a warning does not fail doctor');
+  assert.doesNotMatch(warn.message, /проверки общего доступа/, 'the checks line is only for Windows');
+});
+
+test('doctor on Windows prints the checks of the shared access (M13)', async () => {
+  const m = standardMachine('win32');
+  await runServiceCommand('install', m.deps);
+  m.backend.sharedAccess = { state: 'unsupported', label: 'Недоступно', reason: 'на Windows общий доступ ещё не подтверждён пробой (M13)', hint: 'Проверено: codex. Не прошло: сервер OpenSSH (служба sshd не установлена).' };
+  const report = await runServiceCommand('doctor', m.deps);
+  assert.match(report.message, /\[ok\]\s+ChatGPT: проверки общего доступа: Проверено: codex\. Не прошло: сервер OpenSSH/);
 });

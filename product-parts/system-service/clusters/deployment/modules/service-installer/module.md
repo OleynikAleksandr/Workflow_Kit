@@ -190,7 +190,8 @@ unit, `daemon-reload`; XDG-файл; `reg delete`, `.vbs`, PATH пользова
   строка «ChatGPT: общий доступ к чатам» (`sharedAccess`, `fetchSharedAccess`: `GET
   /api/providers/codex/shared-access` с Origin): `active`, `unsupported`, `not-configured` —
   `ok`, остальные — предупреждение (M12). Строка одинакова на всех ОС; вне macOS там
-  `unsupported`.
+  `unsupported`. На Windows (M13) следом — строка «ChatGPT: проверки общего доступа» (`hint`:
+  что прошло, что нет, что не проверено), всегда `ok`.
 
 ## Инварианты
 

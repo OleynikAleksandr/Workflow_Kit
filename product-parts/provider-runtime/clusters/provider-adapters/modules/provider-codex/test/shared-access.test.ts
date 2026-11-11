@@ -257,7 +257,8 @@ for (const platform of ['linux', 'win32'] as const) {
       await assert.rejects(shared.apply('x'), { code: 'not-supported' });
       await assert.rejects(shared.remove(), { code: 'not-supported' });
       await assert.rejects(shared.open('connections'), { code: 'not-supported' });
-      assert.deepEqual(m.calls, []);
+      // Windows (M13) only reads: one PowerShell call, no writes, no keygen.
+      assert.deepEqual(m.calls, platform === 'win32' ? ['powershell.exe'] : []);
     } finally {
       await m.close();
     }

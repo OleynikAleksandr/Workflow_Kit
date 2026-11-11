@@ -64,6 +64,17 @@ ChatGPT подключается к этому Mac по SSH (`wfk-local`) и ч�
   неудачная проверка дают `broken` — режим выключается сам, сессии идут прежним путём, и
   включается снова, когда проверки проходят.
 
+## Windows: диагностика (M13 T001)
+
+`src/shared-windows.ts`, `diagnoseWindows`: на `win32` `state()` только читает — один вызов
+PowerShell (`WINDOWS_PROBE_SCRIPT`: служба `sshd`, `HKLM\SOFTWARE\OpenSSH\DefaultShell`, пакет
+`OpenAI.Codex`, процессы `ssh.exe` и `codex.exe` через CIM), `ssh.exe` в PATH, `Host wfk-local` в
+`~/.ssh/config`, SSH-проверка (`SSH_CHECK_COMMAND`) только при работающем `sshd` и наличии
+`Host`, подключение приложения (`isWindowsSharedConnection`) и второй app-server. Итог —
+`unsupported` с причиной `WINDOWS_NOT_CONFIRMED` и подсказкой `windowsSummary`: «Проверено: …
+Не прошло: … Не проверено: …». `preview`, `apply`, `remove`, `open` на Windows по-прежнему
+отказывают (`not-supported`). Шаги пробы — `docs/evidence/M13-windows-probe.md`.
+
 | macOS | Linux | Windows |
 |---|---|---|
-| полная настройка | `unsupported`: приложения ChatGPT нет; ничего не пишется | `unsupported`: OpenSSH-сервер и `$SHELL` не проверены; ничего не пишется |
+| полная настройка | `unsupported`: приложения ChatGPT нет; ничего не пишется | `unsupported` с диагностикой (M13): только чтение, ничего не пишется |

@@ -80,6 +80,8 @@ export async function doctor(deps: ResolvedDeps, options: { installed: boolean; 
     if (shared) {
       const quiet = shared.state === 'active' || shared.state === 'unsupported' || shared.state === 'not-configured';
       add('ChatGPT: общий доступ к чатам', quiet ? 'ok' : 'warn', `${shared.label}${shared.reason ? ` — ${shared.reason}` : ''}`);
+      // Windows (M13): the checks of the probe, so the tester sees what passed.
+      if (deps.platform === 'win32' && shared.hint) add('ChatGPT: проверки общего доступа', 'ok', shared.hint);
     }
   }
   return { ok: checks.every((check) => check.level !== 'fail'), checks };

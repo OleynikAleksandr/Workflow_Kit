@@ -268,7 +268,8 @@ app-server на весь Mac, доверие к папке, одобрение �
 строк), `src/shared-mode.ts` (режим сессий) и `src/thread-ops.ts` (выгрузка и пробуждение
 треда): приложение ChatGPT по SSH становится клиентом демона Kit. Пока доступ `active`, сессии
 создаются без выгрузки, ссылка Mac — с `hostId`, у провайдера работает `wakeSession`, задание
-ревьюеру — первым сообщением (`reviewBrief: 'first-message'`). Подробно —
+ревьюеру — первым сообщением (`reviewBrief: 'first-message'`). На Windows (M13)
+`src/shared-windows.ts` только диагностирует: `unsupported` с итогом проверок. Подробно —
 [shared-access.md](shared-access.md).
 
 ## Инварианты

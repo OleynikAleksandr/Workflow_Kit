@@ -10,17 +10,273 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 644,
-  "rounds": [],
+  "revision": 645,
+  "rounds": [
+    {
+      "digest": null,
+      "id": "R1",
+      "kind": "implementation",
+      "status": "OPEN",
+      "title": "Implementation"
+    }
+  ],
   "schema": "harness-workflow-plan/1",
-  "scope": null,
-  "tasks": []
+  "scope": {
+    "acceptance": [
+      "PATH службы и запущенных ею программ содержит каталог wfk",
+      "Раздел AGENTS.md называет полный путь wfk на каждой ОС",
+      "Устаревший демон Codex виден в статусе ChatGPT и перезапускается действием «Перезапустить демон»",
+      "wfk service restart работает",
+      "Выпуск 0.8.4; CI зелёный на macOS, Linux, Windows x64 и ARM64"
+    ],
+    "acceptanceNote": null,
+    "approval": {
+      "at": "2026-11-11T18:11:04.430Z",
+      "text": "Пользователь, 2026-11-11: «Да, именно так… А ты начинай. Без остановки. Если нужно будет, я тебя остановлю.» — три слоя исправления и выпуск 0.8.4 | Execution mode chosen by the user: sequential: Пользователь: «А ты начинай. Без остановки.» — последовательно, как в M16"
+    },
+    "baselineCommit": "8a2cd261282154f40277b8266aac20759d3d4186",
+    "blockedReason": null,
+    "context": [],
+    "decisions": [
+      {
+        "at": "2026-11-11T18:11:04.430Z",
+        "text": "Kit сам не перезапускает демон Codex: только действие пользователя с подтверждением"
+      },
+      {
+        "at": "2026-11-11T18:11:04.430Z",
+        "text": "Нет записи о запуске демона — демон не считается устаревшим"
+      },
+      {
+        "at": "2026-11-11T18:11:04.430Z",
+        "text": "Выпуск 0.8.4"
+      }
+    ],
+    "delivery": "IN_PROGRESS",
+    "execution": {
+      "maxWorkers": 3,
+      "ownerSession": "e9c04a9c-cd7c-4f6c-b4f7-f6b07802530e",
+      "strategy": "sequential"
+    },
+    "id": "m17-wfk-on-agent-path",
+    "objective": "Агенты находят команду wfk после обновлений Kit без перезагрузки Windows и на всех ОС",
+    "spec": "docs/planning/M17-wfk-on-agent-path.md",
+    "status": "ACTIVE"
+  },
+  "tasks": [
+    {
+      "acceptance": [
+        "launcherDir по ОС, null у экземпляра разработки",
+        "Установка дописывает каталог в loginPath",
+        "wfk serve дописывает каталог в PATH окружения один раз",
+        "wfk service restart: stop, затем start",
+        "Тесты с подставленной платформой win32 и linux",
+        "module.md service-installer и cli обновлены"
+      ],
+      "checks": [],
+      "commitMessage": "fix: keep the wfk directory on the service PATH",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M17-wfk-on-agent-path.md",
+          "required": true,
+          "heading": "2.1. PATH службы всегда содержит каталог `wfk` (`service-installer`, `cli`)"
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/system-service/clusters/deployment/modules/service-installer",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/commands.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/service-path.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md"
+      ],
+      "fixes": null,
+      "id": "T001",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R1",
+      "status": "TODO",
+      "title": "Каталог wfk в PATH службы и wfk service restart",
+      "why": "Демон и агенты, запущенные службой, не находили wfk после первой установки"
+    },
+    {
+      "acceptance": [
+        "Раздел AGENTS.md называет полный путь wfk для macOS/Linux, PowerShell и Git Bash",
+        "Старый раздел в проекте — outdated",
+        "module.md kit-structure обновлён"
+      ],
+      "checks": [],
+      "commitMessage": "fix: name the full wfk path in the AGENTS.md section",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M17-wfk-on-agent-path.md",
+          "required": true,
+          "heading": "2.2. Агент вызывает `wfk` и по полному пути (`kit-structure`)"
+        }
+      ],
+      "dependencies": [
+        "T001"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/backend-core/clusters/projects/modules/kit-structure"
+      ],
+      "fixes": null,
+      "id": "T002",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R1",
+      "status": "TODO",
+      "title": "Полный путь wfk в AGENTS.md",
+      "why": "Приложения и демоны со старым окружением не находят wfk"
+    },
+    {
+      "acceptance": [
+        "Kit пишет codex-daemon.json после запуска демона",
+        "Чужой pid или другой PATH — подсказка в статусе и действие «Перезапустить демон» с подтверждением",
+        "Действие останавливает и запускает демон",
+        "Нет записи — демон не устарел",
+        "module.md provider-codex обновлён"
+      ],
+      "checks": [],
+      "commitMessage": "feat: show a stale Codex daemon and restart it on request",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M17-wfk-on-agent-path.md",
+          "required": true,
+          "heading": "2.3. Устаревший демон Codex виден и перезапускается (`provider-codex`)"
+        }
+      ],
+      "dependencies": [
+        "T002"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex"
+      ],
+      "fixes": null,
+      "id": "T003",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R1",
+      "status": "TODO",
+      "title": "Устаревший демон Codex: подсказка и перезапуск",
+      "why": "Демон переживает обновления службы и хранит старый PATH"
+    },
+    {
+      "acceptance": [
+        "Project-wide documents describe the round result",
+        "The round digest records result, decisions, contracts and references"
+      ],
+      "checks": [],
+      "commitMessage": "docs: reconcile documentation for R1",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T001",
+        "T002",
+        "T003"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/architecture/OVERVIEW.md",
+        "docs/planning/M17-wfk-on-agent-path.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md"
+      ],
+      "fixes": null,
+      "id": "DOCS-R1",
+      "iteration": 1,
+      "kind": "docs",
+      "roundId": "R1",
+      "status": "TODO",
+      "title": "Reconcile project documentation and write the round digest",
+      "why": "Keep the project context current for the next agent and close the round."
+    },
+    {
+      "acceptance": [
+        "Версия 0.8.4, CHANGELOG, документ приёмки M17",
+        "CI зелёный на macOS, Linux, Windows x64 и ARM64 на ветке ci/m17-wfk-on-agent-path",
+        "Служба переустановлена на macOS"
+      ],
+      "checks": [],
+      "commitMessage": "chore: release 0.8.4",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T003",
+        "DOCS-R1"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "package.json",
+        "package-lock.json",
+        "CHANGELOG.md",
+        "docs/evidence/M17-acceptance.md",
+        "README.md",
+        "docs/installation.md",
+        "docs/architecture/OVERVIEW.md"
+      ],
+      "fixes": null,
+      "id": "T004",
+      "iteration": 1,
+      "kind": "delivery",
+      "roundId": "R1",
+      "status": "TODO",
+      "title": "Выпуск 0.8.4",
+      "why": "Выпустить исправление для проверки на Windows"
+    }
+  ]
 }
 ```
 <!-- harness-workflow:end -->
 
 ## State
 
-No active scope. Last closed scope: m16-plan-start-after-review.
+- Scope: m17-wfk-on-agent-path (ACTIVE)
+- Delivery: IN_PROGRESS
+- Execution: sequential
+- Current task: none
+- Progress: 0/5
+- Revision: 645
+
+## Objective
+
+Агенты находят команду wfk после обновлений Kit без перезагрузки Windows и на всех ОС
+
+## Acceptance
+
+- PATH службы и запущенных ею программ содержит каталог wfk
+- Раздел AGENTS.md называет полный путь wfk на каждой ОС
+- Устаревший демон Codex виден в статусе ChatGPT и перезапускается действием «Перезапустить демон»
+- wfk service restart работает
+- Выпуск 0.8.4; CI зелёный на macOS, Linux, Windows x64 и ARM64
+
+## Rounds
+
+### R1 — Implementation (implementation, OPEN)
+
+- [TODO] T001 — Каталог wfk в PATH службы и wfk service restart (work)
+  - Commit: fix: keep the wfk directory on the service PATH
+  - Files: product-parts/system-service/clusters/deployment/modules/service-installer, product-parts/backend-core/clusters/runtime/modules/cli/src/commands.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/service-path.ts, product-parts/backend-core/clusters/runtime/modules/cli/test, product-parts/backend-core/clusters/runtime/modules/cli/module.md
+- [TODO] T002 — Полный путь wfk в AGENTS.md (work)
+  - Commit: fix: name the full wfk path in the AGENTS.md section
+  - Files: product-parts/backend-core/clusters/projects/modules/kit-structure
+  - Depends on: T001
+- [TODO] T003 — Устаревший демон Codex: подсказка и перезапуск (work)
+  - Commit: feat: show a stale Codex daemon and restart it on request
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex
+  - Depends on: T002
+- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+  - Commit: docs: reconcile documentation for R1
+  - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M17-wfk-on-agent-path.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md
+  - Depends on: T001, T002, T003
+- [TODO] T004 — Выпуск 0.8.4 (delivery)
+  - Commit: chore: release 0.8.4
+  - Files: package.json, package-lock.json, CHANGELOG.md, docs/evidence/M17-acceptance.md, README.md, docs/installation.md, docs/architecture/OVERVIEW.md
+  - Depends on: T003, DOCS-R1
 
 State changes only through `scripts/workflow` commands. History lives in Git.

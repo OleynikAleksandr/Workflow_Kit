@@ -10,10 +10,28 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 652,
+  "revision": 654,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "service-installer: launcherDir(layout), mergePath; loginPath с каталогом запускателя",
+          "cli: withLauncherDir в wfk serve; wfk service restart",
+          "kit-structure: пункт о полном пути wfk в AGENTS_SECTION",
+          "provider-codex: daemon-record.ts, codex-daemon.json, STALE_ENV_REASON, STALE_ENV_CONFIRM"
+        ],
+        "decisions": [
+          "Kit сам не перезапускает демон Codex: только действие пользователя с подтверждением",
+          "Нет записи о запуске демона — демон не считается устаревшим",
+          "Kit не переписывает раздел AGENTS.md существующих проектов сам: он лежит в git пользователя"
+        ],
+        "references": [
+          "docs/planning/M17-wfk-on-agent-path.md",
+          "docs/architecture/OVERVIEW.md",
+          "README.md"
+        ],
+        "result": "Служба держит каталог wfk в PATH (установка и wfk serve), есть wfk service restart; раздел AGENTS.md называет полный путь wfk на каждой ОС; Kit записывает pid и PATH запущенного им демона Codex и для чужого или устаревшего демона показывает подсказку и действие «Перезапустить демон»."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -208,7 +226,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -256,8 +274,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 3/5
-- Revision: 652
+- Progress: 4/5
+- Revision: 654
 
 ## Objective
 
@@ -286,7 +304,7 @@
   - Commit: feat: show a stale Codex daemon and restart it on request
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/daemon-record.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/stale-daemon.test.ts
   - Depends on: T002
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M17-wfk-on-agent-path.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md
   - Depends on: T001, T002, T003
@@ -294,5 +312,7 @@
   - Commit: chore: release 0.8.4
   - Files: package.json, package-lock.json, CHANGELOG.md, docs/evidence/M17-acceptance.md, README.md, docs/installation.md, docs/architecture/OVERVIEW.md
   - Depends on: T003, DOCS-R1
+
+Digest: Служба держит каталог wfk в PATH (установка и wfk serve), есть wfk service restart; раздел AGENTS.md называет полный путь wfk на каждой ОС; Kit записывает pid и PATH запущенного им демона Codex и для чужого или устаревшего демона показывает подсказку и действие «Перезапустить демон».
 
 State changes only through `scripts/workflow` commands. History lives in Git.

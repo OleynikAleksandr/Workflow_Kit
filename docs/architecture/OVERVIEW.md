@@ -196,13 +196,12 @@ loopback): `Stop` держится до 9 минут, пока пользова�
 ### Панель (`panel-shell` и расширения)
 
 Вид — по макету `docs/design/ui-mockup.html`: боковая панель 270 px с
-деревом «проект → сессии» и экран справа (уже 680 px — друг под другом),
+деревом «проект → сессии» и экран справа,
 служебные карточки — в «Настройках», экран «Домой» iPad (manifest,
 значки). Опрос `GET /api/state` раз в 3 с. Расширения других каталогов
 подключаются через `PANEL_EXTENSIONS` и `install(shell)`: карточки —
 `registerCard`/`registerCardGroup`, мастер и экран сессии — слоты
-`registerSlot`. Карточек провайдеров и «Структуры Kit» в «Настройках» нет
-(2026-11-06): действия провайдеров показывает мастер проекта, архив — карточка
+`registerSlot`. Действия провайдеров — в мастере и на экране проекта, архив — карточка
 «Архив». Контракты —
 [panel-shell/module.md](../../product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md),
 [project-wizard/module.md](../../product-parts/control-panel/clusters/web-panel/modules/project-wizard/module.md),
@@ -229,7 +228,7 @@ Linux `$XDG_CONFIG_HOME`, `$XDG_STATE_HOME`, `$XDG_DATA_HOME` +
 | --- | --- | --- | --- |
 | Бэкенд, панель, проекты, структура | да | да | да |
 | Автозапуск | LaunchAgent `ai.workflowkit.backend` | systemd user, без systemd — XDG autostart | `HKCU\…\Run` → `WorkflowKit` |
-| Запускатель и значок | `~/.local/bin/wfk`, `~/Applications/Workflow Kit.app` | `~/.local/bin/wfk`, `.desktop` | `wfk.cmd`, `wfk`, `wfk.mjs`, PATH, «Пуск» |
+| Запускатель (его каталог — в PATH службы, M17) и значок | `~/.local/bin/wfk`, `~/Applications/Workflow Kit.app` | `~/.local/bin/wfk`, `.desktop` | `wfk.cmd`, `wfk`, `wfk.mjs`, PATH, «Пуск» |
 | Claude: доверие (запись `~/.claude.json`) | да | да | да |
 | Claude: сессии, окружение (pty) | да | если есть `expect` | да, ConPTY (`pty-host`) |
 | Codex: демон, доверие, хуки, сессии | да | да | да, Codex 0.160+, через `proxy` |
@@ -255,6 +254,8 @@ Linux `$XDG_CONFIG_HOME`, `$XDG_STATE_HOME`, `$XDG_DATA_HOME` +
   недокументированное поведение ChatGPT, Kit проверяет его раз в минуту).
 - Сессии канала живут в памяти службы: после перезапуска команды панели будят их снова;
   карточку выбора прячут только сессии проекта у провайдера (M16).
+- Демон Codex переживает обновления Kit с PATH своего запуска: устаревший панель предлагает
+  перезапустить, AGENTS.md новых проектов даёт полный путь `wfk` (M17).
 - Доверие Claude записывается в `~/.claude.json`; при неожиданном диалоге
   сессия останавливается с ошибкой без нажатий, лишь на предложение новой функции Kit
   отвечает «Not now» (M15). Codex сохраняет пользовательские политики служебного хода.

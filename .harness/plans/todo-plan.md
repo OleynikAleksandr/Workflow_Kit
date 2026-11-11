@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 610,
+  "revision": 612,
   "rounds": [
     {
       "digest": {
@@ -41,7 +41,17 @@
       "title": "Implementation"
     },
     {
-      "digest": null,
+      "digest": {
+        "contracts": [],
+        "decisions": [
+          "Папку вне корней тесты берут во временном каталоге: он вне домашней папки, а на Windows — на системном диске"
+        ],
+        "references": [
+          "docs/planning/M14-windows-fixes.md",
+          "docs/evidence/M14-acceptance.md"
+        ],
+        "result": "Тест мастера про папку проектов вне разрешённых корней больше не зависит от текущего диска: на Windows CI /etc был D:\\etc на несистемном диске, что по правилу M14 разрешено."
+      },
       "id": "R2",
       "kind": "fixes",
       "status": "OPEN",
@@ -452,7 +462,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -493,8 +503,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 9/11
-- Revision: 610
+- Progress: 10/11
+- Revision: 612
 
 ## Objective
 
@@ -552,7 +562,7 @@ Digest: Исправлены находки живой проверки 0.8.0 н
   - Commit: test: refuse a projects folder outside the roots on every OS
   - Files: product-parts/backend-core/clusters/projects/modules/project-setup/test/setup.test.ts
   - Fixes: T005
-- [TODO] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R2
   - Files: README.md, docs/architecture/OVERVIEW.md
   - Depends on: T008
@@ -560,5 +570,7 @@ Digest: Исправлены находки живой проверки 0.8.0 н
   - Commit: docs: record the 0.8.1 CI run
   - Files: docs/evidence/M14-acceptance.md
   - Depends on: T008, DOCS-R2
+
+Digest: Тест мастера про папку проектов вне разрешённых корней больше не зависит от текущего диска: на Windows CI /etc был D:\etc на несистемном диске, что по правилу M14 разрешено.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

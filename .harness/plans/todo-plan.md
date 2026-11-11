@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 572,
+  "revision": 573,
   "rounds": [
     {
       "digest": {
@@ -68,7 +68,10 @@
       "README и docs/installation.md описывают настройку общего доступа и её удаление",
       "CI зелёный на macOS, Linux, Windows x64 и ARM64; живая проверка на macOS записана в документе приёмки"
     ],
-    "acceptanceNote": null,
+    "acceptanceNote": {
+      "at": "2026-11-11T10:23:13.226Z",
+      "text": "Пользователь, 2026-11-11: «Я проверил два основных режима для нового подхода к запуску ChatGPT. То есть обычный, когда он агент, и оркестратор, и когда он ревьюер. Оба работают так, как мы предполагали. Супер!»"
+    },
     "approval": {
       "at": "2026-11-11T09:29:02.850Z",
       "text": "Пользователь, 2026-11-11: «Пиши спецификацию и to-do plan, и не забудь, пожалуйста, вписать в спецификацию изменение README файла касающегося настройки Workflow Kit. Поскольку ChatGPT для нормальной работы через SSH нужно ж настраивать. Или мы можем это сделать из Workflow Kit, если можем, значит должны это делать мы. Приступай.» | Execution mode chosen by the user: sequential: Пользователь в чате на вопрос «Выберете sequential на карточке плана?»: «Выбрал»; ранее: «Приступая к выполнению плана и созданию нового релиза для моей проверки. Если что-то пойдет не так, откатимся.»"
@@ -108,7 +111,7 @@
         "text": "При сбое схемы Kit сам возвращается к прежнему поведению"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "ACCEPTED",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "e9c04a9c-cd7c-4f6c-b4f7-f6b07802530e",
@@ -460,11 +463,11 @@
 ## State
 
 - Scope: m12-codex-shared-daemon (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: ACCEPTED
 - Execution: sequential
 - Current task: none
 - Progress: 9/9
-- Revision: 572
+- Revision: 573
 
 ## Objective
 

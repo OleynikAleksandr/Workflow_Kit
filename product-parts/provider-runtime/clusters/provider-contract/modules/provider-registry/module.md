@@ -120,8 +120,10 @@
 Общий доступ к чатам (M12): необязательное поле `Provider.sharedAccess: SharedAccess` —
 `state(force?)`, `cached()`, `preview()`, `apply(token)`, `remove()`, `open(target)`; типы
 `SharedAccessState` (`state`: `unsupported` | `not-configured` | `needs-remote-login` |
-`needs-connection` | `active` | `broken`, `label`, `reason`, `hint`, `configured`,
-`connectionSeenAt`, `connected`, `alias`, `manualProfile`, `checkedAt`),
+`needs-admin-setup` | `needs-connection` | `active` | `broken`, `label`, `reason`, `hint`,
+`configured`, `connectionSeenAt`, `connected`, `alias`, `manualProfile`, `admin`, `checkedAt`),
+`SharedAccessAdminStep` (M13, Windows: `purpose` — `setup` | `rollback`, `file`, `command`,
+`text` — скрипт, который пользователь запускает от имени администратора; Kit его не запускает),
 `SharedAccessPreview`, `SharedAccessTarget` (`remote-login` | `connections`).
 
 ### Журнал хука (`hook-sessions.ts`)

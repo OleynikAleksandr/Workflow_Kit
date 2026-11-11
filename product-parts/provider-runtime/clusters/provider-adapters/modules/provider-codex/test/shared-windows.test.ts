@@ -1,16 +1,16 @@
-// Diagnosis of the shared access on Windows (spec M13 section 2.2) with a fake PowerShell and ssh;
-// the platform is injected, so it runs on every OS.
+// Diagnosis of the shared access on Windows (spec M13 sections 2.2 and 2.3) with a fake PowerShell
+// and ssh; the platform is injected, so it runs on every OS.
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import type { CommandRunner } from '#process-supervisor';
 import {
-  WINDOWS_NOT_CONFIRMED,
+  checksText,
   diagnoseWindows,
   hasHostAlias,
   isGitShell,
   isWindowsSharedConnection,
   parseWindowsFacts,
-  windowsSummary,
+  windowsVerdict,
 } from '../src/shared-windows.ts';
 
 const CONNECTION = '5120 "C:\\Windows\\System32\\OpenSSH\\ssh.exe" -T -o BatchMode=yes wfk-local sh -c codex app-server proxy';
@@ -34,6 +34,7 @@ const inputs = (run: CommandRunner, config: string | null = 'Host wfk-local\n  H
   homedir: 'C:\\Users\\u',
   codexInstalled: true,
   sshFound: true,
+  gitShell: 'C:\\Program Files\\Git\\bin\\sh.exe' as string | null,
   readText: async () => config,
 });
 
@@ -55,14 +56,14 @@ test('Git shells, the ssh.exe connection and the Host alias are recognised', () 
   assert.equal(hasHostAlias('Host wfk-localx\n'), false);
 });
 
-test('everything in place: every check passes, the mode still waits for the probe', async () => {
+test('everything in place: every check passes and the connection decides', async () => {
   const fake = runner({ ps: facts() });
   const checks = await diagnoseWindows(inputs(fake.run));
   assert.ok(checks.every((c) => c.status === 'ok'), JSON.stringify(checks));
   assert.deepEqual(fake.calls, ['powershell.exe', 'ssh']);
-  const summary = windowsSummary(checks);
-  assert.equal(summary.reason, WINDOWS_NOT_CONFIRMED);
-  assert.match(summary.hint, /^Проверено: codex, приложение ChatGPT, .*SSH-сеанс, подключение ChatGPT\./);
+  assert.match(checksText(checks), /^Проверено: codex, приложение ChatGPT, клиент OpenSSH, Git for Windows, .*SSH-сеанс, подключение ChatGPT\.$/);
+  assert.equal(windowsVerdict(checks, { configured: true, admin: false }), null);
+  assert.equal(windowsVerdict(checks, { configured: false, admin: false })?.state, 'not-configured');
 });
 
 test('a missing sshd and a cmd DefaultShell fail; the SSH session is then not checked', async () => {
@@ -74,7 +75,29 @@ test('a missing sshd and a cmd DefaultShell fail; the SSH session is then not ch
   assert.match(by['оболочка SSH']?.detail ?? '', /cmd\.exe/);
   assert.equal(by['SSH-сеанс']?.status, 'unknown');
   assert.deepEqual(fake.calls, ['powershell.exe']);
-  assert.match(windowsSummary(checks).hint, /Не прошло: сервер OpenSSH \(служба sshd не установлена\); оболочка SSH/);
+  assert.match(checksText(checks), /Не прошло: сервер OpenSSH \(служба sshd не установлена\); оболочка SSH/);
+  const verdict = windowsVerdict(checks, { configured: true, admin: false });
+  assert.equal(verdict?.state, 'needs-admin-setup');
+  assert.match(verdict?.reason ?? '', /служба sshd не установлена; DefaultShell: C:\\Windows/);
+  assert.match(verdict?.hint ?? '', /от имени администратора/);
+});
+
+test('verdict order: codex, app, ssh client and Git make it unsupported; a denied admin key needs the script', async () => {
+  const base = { configured: true, admin: false };
+  const none = await diagnoseWindows({ ...inputs(runner({ ps: facts({ app: '' }) }).run), codexInstalled: false });
+  assert.equal(windowsVerdict(none, base)?.reason, 'codex не найден');
+  const noApp = await diagnoseWindows(inputs(runner({ ps: facts({ app: '' }) }).run));
+  assert.match(windowsVerdict(noApp, base)?.reason ?? '', /приложение ChatGPT/);
+  const noSsh = await diagnoseWindows({ ...inputs(runner({ ps: facts() }).run), sshFound: false });
+  assert.match(windowsVerdict(noSsh, base)?.reason ?? '', /ssh\.exe/);
+  const noGit = await diagnoseWindows({ ...inputs(runner({ ps: facts() }).run), gitShell: null });
+  assert.equal(windowsVerdict(noGit, base)?.state, 'unsupported');
+  assert.match(windowsVerdict(noGit, base)?.reason ?? '', /Git for Windows/);
+  const denied = await diagnoseWindows(inputs(runner({ ps: facts(), ssh: { code: 255, stdout: '', stderr: 'Permission denied (publickey).\n' } }).run));
+  assert.equal(windowsVerdict(denied, { configured: true, admin: true })?.state, 'needs-admin-setup');
+  assert.equal(windowsVerdict(denied, base)?.state, 'broken');
+  const silent = await diagnoseWindows(inputs(runner({ ps: null }).run));
+  assert.equal(windowsVerdict(silent, base)?.state, 'broken');
 });
 
 test('no Host alias, a failing ssh, a second app-server and a silent PowerShell are reported', async () => {

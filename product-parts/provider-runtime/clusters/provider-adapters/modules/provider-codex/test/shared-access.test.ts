@@ -1,17 +1,15 @@
 // Shared access to the ChatGPT chats (spec M12 section 2.2) on a fake runtime: a temporary HOME,
 // fake ssh, ssh-keygen, ps and open; the platform is injected, so every branch runs on every OS.
 import assert from 'node:assert/strict';
-import { mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
-import os from 'node:os';
+import { mkdir, readFile, readdir, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { test } from 'node:test';
-import { createTokenStore } from '#provider-registry';
 import type { SharedAccessState } from '#provider-registry';
+import { createSharedAccess, unsupportedReason } from '../src/shared-access.ts';
 import {
   BLOCK_BEGIN,
   KEY_FROM,
   authorizedLine,
-  createSharedAccess,
   isSharedConnection,
   managedBlock,
   parseSshCheck,
@@ -21,14 +19,12 @@ import {
   removeManualHost,
   removeProbeProfile,
   sshConfigBlock,
-  unsupportedReason,
   upsertManagedBlock,
   withAuthorizedKey,
   withoutAuthorizedKey,
-} from '../src/shared-access.ts';
-import type { CodexRuntime } from '../src/runtime.ts';
+} from '../src/shared-files.ts';
+import { PUB, deps, machine } from './shared-machine.ts';
 
-const PUB = 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKitKey workflow-kit';
 const PROBE_PUB = 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKitKey wfk-local probe';
 const PROBE_HOST = '\nHost wfk-local\n  HostName 127.0.0.1\n  User u\n  IdentityFile ~/.ssh/wfk_local\n  IdentitiesOnly yes\n';
 const PROBE_PROFILE = '\n# Workflow Kit probe: SSH sessions reuse the running Codex daemon\nif [ -n "$SSH_CONNECTION" ]; then\n  export PATH="$HOME/.npm-global/bin:$PATH"\n  export CODEX_SSH_SKIP_APP_SERVER_BOOT=true\nfi\n';
@@ -82,7 +78,7 @@ test('profile block: local SSH only, quoted dirs; zsh is edited, other shells ar
   assert.equal(profileFiles(null, '/h'), null);
 });
 
-test('connection and ssh answers are parsed; Linux and Windows are unsupported', () => {
+test('connection and ssh answers are parsed; only Linux is unsupported', () => {
   assert.equal(isSharedConnection(CONNECTION), true);
   assert.equal(isSharedConnection('  1 /usr/bin/ssh wfk-local ls'), false);
   assert.equal(isSharedConnection('  1 codex app-server proxy'), false);
@@ -90,58 +86,7 @@ test('connection and ssh answers are parsed; Linux and Windows are unsupported',
   assert.deepEqual(parseSshCheck('|\n'), { codex: null, skip: false });
   assert.equal(unsupportedReason('darwin'), null);
   assert.match(unsupportedReason('linux') ?? '', /Linux/);
-  assert.match(unsupportedReason('win32') ?? '', /Windows/);
-});
-
-interface Machine {
-  home: string;
-  calls: string[];
-  world: { port: boolean; ssh: { code: number; stdout: string; stderr: string }; listing: string };
-  rt: CodexRuntime;
-  close(): Promise<void>;
-}
-
-async function machine(platform: NodeJS.Platform = 'darwin'): Promise<Machine> {
-  const root = await mkdtemp(path.join(os.tmpdir(), 'wfk-shared-'));
-  const home = path.join(root, 'home');
-  const data = path.join(root, 'data');
-  await mkdir(home, { recursive: true });
-  const calls: string[] = [];
-  const world = { port: true, ssh: { code: 0, stdout: '/u/bin/codex|true\n', stderr: '' }, listing: '  1 /sbin/launchd\n' };
-  const ok = (stdout: string) => ({ code: 0, stdout, stderr: '', timedOut: false });
-  const rt = {
-    context: {
-      platform,
-      homedir: home,
-      env: {},
-      dirs: { configDir: data, stateDir: data, appDir: data, logsDir: data, backupsDir: path.join(data, 'backups'), overridden: true },
-      now: () => new Date('2026-11-11T10:00:00Z'),
-      log: () => undefined,
-      runCommand: async (command: string, args: string[]) => {
-        calls.push(command);
-        if (command === 'ssh-keygen') {
-          const file = args[args.indexOf('-f') + 1]!;
-          await writeFile(file, 'PRIVATE\n', { mode: 0o600 });
-          await writeFile(`${file}.pub`, `${PUB}\n`);
-          return ok('');
-        }
-        if (command === 'ssh') return { ...world.ssh, timedOut: false };
-        if (command === 'ps') return ok(world.listing);
-        return ok('');
-      },
-    },
-    program: { installed: true, path: '/u/bin/codex', unsupported: null },
-    tokens: createTokenStore(),
-  } as unknown as CodexRuntime;
-  return { home, calls, world, rt, close: () => rm(root, { recursive: true, force: true }) };
-}
-
-const deps = (m: Machine) => ({
-  probePort: async () => m.world.port,
-  loginShell: () => '/bin/zsh',
-  userName: () => 'u',
-  appInstalled: async () => true,
-  nodeDir: '/n/bin',
+  assert.equal(unsupportedReason('win32'), null, 'Windows is checked (M13)');
 });
 
 test('setup on macOS: preview, write with copies, checks through every state, idempotent, removal', async () => {
@@ -245,25 +190,22 @@ test('a shell Kit does not edit gets the block to paste; the SSH check decides',
   }
 });
 
-for (const platform of ['linux', 'win32'] as const) {
-  test(`${platform}: shared access is unsupported and writes nothing`, async () => {
-    const m = await machine(platform);
-    try {
-      const shared = createSharedAccess(m.rt, deps(m));
-      const state = await shared.state(true);
-      assert.equal(state.state, 'unsupported');
-      assert.ok(state.reason);
-      await assert.rejects(shared.preview(), { code: 'not-supported' });
-      await assert.rejects(shared.apply('x'), { code: 'not-supported' });
-      await assert.rejects(shared.remove(), { code: 'not-supported' });
-      await assert.rejects(shared.open('connections'), { code: 'not-supported' });
-      // Windows (M13) only reads: one PowerShell call, no writes, no keygen.
-      assert.deepEqual(m.calls, platform === 'win32' ? ['powershell.exe'] : []);
-    } finally {
-      await m.close();
-    }
-  });
-}
+test('linux: shared access is unsupported and writes nothing', async () => {
+  const m = await machine('linux');
+  try {
+    const shared = createSharedAccess(m.rt, deps(m));
+    const state = await shared.state(true);
+    assert.equal(state.state, 'unsupported');
+    assert.ok(state.reason);
+    await assert.rejects(shared.preview(), { code: 'not-supported' });
+    await assert.rejects(shared.apply('x'), { code: 'not-supported' });
+    await assert.rejects(shared.remove(), { code: 'not-supported' });
+    await assert.rejects(shared.open('connections'), { code: 'not-supported' });
+    assert.deepEqual(m.calls, []);
+  } finally {
+    await m.close();
+  }
+});
 
 test('macOS without the ChatGPT app or codex: unsupported with a hint', async () => {
   const m = await machine();

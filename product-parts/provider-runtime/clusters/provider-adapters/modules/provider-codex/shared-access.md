@@ -4,7 +4,7 @@
 ChatGPT подключается к этому Mac по SSH (`wfk-local`) и через `codex app-server proxy`
 становится клиентом демона Kit; Kit пишет всё, что может, после предпросмотра.
 
-- `state(force)` по порядку: ОС не macOS → `unsupported`; нет `codex` или
+- `state(force)` на macOS по порядку (Windows — раздел ниже, Linux — `unsupported`): нет `codex` или
   `/Applications/ChatGPT.app` → `unsupported`; в предпросмотре есть записи →
   `not-configured`; порт 22 на 127.0.0.1 молчит → `needs-remote-login`; проверка
   `ssh -F ~/.ssh/config -o BatchMode=yes wfk-local` с `SSH_CHECK_COMMAND` (та же
@@ -64,17 +64,37 @@ ChatGPT подключается к этому Mac по SSH (`wfk-local`) и ч�
   неудачная проверка дают `broken` — режим выключается сам, сессии идут прежним путём, и
   включается снова, когда проверки проходят.
 
-## Windows: диагностика (M13 T001)
+## Windows (M13)
 
-`src/shared-windows.ts`, `diagnoseWindows`: на `win32` `state()` только читает — один вызов
-PowerShell (`WINDOWS_PROBE_SCRIPT`: служба `sshd`, `HKLM\SOFTWARE\OpenSSH\DefaultShell`, пакет
-`OpenAI.Codex`, процессы `ssh.exe` и `codex.exe` через CIM), `ssh.exe` в PATH, `Host wfk-local` в
-`~/.ssh/config`, SSH-проверка (`SSH_CHECK_COMMAND`) только при работающем `sshd` и наличии
-`Host`, подключение приложения (`isWindowsSharedConnection`) и второй app-server. Итог —
-`unsupported` с причиной `WINDOWS_NOT_CONFIRMED` и подсказкой `windowsSummary`: «Проверено: …
-Не прошло: … Не проверено: …». `preview`, `apply`, `remove`, `open` на Windows по-прежнему
-отказывают (`not-supported`). Шаги пробы — `docs/evidence/M13-windows-probe.md`.
+Проверки — `src/shared-windows.ts`, `diagnoseWindows` (только чтение): один вызов PowerShell
+(`WINDOWS_PROBE_SCRIPT`: служба `sshd`, `HKLM\SOFTWARE\OpenSSH\DefaultShell`, пакет
+`OpenAI.Codex`, процессы `ssh.exe` и `codex.exe` через CIM), `ssh.exe` в PATH, `sh.exe` Git for
+Windows (рядом с `git.exe` или в Program Files), `Host wfk-local`, SSH-проверка
+(`SSH_CHECK_COMMAND`) при работающем `sshd`, оболочке Git и `Host`, подключение приложения
+(`isWindowsSharedConnection`) и второй app-server. `windowsVerdict` по порядку: нет `codex`,
+приложения, `ssh.exe` или Git → `unsupported`; PowerShell молчит → `broken`; есть записи →
+`not-configured`; `sshd` не работает или `DefaultShell` не Git → `needs-admin-setup`;
+администратору отказано в ключе (`Permission denied`) → `needs-admin-setup`; иная неудача
+SSH-сеанса или второй app-server → `broken`; иначе подключение решает, как на macOS
+(`needs-connection` / `active`). Подсказка заканчивается `checksText`: «Проверено: … Не
+прошло: … Не проверено: …» (её же печатает `wfk doctor`). Шаги пробы —
+`docs/evidence/M13-windows-probe.md`.
+
+Настройка — `src/shared-plan.ts` (общий план) и `src/shared-windows-setup.ts`: ключ, блок
+`Host` и профиль Git Bash (`~/.bash_profile` или первый существующий login-профиль; `PATH` в
+записи Git Bash, `toGitBashPath`); строка в `~/.ssh/authorized_keys` — только у обычного
+пользователя. Администратор определяется по `whoami /groups` (S-1-5-32-544, кешируется): ему
+ключ дописывает скрипт. Скрипт `<state>/shared-access-admin.ps1` (`adminScript`, UTF-8 с BOM,
+CRLF, только ASCII) Kit пишет, но не запускает: `Add-WindowsCapability OpenSSH.Server`, если
+службы нет; автозапуск и запуск `sshd`; `DefaultShell` = `sh.exe` Git; у администратора —
+строка ключа в `%ProgramData%\ssh\administrators_authorized_keys` и `icacls` (только
+`Administrators` и `SYSTEM`). Поле состояния `admin` (`SharedAccessAdminStep`): `purpose`,
+`file`, `command` (`powershell -NoProfile -ExecutionPolicy Bypass -File "…"`), `text`.
+`remove()` убирает записи Kit и скрипт, а вместо него пишет `shared-access-admin-undo.ps1`
+(`adminRollbackScript`: снимает `DefaultShell`, если он тот же, и строку ключа; `sshd`
+остаётся); новая настройка удаляет скрипт отката. `open('connections')` — PowerShell и пакет
+`OpenAI.Codex` (`openInAppScript`), `open('remote-login')` → `not-supported`.
 
 | macOS | Linux | Windows |
 |---|---|---|
-| полная настройка | `unsupported`: приложения ChatGPT нет; ничего не пишется | `unsupported` с диагностикой (M13): только чтение, ничего не пишется |
+| полная настройка, «Удалённый вход» — пользователь | `unsupported`: приложения ChatGPT нет; ничего не пишется | проверки, настройка Kit и скрипт администратора, который запускает пользователь; `active` после проверок |

@@ -9,7 +9,8 @@ export type { CodexDeps, DaemonOpener, DaemonState, ProgramState } from './runti
 export type { AppServerOpener, AppServerSpec } from './stdio.ts';
 export type { RpcTransport } from './rpc.ts';
 export { HANDOVER_REASON, HANDOVER_WAIT_MS, appServerPids, isChatgptAppServer } from './handover.ts';
-export { BLOCK_BEGIN, BLOCK_END, CONNECTIONS_LINK, REMOTE_LOGIN_LINK, SHARED_ALIAS, SHARED_HOST_ID, createSharedAccess } from './shared-access.ts';
+export { BLOCK_BEGIN, BLOCK_END, CONNECTIONS_LINK, REMOTE_LOGIN_LINK, SHARED_ALIAS, SHARED_HOST_ID } from './shared-files.ts';
+export { createSharedAccess } from './shared-access.ts';
 export type { SharedAccessDeps } from './shared-access.ts';
 export { SHARED_APP_OWNER_REASON, appOwnerNote, createSharedMode, isSecondAppServer, sharedThreadLinks } from './shared-mode.ts';
 export type { SharedMode } from './shared-mode.ts';

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 577,
+  "revision": 579,
   "rounds": [
     {
       "digest": null,
@@ -141,14 +141,29 @@
       "files": [
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex",
         "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry",
-        "tools/platform-guard/allowlist.json"
+        "tools/platform-guard/allowlist.json",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/shared-access.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/shared-access.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/shared-plan.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/shared-windows-setup.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/shared-windows.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/shared-access.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/shared-machine.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/shared-windows-setup.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/shared-windows.test.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/shared-access.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/routes.test.ts"
       ],
       "fixes": null,
       "id": "T002",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Настройка на Windows: файлы Kit и скрипт администратора",
       "why": "Пользователь не должен настраивать SSH на Windows руками"
     },
@@ -283,8 +298,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 1/6
-- Revision: 577
+- Progress: 2/6
+- Revision: 579
 
 ## Objective
 
@@ -306,9 +321,9 @@ ChatGPT на Windows 11 работает через общий демон Codex 
 - [DONE] T001 — Диагностика общего доступа на Windows и документ пробы (work)
   - Commit: feat: diagnose the shared ChatGPT access on Windows
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, product-parts/system-service/clusters/deployment/modules/service-installer, tools/platform-guard/allowlist.json, docs/evidence/M13-windows-probe.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/shared-access.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/shared-access.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/shared-windows.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/shared-access.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/shared-windows.test.ts, product-parts/system-service/clusters/deployment/modules/service-installer/module.md, product-parts/system-service/clusters/deployment/modules/service-installer/src/context.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/doctor.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/types.ts, product-parts/system-service/clusters/deployment/modules/service-installer/test/control.test.ts
-- [TODO] T002 — Настройка на Windows: файлы Kit и скрипт администратора (work)
+- [DONE] T002 — Настройка на Windows: файлы Kit и скрипт администратора (work)
   - Commit: feat: set up the shared ChatGPT access on Windows with an administrator script
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, tools/platform-guard/allowlist.json
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, tools/platform-guard/allowlist.json, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/shared-access.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/shared-access.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/shared-plan.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/shared-windows-setup.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/shared-windows.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/shared-access.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/shared-machine.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/shared-windows-setup.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/shared-windows.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/shared-access.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/routes.test.ts
   - Depends on: T001
 - [TODO] T003 — Сессии и ссылки на Windows; шаг администратора в карточке (work)
   - Commit: feat: run ChatGPT sessions through the shared daemon on Windows

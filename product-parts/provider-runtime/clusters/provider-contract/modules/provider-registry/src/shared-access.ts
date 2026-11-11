@@ -1,12 +1,23 @@
-// Contract of the shared access to a provider's chats (spec M12 section 2.2), part of the
-// provider contract (contract.ts): Provider.sharedAccess.
+// Contract of the shared access to a provider's chats (spec M12 section 2.2; the administrator
+// step of Windows: M13 section 2.3), part of the provider contract (contract.ts): Provider.sharedAccess.
 import type { TrustWrite } from './contract.ts';
 
 /**
  * State of the shared access to the provider's chats (spec M12 section 2.2): the provider app
  * becomes a client of the daemon Kit runs, so Kit, the app and a phone share one chat.
  */
-export type SharedAccessStateName = 'unsupported' | 'not-configured' | 'needs-remote-login' | 'needs-connection' | 'active' | 'broken';
+export type SharedAccessStateName = 'unsupported' | 'not-configured' | 'needs-remote-login' | 'needs-admin-setup' | 'needs-connection' | 'active' | 'broken';
+
+/** A script Kit wrote for the user to run as administrator (Windows); Kit never runs it. */
+export interface SharedAccessAdminStep {
+  /** setup: OpenSSH server, DefaultShell, the key of an administrator; rollback: undoes it. */
+  purpose: 'setup' | 'rollback';
+  file: string;
+  /** The command to paste into a PowerShell started as administrator. */
+  command: string;
+  /** The text of the script, shown before it runs. */
+  text: string;
+}
 
 /** What a check of the shared access found. */
 export interface SharedAccessState {
@@ -27,6 +38,8 @@ export interface SharedAccessState {
   alias: string;
   /** Text to paste into the shell profile by hand (a shell Kit does not edit); null when not needed. */
   manualProfile: string | null;
+  /** The administrator script to run (Windows); null when there is none. */
+  admin: SharedAccessAdminStep | null;
   checkedAt: string;
 }
 

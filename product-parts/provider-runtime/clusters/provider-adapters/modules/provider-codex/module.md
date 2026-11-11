@@ -247,6 +247,8 @@ app-server на весь Mac, доверие к папке, одобрение �
   вида косой черты (`sameFolder`). Хуки: команда сравнения — `commandWindows` (`localHooks`,
   `kitCodexCommand`), ключи одобрения — из `hooks/list` (`sameHookKey` сопоставляет их с
   локальными). Ссылки `codex://` открывает служба (`open-link`). Без CLI — `not-installed`.
+  Общий доступ к чатам (M13): сервер OpenSSH и `DefaultShell` Git — скрипт администратора,
+  остальное пишет Kit ([shared-access.md](shared-access.md)); Linux — `unsupported`.
 
 ## Проверить при приёмке (на устройстве)
 
@@ -268,9 +270,9 @@ app-server на весь Mac, доверие к папке, одобрение �
 строк), `src/shared-mode.ts` (режим сессий) и `src/thread-ops.ts` (выгрузка и пробуждение
 треда): приложение ChatGPT по SSH становится клиентом демона Kit. Пока доступ `active`, сессии
 создаются без выгрузки, ссылка Mac — с `hostId`, у провайдера работает `wakeSession`, задание
-ревьюеру — первым сообщением (`reviewBrief: 'first-message'`). На Windows (M13)
-`src/shared-windows.ts` только диагностирует: `unsupported` с итогом проверок. Подробно —
-[shared-access.md](shared-access.md).
+ревьюеру — первым сообщением (`reviewBrief: 'first-message'`). План записей —
+`src/shared-plan.ts`; Windows (M13): проверки `src/shared-windows.ts`, скрипт администратора
+`src/shared-windows-setup.ts`. Подробно — [shared-access.md](shared-access.md).
 
 ## Инварианты
 

@@ -325,7 +325,7 @@ test('retryDeletes collects what every provider deleted now; a failure stays wit
 test('shared access (M12): state, recheck, preview, apply and remove as operations, open; 409 without it', async () => {
   const calls: string[] = [];
   const state = (name: SharedAccessState['state']): SharedAccessState => ({
-    state: name, label: name, reason: null, hint: null, configured: name === 'active', connectionSeenAt: null, connected: null, alias: 'wfk-local', manualProfile: null, checkedAt: '',
+    state: name, label: name, reason: null, hint: null, configured: name === 'active', connectionSeenAt: null, connected: null, alias: 'wfk-local', manualProfile: null, admin: null, checkedAt: '',
   });
   const shared: SharedAccess = {
     state: async (force) => (calls.push(`state:${String(force)}`), state('not-configured')),

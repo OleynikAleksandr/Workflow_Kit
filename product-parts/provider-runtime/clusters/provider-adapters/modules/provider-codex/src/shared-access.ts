@@ -1,79 +1,31 @@
-// Shared access to the ChatGPT chats (spec M12 section 2.2). The ChatGPT app connects to this
-// Mac over SSH (`codex app-server proxy`) and becomes a client of the Kit daemon, so Kit, the app
-// and a phone share one chat. Kit writes everything it can (key, authorized_keys, ~/.ssh/config,
-// the zsh profile) after a preview with a token and copies of the files; the user turns on Remote
-// Login and the connection in the app. Only macOS: there is no ChatGPT app for Linux, Windows is
-// not checked yet.
-import { createHash } from 'node:crypto';
-import { chmod, mkdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
+// Shared access to the ChatGPT chats (spec M12 section 2.2, Windows: M13 section 2.3). The ChatGPT
+// app connects to this computer over SSH (`codex app-server proxy`) and becomes a client of the Kit
+// daemon, so Kit, the app and a phone share one chat. Kit writes everything it can (key,
+// authorized_keys, ~/.ssh/config, the shell profile; on Windows also the administrator script)
+// after a preview with a token and copies of the files. The user turns on the SSH server (macOS:
+// Remote Login; Windows: runs the administrator script) and the connection in the app. There is no
+// ChatGPT app for Linux.
+import { chmod, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import net from 'node:net';
 import os from 'node:os';
 import path from 'node:path';
 import { backupFile } from '#data-store';
+import { powershell } from '#process-supervisor';
 import { ProviderError } from '#provider-registry';
-import type { SharedAccess, SharedAccessPreview, SharedAccessState, SharedAccessStateName, SharedAccessTarget, TrustWrite } from '#provider-registry';
+import type { SharedAccess, SharedAccessAdminStep, SharedAccessPreview, SharedAccessState, SharedAccessStateName, SharedAccessTarget } from '#provider-registry';
 import { processListing } from './handover.ts';
 import { isSecondAppServer } from './shared-mode.ts';
 import type { CodexRuntime } from './runtime.ts';
 import { findProgram } from './runtime.ts';
-import { diagnoseWindows, windowsSummary } from './shared-windows.ts';
-import {
-  SHARED_ALIAS,
-  SHARED_HOST_ID,
-  KEY_NAME,
-  KEY_COMMENT,
-  KEY_FROM,
-  BLOCK_BEGIN,
-  BLOCK_END,
-  CONNECTIONS_LINK,
-  REMOTE_LOGIN_LINK,
-  managedBlock,
-  removeManagedBlock,
-  upsertManagedBlock,
-  removeManualHost,
-  removeProbeProfile,
-  sshConfigBlock,
-  profileBlock,
-  keyBlob,
-  authorizedLine,
-  withAuthorizedKey,
-  withoutAuthorizedKey,
-  profileFiles,
-  SSH_CHECK_COMMAND,
-  isSharedConnection,
-  parseSshCheck,
-} from './shared-files.ts';
-
-export {
-  SHARED_ALIAS,
-  SHARED_HOST_ID,
-  KEY_NAME,
-  KEY_COMMENT,
-  KEY_FROM,
-  BLOCK_BEGIN,
-  BLOCK_END,
-  CONNECTIONS_LINK,
-  REMOTE_LOGIN_LINK,
-  managedBlock,
-  removeManagedBlock,
-  upsertManagedBlock,
-  removeManualHost,
-  removeProbeProfile,
-  sshConfigBlock,
-  profileBlock,
-  keyBlob,
-  authorizedLine,
-  withAuthorizedKey,
-  withoutAuthorizedKey,
-  profileFiles,
-  SSH_CHECK_COMMAND,
-  isSharedConnection,
-  parseSshCheck,
-} from './shared-files.ts';
+import { CONNECTIONS_LINK, KEY_COMMENT, REMOTE_LOGIN_LINK, SHARED_ALIAS, SSH_CHECK_COMMAND, isSharedConnection, keyBlob, managedBlock, parseSshCheck, removeManagedBlock, withoutAuthorizedKey } from './shared-files.ts';
+import { buildPlan, exists, readOrNull } from './shared-plan.ts';
+import type { Plan, WindowsPlanInputs } from './shared-plan.ts';
+import { WINDOWS_APP_PACKAGE, diagnoseWindows, windowsVerdict } from './shared-windows.ts';
+import { ADMIN_ROLLBACK_NAME, ADMIN_SCRIPT_NAME, adminCommand, adminRollbackScript, gitShellCandidates, openInAppScript, windowsIsAdmin } from './shared-windows-setup.ts';
 
 /** How long state(false) reuses the last check. */
 export const SHARED_TTL_MS = 60_000;
-/** Places of the ChatGPT app. */
+/** Places of the ChatGPT app on macOS. */
 const APP_BUNDLES = ['/Applications/ChatGPT.app'];
 
 /** Injectable parts (tests pass fakes). */
@@ -83,27 +35,14 @@ export interface SharedAccessDeps {
   /** Login shell of the user (default os.userInfo().shell). */
   loginShell?: () => string | null;
   userName?: () => string;
-  /** True when the ChatGPT app is installed. */
+  /** True when the ChatGPT app is installed (macOS; Windows reads the app package). */
   appInstalled?: () => Promise<boolean>;
   /** Directory of the node binary that runs an npm-installed codex. */
   nodeDir?: string;
-}
-
-async function readOrNull(file: string): Promise<string | null> {
-  try {
-    return await readFile(file, 'utf8');
-  } catch {
-    return null;
-  }
-}
-
-async function exists(file: string): Promise<boolean> {
-  try {
-    await stat(file);
-    return true;
-  } catch {
-    return false;
-  }
+  /** sh.exe of Git for Windows; default: next to git.exe or under Program Files. */
+  gitShell?: () => Promise<string | null>;
+  /** Whether the Windows user is in the Administrators group; null when unknown. */
+  windowsAdmin?: () => Promise<boolean | null>;
 }
 
 /** Probes a TCP port of 127.0.0.1. */
@@ -124,46 +63,42 @@ const LABELS: Record<SharedAccessStateName, string> = {
   unsupported: 'Недоступно',
   'not-configured': 'Не настроено',
   'needs-remote-login': 'Нужен «Удалённый вход»',
+  'needs-admin-setup': 'Нужен шаг администратора',
   'needs-connection': 'Нужно подключение в ChatGPT',
   active: 'Работает',
   broken: 'Не работает',
 };
 
-/** Why the platform has no shared access (null on macOS). */
+/** Why the platform has no shared access (null on macOS and Windows). */
 export function unsupportedReason(platform: NodeJS.Platform): string | null {
-  if (platform === 'darwin') return null;
+  if (platform === 'darwin' || platform === 'win32') return null;
   if (platform === 'linux') return 'приложения ChatGPT для Linux нет: чаты работают как раньше';
-  if (platform === 'win32') return 'на Windows общий доступ пока не поддерживается (нужен сервер OpenSSH, не проверено): чаты работают как раньше';
   return 'на этой ОС общий доступ не поддерживается';
-}
-
-interface Plan {
-  user: string;
-  keyFile: string;
-  publicFile: string;
-  configFile: string;
-  authorizedFile: string;
-  profiles: string[] | null;
-  key: string | null;
-  texts: Map<string, string | null>;
-  desired: Map<string, string>;
-  writes: TrustWrite[];
-  notes: string[];
-  manualProfile: string | null;
-  fingerprint: string;
 }
 
 /** Creates the shared access part of the Codex provider. */
 export function createSharedAccess(rt: CodexRuntime, deps: SharedAccessDeps = {}): SharedAccess {
   const { context } = rt;
   const home = context.homedir;
+  const win = context.platform === 'win32';
   const sshDir = path.join(home, '.ssh');
   const seenFile = path.join(context.dirs.stateDir, 'codex-shared-access.json');
+  const adminFile = path.join(context.dirs.stateDir, ADMIN_SCRIPT_NAME);
+  const rollbackFile = path.join(context.dirs.stateDir, ADMIN_ROLLBACK_NAME);
   const probePort = deps.probePort ?? ((port: number) => probeLocalPort(port));
   const loginShell = deps.loginShell ?? (() => os.userInfo().shell);
   const userName = deps.userName ?? (() => os.userInfo().username);
   const appInstalled = deps.appInstalled ?? (async () => (await Promise.all(APP_BUNDLES.map(exists))).some(Boolean));
   const nodeDir = deps.nodeDir ?? path.dirname(process.execPath);
+  const gitShell =
+    deps.gitShell ??
+    (async () => {
+      const git = await findProgram('git', context.env, 'win32');
+      for (const file of gitShellCandidates(context.env, git)) if (await exists(file)) return file;
+      return null;
+    });
+  const askAdmin = deps.windowsAdmin ?? (() => windowsIsAdmin(context.runCommand));
+  let adminKnown: boolean | null = null;
   let last: SharedAccessState | null = null;
   let lastAt = 0;
 
@@ -178,6 +113,7 @@ export function createSharedAccess(rt: CodexRuntime, deps: SharedAccessDeps = {}
       connected: null,
       alias: SHARED_ALIAS,
       manualProfile: null,
+      admin: null,
       checkedAt: context.now().toISOString(),
       ...fields,
     };
@@ -200,73 +136,58 @@ export function createSharedAccess(rt: CodexRuntime, deps: SharedAccessDeps = {}
 
   const codexDir = (): string | null => (rt.program.path ? path.dirname(rt.program.path) : null);
 
-  const plan = async (): Promise<Plan> => {
-    const user = userName();
-    const keyFile = path.join(sshDir, KEY_NAME);
-    const publicFile = `${keyFile}.pub`;
-    const configFile = path.join(sshDir, 'config');
-    const authorizedFile = path.join(sshDir, 'authorized_keys');
-    const present = new Set<string>();
-    for (const file of ['.bash_profile', '.bash_login', '.profile']) if (await exists(path.join(home, file))) present.add(path.join(home, file));
-    const profiles = profileFiles(loginShell(), home, (file) => present.has(file));
-    const files = [publicFile, configFile, authorizedFile, ...(profiles ?? [])];
-    const texts = new Map<string, string | null>();
-    for (const file of files) texts.set(file, await readOrNull(file));
-    const key = texts.get(publicFile) ?? null;
-    const writes: TrustWrite[] = [];
-    const notes: string[] = [];
-    const desired = new Map<string, string>();
-    const hasPrivate = await exists(keyFile);
-    if (!key || !hasPrivate) {
-      writes.push({ file: keyFile, description: 'новый ключ SSH ed25519 без пароля (ssh-keygen), только для подключения ChatGPT к этому компьютеру' });
+  const isAdmin = async (): Promise<boolean> => {
+    if (adminKnown === null) adminKnown = await askAdmin();
+    return adminKnown === true;
+  };
+
+  const windowsInputs = async (): Promise<WindowsPlanInputs | null> => {
+    if (!win) return null;
+    const shell = await gitShell();
+    if (!shell) throw new ProviderError('git-missing', 'не найден Git for Windows (sh.exe)', { hint: 'Установите Git for Windows и нажмите «Перепроверить».', status: 409 });
+    return { gitShell: shell, admin: await isAdmin() };
+  };
+
+  const plan = async (): Promise<Plan> =>
+    buildPlan({ home, stateDir: context.dirs.stateDir, user: userName(), loginShell: loginShell(), codexDir: codexDir(), nodeDir, windows: await windowsInputs() });
+
+  /** The administrator script on disk: the setup one, else the rollback one (Windows). */
+  const adminStep = async (): Promise<SharedAccessAdminStep | null> => {
+    if (!win) return null;
+    for (const [purpose, file] of [['setup', adminFile], ['rollback', rollbackFile]] as const) {
+      const text = await readOrNull(file);
+      if (text !== null) return { purpose, file, command: adminCommand(file), text: text.replace(/^﻿/, '') };
     }
-    const authorized = texts.get(authorizedFile) ?? '';
-    if (key && hasPrivate) {
-      const next = withAuthorizedKey(authorized, key);
-      if (next !== authorized) desired.set(authorizedFile, next);
+    return null;
+  };
+
+  /** needs-connection until the app was seen connected once, then active. */
+  const byConnection = async (base: Partial<SharedAccessState>, connected: boolean | null): Promise<SharedAccessState> => {
+    let seen = await readSeen();
+    if (connected && !seen) {
+      seen = context.now().toISOString();
+      await writeSeen(seen);
     }
-    if (!key || !hasPrivate || desired.has(authorizedFile)) {
-      writes.push({ file: authorizedFile, value: `${KEY_FROM} ssh-ed25519 … ${KEY_COMMENT}`, description: 'строка ключа Kit: вход по нему разрешён только с этого компьютера (127.0.0.1, ::1)' });
+    if (!seen) {
+      return result('needs-connection', { ...base, connected, reason: `приложение ChatGPT ещё не подключалось к ${SHARED_ALIAS}`, hint: `Откройте в ChatGPT Настройки → Подключения → SSH и включите ${SHARED_ALIAS}.` });
     }
-    const config = texts.get(configFile) ?? '';
-    const manual = removeManualHost(config);
-    const configNext = upsertManagedBlock(manual.text, sshConfigBlock(user), 'start');
-    if (configNext !== config) {
-      desired.set(configFile, configNext);
-      writes.push({ file: configFile, value: sshConfigBlock(user), description: `блок Host ${SHARED_ALIAS} в начале файла, между метками Kit` });
-      if (manual.found) notes.push(`В ${configFile} есть блок Host ${SHARED_ALIAS}, записанный вручную: Kit заменит его своим.`);
-    }
-    const block = profileBlock([codexDir() ?? '', nodeDir]);
-    let manualProfile: string | null = null;
-    if (profiles) {
-      for (const file of profiles) {
-        const text = texts.get(file) ?? '';
-        const probe = removeProbeProfile(text);
-        const next = upsertManagedBlock(probe.text, block, 'end');
-        if (next !== text) {
-          desired.set(file, next);
-          writes.push({ file, value: block, description: 'для SSH-сеансов с этого компьютера: путь к codex и запрет второго app-server в приложении ChatGPT' });
-          if (probe.found) notes.push(`В ${file} есть блок пробы Workflow Kit: Kit заменит его своим.`);
-        }
-      }
-    } else {
-      manualProfile = block;
-      notes.push(`Оболочку ${loginShell() ?? '?'} Kit не меняет: вставьте блок «manualProfile» в её профиль, который читается и в SSH-сеансах.`);
-    }
-    notes.push('Вручную: «Удалённый вход» в настройках macOS и подключение в ChatGPT (Настройки → Подключения → SSH).');
-    const hash = createHash('sha256');
-    for (const file of files) hash.update(`${file}\u0000${texts.get(file) ?? '\u0001'}\u0000`);
-    hash.update(String(hasPrivate));
-    return { user, keyFile, publicFile, configFile, authorizedFile, profiles, key: key && hasPrivate ? key : null, texts, desired, writes, notes, manualProfile, fingerprint: hash.digest('hex') };
+    return result('active', { ...base, connectionSeenAt: seen, connected });
+  };
+
+  const checkWindows = async (): Promise<SharedAccessState> => {
+    const shell = await gitShell();
+    const sshFound = (await findProgram('ssh', context.env, 'win32')) !== null;
+    const checks = await diagnoseWindows({ runCommand: context.runCommand, homedir: home, codexInstalled: rt.program.installed, sshFound, gitShell: shell, readText: readOrNull });
+    const configured = shell !== null && (await plan()).writes.length === 0;
+    const admin = await adminStep();
+    const verdict = windowsVerdict(checks, { configured, admin: adminKnown === true });
+    if (verdict) return result(verdict.state, { reason: verdict.reason, hint: verdict.hint, configured, admin });
+    const factsRead = !checks.some((c) => c.id === 'facts');
+    return byConnection({ configured: true, admin }, factsRead ? checks.some((c) => c.id === 'connection' && c.status === 'ok') : null);
   };
 
   const check = async (): Promise<SharedAccessState> => {
-    // Windows (M13): every check runs read-only; the mode stays off until a probe confirms it.
-    if (context.platform === 'win32') {
-      const sshFound = (await findProgram('ssh', context.env, 'win32')) !== null;
-      const checks = await diagnoseWindows({ runCommand: context.runCommand, homedir: home, codexInstalled: rt.program.installed, sshFound, readText: readOrNull });
-      return result('unsupported', windowsSummary(checks));
-    }
+    if (win) return checkWindows();
     const reason = unsupportedReason(context.platform);
     if (reason) return result('unsupported', { reason });
     if (rt.program.installed === false) return result('unsupported', { reason: 'codex не найден', hint: 'Установите Codex CLI и нажмите «Перепроверить».' });
@@ -276,15 +197,13 @@ export function createSharedAccess(rt: CodexRuntime, deps: SharedAccessDeps = {}
     if (current.writes.length > 0) {
       return result('not-configured', { reason: 'Kit ещё не настроил доступ ChatGPT к демону по SSH', hint: 'Нажмите «Настроить».', manualProfile });
     }
-    const connectionSeenAt = await readSeen();
-    const base = { configured: true, manualProfile, connectionSeenAt };
+    const base = { configured: true, manualProfile, connectionSeenAt: await readSeen() };
     if (!(await probePort(22))) {
       return result('needs-remote-login', { ...base, reason: '«Удалённый вход» macOS выключен: порт 22 не отвечает', hint: 'Системные настройки → Основные → Общий доступ → «Удалённый вход»: включите, доступ — только вашему пользователю.' });
     }
-    const configFile = path.join(sshDir, 'config');
     const probe = await context.runCommand(
       'ssh',
-      ['-F', configFile, '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=5', SHARED_ALIAS, SSH_CHECK_COMMAND],
+      ['-F', current.configFile, '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=5', SHARED_ALIAS, SSH_CHECK_COMMAND],
       { timeoutMs: 15_000 },
     );
     if (probe.code !== 0) {
@@ -299,20 +218,17 @@ export function createSharedAccess(rt: CodexRuntime, deps: SharedAccessDeps = {}
     if (listing !== null && listing.split(/\r?\n/).some((line) => isSecondAppServer(line))) {
       return result('broken', { ...base, connected, reason: 'приложение ChatGPT подняло по SSH второй app-server рядом с демоном Kit', hint: 'Закройте ChatGPT, нажмите «Настроить» ещё раз и откройте ChatGPT снова.' });
     }
-    let seen = connectionSeenAt;
-    if (connected && !seen) {
-      seen = context.now().toISOString();
-      await writeSeen(seen);
-    }
-    if (!seen) {
-      return result('needs-connection', { ...base, connected, reason: `приложение ChatGPT ещё не подключалось к ${SHARED_ALIAS}`, hint: `Откройте в ChatGPT Настройки → Подключения → SSH и включите ${SHARED_ALIAS}.` });
-    }
-    return result('active', { ...base, connectionSeenAt: seen, connected });
+    return byConnection({ configured: true, manualProfile }, connected);
   };
 
   const writeText = async (file: string, text: string): Promise<void> => {
     await writeFile(file, text, { mode: 0o600 });
     await chmod(file, 0o600);
+  };
+
+  const guard = (): void => {
+    const reason = unsupportedReason(context.platform);
+    if (reason) throw new ProviderError('not-supported', reason, { status: 409 });
   };
 
   return {
@@ -322,15 +238,13 @@ export function createSharedAccess(rt: CodexRuntime, deps: SharedAccessDeps = {}
     },
     cached: () => last,
     async preview(): Promise<SharedAccessPreview> {
-      const reason = unsupportedReason(context.platform);
-      if (reason) throw new ProviderError('not-supported', reason, { status: 409 });
+      guard();
       const current = await plan();
       const issued = rt.tokens.issue('shared-access', current.fingerprint);
       return { writes: current.writes, token: issued.token, expiresAt: issued.expiresAt, notes: current.notes };
     },
     async apply(token) {
-      const reason = unsupportedReason(context.platform);
-      if (reason) throw new ProviderError('not-supported', reason, { status: 409 });
+      guard();
       const fingerprint = rt.tokens.consume('shared-access', token);
       if (fingerprint === undefined) throw new ProviderError('invalid-token', 'Предпросмотр устарел', { hint: 'Откройте предпросмотр снова' });
       let current = await plan();
@@ -349,10 +263,13 @@ export function createSharedAccess(rt: CodexRuntime, deps: SharedAccessDeps = {}
         }
         current = await plan();
       }
+      if (current.adminFile) await mkdir(path.dirname(current.adminFile), { recursive: true });
       for (const [file, text] of current.desired) {
         await backupFile(file, backup);
         await writeText(file, text);
       }
+      // A new setup replaces the rollback of an earlier removal (Windows).
+      if (current.rollbackFile) await rm(current.rollbackFile, { force: true });
       last = null;
       const after = await plan();
       if (after.writes.length > 0) {
@@ -361,8 +278,7 @@ export function createSharedAccess(rt: CodexRuntime, deps: SharedAccessDeps = {}
       return check();
     },
     async remove() {
-      const reason = unsupportedReason(context.platform);
-      if (reason) throw new ProviderError('not-supported', reason, { status: 409 });
+      guard();
       const current = await plan();
       const backup = { backupsDir: context.dirs.backupsDir, now: context.now };
       const edits: Array<[string, string]> = [];
@@ -381,6 +297,13 @@ export function createSharedAccess(rt: CodexRuntime, deps: SharedAccessDeps = {}
         await backupFile(file, backup);
         await writeText(file, text);
       }
+      // Windows: the setup script goes, a rollback script for the administrator takes its place.
+      if (current.adminFile && current.rollbackFile && current.texts.get(current.adminFile) != null) {
+        const shell = (await windowsInputs())!.gitShell;
+        await writeText(current.rollbackFile, adminRollbackScript({ gitShell: shell, keyBlob: current.key ? keyBlob(current.key) : null }));
+        await backupFile(current.adminFile, backup);
+        await rm(current.adminFile, { force: true });
+      }
       for (const file of [current.keyFile, current.publicFile]) {
         await backupFile(file, backup);
         await rm(file, { force: true });
@@ -390,8 +313,15 @@ export function createSharedAccess(rt: CodexRuntime, deps: SharedAccessDeps = {}
       return check();
     },
     async open(target: SharedAccessTarget) {
-      const reason = unsupportedReason(context.platform);
-      if (reason) throw new ProviderError('not-supported', reason, { status: 409 });
+      guard();
+      if (win) {
+        if (target === 'remote-login') {
+          throw new ProviderError('not-supported', 'На Windows нет «Удалённого входа»: сервер SSH ставит скрипт администратора', { status: 409 });
+        }
+        const out = await powershell(context.runCommand, openInAppScript(CONNECTIONS_LINK, WINDOWS_APP_PACKAGE), 15_000);
+        if (out === null) throw new ProviderError('open-failed', `Не удалось открыть ${CONNECTIONS_LINK} в приложении ChatGPT`);
+        return;
+      }
       const url = target === 'remote-login' ? REMOTE_LOGIN_LINK : CONNECTIONS_LINK;
       const opened = await context.runCommand('open', [url], { timeoutMs: 10_000 });
       if (opened.code !== 0) throw new ProviderError('open-failed', `Не удалось открыть ${url}`);

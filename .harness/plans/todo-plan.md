@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 629,
+  "revision": 630,
   "rounds": [
     {
       "digest": {
@@ -45,7 +45,10 @@
       "Подсказка незнакомого диалога не отправляет в предпросмотр доверия",
       "Выпуск 0.8.2; CI зелёный на macOS, Linux, Windows x64 и ARM64"
     ],
-    "acceptanceNote": null,
+    "acceptanceNote": {
+      "at": "2026-11-11T16:49:06.707Z",
+      "text": "И сразу закрывай скоп и заливай на GitHub новый релиз."
+    },
     "approval": {
       "at": "2026-11-11T16:31:20.636Z",
       "text": "Пользователь, 2026-11-11: «Отлично, это подходит. Делай исправление.» — Kit сам отвечает «Not now» на предложения новых функций Claude | Execution mode chosen by the user: sequential: Да, последовательно"
@@ -72,7 +75,7 @@
         "text": "Выпуск 0.8.2"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "ACCEPTED",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "e9c04a9c-cd7c-4f6c-b4f7-f6b07802530e",
@@ -293,11 +296,11 @@
 ## State
 
 - Scope: m15-claude-promo-dialogs (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: ACCEPTED
 - Execution: sequential
 - Current task: none
 - Progress: 6/6
-- Revision: 629
+- Revision: 630
 
 ## Objective
 

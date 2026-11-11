@@ -18,6 +18,7 @@ test('the panel files live in the module src directory', async () => {
     'shared-access-model.js',
     'new-project.js',
     'folder-picker.js',
+    'folder-roots.js',
     'archive.js',
     'selection.js',
     'press.js',

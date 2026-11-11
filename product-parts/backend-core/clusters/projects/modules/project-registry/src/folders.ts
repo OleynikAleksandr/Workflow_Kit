@@ -1,8 +1,10 @@
 import type { Dirent } from 'node:fs';
 import path from 'node:path';
 import { fsError } from './errors.ts';
-import { nodeFs, realHome, requireDirectory, resolveInsideHome, samePath } from './home-paths.ts';
+import { nodeFs, realHome, requireDirectory, samePath } from './home-paths.ts';
 import type { HomeScope } from './home-paths.ts';
+import { allowedRoots, resolveInsideRoots, rootOf } from './roots.ts';
+import type { AllowedRoot } from './roots.ts';
 
 /** Default maximum number of subfolders returned by one listing. */
 export const FOLDER_LIST_LIMIT = 500;
@@ -18,10 +20,12 @@ export interface FolderEntry {
 export interface FolderListing {
   /** Real path of the listed folder. */
   path: string;
-  /** Parent folder, or null at the home folder (the picker never leaves home). */
+  /** Parent folder, or null at a root (the picker never leaves the roots). */
   parent: string | null;
   /** Real path of the home folder. */
   home: string;
+  /** The home folder and the other local drives the picker can switch to. */
+  roots: AllowedRoot[];
   entries: FolderEntry[];
   /** True when there were more subfolders than the limit. */
   truncated: boolean;
@@ -48,8 +52,8 @@ async function isFolder(entry: Dirent, full: string, scope: HomeScope): Promise<
 }
 
 /**
- * Lists the subfolders of a folder inside the home folder (home itself when no path is
- * given). Permission errors (macOS TCC for ~/Documents and the like) become
+ * Lists the subfolders of a folder inside the home folder or another local drive (home
+ * itself when no path is given). Permission errors (macOS TCC for ~/Documents and the like) become
  * "access-denied" with a hint.
  */
 export async function listFolders(
@@ -59,7 +63,9 @@ export async function listFolders(
 ): Promise<FolderListing> {
   const fs = scope.fs ?? nodeFs;
   const home = await realHome(scope);
-  const real = await resolveInsideHome(input === undefined || input === '' ? scope.homedir : input, scope, true);
+  const real = await resolveInsideRoots(input === undefined || input === '' ? scope.homedir : input, scope, { allowHome: true, allowDrive: true });
+  const roots = await allowedRoots(scope);
+  const root = rootOf(real, roots, scope.platform);
   await requireDirectory(real, scope);
   let dirents: Dirent[];
   try {
@@ -79,8 +85,9 @@ export async function listFolders(
   const limit = options.limit ?? FOLDER_LIST_LIMIT;
   return {
     path: real,
-    parent: samePath(real, home, scope.platform) ? null : p.dirname(real),
+    parent: root && samePath(real, root.path, scope.platform) ? null : p.dirname(real),
     home,
+    roots,
     entries: entries.slice(0, limit),
     truncated: entries.length > limit,
   };

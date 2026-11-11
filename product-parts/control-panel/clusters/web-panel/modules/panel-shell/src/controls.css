@@ -138,6 +138,7 @@ input[type='text']:focus {
 }
 
 .picker-nav,
+.picker-roots,
 .actions {
   display: flex;
   flex-wrap: wrap;
@@ -278,4 +279,10 @@ input[type='text']:focus {
 
 .fragment-error {
   font-size: 0.85rem;
+}
+
+/* M14: the current root (home or a drive) in the folder picker. */
+.picker-roots .btn[aria-pressed='true'] {
+  font-weight: 600;
+  border-color: currentColor;
 }

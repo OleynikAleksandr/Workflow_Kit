@@ -4,7 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { after, before, test } from 'node:test';
 import { createEventLog } from '#data-store';
-import { ProjectError, accessHint, createProjectRegistry, listFolders, nodeFs, resolveInsideHome } from '../src/index.ts';
+import { ProjectError, accessHint, createProjectRegistry, listFolders, nodeFs, resolveInsideRoots } from '../src/index.ts';
 import type { ProjectRegistryOptions, RegistryFs } from '../src/index.ts';
 
 let tmp = '';
@@ -92,9 +92,9 @@ test('open accepts only folders inside home by realpath', async () => {
   const again = await registry.open(path.join(home, 'code', 'link-inside'));
   assert.equal(again.existing, true);
   assert.equal(again.project.id, opened.project.id);
-  assert.equal(await code(registry.open(path.join(home, 'escape'))), 'outside-home');
-  assert.equal(await code(registry.open(path.join(home, 'code', '..', '..', 'outside'))), 'outside-home');
-  assert.equal(await code(registry.open(outside)), 'outside-home');
+  assert.equal(await code(registry.open(path.join(home, 'escape'))), 'outside-roots');
+  assert.equal(await code(registry.open(path.join(home, 'code', '..', '..', 'outside'))), 'outside-roots');
+  assert.equal(await code(registry.open(outside)), 'outside-roots');
   assert.equal(await code(registry.open(home)), 'invalid-path');
   assert.equal(await code(registry.open('code/existing')), 'invalid-path');
   assert.equal(await code(registry.open(path.join(home, 'nope'))), 'not-found');
@@ -141,7 +141,7 @@ test('an invalid projects.json is reported and never overwritten', async () => {
 
 test('a projects root outside home is refused', async () => {
   const registry = createProjectRegistry(options({ projectsRoot: path.join(outside, 'projects'), file: path.join(tmp, 'x.json') }));
-  assert.equal(await code(registry.create('Thing')), 'outside-home');
+  assert.equal(await code(registry.create('Thing')), 'outside-roots');
   const relative = createProjectRegistry(options({ projectsRoot: 'relative/root', file: path.join(tmp, 'y.json') }));
   assert.equal(await code(relative.create('Thing')), 'invalid-path');
 });
@@ -158,9 +158,9 @@ test('listFolders lists subfolders inside home and never leaves it', async () =>
   const hidden = await listFolders(path.join(home, 'code'), scope, { showHidden: true });
   assert.deepEqual(hidden.entries.map((e) => e.name), ['.hidden', 'existing', 'link-inside']);
   assert.equal((await listFolders(path.join(home, 'code'), scope, { limit: 1 })).truncated, true);
-  assert.equal(await code(listFolders(path.join(home, 'escape'), scope)), 'outside-home');
-  assert.equal(await code(listFolders(path.join(home, '..'), scope)), 'outside-home');
-  assert.equal(await code(resolveInsideHome(path.join(home, 'code', '..', 'code'), scope)), 'ok');
+  assert.equal(await code(listFolders(path.join(home, 'escape'), scope)), 'outside-roots');
+  assert.equal(await code(listFolders(path.join(home, '..'), scope)), 'outside-roots');
+  assert.equal(await code(resolveInsideRoots(path.join(home, 'code', '..', 'code'), scope)), 'ok');
 });
 
 test('a permission error (macOS TCC) becomes access-denied with a hint', async () => {

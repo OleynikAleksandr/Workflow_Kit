@@ -2,7 +2,7 @@
 export type ProjectErrorCode =
   | 'invalid-name'
   | 'invalid-path'
-  | 'outside-home'
+  | 'outside-roots'
   | 'not-found'
   | 'not-directory'
   | 'access-denied'
@@ -16,7 +16,7 @@ export type ProjectErrorCode =
 export const PROJECT_ERROR_STATUS: Readonly<Record<ProjectErrorCode, number>> = {
   'invalid-name': 400,
   'invalid-path': 400,
-  'outside-home': 400,
+  'outside-roots': 400,
   'not-found': 404,
   'not-directory': 400,
   'access-denied': 403,

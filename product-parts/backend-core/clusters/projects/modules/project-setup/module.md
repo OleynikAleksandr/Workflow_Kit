@@ -17,7 +17,9 @@ Kit 2.2.2, доверие и хуки Kit каждого провайдера р
   `providers`, `kit`, `workflow`, `operations`, `runCommand`, `env`,
   `homedir`, `platform`, `now`, `log?`, `hooksPollMs?`):
   - `preview({ mode: 'create', name } | { mode: 'open', path })` →
-    `SetupPreview`: `token` (15 минут), `name`, `path` (реальный путь),
+    `SetupPreview`: `token` (15 минут), `name`, `path` (реальный путь; у
+    `open` — папка внутри домашней или другого диска, `resolveInsideRoots`
+    реестра, M14),
     `exists`, `git` (`repository`, `identity`), `kit` (`action`: `install` |
     `update` | `open`, по `inspect` бандлом приложения), `actions`
     (`structure`, `kit`, `git`, затем на каждого провайдера `trust-<id>` —
@@ -97,3 +99,8 @@ Kit 2.2.2, доверие и хуки Kit каждого провайдера р
 (типы), `#process-supervisor` (тип), `#data-store` (операции),
 `#http-server`. Тесты: временный HOME, настоящие git и бандл Kit,
 подставные провайдеры (третий — с хуком, который пишется в файл).
+
+## Поведение на ОС
+
+Одинаково на macOS, Linux и Windows; какие диски допустимы для `open`,
+решает `allowedRoots` модуля `project-registry` (там же таблица по ОС).

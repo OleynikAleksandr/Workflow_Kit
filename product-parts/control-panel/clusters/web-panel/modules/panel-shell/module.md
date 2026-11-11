@@ -146,7 +146,8 @@
 | `cards.js` | реестр карточек: `registerCard`, `registerCardGroup`, `expandCards(state)`, `requestRefresh()` |
 | `dom.js` | помощники `h`, `facts`, `pill`, `code`, `notice`, `plainInput`; текст только через `textContent` |
 | `api.js` | `api(method, url, body?)`, `apiGet(url)`, `ApiError` (`status`, `code`, `message`, `hint`, `blockers`) |
-| `folder-picker.js` | выбор папки внутри домашней (`GET /api/folders`); `pickLabel`, `idPrefix` |
+| `folder-picker.js` | выбор папки внутри домашней или другого диска (`GET /api/folders`); переключатель корней из `roots` ответа («Домой», «D:\\», тома macOS, `/media` и `/mnt` Linux; M14); `pickLabel`, `idPrefix`, `allowDriveRoot` (корень диска можно выбрать — папка для проектов в «Настройках») |
+| `folder-roots.js` | модель корней выбора папки без DOM: `rootState(listing, allowDriveRoot)` → `root`, `atRoot`, `canPick` (домашнюю папку — никогда, корень диска — с `allowDriveRoot`), `note`; пути Windows сравниваются без учёта регистра |
 | `shared-access-model.js` | модель карточки «Общий доступ к чатам» (M12 раздел 2.2), без DOM: `sharedAccessProviders(state)` — провайдеры, у статуса которых есть `details.sharedAccess` (и `null` до первой проверки), `sharedAccessOf`, `sharedOperation` (последняя операция `provider.shared-access.apply|remove` провайдера из раздела `operations`), `sharedTone`, `sharedButtons` (по состоянию: `not-configured` — «Настроить»; `needs-remote-login` — «Открыть настройки macOS»; `needs-connection` — «Открыть подключения ChatGPT»; `active` — «Перепроверить», «Убрать настройку»; `broken` — «Настроить ещё раз»; `unsupported` — ничего; до проверки — «Проверить»; Windows, M13: `needs-admin-setup` — «Скопировать команду запуска» (главная), «Показать скрипт», «Перепроверить», «Убрать настройку»; при поле `admin` в `not-configured` и `broken` — те же две кнопки, у отката — «Показать скрипт отката»), `adminNote` (что сделать со скриптом администратора), `showsAdminStep` (M14: блок и кнопки скрипта — только в `needs-admin-setup`, `broken` и в `not-configured` со скриптом отката, при «Работает» их нет), `sharedSummary` (причина и подсказка — через точку), `operationNote`, `REMOVE_CONFIRM`, `REMOVE_CONFIRM_WINDOWS`, `removeConfirm` |
 | `shared-access-card.js` | группа карточек «Общий доступ к чатам · <провайдер>» в «Настройках» (`order` 5): состояние, что работает или чего не хватает, блок для ручной вставки (`manualProfile`), кнопки модели. «Настроить» → `GET …/shared-access/preview` → список записей и заметки → «Записать» → `POST …/apply { token }`; «Открыть …» → `POST …/open { target }`; «Перепроверить» → `POST …/recheck`; «Убрать настройку» — с подтверждением (`removeConfirm`) → `POST …/remove`. Windows (M13): блок шага администратора — `adminNote` и команда (`admin.command`); «Показать скрипт» раскрывает путь и текст (`admin.file`, `admin.text`), «Скопировать команду запуска» — `navigator.clipboard`; Kit скрипт не запускает. Команда и текст скрипта (`pre.path`) переносятся по ширине карточки; заметка операции («… выполняется…») убирается, как только операция закончилась (M14). Пока идёт операция, кнопки выключены; ошибка — в карточке. Узел карточки один на провайдера: открытый предпросмотр переживает опрос |
 | `system-card.js` | карточка «Система» (версия, ОС, служба, автозапуск, запускатель, значок, программы, адреса); «Программы» — имена из `system.service.programNames` службы (найденные — с путём, остальные — «не найдена»), у службы без этого поля — найденные |
@@ -175,3 +176,9 @@
 
 Кнопки «Перезапустить службу» и «Диагностика» в «Настройках» ждут API
 службы.
+
+## Поведение на ОС
+
+Панель одинакова на всех ОС. Переключатель корней выбора папки показывает то,
+что отдаёт служба: на Windows — «Домой» и другие диски («D:\\»), на macOS —
+«Домой» и тома `/Volumes`, на Linux — «Домой», `/media`, `/run/media` и `/mnt`.

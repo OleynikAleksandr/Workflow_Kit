@@ -62,6 +62,7 @@ export function createSettings(options) {
   const picker = createFolderPicker({
     idPrefix: 'root-picker',
     pickLabel: 'Сделать папкой для проектов',
+    allowDriveRoot: true,
     async onPick(path) {
       const result = await api('POST', '/api/settings/projects-root', { path });
       picker.element.hidden = true;

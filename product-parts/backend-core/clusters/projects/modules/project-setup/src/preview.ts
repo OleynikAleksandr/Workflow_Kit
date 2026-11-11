@@ -8,7 +8,7 @@ import path from 'node:path';
 import type { KitRunner } from '#kit-runner';
 import { checkStructure } from '#kit-structure';
 import type { Project, ProjectRegistry } from '#project-registry';
-import { checkProjectName, resolveInsideHome } from '#project-registry';
+import { checkProjectName, resolveInsideRoots } from '#project-registry';
 import type { CommandRunner } from '#process-supervisor';
 import { providerLabel, providerMark } from '#provider-registry';
 import type { HookEntry, ProviderRegistry, TrustChoice, TrustWrite } from '#provider-registry';
@@ -179,7 +179,7 @@ export async function resolveTarget(input: PreviewInput, deps: PreviewDeps): Pro
     }
     return { name: check.name, folder };
   }
-  const folder = await resolveInsideHome(input.path, scope);
+  const folder = await resolveInsideRoots(input.path, scope);
   if (!(await isDirectory(folder))) throw new SetupError('not-a-folder', `Это не папка: ${folder}`, 400);
   return { name: path.basename(folder).normalize('NFC'), folder };
 }

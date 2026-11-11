@@ -1,8 +1,9 @@
 // @ts-check
-// Folder picker: browses folders inside the home folder through GET /api/folders (the backend
-// refuses anything outside home) and hands the chosen folder to the caller.
+// Folder picker: browses folders inside the home folder and other local drives through
+// GET /api/folders (the backend refuses anything outside them) and hands the chosen folder to the caller.
 import { ApiError, apiGet } from './api.js';
 import { code, h, notice, plainInput } from './dom.js';
+import { rootState } from './folder-roots.js';
 
 /**
  * @typedef {object} FolderEntry
@@ -15,6 +16,7 @@ import { code, h, notice, plainInput } from './dom.js';
  * @property {string} path
  * @property {string | null} parent
  * @property {string} home
+ * @property {import('./folder-roots.js').FolderRoot[]} [roots] The home folder and other local drives.
  * @property {FolderEntry[]} entries
  * @property {boolean} truncated
  */
@@ -25,6 +27,7 @@ import { code, h, notice, plainInput } from './dom.js';
  * @property {() => void} onClose Called by the "Cancel" button.
  * @property {string} [pickLabel] Text of the pick button (default «Открыть эту папку как проект»).
  * @property {string} [idPrefix] Prefix of the element ids, unique per picker on the page (default "picker").
+ * @property {boolean} [allowDriveRoot] The root of another drive itself may be picked (the projects folder).
  */
 
 /**
@@ -52,7 +55,7 @@ export function createFolderPicker(options) {
 
   const current = h('div', { class: 'picker-current' });
   const upButton = h('button', { type: 'button', class: 'btn' }, ['↑ Вверх']);
-  const homeButton = h('button', { type: 'button', class: 'btn' }, ['Домой']);
+  const rootsBar = h('div', { class: 'picker-roots', role: 'group', 'aria-label': 'Диски' });
   const prefix = options.idPrefix ?? 'picker';
   const hidden = /** @type {HTMLInputElement} */ (h('input', { type: 'checkbox', id: `${prefix}-hidden` }));
   const pathInput = plainInput({ id: `${prefix}-path`, name: 'path', placeholder: '/Users/имя/папка', 'aria-label': 'Путь к папке' });
@@ -65,7 +68,7 @@ export function createFolderPicker(options) {
   const pathForm = h('form', { class: 'inline-form' }, [pathInput, goButton]);
 
   const element = h('div', { class: 'picker', hidden: '' }, [
-    h('div', { class: 'picker-head' }, [current, h('div', { class: 'picker-nav' }, [upButton, homeButton])]),
+    h('div', { class: 'picker-head' }, [current, h('div', { class: 'picker-nav' }, [upButton, rootsBar])]),
     pathForm,
     h('label', { class: 'check' }, [hidden, ' Показывать скрытые папки']),
     list,
@@ -77,18 +80,35 @@ export function createFolderPicker(options) {
   function setBusy(value) {
     busy = value;
     element.setAttribute('aria-busy', String(value));
-    for (const button of [upButton, homeButton, goButton, pickButton]) {
+    for (const button of [upButton, goButton, pickButton, ...Array.from(rootsBar.querySelectorAll('button'))]) {
       /** @type {HTMLButtonElement} */ (button).disabled = value;
     }
     if (!value && listing) {
+      const state = rootState(listing, options.allowDriveRoot);
       /** @type {HTMLButtonElement} */ (upButton).disabled = listing.parent === null;
-      /** @type {HTMLButtonElement} */ (homeButton).disabled = listing.parent === null;
-      /** @type {HTMLButtonElement} */ (pickButton).disabled = listing.parent === null;
+      /** @type {HTMLButtonElement} */ (pickButton).disabled = !state.canPick;
+      renderRoots();
     }
+  }
+
+  function renderRoots() {
+    if (!listing) return;
+    const { root, atRoot } = rootState(listing, options.allowDriveRoot);
+    const roots = listing.roots ?? [{ name: 'Домой', path: listing.home, kind: 'home' }];
+    rootsBar.replaceChildren(
+      ...roots.map((item) => {
+        const active = root?.path === item.path;
+        const button = h('button', { type: 'button', class: 'btn', title: item.path, 'aria-pressed': String(active) }, [item.name]);
+        if (active && atRoot) /** @type {HTMLButtonElement} */ (button).disabled = true;
+        button.addEventListener('click', () => void load(item.kind === 'home' ? undefined : item.path));
+        return button;
+      }),
+    );
   }
 
   function renderListing() {
     if (!listing) return;
+    renderRoots();
     current.replaceChildren(h('span', { class: 'muted' }, ['Папка: ']), code(listing.path));
     pathInput.value = listing.path;
     if (listing.entries.length === 0) {
@@ -107,7 +127,8 @@ export function createFolderPicker(options) {
       );
     }
     if (listing.truncated) list.append(h('li', { class: 'muted empty' }, ['Показаны не все папки']));
-    if (listing.parent === null) notice(message, 'muted', 'Это домашняя папка: выберите папку внутри неё.');
+    const { note } = rootState(listing, options.allowDriveRoot);
+    if (note) notice(message, 'muted', note);
   }
 
   /**
@@ -134,7 +155,6 @@ export function createFolderPicker(options) {
   upButton.addEventListener('click', () => {
     if (listing?.parent) void load(listing.parent);
   });
-  homeButton.addEventListener('click', () => void load());
   hidden.addEventListener('change', () => void load(listing?.path));
   pathForm.addEventListener('submit', (event) => {
     event.preventDefault();

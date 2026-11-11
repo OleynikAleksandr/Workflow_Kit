@@ -3,7 +3,8 @@ import path from 'node:path';
 import { InvalidJsonFileError, createKeyedMutex, readJsonFile, writeJsonAtomic } from '#data-store';
 import type { DataDirs, EventLog, KeyedMutex } from '#data-store';
 import { ProjectError, fsError } from './errors.ts';
-import { isInside, nodeFs, realHome, requireDirectory, resolveInsideHome, samePath } from './home-paths.ts';
+import { nodeFs, realHome, requireDirectory, samePath } from './home-paths.ts';
+import { insideRoots, resolveInsideRoots } from './roots.ts';
 import type { HomeScope } from './home-paths.ts';
 import { checkProjectName } from './names.ts';
 
@@ -212,11 +213,10 @@ export function createProjectRegistry(options: ProjectRegistryOptions): ProjectR
     const check = checkProjectName(rawName);
     if (!check.ok) throw new ProjectError('invalid-name', check.reason);
     const projects = await load();
-    const home = await realHome(options);
     const realRoot = await ensureRoot();
     const target = path.join(realRoot, check.name);
-    if (!isInside(target, home, options.platform)) {
-      throw new ProjectError('outside-home', `Корень проектов вне домашней папки: ${realRoot}`);
+    if (!(await insideRoots(target, options))) {
+      throw new ProjectError('outside-roots', `Папка проектов вне домашней папки и других дисков: ${realRoot}`);
     }
     try {
       await fs.mkdir(target, { recursive: false });
@@ -226,7 +226,7 @@ export function createProjectRegistry(options: ProjectRegistryOptions): ProjectR
       }
       throw fsError(error, target, options.platform);
     }
-    const real = await resolveInsideHome(target, options);
+    const real = await resolveInsideRoots(target, options);
     const project: Project = { id: newId(), name: check.name, path: real, source: 'created', createdAt: now().toISOString() };
     await save([...projects, project]);
     await log('project.created', project);
@@ -235,7 +235,7 @@ export function createProjectRegistry(options: ProjectRegistryOptions): ProjectR
 
   async function open(folder: unknown): Promise<{ project: Project; existing: boolean }> {
     const projects = await load();
-    const real = await resolveInsideHome(folder, options);
+    const real = await resolveInsideRoots(folder, options);
     await requireDirectory(real, options);
     try {
       await fs.readdir(real);
@@ -274,7 +274,7 @@ export function createProjectRegistry(options: ProjectRegistryOptions): ProjectR
     if (confirm !== project.name) throw new ProjectError('confirm-mismatch', `Для удаления введите точное имя проекта: ${project.name}`);
     const home = await realHome(options);
     const protectedPaths = [home, root, options.homedir];
-    if (!isInside(project.path, home, options.platform) || protectedPaths.some((p) => samePath(p, project.path, options.platform))) {
+    if (!(await insideRoots(project.path, options)) || protectedPaths.some((p) => samePath(p, project.path, options.platform))) {
       throw new ProjectError('invalid-path', `Эту папку Workflow Kit не удаляет: ${project.path}`);
     }
     const blockers = (await Promise.all(guards.map((guard) => guard(project)))).flat();
@@ -324,14 +324,12 @@ export function createProjectRegistry(options: ProjectRegistryOptions): ProjectR
     if (typeof folder !== 'string' || folder.trim() === '') throw new ProjectError('invalid-path', 'Укажите папку для проектов');
     const expanded = expandHome(folder.trim(), options.homedir);
     if (!path.isAbsolute(expanded)) throw new ProjectError('invalid-path', `Нужен абсолютный путь: ${folder}`);
-    const home = await realHome(options);
     try {
       await fs.mkdir(expanded, { recursive: true });
     } catch (error) {
       throw fsError(error, expanded, options.platform);
     }
-    const real = await resolveInsideHome(expanded, options);
-    if (!isInside(real, home, options.platform)) throw new ProjectError('outside-home', `Папка вне домашней: ${real}`);
+    const real = await resolveInsideRoots(expanded, options, { allowDrive: true });
     await options.saveRoot?.(real);
     root = real;
     return real;

@@ -23,12 +23,16 @@ export const nodeFs: RegistryFs = {
   rm: (target) => rm(target, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }),
 };
 
-/** Where projects may live: the home folder of the user, checked by realpath. */
+/** Where projects may live: the home folder and other local drives (see roots.ts), checked by realpath. */
 export interface HomeScope {
   homedir: string;
-  /** Selects case-insensitive comparison on Windows. */
+  /** Selects case-insensitive comparison on Windows and the drive scan of allowedRoots. */
   platform: NodeJS.Platform;
   fs?: RegistryFs;
+  /** Environment for SystemDrive (Windows) and USER (Linux /media/<user>); process.env by default. */
+  env?: NodeJS.ProcessEnv;
+  /** User name for /media/<user> on Linux; taken from env or the home folder by default. */
+  username?: string;
 }
 
 function pathApi(platform: NodeJS.Platform): path.PlatformPath {
@@ -66,33 +70,6 @@ export async function realHome(scope: HomeScope): Promise<string> {
   } catch (error) {
     throw fsError(error, scope.homedir, scope.platform);
   }
-}
-
-/**
- * Resolves an absolute path to its real path and checks that it lies inside the home
- * folder. ".." segments and symbolic links are resolved first, so leaving the home folder
- * through either is rejected with "outside-home".
- */
-export async function resolveInsideHome(input: unknown, scope: HomeScope, allowHome = false): Promise<string> {
-  const fs = scope.fs ?? nodeFs;
-  if (typeof input !== 'string' || input.trim() === '' || input.includes('\0')) {
-    throw new ProjectError('invalid-path', 'Укажите путь к папке');
-  }
-  if (!path.isAbsolute(input)) throw new ProjectError('invalid-path', `Нужен абсолютный путь: ${input}`);
-  const home = await realHome(scope);
-  let real: string;
-  try {
-    real = await fs.realpath(input);
-  } catch (error) {
-    throw fsError(error, input, scope.platform);
-  }
-  if (samePath(real, home, scope.platform) && !allowHome) {
-    throw new ProjectError('invalid-path', 'Выберите папку внутри домашней, а не саму домашнюю папку');
-  }
-  if (!isInside(real, home, scope.platform, allowHome)) {
-    throw new ProjectError('outside-home', `Папка вне домашней папки: ${real}`, { realPath: real });
-  }
-  return real;
 }
 
 /** Fails with "not-directory" unless the real path is a directory. */

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 598,
+  "revision": 600,
   "rounds": [
     {
       "digest": null,
@@ -251,14 +251,33 @@
         "product-parts/backend-core/clusters/projects/modules/project-registry",
         "product-parts/backend-core/clusters/projects/modules/project-setup",
         "product-parts/control-panel/clusters/web-panel/modules/panel-shell",
-        "product-parts/backend-core/clusters/runtime/modules/cli"
+        "product-parts/backend-core/clusters/runtime/modules/cli",
+        "product-parts/backend-core/clusters/projects/modules/project-registry/module.md",
+        "product-parts/backend-core/clusters/projects/modules/project-registry/src/errors.ts",
+        "product-parts/backend-core/clusters/projects/modules/project-registry/src/folders.ts",
+        "product-parts/backend-core/clusters/projects/modules/project-registry/src/home-paths.ts",
+        "product-parts/backend-core/clusters/projects/modules/project-registry/src/index.ts",
+        "product-parts/backend-core/clusters/projects/modules/project-registry/src/registry.ts",
+        "product-parts/backend-core/clusters/projects/modules/project-registry/src/roots.ts",
+        "product-parts/backend-core/clusters/projects/modules/project-registry/test/registry.test.ts",
+        "product-parts/backend-core/clusters/projects/modules/project-registry/test/roots.test.ts",
+        "product-parts/backend-core/clusters/projects/modules/project-setup/module.md",
+        "product-parts/backend-core/clusters/projects/modules/project-setup/src/preview.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/app.test.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/controls.css",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/folder-picker.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/folder-roots.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/settings.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/folder-roots.test.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/panel-shell.test.ts"
       ],
       "fixes": null,
       "id": "T005",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Папка проектов на любом диске",
       "why": "Пользователь хочет хранить проекты не только на диске C"
     },
@@ -366,8 +385,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 4/8
-- Revision: 598
+- Progress: 5/8
+- Revision: 600
 
 ## Objective
 
@@ -400,9 +419,9 @@
   - Commit: fix: tidy the shared access card
   - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/shared-access-card.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/shared-access-model.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/styles.css, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/shared-access-model.test.ts
   - Depends on: T003
-- [TODO] T005 — Папка проектов на любом диске (work)
+- [DONE] T005 — Папка проектов на любом диске (work)
   - Commit: feat: choose the projects folder on any local drive
-  - Files: product-parts/backend-core/clusters/projects/modules/project-registry, product-parts/backend-core/clusters/projects/modules/project-setup, product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/backend-core/clusters/runtime/modules/cli
+  - Files: product-parts/backend-core/clusters/projects/modules/project-registry, product-parts/backend-core/clusters/projects/modules/project-setup, product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/backend-core/clusters/projects/modules/project-registry/module.md, product-parts/backend-core/clusters/projects/modules/project-registry/src/errors.ts, product-parts/backend-core/clusters/projects/modules/project-registry/src/folders.ts, product-parts/backend-core/clusters/projects/modules/project-registry/src/home-paths.ts, product-parts/backend-core/clusters/projects/modules/project-registry/src/index.ts, product-parts/backend-core/clusters/projects/modules/project-registry/src/registry.ts, product-parts/backend-core/clusters/projects/modules/project-registry/src/roots.ts, product-parts/backend-core/clusters/projects/modules/project-registry/test/registry.test.ts, product-parts/backend-core/clusters/projects/modules/project-registry/test/roots.test.ts, product-parts/backend-core/clusters/projects/modules/project-setup/module.md, product-parts/backend-core/clusters/projects/modules/project-setup/src/preview.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/app.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/controls.css, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/folder-picker.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/folder-roots.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/settings.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/folder-roots.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/panel-shell.test.ts
   - Depends on: T004
 - [TODO] T006 — README и руководство (work)
   - Commit: docs: describe UAC, the panel browser and project drives

@@ -97,8 +97,13 @@ test('projects: create, open by folder list, remove from list, persist across re
   assert.equal(bad.status, 400);
   assert.equal((bad.json['error'] as { code: string }).code, 'invalid-name');
 
-  const top = (await (await fetch(`${base}/api/folders`)).json()) as { path: string; entries: Array<{ name: string; path: string }> };
+  const top = (await (await fetch(`${base}/api/folders`)).json()) as {
+    path: string;
+    entries: Array<{ name: string; path: string }>;
+    roots: Array<{ path: string; kind: string }>;
+  };
   assert.equal(top.path, home);
+  assert.deepEqual(top.roots[0], { name: 'Домой', path: home, kind: 'home' });
   const codeEntry = top.entries.find((e) => e.name === 'code');
   assert.ok(codeEntry);
   const inner = (await (await fetch(`${base}/api/folders?path=${encodeURIComponent(codeEntry.path)}`)).json()) as {
@@ -107,7 +112,7 @@ test('projects: create, open by folder list, remove from list, persist across re
   assert.deepEqual(inner.entries.map((e) => e.name), ['existing']);
   const outside = await fetch(`${base}/api/folders?path=${encodeURIComponent(path.parse(home).root)}`);
   assert.equal(outside.status, 400);
-  assert.equal(((await outside.json()) as { error: { code: string } }).error.code, 'outside-home');
+  assert.equal(((await outside.json()) as { error: { code: string } }).error.code, 'outside-roots');
 
   const opened = await send('POST', '/api/projects/open', { path: inner.entries[0]!.path });
   assert.equal(opened.status, 201);

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 607,
+  "revision": 608,
   "rounds": [
     {
       "digest": {
@@ -39,6 +39,13 @@
       "kind": "implementation",
       "status": "CLOSED",
       "title": "Implementation"
+    },
+    {
+      "digest": null,
+      "id": "R2",
+      "kind": "fixes",
+      "status": "OPEN",
+      "title": "Тест папки проектов на Windows CI"
     }
   ],
   "schema": "harness-workflow-plan/1",
@@ -88,7 +95,7 @@
         "text": "Выпуск — 0.8.1"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "IN_PROGRESS",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "e9c04a9c-cd7c-4f6c-b4f7-f6b07802530e",
@@ -399,6 +406,81 @@
       "status": "DONE",
       "title": "Релиз 0.8.1",
       "why": "Выпустить исправления для проверки на Windows"
+    },
+    {
+      "acceptance": [
+        "Тест projects-root берёт папку вне домашней папки и других дисков на macOS, Linux и Windows (временный каталог на системном диске)",
+        "npm test проходит локально"
+      ],
+      "checks": [],
+      "commitMessage": "test: refuse a projects folder outside the roots on every OS",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [],
+      "docsWaiver": "Меняется только тест; контракт project-setup не меняется",
+      "files": [
+        "product-parts/backend-core/clusters/projects/modules/project-setup/test/setup.test.ts"
+      ],
+      "fixes": "T005",
+      "id": "T008",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Тест мастера: папка вне разрешённых корней на любой ОС",
+      "why": "CI Windows x64 (run 43051852047): /etc на раннере — D:\\etc, несистемный диск, по правилу M14 разрешён; тест ждал 400"
+    },
+    {
+      "acceptance": [
+        "Project-wide documents describe the round result",
+        "The round digest records result, decisions, contracts and references"
+      ],
+      "checks": [],
+      "commitMessage": "docs: reconcile documentation for R2",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T008"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/architecture/OVERVIEW.md"
+      ],
+      "fixes": null,
+      "id": "DOCS-R2",
+      "iteration": 1,
+      "kind": "docs",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Reconcile project documentation and write the round digest",
+      "why": "Keep the project context current for the next agent and close the round."
+    },
+    {
+      "acceptance": [
+        "CI зелёный на macOS, Linux, Windows x64 и ARM64 на ветке ci/m14-windows-fixes",
+        "Документ приёмки M14 записывает упавший и зелёный запуски CI"
+      ],
+      "checks": [],
+      "commitMessage": "docs: record the 0.8.1 CI run",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T008",
+        "DOCS-R2"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "docs/evidence/M14-acceptance.md"
+      ],
+      "fixes": null,
+      "id": "T009",
+      "iteration": 1,
+      "kind": "delivery",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Повтор выпуска 0.8.1: CI на всех ОС",
+      "why": "Выпуск 0.8.1 должен пройти CI на macOS, Linux, Windows x64 и ARM64"
     }
   ]
 }
@@ -408,11 +490,11 @@
 ## State
 
 - Scope: m14-windows-fixes (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 8/8
-- Revision: 607
+- Progress: 8/11
+- Revision: 608
 
 ## Objective
 
@@ -463,5 +545,20 @@
   - Depends on: T006, DOCS-R1
 
 Digest: Исправлены находки живой проверки 0.8.0 на Windows: git без мелькающих окон, выключенный UAC назван причиной, «Работает» только при работающем демоне, аккуратная карточка общего доступа, панель в Chrome, подсказка про wfk, папка проектов на любом локальном диске.
+
+### R2 — Тест папки проектов на Windows CI (fixes, OPEN)
+
+- [TODO] T008 — Тест мастера: папка вне разрешённых корней на любой ОС (work)
+  - Commit: test: refuse a projects folder outside the roots on every OS
+  - Files: product-parts/backend-core/clusters/projects/modules/project-setup/test/setup.test.ts
+  - Fixes: T005
+- [TODO] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
+  - Commit: docs: reconcile documentation for R2
+  - Files: README.md, docs/architecture/OVERVIEW.md
+  - Depends on: T008
+- [TODO] T009 — Повтор выпуска 0.8.1: CI на всех ОС (delivery)
+  - Commit: docs: record the 0.8.1 CI run
+  - Files: docs/evidence/M14-acceptance.md
+  - Depends on: T008, DOCS-R2
 
 State changes only through `scripts/workflow` commands. History lives in Git.

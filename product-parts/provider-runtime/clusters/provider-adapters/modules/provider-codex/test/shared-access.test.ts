@@ -172,7 +172,9 @@ test('setup on macOS: preview, write with copies, checks through every state, id
     const zshenv = await readFile(path.join(m.home, '.zshenv'), 'utf8');
     assert.ok(!zshenv.includes('Workflow Kit probe'));
     assert.match(zshenv, /export PATH="\/u\/bin:\/n\/bin:\$PATH"/);
-    assert.equal((await stat(path.join(ssh, 'authorized_keys'))).mode & 0o777, 0o600);
+    // POSIX permissions exist only on a POSIX host file system (Windows reports 0666); the
+    // product writes these files only on macOS.
+    if (process.platform !== 'win32') assert.equal((await stat(path.join(ssh, 'authorized_keys'))).mode & 0o777, 0o600);
     assert.ok((await readdir(path.join(path.dirname(m.home), 'data', 'backups'))).length >= 3, 'copies before the write');
     assert.deepEqual((await shared.preview()).writes, [], 'a second setup has nothing to write');
 

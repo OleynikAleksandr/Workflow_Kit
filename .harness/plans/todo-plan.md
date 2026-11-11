@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 566,
+  "revision": 568,
   "rounds": [
     {
       "digest": {
@@ -386,7 +386,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Тест общего доступа без проверки POSIX-прав на Windows",
       "why": "CI 42999966626: на Windows x64 и ARM64 тест ждёт права 0600, а файловая система Windows отдаёт 0666; продукт на Windows эти файлы не пишет"
     },
@@ -454,8 +454,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 6/9
-- Revision: 566
+- Progress: 7/9
+- Revision: 568
 
 ## Objective
 
@@ -502,7 +502,7 @@ Digest: macOS: Kit сам настраивает SSH-доступ ChatGPT к с�
 
 ### R2 — CI Windows: права файлов в тесте общего доступа (fixes, OPEN)
 
-- [TODO] T006 — Тест общего доступа без проверки POSIX-прав на Windows (work)
+- [DONE] T006 — Тест общего доступа без проверки POSIX-прав на Windows (work)
   - Commit: test: skip the POSIX file mode check of the shared access test on Windows hosts
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/shared-access.test.ts
   - Fixes: T001

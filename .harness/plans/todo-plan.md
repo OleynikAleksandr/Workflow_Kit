@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T001",
   "lastClosed": {
     "closedAt": "2026-11-11T16:49:08.593Z",
     "scopeId": "m15-claude-promo-dialogs"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 632,
+  "revision": 634,
   "rounds": [
     {
       "digest": null,
@@ -69,8 +69,9 @@
     {
       "acceptance": [
         "Все enqueue автопилота передают projectId",
-        "Тест: канал без сессии — сообщения выбора и запуска с projectId",
-        "module.md autopilot обновлён"
+        "Выбор режима не блокируется работающей сессией, которой нет среди сессий проекта (owns)",
+        "Тест: канал без сессии — сообщения выбора и запуска с projectId; посторонняя сессия не блокирует выбор",
+        "module.md autopilot и cli обновлены"
       ],
       "checks": [],
       "commitMessage": "fix: wake the agent for plan commands after a service restart",
@@ -85,14 +86,16 @@
       "dependencies": [],
       "docsWaiver": null,
       "files": [
-        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot"
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md"
       ],
       "fixes": null,
       "id": "T001",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "Команды автопилота знают проект",
       "why": "После перезапуска службы команда запуска плана не будила агента"
     },
@@ -199,9 +202,9 @@
 - Scope: m16-plan-start-after-review (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: none
+- Current task: T001
 - Progress: 0/4
-- Revision: 632
+- Revision: 634
 
 ## Objective
 
@@ -217,9 +220,9 @@
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T001 — Команды автопилота знают проект (work)
+- [IN_PROGRESS] T001 — Команды автопилота знают проект (work)
   - Commit: fix: wake the agent for plan commands after a service restart
-  - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md
 - [TODO] T002 — Посторонняя сессия не прячет карточку выбора (work)
   - Commit: fix: show the mode choice despite a stray session
   - Files: product-parts/control-panel/clusters/web-panel/modules/session-view

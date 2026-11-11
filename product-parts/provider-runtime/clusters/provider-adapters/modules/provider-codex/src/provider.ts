@@ -10,6 +10,7 @@ import { wakeThread } from './thread-ops.ts';
 import { createCodexRuntime } from './runtime.ts';
 import type { CodexDeps, CodexRuntime, DaemonState } from './runtime.ts';
 import { createSessionParts } from './sessions.ts';
+import { STALE_ENV_CONFIRM, STALE_ENV_REASON, pathOf, readDaemonRecord, staleDaemonEnv, writeDaemonRecord } from './daemon-record.ts';
 import { createTrustParts, requireCodex } from './trust.ts';
 
 /** Registry id of the provider (also the hook journal client). */
@@ -66,7 +67,7 @@ function loginProblem(daemon: DaemonState): boolean {
   return daemon.running && !daemon.staleLogin && !daemon.settling && daemon.remoteOwner !== 'app' && (daemon.remoteControl === 'errored' || (daemon.remoteControl !== 'connected' && daemon.tokenError !== null));
 }
 
-function buildStatus(rt: CodexRuntime, daemon: DaemonState, handingOver = false, shared: SharedAccessState | null = null, refused: string | null = null): ProviderStatus {
+function buildStatus(rt: CodexRuntime, daemon: DaemonState, handingOver = false, shared: SharedAccessState | null = null, refused: string | null = null, staleEnv = false): ProviderStatus {
   const program = rt.program;
   const details: Record<string, unknown> = {
     daemon: { running: daemon.running, pid: daemon.pid, remoteControl: daemon.remoteControl, serverName: daemon.serverName },
@@ -90,7 +91,7 @@ function buildStatus(rt: CodexRuntime, daemon: DaemonState, handingOver = false,
   if (linked(daemon)) {
     const label = daemon.remoteControl === 'connected' ? 'демон подключён' : 'через приложение ChatGPT';
     // Shared daemon mode (M12): the app should not hold remote control, the user can fix it.
-    const note = appOwnerNote(shared, daemon.remoteOwner) ?? program.error;
+    const note = appOwnerNote(shared, daemon.remoteOwner) ?? (staleEnv ? STALE_ENV_REASON : null) ?? program.error;
     return { ...base, state: program.installed === null ? 'unknown' : 'ready', label, ...(note ? { note } : {}) };
   }
   if (connecting(daemon)) return { ...base, state: 'unavailable', label: 'подключается к ChatGPT', note: CONNECTING_REASON };
@@ -115,6 +116,10 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
     ...(deps.firstTurnWaitMs === undefined ? {} : { firstTurnWaitMs: deps.firstTurnWaitMs }),
     ...(deps.releasePollMs === undefined ? {} : { releasePollMs: deps.releasePollMs }),
   });
+
+  // M17 2.3: the running daemon was not started by Kit with the current PATH.
+  const staleEnv = async (daemon: DaemonState): Promise<boolean> =>
+    daemon.running && staleDaemonEnv(await readDaemonRecord(context.dirs.stateDir), daemon.pid, pathOf(rt.childEnv()));
 
   const capabilities = async (): Promise<Capabilities> => {
     const missing = rt.program.installed === false ? 'codex не найден в PATH службы' : rt.program.unsupported;
@@ -146,6 +151,7 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
     if (handover.active) return [{ ...action, enabled: false, reason: HANDOVER_REASON }];
     if (!daemon.running) return [action];
     // A running daemon: the action only makes sense when its link to ChatGPT is off or failed.
+    if (await staleEnv(daemon)) return [{ ...action, title: 'Перезапустить демон', confirm: STALE_ENV_CONFIRM }];
     if (daemon.remoteControl === 'connected') return [{ ...action, enabled: false, reason: 'демон работает и подключён к ChatGPT' }];
     if (linked(daemon)) return [{ ...action, enabled: false, reason: APP_OWNER_REASON }];
     if (daemon.staleLogin) {
@@ -159,7 +165,7 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
     requireCodex(rt);
     // A daemon with a stale login keeps it until it restarts: stop it first.
     const before = await rt.daemon(true);
-    if (before.running && before.staleLogin) {
+    if (before.running && (before.staleLogin || (await staleEnv(before)))) {
       const stopped = await context.runCommand(rt.command(), ['remote-control', 'stop'], { cwd: context.homedir, env: rt.childEnv(), timeoutMs: 30_000 });
       rt.forgetDaemon();
       if (stopped.startError || stopped.code !== 0) {
@@ -167,7 +173,7 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
           hint: 'Выполните codex remote-control stop в Терминале, затем «Запустить демон».',
         });
       }
-      context.log('codex: daemon stopped to reload a refreshed login');
+      context.log('codex: daemon stopped to reload its login and environment');
     }
     const result = await context.runCommand(rt.command(), ['remote-control', 'start', '--json'], {
       cwd: context.homedir,
@@ -183,9 +189,12 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
     if (result.startError) throw new ProviderError('start-failed', `codex не запустился: ${result.startError}`, { hint: 'Проверьте путь к codex и нажмите «Перепроверить».' });
     const parsed = parseRemoteControlStart(`${result.stdout}\n${result.stderr}`);
     const daemon = await rt.daemon(true);
+    if (daemon.running && daemon.pid !== null) {
+      await writeDaemonRecord(context.dirs.stateDir, { pid: daemon.pid, path: pathOf(rt.childEnv()) }).catch((error: unknown) => context.log(`codex: daemon record not written: ${(error as Error).message}`));
+    }
     if (parsed.status === 'connected' || linked(daemon)) {
       context.log('codex: daemon started');
-      return buildStatus(rt, daemon, false, shared.cached(), refused);
+      return buildStatus(rt, daemon, false, shared.cached(), refused, await staleEnv(daemon));
     }
     if (parsed.error?.includes('errored') || parsed.status === 'errored' || loginProblem(daemon)) {
       throw new ProviderError('codex-login', 'Демон Codex запущен, но соединение с ChatGPT в ошибке (вероятно, истёк вход)', { hint: LOGIN_HINT });
@@ -220,13 +229,15 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
     sharedAccess: shared,
     capabilities,
     async status() {
-      return buildStatus(rt, await rt.daemon(), handover.active, shared.cached(), refused);
+      const daemon = await rt.daemon();
+      return buildStatus(rt, daemon, handover.active, shared.cached(), refused, await staleEnv(daemon));
     },
     async refresh() {
       await rt.refreshProgram();
       rt.forgetDaemon();
       trustParts.clearCache();
-      return buildStatus(rt, await rt.daemon(true), handover.active, shared.cached(), refused);
+      const daemon = await rt.daemon(true);
+      return buildStatus(rt, daemon, handover.active, shared.cached(), refused, await staleEnv(daemon));
     },
     trust: (project) => trustParts.trust(project),
     previewTrust: (project) => trustParts.previewTrust(project),

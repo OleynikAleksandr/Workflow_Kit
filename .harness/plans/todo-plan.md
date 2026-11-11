@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 650,
+  "revision": 652,
   "rounds": [
     {
       "digest": null,
@@ -167,14 +167,18 @@
       ],
       "docsWaiver": null,
       "files": [
-        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex"
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/daemon-record.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/stale-daemon.test.ts"
       ],
       "fixes": null,
       "id": "T003",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Устаревший демон Codex: подсказка и перезапуск",
       "why": "Демон переживает обновления службы и хранит старый PATH"
     },
@@ -252,8 +256,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 2/5
-- Revision: 650
+- Progress: 3/5
+- Revision: 652
 
 ## Objective
 
@@ -278,9 +282,9 @@
   - Commit: fix: name the full wfk path in the AGENTS.md section
   - Files: product-parts/backend-core/clusters/projects/modules/kit-structure, product-parts/backend-core/clusters/projects/modules/kit-structure/module.md, product-parts/backend-core/clusters/projects/modules/kit-structure/src/templates.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/test/structure.test.ts
   - Depends on: T001
-- [TODO] T003 — Устаревший демон Codex: подсказка и перезапуск (work)
+- [DONE] T003 — Устаревший демон Codex: подсказка и перезапуск (work)
   - Commit: feat: show a stale Codex daemon and restart it on request
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/daemon-record.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/stale-daemon.test.ts
   - Depends on: T002
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1

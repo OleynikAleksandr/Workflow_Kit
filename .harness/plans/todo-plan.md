@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 679,
+  "revision": 680,
   "rounds": [
     {
       "digest": {
@@ -52,7 +52,10 @@
       "Сессия, которую ведёт процесс панели, получает сообщение сразу, как в 0.9.0; ChatGPT, Kimi, автопилот и ревью работают как раньше",
       "Тесты, проверка типов и check:platforms зелёные локально и в CI на macOS, Linux, Windows x64 и ARM64; выпущена версия 0.9.1"
     ],
-    "acceptanceNote": null,
+    "acceptanceNote": {
+      "at": "2026-11-12T11:30:05.983Z",
+      "text": "Пользователь, 2026-11-12: на вопрос «Принять scope, закрыть его и опубликовать main на GitHub?» — «Да, принимаю»"
+    },
     "approval": {
       "at": "2026-11-12T10:04:53.216Z",
       "text": "Пользователь, 2026-11-12: на вопрос «Открыть scope исправлений для этих двух дефектов?» — «Да, открывай»; в панели выбрано: спецификация и план без ревью | Execution mode chosen by the user: orchestrated: Выбор пользователя в панели Workflow Kit: оркестрация с исполнителями"
@@ -79,7 +82,7 @@
         "text": "Внешнюю сессию панель не возобновляет сама; кнопка «Продолжить» остаётся"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "ACCEPTED",
     "execution": {
       "maxWorkers": 2,
       "ownerSession": "0c355c88-f324-49fe-909c-fe5617d16288",
@@ -341,11 +344,11 @@
 ## State
 
 - Scope: m19-session-chat-fixes (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: ACCEPTED
 - Execution: orchestrated (max 2 workers, owner 0c355c88-f324-49fe-909c-fe5617d16288)
 - Current task: none
 - Progress: 5/5
-- Revision: 679
+- Revision: 680
 
 ## Objective
 

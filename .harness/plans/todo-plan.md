@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 661,
+  "revision": 663,
   "rounds": [
     {
       "digest": null,
@@ -40,7 +40,7 @@
       }
     ],
     "decisions": [],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 1,
       "ownerSession": null,
@@ -88,7 +88,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Контракт диалога сессии и маршрут чтения",
       "why": "Провайдеры и панель должны опираться на один контракт чтения и прямой отправки"
     }
@@ -100,11 +100,11 @@
 ## State
 
 - Scope: assignment-m18-session-chat-T001-1 (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 0/1
-- Revision: 661
+- Progress: 1/1
+- Revision: 663
 
 ## Objective
 
@@ -122,7 +122,7 @@
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T001 — Контракт диалога сессии и маршрут чтения (work)
+- [DONE] T001 — Контракт диалога сессии и маршрут чтения (work)
   - Commit: feat: add the session chat contract and the messages route
   - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/chat.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/chat-routes.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/routes.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/chat-routes.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/fake-provider.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/chat.md, product-parts/backend-core/clusters/projects/modules/git-publish/test/publication.test.ts
 

@@ -1,6 +1,6 @@
 // A configurable provider for the route tests: records calls, can block on a gate and fail on demand.
 import { ProviderError, createTokenStore } from '../src/index.ts';
-import type { Project, Provider, ProviderAction, SessionInfo } from '../src/index.ts';
+import type { ChatPage, Project, Provider, ProviderAction, SessionInfo } from '../src/index.ts';
 
 export interface FakeProvider extends Provider {
   calls: string[];
@@ -14,6 +14,12 @@ export interface FakeProvider extends Provider {
   kept: string[][];
   failHooks: boolean;
   slow: boolean;
+  /** Page readMessages answers with; chatError makes it throw instead. */
+  chat: ChatPage;
+  chatError: Error | null;
+  /** Texts passed to sendDirect, as "<sid>:<text>"; directAccepts is its answer. */
+  direct: string[];
+  directAccepts: boolean;
 }
 
 export function createFakeProvider(id = 'fake', options: { withOptional?: boolean } = {}): FakeProvider {
@@ -35,6 +41,10 @@ export function createFakeProvider(id = 'fake', options: { withOptional?: boolea
     kept: [],
     failHooks: false,
     slow: false,
+    chat: { messages: [], truncated: false },
+    chatError: null,
+    direct: [],
+    directAccepts: true,
     release: () => open(),
     block() {
       gate = new Promise((resolve) => (open = resolve));
@@ -141,6 +151,15 @@ export function createFakeProvider(id = 'fake', options: { withOptional?: boolea
     provider.restoreSessions = async (_project, sid) => {
       provider.calls.push(`restore:${sid ?? '*'}`);
       return [sid ?? 's1'];
+    };
+    provider.readMessages = async (_project, sid, opts) => {
+      provider.calls.push(`readMessages:${sid}:${opts.limit}`);
+      if (provider.chatError) throw provider.chatError;
+      return provider.chat;
+    };
+    provider.sendDirect = async (_project, sid, text) => {
+      provider.direct.push(`${sid}:${text}`);
+      return provider.directAccepts;
     };
   }
   return provider;

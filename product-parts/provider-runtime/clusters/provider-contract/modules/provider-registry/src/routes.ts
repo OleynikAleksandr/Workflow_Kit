@@ -10,6 +10,7 @@ import type { ProjectRegistry } from '#project-registry';
 import { ProviderError } from './contract.ts';
 import type { Project, Provider, ProviderStatus, SessionInfo, TrustChoices } from './contract.ts';
 import { registerSharedAccessRoutes } from './shared-access-routes.ts';
+import { registerChatRoutes } from './chat-routes.ts';
 import { clearHookSessionsCache } from './hook-sessions.ts';
 import type { ProviderRegistry } from './registry.ts';
 import { errorInfo } from './registry.ts';
@@ -323,6 +324,7 @@ export function registerProviderRoutes(options: ProviderRoutesOptions): Provider
   });
 
   registerSharedAccessRoutes({ router, providerOf, startOperation, toHttpError, bodyObject, requiredText });
+  registerChatRoutes({ router, providerOf, projectOf, sessionIdOf, toHttpError });
 
   function refresh(): StartedOperation {
     return operations.start({

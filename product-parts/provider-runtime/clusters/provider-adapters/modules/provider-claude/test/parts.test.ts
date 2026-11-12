@@ -1,7 +1,7 @@
 // Pure parts of the Claude provider: links, markers, transcripts, autorun points, ~/.claude.json,
 // capabilities. Everything runs on fixtures and temporary folders.
 import assert from 'node:assert/strict';
-import { appendFile, chmod, copyFile, mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { appendFile, chmod, copyFile, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { after, before, test } from 'node:test';
@@ -11,7 +11,7 @@ import { INHERITED_NOTE, createClaudeConfigReader, parseClaudeConfig } from '../
 import { normalizeRemoteId, sessionLinks } from '../src/links.ts';
 import { createRecordStore, forgetProjects } from '../src/records.ts';
 import { claudeCapabilities, compareVersions, findProgram, parseVersion } from '../src/programs.ts';
-import { debugSessionId, dialogError, logTail, parseMarkers, stripAnsi } from '../src/pty.ts';
+import { PTY_SCRIPTS, debugSessionId, dialogError, logTail, parseMarkers, stripAnsi } from '../src/pty.ts';
 import { bridgeIdOfLine, createBridgeReader } from '../src/transcripts.ts';
 
 const fixtures = fileURLToPath(new URL('./fixtures/', import.meta.url));
@@ -199,4 +199,14 @@ test('forgetProjects drops session and environment records of removed projects o
   assert.deepEqual(left.sessions.map((s) => s.remoteId), ['session_a']);
   assert.deepEqual(left.environments, []);
   assert.equal(await forgetProjects(store, new Set(['keep'])), 0);
+});
+
+test('session.exp: <debug>.text is the message, <debug>.message only a wake, claude starts with WFK_PANEL_SESSION=1', async () => {
+  const script = await readFile(PTY_SCRIPTS.session, 'utf8');
+  assert.match(script, /set textfile "\$debug\.text"/);
+  assert.match(script, /set wake "\$debug\.message"/);
+  assert.doesNotMatch(script, /"text\\n"/, 'the old prefix is not parsed');
+  const mark = script.indexOf('set env(WFK_PANEL_SESSION) 1');
+  assert.ok(mark > 0 && mark < script.indexOf('spawn $claude'), 'the mark is set before spawn');
+  assert.ok(script.indexOf('MESSAGE_SENT') > 0 && script.indexOf('WOKEN') > 0);
 });

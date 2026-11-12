@@ -71,6 +71,8 @@ export function chatMessageOfLine(line: string): ChatMessage | null {
   const role = row['type'];
   if ((role !== 'user' && role !== 'assistant') || row['isSidechain'] === true) return null;
   if (role === 'user' && row['isMeta'] === true) return null;
+  // The service summary of a compacted context is not a user message (spec M19 section 2.4).
+  if (row['isCompactSummary'] === true) return null;
   const id = row['uuid'];
   if (typeof id !== 'string' || id === '') return null;
   const message = row['message'];

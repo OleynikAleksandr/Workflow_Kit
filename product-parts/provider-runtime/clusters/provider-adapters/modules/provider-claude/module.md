@@ -64,12 +64,12 @@ D5) и останавливает только по своим записям (D
 - Запуск: `runtime.requirePty()` возвращает `{ claude, launcher }`; `ptyCommand(launcher,
   scripts, kind, args)` даёт `expect <скрипт>.exp <args>` или на Windows
   `node <scripts.host> session|environment <args>` с теми же аргументами (`PtyScripts.host`).
-- `pty/win-host.ts` — вход хоста: разбор аргументов (`parseHostArgs`, первое сообщение из
-  `WFK_FIRST_MESSAGE`, в окружение claude не передаётся), `loadNodePty` и `startTerminal`
+- `pty/win-host.ts` — вход хоста: разбор аргументов (`parseHostArgs`; `claudeEnv` — окружение claude
+  без `WFK_FIRST_MESSAGE`, у сессии `WFK_PANEL_SESSION=1`), `loadNodePty` и `startTerminal`
   из `#pty-host`, `uncaughtException` → `HOST_ERROR`. `pty/host.ts` (`runHost`) повторяет
   `session.exp` и `environment.exp`: те же маркеры и коды выхода (5 — не доверено, 4 — claude
   завершился до ссылки, 6 — диалог), размеры 160×40 и 120×40, ожидания 90 с и 20 с, экран
-  копируется в журнал до ссылки, файлы `<debug>.rename` и `<debug>.message` раз в 1 с,
+  копируется в журнал до ссылки, файлы `<debug>.rename`, `.text`, `.message` раз в 1 с,
   первое сообщение — 1,5 с, текст, 0,5 с, `\r`. Шаблоны (`pty/screen.ts`) — те же, что в
   `dialogs.tcl`, на тексте без escape-последовательностей; при диалоге — до 1 с тишины
   (не дольше 5 с), затем ответ «Not now» на предложение или маркер и остановка claude
@@ -147,8 +147,9 @@ D5) и останавливает только по своим записям (D
   `<logs>/claude/session-*.log`, debug — `…debug.log`. Скрипт печатает
   `CLAUDE_PID <pid>` и `SESSION_URL session_<id>` (основной источник);
   с `firstMessage` (передаётся скрипту переменной `WFK_FIRST_MESSAGE` в одну
-  строку и убирается из окружения claude) скрипт после ссылки набирает
-  сообщение и нажимает Enter, печатает `FIRST_MESSAGE_SENT`;
+  строку и убирается из окружения claude; claude получает `WFK_PANEL_SESSION=1` —
+  метку хуков, у провайдера `marksPanelProcess: true`, M19) скрипт после ссылки набирает
+  сообщение, Enter, печатает `FIRST_MESSAGE_SENT`;
   при `NO_SESSION_URL` или по истечении ожидания id берётся из debug-файла
   (`Created session cse_<id>`). Pid дочернего `claude` добавляется в
   запись (`supervisor.track`) после появления id. Ошибки: `not-trusted`,
@@ -219,13 +220,13 @@ D5) и останавливает только по своим записям (D
   вызывающий (свойство `promptTitle: true`): ввод в ходе мог бы ответить
   на диалог разрешения.
 - `wakeSession(project, sid)` — то же для очереди панели: пишет
-  `<debug-файл>.message` (`wake`, ждущий файл не трогает), `session.exp` вводит «Workflow Kit: новое
+  `<debug-файл>.message` (`wake`; не при ждущем `.text` и `.message`), `session.exp` вводит «Workflow Kit: новое
   сообщение из панели.» и печатает `WOKEN`; хук `UserPromptSubmit` отдаёт
   агенту очередь. Прерванная сессия сначала поднимается
   (`resumeSession`); `false` — сессию держит не панель или её остановили
   намеренно.
 - Диалог (M18): `readMessages` — лента из транскрипта, `sendDirect` — вставка текста в
-  терминал (`<debug>.message` вида `text`, `MESSAGE_SENT`); правила и ОС — [chat.md](chat.md).
+  терминал (`<debug>.text`, `MESSAGE_SENT`); правила и ОС — [chat.md](chat.md).
 
 ### Окружение папки (особое действие проекта)
 

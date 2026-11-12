@@ -265,6 +265,8 @@ export interface Provider {
    * during a turn waits for the Stop hook or the next prompt.
    */
   readonly promptTitle?: boolean;
+  /** The processes it runs mark their hooks (WFK_PANEL_SESSION=1); unmarked ones are external (M19). */
+  readonly marksPanelProcess?: boolean;
   capabilities(): Promise<Capabilities>;
   status(): Promise<ProviderStatus>;
   /** Re-reads versions and daemons with external programs (POST /api/refresh, start of the service). */

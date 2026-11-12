@@ -1,7 +1,7 @@
 // Claude sessions: the list (hook journal + panel records, merged by local or Remote Control id),
 // creation and resumption under session.exp, renaming through session.exp (/rename) and stopping
 // only the panel's own processes (D9).
-import { writeFile } from 'node:fs/promises';
+import { access, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { ProviderError, hookSessionInfo, readHookSessions } from '#provider-registry';
 import type { HookSession, Project, RenameResult, SessionInfo } from '#provider-registry';
@@ -9,6 +9,7 @@ import { ProcessError } from '#process-supervisor';
 import { resumeEnvironment } from './environment.ts';
 import { sessionLinks } from './links.ts';
 import { debugSessionId, dialogError, logTail, parseMarkers, poll, ptyCommand, readText } from './pty.ts';
+import { MESSAGE_WAKE, TEXT_FILE_SUFFIX, WAKE_FILE_SUFFIX } from './pty/screen.ts';
 import type { SessionRecord } from './records.ts';
 import { PROVIDER_ID } from './runtime.ts';
 import type { ClaudeRuntime } from './runtime.ts';
@@ -323,8 +324,11 @@ export async function renameSession(rt: ClaudeRuntime, project: Project, sid: st
 export async function wakeSession(rt: ClaudeRuntime, project: Project, sid: string): Promise<boolean> {
   const record = await runningPanelRecord(rt, project, sid);
   if (!record) return false;
-  // A message file already waiting (sendDirect) starts a turn by itself: it is not overwritten.
-  await writeFile(`${record.debugFile}.message`, 'wake\n', { encoding: 'utf8', flag: 'wx' }).catch((error: NodeJS.ErrnoException) => {
+  // A message text waiting in <debug>.text (sendDirect) starts a turn by itself: no wake then.
+  const textWaiting = await access(`${record.debugFile}${TEXT_FILE_SUFFIX}`).then(() => true, () => false);
+  if (textWaiting) return true;
+  // A wake already waiting is not written again.
+  await writeFile(`${record.debugFile}${WAKE_FILE_SUFFIX}`, MESSAGE_WAKE, { encoding: 'utf8', flag: 'wx' }).catch((error: NodeJS.ErrnoException) => {
     if (error.code !== 'EEXIST') throw error;
   });
   return true;

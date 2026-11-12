@@ -2,16 +2,15 @@
 // The process supervisor starts it detached with stdout and stderr going to the session log.
 import { readFile, rm } from 'node:fs/promises';
 import { loadNodePty, startTerminal } from '#pty-host';
-import { HOST_TIMINGS, parseHostArgs, runHost } from './host.ts';
+import { HOST_TIMINGS, claudeEnv, parseHostArgs, runHost } from './host.ts';
 
 const parsed = parseHostArgs(process.argv.slice(2), process.env);
 if (!parsed) {
   process.stderr.write('usage: win-host.ts session <dir> <claude> <title> <debug> [<resume>] | environment <dir> <claude> <name> <debug>\n');
   process.exit(64);
 }
-// The first message is not passed on to claude's environment (session.exp).
-const env = { ...process.env };
-delete env['WFK_FIRST_MESSAGE'];
+// The first message is not passed on to claude's environment; a session gets WFK_PANEL_SESSION=1.
+const env = claudeEnv(parsed.mode, process.env);
 const pty = loadNodePty();
 let current: { kill(): void } | null = null;
 process.on('uncaughtException', (error) => {

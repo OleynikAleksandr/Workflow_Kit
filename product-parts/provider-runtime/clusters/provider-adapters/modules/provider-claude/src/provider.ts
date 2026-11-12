@@ -109,6 +109,8 @@ export function createClaudeProvider(context: ProviderContext, options: ClaudePr
     title: 'Claude',
     // Claude Code names a session from the prompt hook answer; /rename is typed only outside a turn.
     promptTitle: true,
+    // session.exp and pty/host.ts start claude with WFK_PANEL_SESSION=1 (spec M19 section 2.2).
+    marksPanelProcess: true,
     capabilities: async () => claudeCapabilities(context.platform, await rt.programs(), rt.version()),
     status: () => status(rt),
     async refresh() {

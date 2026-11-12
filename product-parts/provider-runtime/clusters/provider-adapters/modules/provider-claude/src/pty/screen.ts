@@ -69,17 +69,15 @@ export function screenText(raw: string): string {
 /** The wake prompt typed into an idle session (session.exp). */
 export const WAKE_TEXT = 'Workflow Kit: новое сообщение из панели.';
 
-/** <debug>.message content of a wake (spec M18 section 2.2). */
+/** <debug>.message content of a wake: any content of that file means a wake (spec M19 section 2.1). */
 export const MESSAGE_WAKE = 'wake\n';
-/** <debug>.message content of a message: this prefix, then the UTF-8 text. */
-export const MESSAGE_TEXT_PREFIX = 'text\n';
+/** Control file suffixes next to the debug file: a message text, and a wake. */
+export const TEXT_FILE_SUFFIX = '.text';
+export const WAKE_FILE_SUFFIX = '.message';
 /** Bracketed paste around a message text: one user message, however many lines. */
 export const PASTE_START = '\u001b[200~';
 export const PASTE_END = '\u001b[201~';
 /** Pause between the paste and Enter, ms (probe 2026-11-12). */
 export const PASTE_ENTER_MS = 700;
-
-/** What a <debug>.message file asks for: a message text, or a wake (any other content). */
-export function controlMessage(content: string): { kind: 'text'; text: string } | { kind: 'wake' } {
-  return content.startsWith(MESSAGE_TEXT_PREFIX) ? { kind: 'text', text: content.slice(MESSAGE_TEXT_PREFIX.length) } : { kind: 'wake' };
-}
+/** Environment variable that marks the claude processes the panel runs (spec M19 section 2.2). */
+export const PANEL_SESSION_ENV = 'WFK_PANEL_SESSION';

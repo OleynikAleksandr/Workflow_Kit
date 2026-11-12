@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 674,
+  "revision": 675,
   "rounds": [
     {
       "digest": null,
@@ -115,9 +115,13 @@
       "kind": "work",
       "parallelSafe": true,
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Claude: файл <debug>.text, метка процесса панели, лента без сводки сжатия",
-      "why": "Старый сценарий принимал текст за просьбу разбудить, и сообщение терялось"
+      "why": "Старый сценарий принимал текст за просьбу разбудить, и сообщение терялось",
+      "integration": {
+        "operationId": "84b28f9c-111b-4744-bec5-0a4219819f8d",
+        "sourceCommit": "fae1003d2b034f8167f0601bd39caf11aa2c1bf7"
+      }
     },
     {
       "acceptance": [
@@ -308,8 +312,8 @@
 - Delivery: IN_PROGRESS
 - Execution: orchestrated (max 2 workers, owner 0c355c88-f324-49fe-909c-fe5617d16288)
 - Current task: none
-- Progress: 1/5
-- Revision: 674
+- Progress: 2/5
+- Revision: 675
 
 ## Objective
 
@@ -326,7 +330,7 @@
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T001 — Claude: файл <debug>.text, метка процесса панели, лента без сводки сжатия (work, parallel-safe)
+- [DONE] T001 — Claude: файл <debug>.text, метка процесса панели, лента без сводки сжатия (work, parallel-safe)
   - Commit: fix: send panel text through its own control file and mark the panel process
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/direct.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/chat.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/session.exp, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/host.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/screen.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/win-host.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/direct.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/chat.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/windows.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parts.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/harness.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/chat.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md
 - [TODO] T002 — Хук и канал: внешняя сессия получает сообщения только из очереди (work, parallel-safe)

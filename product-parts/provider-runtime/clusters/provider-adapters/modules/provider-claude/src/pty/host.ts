@@ -1,8 +1,8 @@
 // The Windows pty host (spec M5 section 4.1): the same contract as session.exp and environment.exp —
 // the same arguments, marker lines on stdout (the supervisor's log file), control files
-// <debug>.rename and <debug>.message, timeouts and terminal size — over ConPTY instead of expect.
-// Pure logic with injected terminal, files and clock; win-host.ts runs it for real.
-import { DIALOG, ENVIRONMENT_ID, NOT_TRUSTED, PASTE_END, PASTE_ENTER_MS, PASTE_START, SESSION_URL, WAKE_TEXT, controlMessage, dialogKind, notNowKeys, offerQuestion, screenText } from './screen.ts';
+// <debug>.rename, <debug>.text and <debug>.message, timeouts and terminal size — over ConPTY instead
+// of expect. Pure logic with injected terminal, files and clock; win-host.ts runs it for real.
+import { DIALOG, ENVIRONMENT_ID, NOT_TRUSTED, PANEL_SESSION_ENV, PASTE_END, PASTE_ENTER_MS, PASTE_START, SESSION_URL, TEXT_FILE_SUFFIX, WAKE_FILE_SUFFIX, WAKE_TEXT, dialogKind, notNowKeys, offerQuestion, screenText } from './screen.ts';
 
 /** Feature offers one launch declines at most (spec M15 section 1). */
 export const MAX_OFFERS_DECLINED = 3;
@@ -51,6 +51,17 @@ export function parseHostArgs(argv: readonly string[], env: Readonly<Record<stri
   }
   if (kind === 'environment') return { dir, mode: { kind, claude, name: label, debug } };
   return null;
+}
+
+/**
+ * The environment of claude: without the first message (session.exp), and for a session with
+ * WFK_PANEL_SESSION=1, which its hooks inherit (spec M19 section 2.2).
+ */
+export function claudeEnv(mode: HostMode, env: Readonly<Record<string, string | undefined>>): Record<string, string | undefined> {
+  const result = { ...env };
+  delete result['WFK_FIRST_MESSAGE'];
+  if (mode.kind === 'session') result[PANEL_SESSION_ENV] = '1';
+  return result;
 }
 
 /** Runs the host until claude exits (or a dialog / trust failure ends it). */
@@ -145,21 +156,22 @@ export function runHost(mode: HostMode, deps: HostDeps, timings: HostTimings = H
         term.write('\r');
         deps.print('\nRENAMED\n');
       }
-      const content = await deps.takeFile(`${mode.debug}.message`);
-      if (content !== null) {
-        const message = controlMessage(content);
-        if (message.kind === 'text') {
-          // A bracketed paste: the lines stay one user message (spec M18 section 2.2).
-          term.write(`${PASTE_START}${message.text}${PASTE_END}`);
-          await deps.sleep(PASTE_ENTER_MS);
-          term.write('\r');
-          deps.print('\nMESSAGE_SENT\n');
-        } else {
-          term.write(WAKE_TEXT);
-          await deps.sleep(300);
-          term.write('\r');
-          deps.print('\nWOKEN\n');
-        }
+      const text = await deps.takeFile(`${mode.debug}${TEXT_FILE_SUFFIX}`);
+      const pasted = text !== null && text !== '';
+      if (pasted) {
+        // A bracketed paste: the lines stay one user message (spec M19 section 2.1).
+        term.write(`${PASTE_START}${text}${PASTE_END}`);
+        await deps.sleep(PASTE_ENTER_MS);
+        term.write('\r');
+        deps.print('\nMESSAGE_SENT\n');
+      }
+      // Any content of <debug>.message is a wake; a message pasted just now starts the turn itself.
+      const wake = await deps.takeFile(`${mode.debug}${WAKE_FILE_SUFFIX}`);
+      if (wake !== null && !pasted) {
+        term.write(WAKE_TEXT);
+        await deps.sleep(300);
+        term.write('\r');
+        deps.print('\nWOKEN\n');
       }
     }
   }

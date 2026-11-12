@@ -97,7 +97,7 @@ test('createSession: SESSION_URL, the claude pid is tracked, the record survives
   assert.equal(session.links.desktop, `claude://claude.ai/code/${remoteId}`);
   assert.equal(session.links.mobile, `https://claude.ai/code/${remoteId}`);
   const started = (await fakeCalls()).find((c) => c.argv.includes('--remote-control'))!;
-  assert.deepEqual(started.vars, {});
+  assert.deepEqual(started.vars, { WFK_PANEL_SESSION: '1' }, 'session.exp marks the panel process (M19)');
   assert.equal(started.argv[started.argv.indexOf('--remote-control') + 1], 'Alpha · 2026-11-05 10:00');
   const records = JSON.parse(await readFile(providerSessionsFile(context.dirs, 'claude'), 'utf8'));
   assert.equal(records.sessions[0].remoteId, remoteId);
@@ -166,7 +166,7 @@ test('the debug file is the fallback source of the session id; a failing claude 
 test('createSession with a first message types it into the session after the link', { skip }, async () => {
   const session = await provider.createSession(project, { title: 'First', firstMessage: 'Проект создан.\nПрочитай AGENTS.md' });
   const started = (await fakeCalls()).filter((c) => c.argv.includes('--remote-control')).at(-1)!;
-  assert.deepEqual(started.vars, {}, 'the message is not in claude\'s environment');
+  assert.deepEqual(started.vars, { WFK_PANEL_SESSION: '1' }, 'the message is not in claude\'s environment');
   let input = '';
   for (let i = 0; i < 100 && !input.includes('\r'); i += 1) {
     input = await readFile(`${h.fakeLog}.input`, 'utf8').catch(() => '');

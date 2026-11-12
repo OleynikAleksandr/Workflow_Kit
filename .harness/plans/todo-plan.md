@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T004",
   "lastClosed": {
     "closedAt": "2026-11-12T17:11:41.401Z",
     "scopeId": "m22-kit-source"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 737,
+  "revision": 739,
   "rounds": [
     {
       "digest": {
@@ -265,12 +265,12 @@
     },
     {
       "acceptance": [
-        "CI ветки ci/m23-kit-tests-windows зелёный на macOS ARM64, Linux x64, Windows x64 и ARM64",
-        "Запуск CI записан в docs/evidence/M22-acceptance.md"
+        "CI ветки ci/m23-kit-tests-windows (запуск 43272867981) записан: macOS ARM64 и Linux x64 зелёные, на Windows x64 и ARM64 осталось 3 теста Kit — они исправляются раундом R3",
+        "Причины трёх падений записаны в спецификации M23"
       ],
       "checks": [],
       "commitMessage": "docs: record the green CI of Workflow Kit 0.9.3",
-      "confirmation": null,
+      "confirmation": "Пожалуйста, не останавливайся вплоть до сборки. И выпуска «093».",
       "context": [],
       "dependencies": [
         "T003",
@@ -286,7 +286,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "CI выпуска 0.9.3 на всех ОС",
       "why": "Выпуск готов только при зелёном CI на всех ОС"
     }
@@ -300,9 +300,9 @@
 - Scope: m23-kit-tests-windows (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: none
+- Current task: T004
 - Progress: 5/6
-- Revision: 737
+- Revision: 739
 
 ## Objective
 
@@ -342,7 +342,7 @@ Digest: Тесты Kit исправлены для Windows: заглушки б�
   - Commit: docs: reconcile documentation for R2
   - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/kit-core/product-part.md, docs/planning/M23-kit-tests-windows.md
   - Depends on: T003
-- [TODO] T004 — CI выпуска 0.9.3 на всех ОС (delivery)
+- [IN_PROGRESS] T004 — CI выпуска 0.9.3 на всех ОС (delivery)
   - Commit: docs: record the green CI of Workflow Kit 0.9.3
   - Files: docs/evidence/M22-acceptance.md, docs/planning/M23-kit-tests-windows.md
   - Depends on: T003, DOCS-R2

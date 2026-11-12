@@ -13,7 +13,8 @@ import { renderCards } from './card-grid.js';
 import { code, facts, h, notice, pill, plainInput } from './dom.js';
 import { createFolderPicker, showError } from './folder-picker.js';
 import { createNewProjectScreen } from './new-project.js';
-import { homeScreen, missingScreen, projectScreen, sessionHeader } from './screens.js';
+import { homeScreen, missingScreen, projectScreen } from './screens.js';
+import { createSessionScreen } from './session-screen.js';
 import { archivedSessions, currentProjectId } from './selection.js';
 import { applyTheme, createSettings } from './settings.js';
 import { createSidebar } from './sidebar.js';
@@ -29,7 +30,7 @@ import './shared-access-card.js';
  */
 // The provider cards and «Структура Kit» are no longer in the settings (user decision 2026-11-06):
 // the archive covers what they repeated, provider actions are offered by the project wizard.
-export const PANEL_EXTENSIONS = ['/project-wizard/project-wizard.js', '/session-view/session-view.js'];
+export const PANEL_EXTENSIONS = ['/project-wizard/project-wizard.js', '/session-view/session-view.js', '/session-chat/session-chat.js'];
 
 /** Polling interval in milliseconds (D3). */
 const POLL_MS = 3000;
@@ -122,12 +123,8 @@ let wizard = null;
 let newShown = '';
 const newProjectHost = h('div', { class: 'new-project' });
 const dynamic = h('div', { class: 'dynamic' });
-// The session screen keeps its body node, so typed text in its cards survives polling.
-const sessionHead = h('div');
-const sessionBody = h('div', { class: 'session-body' });
-const sessionScreen = h('div', { class: 'screen' }, [sessionHead, sessionBody]);
-let sessionHeadKey = '';
-let sessionBodyKey = '';
+// The session screen keeps its nodes, so typed text in its cards survives polling.
+const sessionScreen = createSessionScreen(slotContext);
 let reviewKey = '';
 const main = h('main', { class: 'main', id: 'main' }, [toast, dynamic, newProjectHost, settings.element, archive.element]);
 document.body.prepend(h('div', { class: 'app' }, [sidebar.element, main]));
@@ -179,10 +176,10 @@ function renderMain() {
     if (project && session) handlers.reviveSession(project.id, session);
     const data = project && session ? { project, session, link, status: handlers.sessionStatus(session) } : null;
     if (data) {
-      renderSession(data);
+      sessionScreen.render(data, state);
       dynamic.hidden = false;
       drawn = '';
-      if (dynamic.firstChild !== sessionScreen) dynamic.replaceChildren(sessionScreen);
+      if (dynamic.firstChild !== sessionScreen.element) dynamic.replaceChildren(sessionScreen.element);
       return;
     }
     screen = ['session', null, () => missingScreen('Сессия не найдена', handlers)];
@@ -193,32 +190,6 @@ function renderMain() {
   if (key === drawn) return;
   drawn = key;
   dynamic.replaceChildren(screen[2]());
-}
-
-/**
- * Header and slot body of the session screen, each redrawn only when its data changed.
- * @param {import('./slots.js').SessionContext} data
- */
-function renderSession(data) {
-  const headKey = JSON.stringify(data);
-  if (headKey !== sessionHeadKey) {
-    sessionHeadKey = headKey;
-    sessionHead.replaceChildren(sessionHeader(data));
-  }
-  const slot = slots.sessionBody;
-  if (!slot) return;
-  try {
-    const selected = slot.select(state, data);
-    const key = JSON.stringify([data.session.key, selected]);
-    if (key === sessionBodyKey) return;
-    sessionBodyKey = key;
-    const node = slot.render(selected, state, data, slotContext);
-    if (!node) sessionBody.replaceChildren();
-    else if (sessionBody.childNodes.length !== 1 || sessionBody.firstChild !== node) sessionBody.replaceChildren(node);
-  } catch (error) {
-    sessionBodyKey = '';
-    sessionBody.replaceChildren(h('p', { class: 'error' }, [`Ошибка экрана сессии: ${String(error)}`]));
-  }
 }
 
 /**

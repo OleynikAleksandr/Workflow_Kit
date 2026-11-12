@@ -169,6 +169,11 @@
   gap: 15px;
 }
 
+/* The dialogue of the session (sessionChat slot) sits under the body; empty, it takes no gap. */
+.session-chat:empty {
+  display: none;
+}
+
 .screen-head.with-close {
   display: flex;
   align-items: flex-start;

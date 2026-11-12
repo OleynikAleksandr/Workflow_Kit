@@ -34,6 +34,13 @@
 Модуль провайдеров не называет. Сообщения автопилота и перекрёстного ревью идут прежним путём —
 `wakingChannel.enqueue`; прямой путь касается только `POST …/sessions/:sid/message`.
 
+## Статика диалога
+
+`createApp` монтирует файлы модуля панели `session-chat` (`sessionChatMount()`, алиас
+`#session-chat`) под `/session-chat/` рядом с `session-view`: `session-chat.js` — расширение панели
+(слот `sessionChat`), `session-chat.css` — стили карточки «Диалог». Тест `test/app.test.ts`
+проверяет, что оба файла отдаются с типами JavaScript и CSS.
+
 ## Поведение на ОС
 
 Одинаково на macOS, Linux и Windows: правило выбора пути не зависит от ОС. Что умеет

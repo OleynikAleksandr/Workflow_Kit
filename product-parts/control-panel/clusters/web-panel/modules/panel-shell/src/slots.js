@@ -1,6 +1,6 @@
 // @ts-check
-// Slots of the layout that panel extensions fill: the new project screen (wizard), the body of the
-// session screen and «Ревью плана» in the sidebar. An empty slot falls back to the shell's own view.
+// Slots of the layout that panel extensions fill: the new project screen (wizard), the body and the
+// dialogue of the session screen and «Ревью плана» in the sidebar. An empty slot falls back to the shell's own view.
 
 /**
  * @typedef {import('./view-model.js').ProjectRow} ProjectRow
@@ -47,18 +47,19 @@
  * @property {NewProjectSlot | null} newProject
  * @property {SessionSlot | null} sessionBody
  * @property {SessionSlot | null} sessionReview
+ * @property {SessionSlot | null} sessionChat Dialogue of the session, under sessionBody.
  */
 
 /** @type {SlotMap} */
-export const slots = { newProject: null, sessionBody: null, sessionReview: null };
+export const slots = { newProject: null, sessionBody: null, sessionReview: null, sessionChat: null };
 
 /**
  * Fills a slot; a second call replaces the previous definition.
- * @param {'newProject' | 'sessionBody' | 'sessionReview'} name
+ * @param {'newProject' | 'sessionBody' | 'sessionReview' | 'sessionChat'} name
  * @param {NewProjectSlot | SessionSlot} definition
  */
 export function registerSlot(name, definition) {
   if (name === 'newProject') slots.newProject = /** @type {NewProjectSlot} */ (definition);
-  else if (name === 'sessionBody' || name === 'sessionReview') slots[name] = /** @type {SessionSlot} */ (definition);
+  else if (name === 'sessionBody' || name === 'sessionReview' || name === 'sessionChat') slots[name] = /** @type {SessionSlot} */ (definition);
   else throw new Error(`Unknown panel slot: ${String(name)}`);
 }

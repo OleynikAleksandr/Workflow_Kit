@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 666,
+  "revision": 667,
   "rounds": [
     {
       "digest": null,
@@ -398,9 +398,13 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Подключение диалога к панели и службе",
-      "why": "Модуль диалога должен появиться на экране сессии установленной службы"
+      "why": "Модуль диалога должен появиться на экране сессии установленной службы",
+      "integration": {
+        "operationId": "c8fb06dc-861c-4b53-ad1b-5ced05141627",
+        "sourceCommit": "16123fd08e6f4c8d7d7c7ebbbecb161cb035d981"
+      }
     },
     {
       "acceptance": [
@@ -504,8 +508,8 @@
 - Delivery: IN_PROGRESS
 - Execution: orchestrated (max 4 workers, owner 0c355c88-f324-49fe-909c-fe5617d16288)
 - Current task: none
-- Progress: 6/9
-- Revision: 666
+- Progress: 7/9
+- Revision: 667
 
 ## Objective
 
@@ -544,7 +548,7 @@
 - [DONE] T006 — Модуль панели session-chat: лента и поле ввода (work, parallel-safe)
   - Commit: feat: add the session chat panel module
   - Files: product-parts/control-panel/clusters/web-panel/modules/session-chat/src/index.ts, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/chat-model.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/session-chat.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/session-chat.css, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/chat-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md
-- [TODO] T007 — Подключение диалога к панели и службе (work)
+- [DONE] T007 — Подключение диалога к панели и службе (work)
   - Commit: feat: show the session chat on the session screen
   - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/slots.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/session-screen.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/index.html, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/layout.css, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/panel-shell.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/app.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/session-chat.md, package.json, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/cluster.md, product-parts/control-panel/product-part.md
   - Depends on: T005, T006

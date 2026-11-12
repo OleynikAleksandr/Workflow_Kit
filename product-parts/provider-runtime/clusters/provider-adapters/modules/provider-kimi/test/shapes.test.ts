@@ -21,8 +21,8 @@ test('session shapes: the captured 2.5.2 list, session, messages and prompt answ
   assert.equal(parsePrompt(await fixture('prompt-queued')), 'queued');
   const messages = parseMessages(await fixture('messages'));
   assert.equal(messages.items.length, 6);
-  assert.deepEqual(messages.items[0], { id: 'msg_session_c4db56ed-538b-40b0-9c61-32467d766652_000021', role: 'assistant', text: 'answer 9', origin: null });
-  assert.deepEqual(messages.items.at(-1), { id: 'kit-p11', role: 'user', text: 'no model', origin: 'user' });
+  assert.deepEqual(messages.items[0], { id: 'msg_session_c4db56ed-538b-40b0-9c61-32467d766652_000021', role: 'assistant', text: 'answer 9', origin: null, at: '2026-11-09T19:43:18.197Z' });
+  assert.deepEqual(messages.items.at(-1), { id: 'kit-p11', role: 'user', text: 'no model', origin: 'user', at: '2026-11-09T19:42:46.001Z' });
 });
 
 test('session shapes: pages, waiting sessions and batch rows; a missing field is a shape error', () => {
@@ -36,9 +36,15 @@ test('session shapes: pages, waiting sessions and batch rows; a missing field is
   assert.equal(parseSession({ id: 's1', workspace_id: 'w1', created_at: '2026-01-01T00:00:00Z', pending_interaction: 'approval' }).waiting, true);
   assert.equal(parseSession({ id: 's1', workspace_id: 'w1', created_at: 5, archived: true }).archived, true);
   assert.deepEqual(parseMessages({ items: [{ id: 'm1', role: 'assistant', content: [{ type: 'tool_use' }, { type: 'text', text: ' a ' }, { type: 'text', text: 'b' }] }], has_more: true }), {
-    items: [{ id: 'm1', role: 'assistant', text: 'a \nb', origin: null }],
+    items: [{ id: 'm1', role: 'assistant', text: 'a \nb', origin: null, at: null }],
     hasMore: true,
   });
+  // created_at is optional: an ISO string or epoch ms is read, anything else is null, never an error.
+  const times = parseMessages({
+    items: [1000, '2026-11-12T10:00:00+02:00', 'soon', null, true, Number.NaN, 1e300].map((created, index) => ({ id: `m${index}`, role: 'user', content: [], created_at: created })),
+    has_more: false,
+  }).items.map((item) => item.at);
+  assert.deepEqual(times, ['1970-01-01T00:00:01.000Z', '2026-11-12T08:00:00.000Z', null, null, null, null, null]);
   assert.deepEqual(parseBatch({ results: [{ id: 's1', ok: true }, { id: 's2', ok: false, error: { code: 40931, message: 'held' } }], succeeded: 1, failed: 1 }), [
     { id: 's1', ok: true, code: null, message: null },
     { id: 's2', ok: false, code: 40931, message: 'held' },

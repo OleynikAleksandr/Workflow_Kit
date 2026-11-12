@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 662,
+  "revision": 664,
   "rounds": [
     {
       "digest": null,
@@ -39,7 +39,7 @@
       }
     ],
     "decisions": [],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 1,
       "ownerSession": null,
@@ -89,7 +89,7 @@
       "kind": "work",
       "parallelSafe": true,
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Kimi: страница сообщений сессии",
       "why": "Диалог для сессий Kimi"
     }
@@ -101,11 +101,11 @@
 ## State
 
 - Scope: assignment-m18-session-chat-T004-1 (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 0/1
-- Revision: 662
+- Progress: 1/1
+- Revision: 664
 
 ## Objective
 
@@ -122,7 +122,7 @@ Kimi: страница сообщений сессии: Диалог для се
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T004 — Kimi: страница сообщений сессии (work, parallel-safe)
+- [DONE] T004 — Kimi: страница сообщений сессии (work, parallel-safe)
   - Commit: feat: read Kimi session messages as a chat
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/chat.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/messages.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/shapes.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/chat.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/shapes.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fake-sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/helpers.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/chat.md
 

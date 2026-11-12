@@ -1,8 +1,10 @@
 // Kimi sessions of a project (spec M8, sections 2.4 and 2.5): creation, the name, the archive
 // mirrored to Kimi, the deletion with its retries and the turn state. The list is in
-// session-list.ts, the last answer and the delivery of a message in messages.ts.
+// session-list.ts, the last answer and the delivery of a message in messages.ts, the
+// conversation in chat.ts.
 import { ProviderError, readHookSessions } from '#provider-registry';
-import type { Project, RenameResult, SessionInfo } from '#provider-registry';
+import type { ChatPage, Project, RenameResult, SessionInfo } from '#provider-registry';
+import { readKimiChat } from './chat.ts';
 import { KIMI_CODES, KimiError, describeKimiError, shapeError } from './client.ts';
 import type { KimiClient } from './client.ts';
 import { defaultLiveness, liveSessionLocks } from './locks.ts';
@@ -30,6 +32,7 @@ export interface KimiSessions {
   sessionIdle(project: Project, sessionId: string): Promise<boolean>;
   lastAnswer(project: Project, sessionId: string): Promise<string | null>;
   sendMessage(project: Project, sessionId: string, text: string, delivery: { id: string }): Promise<boolean>;
+  readMessages(project: Project, sessionId: string, opts: { limit: number }): Promise<ChatPage>;
   forgetProjects(keep: ReadonlySet<string>): Promise<number>;
   deleteSessions(project: Project): Promise<string[]>;
   retryDeletes(): Promise<string[]>;
@@ -171,6 +174,7 @@ export function createKimiSessions(rt: KimiRuntime, deps: KimiSessionDeps = {}):
     listSessions: (project) => list.list(project),
     lastAnswer: (project, sessionId) => messages.lastAnswer(project, sessionId),
     sendMessage: (project, sessionId, text, delivery) => messages.sendMessage(project, sessionId, text, delivery),
+    readMessages: (_project, sessionId, opts) => readKimiChat(rt, sessionId, opts),
     forgetProjects: (keep) => store.forget(keep),
     sessionIdle: async (_project, sessionId) => !(await liveSessionLocks(rt.paths.locks, liveness)).includes(sessionId),
     archiveSessions: (project, sessionId) => (sessionId === null ? archiveProject(project) : mirrorOne(project, sessionId, 'archive')),

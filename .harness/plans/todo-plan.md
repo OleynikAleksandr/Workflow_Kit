@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": "T004",
+  "currentTaskId": null,
   "lastClosed": {
     "closedAt": "2026-11-12T17:11:41.401Z",
     "scopeId": "m22-kit-source"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 739,
+  "revision": 740,
   "rounds": [
     {
       "digest": {
@@ -50,7 +50,7 @@
       },
       "id": "R2",
       "kind": "fixes",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Тесты Kit на Windows, второй проход"
     }
   ],
@@ -84,7 +84,7 @@
         "text": "Версия остаётся 0.9.3: она не опубликована"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "8ed2f99f-7296-4ad6-ae41-6fec13ee5fdb",
@@ -286,7 +286,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R2",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "title": "CI выпуска 0.9.3 на всех ОС",
       "why": "Выпуск готов только при зелёном CI на всех ОС"
     }
@@ -298,11 +298,11 @@
 ## State
 
 - Scope: m23-kit-tests-windows (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
-- Current task: T004
-- Progress: 5/6
-- Revision: 739
+- Current task: none
+- Progress: 6/6
+- Revision: 740
 
 ## Objective
 
@@ -332,7 +332,7 @@
 
 Digest: Тесты Kit исправлены для Windows: заглушки бандла импортируют модули по file://, временные папки тестов — длинные пути, путь git сравнивается с любым разделителем, подставной npm работает на Windows. Код Kit и бандл 2.2.4 не менялись.
 
-### R2 — Тесты Kit на Windows, второй проход (fixes, OPEN)
+### R2 — Тесты Kit на Windows, второй проход (fixes, CLOSED)
 
 - [DONE] T003 — Тесты Kit на Windows: второй проход (work)
   - Commit: test(kit-core): fix the remaining Kit tests on Windows
@@ -342,7 +342,7 @@ Digest: Тесты Kit исправлены для Windows: заглушки б�
   - Commit: docs: reconcile documentation for R2
   - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/kit-core/product-part.md, docs/planning/M23-kit-tests-windows.md
   - Depends on: T003
-- [IN_PROGRESS] T004 — CI выпуска 0.9.3 на всех ОС (delivery)
+- [DONE] T004 — CI выпуска 0.9.3 на всех ОС (delivery)
   - Commit: docs: record the green CI of Workflow Kit 0.9.3
   - Files: docs/evidence/M22-acceptance.md, docs/planning/M23-kit-tests-windows.md
   - Depends on: T003, DOCS-R2

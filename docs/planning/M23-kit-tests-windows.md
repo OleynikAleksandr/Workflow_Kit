@@ -71,6 +71,23 @@ macOS и Linux зелёные; на Windows x64 и ARM64 упали 6 тесто
 
 Исправления 5–8 проверены на macOS: 6 из 6 тестов проходят.
 
+### 2.2. Третий проход (CI 43272867981, после T003 `1ab318e`)
+
+macOS и Linux зелёные; на Windows x64 и ARM64 упали 3 теста Kit из 57:
+
+9. **Список worktree от git.** Помощник `orchestration-scenario-support.mjs` берёт пути из
+   `git worktree list --porcelain` (`C:/Users/…`); тест сравнивал с `C:\Users\…`.
+   Исправление: `path.resolve` в помощнике.
+10. **Аргументы `.cmd`-шима.** Kit экранирует аргументы `.cmd` дважды: настоящий `npm.cmd`
+    разбирает их ещё раз, а подставной только печатает — и `%~1`, и `%*` дают `"ci"`. Это
+    поведение Kit для настоящих шимов верно. Исправление: подставной печатает `%*`, тест
+    принимает `ci` и `"ci"`.
+11. **Нечего чинить.** Без битов исполнения после копирования личности doctor не находит, что
+    чинить, и `fix` равен `null`; тест ждал `fix.written`. Исправление: на Windows тест ждёт
+    `fix: null`.
+
+Исправления 9–11 проверены на macOS: 3 из 3 тестов проходят.
+
 ## 3. Поведение на ОС
 
 | Что | macOS | Linux | Windows |
@@ -100,4 +117,6 @@ macOS и Linux зелёные; на Windows x64 и ARM64 упали 6 тесто
 | DOCS | спецификация, приёмка M22 | добавляет Kit |
 | T002 | запись CI 43270655505: на Windows осталось 6 тестов | `docs/evidence/M22-acceptance.md`, `docs/planning/M23-kit-tests-windows.md` |
 | R2: T003 | исправления 5–8 | 6 тестов Kit, `product-parts/kit-core/product-part.md` |
-| R2: delivery | CI выпуска 0.9.3 на всех ОС | `docs/evidence/M22-acceptance.md`, эта спецификация |
+| R2: T004 | запись CI 43272867981: на Windows осталось 3 теста | `docs/evidence/M22-acceptance.md`, эта спецификация |
+| R3: T005 | исправления 9–11 | 3 теста Kit и помощник, `product-parts/kit-core/product-part.md` |
+| R3: delivery | CI выпуска 0.9.3 на всех ОС | `docs/evidence/M22-acceptance.md`, эта спецификация |

@@ -64,14 +64,11 @@
         "role": "test",
         "stage": "commit",
         "required": true,
-        "timeoutMs": 300000,
+        "timeoutMs": 600000,
         "command": {
-          "executable": "node",
+          "executable": "npm",
           "args": [
-            "--test",
-            "product-parts/**/test/*.test.ts",
-            "product-parts/**/test/*.test.mjs",
-            "tools/**/test/*.test.ts"
+            "test"
           ]
         },
         "appliesTo": [

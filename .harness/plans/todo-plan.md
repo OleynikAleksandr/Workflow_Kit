@@ -10,10 +10,30 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 689,
+  "revision": 691,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "provider-codex/module.md, hooks.md: HARNESS_CODEX_HOOK_COMMAND, isKitApprovable; approveHooks подтверждает хук Harness, kitHook approved только вместе с ним.",
+          "kit-bundle/module.md: KIT_VERSION 2.2.3, KIT_SHA256 8891de2f…497e, KIT_SOURCE_COMMIT 7afe27ad.",
+          "project-setup/module.md: kit.action по inspect — KIT_OUTDATED или другая версия KIT_OK → update; зависимость #kit-bundle."
+        ],
+        "decisions": [
+          "Kit остаётся отдельным проектом harness-ai, здесь — его бандл 2.2.3 (vendor/workflow-kit-2.2.3.mjs.gz, PROVENANCE 7afe27ad).",
+          "Пользователь ничего не подтверждает: хук Harness с точной командой scripts/workflow hook session-start --client codex Kit подтверждает тем же путём, что свои хуки.",
+          "Claude Code режет вывод каждого хука на 10 000 символов без настройки — пакет идёт частями; Codex поднимает лимит полем записи (в токенах, байты/4).",
+          "KIT_OUTDATED в мастере — update; версия сравнивается с KIT_VERSION бандла, а не со строкой в коде.",
+          "Описание доверия и хуков provider-codex вынесено в hooks.md, чтобы module.md оставался в пределе размера."
+        ],
+        "references": [
+          "docs/planning/M21-recovery-one-turn.md",
+          "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/hooks.md",
+          "product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md",
+          "product-parts/backend-core/clusters/projects/modules/project-setup/module.md"
+        ],
+        "result": "Пакет восстановления Kit приходит агенту целиком за один ход: приложение ставит Kit 2.2.3 (шесть хуков SessionStart Claude по части пакета до 9 500 символов, одна запись Codex с additionalContextLimit 65536), Kit сам подтверждает в Codex хук Harness вместе со своими хуками, мастер обновляет проекты со старым Kit (KIT_OUTDATED) вместо повторной установки."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -196,7 +216,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -247,8 +267,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 2/4
-- Revision: 689
+- Progress: 3/4
+- Revision: 691
 
 ## Objective
 
@@ -273,7 +293,7 @@
   - Commit: feat(kit-bundle): vendor Harness Workflow Kit 2.2.3
   - Files: product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle, product-parts/workflow-engine/product-part.md, product-parts/workflow-engine/clusters/kit-host/cluster.md, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/module.md, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/src/kit-types.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/test/kit-project.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/flow.test.ts, product-parts/backend-core/clusters/projects/cluster.md, product-parts/backend-core/clusters/projects/modules/project-setup/module.md, product-parts/backend-core/clusters/projects/modules/project-setup/src/setup.ts, product-parts/backend-core/clusters/projects/modules/project-setup/src/preview.ts, product-parts/backend-core/clusters/projects/modules/project-setup/test/setup.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, docs/architecture/OVERVIEW.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/src/bundle.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/test/bundle.test.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/PROVENANCE, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/workflow-kit-2.2.2.mjs.gz, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/workflow-kit-2.2.3.mjs.gz
   - Depends on: T001
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M21-recovery-one-turn.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/workflow-engine/product-part.md, product-parts/workflow-engine/clusters/kit-host/cluster.md, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/module.md, product-parts/backend-core/clusters/projects/cluster.md, product-parts/backend-core/clusters/projects/modules/project-setup/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md
   - Depends on: T001, T002
@@ -281,5 +301,7 @@
   - Commit: chore: release Workflow Kit with Kit 2.2.3
   - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/installation.md, docs/usage.md, docs/setup.md, docs/evidence/M21-acceptance.md, docs/architecture/OVERVIEW.md
   - Depends on: T002, DOCS-R1
+
+Digest: Пакет восстановления Kit приходит агенту целиком за один ход: приложение ставит Kit 2.2.3 (шесть хуков SessionStart Claude по части пакета до 9 500 символов, одна запись Codex с additionalContextLimit 65536), Kit сам подтверждает в Codex хук Harness вместе со своими хуками, мастер обновляет проекты со старым Kit (KIT_OUTDATED) вместо повторной установки.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

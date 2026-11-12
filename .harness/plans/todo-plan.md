@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 717,
+  "revision": 718,
   "rounds": [
     {
       "digest": null,
@@ -534,7 +534,10 @@
         "product-parts/workflow-engine/clusters/kit-host/cluster.md",
         "product-parts/workflow-engine/product-part.md",
         "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
-        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md"
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md",
+        "product-parts/workflow-engine/clusters/kit-host/modules/plan-view/module.md",
+        "product-parts/backend-core/clusters/projects/cluster.md",
+        "product-parts/backend-core/clusters/projects/modules/project-setup/module.md"
       ],
       "fixes": null,
       "id": "DOCS-R1",
@@ -592,7 +595,7 @@
 - Execution: sequential
 - Current task: DOCS-R1
 - Progress: 5/7
-- Revision: 717
+- Revision: 718
 
 ## Objective
 
@@ -631,7 +634,7 @@
   - Depends on: T003
 - [IN_PROGRESS] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
-  - Files: README.md, docs/architecture/OVERVIEW.md, docs/architecture/CONTRACTS.md, docs/planning/M22-kit-source.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/module.md, product-parts/kit-core/product-part.md, product-parts/workflow-engine/clusters/kit-host/cluster.md, product-parts/workflow-engine/product-part.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md
+  - Files: README.md, docs/architecture/OVERVIEW.md, docs/architecture/CONTRACTS.md, docs/planning/M22-kit-source.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/module.md, product-parts/kit-core/product-part.md, product-parts/workflow-engine/clusters/kit-host/cluster.md, product-parts/workflow-engine/product-part.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/module.md, product-parts/backend-core/clusters/projects/cluster.md, product-parts/backend-core/clusters/projects/modules/project-setup/module.md
   - Depends on: T000, T001, T002, T003, T004
 - [TODO] T005 — Выпуск Workflow Kit 0.9.3 (delivery)
   - Commit: chore: release Workflow Kit 0.9.3 with Kit 2.2.4

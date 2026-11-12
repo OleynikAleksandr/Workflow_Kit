@@ -1,0 +1,107 @@
+/* The «Диалог» card of the session screen (spec M18 2.6). Colours come from the panel theme. */
+.sc-card {
+  max-width: 760px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sc-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 60vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 4px 2px;
+}
+
+.sc-msg {
+  max-width: 88%;
+  padding: 8px 11px;
+  border: 1px solid var(--card-line);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--text);
+}
+
+.sc-msg-user {
+  align-self: flex-end;
+  border-color: var(--active-line);
+  background: var(--active);
+}
+
+.sc-msg-agent {
+  align-self: flex-start;
+}
+
+.sc-meta {
+  margin-bottom: 3px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.sc-meta b {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.sc-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.45;
+}
+
+.panel p.sc-empty,
+.panel p.sc-note {
+  color: var(--muted);
+}
+
+.panel p.sc-error,
+.sc-status[data-tone='error'] {
+  color: var(--error);
+}
+
+.sc-compose {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sc-input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 4.5em;
+  padding: 8px 10px;
+  border: 1px solid var(--card-line);
+  border-radius: 8px;
+  background: var(--input);
+  color: var(--text);
+  font: inherit;
+  resize: vertical;
+}
+
+.sc-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* A touch-sized button; no hover-only controls. */
+.sc-actions .btn {
+  min-height: 40px;
+  min-width: 120px;
+}
+
+.panel p.sc-status {
+  margin: 0;
+  color: var(--muted);
+}
+
+.panel p.sc-status[data-tone='ok'] {
+  color: var(--ok);
+}
+
+.panel p.sc-status[data-tone='error'] {
+  color: var(--error);
+}

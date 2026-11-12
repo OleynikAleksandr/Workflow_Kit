@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 663,
+  "revision": 665,
   "rounds": [
     {
       "digest": null,
@@ -39,7 +39,7 @@
       }
     ],
     "decisions": [],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 1,
       "ownerSession": null,
@@ -83,7 +83,7 @@
       "kind": "work",
       "parallelSafe": true,
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Модуль панели session-chat: лента и поле ввода",
       "why": "Экрану сессии нужна карточка диалога"
     }
@@ -95,11 +95,11 @@
 ## State
 
 - Scope: assignment-m18-session-chat-T006-1 (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 0/1
-- Revision: 663
+- Progress: 1/1
+- Revision: 665
 
 ## Objective
 
@@ -116,7 +116,7 @@
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T006 — Модуль панели session-chat: лента и поле ввода (work, parallel-safe)
+- [DONE] T006 — Модуль панели session-chat: лента и поле ввода (work, parallel-safe)
   - Commit: feat: add the session chat panel module
   - Files: product-parts/control-panel/clusters/web-panel/modules/session-chat/src/index.ts, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/chat-model.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/session-chat.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/session-chat.css, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/chat-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md
 

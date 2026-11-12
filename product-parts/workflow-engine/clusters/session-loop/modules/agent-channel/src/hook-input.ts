@@ -35,6 +35,11 @@ export interface HookInput {
   prompt: string | null;
   /** Current title of the session in the app (Claude only), when it has one. */
   sessionTitle: string | null;
+  /**
+   * The hook runs inside a process the panel started (wfk hook saw WFK_PANEL_SESSION=1). False for
+   * a hook of the user's own app or terminal, and for a client that does not mark its processes.
+   */
+  panelProcess: boolean;
 }
 
 function text(value: unknown): string | null {
@@ -54,9 +59,9 @@ function promptText(value: unknown): string | null {
 
 /**
  * Reads a hook input object; null for a client the registry does not know (dialects) or an input
- * without a session id.
+ * without a session id. panelProcess is the mark of the hook request: only true counts.
  */
-export function parseHookInput(client: unknown, raw: unknown, projectDir?: unknown, dialects: HookDialects = anyClient): HookInput | null {
+export function parseHookInput(client: unknown, raw: unknown, projectDir?: unknown, dialects: HookDialects = anyClient, panelProcess?: unknown): HookInput | null {
   const dialect = typeof client === 'string' ? dialects(client) : undefined;
   if (typeof client !== 'string' || !dialect || typeof raw !== 'object' || raw === null || Array.isArray(raw)) return null;
   const input = raw as Record<string, unknown>;
@@ -74,6 +79,7 @@ export function parseHookInput(client: unknown, raw: unknown, projectDir?: unkno
     lastAssistantMessage: text(input['last_assistant_message']),
     prompt: promptText(input['prompt']),
     sessionTitle: text(input['session_title']),
+    panelProcess: panelProcess === true,
   };
 }
 

@@ -273,3 +273,25 @@ test('waiting tells a message on its way from a delivered one (spec M11)', async
     ch.close();
   }
 });
+
+test('parseHookInput takes the panel mark only as true (M19)', () => {
+  assert.equal(parseHookInput('claude', CLAUDE_STOP, undefined, DIALECTS, true)!.panelProcess, true);
+  for (const mark of [undefined, false, 'true', 1]) assert.equal(parseHookInput('claude', CLAUDE_STOP, undefined, DIALECTS, mark)!.panelProcess, false);
+});
+
+test('external follows the last hook of the session; a session made by enqueue starts as the panel one (M19)', async () => {
+  const ch = channel();
+  const key = sessionKey('claude', CLAUDE_STOP.session_id);
+  ch.enqueue(sessionKey('claude', 'queued-first'), 'hello', 'panel', 'p1');
+  assert.equal(ch.get(sessionKey('claude', 'queued-first'))!.external, false, 'no hook yet');
+  await ch.stop(input('claude', CLAUDE_STOP, { panelProcess: true }));
+  assert.equal(ch.get(key)!.external, false);
+  await ch.prompt(input('claude', { ...CLAUDE_STOP, prompt: 'x' }));
+  assert.equal(ch.get(key)!.external, true, 'a prompt hook without the mark');
+  await ch.stop(input('claude', CLAUDE_STOP));
+  assert.equal(ch.get(key)!.external, true);
+  await ch.prompt(input('claude', { ...CLAUDE_STOP, prompt: 'x' }, { panelProcess: true }));
+  assert.equal(ch.get(key)!.external, false);
+  assert.equal(ch.section().sessions.find((s) => s.key === key)!.external, false, 'the section carries it');
+  ch.close();
+});

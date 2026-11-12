@@ -13,6 +13,15 @@ export interface DirectMessageOptions {
   log?: (line: string) => void;
 }
 
+/**
+ * True when another process leads the session (spec M19 2.3): the provider marks the processes the
+ * panel starts and the last hook of the session came without the mark. Such a session gets panel
+ * messages only from the queue, with its next hook; nothing is typed into a panel copy or woken.
+ */
+export function ledOutside(provider: Pick<Provider, 'marksPanelProcess'> | undefined, activity: Pick<SessionActivity, 'external'> | undefined): boolean {
+  return provider?.marksPanelProcess === true && activity?.external === true;
+}
+
 /** Route option `direct` of the channel routes: true means the provider took the text. */
 export type DirectMessage = (projectId: string, key: string, text: string) => Promise<boolean>;
 
@@ -20,7 +29,8 @@ export type DirectMessage = (projectId: string, key: string, text: string) => Pr
  * Builds the direct path. It calls provider.sendDirect only when the provider has it and has no
  * sendMessage (that provider gets the message from the channel queue), the project is found and
  * the session is waiting or unknown to the channel. A working or holding session gets the text
- * from the queue: at the end of the turn or at once as the answer of the held Stop hook.
+ * from the queue: at the end of the turn or at once as the answer of the held Stop hook. A session
+ * led outside the panel (ledOutside) gets it from the queue as well.
  */
 export function createDirectMessage(options: DirectMessageOptions): DirectMessage {
   return async (projectId, key, text) => {
@@ -30,6 +40,7 @@ export function createDirectMessage(options: DirectMessageOptions): DirectMessag
     if (!provider?.sendDirect || provider.sendMessage) return false;
     const activity = options.activity(key);
     if (activity && activity.state !== 'waiting') return false;
+    if (ledOutside(provider, activity)) return false;
     const project = await options.project(projectId).catch(() => undefined);
     if (!project) return false;
     try {

@@ -113,7 +113,7 @@ test('/api/sessions/plan takes any registered client; without a session it takes
   assert.match(none.body.error!.message!, /--client <id> --session <id>/);
 
   const turn = (client: string, sessionId: string) =>
-    app.channel.prompt({ client, dialect: 'claude', sessionId, turnId: null, cwd: folder, projectDir: null, transcriptPath: null, stopHookActive: false, lastAssistantMessage: null, prompt: 'задача', sessionTitle: null });
+    app.channel.prompt({ client, dialect: 'claude', sessionId, turnId: null, cwd: folder, projectDir: null, transcriptPath: null, stopHookActive: false, lastAssistantMessage: null, prompt: 'задача', sessionTitle: null, panelProcess: false });
   await turn('codex', 't-run');
   const one = await post({});
   assert.deepEqual([one.status, one.body.key], [200, 'codex:t-run']);
@@ -193,4 +193,26 @@ test('the brief of a reviewer: the provider says how (reviewBrief), else wakeSes
   assert.equal(briefByQueue({}), false);
   assert.equal(briefByQueue({ wakeSession: wake, reviewBrief: 'first-message' }), false, 'Codex in the shared mode keeps the first message');
   assert.equal(briefByQueue({ reviewBrief: 'queue' }), true);
+});
+
+test('a reviewer session led outside the panel keeps its brief in the queue without a wake (M19)', async () => {
+  const queued: string[] = [];
+  const woken: string[] = [];
+  const external = new Map([['claude:outside', true], ['claude:panel', false], ['codex:outside', true]]);
+  const deps = {
+    channel: {
+      enqueue: (key: string) => (queued.push(key), {}) as never,
+      get: (key: string) => (external.has(key) ? ({ external: external.get(key) } as never) : undefined),
+    },
+    providers: {
+      get: (id: string) => ({ marksPanelProcess: id === 'claude' ? true : undefined, wakeSession: async (_p: unknown, sid: string) => (woken.push(`${id}:${sid}`), true) }),
+    } as never,
+    project: async () => ({ id: 'p1' }) as never,
+  };
+  assert.equal(await deliverToSession(deps, 'claude:outside', 'Задание', 'p1'), false);
+  assert.deepEqual([queued, woken], [['claude:outside'], []], 'queued for the next hook, not woken');
+  assert.equal(await deliverToSession(deps, 'claude:panel', 'Задание', 'p1'), true, 'the last hook carried the mark');
+  assert.equal(await deliverToSession(deps, 'claude:fresh', 'Задание', 'p1'), true, 'no hooks yet: as in 0.9.0');
+  assert.equal(await deliverToSession(deps, 'codex:outside', 'Задание', 'p1'), true, 'a provider without the mark is woken as before');
+  assert.deepEqual(woken, ['claude:panel', 'claude:fresh', 'codex:outside']);
 });

@@ -26,12 +26,18 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
   const iso = (): string => now().toISOString();
   const changed = (key: string): void => options.onChange?.(key);
 
-  async function slotOf(input: { client: string; sessionId: string; cwd: string | null; projectDir?: string | null }): Promise<Slot> {
+  /** The slot of a hook; every hook tells whether the session runs outside the panel (external). */
+  async function slotOf(input: { client: string; sessionId: string; cwd: string | null; projectDir?: string | null; panelProcess?: boolean }): Promise<Slot> {
     const key = sessionKey(input.client, input.sessionId);
     let slot = slots.get(key);
     if (!slot) {
       slot = newSlot(key, input.client, input.sessionId, null, iso());
       slots.set(key, slot);
+    }
+    const external = input.panelProcess !== true;
+    if (slot.activity.external !== external) {
+      slot.activity.external = external;
+      changed(key);
     }
     if (!slot.activity.projectId) {
       for (const folder of [input.projectDir, input.cwd]) {

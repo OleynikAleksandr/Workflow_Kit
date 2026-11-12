@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { EventEmitter } from 'node:events';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { test } from 'node:test';
 import { HttpError, createRouter, createStateRegistry } from '#http-server';
@@ -98,5 +99,30 @@ test('checkSessionMessage returns the clean text without queueing', () => {
   assert.equal(checkSessionMessage(channel, 'p1', KEY, '  hi \n', true), 'hi');
   assert.throws(() => checkSessionMessage(channel, 'p1', KEY, 'hi', false), { code: 'unknown-session' });
   assert.equal(channel.get(KEY), undefined, 'a check does not create a channel record');
+  channel.close();
+});
+
+test('the hook routes read panelProcess (only true counts) and the channel section shows external (M19)', async () => {
+  const channel = createAgentChannel({ resolveProject: async () => undefined });
+  const router = createRouter();
+  const state = createStateRegistry();
+  registerChannelRoutes({ router, state, channel });
+  const prompt = async (panelProcess: unknown): Promise<void> => {
+    const match = router.match('POST', '/api/hooks/prompt');
+    if (match.kind !== 'found') throw new Error('no route');
+    const res = Object.assign(new EventEmitter(), { destroyed: false, writableEnded: false, writeHead: () => undefined, end: () => undefined });
+    const body = { client: 'claude', input: { session_id: 's-mark', hook_event_name: 'UserPromptSubmit', prompt: 'x' }, panelProcess };
+    const req = { socket: { remoteAddress: '127.0.0.1' } } as unknown as IncomingMessage;
+    await match.handler({ method: 'POST', path: '/api/hooks/prompt', query: new URLSearchParams(), params: match.params, body, req, res: res as unknown as ServerResponse });
+  };
+  const external = (): unknown => channel.section().sessions.find((s) => s.key === 'claude:s-mark')?.external;
+  await prompt(true);
+  assert.equal(external(), false);
+  await prompt('true');
+  assert.equal(external(), true, 'a string is not the mark');
+  await prompt(undefined);
+  assert.equal(external(), true);
+  await prompt(true);
+  assert.equal(external(), false);
   channel.close();
 });

@@ -28,6 +28,11 @@ export interface SessionActivity {
   holdUntil: string | null;
   /** What went wrong with the session's turn end or delivery (detached clients), for the panel. */
   note: string | null;
+  /**
+   * The last hook of the session came without the panel's process mark (panelProcess false): the
+   * session runs in a process outside the panel. False until the first hook (spec M19 2.2).
+   */
+  external: boolean;
 }
 
 /** A message queued for an agent. */
@@ -105,6 +110,8 @@ export interface TurnEndNotice {
   sessionId: string;
   cwd: string | null;
   event: TurnEndEvent;
+  /** The hook runs inside a process the panel started; absent counts as false. */
+  panelProcess?: boolean;
 }
 
 export type TurnEndEvent = 'Stop' | 'StopFailure' | 'Interrupt';

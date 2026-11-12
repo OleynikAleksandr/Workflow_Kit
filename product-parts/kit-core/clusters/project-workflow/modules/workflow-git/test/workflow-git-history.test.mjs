@@ -69,7 +69,8 @@ try {
   assert.equal(git.show(root, first, "a.txt"), "a");
   assert.equal(git.show(root, first, "missing.txt"), null);
   assert.equal(git.config(root, "core.hooksPath"), null);
-  assert.ok(git.gitPath(root, "hooks").endsWith(path.join(".git", "hooks")));
+  // git prints forward slashes on Windows too.
+  assert.match(git.gitPath(root, "hooks"), /[\\/]\.git[\\/]hooks$/u);
   assert.throws(
     () => git.git.run(root, ["no-such-command"]),
     (e) => e.code === "GIT_FAILED"

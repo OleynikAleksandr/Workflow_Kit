@@ -1,5 +1,6 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import {
   cleanGitEnvironment,
   identityTemplate,
@@ -44,7 +45,7 @@ export async function openInstallSandbox(build, sandbox) {
   const kit = new WorkflowKitFacade({ env, git });
   // The installed launcher runs this stand-in bundle, which drives the compiled CLI.
   const bundle = `import { readFileSync } from "node:fs";
-import { runCli } from ${JSON.stringify(path.join(build.directory, "workflow-kit", "src", "workflow-kit-cli.js"))};
+import { runCli } from ${JSON.stringify(pathToFileURL(path.join(build.directory, "workflow-kit", "src", "workflow-kit-cli.js")).href)};
 process.exitCode = runCli(process.argv.slice(2), {
   cwd: process.cwd(),
   env: process.env,

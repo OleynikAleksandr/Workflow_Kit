@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { chmodSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { cleanGitEnvironment } from "../../workflow-git/test/workflow-git-test-repo.mjs";
 
 // Test support for workflow-integration-merge.test.mjs: the compiled Kit and
@@ -90,7 +91,7 @@ export async function openMergeProject(build, sandbox) {
   const runner = path.join(build.directory, "hook-runner.mjs");
   writeFileSync(
     runner,
-    `import { WorkflowKitFacade } from ${JSON.stringify(path.join(build.directory, "workflow-kit", "src", "workflow-kit-facade.js"))};
+    `import { WorkflowKitFacade } from ${JSON.stringify(pathToFileURL(path.join(build.directory, "workflow-kit", "src", "workflow-kit-facade.js")).href)};
 const [name, ...args] = process.argv.slice(2);
 const result = new WorkflowKitFacade().gitHook(process.cwd(), name, args);
 if (result.message) process.stderr.write(result.message + "\\n");

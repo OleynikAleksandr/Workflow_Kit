@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 725,
+  "revision": 727,
   "rounds": [
     {
       "digest": null,
@@ -104,7 +104,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Тесты Kit на Windows",
       "why": "CI выпуска 0.9.3 красный на Windows: 15 тестов Kit"
     },
@@ -174,8 +174,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 0/3
-- Revision: 725
+- Progress: 1/3
+- Revision: 727
 
 ## Objective
 
@@ -191,7 +191,7 @@
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T001 — Тесты Kit на Windows (work)
+- [DONE] T001 — Тесты Kit на Windows (work)
   - Commit: test(kit-core): run the Kit tests on Windows
   - Files: product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-support.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-hooks.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-ignored-commit.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/test/workflow-installer-doctor.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/test/workflow-installer-migrate.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/test/workflow-installer-install-support.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery/test/workflow-recovery-worktree.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-integration/test/orchestration-scenario-support.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-integration/test/workflow-integration-facade.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-integration/test/workflow-integration-merge-support.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-assignment/test/workflow-assignment-cancel.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-worktree.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-context-command.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-git/test/workflow-git-history.test.mjs, product-parts/kit-core/product-part.md
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)

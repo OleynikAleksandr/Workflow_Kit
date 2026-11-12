@@ -9,6 +9,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import {
   cleanGitEnvironment,
   identityTemplate,
@@ -42,7 +43,7 @@ try {
   const git = new WorkflowGitFacade(undefined, env);
   const installer = new WorkflowInstallerFacade(git);
   const bundle = `import { readFileSync } from "node:fs";
-import { runCli } from ${JSON.stringify(path.join(build.directory, "workflow-kit", "src", "workflow-kit-cli.js"))};
+import { runCli } from ${JSON.stringify(pathToFileURL(path.join(build.directory, "workflow-kit", "src", "workflow-kit-cli.js")).href)};
 process.exitCode = runCli(process.argv.slice(2), { cwd: process.cwd(), env: process.env, readStdin: () => { try { return readFileSync(0, "utf8"); } catch { return ""; } }, stderr: (t) => process.stderr.write(t), stdout: (t) => process.stdout.write(t) });
 `;
   const runtime = { executable: process.execPath, mode: "node" };

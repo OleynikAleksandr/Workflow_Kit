@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import {
   mkdirSync,
   mkdtempSync,
+  realpathSync,
   rmSync,
   symlinkSync,
   writeFileSync,
@@ -15,8 +16,9 @@ const build = await buildWorkflowModules(
   ["workflow-kit"],
   "workflow-kit-context-command"
 );
-const root = mkdtempSync(path.join(tmpdir(), "workflow-kit-context-cmd-"));
-const outside = mkdtempSync(path.join(tmpdir(), "workflow-kit-outside-"));
+// Long paths: the Kit root comes from git, and on Windows tmpdir() may be an 8.3 short name.
+const root = realpathSync.native(mkdtempSync(path.join(tmpdir(), "workflow-kit-context-cmd-")));
+const outside = realpathSync.native(mkdtempSync(path.join(tmpdir(), "workflow-kit-outside-")));
 const write = (name, text) => {
   const file = path.join(root, ...name.split("/"));
   mkdirSync(path.dirname(file), { recursive: true });

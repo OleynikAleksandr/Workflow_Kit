@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 668,
+  "revision": 670,
   "rounds": [
     {
       "digest": {
@@ -45,7 +45,7 @@
       },
       "id": "R1",
       "kind": "implementation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Implementation"
     }
   ],
@@ -97,7 +97,7 @@
         "text": "Документы у предела 28000 байт (OVERVIEW, README, module.md провайдеров и cli): подробности выносятся в отдельные документы со ссылкой"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 4,
       "ownerSession": "0c355c88-f324-49fe-909c-fe5617d16288",
@@ -499,7 +499,7 @@
         "installed-service"
       ],
       "commitMessage": "chore: release 0.9.0",
-      "confirmation": null,
+      "confirmation": "Пользователь, 2026-11-12: «Продолжай без остановки, Выпуск тоже сделай. И я заранее его принимаю, чтобы ты его залил на GitHub. И закроем после этого данный скоп, чтобы в следующем можно было тестировать и исправлять ошибки.»",
       "context": [
         {
           "path": "docs/planning/M18-session-chat.md",
@@ -526,7 +526,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Выпуск 0.9.0",
       "why": "Пользователь проверяет диалог в установленной службе"
     }
@@ -538,11 +538,11 @@
 ## State
 
 - Scope: m18-session-chat (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: orchestrated (max 4 workers, owner 0c355c88-f324-49fe-909c-fe5617d16288)
 - Current task: none
-- Progress: 8/9
-- Revision: 668
+- Progress: 9/9
+- Revision: 670
 
 ## Objective
 
@@ -557,7 +557,7 @@
 
 ## Rounds
 
-### R1 — Implementation (implementation, OPEN)
+### R1 — Implementation (implementation, CLOSED)
 
 - [DONE] T001 — Контракт диалога сессии и маршрут чтения (work)
   - Commit: feat: add the session chat contract and the messages route
@@ -589,7 +589,7 @@
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M18-session-chat.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/chat.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/chat.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/chat.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/chat.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/session-chat.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/cluster.md, product-parts/control-panel/product-part.md
   - Depends on: T001, T002, T003, T004, T005, T006, T007
-- [TODO] T008 — Выпуск 0.9.0 (delivery)
+- [DONE] T008 — Выпуск 0.9.0 (delivery)
   - Commit: chore: release 0.9.0
   - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/architecture/OVERVIEW.md, docs/installation.md, docs/evidence/M18-acceptance.md, docs/changelog/CHANGELOG-0.5-0.8.md
   - Depends on: T007, DOCS-R1

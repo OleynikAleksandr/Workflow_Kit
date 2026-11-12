@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 665,
+  "revision": 666,
   "rounds": [
     {
       "digest": null,
@@ -347,9 +347,13 @@
       "kind": "work",
       "parallelSafe": true,
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Модуль панели session-chat: лента и поле ввода",
-      "why": "Экрану сессии нужна карточка диалога"
+      "why": "Экрану сессии нужна карточка диалога",
+      "integration": {
+        "operationId": "33301432-645f-4902-9f65-8cd8a7335e38",
+        "sourceCommit": "c4f010217997561398378f57b0cb58ff670f6992"
+      }
     },
     {
       "acceptance": [
@@ -500,8 +504,8 @@
 - Delivery: IN_PROGRESS
 - Execution: orchestrated (max 4 workers, owner 0c355c88-f324-49fe-909c-fe5617d16288)
 - Current task: none
-- Progress: 5/9
-- Revision: 665
+- Progress: 6/9
+- Revision: 666
 
 ## Objective
 
@@ -537,7 +541,7 @@
   - Commit: feat: send panel messages directly when the provider can take them
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/routes.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/direct-message.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/direct-message.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/session-chat.md
   - Depends on: T001
-- [TODO] T006 — Модуль панели session-chat: лента и поле ввода (work, parallel-safe)
+- [DONE] T006 — Модуль панели session-chat: лента и поле ввода (work, parallel-safe)
   - Commit: feat: add the session chat panel module
   - Files: product-parts/control-panel/clusters/web-panel/modules/session-chat/src/index.ts, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/chat-model.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/session-chat.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/session-chat.css, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/chat-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md
 - [TODO] T007 — Подключение диалога к панели и службе (work)

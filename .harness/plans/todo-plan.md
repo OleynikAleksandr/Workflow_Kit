@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": "T001",
+  "currentTaskId": null,
   "lastClosed": {
     "closedAt": "2026-11-12T11:30:06.905Z",
     "scopeId": "m19-session-chat-fixes"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 684,
+  "revision": 685,
   "rounds": [
     {
       "digest": null,
@@ -99,14 +99,17 @@
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test",
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md",
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/hooks.md",
-        "docs/architecture/OVERVIEW.md"
+        "docs/architecture/OVERVIEW.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/files-hooks.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/harness-hook.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/windows.test.ts"
       ],
       "fixes": null,
       "id": "T001",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "title": "Codex: Kit подтверждает хук Harness",
       "why": "Без подтверждения Codex не запускает хук Harness, и у пользователя без Harness AI пакета нет"
     },
@@ -237,9 +240,9 @@
 - Scope: m21-recovery-one-turn (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: T001
-- Progress: 0/4
-- Revision: 684
+- Current task: none
+- Progress: 1/4
+- Revision: 685
 
 ## Objective
 
@@ -257,9 +260,9 @@
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [IN_PROGRESS] T001 — Codex: Kit подтверждает хук Harness (work)
+- [DONE] T001 — Codex: Kit подтверждает хук Harness (work)
   - Commit: feat(provider-codex): approve the Harness SessionStart hook with the Kit hooks
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/hooks.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/trust.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/hooks.md, docs/architecture/OVERVIEW.md
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/hooks.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/trust.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/hooks.md, docs/architecture/OVERVIEW.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/files-hooks.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/harness-hook.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/windows.test.ts
 - [TODO] T002 — Бандл Kit 2.2.3 (work)
   - Commit: feat(kit-bundle): vendor Harness Workflow Kit 2.2.3
   - Files: product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle, product-parts/workflow-engine/product-part.md, product-parts/workflow-engine/clusters/kit-host/cluster.md, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/module.md, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/src/kit-types.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/test/kit-project.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/flow.test.ts, product-parts/backend-core/clusters/projects/cluster.md, product-parts/backend-core/clusters/projects/modules/project-setup/module.md, product-parts/backend-core/clusters/projects/modules/project-setup/src/setup.ts, product-parts/backend-core/clusters/projects/modules/project-setup/src/preview.ts, product-parts/backend-core/clusters/projects/modules/project-setup/test/setup.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, docs/architecture/OVERVIEW.md

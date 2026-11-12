@@ -17,7 +17,7 @@ export type { SharedMode } from './shared-mode.ts';
 export { WAKE_TEXT, threadStatus, wakeThread } from './thread-ops.ts';
 export { CHAT_TIMEOUT_MS, DIRECT_STATUSES, chatPage, createChatParts, threadMessages } from './chat.ts';
 export type { ChatDeps, ChatParts } from './chat.ts';
-export { KIT_HOOK_COMMAND, KIT_HOOK_COMMANDS, isExactKitCommand } from './hooks.ts';
+export { HARNESS_CODEX_HOOK_COMMAND, KIT_HOOK_COMMAND, KIT_HOOK_COMMANDS, isExactKitCommand, isKitApprovable } from './hooks.ts';
 export { HELD_NOTE, RELEASE_POLL_MS, RELEASE_WAIT_MS, FIRST_TURN_WAIT_MS, RELEASING_NOTE, SERVICE_TURN_WAIT_MS, UNSUBSCRIBE_TIMEOUT_MS, serviceTurnText, threadLinks } from './sessions.ts';
 export type { CodexRecord } from './sessions.ts';
 

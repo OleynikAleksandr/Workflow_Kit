@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import path from 'node:path';
 import { test } from 'node:test';
 import { codexPaths, hookTrustKeyPath, parseSessionIndex, projectTrustLevel, tokenErrorLine, trustKeyPath } from '../src/codex-files.ts';
-import { KIT_HOOK_COMMAND, buildHookState, hookStatus, listedProjectHooks, localHooks, snakeEvent } from '../src/hooks.ts';
+import { HARNESS_CODEX_HOOK_COMMAND, KIT_HOOK_COMMAND, buildHookState, hookStatus, isKitApprovable, listedProjectHooks, localHooks, snakeEvent } from '../src/hooks.ts';
 import { parseRemoteControlStart } from '../src/provider.ts';
 import { threadLinks } from '../src/sessions.ts';
 
@@ -113,4 +113,26 @@ test('hooks: positional keys, Kit hook first, foreign hooks with hash, completen
   assert.equal(editedState.kitHook, null, 'a changed command is not the Kit hook');
   assert.match(editedState.note ?? '', /изменена вручную/);
   assert.deepEqual(['trusted', 'managed', 'untrusted', 'modified', 'x'].map(hookStatus), ['approved', 'approved', 'pending', 'modified', 'unknown']);
+});
+
+test('hooks: the Harness SessionStart hook counts as a Kit hook only with its exact command', () => {
+  assert.ok(isKitApprovable(HARNESS_CODEX_HOOK_COMMAND));
+  assert.ok(isKitApprovable(KIT_HOOK_COMMAND));
+  assert.ok(!isKitApprovable(`${HARNESS_CODEX_HOOK_COMMAND} --x`), 'an edited Harness command is foreign');
+  const harness = { hooks: { SessionStart: [{ hooks: [{ type: 'command', command: HARNESS_CODEX_HOOK_COMMAND }] }, { hooks: [{ type: 'command', command: KIT_HOOK_COMMAND }] }] } };
+  const local = { text: '{}', hooks: localHooks(FILE, harness), error: null };
+  const listed = (harnessStatus: string) => [
+    { key: `${FILE}:session_start:0:0`, eventName: 'sessionStart', sourcePath: FILE, command: HARNESS_CODEX_HOOK_COMMAND, currentHash: 'sha256:h', trustStatus: harnessStatus },
+    { key: `${FILE}:session_start:1:0`, eventName: 'sessionStart', sourcePath: FILE, command: KIT_HOOK_COMMAND, currentHash: 'sha256:k', trustStatus: 'trusted' },
+  ];
+  const pending = buildHookState({ local, listed: listed('untrusted'), trusted: true });
+  assert.equal(pending.kitHook?.command, KIT_HOOK_COMMAND, 'the Kit hook stays the one shown');
+  assert.equal(pending.kitHook?.status, 'pending', 'an unapproved Harness hook keeps the Kit hook unapproved');
+  assert.equal(pending.complete, false);
+  assert.deepEqual(pending.hooks, [], 'the Harness hook is not listed as foreign');
+  const approved = buildHookState({ local, listed: listed('trusted'), trusted: true });
+  assert.equal(approved.kitHook?.status, 'approved');
+  assert.equal(approved.complete, true);
+  const modified = buildHookState({ local, listed: listed('modified'), trusted: true });
+  assert.equal(modified.kitHook?.status, 'modified', 'a changed Harness entry needs a new approval');
 });

@@ -29,7 +29,8 @@ app-server на весь Mac, доверие к папке, одобрение �
   `KIT_HOOK_COMMAND` (= `kitCodexCommand('SessionStart')`: POSIX-команда хука Kit, на Windows —
   его `commandWindows`),
   `KIT_HOOK_COMMANDS` (команды всех хуков Kit v2: SessionStart, Stop,
-  UserPromptSubmit), `isExactKitCommand(command)`,
+  UserPromptSubmit), `isExactKitCommand(command)`, `HARNESS_CODEX_HOOK_COMMAND` и
+  `isKitApprovable(command)` (хук Harness, [hooks.md](hooks.md)),
   `SERVICE_TURN_WAIT_MS` (15 с), `UNSUBSCRIBE_TIMEOUT_MS` (5 с),
   `RELEASE_WAIT_MS` (90 с), `RELEASE_POLL_MS` (2 с), `RELEASING_NOTE`,
   `UNLOAD_METHODS` (`thread/archive`, `thread/unarchive`; в `sessions.ts`),
@@ -136,44 +137,8 @@ app-server на весь Mac, доверие к папке, одобрение �
   без подтверждения — перечитать путь к codex; codex не найден или старее нужного —
   `null`; демон подключён или подключается — `null`; иначе тот же запуск,
   что у `daemon-start`, ответ `'daemon started'`, ошибка — исключением.
-- **Доверие** (D7): `trust(project)` читает `trust_level` из `config.toml`
-  (доверие к `/` или к домашней папке не считается). `previewTrust`
-  показывает ключ `projects."<путь>".trust_level = "trusted"`, точки
-  автозапуска (`.codex/hooks.json`: чужие хуки `hook` и хук Kit `kit-hook`
-  с событием и командой; `.codex/config.toml` проекта) и выдаёт токен,
-  связанный с отпечатком (путь, текущий `trust_level`, текст `hooks.json`,
-  наличие конфига проекта). `grantTrust` принимает только этот токен
-  (`invalid-token`, `preview-stale`), делает копию `config.toml`
-  (`backupFile`, каталог `backups`), пишет ключ через `codex app-server`
-  `config/value/write { keyPath, value: "trusted", mergeStrategy: "upsert" }`
-  и перечитывает файл (`not-recorded` с `details.backup`, если ключа нет).
-  Путь с `"`, `\` или управляющими символами — `unsupported-path`.
-- **Хуки**: `hooks(project)` — свой разбор `.codex/hooks.json`
-  (позиционные ключи `<abs>/.codex/hooks.json:<event_snake>:<группа>:<i>`)
-  плюс `hooks/list { cwds: [путь] }` (только хуки с `sourcePath` этого
-  проекта: `currentHash`, `trustStatus` → `approved` (`trusted`,
-  `managed`) | `pending` (`untrusted`) | `modified` | `unknown`).
-  `hooks/list` вызывается, только если папка доверена и `hooks.json` есть,
-  и только при изменении mtime `hooks.json` или `config.toml` (одно чтение
-  на проект одновременно; первое ждётся до 2 с, дальше «проверяется…»).
-  Хуки Kit — записи с командой, точно равной одной из `KIT_HOOK_COMMANDS`;
-  изменённая вручную команда хуком Kit не считается. В контракте они
-  показываются одним `kitHook` (запись SessionStart) с общим статусом:
-  `approved` — только когда одобрены все хуки Kit, иначе статус первого
-  неодобренного; в списке `hooks` — только чужие. `complete: true`
-  только при доверенной папке и одобренном хуке Kit; иначе `false` и
-  заметка с причиной и словами «список сессий неполон».
-- **approveHooks** одобряет только хук Kit: `command` должна совпасть с
-  `KIT_HOOK_COMMAND` (`not-kit-hook`), папка доверена (`not-trusted`), хеш
-  — с текущим `currentHash` свежего `hooks/list` (`hash-changed`, в
-  `details.current` — текущие хеши). Запись — копия `config.toml`, затем
-  `config/value/write { keyPath: hooks.state."<key>".trusted_hash, value:
-  <hash>, mergeStrategy: "upsert" }` и проверка новым `hooks/list`.
-  Вместе с подтверждённым хуком SessionStart одобряются хуки Stop и
-  UserPromptSubmit той же структуры (команды точно по шаблону Kit, хеш —
-  текущий из `hooks/list`). Чужие
-  хуки показываются с командой и хешем, но не одобряются; уже одобренный
-  хук повторно не пишется.
+- **Доверие и хуки** (D7, M21): `trust`, `previewTrust`, `grantTrust`, `hooks`,
+  `approveHooks` — [hooks.md](hooks.md).
 - **renameSession(project, threadId, name)** — `thread/name/set` через
   демон для любого треда, загруженного или нет (`{ synced: true }`).
   Демон не загружает тред ради имени и дописывает его в
@@ -285,7 +250,7 @@ app-server на весь Mac, доверие к папке, одобрение �
   `refresh()`.
 - В чужие конфиги пишет только Codex по кнопке, после предпросмотра или
   показа команды и хеша, с копией `config.toml` до и проверкой после.
-- Одобряется только хук Kit с точной командой и текущим хешем.
+- Одобряются только хуки Kit и Harness с точной командой и текущим хешем.
 - Зависимости: `#provider-registry` (контракт, журнал хука, токены),
   `#kit-structure` (`hookCommand`, `isKitHookCommand`), `#data-store`
   (`backupFile`, атомарная запись), `#process-supervisor` (`cleanEnv`).

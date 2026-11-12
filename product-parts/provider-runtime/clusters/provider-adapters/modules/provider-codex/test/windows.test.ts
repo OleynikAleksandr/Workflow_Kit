@@ -8,7 +8,7 @@ import path from 'node:path';
 import { PassThrough } from 'node:stream';
 import { test } from 'node:test';
 import { codexProjectKey, filetimeMs, projectTrustLevel, readDaemonPid, sameFolder, tomlKey } from '../src/codex-files.ts';
-import { buildHookState, kitCodexCommand, localHooks, sameHookKey } from '../src/hooks.ts';
+import { HARNESS_CODEX_HOOK_COMMAND, buildHookState, kitCodexCommand, localHooks, sameHookKey } from '../src/hooks.ts';
 import { proxyStream } from '../src/proxy.ts';
 import { MIN_WINDOWS_CODEX, compareVersions, findProgram, windowsCodexCandidates } from '../src/runtime.ts';
 
@@ -62,6 +62,22 @@ test('Codex hooks on Windows: commandWindows is the command compared, keys match
   assert.equal(all.length, 1);
   assert.equal(all[0]?.key, listedKey);
   assert.equal(all[0]?.status, 'approved');
+});
+
+test('Codex hooks on Windows: the Harness hook has no commandWindows, its command is compared and approved under the reported key', () => {
+  const file = 'C:\\p\\.codex\\hooks.json';
+  const config = { hooks: { SessionStart: [{ hooks: [{ type: 'command', command: HARNESS_CODEX_HOOK_COMMAND }] }] } };
+  assert.deepEqual(localHooks(file, config, 'win32'), [{ key: `${file}:session_start:0:0`, event: 'SessionStart', command: HARNESS_CODEX_HOOK_COMMAND }]);
+  const listedKey = 'c:/p/.codex/hooks.json:session_start:0:0';
+  const state = buildHookState({
+    local: { text: '{}', hooks: localHooks(file, config, 'win32'), error: null },
+    listed: [{ key: listedKey, eventName: 'sessionStart', command: HARNESS_CODEX_HOOK_COMMAND, sourcePath: 'c:/p/.codex/hooks.json', currentHash: 'h', trustStatus: 'untrusted' }],
+    trusted: true,
+  });
+  // The Harness command is the same on every OS, so it is a Kit hook here too; without the Kit
+  // SessionStart hook nothing is shown as the Kit hook and nothing is listed as foreign.
+  assert.equal(state.kitHook, null);
+  assert.deepEqual(state.hooks, []);
 });
 
 test('codex.exe search on Windows: only .exe, the installer, the managed package and the npm package', async () => {

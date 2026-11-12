@@ -1,7 +1,8 @@
 // Hooks of a project for Codex: the project's own .codex/hooks.json read locally, merged with what
 // `hooks/list` of the app-server reports (key, currentHash, trustStatus). Only Kit hooks whose
-// command equals a Kit template exactly (SessionStart, Stop, UserPromptSubmit) may be approved;
-// the contract shows them as one Kit hook (the SessionStart command) with a combined status.
+// command equals a Kit template exactly (SessionStart, Stop, UserPromptSubmit) and the Harness
+// SessionStart hook with its exact command may be approved; the contract shows them as one Kit
+// hook (the SessionStart command) with a combined status.
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { KIT_HOOK_EVENTS, defaultHookHost, isKitHookCommand, kitHookEntry } from '#kit-structure';
@@ -41,6 +42,20 @@ export function sameHookKey(a: string, b: string): boolean {
 /** True for a command that is exactly one of the Kit hook templates. */
 export function isExactKitCommand(command: string): boolean {
   return KIT_HOOK_COMMANDS.includes(command);
+}
+
+/**
+ * Exact command of the Harness Workflow Kit SessionStart hook for Codex, as its installer writes it
+ * on every OS (it delivers the recovery packet; spec M21 section 3.2).
+ */
+export const HARNESS_CODEX_HOOK_COMMAND = 'scripts/workflow hook session-start --client codex';
+
+/**
+ * True for a hook Kit treats as its own and approves together with its hooks: a Kit template or the
+ * Harness SessionStart hook. Any other command, even an edited one, stays foreign.
+ */
+export function isKitApprovable(command: string): boolean {
+  return isExactKitCommand(command) || command === HARNESS_CODEX_HOOK_COMMAND;
 }
 
 /** A hook as `hooks/list` reports it (fields Codex 0.166 returns). */
@@ -166,11 +181,11 @@ export function buildHookState(input: HookStateInput): HookState {
     const key = listed?.key ?? hook.key;
     keys.add(key);
     const command = listed?.command || hook.command;
-    entries.push({ command, hash: listed?.currentHash ?? '', kit: isExactKitCommand(command), status: hookStatus(listed?.trustStatus), key });
+    entries.push({ command, hash: listed?.currentHash ?? '', kit: isKitApprovable(command), status: hookStatus(listed?.trustStatus), key });
   }
   for (const listed of listedAll) {
     if (keys.has(listed.key)) continue;
-    entries.push({ command: listed.command, hash: listed.currentHash, kit: isExactKitCommand(listed.command), status: hookStatus(listed.trustStatus), key: listed.key });
+    entries.push({ command: listed.command, hash: listed.currentHash, kit: isKitApprovable(listed.command), status: hookStatus(listed.trustStatus), key: listed.key });
   }
   const kitEntries = entries.filter((e) => e.kit);
   const session = kitEntries.find((e) => e.command === KIT_HOOK_COMMAND);

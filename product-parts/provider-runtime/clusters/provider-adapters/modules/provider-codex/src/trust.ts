@@ -8,7 +8,7 @@ import { backupFile } from '#data-store';
 import { ProviderError } from '#provider-registry';
 import type { AutorunPoint, HookState, Project, TrustPreview, TrustState, TrustWrite } from '#provider-registry';
 import { codexProjectKey, hookTrustKeyPath, projectTrustLevel, tomlKey, trustKeyPath } from './codex-files.ts';
-import { KIT_HOOK_COMMAND, buildHookState, isExactKitCommand, listedProjectHooks, projectHooksFile, readLocalHooks } from './hooks.ts';
+import { KIT_HOOK_COMMAND, buildHookState, isKitApprovable, listedProjectHooks, projectHooksFile, readLocalHooks } from './hooks.ts';
 import type { ListedHook } from './hooks.ts';
 import type { CodexRuntime } from './runtime.ts';
 
@@ -102,7 +102,7 @@ export function createTrustParts(rt: CodexRuntime): TrustParts {
       const local = await readLocalHooks(project.path);
       const autorun: AutorunPoint[] = local.hooks.map((hook) => ({
         file: '.codex/hooks.json',
-        kind: isExactKitCommand(hook.command) ? 'kit-hook' : 'hook',
+        kind: isKitApprovable(hook.command) ? 'kit-hook' : 'hook',
         detail: `${hook.event}: ${hook.command}`,
       }));
       if (local.error) autorun.push({ file: '.codex/hooks.json', kind: 'invalid', detail: local.error });
@@ -197,8 +197,9 @@ export function createTrustParts(rt: CodexRuntime): TrustParts {
         });
       }
       // The user confirmed the SessionStart hash; the Stop and prompt hooks of the same structure
-      // are approved with it when their commands are exactly the Kit templates.
-      const others = listed.filter((hook) => hook.command !== KIT_HOOK_COMMAND && isExactKitCommand(hook.command));
+      // and the Harness SessionStart hook (the recovery packet) are approved with it when their
+      // commands are exactly the Kit templates or the Harness command.
+      const others = listed.filter((hook) => hook.command !== KIT_HOOK_COMMAND && isKitApprovable(hook.command));
       const pending = [...matching, ...others].filter((hook) => hook.trustStatus !== 'trusted');
       const local = await readLocalHooks(project.path);
       if (pending.length > 0) {

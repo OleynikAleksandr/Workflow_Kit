@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": "T004",
+  "currentTaskId": null,
   "lastClosed": {
     "closedAt": "2026-11-12T15:04:13.877Z",
     "scopeId": "m21-recovery-one-turn"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 714,
+  "revision": 715,
   "rounds": [
     {
       "digest": null,
@@ -490,14 +490,20 @@
         "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src",
         "product-parts/control-panel/clusters/web-panel/modules/panel-shell/test",
         "product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md",
-        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/files.md"
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/files.md",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/actions.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/buttons.css",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/kit-card.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/screens.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/kit-card.test.ts"
       ],
       "fixes": null,
       "id": "T004",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "title": "Панель: версия Kit и карточка «Обновить Kit»",
       "why": "Пользователь видит версию Kit и обновляет его на экране проекта"
     },
@@ -583,9 +589,9 @@
 - Scope: m22-kit-source (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: T004
-- Progress: 4/7
-- Revision: 714
+- Current task: none
+- Progress: 5/7
+- Revision: 715
 
 ## Objective
 
@@ -618,9 +624,9 @@
   - Commit: feat(kit-update): report the project Kit version and update it
   - Files: product-parts/workflow-engine/clusters/kit-host/modules/kit-update, product-parts/workflow-engine/clusters/kit-host/cluster.md, product-parts/workflow-engine/product-part.md, package.json, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/connected-modules.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/src/index.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/src/routes.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/src/update.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/test/kit-update.test.ts
   - Depends on: T002
-- [IN_PROGRESS] T004 — Панель: версия Kit и карточка «Обновить Kit» (work)
+- [DONE] T004 — Панель: версия Kit и карточка «Обновить Kit» (work)
   - Commit: feat(panel-shell): show the project Kit version and the update card
-  - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell/src, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/files.md
+  - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell/src, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/files.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/actions.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/buttons.css, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/kit-card.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/screens.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/kit-card.test.ts
   - Depends on: T003
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1

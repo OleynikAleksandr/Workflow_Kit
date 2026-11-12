@@ -2,6 +2,7 @@
 // Screens of the main area that are rebuilt from the state: first start, project and session.
 // Each function returns a fresh node; app.js redraws only when its data changed.
 import { code, h } from './dom.js';
+import { kitLine, kitPanel } from './kit-card.js';
 
 /**
  * @typedef {import('./view-model.js').Route} Route
@@ -17,6 +18,7 @@ import { code, h } from './dom.js';
  * @property {(session: SessionRow) => void} openChat
  * @property {(projectId: string, session: SessionRow, archived: boolean) => void} archiveSession
  * @property {(projectId: string) => Promise<void>} publish
+ * @property {(projectId: string) => Promise<void>} updateKit «Обновить Kit» (M22 2.7)
  * @property {(action: import('./provider-actions.js').ProviderActionRow) => void} runProviderAction
  */
 
@@ -105,7 +107,7 @@ function providerPanel(rows, handlers) {
 
 /**
  * A project without a selected session: its sessions and new session buttons.
- * @param {ProjectRow & { publication?: import('./publication.js').PublicationView | null, providerActions?: import('./provider-actions.js').ProviderActionRow[], providers?: ProviderView[] }} project
+ * @param {ProjectRow & { publication?: import('./publication.js').PublicationView | null, kit?: import('./kit-card.js').KitView | null, providerActions?: import('./provider-actions.js').ProviderActionRow[], providers?: ProviderView[] }} project
  * @param {ScreenHandlers} handlers
  * @returns {HTMLElement}
  */
@@ -132,8 +134,9 @@ export function projectScreen(project, handlers) {
           ]))),
       ]);
   return h('div', { class: 'screen' }, [
-    header(project.name, [code(project.path), ' · ', project.count]),
+    header(project.name, [code(project.path), ' · ', project.count, ...(project.kit ? [' · ', ...kitLine(project.kit, () => handlers.navigate({ screen: 'new', mode: 'open' }))] : [])]),
     project.missing ? h('div', { class: 'notice notice-error' }, [h('p', {}, ['Папка проекта не найдена. Верните папку на место или уберите проект в архив.'])]) : null,
+    project.kit?.card ? kitPanel(project.kit.card, () => handlers.updateKit(project.id)) : null,
     h('div', { class: 'panel' }, [h('h2', {}, ['Сессии']), list, h('div', { class: 'eyebrow' }, ['Новая сессия']), sessionButtons(project.id, project.providers ?? [], handlers)]),
     project.publication ? publicationPanel(project.id, project.publication, handlers) : null,
     project.providerActions && project.providerActions.length > 0 ? providerPanel(project.providerActions, handlers) : null,

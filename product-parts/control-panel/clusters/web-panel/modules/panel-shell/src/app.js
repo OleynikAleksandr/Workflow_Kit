@@ -4,6 +4,7 @@
 import { shouldReload } from './reload.js';
 import { providerActionRows } from './provider-actions.js';
 import { publicationView } from './publication.js';
+import { kitView } from './kit-card.js';
 import { createActions } from './actions.js';
 import { createArchiveScreen } from './archive.js';
 import { installPressFeedback } from './press.js';
@@ -166,7 +167,7 @@ function renderMain() {
   } else if (r.screen === 'project') {
     const project = tree.find((p) => p.id === r.projectId);
     const home = projectLists(state).home;
-    const shown = project ? { ...project, path: shortPath(project.path, home), publication: publicationView(state, project.id), providerActions: providerActionRows(state), providers: providerViews(state) } : null;
+    const shown = project ? { ...project, path: shortPath(project.path, home), publication: publicationView(state, project.id), kit: kitView(state, project.id), providerActions: providerActionRows(state), providers: providerViews(state) } : null;
     screen = ['project', shown, () => (shown ? projectScreen(shown, handlers) : missingScreen('Проект не найден', handlers))];
   } else if (r.screen === 'session') {
     const project = tree.find((p) => p.id === r.projectId);

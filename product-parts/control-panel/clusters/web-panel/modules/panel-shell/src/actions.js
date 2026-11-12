@@ -212,6 +212,17 @@ export function createActions(options) {
         say('ok', `Опубликовано на GitHub: ${commitsLabel(Number(done.commits) || 0)}, ${String(done.sha).slice(0, 7)}`);
       });
     },
+    /**
+     * «Обновить Kit» (spec M22 2.7): the service updates in the background (202); the card shows
+     * the work, its outcome and Kit's error from the "kitUpdate" section.
+     * @param {string} projectId
+     */
+    async updateKit(projectId) {
+      await act('Не удалось обновить Kit', async () => {
+        await api('POST', `/api/projects/${encodeURIComponent(projectId)}/kit/update`, {});
+        say('muted', 'Kit обновляется…');
+      });
+    },
     /** A provider-level action of the project screen. @param {import('./provider-actions.js').ProviderActionRow} action */
     runProviderAction(action) {
       if (action.confirm && !window.confirm(action.confirm)) return;

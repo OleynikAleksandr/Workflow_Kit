@@ -100,3 +100,17 @@ a.chat-link.is-pressed {
 .projects-btn.open svg {
   transform: rotate(180deg);
 }
+
+/* «Открыть папку проекта» in the Kit line of the project header (kit-card.js). */
+.kit-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  cursor: pointer;
+}
+
+.kit-link:hover {
+  text-decoration: underline;
+}

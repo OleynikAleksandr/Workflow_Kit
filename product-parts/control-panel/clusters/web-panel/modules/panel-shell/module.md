@@ -66,8 +66,10 @@
   из списка» в архиве) нигде не показываются.
 - Экраны: первый запуск и «выберите проект»; новый проект и «Открыть папку
   проекта» (слот `newProject` — мастер `project-wizard`; без него — простая
-  форма `new-project.js`); проект (сессии, кнопки новой сессии, сессии в
-  архиве); сессия (заголовок, проект, провайдер, время и строка состояния
+  форма `new-project.js`); проект (в шапке — строка «Kit <версия>» или «Kit не
+  установлен — «Открыть папку проекта»», для устаревшего Kit — карточка «Kit 2.2.3 → 2.2.4» с
+  кнопкой «Обновить Kit», ходом работы, итогом и ошибкой Kit, M22 2.7, `kit-card.js`; сессии,
+  кнопки новой сессии, сессии в архиве); сессия (заголовок, проект, провайдер, время и строка состояния
   вместо «Открыть чат»: у провайдера с подъёмом сессий (`resume` в его
   сводке — есть `resumeSession`; сейчас Claude, `SessionRow.resumable`) —
   состояние процесса («открыта в <провайдер>» и примечание сессии,
@@ -121,43 +123,7 @@
 
 ## Файлы панели
 
-| Файл | Содержание |
-| --- | --- |
-| `index.html` | метаданные (manifest, значки, standalone, цвет темы), стили (после своих — стили расширений `project-wizard`, `session-view`, `session-chat`), `app.js`; без встроенных скриптов и стилей (CSP) |
-| `styles.css` | токены темы (светлая, тёмная по системе и по `data-theme`), прежние имена токенов для карточек, базовый текст 13 px, стили служебных карточек |
-| `layout.css` | раскладка макета: боковая панель (бренд, строка подготовки, заголовок «Ваши проекты»), экраны, панели, сетка карточек «Настроек», перестройка уже 680 px, safe-area; пустой `.session-chat` скрыт |
-| `tree.css` | меню «Ваши проекты» и «⋯», дерево проектов и сессий, метки провайдеров, индикаторы связи |
-| `controls.css` | кнопки и поля (44 px на сенсорных экранах), сообщения, выбор папки |
-| `buttons.css` | состояния кнопок: наведение, нажатие, кольцо щелчка; стрелка «Ваши проекты» |
-| `archive.css` | экран «Архив» в две колонки, панель удаления с диска |
-| `archive.js` | `createArchiveScreen(handlers) → { element, render(projects, sessions, home) }` |
-| `selection.js` | чистые функции: `currentProjectId(route, remembered, activeIds)`, `archivedSessions(tree)`, `selectRows(ids, selected, anchor, id, mods)` |
-| `press.js` | `installPressFeedback()`, `STICKY_MS` (180), `RING_MS` (450) |
-| `publication.js` | строка «GitHub» экрана проекта (publication-order 3.2): `publicationView(state, projectId)` из раздела `publication` — «Опубликовано…», «Неопубликованных коммитов: N» с кнопкой «Опубликовать на GitHub (N коммитов)» или причина ожидания; без upstream — `null`; `commitsLabel(n)`. Кнопка (`screens.js`) вызывает `handlers.publish` → `POST /api/projects/:id/publish` (тайм-аут 120 с), результат — сообщение с коротким SHA |
-| `reviewers.js` | `reviewerMatcher(state)` — сессии ревьюеров плана, которых нет в дереве: по `reviewerKey` ревью, а пока ключа нет — по `reviewerRef` (локальный id или id Remote Control) провайдера ревьюера, для обоих провайдеров (M4 13.4, 13.9) |
-| `reload.js` | `shouldReload(loaded, current, reloadedFor)` — нужна ли перезагрузка: версия службы известна, отличается от версии при загрузке и для неё перезагрузки ещё не было (M4 13.5) |
-| `app.js` | состояние и маршрут, опрос `/api/state` (следующий запрос — через 3 с после ответа, таймаут 8 с, сразу при возврате на вкладку, тик таймера строки подготовки раз в секунду), самоперезагрузка страницы, когда служба отвечает другой версией, чем при загрузке (один раз на версию, `sessionStorage`, M4 13.5), экраны и слоты; загрузка расширений `PANEL_EXTENSIONS` (`/project-wizard/project-wizard.js`, `/session-view/session-view.js`, `/session-chat/session-chat.js`) до первого опроса: `install(shell)` с помощниками `registerCard`, `registerCardGroup`, `registerSlot`, `requestRefresh`, `api`, `ApiError`, `dom`, `createFolderPicker`, `showError` |
-| `actions.js` | `createActions({ navigate, render, route })` → `{ handlers, toast, say, collapsed }`: в архив; для «Архива» — `restoreProjects`, `forgetProjects`, `deleteProject`, `restoreSessions`, `forgetSessions`; новая сессия, обновить сессии, копировать путь, открыть чат, переименовать и архивировать сессию; сообщения над экраном; свёрнутые проекты |
-| `slots.js` | слоты раскладки для расширений: `registerSlot('newProject' \| 'sessionBody' \| 'sessionReview' \| 'sessionChat', definition)`, `slots`; типы `SlotContext` (`navigate`, `requestRefresh`, `say`, `selectProject`), `SessionContext` (`project`, `session`, `link`) |
-| `session-screen.js` | `createSessionScreen(ctx, { resume }) → { element, render(data, state) }`: шапка (у внешней сессии без процесса панели — кнопка «Продолжить», `resumeButton`), слот `sessionBody` (`.session-body`) и под ним слот `sessionChat` (`.session-chat`); узлы постоянные, каждая часть перерисовывается, только если изменились её данные (ключ `[ключ сессии, select()]`), узел слота заменяется, только если это другой узел; ошибка слота — строка ошибки |
-| `view-model.js` | чистые модели без DOM: `parseRoute`/`routeHash` (`#/`, `#/settings`, `#/new`, `#/open`, `#/archive`, `#/p/<id>`, `#/s/<id>/<ключ>`), `projectLists`, `filterProjects`, `projectTree`, `ownerObjective`, `sessionKey` (`<провайдер>:<localId>` — ключ разделов `channel`, `titles`, `review`), `runningText`, `statusLine`, `chatStatus`, `opensByItself`, `deviceLink`, `formatWhen`, `formatElapsed`, `sessionsLabel`, `shortPath`, `themeAttribute`; в строке сессии — `providerLabel` и `resumable` из сводки провайдера, `external` из активности канала |
-| `providers.js` | провайдеры из раздела `providers` состояния: `providerViews(state)` (`id`, `label`, `mark`, `resume`, `ready`, `statusLabel`), `providerNamer(state)`, `providerNames(state)` («ChatGPT и Claude»), `indicators(state, linked)` |
-| `sidebar.js` | боковая панель: `createSidebar(handlers) → { element, render(model), setReview(node) }` |
-| `menus.js` | всплывающие меню «⋯»: `openMenu(anchor, items)`, `closeMenu()` |
-| `screens.js` | экраны из состояния: `homeScreen` (только приветствие; создание и выбор проекта — в меню «Ваши проекты»), `projectScreen` (сессии, «GitHub», блок «Провайдеры» с действиями уровня провайдера), `sessionHeader`, `missingScreen` |
-| `provider-actions.js` | `providerActionRows(state)` — включённые действия `scope: 'provider'` каждого провайдера раздела `providers`, готового тоже (`{ provider, id, label, confirm }`); обработчик `runProviderAction` в `actions.js`: вопрос `confirm`, `POST /api/providers/:p/actions/:a`, отказ `action-disabled` ошибкой не показывается |
-| `new-project.js` | запасной экран «Новый проект» / «Открыть папку проекта», если мастер не загрузился |
-| `settings.js` | «Настройки»: внешний вид (`THEME_KEY`, `savedTheme`, `applyTheme`), папка для проектов, карточка «Архив» (`onArchive`), сетка служебных карточек |
-| `card-grid.js` | `renderCards(container, state)` — карточки и элементы групп по `order`, перерисовка только изменившихся |
-| `cards.js` | реестр карточек: `registerCard`, `registerCardGroup`, `expandCards(state)`, `requestRefresh()` |
-| `dom.js` | помощники `h`, `facts`, `pill`, `code`, `notice`, `plainInput`; текст только через `textContent` |
-| `api.js` | `api(method, url, body?)`, `apiGet(url)`, `ApiError` (`status`, `code`, `message`, `hint`, `blockers`) |
-| `folder-picker.js` | выбор папки внутри домашней или другого диска (`GET /api/folders`); переключатель корней из `roots` ответа («Домой», «D:\\», тома macOS, `/media` и `/mnt` Linux; M14); `pickLabel`, `idPrefix`, `allowDriveRoot` (корень диска можно выбрать — папка для проектов в «Настройках») |
-| `folder-roots.js` | модель корней выбора папки без DOM: `rootState(listing, allowDriveRoot)` → `root`, `atRoot`, `canPick` (домашнюю папку — никогда, корень диска — с `allowDriveRoot`), `note`; пути Windows сравниваются без учёта регистра |
-| `shared-access-model.js` | модель карточки «Общий доступ к чатам» (M12 раздел 2.2), без DOM: `sharedAccessProviders(state)` — провайдеры, у статуса которых есть `details.sharedAccess` (и `null` до первой проверки), `sharedAccessOf`, `sharedOperation` (последняя операция `provider.shared-access.apply|remove` провайдера из раздела `operations`), `sharedTone`, `sharedButtons` (по состоянию: `not-configured` — «Настроить»; `needs-remote-login` — «Открыть настройки macOS»; `needs-connection` — «Открыть подключения ChatGPT»; `active` — «Перепроверить», «Убрать настройку»; `broken` — «Настроить ещё раз»; `unsupported` — ничего; до проверки — «Проверить»; Windows, M13: `needs-admin-setup` — «Скопировать команду запуска» (главная), «Показать скрипт», «Перепроверить», «Убрать настройку»; при поле `admin` в `not-configured` и `broken` — те же две кнопки, у отката — «Показать скрипт отката»), `adminNote` (что сделать со скриптом администратора), `showsAdminStep` (M14: блок и кнопки скрипта — только в `needs-admin-setup`, `broken` и в `not-configured` со скриптом отката, при «Работает» их нет), `sharedSummary` (причина и подсказка — через точку), `operationNote`, `REMOVE_CONFIRM`, `REMOVE_CONFIRM_WINDOWS`, `removeConfirm` |
-| `shared-access-card.js` | группа карточек «Общий доступ к чатам · <провайдер>» в «Настройках» (`order` 5): состояние, что работает или чего не хватает, блок для ручной вставки (`manualProfile`), кнопки модели. «Настроить» → `GET …/shared-access/preview` → список записей и заметки → «Записать» → `POST …/apply { token }`; «Открыть …» → `POST …/open { target }`; «Перепроверить» → `POST …/recheck`; «Убрать настройку» — с подтверждением (`removeConfirm`) → `POST …/remove`. Windows (M13): блок шага администратора — `adminNote` и команда (`admin.command`); «Показать скрипт» раскрывает путь и текст (`admin.file`, `admin.text`), «Скопировать команду запуска» — `navigator.clipboard`; Kit скрипт не запускает. Команда и текст скрипта (`pre.path`) переносятся по ширине карточки; заметка операции («… выполняется…») убирается, как только операция закончилась (M14). Пока идёт операция, кнопки выключены; ошибка — в карточке. Узел карточки один на провайдера: открытый предпросмотр переживает опрос |
-| `system-card.js` | карточка «Система» (версия, ОС, служба, автозапуск, запускатель, значок, программы, адреса); «Программы» — имена из `system.service.programNames` службы (найденные — с путём, остальные — «не найдена»), у службы без этого поля — найденные |
-| `manifest.webmanifest`, `icons/` | экран «Домой»: `icon.svg` (источник) и `icon-180/192/512.png` |
+Что лежит в каждом файле `src/` — в [files.md](files.md).
 
 ## Как добавить карточку «Настроек»
 
@@ -188,3 +154,5 @@
 Панель одинакова на всех ОС. Переключатель корней выбора папки показывает то,
 что отдаёт служба: на Windows — «Домой» и другие диски («D:\\»), на macOS —
 «Домой» и тома `/Volumes`, на Linux — «Домой», `/media`, `/run/media` и `/mnt`.
+Строка Kit и карточка «Обновить Kit» тоже одинаковы: различия команд хуков Codex на Windows
+(`commandWindows`) знает служба (`kit-update`), панель показывает только её строки.

@@ -7,6 +7,7 @@ import { after, before, test } from 'node:test';
 import { gzipSync } from 'node:zlib';
 import {
   KIT_SHA256,
+  KIT_SOURCE_COMMIT,
   KIT_VERSION,
   KitBundleError,
   ensureKitBundle,
@@ -35,7 +36,7 @@ test('the vendored bundle unpacks to the provenance hash', async () => {
   assert.equal(sha(await readFile(bundle.file)), KIT_SHA256);
   const provenance = await readFile(path.join(path.dirname(vendorBundleFile()), 'PROVENANCE'), 'utf8');
   assert.match(provenance, new RegExp(KIT_SHA256));
-  assert.match(provenance, /e4226208/);
+  assert.match(provenance, new RegExp(`source commit: +${KIT_SOURCE_COMMIT}\n`));
 });
 
 test('a verified bundle is reused, a damaged one is rewritten', async () => {

@@ -221,7 +221,7 @@ stripping).
   `registerAutopilotRoutes` — `POST /api/projects/:id/workflow/…` и раздел
   `autopilot`.
 - `kit-bundle` и `kit-runner` (веха 2, T001): `kitBundleProvider` над
-  `dirs.appDir` (распаковка бандла Kit 2.2.2 при первой команде),
+  `dirs.appDir` (распаковка бандла Kit 2.2.3 при первой команде),
   `createKitRunner` (тот же `runCommand` и `env`), `createWorkflowState` над
   `projects.list()` и раздел `workflow` (`workflow.section()`; опрос панели
   команд Kit не запускает).

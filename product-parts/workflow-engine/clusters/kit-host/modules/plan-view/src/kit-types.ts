@@ -1,4 +1,4 @@
-// The parts of Kit 2.2.2 command results the service reads. Kit may add fields; readers ignore
+// The parts of Kit 2.2.3 command results the service reads. Kit may add fields; readers ignore
 // what they do not know and treat missing optional fields as absent.
 
 export type KitTaskStatus = 'TODO' | 'IN_PROGRESS' | 'DONE';

@@ -1,4 +1,4 @@
-// The autopilot with the real Kit 2.2.2 bundle on a temporary git repository and a channel fed
+// The autopilot with the real Kit bundle (2.2.3) on a temporary git repository and a channel fed
 // with hook inputs as Claude and Codex send them: choice, start, tasks, pause, acceptance.
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';

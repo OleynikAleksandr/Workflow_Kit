@@ -1,4 +1,4 @@
-// The wizard end to end on a temporary HOME: real git and the real Kit 2.2.2 bundle, fake Codex,
+// The wizard end to end on a temporary HOME: real git and the real Kit bundle (2.2.3), fake Codex,
 // Claude and a third provider (a hook written into a file) that record what the wizard asks.
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
@@ -7,6 +7,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { after, before, test } from 'node:test';
 import { createApp } from '#cli';
+import { KIT_VERSION, ensureKitBundle } from '#kit-bundle';
 import type { App } from '#cli';
 import { ProviderError } from '#provider-registry';
 import type { Provider, ProviderFactory } from '#provider-registry';
@@ -181,7 +182,7 @@ test('create: preview, one consent, then everything happens and the session link
   assert.equal(run.links.desktop, 'codex://threads/thread-1');
   const folder = p['path'] as string;
   const log = git(folder, 'log', '--format=%s');
-  assert.match(log, /chore: install workflow kit 2\.2\.2/);
+  assert.match(log, new RegExp(`chore: install workflow kit ${KIT_VERSION.replace(/\./g, '\\.')}`));
   assert.match(log, /chore: add Workflow Kit structure/);
   assert.equal(git(folder, 'status', '--porcelain'), '', 'the tree is clean after the wizard');
   assert.match(await readFile(path.join(folder, 'AGENTS.md'), 'utf8'), /wfk session title/);
@@ -198,6 +199,33 @@ test('create: preview, one consent, then everything happens and the session link
   const again = await send('/api/setup/preview', { mode: 'create', name: 'Склад' });
   assert.equal(again.status, 409);
   assert.equal(again.json['error'].code, 'exists');
+});
+
+test('open: an older Kit (KIT_OUTDATED) is updated to the app bundle, not installed again', async () => {
+  const folder = path.join(home, 'Outdated');
+  await mkdir(folder);
+  await writeFile(path.join(folder, 'README.md'), '# Outdated\n');
+  git(folder, 'init', '-q');
+  git(folder, 'add', 'README.md');
+  git(folder, 'commit', '-q', '-m', 'init');
+  const bundle = await ensureKitBundle({ appDir: path.join(tmp, 'direct-kit') });
+  execFileSync(process.execPath, [bundle.file, 'install', folder, '--host', 'harness'], { cwd: folder, env: { PATH: process.env['PATH'], HOME: home, GIT_CONFIG_GLOBAL: path.join(home, '.gitconfig') } });
+  // The manifest of an older Kit: inspect answers KIT_OUTDATED.
+  const manifestFile = path.join(folder, '.harness', 'workflow', 'manifest.json');
+  const manifest = JSON.parse(await readFile(manifestFile, 'utf8'));
+  await writeFile(manifestFile, `${JSON.stringify({ ...manifest, version: '2.2.2' }, null, 2)}\n`);
+  const preview = await send('/api/setup/preview', { mode: 'open', path: folder });
+  assert.equal(preview.status, 200, JSON.stringify(preview.json));
+  assert.equal(preview.json['kit'].action, 'update');
+  const kit = preview.json['actions'].find((a: { id: string }) => a.id === 'kit');
+  assert.deepEqual([kit.title, kit.detail], [`Процесс Kit ${KIT_VERSION}`, 'обновление с 2.2.2']);
+  const applied = await send('/api/setup/apply', { token: preview.json['token'], provider: 'claude' });
+  const operation = await app.operations.wait(applied.json['operationId']);
+  assert.equal(operation.status, 'succeeded', JSON.stringify(operation.error));
+  const run = app.setup.get(applied.json['operationId'])!;
+  assert.deepEqual(run.steps.find((s) => s.id === 'kit')?.note, `Kit ${KIT_VERSION}`);
+  assert.equal(JSON.parse(await readFile(manifestFile, 'utf8')).version, KIT_VERSION);
+  assert.match(git(folder, 'log', '--format=%s'), new RegExp(`chore: update workflow kit to ${KIT_VERSION.replace(/\./g, '\\.')}`));
 });
 
 test('open: a changed folder makes the preview stale; cancel stops before the next step', async () => {

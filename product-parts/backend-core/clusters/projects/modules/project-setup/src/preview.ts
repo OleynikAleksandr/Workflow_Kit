@@ -5,6 +5,7 @@
 import { createHash } from 'node:crypto';
 import { realpath, stat } from 'node:fs/promises';
 import path from 'node:path';
+import { KIT_VERSION } from '#kit-bundle';
 import type { KitRunner } from '#kit-runner';
 import { checkStructure } from '#kit-structure';
 import type { Project, ProjectRegistry } from '#project-registry';
@@ -16,7 +17,7 @@ import type { HookEntry, ProviderRegistry, TrustChoice, TrustWrite } from '#prov
 /** Id of a registered provider. */
 export type SetupProvider = string;
 
-/** Files Kit 2.2.2 writes on install (verified with `install --host harness`). */
+/** Files Kit writes on install (verified with `install --host harness` of Kit 2.2.3). */
 export const KIT_INSTALL_FILES: readonly string[] = [
   '.harness/workflow/runtime/workflow.mjs',
   'scripts/workflow',
@@ -203,7 +204,9 @@ export async function buildPreview(input: PreviewInput, deps: PreviewDeps): Prom
     if (inspect.ok) {
       kitState = inspect.result.state;
       kitVersion = inspect.result.version;
-      if (inspect.result.state === 'KIT_OK') kitAction = inspect.result.version === '2.2.2' ? 'open' : 'update';
+      // An older Kit is KIT_OUTDATED; any other version than the app's bundle is updated to it.
+      if (inspect.result.state === 'KIT_OUTDATED') kitAction = 'update';
+      else if (inspect.result.state === 'KIT_OK') kitAction = inspect.result.version === KIT_VERSION ? 'open' : 'update';
     } else {
       notes.push(`Kit: ${inspect.message}`);
     }
@@ -221,7 +224,7 @@ export async function buildPreview(input: PreviewInput, deps: PreviewDeps): Prom
     { id: 'structure', title: 'Структура Kit в папке', detail: 'AGENTS.md, CLAUDE.md, хуки начала сессии, конца хода и нового сообщения, шаблоны product-parts' },
     {
       id: 'kit',
-      title: 'Процесс Kit 2.2.2',
+      title: `Процесс Kit ${KIT_VERSION}`,
       detail: kitAction === 'install' ? 'установка: план, задачи, проверки' : kitAction === 'update' ? `обновление с ${kitVersion ?? 'старой версии'}` : 'уже установлен',
     },
     { id: 'git', title: 'Локальная история проекта (git)', detail: repository ? 'уже есть' : 'будет создана' },

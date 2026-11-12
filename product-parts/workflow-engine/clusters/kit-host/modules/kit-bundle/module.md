@@ -4,19 +4,19 @@
 
 ## Назначение
 
-Бандл Harness Workflow Kit 2.2.2, с которым служба ставит и проверяет
+Бандл Harness Workflow Kit 2.2.3, с которым служба ставит и проверяет
 процесс Kit в проектах (спецификация, раздел 8.1). В репозитории лежит
-gzip (`vendor/workflow-kit-2.2.2.mjs.gz`: двоичный файл, проверка длины
+gzip (`vendor/workflow-kit-2.2.3.mjs.gz`: двоичный файл, проверка длины
 файлов его пропускает) и `vendor/PROVENANCE` — откуда он взят: harness-ai
-`e4226208`, `dist/workflow-kit/workflow.mjs`, 10651 строка, SHA-256
+`7afe27ad`, `dist/workflow-kit/workflow.mjs`, 10801 строка, SHA-256
 распакованного файла
-`036c82fb602435575f03464c2f9c0c9ec12845da680263052a411f0fd32e0fc2`.
+`8891de2ff127deae1819f132123ca12cbd98af77dec666c44209366ea925497e`.
 
 ## Публичный интерфейс (`src/index.ts`)
 
-- `KIT_VERSION` (`2.2.2`), `KIT_SHA256`, `KIT_SOURCE_COMMIT`.
+- `KIT_VERSION` (`2.2.3`), `KIT_SHA256`, `KIT_SOURCE_COMMIT`.
 - `vendorBundleFile()` — путь gzip в модуле; `unpackedBundleFile(appDir)` —
-  `<appDir>/kit/workflow-kit-2.2.2.mjs`.
+  `<appDir>/kit/workflow-kit-2.2.3.mjs`.
 - `ensureKitBundle({ appDir, vendorFile?, sha256? }) → KitBundle`
   (`file`, `version`, `sha256`): распакованный файл с верным хешем
   используется как есть; иначе gzip распаковывается, хеш проверяется,

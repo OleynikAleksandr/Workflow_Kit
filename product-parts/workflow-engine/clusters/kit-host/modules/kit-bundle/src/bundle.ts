@@ -8,11 +8,11 @@ import { gunzipSync } from 'node:zlib';
 import { writeFileAtomic } from '#data-store';
 
 /** Kit version of the vendored bundle. */
-export const KIT_VERSION = '2.2.2';
+export const KIT_VERSION = '2.2.3';
 /** SHA-256 of the unpacked bundle (see vendor/PROVENANCE). */
-export const KIT_SHA256 = '036c82fb602435575f03464c2f9c0c9ec12845da680263052a411f0fd32e0fc2';
+export const KIT_SHA256 = '8891de2ff127deae1819f132123ca12cbd98af77dec666c44209366ea925497e';
 /** harness-ai commit the bundle was built from. */
-export const KIT_SOURCE_COMMIT = 'e4226208';
+export const KIT_SOURCE_COMMIT = '7afe27ad';
 
 /** The gzip file shipped with the app. */
 export function vendorBundleFile(): string {

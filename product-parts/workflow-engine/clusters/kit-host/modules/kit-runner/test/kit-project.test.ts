@@ -1,12 +1,12 @@
-// Integration with the real Kit 2.2.2 bundle on temporary git repositories. HOME and the global
+// Integration with the real Kit bundle (2.2.3) on temporary git repositories. HOME and the global
 // git config point into the temporary folder, so the user's files are never read or written.
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { cp, mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { after, before, test } from 'node:test';
-import { ensureKitBundle } from '#kit-bundle';
+import { KIT_VERSION, ensureKitBundle } from '#kit-bundle';
 import { runCommand } from '#process-supervisor';
 import type { CommandRunner } from '#process-supervisor';
 import type { KitStatus } from '#plan-view';
@@ -66,8 +66,15 @@ before(async () => {
   const inspect = await ok<{ action: string; git: { repository: boolean } }>(runner.inspect(base));
   assert.equal(inspect.git.repository, true);
   const install = await ok<{ version: string }>(runner.install(base));
-  assert.equal(install.version, '2.2.2');
+  assert.equal(install.version, KIT_VERSION);
   assert.ok(runner.installed(base));
+  // Kit 2.2.3 delivers the recovery packet whole: six Claude hooks, one per part, and one Codex
+  // hook with a raised output limit (spec M21 section 3.1).
+  const claude = JSON.parse(await readFile(path.join(base, '.claude', 'settings.json'), 'utf8'));
+  const claudeCommands = claude.hooks.SessionStart.map((g: { hooks: Array<{ command: string }> }) => g.hooks[0]!.command);
+  assert.deepEqual(claudeCommands.filter((c: string) => c.includes('scripts/workflow')), [1, 2, 3, 4, 5, 6].map((k) => `"$CLAUDE_PROJECT_DIR/scripts/workflow" hook session-start --client claude --part ${k}/6`));
+  const codex = JSON.parse(await readFile(path.join(base, '.codex', 'hooks.json'), 'utf8'));
+  assert.deepEqual(codex.hooks.SessionStart[0].hooks[0], { additionalContextLimit: 65_536, command: 'scripts/workflow hook session-start --client codex', type: 'command' });
   await writeFile(path.join(base, 'docs', 'spec.md'), '# Spec\n');
   await ok(runner.run(base, ['docs:commit', '--files', 'docs/spec.md']));
   await writeFile(path.join(tmp, 'plan.json'), JSON.stringify(PLAN));

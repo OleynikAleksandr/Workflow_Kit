@@ -4,6 +4,7 @@
 // подготовку" stops before the next step; what is done stays and is shown.
 import { randomBytes } from 'node:crypto';
 import type { Operations } from '#data-store';
+import { KIT_VERSION } from '#kit-bundle';
 import type { KitRunner, WorkflowState } from '#kit-runner';
 import { installStructure } from '#kit-structure';
 import type { Project } from '#project-registry';
@@ -73,7 +74,7 @@ function stepList(providers: readonly Provider[]): SetupStep[] {
     ['project', 'Папка проекта'],
     ['git', 'Локальная история (git)'],
     ['structure', 'Структура Kit'],
-    ['kit', 'Процесс Kit 2.2.2'],
+    ['kit', `Процесс Kit ${KIT_VERSION}`],
     ...providers.map((p): [StepId, string] => [`trust-${p.id}`, `Доверие ${providerLabel(p)}${p.approveHooks ? ' и хуки Kit' : ''}`]),
     ['session', 'Первая сессия'],
   ];
@@ -225,7 +226,7 @@ export function createProjectSetup(deps: SetupDeps): ProjectSetup {
       return { note: committedStructure ? 'записана и закоммичена' : 'записана; изменения закоммитьте в задаче Kit' };
     });
     await step(run, 'kit', async () => {
-      if (preview.kit.action === 'open') return { skipped: true, note: 'Kit 2.2.2 уже установлен' };
+      if (preview.kit.action === 'open') return { skipped: true, note: `Kit ${KIT_VERSION} уже установлен` };
       const outcome = await deps.kit.install(root, { update: preview.kit.action === 'update', name: project.name });
       if (!outcome.ok) throw new SetupError(outcome.code, outcome.message, 409, outcome.nextAction ?? undefined);
       void deps.workflow.refresh(project.id);

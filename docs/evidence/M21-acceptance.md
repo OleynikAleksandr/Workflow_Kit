@@ -26,7 +26,8 @@
   типов и `check:platforms` — ok.
 - `node bin/wfk.mjs install` (обновление с 0.9.1) и `wfk doctor --installed` — «всё в
   порядке», служба 0.9.2; в установке есть `kit-bundle/vendor/workflow-kit-2.2.3.mjs.gz`.
-- CI ветки `ci/m21-recovery-one-turn` — см. «Приёмка».
+- CI ветки `ci/m21-recovery-one-turn`, коммит `0bf3b1a`, запуск 43241953341 — зелёный с первой
+  попытки: macOS ARM64, Linux x64, Windows x64, Windows ARM64.
 
 ## Живые проверки по ОС
 

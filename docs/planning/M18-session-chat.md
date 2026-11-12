@@ -34,29 +34,12 @@
 
 ### 2.1. Контракт провайдера (`provider-registry`)
 
-В `src/contract.ts`:
+Типы — в `src/chat.ts` (подробности — `chat.md` модуля): `ChatMessage { id, role: 'user' |
+'assistant', text, at: string | null }` (`id` — собственный id сообщения у провайдера; текст
+простой, без вызовов инструментов и рассуждений; `at` — ISO или `null`) и `ChatPage { messages,
+truncated }` (новейшие сообщения от старых к новым; `truncated` — старые не вошли).
 
-```ts
-/** One message of a session's conversation, as the provider recorded it. */
-export interface ChatMessage {
-  /** Stable id inside the session (provider's own id of the message). */
-  id: string;
-  role: 'user' | 'assistant';
-  /** Plain text; tool calls, reasoning and service records are not messages. */
-  text: string;
-  /** ISO time, or null when the provider does not give it. */
-  at: string | null;
-}
-
-/** The newest messages of a session, oldest first. */
-export interface ChatPage {
-  messages: ChatMessage[];
-  /** True when older messages exist but were left out (limit). */
-  truncated: boolean;
-}
-```
-
-В `Provider`:
+В `Provider` (`src/contract.ts`):
 
 - `readMessages?(project, sessionId, opts: { limit: number }): Promise<ChatPage>` — последние
   `limit` сообщений сессии, от старых к новым. Ничего не меняет у провайдера: не загружает чат,
@@ -69,9 +52,9 @@ export interface ChatPage {
 
 Константы: `CHAT_PAGE_LIMIT = 100` (сообщений на страницу), `CHAT_TEXT_MAX_CHARS = 20_000`
 (длиннее — текст обрезается с конца пометкой `\n… (обрезано, полный текст — в чате провайдера)`;
-обрезку делает маршрут, не провайдер).
+обрезку делает маршрут, не провайдер; `cutChatText` не разрезает суррогатную пару).
 
-Маршрут в `src/routes.ts`:
+Маршрут — `src/chat-routes.ts` (`registerChatRoutes`, его зовёт `registerProviderRoutes`):
 
 `GET /api/projects/:id/providers/:p/sessions/:sid/messages` →
 `{ supported: boolean, messages: ChatMessage[], truncated: boolean }`.
@@ -103,7 +86,8 @@ export interface ChatPage {
   `thinking` и `tool_use`); пустой текст — не сообщение.
 
 `id` — `uuid` записи, `at` — `timestamp`. Строка длиннее 8 МБ или не JSON пропускается. Сессия без
-транскрипта в журнале хука — пустая страница. Ответ хука `Stop` («Stop hook feedback: …») Claude
+транскрипта в журнале хука (в том числе сессия панели до первого хука) или без файла — пустая
+страница; файл есть, но не читается — `chat-unavailable`. Ответ хука `Stop` («Stop hook feedback: …») Claude
 записывает как реплику пользователя — она остаётся в ленте: это то, что получил агент.
 
 **Запись — `sendDirect`.** Только сессия, которую ведёт панель (есть запись с живым процессом;
@@ -115,17 +99,21 @@ export interface ChatPage {
 - `text\n<текст UTF-8>` — текст сообщения. Сценарий печатает его в терминал как вставку
   (bracketed paste): `ESC[200~` + текст + `ESC[201~`, пауза 700 мс, `\r`, строка `MESSAGE_SENT`.
 
-Перед записью текст очищается: `\r\n` и `\r` → `\n`, управляющие символы кроме `\n` и `\t`
-удаляются (в том числе `ESC`, чтобы текст не мог закрыть вставку). Пустой после очистки —
-`false`.
+Перед записью текст очищается (`cleanDirectText`): `\r\n` и `\r` → `\n`, управляющие символы
+C0, DEL и C1 кроме `\n` и `\t` удаляются (в том числе `ESC`, чтобы текст не мог закрыть
+вставку). Пустой после очистки — `false`. Код — `src/direct.ts`; запись атомарная:
+`<debug>.message.partial`, затем переименование.
 
 Файл читается раз в секунду и один на сессию, поэтому `sendDirect` идёт по очереди на сессию:
 ждёт, пока прежний файл заберут (до 5 с, проверка раз в 200 мс), и только потом пишет. Не
 дождался — `false`. После записи ждёт, пока файл заберут (до 5 с): забрали — `true`, нет —
-удаляет файл и возвращает `false`.
+удаляет файл и возвращает `false`. Если сценарий забрал файл ровно в момент тайм-аута, текст уже
+вставлен, а сообщение ещё и уходит в очередь — редкий повтор (известное ограничение).
 
 Меняются `pty/session.exp` (macOS, Linux; чтение файла в UTF-8, как у `.rename`) и `pty/host.ts`
-(Windows, ConPTY). `WAKE_TEXT` и `wakeSession` остаются: ими пользуются автопилот и ревью.
+(Windows, ConPTY). `WAKE_TEXT` и `wakeSession` остаются: ими пользуются автопилот и ревью;
+`wakeSession` пишет `wake\n` только если файла нет (флаг `wx`): ждущий текст сам начнёт ход.
+Ведёт ли панель сессию, обе функции проверяют общим `runningPanelRecord` (`src/sessions.ts`).
 
 Ввод во время хода Claude сам ставит в очередь и отдаёт агенту в том же ходе (проба), поэтому
 вставка безопасна и тогда, когда служба после перезапуска ещё не знает состояния сессии.
@@ -158,7 +146,7 @@ export interface ChatPage {
 
 ### 2.4. Kimi (`provider-kimi`)
 
-**Чтение.** `readMessages` рядом с `lastAnswer` (`src/messages.ts`): одна страница
+**Чтение.** `readMessages` — `readKimiChat` в `src/chat.ts`: одна страница
 `GET /api/v1/sessions/{id}/messages?page_size=100` (от новых к старым), разворот в порядок от
 старых к новым. Сообщения: `role: "user"` с `origin: "user"` (вставки Kimi — нет) и
 `role: "assistant"` с непустым текстом. `truncated` — `has_more`. `at` — время сообщения, если
@@ -180,7 +168,7 @@ export interface ChatPage {
   зовёт `direct`; `true` — ответ `{ sent: true }`, сообщение в очередь не кладётся. `false`,
   ошибка или нет опции — прежний путь: `{ queued: <id> }`.
 
-`cli/src/session-wiring.ts` передаёт `direct`:
+`cli/src/session-wiring.ts` передаёт `direct` — `createDirectMessage` из `src/direct-message.ts`:
 
 - записи канала нет (служба перезапускалась) или её состояние `waiting` → `provider.sendDirect`,
   если он есть у провайдера и проект найден; ошибка — `false` и строка в журнале;
@@ -196,9 +184,10 @@ export interface ChatPage {
 Новый модуль `control-panel/web-panel/session-chat` (алиас `#session-chat`), расширение панели, как
 `session-view`.
 
-`panel-shell`: третий слот сессии `sessionChat` (`slots.js`, тот же `SessionSlot`); `app.js`
-рисует его на экране сессии под `sessionBody` в отдельном контейнере `.session-chat`, с тем же
-правилом «перерисовать, только если изменились данные»; `PANEL_EXTENSIONS` получает
+`panel-shell`: третий слот сессии `sessionChat` (`slots.js`, тот же `SessionSlot`); новый
+`session-screen.js` (`createSessionScreen`, его зовёт `app.js`) рисует его на экране сессии под
+`sessionBody` в отдельном контейнере `.session-chat`, с тем же правилом «перерисовать, только
+если изменились данные»; `PANEL_EXTENSIONS` получает
 `/session-chat/session-chat.js`, `index.html` — `session-chat/session-chat.css`. `cli/src/app.ts`
 монтирует модуль (`sessionChatMount()`), `package.json` — алиас.
 
@@ -265,21 +254,11 @@ export interface ChatPage {
 
 ## 4. Проверка
 
-- Автоматические тесты:
-  - `provider-registry`: маршрут — `supported: false`, страница, обрезка текста, чужая сессия 404,
-    ошибка провайдера 502.
-  - `provider-claude`: разбор строк транскрипта (реплика строкой и частями, `tool_result`,
-    `isMeta`, `isSidechain`, служебные теги, ответ без текста), инкрементное чтение (дозапись,
-    разорванная строка, замена файла, предел страницы и `truncated`); `sendDirect`: очистка текста,
-    файл `text\n…`, очередь на сессию, сессия не панели — `false`; `host.ts` с подставной
-    платформой `win32` печатает вставку и `MESSAGE_SENT`, `wake` — прежнюю фразу.
-  - `provider-codex` (подставной демон): чтение ходов в страницу, время элемента, незагруженный
-    чат; `sendDirect`: без общего доступа `false`, `idle` и `notLoaded` — `turn/start` с текстом,
-    `active` — `false` без `turn/start`.
-  - `provider-kimi`: разворот страницы, фильтр вставок, `truncated`, ошибка сервера.
-  - `agent-channel`: `direct` → `{ sent: true }` без очереди; `false` и ошибка → `{ queued }`;
-    предел 20 000; `cli`: `direct` зовёт `sendDirect` только для `waiting` и неизвестной сессии.
-  - `session-chat`: `mergePage`, `sendOutcome`, адреса, подписи; `panel-shell`: слот `sessionChat`.
+- Автоматические тесты — в модулях раунда; что проверяет каждый набор, записано в их
+  документах: `chat.md` модулей `provider-registry`, `provider-claude`, `provider-codex`,
+  `provider-kimi`; `module.md` модулей `agent-channel`, `session-chat`, `panel-shell`;
+  `session-chat.md` модуля `cli`. Сверх плана: `host.ts` и `session.exp` проверены на
+  многострочной вставке, `wakeSession` — на том, что ждущий файл не перезаписывается.
 - `npm run typecheck`, `npm test`, `npm run check:platforms`.
 - CI: macOS, Linux, Windows x64 и ARM64 на ветке `ci/m18-session-chat`.
 - Живая проверка:
@@ -305,11 +284,11 @@ export interface ChatPage {
 
 | Задача | Содержание | Файлы |
 | --- | --- | --- |
-| T001 | контракт `ChatMessage`, `readMessages`, `sendDirect`; маршрут `GET …/messages` | `provider-registry`: `contract.ts`, `routes.ts`, `index.ts`, тесты, `module.md` |
-| T002 | Claude: чтение транскрипта и вставка текста в терминал | `provider-claude`: `chat.ts`, `sessions.ts`, `provider.ts`, `index.ts`, `pty/session.exp`, `pty/host.ts`, тесты, `module.md` |
+| T001 | контракт `ChatMessage`, `readMessages`, `sendDirect`; маршрут `GET …/messages`; тест `git-publish` больше не наследует `GIT_DIR`/`GIT_INDEX_FILE` хука коммита | `provider-registry`: `chat.ts`, `chat-routes.ts`, `contract.ts`, `index.ts`, тесты, `module.md`, `chat.md` |
+| T002 | Claude: чтение транскрипта и вставка текста в терминал | `provider-claude`: `chat.ts`, `direct.ts`, `sessions.ts`, `runtime.ts`, `provider.ts`, `pty/screen.ts`, `pty/session.exp`, `pty/host.ts`, тесты, `chat.md` |
 | T003 | ChatGPT: `thread/read` и прямой ход | `provider-codex`: `chat.ts`, `thread-ops.ts`, `provider.ts`, `index.ts`, тесты, `module.md` |
-| T004 | Kimi: страница сообщений | `provider-kimi`: `messages.ts`, `shapes.ts`, `sessions.ts`, `provider.ts`, тесты, `module.md` |
-| T005 | отправка: `direct`, предел 20 000 | `agent-channel`: `routes.ts`, `index.ts`, тест, `module.md`; `cli`: `session-wiring.ts`, тест |
+| T004 | Kimi: страница сообщений | `provider-kimi`: `chat.ts`, `shapes.ts`, `sessions.ts`, тесты, `chat.md` |
+| T005 | отправка: `direct`, предел 20 000 | `agent-channel`: `routes.ts`, `index.ts`, тест, `module.md`; `cli`: `direct-message.ts`, `session-wiring.ts`, тест, `session-chat.md` |
 | T006 | модуль панели `session-chat` | новый модуль целиком |
-| T007 | подключение: слот `sessionChat`, монтирование, алиас | `panel-shell`, `cli/src/app.ts`, `package.json`, `session-view/module.md`, `web-panel/cluster.md` |
+| T007 | подключение: слот `sessionChat`, монтирование, алиас | `panel-shell` (`session-screen.js`), `cli/src/app.ts`, `package.json`, `session-view/module.md`, `web-panel/cluster.md` |
 | T008 | выпуск 0.9.0 | версии, `CHANGELOG.md`, `docs/evidence/M18-acceptance.md` |

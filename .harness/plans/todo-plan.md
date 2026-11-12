@@ -10,10 +10,39 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 667,
+  "revision": 668,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "provider-registry: ChatMessage, ChatPage, CHAT_PAGE_LIMIT 100, CHAT_TEXT_MAX_CHARS 20000; Provider.readMessages?(project, sid, { limit }) и Provider.sendDirect?(project, sid, text) → boolean.",
+          "GET /api/projects/:id/providers/:p/sessions/:sid/messages → { supported, messages, truncated }; чужая сессия 404 unknown-session, ProviderError 502.",
+          "POST /api/projects/:id/sessions/:sid/message { text } до 20000 → { sent: true } (опция direct) или { queued: <id> }.",
+          "panel-shell: слот sessionChat под sessionBody (session-screen.js); cli монтирует /session-chat/, алиас #session-chat.",
+          "Claude <debug>.message: «text» и текст — вставка ESC[200~…ESC[201~, Enter, MESSAGE_SENT; иначе WAKE_TEXT и WOKEN."
+        ],
+        "decisions": [
+          "Пользователь: диалог любой сессии в панели с полем ввода; родные приложения не меняются; интерфейс — рабочий минимум.",
+          "Пользователь: план выполняют субагенты на Opus 5.5 с усилием medium, спецификация и план без ревью.",
+          "Прямая отправка — только ждущему агенту или сессии, не виденной каналом с запуска; working, holding и Kimi — очередь канала.",
+          "ChatGPT: turn/steer не используется; при active turn/start не зовётся — текст в очередь, ответом хука Stop.",
+          "Обрезку текстов (20 000) и предел страницы (100) делает маршрут provider-registry, не провайдер.",
+          "Исполнители: типы в chat.ts, маршрут в chat-routes.ts, экран в session-screen.js, прямой путь в cli/direct-message.ts, лента Kimi в provider-kimi/chat.ts.",
+          "Исполнители (Claude): файл пишется атомарно, очистка убирает и C1, wakeSession не перезаписывает ждущий файл, без транскрипта — пустая страница.",
+          "Известные ограничения: редкий повтор у Claude при тайм-ауте; панель без авторизации отдаёт переписку целиком."
+        ],
+        "references": [
+          "docs/planning/M18-session-chat.md",
+          "docs/architecture/OVERVIEW.md",
+          "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/chat.md",
+          "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/chat.md",
+          "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/chat.md",
+          "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/chat.md",
+          "product-parts/backend-core/clusters/runtime/modules/cli/session-chat.md",
+          "product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md"
+        ],
+        "result": "Экран любой сессии получил карточку «Диалог»: лента реплик от провайдера (Claude — транскрипт, ChatGPT — thread/read, Kimi — сервер) и поле до 20 000 знаков; ждущему агенту текст уходит сразу, иначе — в очередь канала. Модуль session-chat, слот sessionChat; тест git-publish больше не портит репозиторий."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -451,9 +480,13 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
-      "why": "Keep the project context current for the next agent and close the round."
+      "why": "Keep the project context current for the next agent and close the round.",
+      "integration": {
+        "operationId": "73a4e0aa-25fc-4aec-a7d2-6d8d56bb8203",
+        "sourceCommit": "95defd0dd58219600ebcbf7aa37d48495f81c838"
+      }
     },
     {
       "acceptance": [
@@ -508,8 +541,8 @@
 - Delivery: IN_PROGRESS
 - Execution: orchestrated (max 4 workers, owner 0c355c88-f324-49fe-909c-fe5617d16288)
 - Current task: none
-- Progress: 7/9
-- Revision: 667
+- Progress: 8/9
+- Revision: 668
 
 ## Objective
 
@@ -552,7 +585,7 @@
   - Commit: feat: show the session chat on the session screen
   - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/slots.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/session-screen.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/index.html, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/layout.css, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/panel-shell.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/app.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/session-chat.md, package.json, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/cluster.md, product-parts/control-panel/product-part.md
   - Depends on: T005, T006
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M18-session-chat.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/chat.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/chat.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/chat.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/chat.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/session-chat.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/cluster.md, product-parts/control-panel/product-part.md
   - Depends on: T001, T002, T003, T004, T005, T006, T007
@@ -560,5 +593,7 @@
   - Commit: chore: release 0.9.0
   - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/architecture/OVERVIEW.md, docs/installation.md, docs/evidence/M18-acceptance.md, docs/changelog/CHANGELOG-0.5-0.8.md
   - Depends on: T007, DOCS-R1
+
+Digest: Экран любой сессии получил карточку «Диалог»: лента реплик от провайдера (Claude — транскрипт, ChatGPT — thread/read, Kimi — сервер) и поле до 20 000 знаков; ждущему агенту текст уходит сразу, иначе — в очередь канала. Модуль session-chat, слот sessionChat; тест git-publish больше не портит репозиторий.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

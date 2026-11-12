@@ -1,7 +1,7 @@
 # Модуль: session-chat
 
 Часть `control-panel`, кластер `web-panel`. Публичный вход: `src/index.ts`.
-Алиас импорта: `#session-chat` (добавляется при подключении модуля к панели).
+Алиас импорта: `#session-chat` (поле `imports` в `package.json`; импортирует `cli`).
 
 ## Назначение
 

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 691,
+  "revision": 695,
   "rounds": [
     {
       "digest": {
@@ -36,7 +36,7 @@
       },
       "id": "R1",
       "kind": "implementation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Implementation"
     }
   ],
@@ -80,7 +80,7 @@
         "text": "Claude: 6 частей по 9 500 символов; Codex: одна запись с additionalContextLimit 65536"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "8ed2f99f-7296-4ad6-ae41-6fec13ee5fdb",
@@ -229,7 +229,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: release Workflow Kit with Kit 2.2.3",
-      "confirmation": null,
+      "confirmation": "Пользователь 2026-11-12: «И выполни и пересобери новый релиз… Harness AI, а потом и нашего Workflow Kit»; «Я все принимаю. Дальше делай все как положено.»",
       "context": [],
       "dependencies": [
         "T002",
@@ -252,7 +252,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Выпуск Workflow Kit",
       "why": "Пользователи получают исправление вместе с бандлом 2.2.3"
     }
@@ -264,11 +264,11 @@
 ## State
 
 - Scope: m21-recovery-one-turn (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 3/4
-- Revision: 691
+- Progress: 4/4
+- Revision: 695
 
 ## Objective
 
@@ -284,7 +284,7 @@
 
 ## Rounds
 
-### R1 — Implementation (implementation, OPEN)
+### R1 — Implementation (implementation, CLOSED)
 
 - [DONE] T001 — Codex: Kit подтверждает хук Harness (work)
   - Commit: feat(provider-codex): approve the Harness SessionStart hook with the Kit hooks
@@ -297,7 +297,7 @@
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M21-recovery-one-turn.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/workflow-engine/product-part.md, product-parts/workflow-engine/clusters/kit-host/cluster.md, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/module.md, product-parts/backend-core/clusters/projects/cluster.md, product-parts/backend-core/clusters/projects/modules/project-setup/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md
   - Depends on: T001, T002
-- [TODO] T003 — Выпуск Workflow Kit (delivery)
+- [DONE] T003 — Выпуск Workflow Kit (delivery)
   - Commit: chore: release Workflow Kit with Kit 2.2.3
   - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/installation.md, docs/usage.md, docs/setup.md, docs/evidence/M21-acceptance.md, docs/architecture/OVERVIEW.md
   - Depends on: T002, DOCS-R1

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 747,
+  "revision": 748,
   "rounds": [
     {
       "digest": {
@@ -81,7 +81,10 @@
       "Код Kit и бандл 2.2.4 не меняются",
       "CI ветки ci/m23-kit-tests-windows зелёный на macOS ARM64, Linux x64, Windows x64 и ARM64"
     ],
-    "acceptanceNote": null,
+    "acceptanceNote": {
+      "at": "2026-11-12T18:46:43.455Z",
+      "text": "Пользователь принял план в панели Workflow Kit"
+    },
     "approval": {
       "at": "2026-11-12T17:26:01.057Z",
       "text": "Пользователь, 2026-11-12: «Пожалуйста, не останавливайся вплоть до сборки. И выпуска «093».» Выпуск 0.9.3 по правилам проекта готов только при зелёном CI на всех ОС; CI ветки ci/m22-kit-source упал на Windows в тестах Kit. | Execution mode chosen by the user: sequential: Выбор пользователя в панели Workflow Kit: выполнить самому, последовательно"
@@ -104,7 +107,7 @@
         "text": "Версия остаётся 0.9.3: она не опубликована"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "ACCEPTED",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "8ed2f99f-7296-4ad6-ae41-6fec13ee5fdb",
@@ -407,11 +410,11 @@
 ## State
 
 - Scope: m23-kit-tests-windows (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: ACCEPTED
 - Execution: sequential
 - Current task: none
 - Progress: 9/9
-- Revision: 747
+- Revision: 748
 
 ## Objective
 

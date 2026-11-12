@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "DOCS-R1",
   "lastClosed": {
     "closedAt": "2026-11-12T15:04:13.877Z",
     "scopeId": "m21-recovery-one-turn"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 715,
+  "revision": 717,
   "rounds": [
     {
       "digest": null,
@@ -527,6 +527,7 @@
       "files": [
         "README.md",
         "docs/architecture/OVERVIEW.md",
+        "docs/architecture/CONTRACTS.md",
         "docs/planning/M22-kit-source.md",
         "product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/module.md",
         "product-parts/kit-core/product-part.md",
@@ -540,7 +541,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -589,9 +590,9 @@
 - Scope: m22-kit-source (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: none
+- Current task: DOCS-R1
 - Progress: 5/7
-- Revision: 715
+- Revision: 717
 
 ## Objective
 
@@ -628,9 +629,9 @@
   - Commit: feat(panel-shell): show the project Kit version and the update card
   - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell/src, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/files.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/actions.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/buttons.css, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/kit-card.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/screens.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/kit-card.test.ts
   - Depends on: T003
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [IN_PROGRESS] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
-  - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M22-kit-source.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/module.md, product-parts/kit-core/product-part.md, product-parts/workflow-engine/clusters/kit-host/cluster.md, product-parts/workflow-engine/product-part.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md
+  - Files: README.md, docs/architecture/OVERVIEW.md, docs/architecture/CONTRACTS.md, docs/planning/M22-kit-source.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/module.md, product-parts/kit-core/product-part.md, product-parts/workflow-engine/clusters/kit-host/cluster.md, product-parts/workflow-engine/product-part.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md
   - Depends on: T000, T001, T002, T003, T004
 - [TODO] T005 — Выпуск Workflow Kit 0.9.3 (delivery)
   - Commit: chore: release Workflow Kit 0.9.3 with Kit 2.2.4

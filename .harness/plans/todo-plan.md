@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 735,
+  "revision": 737,
   "rounds": [
     {
       "digest": {
@@ -34,7 +34,20 @@
       "title": "Implementation"
     },
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "doctor Kit на Windows не делает проверку executable (без изменений, теперь это учитывает тест)"
+        ],
+        "decisions": [
+          "Неудачный прогон CI записан задачей T002, исправления — раундом R2",
+          "Платформа в тесте doctor — из workflowPlatformFacade сборки теста, не process.platform"
+        ],
+        "references": [
+          "docs/planning/M23-kit-tests-windows.md",
+          "docs/evidence/M22-acceptance.md"
+        ],
+        "result": "Второй проход тестов Kit для Windows: ещё три временные папки — длинные пути, путь worktree от git сравнивается после path.resolve, npm.cmd печатает аргумент без кавычек cmd.exe, тест doctor ждёт проверку executable только вне Windows. Код Kit не менялся."
+      },
       "id": "R2",
       "kind": "fixes",
       "status": "OPEN",
@@ -238,14 +251,15 @@
       "files": [
         "README.md",
         "docs/architecture/OVERVIEW.md",
-        "product-parts/kit-core/product-part.md"
+        "product-parts/kit-core/product-part.md",
+        "docs/planning/M23-kit-tests-windows.md"
       ],
       "fixes": null,
       "id": "DOCS-R2",
       "iteration": 1,
       "kind": "docs",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -287,8 +301,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 4/6
-- Revision: 735
+- Progress: 5/6
+- Revision: 737
 
 ## Objective
 
@@ -324,13 +338,15 @@ Digest: Тесты Kit исправлены для Windows: заглушки б�
   - Commit: test(kit-core): fix the remaining Kit tests on Windows
   - Files: product-parts/kit-core/clusters/project-workflow/modules/workflow-integration/test/orchestration-scenario.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-executor.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery/test/workflow-recovery-worktree.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-assignment/test/workflow-assignment-cancel.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-worktree.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/test/workflow-installer-doctor.test.mjs, product-parts/kit-core/product-part.md
   - Fixes: T001
-- [TODO] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R2
-  - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/kit-core/product-part.md
+  - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/kit-core/product-part.md, docs/planning/M23-kit-tests-windows.md
   - Depends on: T003
 - [TODO] T004 — CI выпуска 0.9.3 на всех ОС (delivery)
   - Commit: docs: record the green CI of Workflow Kit 0.9.3
   - Files: docs/evidence/M22-acceptance.md, docs/planning/M23-kit-tests-windows.md
   - Depends on: T003, DOCS-R2
+
+Digest: Второй проход тестов Kit для Windows: ещё три временные папки — длинные пути, путь worktree от git сравнивается после path.resolve, npm.cmd печатает аргумент без кавычек cmd.exe, тест doctor ждёт проверку executable только вне Windows. Код Kit не менялся.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 695,
+  "revision": 696,
   "rounds": [
     {
       "digest": {
@@ -49,7 +49,10 @@
       "Приложение ставит и обновляет в проектах Kit 2.2.3",
       "CI зелёный на macOS, Linux, Windows x64 и ARM64"
     ],
-    "acceptanceNote": null,
+    "acceptanceNote": {
+      "at": "2026-11-12T15:04:07.103Z",
+      "text": "Принимаю. Залей, пожалуйста, на GitHub обновленные версии."
+    },
     "approval": {
       "at": "2026-11-12T13:08:03.255Z",
       "text": "Пользователь 2026-11-12: «Давай исправим Claude и Codex, а с кими будем разбираться потом. Подготовь спецификацию и план… И выполни и пересобери новый релиз… Harness AI, а потом и нашего Workflow Kit»; в панели выбраны спецификация и план без ревью. | Execution mode chosen by the user: sequential: Выбор пользователя в панели Workflow Kit: выполнить самому, последовательно"
@@ -80,7 +83,7 @@
         "text": "Claude: 6 частей по 9 500 символов; Codex: одна запись с additionalContextLimit 65536"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "ACCEPTED",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "8ed2f99f-7296-4ad6-ae41-6fec13ee5fdb",
@@ -264,11 +267,11 @@
 ## State
 
 - Scope: m21-recovery-one-turn (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: ACCEPTED
 - Execution: sequential
 - Current task: none
 - Progress: 4/4
-- Revision: 695
+- Revision: 696
 
 ## Objective
 

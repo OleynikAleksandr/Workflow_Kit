@@ -28,6 +28,7 @@ export { MIN_KIMI_VERSION, OLD_VERSION_NOTE, compareVersions, findKimiProgram, p
 export type { ProgramState } from './program.ts';
 export { APP_SERVER_CACHE_MS, LOCK_SWITCH, SERVER_OWNER, createKimiServer, freeLocalPort, readInstances } from './server.ts';
 export type { KimiServer, KimiServerDeps, KimiServerOwner } from './server.ts';
+export { CHAT_PAGE_SIZE_MAX, chatMessage, readKimiChat } from './chat.ts';
 export { ANSWER_PAGE_LIMIT, FOREIGN_RETRY_MS, createKimiMessages, deliveryNote } from './messages.ts';
 export type { KimiMessageDeps, KimiMessages } from './messages.ts';
 export { ARCHIVED_NOTE, GONE_NOTE, LIST_CACHE_MS, LIST_PAGE_LIMIT, PARTIAL_NOTE, SERVER_DOWN, WAITING_NOTE, createKimiSessionList, createSessionNotes, enumerateSessions, sessionLinks, unavailableNote } from './session-list.ts';

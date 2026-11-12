@@ -186,6 +186,14 @@ export interface KimiMessage {
   role: string;
   text: string;
   origin: string | null;
+  /** created_at as an ISO string; null when absent or malformed (never a shape error). */
+  at: string | null;
+}
+
+/** An optional time of Kimi (ms or an ISO string) as an ISO string; null when it is not one. */
+function optionalTime(value: unknown): string | null {
+  const ms = typeof value === 'number' ? value : typeof value === 'string' ? Date.parse(value) : Number.NaN;
+  return Number.isFinite(ms) && Math.abs(ms) <= 8.64e15 ? new Date(ms).toISOString() : null;
 }
 
 /** GET /api/v1/sessions/{id}/messages: one page, newest first. */
@@ -203,7 +211,7 @@ export function parseMessages(data: unknown): { items: KimiMessage[]; hasMore: b
     });
     const metadata = typeof item['metadata'] === 'object' && item['metadata'] !== null ? (item['metadata'] as Record<string, unknown>) : {};
     const origin = typeof metadata['origin'] === 'object' && metadata['origin'] !== null ? (metadata['origin'] as Record<string, unknown>)['kind'] : undefined;
-    return { id: text(item['id'], `${what}.id`), role: text(item['role'], `${what}.role`), text: parts.join('\n').trim(), origin: optionalText(origin) };
+    return { id: text(item['id'], `${what}.id`), role: text(item['role'], `${what}.role`), text: parts.join('\n').trim(), origin: optionalText(origin), at: optionalTime(item['created_at']) };
   });
   return { items, hasMore: page['has_more'] };
 }

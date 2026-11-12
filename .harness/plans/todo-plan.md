@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 661,
+  "revision": 662,
   "rounds": [
     {
       "digest": null,
@@ -254,9 +254,13 @@
       "kind": "work",
       "parallelSafe": true,
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Kimi: страница сообщений сессии",
-      "why": "Диалог для сессий Kimi"
+      "why": "Диалог для сессий Kimi",
+      "integration": {
+        "operationId": "5d48086f-85aa-4b2f-be55-3e1034220f0b",
+        "sourceCommit": "354fa76c7deaf2cb3aed0caf6406056ba6337b21"
+      }
     },
     {
       "acceptance": [
@@ -484,8 +488,8 @@
 - Delivery: IN_PROGRESS
 - Execution: orchestrated (max 4 workers, owner 0c355c88-f324-49fe-909c-fe5617d16288)
 - Current task: none
-- Progress: 1/9
-- Revision: 661
+- Progress: 2/9
+- Revision: 662
 
 ## Objective
 
@@ -513,7 +517,7 @@
   - Commit: feat: read Codex threads as a chat and start turns with panel messages
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/chat.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/thread-ops.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/chat.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/helpers.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/chat.md
   - Depends on: T001
-- [TODO] T004 — Kimi: страница сообщений сессии (work, parallel-safe)
+- [DONE] T004 — Kimi: страница сообщений сессии (work, parallel-safe)
   - Commit: feat: read Kimi session messages as a chat
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/chat.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/messages.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/shapes.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/chat.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/shapes.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fake-sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/helpers.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/chat.md
   - Depends on: T001

@@ -20,6 +20,7 @@ import { registerPublicationRoutes } from '#git-publish';
 import { panelShellMount } from '#panel-shell';
 import { projectWizardMount } from '#project-wizard';
 import { sessionViewMount } from '#session-view';
+import { sessionChatMount } from '#session-chat';
 import { createProcessSupervisor, processesFile, runCommand } from '#process-supervisor';
 import type { CommandRunner, ProcessSupervisor } from '#process-supervisor';
 import { createProviderRegistry, registerProviderRoutes } from '#provider-registry';
@@ -143,7 +144,7 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
 
   const router = createRouter();
   const state = createStateRegistry();
-  const server = createHttpServer({ router, staticMounts: [panelShellMount(), projectWizardMount(), sessionViewMount()], getInterfaces, log: options.log });
+  const server = createHttpServer({ router, staticMounts: [panelShellMount(), projectWizardMount(), sessionViewMount(), sessionChatMount()], getInterfaces, log: options.log });
   const events = createEventLog({ file: eventsFile(dirs) });
   const mutex = createKeyedMutex();
   const homeScope = { homedir, platform };

@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 667,
+  "revision": 669,
   "rounds": [
     {
       "digest": null,
@@ -39,7 +39,7 @@
       }
     ],
     "decisions": [],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 1,
       "ownerSession": null,
@@ -91,7 +91,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Подключение диалога к панели и службе",
       "why": "Модуль диалога должен появиться на экране сессии установленной службы"
     }
@@ -103,11 +103,11 @@
 ## State
 
 - Scope: assignment-m18-session-chat-T007-1 (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 0/1
-- Revision: 667
+- Progress: 1/1
+- Revision: 669
 
 ## Objective
 
@@ -124,7 +124,7 @@
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T007 — Подключение диалога к панели и службе (work)
+- [DONE] T007 — Подключение диалога к панели и службе (work)
   - Commit: feat: show the session chat on the session screen
   - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/slots.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/session-screen.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/index.html, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/layout.css, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/panel-shell.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/app.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/session-chat.md, package.json, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/cluster.md, product-parts/control-panel/product-part.md
 

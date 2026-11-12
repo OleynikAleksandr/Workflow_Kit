@@ -94,7 +94,7 @@
   https-ссылку в новой вкладке (R10); http(s)-ссылка на сенсорном устройстве
   (Remote Control Kimi) сама не открывается никогда — только нажатием
   (`opensByItself(link, maxTouchPoints)`, M8 2.6); сессия-ревьюер (раздел `reviews`, M4)
-  в дерево и в число сессий проекта не входит (M4, раздел 13.4: её работа — в журнале ревью основной сессии); тело — слот `sessionBody`, модуль `session-view`;
+  в дерево и в число сессий проекта не входит (M4, раздел 13.4: её работа — в журнале ревью основной сессии); тело — слот `sessionBody`, модуль `session-view`, под ним диалог — слот `sessionChat`, модуль `session-chat` (M18);
   узел тела постоянный, введённый текст переживает опрос); «Настройки»
   (внешний вид, папка для проектов — `POST /api/settings/projects-root`,
   карточка «Архив» с одной кнопкой, служебная карточка «Система»);
@@ -118,9 +118,9 @@
 
 | Файл | Содержание |
 | --- | --- |
-| `index.html` | метаданные (manifest, значки, standalone, цвет темы), стили, `app.js`; без встроенных скриптов и стилей (CSP) |
+| `index.html` | метаданные (manifest, значки, standalone, цвет темы), стили (после своих — стили расширений `project-wizard`, `session-view`, `session-chat`), `app.js`; без встроенных скриптов и стилей (CSP) |
 | `styles.css` | токены темы (светлая, тёмная по системе и по `data-theme`), прежние имена токенов для карточек, базовый текст 13 px, стили служебных карточек |
-| `layout.css` | раскладка макета: боковая панель (бренд, строка подготовки, заголовок «Ваши проекты»), экраны, панели, сетка карточек «Настроек», перестройка уже 680 px, safe-area |
+| `layout.css` | раскладка макета: боковая панель (бренд, строка подготовки, заголовок «Ваши проекты»), экраны, панели, сетка карточек «Настроек», перестройка уже 680 px, safe-area; пустой `.session-chat` скрыт |
 | `tree.css` | меню «Ваши проекты» и «⋯», дерево проектов и сессий, метки провайдеров, индикаторы связи |
 | `controls.css` | кнопки и поля (44 px на сенсорных экранах), сообщения, выбор папки |
 | `buttons.css` | состояния кнопок: наведение, нажатие, кольцо щелчка; стрелка «Ваши проекты» |
@@ -131,9 +131,10 @@
 | `publication.js` | строка «GitHub» экрана проекта (publication-order 3.2): `publicationView(state, projectId)` из раздела `publication` — «Опубликовано…», «Неопубликованных коммитов: N» с кнопкой «Опубликовать на GitHub (N коммитов)» или причина ожидания; без upstream — `null`; `commitsLabel(n)`. Кнопка (`screens.js`) вызывает `handlers.publish` → `POST /api/projects/:id/publish` (тайм-аут 120 с), результат — сообщение с коротким SHA |
 | `reviewers.js` | `reviewerMatcher(state)` — сессии ревьюеров плана, которых нет в дереве: по `reviewerKey` ревью, а пока ключа нет — по `reviewerRef` (локальный id или id Remote Control) провайдера ревьюера, для обоих провайдеров (M4 13.4, 13.9) |
 | `reload.js` | `shouldReload(loaded, current, reloadedFor)` — нужна ли перезагрузка: версия службы известна, отличается от версии при загрузке и для неё перезагрузки ещё не было (M4 13.5) |
-| `app.js` | состояние и маршрут, опрос `/api/state` (следующий запрос — через 3 с после ответа, таймаут 8 с, сразу при возврате на вкладку, тик таймера строки подготовки раз в секунду), самоперезагрузка страницы, когда служба отвечает другой версией, чем при загрузке (один раз на версию, `sessionStorage`, M4 13.5), экраны и слоты; загрузка расширений `PANEL_EXTENSIONS` (`/project-wizard/project-wizard.js`, `/session-view/session-view.js`) до первого опроса: `install(shell)` с помощниками `registerCard`, `registerCardGroup`, `registerSlot`, `requestRefresh`, `api`, `ApiError`, `dom`, `createFolderPicker`, `showError` |
+| `app.js` | состояние и маршрут, опрос `/api/state` (следующий запрос — через 3 с после ответа, таймаут 8 с, сразу при возврате на вкладку, тик таймера строки подготовки раз в секунду), самоперезагрузка страницы, когда служба отвечает другой версией, чем при загрузке (один раз на версию, `sessionStorage`, M4 13.5), экраны и слоты; загрузка расширений `PANEL_EXTENSIONS` (`/project-wizard/project-wizard.js`, `/session-view/session-view.js`, `/session-chat/session-chat.js`) до первого опроса: `install(shell)` с помощниками `registerCard`, `registerCardGroup`, `registerSlot`, `requestRefresh`, `api`, `ApiError`, `dom`, `createFolderPicker`, `showError` |
 | `actions.js` | `createActions({ navigate, render, route })` → `{ handlers, toast, say, collapsed }`: в архив; для «Архива» — `restoreProjects`, `forgetProjects`, `deleteProject`, `restoreSessions`, `forgetSessions`; новая сессия, обновить сессии, копировать путь, открыть чат, переименовать и архивировать сессию; сообщения над экраном; свёрнутые проекты |
-| `slots.js` | слоты раскладки для расширений: `registerSlot('newProject' \| 'sessionBody' \| 'sessionReview', definition)`, `slots`; типы `SlotContext` (`navigate`, `requestRefresh`, `say`, `selectProject`), `SessionContext` (`project`, `session`, `link`) |
+| `slots.js` | слоты раскладки для расширений: `registerSlot('newProject' \| 'sessionBody' \| 'sessionReview' \| 'sessionChat', definition)`, `slots`; типы `SlotContext` (`navigate`, `requestRefresh`, `say`, `selectProject`), `SessionContext` (`project`, `session`, `link`) |
+| `session-screen.js` | `createSessionScreen(ctx) → { element, render(data, state) }`: шапка, слот `sessionBody` (`.session-body`) и под ним слот `sessionChat` (`.session-chat`); узлы постоянные, каждая часть перерисовывается, только если изменились её данные (ключ `[ключ сессии, select()]`), узел слота заменяется, только если это другой узел; ошибка слота — строка ошибки |
 | `view-model.js` | чистые модели без DOM: `parseRoute`/`routeHash` (`#/`, `#/settings`, `#/new`, `#/open`, `#/archive`, `#/p/<id>`, `#/s/<id>/<ключ>`), `projectLists`, `filterProjects`, `projectTree`, `ownerObjective`, `sessionKey` (`<провайдер>:<localId>` — ключ разделов `channel`, `titles`, `review`), `runningText`, `statusLine`, `chatStatus`, `opensByItself`, `deviceLink`, `formatWhen`, `formatElapsed`, `sessionsLabel`, `shortPath`, `themeAttribute`; в строке сессии — `providerLabel` и `resumable` из сводки провайдера |
 | `providers.js` | провайдеры из раздела `providers` состояния: `providerViews(state)` (`id`, `label`, `mark`, `resume`, `ready`, `statusLabel`), `providerNamer(state)`, `providerNames(state)` («ChatGPT и Claude»), `indicators(state, linked)` |
 | `sidebar.js` | боковая панель: `createSidebar(handlers) → { element, render(model), setReview(node) }` |

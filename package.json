@@ -30,6 +30,7 @@
     "#project-setup": "./product-parts/backend-core/clusters/projects/modules/project-setup/src/index.ts",
     "#project-wizard": "./product-parts/control-panel/clusters/web-panel/modules/project-wizard/src/index.ts",
     "#session-view": "./product-parts/control-panel/clusters/web-panel/modules/session-view/src/index.ts",
+    "#session-chat": "./product-parts/control-panel/clusters/web-panel/modules/session-chat/src/index.ts",
     "#provider-claude": "./product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/index.ts",
     "#provider-codex": "./product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts",
     "#provider-kimi": "./product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/index.ts",

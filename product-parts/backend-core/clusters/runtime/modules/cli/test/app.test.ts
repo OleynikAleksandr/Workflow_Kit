@@ -75,6 +75,18 @@ test('the panel shell is served at /', async () => {
   assert.equal((await fetch(`${base}/index.ts`)).status, 404);
 });
 
+test('the session chat files are served under /session-chat/', async () => {
+  const script = await fetch(`${base}/session-chat/session-chat.js`);
+  assert.equal(script.status, 200);
+  assert.match(script.headers.get('content-type') ?? '', /javascript/);
+  assert.match(await script.text(), /registerSlot\('sessionChat'/);
+  const css = await fetch(`${base}/session-chat/session-chat.css`);
+  assert.equal(css.status, 200);
+  assert.match(css.headers.get('content-type') ?? '', /text\/css/);
+  assert.match(await css.text(), /\.sc-card/);
+  assert.equal((await fetch(`${base}/session-chat/index.ts`)).status, 404);
+});
+
 async function send(method: string, url: string, body?: unknown): Promise<{ status: number; json: Record<string, unknown> }> {
   const headers = { Origin: base, 'Content-Type': 'application/json' };
   const response = await fetch(`${base}${url}`, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) });

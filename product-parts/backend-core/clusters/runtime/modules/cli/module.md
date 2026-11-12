@@ -34,7 +34,7 @@ stripping).
   (создаются с правами 0700), конфиг, реестр маршрутов, реестр разделов
   состояния, HTTP-сервер с панелью (`panelShellMount()` в корне,
   `projectWizardMount()` под
-  `/project-wizard/`, `sessionViewMount()` под `/session-view/`), журнал событий, мьютекс, реестр
+  `/project-wizard/`, `sessionViewMount()` под `/session-view/`, `sessionChatMount()` под `/session-chat/`), журнал событий, мьютекс, реестр
   проектов, операции, учёт процессов и реестр провайдеров, публикация в git (`registerPublicationRoutes`
   из `git-publish`: `scopeOpen` — у проекта есть scope в `workflow`, обновление после `onChange`
   состояния плана). `App`: `dirs`,
@@ -119,8 +119,8 @@ stripping).
   `log`); охранник удаления проекта `projects.addRemoveGuard` — живые сессии
   и `removeBlockers?` провайдеров.
 - `data-store` (T004): раздел `operations` (`operations.section()`).
-- `project-wizard`, `session-view` (веха 2, T008): статика мастера и экрана
-  сессии (`projectWizardMount()`, `sessionViewMount()`).
+- `project-wizard`, `session-view` (веха 2, T008), `session-chat` (M18): статика мастера, экрана
+  сессии и диалога (`projectWizardMount()`, `sessionViewMount()`, `sessionChatMount()`).
 - `process-supervisor` (T004): `createProcessSupervisor` над
   `<state>/processes.json`, `runCommand`.
 - `agent-channel` (веха 2, T002): `createAgentChannel` (проект хука —
@@ -231,7 +231,7 @@ stripping).
 - Модули подключаются только через их `src/index.ts` (`#data-store`,
   `#agent-channel`, `#autopilot`, `#http-server`, `#plan-review`, `#project-setup`, `#session-titles`, `#kit-bundle`, `#kit-runner`, `#kit-structure`,
   `#panel-shell`, `#process-supervisor`,
-  `#project-wizard`, `#session-view`,
+  `#project-wizard`, `#session-view`, `#session-chat`,
   `#project-registry`, `#provider-claude`, `#provider-codex`, `#provider-kimi`,
   `#provider-registry`, `#service-installer`).
 - Провайдер подключается фабрикой `createProvider` своего модуля; его

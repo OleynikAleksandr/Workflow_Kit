@@ -15,6 +15,7 @@
 | [panel-shell](modules/panel-shell/module.md) | раскладка, маршруты, опрос состояния, дерево, экраны, «Настройки», реестр карточек, «Система», структура, экран «Домой» iPad |
 | [project-wizard](modules/project-wizard/module.md) | мастер проекта: предпросмотр, одно согласие, подготовка, открытие чата |
 | [session-view](modules/session-view/module.md) | экран сессии: активность агента, выбор пути, карточка плана, «Ревью плана» |
+| [session-chat](modules/session-chat/module.md) | карточка «Диалог» экрана сессии: лента реплик сессии и отправка агенту (M18) |
 
 ## Границы
 
@@ -23,7 +24,10 @@
   `install(shell)`): карточки «Настроек» — через реестр карточек
   (`registerCard`, `registerCardGroup`), мастер и экран сессии — через
   слоты раскладки (`registerSlot`: `newProject`, `sessionBody`,
-  `sessionReview`). Сервер монтирует их каталоги под префиксами
-  `/project-wizard/`, `/session-view/`.
+  `sessionReview`, `sessionChat`). Сервер монтирует их каталоги под префиксами
+  `/project-wizard/`, `/session-view/`, `/session-chat/`.
+- `session-chat` не импортирует код службы и говорит с оболочкой только через
+  слот `sessionChat` и объект `shell` расширения; данные берёт из маршрутов
+  службы.
 - Состояние только читается из `GET /api/state`; действия — через POST с
   `Content-Type: application/json` (Origin браузер ставит сам).

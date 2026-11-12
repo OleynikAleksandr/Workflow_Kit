@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 743,
+  "revision": 745,
   "rounds": [
     {
       "digest": {
@@ -54,7 +54,20 @@
       "title": "Тесты Kit на Windows, второй проход"
     },
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "Kit экранирует аргументы .cmd/.bat дважды (без изменений, записано в тесте)"
+        ],
+        "decisions": [
+          "Двойное экранирование аргументов .cmd-шимов в Kit верно; подстраивается тест",
+          "Каждый прогон CI записывается задачей выпуска, исправления — новым раундом"
+        ],
+        "references": [
+          "docs/planning/M23-kit-tests-windows.md",
+          "docs/evidence/M22-acceptance.md"
+        ],
+        "result": "Третий проход тестов Kit для Windows: пути git worktree list приводятся через path.resolve, тест worktree принимает аргумент npm.cmd в кавычках cmd.exe, тест doctor на Windows ждёт fix: null. Код Kit не менялся."
+      },
       "id": "R3",
       "kind": "fixes",
       "status": "OPEN",
@@ -347,14 +360,15 @@
       "files": [
         "README.md",
         "docs/architecture/OVERVIEW.md",
-        "product-parts/kit-core/product-part.md"
+        "product-parts/kit-core/product-part.md",
+        "docs/planning/M23-kit-tests-windows.md"
       ],
       "fixes": null,
       "id": "DOCS-R3",
       "iteration": 1,
       "kind": "docs",
       "roundId": "R3",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -396,8 +410,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 7/9
-- Revision: 743
+- Progress: 8/9
+- Revision: 745
 
 ## Objective
 
@@ -450,13 +464,15 @@ Digest: Второй проход тестов Kit для Windows: ещё три
   - Commit: test(kit-core): finish the Kit tests on Windows
   - Files: product-parts/kit-core/clusters/project-workflow/modules/workflow-integration/test/orchestration-scenario-support.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-worktree.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/test/workflow-installer-doctor.test.mjs, product-parts/kit-core/product-part.md
   - Fixes: T003
-- [TODO] DOCS-R3 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R3 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R3
-  - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/kit-core/product-part.md
+  - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/kit-core/product-part.md, docs/planning/M23-kit-tests-windows.md
   - Depends on: T005
 - [TODO] T006 — CI выпуска 0.9.3 на всех ОС (delivery)
   - Commit: docs: record the green CI of Workflow Kit 0.9.3
   - Files: docs/evidence/M22-acceptance.md, docs/planning/M23-kit-tests-windows.md
   - Depends on: T005, DOCS-R3
+
+Digest: Третий проход тестов Kit для Windows: пути git worktree list приводятся через path.resolve, тест worktree принимает аргумент npm.cmd в кавычках cmd.exe, тест doctor на Windows ждёт fix: null. Код Kit не менялся.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

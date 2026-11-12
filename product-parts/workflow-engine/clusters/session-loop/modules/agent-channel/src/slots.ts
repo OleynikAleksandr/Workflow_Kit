@@ -64,6 +64,7 @@ export function newSlot(key: string, client: AgentClient, sessionId: string, pro
       holdReason: null,
       holdUntil: null,
       note: null,
+      external: false,
     },
     queue: [],
     wake: null,

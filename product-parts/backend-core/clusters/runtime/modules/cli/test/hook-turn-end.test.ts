@@ -144,3 +144,24 @@ test('a Stop without a live session lock leaves a note with the name of the swit
   const state = (await (await fetch(`http://127.0.0.1:${env['WFK_PORT']}/api/state`)).json()) as { channel: { sessions: Array<{ key: string; note: string | null }> } };
   assert.match(state.channel.sessions.find((session) => session.key === key)!.note!, /без замков/);
 });
+
+test('turn-end carries the panel mark: panelProcess true only for WFK_PANEL_SESSION=1, and external follows it (M19)', async () => {
+  const bodies: unknown[] = [];
+  for (const mark of ['1', '0', undefined]) {
+    await main(['hook', 'turn-end', '--client', 'kimi'], {
+      stdout: () => undefined,
+      stderr: () => undefined,
+      app: { env: { ...env, ...(mark === undefined ? {} : { WFK_PANEL_SESSION: mark }) }, homedir: tmp },
+      readStdin: async () => turnEnd('session_mark'),
+      hookClients: ['codex', 'kimi'],
+      postJson: async (_url, body) => (bodies.push(body), null),
+    });
+  }
+  assert.deepEqual(bodies.map((body) => (body as { panelProcess?: unknown }).panelProcess), [true, false, false]);
+  const key = sessionKey('kimi', 'session_mark');
+  kimi.idle = false;
+  await hook('turn-end', turnEnd('session_mark'));
+  assert.equal(app.channel.get(key)!.external, true, 'a hook without the mark');
+  await hook('turn-end', turnEnd('session_mark'), { WFK_PANEL_SESSION: '1' });
+  assert.equal(app.channel.get(key)!.external, false, 'a hook of a panel process');
+});

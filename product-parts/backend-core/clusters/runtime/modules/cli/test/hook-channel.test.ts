@@ -8,6 +8,7 @@ import path from 'node:path';
 import { after, before, test } from 'node:test';
 import { sessionKey } from '#agent-channel';
 import { createStubProvider } from '#provider-registry';
+import type { Provider } from '#provider-registry';
 import { createApp, main } from '../src/index.ts';
 import type { App } from '../src/index.ts';
 
@@ -15,6 +16,8 @@ let tmp = '';
 let app: App;
 let env: Record<string, string> = {};
 let folder = '';
+/** What the providers with a direct path and a wake were asked to do (M19). */
+const reach = { direct: [] as string[], woken: [] as string[], accept: false };
 
 const CODEX_STOP = {
   session_id: '01a1afe3-05b5-75b0-a8b6-59bad1d1313b',
@@ -23,6 +26,14 @@ const CODEX_STOP = {
   stop_hook_active: false,
   last_assistant_message: 'План предложен.',
 };
+
+/** A provider with sendDirect and wakeSession; marks says whether it marks the panel's processes. */
+const reaching = (id: string, marks: boolean) => (): Provider => ({
+  ...createStubProvider({ id, title: id, task: 'T' }),
+  ...(marks ? { marksPanelProcess: true } : {}),
+  sendDirect: async (_project, sessionId) => (reach.direct.push(`${id}:${sessionId}`), reach.accept),
+  wakeSession: async (_project, sessionId) => (reach.woken.push(`${id}:${sessionId}`), true),
+});
 
 before(async () => {
   tmp = await mkdtemp(path.join(os.tmpdir(), 'wfk-hook-channel-'));
@@ -33,7 +44,7 @@ before(async () => {
   app = await createApp({
     env: { WFK_DATA_DIR: path.join(tmp, 'data'), WFK_PORT: '0' },
     homedir: tmp,
-    providers: [stub('claude', { promptTitle: true }), stub('codex'), stub('kimi', { hookDialect: 'kimi' })],
+    providers: [stub('claude', { promptTitle: true }), stub('codex'), stub('kimi', { hookDialect: 'kimi' }), reaching('mark', true), reaching('plain', false)],
   });
   const bound = await app.start();
   env = { WFK_DATA_DIR: path.join(tmp, 'data'), WFK_PORT: String(bound.port) };
@@ -52,7 +63,7 @@ async function hook(event: string, input: object, extraEnv: Record<string, strin
     stderr: () => undefined,
     app: { env: { ...env, ...extraEnv }, homedir: tmp },
     readStdin: async () => JSON.stringify(input),
-    hookClients: ['claude', 'codex', 'kimi', 'ghost'],
+    hookClients: ['claude', 'codex', 'kimi', 'ghost', 'mark', 'plain'],
   });
   return { code, out };
 }
@@ -222,4 +233,72 @@ test('a hook of a client that is not a provider is refused by the CLI and by the
   });
   assert.equal(response.status, 400);
   assert.equal(((await response.json()) as { error?: { code?: string } }).error?.code, 'bad-hook-input');
+});
+
+async function panelMessage(key: string, text: string): Promise<{ sent?: boolean; queued?: string }> {
+  const project = (await app.projects.list())[0]!;
+  const response = await fetch(`http://127.0.0.1:${env['WFK_PORT']}/api/projects/${project.id}/sessions/${encodeURIComponent(key)}/message`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Origin: `http://127.0.0.1:${env['WFK_PORT']}` },
+    body: JSON.stringify({ text }),
+  });
+  assert.equal(response.status, 200);
+  return (await response.json()) as { sent?: boolean; queued?: string };
+}
+
+async function stateExternal(key: string): Promise<unknown> {
+  const state = (await (await fetch(`http://127.0.0.1:${env['WFK_PORT']}/api/state`)).json()) as { channel: { sessions: Array<{ key: string; external?: unknown }> } };
+  return state.channel.sessions.find((s) => s.key === key)?.external;
+}
+
+const settle = (): Promise<void> => new Promise((resolve) => setTimeout(resolve, 50));
+
+test('the hooks carry the panel mark: a marked session keeps the direct path and the wake (M19)', async () => {
+  const key = sessionKey('mark', 'm-panel');
+  const stop = { session_id: 'm-panel', cwd: folder, hook_event_name: 'Stop', stop_hook_active: false };
+  await hook('stop', stop, { WFK_PANEL_SESSION: '1' }, 'mark');
+  assert.equal(app.channel.get(key)!.external, false);
+  assert.equal(await stateExternal(key), false, '/api/state shows external');
+  reach.accept = true;
+  assert.deepEqual(await panelMessage(key, 'прямо'), { sent: true });
+  assert.deepEqual(reach.direct, [key]);
+  reach.accept = false;
+  const queued = await panelMessage(key, 'в очередь');
+  assert.ok(queued.queued, 'a refused direct path queues');
+  await settle();
+  assert.deepEqual(reach.woken, [key], 'the waiting session is woken as in 0.9.0');
+});
+
+test('a session whose last hook came without the mark gets panel messages only from the queue (M19)', async () => {
+  reach.direct = [];
+  reach.woken = [];
+  reach.accept = true;
+  const key = sessionKey('mark', 'm-outside');
+  const stop = { session_id: 'm-outside', cwd: folder, hook_event_name: 'Stop', stop_hook_active: false };
+  await hook('stop', stop, {}, 'mark');
+  assert.equal(app.channel.get(key)!.external, true);
+  assert.equal(await stateExternal(key), true);
+  const reply = await panelMessage(key, 'Workflow Kit: продолжай.');
+  assert.ok(reply.queued);
+  await settle();
+  assert.deepEqual([reach.direct, reach.woken], [[], []], 'nothing is typed or woken');
+  const next = await hook('prompt', { session_id: 'm-outside', cwd: folder, hook_event_name: 'UserPromptSubmit', prompt: 'дальше' }, {}, 'mark');
+  assert.equal(JSON.parse(next.out).hookSpecificOutput.additionalContext, 'Workflow Kit: продолжай.', 'the next hook takes the queue');
+  // A later hook of a panel process makes the session the panel's again.
+  await hook('stop', stop, { WFK_PANEL_SESSION: '1' }, 'mark');
+  assert.equal(app.channel.get(key)!.external, false);
+});
+
+test('a provider without marksPanelProcess keeps the direct path and the wake without the mark (M19)', async () => {
+  reach.direct = [];
+  reach.woken = [];
+  reach.accept = true;
+  const key = sessionKey('plain', 'p-1');
+  await hook('stop', { session_id: 'p-1', cwd: folder, hook_event_name: 'Stop', stop_hook_active: false }, {}, 'plain');
+  assert.equal(app.channel.get(key)!.external, true);
+  assert.deepEqual(await panelMessage(key, 'прямо'), { sent: true });
+  reach.accept = false;
+  assert.ok((await panelMessage(key, 'в очередь')).queued);
+  await settle();
+  assert.deepEqual([reach.direct, reach.woken], [[key, key], [key]]);
 });

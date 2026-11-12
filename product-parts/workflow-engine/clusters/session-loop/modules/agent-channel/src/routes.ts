@@ -76,10 +76,10 @@ async function sendDirect(direct: ChannelRoutesOptions['direct'], projectId: str
   }
 }
 
-function hookBody(body: unknown): { client: unknown; input: unknown; projectDir: unknown } {
+function hookBody(body: unknown): { client: unknown; input: unknown; projectDir: unknown; panelProcess: unknown } {
   if (typeof body !== 'object' || body === null) throw new HttpError(400, 'bad-request', 'Ожидается { client, input }');
   const value = body as Record<string, unknown>;
-  return { client: value['client'], input: value['input'], projectDir: value['projectDir'] };
+  return { client: value['client'], input: value['input'], projectDir: value['projectDir'], panelProcess: value['panelProcess'] };
 }
 
 /** Sends the reply and confirms the delivery only when the answer left the server. */
@@ -111,7 +111,8 @@ export function registerChannelRoutes(options: ChannelRoutesOptions): void {
     const value = typeof body === 'object' && body !== null ? (body as Record<string, unknown>) : {};
     const { client, sessionId, cwd, event } = value;
     const known = typeof client === 'string' && typeof sessionId === 'string' && sessionId !== '' && TURN_END_EVENTS.includes(event as TurnEndEvent);
-    const taken = known && (await channel.turnEnd({ client, sessionId, cwd: typeof cwd === 'string' && cwd !== '' ? cwd : null, event: event as TurnEndEvent }));
+    const panelProcess = value['panelProcess'] === true;
+    const taken = known && (await channel.turnEnd({ client, sessionId, cwd: typeof cwd === 'string' && cwd !== '' ? cwd : null, event: event as TurnEndEvent, panelProcess }));
     if (!taken) throw new HttpError(400, 'bad-hook-input', 'Неизвестный client, событие или нет sessionId во входе хука');
     return { ok: true };
   });
@@ -119,7 +120,7 @@ export function registerChannelRoutes(options: ChannelRoutesOptions): void {
     router.post(`/api/hooks/${event}`, async ({ body, req, res }) => {
       if (classifyAddress(req.socket.remoteAddress) !== 'loopback') throw new HttpError(403, 'loopback-only', LOOPBACK_ONLY);
       const raw = hookBody(body);
-      const input = parseHookInput(raw.client, raw.input, raw.projectDir, options.dialects);
+      const input = parseHookInput(raw.client, raw.input, raw.projectDir, options.dialects, raw.panelProcess);
       if (!input) throw new HttpError(400, 'bad-hook-input', 'Неизвестный client или нет session_id во входе хука');
       const aborted = new AbortController();
       res.once('close', () => aborted.abort());

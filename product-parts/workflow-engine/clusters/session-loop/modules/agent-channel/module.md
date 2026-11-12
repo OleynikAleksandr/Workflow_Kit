@@ -17,7 +17,7 @@
 
 ## Публичный интерфейс (`src/index.ts`)
 
-- `parseHookInput(client, raw, projectDir?, dialects?) → HookInput | null` —
+- `parseHookInput(client, raw, projectDir?, dialects?, panelProcess?) → HookInput | null` —
   `client` (`AgentClient`) — id провайдера; `dialects` (`HookDialects`:
   `(client) → HookDialect | undefined`) строит служба по реестру провайдеров
   (`Provider.hookDialect`, нет поля — `claude`), неизвестный клиент — `null`;
@@ -28,7 +28,8 @@
   `transcript_path`, `stop_hook_active`, `last_assistant_message`,
   `prompt`, `session_title` (`sessionTitle`: текущее имя сессии в Claude
   2.1.319, вход `UserPromptSubmit`); `projectDir` — `$CLAUDE_PROJECT_DIR`
-  процесса хука. `prompt` массивом частей (Kimi Code 2.5.2:
+  процесса хука; `panelProcess` — метка процесса панели из тела запроса хука
+  (`true` только для `true`, всё прочее — `false`, M19 2.2). `prompt` массивом частей (Kimi Code 2.5.2:
   `[{ type: 'text', text }]`) читается как тексты частей через перевод строки.
   `sessionKey(client, sessionId)` — `<client>:<id>`.
 - `blockAnswer(reason)`, `contextAnswer(text)` (`hookSpecificOutput.
@@ -69,13 +70,16 @@
   (`working` | `waiting` | `holding`), `since`, `turnStartedAt`,
   `lastStopAt`, `lastAssistantMessage` (до 400 знаков), `pending`
   (очередь и неотправленное исходящее), `holdReason`, `holdUntil`, `note`
-  (пометка для панели или `null`).
+  (пометка для панели или `null`), `external` — последний хук сессии (`stop`,
+  `prompt`, `turn-end`) пришёл без метки `panelProcess`: сессию ведёт процесс вне
+  панели (M19 2.2). Обновляется каждым хуком; слот без хуков (например, из
+  `enqueue`) — `false`. Что из этого следует, решает служба по провайдеру.
 - `registerChannelRoutes({ router, state, channel, dialects? })`:
-  `POST /api/hooks/turn-end { client, sessionId, cwd, event }` → `{ ok }`
+  `POST /api/hooks/turn-end { client, sessionId, cwd, event, panelProcess? }` → `{ ok }`
   (loopback; не `detached`-клиент, неизвестное событие или пустой
   `sessionId` — 400 `bad-hook-input`);
   `POST /api/hooks/stop` и `POST /api/hooks/prompt` с телом
-  `{ client, input, projectDir }` → `{ answer }` (только с loopback,
+  `{ client, input, projectDir, panelProcess? }` → `{ answer }` (только с loopback,
   иначе 403 `loopback-only`; клиент, которого нет в `dialects`, или вход без
   `session_id` — 400 `bad-hook-input`); доставка подтверждается событием `finish` ответа,
   обрыв соединения — `nack` и конец удержания; раздел `channel`

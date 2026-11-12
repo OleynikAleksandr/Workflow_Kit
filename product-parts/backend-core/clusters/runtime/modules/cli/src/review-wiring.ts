@@ -15,6 +15,7 @@ import { providerCapability, providerLabel } from '#provider-registry';
 import type { Provider, ProviderRegistry } from '#provider-registry';
 import { TitleError, namedSession } from '#session-titles';
 import type { SessionTitles } from '#session-titles';
+import { ledOutside } from './direct-message.ts';
 
 /** The autopilot's view of the review, attached once the review exists. */
 export function lateReviewDecider(): ReviewDecider & { attach(review: CrossReview): void } {
@@ -43,11 +44,12 @@ export function toggleLock(review: CrossReview, workflow: WorkflowState, project
  * Hands a message to a session that may not have had a turn yet (spec M4 13.9): it is queued, and a
  * session of a provider that can wake it (wakeSession) is woken at once — the prompt hook of the
  * woken turn hands over the queue; the usual wake waits for the channel to see the session idle
- * after a Stop.
+ * after a Stop. A session led outside the panel (ledOutside, M19) is not woken: the brief stays
+ * queued for its next hook and the answer is false.
  */
 export async function deliverToSession(
   deps: {
-    channel: Pick<AgentChannel, 'enqueue'>;
+    channel: Pick<AgentChannel, 'enqueue'> & Partial<Pick<AgentChannel, 'get'>>;
     providers: Pick<ProviderRegistry, 'get'>;
     project: (id: string) => Promise<Parameters<NonNullable<ReturnType<ProviderRegistry['get']>>['listSessions']>[0]>;
     log?: (line: string) => void;
@@ -60,6 +62,10 @@ export async function deliverToSession(
   const colon = key.indexOf(':');
   const provider = deps.providers.get(key.slice(0, colon));
   if (!provider?.wakeSession) return false;
+  if (ledOutside(provider, deps.channel.get?.(key))) {
+    deps.log?.(`review: ${key} runs outside the panel, its brief waits for the next hook`);
+    return false;
+  }
   const woken = await provider.wakeSession(await deps.project(projectId), key.slice(colon + 1)).catch(() => false);
   deps.log?.(`review: ${woken ? 'woke' : 'could not wake'} ${key} for its brief`);
   return woken;

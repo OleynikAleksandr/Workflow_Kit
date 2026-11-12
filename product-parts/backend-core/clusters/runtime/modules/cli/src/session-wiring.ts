@@ -17,7 +17,7 @@ import { providerCapability, providerLabel } from '#provider-registry';
 import type { HookDialect, Provider, ProviderRegistry, SessionInfo } from '#provider-registry';
 import { createSessionTitles, registerTitleRoutes } from '#session-titles';
 import type { SessionTitles, SessionTitlesOptions } from '#session-titles';
-import { createDirectMessage } from './direct-message.ts';
+import { createDirectMessage, ledOutside } from './direct-message.ts';
 import { lateReviewDecider, toggleLock, wireCrossReview } from './review-wiring.ts';
 
 export interface SessionWiringOptions {
@@ -71,13 +71,14 @@ export function wireSessions(options: SessionWiringOptions): SessionWiring {
   });
   // Panel messages for an idle agent wait for its next hook; a session of a provider that can wake
   // it (wakeSession) is woken at once: the prompt hook of the woken turn hands over the queue. A
-  // provider with sendMessage gets them from the channel itself (flush).
+  // provider with sendMessage gets them from the channel itself (flush). A session led outside the
+  // panel (ledOutside, M19) is not woken: its own process takes the queue with the next hook.
   const wakeIdle = async (key: string): Promise<void> => {
     const activity = channel.get(key);
     if (!activity || activity.state === 'working' || !activity.projectId) return;
     const provider = providers.get(activity.client);
     if (provider?.sendMessage) return channel.flush(key);
-    if (!provider?.wakeSession || activity.state !== 'waiting') return;
+    if (!provider?.wakeSession || activity.state !== 'waiting' || ledOutside(provider, activity)) return;
     const project = await projects.get(activity.projectId);
     if (!project) return;
     const woken = await provider.wakeSession(project, activity.sessionId).catch(() => false);

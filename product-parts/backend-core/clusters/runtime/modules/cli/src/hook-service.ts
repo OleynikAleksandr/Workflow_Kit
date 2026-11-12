@@ -72,6 +72,17 @@ export interface ServiceHookDeps {
   post?: PostJson;
 }
 
+/**
+ * Mark of a process the panel started: the panel's Claude session scripts set it for `claude`, and
+ * its hooks inherit it (the same name as PANEL_SESSION_ENV of provider-claude, spec M19 2.2).
+ */
+export const PANEL_SESSION_ENV = 'WFK_PANEL_SESSION';
+
+/** True when the hook runs inside a process the panel started. */
+export function panelProcess(env: Readonly<Record<string, string | undefined>>): boolean {
+  return env[PANEL_SESSION_ENV] === '1';
+}
+
 /** The service URL from the data dirs and config (WFK_PORT, WFK_DATA_DIR). */
 export async function serviceUrl(env: Readonly<Record<string, string | undefined>>, homedir: string, platform: NodeJS.Platform): Promise<string> {
   const dirs = resolveDataDirs({ platform, env, homedir });
@@ -95,7 +106,7 @@ export async function runServiceHook(event: ServiceEvent, client: string | undef
     const base = await serviceUrl(deps.env, deps.homedir ?? os.homedir(), deps.platform ?? process.platform);
     const reply = (await (deps.post ?? postJson)(
       `${base}/api/hooks/${event}`,
-      { client, input, projectDir: deps.env['CLAUDE_PROJECT_DIR'] ?? null },
+      { client, input, projectDir: deps.env['CLAUDE_PROJECT_DIR'] ?? null, panelProcess: panelProcess(deps.env) },
       event === 'stop' ? STOP_REQUEST_MS : PROMPT_REQUEST_MS,
     )) as { answer?: unknown } | null;
     const answer = reply?.answer;
@@ -106,7 +117,7 @@ export async function runServiceHook(event: ServiceEvent, client: string | undef
 }
 
 /**
- * Tells the service that a turn ended: POST /api/hooks/turn-end { client, sessionId, cwd, event },
+ * Tells the service that a turn ended: POST /api/hooks/turn-end { client, sessionId, cwd, event, panelProcess },
  * the event being hook_event_name of the input (Stop, StopFailure, Interrupt). Prints nothing and
  * never throws, also when the service is down.
  */
@@ -121,7 +132,7 @@ export async function runTurnEndHook(client: string, deps: ServiceHookDeps): Pro
     if (typeof sessionId !== 'string' || sessionId === '' || typeof event !== 'string') return debug('во входе хука нет session_id или hook_event_name');
     const cwd = typeof input?.['cwd'] === 'string' ? input['cwd'] : null;
     const base = await serviceUrl(deps.env, deps.homedir ?? os.homedir(), deps.platform ?? process.platform);
-    await (deps.post ?? postJson)(`${base}/api/hooks/turn-end`, { client, sessionId, cwd, event }, TURN_END_REQUEST_MS);
+    await (deps.post ?? postJson)(`${base}/api/hooks/turn-end`, { client, sessionId, cwd, event, panelProcess: panelProcess(deps.env) }, TURN_END_REQUEST_MS);
   } catch (error) {
     debug(error instanceof SyntaxError ? 'вход хука — не JSON' : `служба недоступна (${error instanceof Error ? error.message : String(error)})`);
   }

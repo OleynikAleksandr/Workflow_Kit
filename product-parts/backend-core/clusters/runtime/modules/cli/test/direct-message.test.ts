@@ -8,7 +8,7 @@ import type { Provider } from '#provider-registry';
 import { createDirectMessage } from '../src/direct-message.ts';
 
 const PROJECT = { id: 'p1', path: '/home/u/Projects/demo' } as Project;
-const activity = (state: ActivityState): SessionActivity => ({ key: 'alpha:s1', client: 'alpha', sessionId: 's1', projectId: 'p1', state }) as SessionActivity;
+const activity = (state: ActivityState, external = false): SessionActivity => ({ key: 'alpha:s1', client: 'alpha', sessionId: 's1', projectId: 'p1', state, external }) as SessionActivity;
 
 interface World {
   calls: Array<[string, string, string]>;
@@ -16,10 +16,10 @@ interface World {
   direct: ReturnType<typeof createDirectMessage>;
 }
 
-function world(options: { state?: ActivityState; send?: Provider['sendDirect'] | null; sendMessage?: boolean; project?: Project | undefined } = {}): World {
+function world(options: { state?: ActivityState; send?: Provider['sendDirect'] | null; sendMessage?: boolean; project?: Project | undefined; marks?: boolean; external?: boolean } = {}): World {
   const calls: World['calls'] = [];
   const lines: string[] = [];
-  const provider: Provider = { ...createStubProvider({ id: 'alpha', title: 'Alpha', task: 'T000' }) };
+  const provider: Provider = { ...createStubProvider({ id: 'alpha', title: 'Alpha', task: 'T000' }), ...(options.marks ? { marksPanelProcess: true } : {}) };
   const send = options.send === undefined ? async () => true : options.send;
   if (send) {
     provider.sendDirect = (project, sessionId, text) => {
@@ -30,7 +30,7 @@ function world(options: { state?: ActivityState; send?: Provider['sendDirect'] |
   if (options.sendMessage) provider.sendMessage = async () => true;
   const project = 'project' in options ? options.project : PROJECT;
   const direct = createDirectMessage({
-    activity: () => (options.state ? activity(options.state) : undefined),
+    activity: () => (options.state ? activity(options.state, options.external) : undefined),
     provider: (id) => (id === 'alpha' ? provider : undefined),
     project: async (id) => (id === 'p1' ? project : undefined),
     log: (line) => lines.push(line),
@@ -90,4 +90,21 @@ test('a refusal of sendDirect gives false; an error is logged and gives false', 
   assert.equal(await failed.direct('p1', 'alpha:s1', 'hello'), false);
   assert.equal(failed.lines.length, 1);
   assert.match(failed.lines[0]!, /alpha:s1.*boom/);
+});
+
+test('a session led outside the panel (marksPanelProcess and external) is queued without sendDirect (M19)', async () => {
+  const w = world({ state: 'waiting', marks: true, external: true });
+  assert.equal(await w.direct('p1', 'alpha:s1', 'hello'), false);
+  assert.deepEqual(w.calls, []);
+});
+
+test('a marked session of the panel and a provider without marksPanelProcess keep the direct path (M19)', async () => {
+  const panel = world({ state: 'waiting', marks: true, external: false });
+  assert.equal(await panel.direct('p1', 'alpha:s1', 'hello'), true);
+  assert.equal(panel.calls.length, 1, 'the last hook carried the mark');
+  const unmarked = world({ state: 'waiting', external: true });
+  assert.equal(await unmarked.direct('p1', 'alpha:s1', 'hello'), true);
+  assert.equal(unmarked.calls.length, 1, 'external means nothing for a provider that does not mark its processes');
+  const unknown = world({ marks: true });
+  assert.equal(await unknown.direct('p1', 'alpha:s1', 'hello'), true, 'no hooks yet: as in 0.9.0');
 });

@@ -1,5 +1,5 @@
 // Operations on one thread of the daemon: is it loaded, unload it now (thread/archive and
-// thread/unarchive) and wake it with a short turn (spec M12 section 2.3).
+// thread/unarchive), wake it with a short turn (spec M12 section 2.3) and read its status (M18).
 import type { RpcSession } from './rpc.ts';
 
 /** Timeout of thread/unsubscribe after the service turn. */
@@ -75,4 +75,21 @@ export async function wakeThread(session: RpcSession, threadId: string, text: st
   } finally {
     await session.request('thread/unsubscribe', { threadId }, UNSUBSCRIBE_TIMEOUT_MS).catch(() => undefined);
   }
+}
+
+/**
+ * Status of a thread (spec M18 section 2.3): `thread.status.type` of thread/read without turns
+ * ("idle", "active", "notLoaded"). The read does not load the thread. Null when the daemon did
+ * not answer or the answer has no status.
+ */
+export async function threadStatus(session: RpcSession, threadId: string): Promise<string | null> {
+  let answer: unknown;
+  try {
+    answer = await session.request('thread/read', { threadId }, UNSUBSCRIBE_TIMEOUT_MS);
+  } catch {
+    return null;
+  }
+  const thread = isObject(answer) ? answer['thread'] : null;
+  const status = isObject(thread) ? thread['status'] : null;
+  return isObject(status) && typeof status['type'] === 'string' ? status['type'] : null;
 }

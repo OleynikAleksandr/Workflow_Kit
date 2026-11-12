@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 662,
+  "revision": 664,
   "rounds": [
     {
       "digest": null,
@@ -39,7 +39,7 @@
       }
     ],
     "decisions": [],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 1,
       "ownerSession": null,
@@ -86,7 +86,7 @@
       "kind": "work",
       "parallelSafe": true,
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "ChatGPT: лента через thread/read и прямой ход",
       "why": "Диалог и прямая отправка для сессий ChatGPT"
     }
@@ -98,11 +98,11 @@
 ## State
 
 - Scope: assignment-m18-session-chat-T003-1 (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 0/1
-- Revision: 662
+- Progress: 1/1
+- Revision: 664
 
 ## Objective
 
@@ -119,7 +119,7 @@ ChatGPT: лента через thread/read и прямой ход: Диалог 
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T003 — ChatGPT: лента через thread/read и прямой ход (work, parallel-safe)
+- [DONE] T003 — ChatGPT: лента через thread/read и прямой ход (work, parallel-safe)
   - Commit: feat: read Codex threads as a chat and start turns with panel messages
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/chat.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/thread-ops.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/chat.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/helpers.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/chat.md
 

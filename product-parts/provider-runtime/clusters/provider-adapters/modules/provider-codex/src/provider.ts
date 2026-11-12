@@ -7,6 +7,7 @@ import { ELEVATED_HINT, ELEVATED_REASON, isElevatedRefusal } from './elevation.t
 import { createSharedAccess } from './shared-access.ts';
 import { appOwnerNote, createSharedMode } from './shared-mode.ts';
 import { wakeThread } from './thread-ops.ts';
+import { createChatParts } from './chat.ts';
 import { createCodexRuntime } from './runtime.ts';
 import type { CodexDeps, CodexRuntime, DaemonState } from './runtime.ts';
 import { createSessionParts } from './sessions.ts';
@@ -109,6 +110,7 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
   const sharedMode = createSharedMode(shared);
   const handover = createHandover(rt, { ...deps.handover, busy: () => creating > 0, shared: () => sharedMode.active() });
   const trustParts = createTrustParts(rt);
+  const chatParts = createChatParts({ withDaemon: (fn, timeoutMs) => rt.withDaemon((session) => fn(session), timeoutMs), shared: () => sharedMode.refresh(), log: context.log });
   const sessionParts = createSessionParts(rt, {
     shared: sharedMode,
     ...(deps.serviceTurnWaitMs === undefined ? {} : { serviceTurnWaitMs: deps.serviceTurnWaitMs }),
@@ -268,6 +270,9 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
       context.log(`codex: thread ${sessionId} woken in the shared daemon`);
       return true;
     },
+    // Conversation (spec M18 section 2.3): thread/read with turns; a direct turn in the shared mode.
+    readMessages: (_project, sessionId, opts) => chatParts.readMessages(sessionId, opts.limit),
+    sendDirect: (_project, sessionId, text) => chatParts.sendDirect(sessionId, text),
     async renameSession(project, sessionId, name) {
       requireCodex(rt);
       return sessionParts.renameSession(project, sessionId, name);

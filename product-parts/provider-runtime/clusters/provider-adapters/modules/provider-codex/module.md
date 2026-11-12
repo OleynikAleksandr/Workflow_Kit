@@ -79,8 +79,7 @@ app-server на весь Mac, доверие к папке, одобрение �
   ждётся уведомление `remoteControl/status/changed` до 3 с
   (`STATUS_WAIT_MS`; `disabled | connecting | connected | errored`,
   `serverName`). Не пришло — остаётся последний статус того же процесса
-  демона (`refresh()` его не сбрасывает): неизвестное не читается как «не
-  подключён». Состояния: `ready` «демон подключён»; `unavailable` «демон не
+  (`refresh()` его не сбрасывает), а не «не подключён». Состояния: `ready` «демон подключён»; `unavailable` «демон не
   запущен», «подключается к ChatGPT» (`connecting` или статуса ещё не было;
   причина `CONNECTING_REASON` — подождать) и «связь с ChatGPT: disabled»;
   `error` «демон держит устаревший вход» (`staleLogin`: в журнале демона
@@ -190,19 +189,17 @@ app-server на весь Mac, доверие к папке, одобрение �
   до `FIRST_TURN_WAIT_MS` = 180 с) →
   `thread/unsubscribe { threadId }` (таймаут 5 с) и только потом закрытие
   соединения. Служебный ход не передаёт `sandboxPolicy` и `approvalPolicy`:
-  по схеме они остались бы у треда для следующих ходов, а тред должен
-  сохранить настройки пользователя (как в проверенном прототипе).
-  `thread/unsubscribe` выполняется в `finally` после `thread/start`, то
-  есть и при ошибке имени или хода; без него демон держит тред загруженным
+  они остались бы у треда, а тред сохраняет настройки пользователя (как в
+  проверенном прототипе). `thread/unsubscribe` — в `finally` после
+  `thread/start` (и при ошибке имени или хода); без него демон держит тред загруженным
   и ChatGPT пишет «Этот чат открыт в другом приложении» (дефект D1).
   Ответ (`unsubscribed | notSubscribed | notLoaded`) или ошибка
   unsubscribe пишутся в журнал (`codex: thread/unsubscribe <id>: …` /
   `… failed: …`); ошибка создание сессии не ломает.
-  После отписки демон держит тред без подписчиков ещё около минуты
-  (проверено 2026-11-05: «has no subscribers and is idle; shutting down»
-  через 60 с после `thread/unsubscribe`) и остаётся его единственным
-  писателем: ChatGPT в это время получает «thread-store conflict: … already
-  has an active writer» и пишет «Этот чат открыт в другом приложении».
+  Отписанный тред демон держит ещё около минуты (проверено 2026-11-05: «has
+  no subscribers and is idle; shutting down» через 60 с) единственным
+  писателем: ChatGPT получает «thread-store conflict: … already has an
+  active writer» («Этот чат открыт в другом приложении»).
   Поэтому, если ход завершился (`turn/completed`) и тред ещё загружен,
   createSession сразу выгружает его: `thread/archive` (демон выгружает тред
   мгновенно), затем `thread/unarchive` (тред возвращается в списки, не
@@ -273,6 +270,11 @@ app-server на весь Mac, доверие к папке, одобрение �
 создаются без выгрузки, ссылка — с `hostId`, работает `wakeSession`, ревьюер получает задание
 первым сообщением. Файлы `src/shared-*.ts`, `src/thread-ops.ts`, `src/elevation.ts` —
 [shared-access.md](shared-access.md).
+
+## Диалог сессии (M18)
+
+`readMessages` — лента из `thread/read` с ходами (чат не загружается); `sendDirect` — ход самим
+текстом при общем доступе, если чат не `active`. `src/chat.ts`, `threadStatus` — [chat.md](chat.md).
 
 ## Инварианты
 

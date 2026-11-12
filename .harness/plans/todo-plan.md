@@ -10,10 +10,24 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 727,
+  "revision": 729,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "Тесты kit-core: заглушка бандла импортирует модули по pathToFileURL(...).href"
+        ],
+        "decisions": [
+          "Исправляются только тесты Kit; код Kit и бандл 2.2.4 не меняются",
+          "Версия остаётся 0.9.3: она не опубликована",
+          "Короткие имена 8.3 в коде Kit — отдельной работой"
+        ],
+        "references": [
+          "docs/planning/M23-kit-tests-windows.md",
+          "product-parts/kit-core/product-part.md"
+        ],
+        "result": "Тесты Kit исправлены для Windows: заглушки бандла импортируют модули по file://, временные папки тестов — длинные пути, путь git сравнивается с любым разделителем, подставной npm работает на Windows. Код Kit и бандл 2.2.4 не менялись."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -132,7 +146,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -174,8 +188,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 1/3
-- Revision: 727
+- Progress: 2/3
+- Revision: 729
 
 ## Objective
 
@@ -194,7 +208,7 @@
 - [DONE] T001 — Тесты Kit на Windows (work)
   - Commit: test(kit-core): run the Kit tests on Windows
   - Files: product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-support.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-hooks.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-ignored-commit.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/test/workflow-installer-doctor.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/test/workflow-installer-migrate.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/test/workflow-installer-install-support.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery/test/workflow-recovery-worktree.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-integration/test/orchestration-scenario-support.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-integration/test/workflow-integration-facade.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-integration/test/workflow-integration-merge-support.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-assignment/test/workflow-assignment-cancel.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-worktree.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-context-command.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-git/test/workflow-git-history.test.mjs, product-parts/kit-core/product-part.md
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M23-kit-tests-windows.md, product-parts/kit-core/product-part.md
   - Depends on: T001
@@ -202,5 +216,7 @@
   - Commit: docs: record the green CI of Workflow Kit 0.9.3
   - Files: docs/evidence/M22-acceptance.md, docs/planning/M23-kit-tests-windows.md
   - Depends on: T001, DOCS-R1
+
+Digest: Тесты Kit исправлены для Windows: заглушки бандла импортируют модули по file://, временные папки тестов — длинные пути, путь git сравнивается с любым разделителем, подставной npm работает на Windows. Код Kit и бандл 2.2.4 не менялись.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

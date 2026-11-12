@@ -85,7 +85,8 @@ operation, existing }`, ход и итог — в разделе `operations`, �
 
 ## Процесс Kit в проекте (`workflow-engine`, веха 2)
 
-Kit 2.2.3 ставится в проект бандлом (`install --host harness`), команды — отдельным процессом
+Kit 2.2.4 ставится в проект бандлом (`install --host harness`; бандл собирается из `kit-core`
+`npm run build:kit`, M22), команды — отдельным процессом
 с JSON-ответом (`kit-runner`); `.harness/**` служба не читает и не пишет. Раздел `workflow` даёт модели
 карточек плана и выбора пути (`plan-view`). Хуки `wfk hook stop|prompt|turn-end` идут в
 `agent-channel` (`POST /api/hooks/…`, только loopback): `Stop` держится до 9 минут, пока
@@ -93,13 +94,17 @@ Kit 2.2.3 ставится в проект бандлом (`install --host harne
 когда сессия свободна; `autopilot` решает, продолжать ли агента, по `autopilot:status` и
 правилам Harness; кнопки панели (`POST /api/projects/:id/workflow/…`) выполняют команды Kit и
 сообщают агенту. Имена, архив и ревью сессий — в папке проекта (раздел «Данные на диске»).
+Версия Kit проекта — раздел `kitUpdate` (`kit-update`, M22: `inspect` при старте, после
+изменения плана и раз в 60 с); `POST /api/projects/:id/kit/update` (202, 409 `busy`) —
+`install --update`, затем одобрение хуков Kit Codex в доверенной папке; новый Kit старым не
+заменяется. Архивные и убранные сессии в процессе Kit не участвуют (M22 2.8).
 Контракты — `module.md` модулей части
 [workflow-engine](../../product-parts/workflow-engine/product-part.md).
 
 ## Мастер проекта (`project-setup`, веха 2)
 
 `POST /api/setup/preview` только читает и даёт токен; `POST /api/setup/apply` по одному
-согласию делает всё: папку, git, структуру (коммит до Kit), Kit 2.2.3, доверие Claude и Codex
+согласию делает всё: папку, git, структуру (коммит до Kit), Kit 2.2.4, доверие Claude и Codex
 (выбранному провайдеру — обязательно, другому — по возможности), одобрение хуков Kit, первую
 сессию с первым сообщением. Ход — раздел `setup` и операция `project.setup`; отмена — перед
 следующим шагом.

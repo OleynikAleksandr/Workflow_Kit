@@ -8,8 +8,9 @@
 
 Бэкенд-служба пользователя (Node 24, TypeScript без сборки, без
 runtime-зависимостей) и веб-панель для Mac и iPad. Служба ведёт реестр
-проектов, ставит структуру Kit и процесс Harness Workflow Kit 2.2.3 в папку
-проекта, работает с Claude, ChatGPT/Codex и Kimi Code через общий контракт провайдера
+проектов, ставит структуру Kit и процесс Harness Workflow Kit 2.2.4 (собирается здесь из
+`kit-core`, M22) в папку проекта, показывает версию Kit проекта и обновляет устаревший Kit
+кнопкой «Обновить Kit», работает с Claude, ChatGPT/Codex и Kimi Code через общий контракт провайдера
 и сама устанавливается как служба с автозапуском. Своего чата нет: сессии
 открываются в родных приложениях по ссылкам, панель показывает переписку провайдера (M18),
 связь с агентом — хуки `Stop` и `UserPromptSubmit` (карточки пути и плана, автопилот) или
@@ -26,7 +27,11 @@ runtime-зависимостей) и веб-панель для Mac и iPad. С�
   что и его код. Лимит файла — 400 строк.
 - `bin/wfk.mjs` (модуль `cli`) проверяет Node ≥ 24 и загружает `#cli`. Панель — статические
   ES-модули из `src/` модулей `control-panel`, JS проверяет `tsc` через JSDoc.
-- Проверки: `npm run typecheck`, `npm test`, `npm run check:platforms`
+- Бандл Kit собирает `npm run build:kit` (`tools/kit-build`, esbuild): из исходников `kit-core` —
+  `kit-bundle/vendor/workflow-kit-<версия>.mjs.gz`, `PROVENANCE` и `bundle-meta.ts`; тест
+  `tools/kit-build` не пропускает правку исходников Kit без пересборки.
+- Проверки: `npm run typecheck`, `npm test` (сначала `test:app`, потом `test:kit` — тесты Kit
+  и сборки отдельной группой), `npm run check:platforms`
   (`tools/platform-guard`: платформа параметром, программы ОС в `allowlist.json`,
   раздел «Поведение на ОС» в спецификациях); CI — macOS, Linux, Windows x64 и ARM64.
 
@@ -40,16 +45,17 @@ runtime-зависимостей) и веб-панель для Mac и iPad. С�
 | | [projects](../../product-parts/backend-core/clusters/projects/cluster.md) | [project-registry](../../product-parts/backend-core/clusters/projects/modules/project-registry/module.md) | `projects.json`, проверка имён и путей, выбор папки |
 | | | [kit-structure](../../product-parts/backend-core/clusters/projects/modules/kit-structure/module.md) | структура Kit v2 в папке проекта, хуки агентов, приём хука SessionStart |
 | | | [git-publish](../../product-parts/backend-core/clusters/projects/modules/git-publish/module.md) | push при закрытом scope |
-| | | [project-setup](../../product-parts/backend-core/clusters/projects/modules/project-setup/module.md) | мастер проекта: предпросмотр и одно согласие — git, структура, Kit 2.2.3, доверие, хуки, первая сессия |
+| | | [project-setup](../../product-parts/backend-core/clusters/projects/modules/project-setup/module.md) | мастер проекта: предпросмотр и одно согласие — git, структура, Kit 2.2.4, доверие, хуки, первая сессия |
 | [provider-runtime](../../product-parts/provider-runtime/product-part.md) | [provider-contract](../../product-parts/provider-runtime/clusters/provider-contract/cluster.md) | [provider-registry](../../product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md) | контракт провайдера, реестр, журнал хука, токены предпросмотра, маршруты провайдеров и диалога |
 | | | [process-supervisor](../../product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/module.md) | запуск, учёт и остановка процессов (D5, D9), исполнитель внешних программ |
 | | | [pty-host](../../product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/module.md) | ConPTY на Windows (node-pty 1.1.0) |
 | | [provider-adapters](../../product-parts/provider-runtime/clusters/provider-adapters/cluster.md) | [provider-claude](../../product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md) | доверие (`~/.claude.json`, импорты CLAUDE.md), сессии Remote Control, окружение папки (pty), лента и вставка в терминал |
 | | | [provider-codex](../../product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md) | демон app-server, доверие, одобрение хуков Kit, сессии (треды; после служебного хода — `thread/unsubscribe`), лента и прямой ход |
 | | | [provider-kimi](../../product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md) | сервер приложения или `kimi web`, доверие, хук, сессии, ссылки, лента |
-| [workflow-engine](../../product-parts/workflow-engine/product-part.md) | [kit-host](../../product-parts/workflow-engine/clusters/kit-host/cluster.md) | [kit-bundle](../../product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md) | вендорный бандл Kit 2.2.3 с проверкой хеша |
+| [workflow-engine](../../product-parts/workflow-engine/product-part.md) | [kit-host](../../product-parts/workflow-engine/clusters/kit-host/cluster.md) | [kit-bundle](../../product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md) | бандл Kit 2.2.4, собранный из `kit-core`, с проверкой хеша |
 | | | [kit-runner](../../product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/module.md) | команды Kit проекта, установка, слежение за планом, раздел `workflow` |
 | | | [plan-view](../../product-parts/workflow-engine/clusters/kit-host/modules/plan-view/module.md) | модели карточек плана и выбора пути (порт правил Harness) |
+| | | [kit-update](../../product-parts/workflow-engine/clusters/kit-host/modules/kit-update/module.md) | версия Kit проекта (раздел `kitUpdate`), «Обновить Kit», одобрение хуков Kit Codex после обновления (M22) |
 | | [session-loop](../../product-parts/workflow-engine/clusters/session-loop/cluster.md) | [agent-channel](../../product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md) | хуки `Stop`/`UserPromptSubmit`, очередь сообщений агенту (или `direct`), удержание и конец хода, активность |
 | | | [autopilot](../../product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md) | «продолжать, держать или отпустить» после хода; действия с планом из панели |
 | | | [plan-review](../../product-parts/workflow-engine/clusters/session-loop/modules/plan-review/module.md) | решение о ревью и вопрос о плане |
@@ -74,7 +80,8 @@ runtime-зависимостей) и веб-панель для Mac и iPad. С�
 `data-store`, `http-server`; `plan-review` и `session-titles` →
 `data-store`, `http-server`; `project-setup` → `kit-runner`,
 `kit-structure`, `project-registry`, `provider-registry`,
-`process-supervisor`, `data-store`, `http-server`.
+`process-supervisor`, `data-store`, `http-server`; `kit-update` → `http-server`, `kit-bundle`,
+`kit-runner`, `provider-registry` (M22).
 Модули панели серверного кода не импортируют. Только `cli` знает обо всех и
 собирает их. Модули `kit-core` служба не импортирует: Kit работает бандлом отдельным
 процессом; между собой модули Kit связаны относительными импортами.
@@ -117,6 +124,8 @@ runtime-зависимостей) и веб-панель для Mac и iPad. С�
 | Kimi: приложение, проект в нём | `open -a`, `--workspace` | `xdg-mime`, `xdg-open` | `reg`, `--workspace` (**П**) |
 | Запуск и остановка процессов сессий | да | да | да (CIM, `taskkill`) |
 | Kit в проекте (`kit-core`, M22): запускатель, режимы файлов | `scripts/workflow` (sh), 0755 | то же | `workflow.cmd` → `workflow.ps1` (`powershell`), `.cmd` через `cmd.exe`, без режимов |
+| Сборка бандла Kit (`npm run build:kit`, M22) | esbuild darwin; проверка через `scripts/workflow` | esbuild linux; то же | esbuild win32 x64/ARM64; проверка — `node` runtime проекта |
+| «Обновить Kit» (M22): `install --update`, одобрение хука Codex | да | да | да, хук Codex по `commandWindows` |
 | Корни папки проектов (M14) | дом, `/Volumes/*` | дом, `/media/<u>/*`, `/run/media/<u>/*`, `/mnt/*` | дом и диски, кроме системного |
 | Диалог (M18): лента; прямая отправка | да; Claude `expect`, ChatGPT при общем доступе | да; Claude `expect`, ChatGPT нет | да, ChatGPT через `proxy`; Claude ConPTY (**П**), ChatGPT при общем доступе |
 | Живые проверки | есть, `docs/evidence/` | нет, только тесты | установка, общий доступ, путь до запуска плана (M13–M16) |

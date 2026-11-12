@@ -3,17 +3,42 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": "DOCS-R1",
+  "currentTaskId": null,
   "lastClosed": {
     "closedAt": "2026-11-12T15:04:13.877Z",
     "scopeId": "m21-recovery-one-turn"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 718,
+  "revision": 719,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "kit-update: раздел kitUpdate {installed, bundled, state, action, running, error?, last?, note?, checkedAt}",
+          "kit-update: POST /api/projects/:id/kit/update → 202; 409 busy; 404 not-found",
+          "kit-bundle: KIT_VERSION 2.2.4, KIT_SHA256, KIT_SOURCE_DIGEST из bundle-meta.ts",
+          "tools/kit-build: npm run build:kit [--check]; тест свежести бандла",
+          "panel-shell: kitView(state, projectId) → {line, missing, card}; handlers.updateKit",
+          "agent-channel: excluded(ref), forget(key); 409 session-archived"
+        ],
+        "decisions": [
+          "Модули Kit скопированы из Harness AI 94a9d457 с теми же именами; правки переноса 1–8 записаны в kit-core/product-part.md",
+          "KIT_SOURCE_COMMIT заменён на KIT_SOURCE_DIGEST из сгенерированного bundle-meta.ts",
+          "npm test идёт двумя группами по очереди: test:app, затем test:kit; проверка test профиля — npm test, 600 с",
+          "«Обновить Kit» только для Kit старше бандла: новый Kit старым не заменяется",
+          "После обновления approveHooks зовётся всегда; hash-changed — новое чтение списка Codex",
+          "cli/module.md и panel-shell/module.md разделены без потерь: connected-modules.md и files.md"
+        ],
+        "references": [
+          "docs/planning/M22-kit-source.md",
+          "product-parts/kit-core/product-part.md",
+          "product-parts/workflow-engine/clusters/kit-host/modules/kit-update/module.md",
+          "tools/kit-build/README.md",
+          "docs/architecture/CONTRACTS.md"
+        ],
+        "result": "Исходники Kit (12 модулей kit-core) живут в Workflow Kit; npm run build:kit собирает Kit 2.2.4; экран проекта показывает версию Kit и обновляет устаревший Kit кнопкой «Обновить Kit» с одобрением хука Codex; архивные и убранные сессии выходят из процесса Kit."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -544,7 +569,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -593,9 +618,9 @@
 - Scope: m22-kit-source (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: DOCS-R1
-- Progress: 5/7
-- Revision: 718
+- Current task: none
+- Progress: 6/7
+- Revision: 719
 
 ## Objective
 
@@ -632,7 +657,7 @@
   - Commit: feat(panel-shell): show the project Kit version and the update card
   - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell/src, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/files.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/actions.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/buttons.css, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/kit-card.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/screens.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/kit-card.test.ts
   - Depends on: T003
-- [IN_PROGRESS] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/architecture/CONTRACTS.md, docs/planning/M22-kit-source.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/module.md, product-parts/kit-core/product-part.md, product-parts/workflow-engine/clusters/kit-host/cluster.md, product-parts/workflow-engine/product-part.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/module.md, product-parts/backend-core/clusters/projects/cluster.md, product-parts/backend-core/clusters/projects/modules/project-setup/module.md
   - Depends on: T000, T001, T002, T003, T004
@@ -640,5 +665,7 @@
   - Commit: chore: release Workflow Kit 0.9.3 with Kit 2.2.4
   - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/installation.md, docs/usage.md, docs/evidence/M22-acceptance.md, docs/architecture/OVERVIEW.md
   - Depends on: T004, DOCS-R1
+
+Digest: Исходники Kit (12 модулей kit-core) живут в Workflow Kit; npm run build:kit собирает Kit 2.2.4; экран проекта показывает версию Kit и обновляет устаревший Kit кнопкой «Обновить Kit» с одобрением хука Codex; архивные и убранные сессии выходят из процесса Kit.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

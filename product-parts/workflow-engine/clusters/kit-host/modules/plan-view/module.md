@@ -10,7 +10,7 @@
 
 ## Публичный интерфейс (`src/index.ts`)
 
-- Типы результатов Kit 2.2.3, которые читает служба: `KitStatus`,
+- Типы результатов Kit 2.2.3 (в 2.2.4 те же, M22), которые читает служба: `KitStatus`,
   `KitTask`, `KitTaskRef`, `KitScope`, `KitExecution`, `KitAssignment`,
   `KitScopeProposalMarker`, `KitProposal`, `KitStrategy`,
   `KitChoiceOption`, `KitTaskStatus`.

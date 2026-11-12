@@ -1,6 +1,7 @@
 # M22: исходники Kit в Workflow Kit и обновление Kit с экрана проекта
 
-Статус: предложена 2026-11-12, план ждёт выбора режима.
+Статус: R1 реализован 2026-11-12 (T000–T004, режим sequential); выпуск 0.9.3 — T005. Итоги и
+находки — раздел 7.
 
 ## Цель и согласование
 
@@ -145,7 +146,7 @@ product-parts/kit-core/clusters/project-workflow/modules/<модуль>/test/*.t
 Harness AI `94a9d457`; версия esbuild; строки; sha256 распакованного бандла; дайджест
 исходников — sha256 по отсортированным путям и содержимому `kit-core/**/src/*.ts`.
 
-Тест `tools/kit-build/test/kit-build.test.ts` (идёт в обычном `npm test`):
+Тест `tools/kit-build/test/kit-build.test.ts` (идёт в `npm test`, группа `test:kit` — раздел 7):
 
 - дайджест исходников равен записанному в `PROVENANCE`: правка Kit без пересборки
   бандла не пройдёт коммит;
@@ -161,7 +162,8 @@ Harness AI `94a9d457`; версия esbuild; строки; sha256 распако
 - раздел `kitUpdate` в `/api/state`: для каждого активного проекта
   `{ installed, bundled, state, action, running, error?, last? }`. `installed` и `state`
   — из `inspect` (`kit-runner`); `bundled` — `KIT_VERSION` из `#kit-bundle`; `action` —
-  `update`, если `state` равно `KIT_OUTDATED` или `KIT_OK` с другой версией, иначе `none`.
+  `update`, если `state` равно `KIT_OUTDATED` или установленный Kit старше бандла, иначе
+  `none` (новый Kit старым не заменяется — раздел 7).
   Раздел читает только кэш; `inspect` запускается при старте, после изменения плана, после
   обновления и раз в 60 с;
 - `POST /api/projects/:id/kit/update` (202): `install --update` через `kit-runner`. Затем
@@ -257,3 +259,31 @@ Harness AI `94a9d457`; версия esbuild; строки; sha256 распако
 | T005 | Выпуск 0.9.3, CI на всех ОС, приёмка M22 | `package.json`, `package-lock.json`, `CHANGELOG.md`, `README.md`, `docs/installation.md`, `docs/usage.md`, `docs/evidence/M22-acceptance.md`, `docs/architecture/OVERVIEW.md` |
 
 Задачи идут по порядку: T002 и T003 обе меняют `package.json`, T004 зависит от T003.
+
+## 7. Итоги и находки (R1, 2026-11-12)
+
+- **T000** `a2abf64`: архивные и убранные сессии выходят из процесса Kit (2.8): `excluded` в
+  `agent-channel` и `session-titles`, 409 `session-archived`, автопилот и ревью их не выбирают.
+- **T001** `b25855b`: 12 модулей и 10 документов Kit перенесены. 17 файлов длиннее 400 строк
+  разбиты (правило `kit:file-lines`); раздел «Основные контракты» OVERVIEW вынесен в
+  `docs/architecture/CONTRACTS.md`. Правки переноса 1–8 — в `kit-core/product-part.md`.
+- **T002** `b6de6f2`: `npm run build:kit` собирает Kit 2.2.4. Константа `KIT_SOURCE_COMMIT`
+  модуля `kit-bundle` заменена на `KIT_SOURCE_DIGEST` из сгенерированного `bundle-meta.ts`:
+  бандл собирается из этого репозитория, коммита Harness AI у него больше нет.
+- **Тесты под нагрузкой.** Тесты Kit (51 файл, сборки через esbuild) вместе с тестами
+  приложения перегружали машину, и тесты со временем в `cli`, `agent-channel` и
+  `workflow-host` падали. `npm test` теперь идёт двумя группами по очереди — `test:app`, потом
+  `test:kit`; проверка `test` профиля качества — `npm test` с тайм-аутом 600 с (через
+  `quality:apply`); тест хоста Kit ждёт ответа до 30 с (правка переноса 8).
+- **T003** `69e633f`: модуль `kit-update`. Отклонение от 2.6: `update` только для Kit старше
+  бандла — Kit сам не запрещает понижение версии, и «другая версия» означала бы откат нового
+  Kit. `approveHooks` зовётся и для хука, который выглядит одобренным: список Codex мог быть
+  прочитан до обновления; отказ `hash-changed` — новое чтение. `cli/module.md` дошёл до
+  предела размера: раздел «Подключённые модули» вынесен в `cli/connected-modules.md`.
+- **T004** `89d323a`: строка Kit и карточка в `kit-card.js`; раздел «Файлы панели»
+  `panel-shell/module.md` вынесен в `panel-shell/files.md`.
+- **Живая проверка службы** (macOS, 2026-11-12): проект с Kit 2.2.3 (установлен бандлом
+  0.9.2) во временной службе из исходников — раздел `kitUpdate` дал `KIT_OUTDATED` и `update`,
+  `POST` — 202, повтор — 409 `busy`, Kit сделал коммит `chore: update workflow kit to 2.2.4`,
+  затем `KIT_OK` и `doctor` без замечаний. Провайдеры были заглушками: одобрение хука Codex
+  вживую проверяет пользователь (раздел 4).

@@ -128,3 +128,112 @@ covers all three; a macOS-only change is incomplete. Background:
   until CI is green on every OS for the pushed commit; before acceptance it
   runs on a `ci/<scope>` branch, `main` is pushed only after the scope is
   accepted and closed.
+
+<!-- wfk:begin -->
+## Workflow Kit (managed section, do not edit by hand)
+
+Workflow Kit (`wfk`) manages this section, its SessionStart, Stop and
+UserPromptSubmit hook entries in `.claude/settings.json` and `.codex/hooks.json`, the `.gitignore` block between
+`# wfk:begin` and `# wfk:end` and the files listed in
+`.workflow-kit/manifest.json`. Write project instructions outside the
+`wfk:begin`/`wfk:end` markers; Kit never changes text outside them.
+
+### Working with the Workflow Kit panel
+
+The user follows this project in the Workflow Kit panel (Mac and iPad), not
+only in this chat.
+
+- The `wfk` command: if your shell does not find it, call it by its full
+  path: macOS and Linux `"$HOME/.local/bin/wfk"`; Windows PowerShell
+  `& "$env:LOCALAPPDATA\Workflow Kit\wfk.cmd"`, Git Bash
+  `"$LOCALAPPDATA/Workflow Kit/wfk"`.
+- Session title: in the first turn where the user gives you a task, run
+  `wfk session title "<short title of that task in the user's language>"`
+  once. The first message «Проект «…» создан панелью Workflow Kit…» is a
+  service greeting, not a task: do not set the title in that turn. Do not
+  rename the session again unless the user asks.
+- Plan question: when the user's request is a software development task (a
+  new product or a change to this one) that you would answer with a
+  specification and a Workflow Kit plan, first run
+  `wfk session plan "<one line: what you are going to build>"` and end your
+  turn without writing the specification or any files. The user answers in
+  the panel: specification and plan with a cross review, without it, or just
+  talk; the answer reaches you as a `Workflow Kit:` message. Do not run it
+  for discussion, research, explanations or everyday questions, and do not
+  run it again for the same task unless the user asks for a plan anew.
+- GitHub publication: `git push` is not a plan task, not even a delivery
+  task. Publish only when the user asks and only after the scope is accepted
+  and closed (each by the user's command): the panel button «Опубликовать на
+  GitHub» or `wfk project publish`. If the user asks while a scope is open,
+  say that publishing comes after its acceptance and closing.
+- Execution mode and plan start: after `scripts/workflow scope:propose` the
+  user chooses the mode and starts the plan with buttons in the panel. End
+  your turn and wait; the choice reaches you as a message from Workflow Kit.
+- Messages that start with `Workflow Kit:` come from the panel on behalf of
+  the user (the Stop and UserPromptSubmit hooks deliver them). Follow them
+  as the user's instructions.
+
+### Orchestration with your app's subagents
+
+In the orchestrated mode this session is the orchestrator: it does not
+implement work or DOCS tasks itself (QUALITY and delivery tasks it runs in
+main). For each ready task run `scripts/workflow assignment:create --task <ID>`
+and give the printed brief to a subagent of your app; independent
+assignments may run in parallel, up to `maxWorkers` of the plan. Integrate
+the SHA the subagent replies with:
+`scripts/workflow integration:start --id <assignment id> --source <sha>`
+(on CONFLICT or CHECKS_FAILED fix within the task files, then
+`integration:continue`).
+
+- Claude: start the subagent with the Agent tool and `isolation: "worktree"`;
+  the worktree is made for it.
+- ChatGPT (Codex): Kit makes no worktree for a Codex subagent. Make it
+  yourself: `git worktree add --detach .workflow-kit/local/worktrees/<assignment id> <baseCommit>`
+  (`baseCommit` from the assignment:create output), start the subagent
+  with `spawn_agent`, give it the brief and the line "Your worktree is
+  <absolute path>; run every command with that workdir", and wait for its
+  SHA with `wait_agent`. Kit removes the worktree after the integration.
+- Kimi Code: this section explicitly allows the Agent tool in a Kimi Code
+  session. Executors: make the worktree yourself as for Codex
+  (`git worktree add --detach .workflow-kit/local/worktrees/<assignment id> <baseCommit>`),
+  start the subagent with the Agent tool in the foreground (no
+  `run_in_background`), give it the brief and the line "Your worktree is
+  <absolute path>; pass it as cwd to every Bash call and use absolute paths
+  inside it for Read, Edit and Write"; independent assignments go as several
+  Agent calls in one message. Do not use AgentSwarm. Kit removes the worktree
+  after the integration. In the sequential mode Agent helpers may search,
+  read and check for the current task: they work in main, never commit and
+  never run `scripts/workflow`.
+
+### Architecture: product-parts
+
+Code is organized as a tree of product parts, clusters and modules:
+
+```text
+product-parts/<part>/product-part.md
+product-parts/<part>/clusters/<cluster>/cluster.md
+product-parts/<part>/clusters/<cluster>/modules/<module>/module.md
+product-parts/<part>/clusters/<cluster>/modules/<module>/src/
+product-parts/<part>/clusters/<cluster>/modules/<module>/test/
+```
+
+- A product part is a large area of the product; `product-part.md` names its
+  purpose, clusters and boundaries.
+- A cluster groups related modules; `cluster.md` lists them and the rules
+  between them.
+- A module is the unit of work: `module.md` is its contract (purpose, public
+  interface, invariants, dependencies), `src/` holds the code, `test/` the tests.
+- Modules talk to each other only through the public entry of a module (for
+  example `src/index.ts`); never import another module's internal files.
+- A module contract changes in the same commit as the module code.
+- Start new parts, clusters and modules from the templates in
+  `.workflow-kit/templates/` (`product-part.md`, `cluster.md`, `module.md`).
+- Existing code is not moved automatically; move it into modules only as part
+  of planned work.
+
+### Local data
+
+`.workflow-kit/local/` holds machine-local data (for example the session journal
+`sessions.jsonl` written by the SessionStart hook). It is git-ignored; do not
+commit or edit it.
+<!-- wfk:end -->

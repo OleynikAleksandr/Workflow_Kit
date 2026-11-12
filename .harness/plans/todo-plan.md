@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 732,
+  "revision": 733,
   "rounds": [
     {
       "digest": {
@@ -32,6 +32,13 @@
       "kind": "implementation",
       "status": "CLOSED",
       "title": "Implementation"
+    },
+    {
+      "digest": null,
+      "id": "R2",
+      "kind": "fixes",
+      "status": "OPEN",
+      "title": "Тесты Kit на Windows, второй проход"
     }
   ],
   "schema": "harness-workflow-plan/1",
@@ -64,7 +71,7 @@
         "text": "Версия остаётся 0.9.3: она не опубликована"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "IN_PROGRESS",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "8ed2f99f-7296-4ad6-ae41-6fec13ee5fdb",
@@ -176,6 +183,98 @@
       "status": "DONE",
       "title": "CI выпуска 0.9.3 на всех ОС",
       "why": "Выпуск готов только при зелёном CI на всех ОС"
+    },
+    {
+      "acceptance": [
+        "Временные папки ещё трёх тестов — длинные пути (realpathSync.native)",
+        "Путь worktree от git сравнивается после path.resolve",
+        "Подставной npm.cmd печатает аргумент без кавычек",
+        "Тест doctor ждёт проверку executable только вне Windows",
+        "Тесты Kit проходят на macOS"
+      ],
+      "checks": [],
+      "commitMessage": "test(kit-core): fix the remaining Kit tests on Windows",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M23-kit-tests-windows.md",
+          "required": true,
+          "heading": "2.1. Второй проход (CI 43270655505, после T001 `501acca`)"
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-integration/test/orchestration-scenario.test.mjs",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-executor.test.mjs",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery/test/workflow-recovery-worktree.test.mjs",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-assignment/test/workflow-assignment-cancel.test.mjs",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-worktree.test.mjs",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/test/workflow-installer-doctor.test.mjs",
+        "product-parts/kit-core/product-part.md"
+      ],
+      "fixes": "T001",
+      "id": "T003",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Тесты Kit на Windows: второй проход",
+      "why": "CI 43270655505: 6 тестов Kit ещё падают на Windows"
+    },
+    {
+      "acceptance": [
+        "Project-wide documents describe the round result",
+        "The round digest records result, decisions, contracts and references"
+      ],
+      "checks": [],
+      "commitMessage": "docs: reconcile documentation for R2",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T003"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/architecture/OVERVIEW.md",
+        "product-parts/kit-core/product-part.md"
+      ],
+      "fixes": null,
+      "id": "DOCS-R2",
+      "iteration": 1,
+      "kind": "docs",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Reconcile project documentation and write the round digest",
+      "why": "Keep the project context current for the next agent and close the round."
+    },
+    {
+      "acceptance": [
+        "CI ветки ci/m23-kit-tests-windows зелёный на macOS ARM64, Linux x64, Windows x64 и ARM64",
+        "Запуск CI записан в docs/evidence/M22-acceptance.md"
+      ],
+      "checks": [],
+      "commitMessage": "docs: record the green CI of Workflow Kit 0.9.3",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T003",
+        "DOCS-R2"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "docs/evidence/M22-acceptance.md",
+        "docs/planning/M23-kit-tests-windows.md"
+      ],
+      "fixes": null,
+      "id": "T004",
+      "iteration": 1,
+      "kind": "delivery",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "CI выпуска 0.9.3 на всех ОС",
+      "why": "Выпуск готов только при зелёном CI на всех ОС"
     }
   ]
 }
@@ -185,11 +284,11 @@
 ## State
 
 - Scope: m23-kit-tests-windows (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 3/3
-- Revision: 732
+- Progress: 3/6
+- Revision: 733
 
 ## Objective
 
@@ -218,5 +317,20 @@
   - Depends on: T001, DOCS-R1
 
 Digest: Тесты Kit исправлены для Windows: заглушки бандла импортируют модули по file://, временные папки тестов — длинные пути, путь git сравнивается с любым разделителем, подставной npm работает на Windows. Код Kit и бандл 2.2.4 не менялись.
+
+### R2 — Тесты Kit на Windows, второй проход (fixes, OPEN)
+
+- [TODO] T003 — Тесты Kit на Windows: второй проход (work)
+  - Commit: test(kit-core): fix the remaining Kit tests on Windows
+  - Files: product-parts/kit-core/clusters/project-workflow/modules/workflow-integration/test/orchestration-scenario.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-executor.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery/test/workflow-recovery-worktree.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-assignment/test/workflow-assignment-cancel.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-worktree.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/test/workflow-installer-doctor.test.mjs, product-parts/kit-core/product-part.md
+  - Fixes: T001
+- [TODO] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
+  - Commit: docs: reconcile documentation for R2
+  - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/kit-core/product-part.md
+  - Depends on: T003
+- [TODO] T004 — CI выпуска 0.9.3 на всех ОС (delivery)
+  - Commit: docs: record the green CI of Workflow Kit 0.9.3
+  - Files: docs/evidence/M22-acceptance.md, docs/planning/M23-kit-tests-windows.md
+  - Depends on: T003, DOCS-R2
 
 State changes only through `scripts/workflow` commands. History lives in Git.

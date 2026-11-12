@@ -157,6 +157,7 @@ process.exitCode = runCli(process.argv.slice(2), {
     worktrees: () =>
       lines(["worktree", "list", "--porcelain"])
         .filter((line) => line.startsWith("worktree "))
-        .map((line) => line.slice("worktree ".length)),
+        // git lists them with forward slashes on Windows.
+        .map((line) => path.resolve(line.slice("worktree ".length))),
   };
 }

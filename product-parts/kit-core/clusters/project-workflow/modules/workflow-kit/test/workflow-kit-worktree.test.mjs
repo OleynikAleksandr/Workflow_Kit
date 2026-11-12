@@ -64,7 +64,7 @@ mkdir -p node_modules/left-pad
       "  echo npm ERR! fake failure 1>&2",
       "  exit /b 1",
       ")",
-      "echo fake npm %~1",
+      "echo fake npm %*",
       "if not exist node_modules\\left-pad mkdir node_modules\\left-pad",
       "exit /b 0",
       "",
@@ -293,7 +293,8 @@ mkdir -p node_modules/left-pad
   // In main with --id; a READY record stays READY.
   const setupB = kit.setupAssignment(root, idB);
   assert.equal(setupB.ran, true);
-  assert.match(setupB.output, /fake npm ci/u);
+  // On Windows the fake npm.cmd echoes the argument as cmd.exe quoted it.
+  assert.match(setupB.output, /fake npm "?ci"?/u);
   assert.equal(setupB.assignment.status, "READY");
   assert.equal(setupB.assignment.setup.command, "npm ci");
   assert.equal(kit.startTask(wtA, "A").task.status, "IN_PROGRESS");

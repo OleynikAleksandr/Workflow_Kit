@@ -185,8 +185,13 @@ process.exitCode = runCli(process.argv.slice(2), { cwd: process.cwd(), env: proc
     email: "workflow@harness-ai.test",
     name: "Workflow Test",
   });
-  assert.deepEqual(copied.fix.written, []);
-  assert.equal(copied.fix.commit, null);
+  // The fix restored the modes (POSIX); without executable bits nothing was left to fix.
+  if (posix) {
+    assert.deepEqual(copied.fix.written, []);
+    assert.equal(copied.fix.commit, null);
+  } else {
+    assert.equal(copied.fix, null);
+  }
   assert.equal(statusOf(copied).executable, posix ? "ok" : undefined);
   assert.deepEqual(git.readIdentity(root, "local"), copied.identityFix);
   assert.equal(identityOf(copied).status, "ok");

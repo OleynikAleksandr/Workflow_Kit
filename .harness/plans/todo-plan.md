@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 741,
+  "revision": 743,
   "rounds": [
     {
       "digest": {
@@ -327,7 +327,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R3",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Тесты Kit на Windows: третий проход",
       "why": "CI 43272867981: 3 теста Kit ещё падают на Windows"
     },
@@ -396,8 +396,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 6/9
-- Revision: 741
+- Progress: 7/9
+- Revision: 743
 
 ## Objective
 
@@ -446,7 +446,7 @@ Digest: Второй проход тестов Kit для Windows: ещё три
 
 ### R3 — Тесты Kit на Windows, третий проход (fixes, OPEN)
 
-- [TODO] T005 — Тесты Kit на Windows: третий проход (work)
+- [DONE] T005 — Тесты Kit на Windows: третий проход (work)
   - Commit: test(kit-core): finish the Kit tests on Windows
   - Files: product-parts/kit-core/clusters/project-workflow/modules/workflow-integration/test/orchestration-scenario-support.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-worktree.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/test/workflow-installer-doctor.test.mjs, product-parts/kit-core/product-part.md
   - Fixes: T003

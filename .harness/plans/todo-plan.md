@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T003",
   "lastClosed": {
     "closedAt": "2026-11-12T15:04:13.877Z",
     "scopeId": "m21-recovery-one-turn"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 709,
+  "revision": 711,
   "rounds": [
     {
       "digest": null,
@@ -449,14 +449,15 @@
         "product-parts/workflow-engine/product-part.md",
         "package.json",
         "product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts",
-        "product-parts/backend-core/clusters/runtime/modules/cli/module.md"
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/connected-modules.md"
       ],
       "fixes": null,
       "id": "T003",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "Служба: версия Kit проекта и его обновление",
       "why": "Устаревший Kit открытого проекта обновляется без мастера"
     },
@@ -576,9 +577,9 @@
 - Scope: m22-kit-source (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: none
+- Current task: T003
 - Progress: 3/7
-- Revision: 709
+- Revision: 711
 
 ## Objective
 
@@ -607,9 +608,9 @@
   - Commit: feat(kit-build): build the Kit bundle from the local sources
   - Files: tools/kit-build, package.json, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-payload.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/module.md, product-parts/kit-core/product-part.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/test, product-parts/backend-core/clusters/projects/modules/project-setup/test, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/test, product-parts/kit-core/clusters/project-workflow/modules/workflow-host/test, product-parts/backend-core/clusters/projects/modules/project-setup/test/setup.test.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-host/test/workflow-host-facade.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/test/workflow-installer-payload.test.mjs, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/src/bundle-meta.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/src/bundle.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/src/index.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/test/bundle.test.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/PROVENANCE, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/workflow-kit-2.2.3.mjs.gz, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/workflow-kit-2.2.4.mjs.gz, tools/kit-build/README.md, tools/kit-build/build.ts, tools/kit-build/kit-build.ts, tools/kit-build/test/kit-build.test.ts
   - Depends on: T001
-- [TODO] T003 — Служба: версия Kit проекта и его обновление (work)
+- [IN_PROGRESS] T003 — Служба: версия Kit проекта и его обновление (work)
   - Commit: feat(kit-update): report the project Kit version and update it
-  - Files: product-parts/workflow-engine/clusters/kit-host/modules/kit-update, product-parts/workflow-engine/clusters/kit-host/cluster.md, product-parts/workflow-engine/product-part.md, package.json, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md
+  - Files: product-parts/workflow-engine/clusters/kit-host/modules/kit-update, product-parts/workflow-engine/clusters/kit-host/cluster.md, product-parts/workflow-engine/product-part.md, package.json, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/connected-modules.md
   - Depends on: T002
 - [TODO] T004 — Панель: версия Kit и карточка «Обновить Kit» (work)
   - Commit: feat(panel-shell): show the project Kit version and the update card

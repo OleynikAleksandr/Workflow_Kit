@@ -4,7 +4,7 @@
       "executable": false,
       "kind": "owned",
       "path": ".harness/workflow/runtime/workflow.mjs",
-      "sha256": "036c82fb602435575f03464c2f9c0c9ec12845da680263052a411f0fd32e0fc2"
+      "sha256": "8891de2ff127deae1819f132123ca12cbd98af77dec666c44209366ea925497e"
     },
     {
       "executable": true,
@@ -52,7 +52,7 @@
       "executable": false,
       "kind": "section",
       "path": "AGENTS.md",
-      "sha256": "1684c6fa9fc107da5dd20457646ff228543bb96ada992aa7b962c71c64d9b36d"
+      "sha256": "d59b21f909866d694f41be1d99e20a62f2c9e8a8c3eea9d78bd365e1b577b0f0"
     },
     {
       "executable": false,
@@ -64,13 +64,13 @@
       "executable": false,
       "kind": "json",
       "path": ".codex/hooks.json",
-      "sha256": "f1db89e517d3a9e3e49e97579625e53371919882f24e047ce963608e62b03cc5"
+      "sha256": "7db272aa976437d84a82484e0761dfc388f898c7861c7213c6ac1eaa150b6032"
     },
     {
       "executable": false,
       "kind": "json",
       "path": ".claude/settings.json",
-      "sha256": "01703b1a346f2561e91e27992a673bd2eeab11388236387559e6ee35bfbc5318"
+      "sha256": "95cf767c5dc060a7844b8f1cf374e9c4cd6e0a49e43fffe456adce9545707a89"
     },
     {
       "executable": false,
@@ -98,5 +98,5 @@
     }
   ],
   "schema": "harness-workflow-manifest/1",
-  "version": "2.2.2"
+  "version": "2.2.3"
 }

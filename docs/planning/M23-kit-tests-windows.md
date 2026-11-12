@@ -51,6 +51,26 @@ Harness AI тесты Kit в CI не шли. По правилам проект�
 
 Проверено на macOS (копия в scratchpad): 53 из 53 тестов Kit проходят с исправлениями.
 
+### 2.1. Второй проход (CI 43270655505, после T001 `501acca`)
+
+Тест останавливается на первом падении, поэтому за исправленным открылись следующие места.
+macOS и Linux зелёные; на Windows x64 и ARM64 упали 6 тестов Kit из 57:
+
+5. **Ещё три временные папки 8.3.** `orchestration-scenario.test.mjs`,
+   `workflow-kit-executor.test.mjs`, `workflow-recovery-worktree.test.mjs` ждали путь
+   `C:\Users\RUNNER~1\…`, а Kit отдал длинный. Исправление: `realpathSync.native`.
+6. **Путь worktree от git.** `assignment:cancel` возвращает путь, как его пишет git
+   (`C:/Users/…`); `workflow-assignment-cancel.test.mjs` сравнивал с `C:\Users\…`.
+   Исправление: сравнение после `path.resolve`.
+7. **Кавычки `cmd.exe`.** Kit запускает `npm.cmd` через `cmd.exe /d /s /c` и берёт аргументы
+   в кавычки, поэтому `%*` подставного `npm.cmd` печатал `fake npm "ci"`. Исправление:
+   `%~1`.
+8. **Проверка `executable` doctor.** На Windows нет битов исполнения, и doctor этой проверки
+   не делает; `workflow-installer-doctor.test.mjs` её ждал. Исправление: тест ждёт её только
+   вне Windows (платформа — из `workflowPlatformFacade` сборки теста).
+
+Исправления 5–8 проверены на macOS: 6 из 6 тестов проходят.
+
 ## 3. Поведение на ОС
 
 | Что | macOS | Linux | Windows |
@@ -78,4 +98,6 @@ Harness AI тесты Kit в CI не шли. По правилам проект�
 | --- | --- | --- |
 | T001 | Тесты Kit на Windows: исправления 1–4 | `product-parts/kit-core/clusters/project-workflow/modules/*/test/` (14 файлов), `product-parts/kit-core/product-part.md` |
 | DOCS | спецификация, приёмка M22 | добавляет Kit |
-| T002 | CI выпуска 0.9.3 на всех ОС | `docs/evidence/M22-acceptance.md`, `docs/planning/M23-kit-tests-windows.md` |
+| T002 | запись CI 43270655505: на Windows осталось 6 тестов | `docs/evidence/M22-acceptance.md`, `docs/planning/M23-kit-tests-windows.md` |
+| R2: T003 | исправления 5–8 | 6 тестов Kit, `product-parts/kit-core/product-part.md` |
+| R2: delivery | CI выпуска 0.9.3 на всех ОС | `docs/evidence/M22-acceptance.md`, эта спецификация |

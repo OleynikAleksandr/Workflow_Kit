@@ -29,7 +29,12 @@
   порядке», служба 0.9.3; в установке `kit-bundle/vendor/workflow-kit-2.2.4.mjs.gz`.
 - Установленная служба 0.9.3 показывает для проекта Workflow_Kit `installed 2.2.3`,
   `KIT_OUTDATED`, `action: update` (раздел `kitUpdate`, только чтение).
-- CI ветки `ci/m22-kit-source` — см. ниже.
+- CI ветки `ci/m22-kit-source`, коммит `d67661b`, запуск 43266183754: macOS ARM64 и Linux x64
+  зелёные; Windows x64 и ARM64 — 15 из 57 тестов Kit упали (тесты приложения прошли). Причины
+  — в тестах Kit; исправления — scope `m23-kit-tests-windows`
+  ([M23](../planning/M23-kit-tests-windows.md)).
+- CI ветки `ci/m23-kit-tests-windows`, коммит `24aa9a3` (T001 `501acca`), запуск 43270655505:
+  macOS и Linux зелёные; на Windows осталось 6 тестов Kit — второй проход M23 (раздел 2.1).
 
 ## Живые проверки по ОС
 

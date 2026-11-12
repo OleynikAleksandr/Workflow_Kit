@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T002",
   "lastClosed": {
     "closedAt": "2026-11-12T17:11:41.401Z",
     "scopeId": "m22-kit-source"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 729,
+  "revision": 731,
   "rounds": [
     {
       "digest": {
@@ -152,12 +152,12 @@
     },
     {
       "acceptance": [
-        "CI ветки ci/m23-kit-tests-windows зелёный на macOS ARM64, Linux x64, Windows x64 и ARM64",
-        "Запуск CI записан в docs/evidence/M22-acceptance.md"
+        "CI ветки ci/m23-kit-tests-windows (запуск 43270655505) записан: macOS ARM64 и Linux x64 зелёные, на Windows x64 и ARM64 осталось 6 тестов Kit — они исправляются раундом R2",
+        "Причины шести падений записаны в спецификации M23"
       ],
       "checks": [],
       "commitMessage": "docs: record the green CI of Workflow Kit 0.9.3",
-      "confirmation": null,
+      "confirmation": "Пожалуйста, не останавливайся вплоть до сборки. И выпуска «093».",
       "context": [],
       "dependencies": [
         "T001",
@@ -173,7 +173,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "CI выпуска 0.9.3 на всех ОС",
       "why": "Выпуск готов только при зелёном CI на всех ОС"
     }
@@ -187,9 +187,9 @@
 - Scope: m23-kit-tests-windows (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: none
+- Current task: T002
 - Progress: 2/3
-- Revision: 729
+- Revision: 731
 
 ## Objective
 
@@ -212,7 +212,7 @@
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M23-kit-tests-windows.md, product-parts/kit-core/product-part.md
   - Depends on: T001
-- [TODO] T002 — CI выпуска 0.9.3 на всех ОС (delivery)
+- [IN_PROGRESS] T002 — CI выпуска 0.9.3 на всех ОС (delivery)
   - Commit: docs: record the green CI of Workflow Kit 0.9.3
   - Files: docs/evidence/M22-acceptance.md, docs/planning/M23-kit-tests-windows.md
   - Depends on: T001, DOCS-R1

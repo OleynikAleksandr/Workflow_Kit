@@ -73,7 +73,12 @@
   состояние процесса («открыта в <провайдер>» и примечание сессии,
   `runningText`), а открытие экрана поднимает остановленную сессию через
   `POST …/providers/<id>/sessions/:sid/resume`, повтор после ошибки — через
-  `REVIVE_RETRY_MS` (30 с), раунд R9; у остальных (ChatGPT, Kimi) — `chatStatus`:
+  `REVIVE_RETRY_MS` (30 с), раунд R9. Внешняя сессия (M19 2.3,
+  `SessionRow.external`: провайдер с подъёмом и `external === true` у её
+  активности в `channel`; нет поля — не внешняя) сама не поднимается: строка
+  «Сессию ведёт приложение <провайдер> вне панели; сообщения придут агенту с
+  ближайшим хуком» (`externalText`, тон muted) и под шапкой кнопка
+  «Продолжить» (`resumeSession`) — по ней панель поднимает свой процесс; у остальных (ChatGPT, Kimi) — `chatStatus`:
   «чат открывается щелчком по карточке сессии» (у ссылки `kimi-code://` —
   «проект открывается в Kimi Code щелчком по карточке сессии»; пометка сессии
   дописывается через « — », без ссылки показывается только она); щелчок или Enter по карточке
@@ -134,8 +139,8 @@
 | `app.js` | состояние и маршрут, опрос `/api/state` (следующий запрос — через 3 с после ответа, таймаут 8 с, сразу при возврате на вкладку, тик таймера строки подготовки раз в секунду), самоперезагрузка страницы, когда служба отвечает другой версией, чем при загрузке (один раз на версию, `sessionStorage`, M4 13.5), экраны и слоты; загрузка расширений `PANEL_EXTENSIONS` (`/project-wizard/project-wizard.js`, `/session-view/session-view.js`, `/session-chat/session-chat.js`) до первого опроса: `install(shell)` с помощниками `registerCard`, `registerCardGroup`, `registerSlot`, `requestRefresh`, `api`, `ApiError`, `dom`, `createFolderPicker`, `showError` |
 | `actions.js` | `createActions({ navigate, render, route })` → `{ handlers, toast, say, collapsed }`: в архив; для «Архива» — `restoreProjects`, `forgetProjects`, `deleteProject`, `restoreSessions`, `forgetSessions`; новая сессия, обновить сессии, копировать путь, открыть чат, переименовать и архивировать сессию; сообщения над экраном; свёрнутые проекты |
 | `slots.js` | слоты раскладки для расширений: `registerSlot('newProject' \| 'sessionBody' \| 'sessionReview' \| 'sessionChat', definition)`, `slots`; типы `SlotContext` (`navigate`, `requestRefresh`, `say`, `selectProject`), `SessionContext` (`project`, `session`, `link`) |
-| `session-screen.js` | `createSessionScreen(ctx) → { element, render(data, state) }`: шапка, слот `sessionBody` (`.session-body`) и под ним слот `sessionChat` (`.session-chat`); узлы постоянные, каждая часть перерисовывается, только если изменились её данные (ключ `[ключ сессии, select()]`), узел слота заменяется, только если это другой узел; ошибка слота — строка ошибки |
-| `view-model.js` | чистые модели без DOM: `parseRoute`/`routeHash` (`#/`, `#/settings`, `#/new`, `#/open`, `#/archive`, `#/p/<id>`, `#/s/<id>/<ключ>`), `projectLists`, `filterProjects`, `projectTree`, `ownerObjective`, `sessionKey` (`<провайдер>:<localId>` — ключ разделов `channel`, `titles`, `review`), `runningText`, `statusLine`, `chatStatus`, `opensByItself`, `deviceLink`, `formatWhen`, `formatElapsed`, `sessionsLabel`, `shortPath`, `themeAttribute`; в строке сессии — `providerLabel` и `resumable` из сводки провайдера |
+| `session-screen.js` | `createSessionScreen(ctx, { resume }) → { element, render(data, state) }`: шапка (у внешней сессии без процесса панели — кнопка «Продолжить», `resumeButton`), слот `sessionBody` (`.session-body`) и под ним слот `sessionChat` (`.session-chat`); узлы постоянные, каждая часть перерисовывается, только если изменились её данные (ключ `[ключ сессии, select()]`), узел слота заменяется, только если это другой узел; ошибка слота — строка ошибки |
+| `view-model.js` | чистые модели без DOM: `parseRoute`/`routeHash` (`#/`, `#/settings`, `#/new`, `#/open`, `#/archive`, `#/p/<id>`, `#/s/<id>/<ключ>`), `projectLists`, `filterProjects`, `projectTree`, `ownerObjective`, `sessionKey` (`<провайдер>:<localId>` — ключ разделов `channel`, `titles`, `review`), `runningText`, `statusLine`, `chatStatus`, `opensByItself`, `deviceLink`, `formatWhen`, `formatElapsed`, `sessionsLabel`, `shortPath`, `themeAttribute`; в строке сессии — `providerLabel` и `resumable` из сводки провайдера, `external` из активности канала |
 | `providers.js` | провайдеры из раздела `providers` состояния: `providerViews(state)` (`id`, `label`, `mark`, `resume`, `ready`, `statusLabel`), `providerNamer(state)`, `providerNames(state)` («ChatGPT и Claude»), `indicators(state, linked)` |
 | `sidebar.js` | боковая панель: `createSidebar(handlers) → { element, render(model), setReview(node) }` |
 | `menus.js` | всплывающие меню «⋯»: `openMenu(anchor, items)`, `closeMenu()` |

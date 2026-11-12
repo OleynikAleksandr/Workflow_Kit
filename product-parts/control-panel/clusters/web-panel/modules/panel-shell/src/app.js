@@ -124,7 +124,7 @@ let newShown = '';
 const newProjectHost = h('div', { class: 'new-project' });
 const dynamic = h('div', { class: 'dynamic' });
 // The session screen keeps its nodes, so typed text in its cards survives polling.
-const sessionScreen = createSessionScreen(slotContext);
+const sessionScreen = createSessionScreen(slotContext, { resume: handlers.resumeSession });
 let reviewKey = '';
 const main = h('main', { class: 'main', id: 'main' }, [toast, dynamic, newProjectHost, settings.element, archive.element]);
 document.body.prepend(h('div', { class: 'app' }, [sidebar.element, main]));

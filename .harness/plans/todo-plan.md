@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 673,
+  "revision": 674,
   "rounds": [
     {
       "digest": null,
@@ -209,9 +209,13 @@
       "kind": "work",
       "parallelSafe": true,
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Панель: внешнюю сессию не возобновлять при открытии экрана",
-      "why": "Открытие экрана сессии запускало второй процесс Claude с тем же идентификатором"
+      "why": "Открытие экрана сессии запускало второй процесс Claude с тем же идентификатором",
+      "integration": {
+        "operationId": "1a20f68a-23b7-44db-8418-a8c875521f2f",
+        "sourceCommit": "10e7507d55df7dd90b28b8499fe853f9b3ef7704"
+      }
     },
     {
       "acceptance": [
@@ -304,8 +308,8 @@
 - Delivery: IN_PROGRESS
 - Execution: orchestrated (max 2 workers, owner 0c355c88-f324-49fe-909c-fe5617d16288)
 - Current task: none
-- Progress: 0/5
-- Revision: 673
+- Progress: 1/5
+- Revision: 674
 
 ## Objective
 
@@ -329,7 +333,7 @@
   - Commit: fix: queue panel messages for a session another process runs
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/hook-input.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/types.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/channel.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/slots.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/channel.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/routes.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/hook-service.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/direct-message.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/review-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/direct-message.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/hook-channel.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/hook-turn-end.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/review.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/session-chat.md
   - Depends on: T001
-- [TODO] T003 — Панель: внешнюю сессию не возобновлять при открытии экрана (work, parallel-safe)
+- [DONE] T003 — Панель: внешнюю сессию не возобновлять при открытии экрана (work, parallel-safe)
   - Commit: fix: do not resume a session another process runs when its screen opens
   - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/actions.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/view-model.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/session-screen.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/panel-shell.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/activity-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)

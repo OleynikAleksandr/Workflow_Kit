@@ -17,6 +17,15 @@ const COLLAPSED_KEY = 'wfk.tree.collapsed';
 const REVIVE_RETRY_MS = 30_000;
 
 /**
+ * State line of an external session (M19 2.3): another process of the provider's app leads it.
+ * @param {{ providerLabel?: string }} session
+ * @returns {string}
+ */
+export function externalText(session) {
+  return `Сессию ведёт приложение ${session.providerLabel || 'Claude'} вне панели; сообщения придут агенту с ближайшим хуком`;
+}
+
+/**
  * @param {{ navigate: (route: Route) => void, render: () => void, route: () => Route, providerNames: () => string }} options
  */
 export function createActions(options) {
@@ -82,12 +91,26 @@ export function createActions(options) {
   /** @type {Map<string, { at: number, error: string | null }>} */
   const reviving = new Map();
 
+  /** The service resumes the session under the same channel. @param {string} projectId @param {SessionRow} session */
+  function resume(projectId, session) {
+    reviving.set(session.key, { at: Date.now(), error: null });
+    const sid = session.key.slice(session.key.indexOf(':') + 1);
+    api('POST', `/api/projects/${encodeURIComponent(projectId)}/providers/${encodeURIComponent(session.provider)}/sessions/${encodeURIComponent(sid)}/resume`, {}).then(
+      () => requestRefresh(),
+      (error) => {
+        reviving.set(session.key, { at: Date.now(), error: error instanceof Error ? error.message : String(error) });
+        render();
+      },
+    );
+  }
+
   const handlers = {
     navigate,
     /**
      * Brings back a session that has no live process (opening its screen is the intent to work in
      * it), for a provider that resumes sessions: the service resumes it under the same channel.
-     * A failed resume is retried after REVIVE_RETRY_MS, a pending one is not repeated.
+     * A failed resume is retried after REVIVE_RETRY_MS, a pending one is not repeated. An external
+     * session (another process leads it, M19 2.3) is not resumed by itself: «Продолжить» does it.
      * @param {string} projectId @param {SessionRow} session
      */
     reviveSession(projectId, session) {
@@ -95,17 +118,21 @@ export function createActions(options) {
         reviving.delete(session.key);
         return;
       }
+      if (session.external && !reviving.has(session.key)) return;
       const entry = reviving.get(session.key);
       if (entry && Date.now() - entry.at < REVIVE_RETRY_MS) return;
-      reviving.set(session.key, { at: Date.now(), error: null });
-      const sid = session.key.slice(session.key.indexOf(':') + 1);
-      api('POST', `/api/projects/${encodeURIComponent(projectId)}/providers/${encodeURIComponent(session.provider)}/sessions/${encodeURIComponent(sid)}/resume`, {}).then(
-        () => requestRefresh(),
-        (error) => {
-          reviving.set(session.key, { at: Date.now(), error: error instanceof Error ? error.message : String(error) });
-          render();
-        },
-      );
+      resume(projectId, session);
+    },
+    /**
+     * «Продолжить» on the screen of an external session: the panel starts its own process on
+     * purpose; its hooks carry the panel mark and the session stops being external.
+     * @param {string} projectId @param {SessionRow} session
+     */
+    resumeSession(projectId, session) {
+      if (!session.resumable || session.state === 'running') return;
+      const entry = reviving.get(session.key);
+      if (entry && !entry.error && Date.now() - entry.at < REVIVE_RETRY_MS) return;
+      resume(projectId, session);
     },
     /**
      * State line of the session screen instead of «Открыть чат»: the process state of a session
@@ -116,8 +143,9 @@ export function createActions(options) {
     sessionStatus(session) {
       if (!session.resumable) return chatStatus(session, deviceLink(session.links, navigator.maxTouchPoints ?? 0));
       if (session.state === 'running') return { text: runningText(session), tone: 'ok' };
-      const error = reviving.get(session.key)?.error;
-      if (error) return { text: `не удалось поднять сессию: ${error}`, tone: 'error' };
+      const revive = reviving.get(session.key);
+      if (revive?.error) return { text: `не удалось поднять сессию: ${revive.error}`, tone: 'error' };
+      if (session.external && !revive) return { text: externalText(session), tone: 'muted' };
       return { text: 'поднимаем сессию…', tone: 'muted' };
     },
     /** @param {string} id */

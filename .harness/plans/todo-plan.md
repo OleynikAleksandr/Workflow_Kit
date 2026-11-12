@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 662,
+  "revision": 664,
   "rounds": [
     {
       "digest": null,
@@ -39,7 +39,7 @@
       }
     ],
     "decisions": [],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 1,
       "ownerSession": null,
@@ -86,7 +86,7 @@
       "kind": "work",
       "parallelSafe": true,
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Отправка из панели: прямой путь и предел 20000",
       "why": "Задание из панели должно приходить агенту репликой пользователя, а не служебной фразой"
     }
@@ -98,11 +98,11 @@
 ## State
 
 - Scope: assignment-m18-session-chat-T005-1 (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 0/1
-- Revision: 662
+- Progress: 1/1
+- Revision: 664
 
 ## Objective
 
@@ -119,7 +119,7 @@
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T005 — Отправка из панели: прямой путь и предел 20000 (work, parallel-safe)
+- [DONE] T005 — Отправка из панели: прямой путь и предел 20000 (work, parallel-safe)
   - Commit: feat: send panel messages directly when the provider can take them
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/routes.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/direct-message.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/direct-message.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/session-chat.md
 

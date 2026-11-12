@@ -27,6 +27,9 @@ export type {
   TrustState,
   TrustWrite,
 } from './contract.ts';
+export type { ChatMessage, ChatPage } from './chat.ts';
+export { CHAT_PAGE_LIMIT, CHAT_TEXT_CUT_NOTE, CHAT_TEXT_MAX_CHARS, cutChatText } from './chat.ts';
+export type { ChatMessagesAnswer } from './chat-routes.ts';
 export type { SharedAccess, SharedAccessAdminStep, SharedAccessPreview, SharedAccessState, SharedAccessStateName, SharedAccessTarget } from './shared-access.ts';
 export { ProviderError, providerCapability, providerLabel, providerLogsDir, providerMark, providerSessionsFile } from './contract.ts';
 export type { HookSession, ReadHookSessionsOptions } from './hook-sessions.ts';

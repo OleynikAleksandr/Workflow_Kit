@@ -7,6 +7,21 @@ import { test } from 'node:test';
 import { createRouter, createStateRegistry, HttpError } from '#http-server';
 import { PublishError, gitExecOptions, publish, readPublication, registerPublicationRoutes, runGit } from '../src/index.ts';
 
+// A commit hook sets these for the outer repository; inherited, they would point the test's git at it.
+for (const name of [
+  'GIT_DIR',
+  'GIT_INDEX_FILE',
+  'GIT_WORK_TREE',
+  'GIT_PREFIX',
+  'GIT_COMMON_DIR',
+  'GIT_OBJECT_DIRECTORY',
+  'GIT_ALTERNATE_OBJECT_DIRECTORIES',
+  'GIT_NAMESPACE',
+  'GIT_CEILING_DIRECTORIES',
+]) {
+  delete process.env[name];
+}
+
 const ENV = { ...process.env, GIT_AUTHOR_NAME: 't', GIT_AUTHOR_EMAIL: 't@t', GIT_COMMITTER_NAME: 't', GIT_COMMITTER_EMAIL: 't@t' };
 const sh = (cwd: string, ...args: string[]) => execFileSync('git', args, { cwd, env: ENV, stdio: 'pipe' }).toString().trim();
 

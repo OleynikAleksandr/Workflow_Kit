@@ -4,6 +4,7 @@ import path from 'node:path';
 import type { DataDirs, EventLog, WfkConfig } from '#data-store';
 import type { CommandRunner, ProcessSupervisor } from '#process-supervisor';
 import type { Project } from '#project-registry';
+import type { ChatPage } from './chat.ts';
 import type { SharedAccess } from './shared-access.ts';
 
 export type { Project };
@@ -313,6 +314,10 @@ export interface Provider {
   sessionIdle?(project: Project, sessionId: string): Promise<boolean>;
   lastAnswer?(project: Project, sessionId: string): Promise<string | null>;
   sendMessage?(project: Project, sessionId: string, text: string, delivery: { id: string }): Promise<boolean>;
+  /** Newest opts.limit messages, oldest first; changes nothing at the provider (spec M18, chat.md). */
+  readMessages?(project: Project, sessionId: string, opts: { limit: number }): Promise<ChatPage>;
+  /** Hands text to the agent as a user turn now; false when it cannot now (the caller queues it). */
+  sendDirect?(project: Project, sessionId: string, text: string): Promise<boolean>;
   /** Name of the setting that turns session locks off; without locks the turn end cannot be told. */
   readonly lockSwitch?: string;
   actions(project: Project | null): Promise<ProviderAction[]>;

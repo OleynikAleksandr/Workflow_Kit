@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 660,
+  "revision": 661,
   "rounds": [
     {
       "digest": null,
@@ -116,9 +116,13 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Контракт диалога сессии и маршрут чтения",
-      "why": "Провайдеры и панель должны опираться на один контракт чтения и прямой отправки"
+      "why": "Провайдеры и панель должны опираться на один контракт чтения и прямой отправки",
+      "integration": {
+        "operationId": "d6a87843-2065-48e0-8a2f-18800ee3ae8e",
+        "sourceCommit": "4f8d54cc939045f84daec3dffa22b7c3994d435e"
+      }
     },
     {
       "acceptance": [
@@ -480,8 +484,8 @@
 - Delivery: IN_PROGRESS
 - Execution: orchestrated (max 4 workers, owner 0c355c88-f324-49fe-909c-fe5617d16288)
 - Current task: none
-- Progress: 0/9
-- Revision: 660
+- Progress: 1/9
+- Revision: 661
 
 ## Objective
 
@@ -498,7 +502,7 @@
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T001 — Контракт диалога сессии и маршрут чтения (work)
+- [DONE] T001 — Контракт диалога сессии и маршрут чтения (work)
   - Commit: feat: add the session chat contract and the messages route
   - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/chat.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/chat-routes.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/routes.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/chat-routes.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/fake-provider.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/chat.md, product-parts/backend-core/clusters/projects/modules/git-publish/test/publication.test.ts
 - [TODO] T002 — Claude: лента из транскрипта и вставка текста в терминал (work, parallel-safe)

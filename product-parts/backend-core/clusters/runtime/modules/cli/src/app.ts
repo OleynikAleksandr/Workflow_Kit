@@ -17,6 +17,7 @@ import { createKitRunner, createWorkflowState } from '#kit-runner';
 import type { KitRunner, WorkflowState } from '#kit-runner';
 import { registerStructureRoutes } from '#kit-structure';
 import { registerPublicationRoutes } from '#git-publish';
+import { registerKitUpdateRoutes } from '#kit-update';
 import { panelShellMount } from '#panel-shell';
 import { projectWizardMount } from '#project-wizard';
 import { sessionViewMount } from '#session-view';
@@ -223,13 +224,26 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
     runner: kit,
     listProjects: async () => (await projects.list()).map((project) => ({ id: project.id, path: project.path })),
     log: options.log,
-    onChange: (projectId) => void publication.refresh(projectId).catch(() => undefined),
+    onChange: (projectId) => {
+      void publication.refresh(projectId).catch(() => undefined);
+      void kitUpdate.refresh(projectId).catch(() => undefined);
+    },
   });
   state.add('workflow', () => workflow.section());
   // Windows keeps a watched folder busy: the project's watchers are released before its folder is deleted.
   projects.addBeforeDeleteHook(async (project) => workflow.release(project.id));
   // GitHub publication is not a plan task: only with no open scope (spec publication-order).
   const publication = registerPublicationRoutes({ router, state, projects, scopeOpen: (id) => workflow.get(id)?.scope != null, log: options.log });
+  // Kit version of each project and «Обновить Kit» (spec M22 section 2.6).
+  const kitUpdate = registerKitUpdateRoutes({
+    router,
+    state,
+    projects,
+    kit,
+    providers,
+    log: options.log,
+    onUpdated: (projectId) => void workflow.refresh(projectId).catch(() => undefined),
+  });
 
   // The deepest registered project that contains a folder (paths compared after realpath).
   const resolveFolderProject = async (folder: string): Promise<{ id: string } | undefined> => {
@@ -300,7 +314,7 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
       return { ...bound, urls: panelUrls(bound.port, getInterfaces()) };
     },
     async stop() {
-      workflow.stop(), publication.stop(), channel.close(), lifecycle.stop();
+      workflow.stop(), publication.stop(), kitUpdate.stop(), channel.close(), lifecycle.stop();
       await server.close();
     },
   };

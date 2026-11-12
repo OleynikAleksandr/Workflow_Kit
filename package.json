@@ -20,6 +20,7 @@
     "#kit-bundle": "./product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/src/index.ts",
     "#kit-runner": "./product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/src/index.ts",
     "#kit-structure": "./product-parts/backend-core/clusters/projects/modules/kit-structure/src/index.ts",
+    "#kit-update": "./product-parts/workflow-engine/clusters/kit-host/modules/kit-update/src/index.ts",
     "#panel-shell": "./product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/index.ts",
     "#cross-review": "./product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/index.ts",
     "#plan-review": "./product-parts/workflow-engine/clusters/session-loop/modules/plan-review/src/index.ts",

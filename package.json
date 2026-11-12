@@ -41,7 +41,7 @@
   "scripts": {
     "start": "node bin/wfk.mjs serve",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "node --test \"product-parts/**/test/*.test.ts\" \"tools/**/test/*.test.ts\"",
+    "test": "node --test \"product-parts/**/test/*.test.ts\" \"product-parts/**/test/*.test.mjs\" \"tools/**/test/*.test.ts\"",
     "check:platforms": "node tools/platform-guard/check.ts"
   },
   "devDependencies": {

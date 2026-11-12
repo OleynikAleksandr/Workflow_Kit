@@ -19,6 +19,8 @@ runtime-зависимостей) и веб-панель для Mac и iPad. С�
 
 - Дерево `product-parts/<часть>/clusters/<кластер>/modules/<модуль>/`: `module.md`
   (контракт), `src/`, `test/*.test.ts`; у части — `product-part.md`, у кластера — `cluster.md`.
+  Исключение — исходники Kit (`kit-core`, M22): вход модуля — `src/<модуль>-facade.ts`,
+  импорты — относительные `../../<модуль>/src/*.js`, тесты — `test/*.test.mjs`.
 - Модули видят друг друга только через `src/index.ts` по `#`-алиасам поля
   `imports` в `package.json`. Контракт модуля меняется в том же коммите,
   что и его код. Лимит файла — 400 строк.
@@ -57,6 +59,7 @@ runtime-зависимостей) и веб-панель для Mac и iPad. С�
 | | | [project-wizard](../../product-parts/control-panel/clusters/web-panel/modules/project-wizard/module.md) | мастер проекта в панели: предпросмотр, кнопки первой сессии, шаги подготовки, открытие чата |
 | | | [session-view](../../product-parts/control-panel/clusters/web-panel/modules/session-view/module.md) | экран сессии: активность агента, выбор пути, карточка плана, вопрос о плане |
 | | | [session-chat](../../product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md) | карточка «Диалог» экрана сессии: лента и отправка агенту (M18) |
+| [kit-core](../../product-parts/kit-core/product-part.md) | [project-workflow](../../product-parts/kit-core/clusters/project-workflow/cluster.md) | 12 модулей `workflow-*` (список — в `cluster.md`) | исходники Kit: план, коммиты задач, пакет восстановления, качество, установка и доктор, режимы выполнения; из них собирается бандл |
 | [system-service](../../product-parts/system-service/product-part.md) | [deployment](../../product-parts/system-service/clusters/deployment/cluster.md) | [service-installer](../../product-parts/system-service/clusters/deployment/modules/service-installer/module.md) | `install`/`uninstall`, автозапуск, запускатель и значок, `service`, `open`, `doctor`, статус службы |
 
 Зависимости (по импортам `#…`): `data-store` и `http-server` ни от кого не
@@ -73,118 +76,16 @@ runtime-зависимостей) и веб-панель для Mac и iPad. С�
 `kit-structure`, `project-registry`, `provider-registry`,
 `process-supervisor`, `data-store`, `http-server`.
 Модули панели серверного кода не импортируют. Только `cli` знает обо всех и
-собирает их.
+собирает их. Модули `kit-core` служба не импортирует: Kit работает бандлом отдельным
+процессом; между собой модули Kit связаны относительными импортами.
 
 ## Основные контракты
 
-### Сборка приложения (`cli`)
-
-`createApp(options?)` создаёт каталоги данных (0700), читает конфиг и собирает: реестры
-маршрутов и разделов состояния (`http-server`), HTTP-сервер с панелью (`panelShellMount()` в
-корне, `projectWizardMount()`, `sessionViewMount()`, `sessionChatMount()` под префиксами),
-журнал событий, мьютекс, реестр проектов, операции, учёт процессов и реестр провайдеров из
-`DEFAULT_PROVIDERS` (`provider-codex`, `provider-claude`, `provider-kimi`). `start()` пишет
-`service.started` и запускает `providers.refresh`. Новое подключается регистрацией в
-`app.router` и `app.state` внутри `createApp`; команды службы идут в `runServiceCommand`. Контракт —
-[cli/module.md](../../product-parts/backend-core/clusters/runtime/modules/cli/module.md).
-
-### Реестр маршрутов и разделов состояния (`http-server`)
-
-`createRouter()` — маршруты с `:name`, ответ JSON, ошибки `{ error: { code, message,
-...details } }` через `HttpError`. `createStateRegistry()` — разделы `GET /api/state`; упавший
-даёт `{ error }`, остальные отдаются. Разделы: `system` (`cli`), `projects`
-(`project-registry`), `structure` (`kit-structure`), `providers` (`provider-registry`),
-`operations` (`data-store`), `workflow` (`kit-runner`), `channel` (`agent-channel`),
-`autopilot`, `review` (`plan-review`), `reviews` (`cross-review`), `titles` (`session-titles`),
-`setup` (`project-setup`), `publication` (`git-publish`). Фильтр
-доступа D8: только loopback и Tailscale (адрес клиента и локальный адрес),
-`Host` из списка, для изменяющих запросов — `Origin` и JSON. Контракт —
-[http-server/module.md](../../product-parts/backend-core/clusters/http-api/modules/http-server/module.md).
-
-### Контракт провайдера (`provider-registry`)
-
-Интерфейс `Provider` (`status`, `capabilities`, `trust`, `previewTrust`,
-`grantTrust`, `hooks`, `approveHooks?`, `listSessions`, `createSession`,
-`resumeSession?`, `stopSession?`, `readMessages?`, `sendDirect?`, `marksPanelProcess?`, `actions`, `runAction`,
-`refresh?`, `removeBlockers?` и другие) и фабрика `createProvider(context)` из `src/index.ts`
-модуля провайдера. Чтение дёшево и ничего не меняет (D11); запись в чужие конфиги — по
-одноразовому токену предпросмотра с отпечатком показанного (D7). `TrustPreview.choices` —
-решения до «Доверять», ответы — в `grantTrust(project, token, choices)`; `inherited` — доверена
-только родительская папка (в предпросмотре и в состоянии). Модуль даёт маршруты провайдеров,
-раздел `providers` и чтение журнала хука `.workflow-kit/local/sessions.jsonl`; сервер и панель
-провайдеров не называют. Контракт —
-[provider-registry/module.md](../../product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md).
-
-Диалог сессии (M18): лента — `GET /api/projects/:id/providers/:p/sessions/:sid/messages` → `{ supported, messages,
-truncated }` (`readMessages?`); отправка — `POST …/sessions/:sid/message` → `{ sent: true }`
-(`cli` отдал текст `sendDirect`) или `{ queued }`. Claude (M19): текст — в
-`<debug>.text`; сессия, чей последний хук без `panelProcess` (`SessionActivity.external`),
-получает их только очередью и не будится. Подробно — `chat.md`
-провайдеров, `cli/session-chat.md`.
-
-### Операции (D10, `data-store`)
-
-`createOperations()` — долгие действия в памяти: POST сразу отвечает 202 `{ operationId,
-operation, existing }`, ход и итог — в разделе `operations`, повтор с тем же ключом даёт идущую.
-Мьютексы `provider:<p>` и `project:<id>`, итог — в `events.jsonl`.
-
-### Процессы (`process-supervisor`)
-
-`createProcessSupervisor({ file })` над `<state>/processes.json`:
-`spawn` (своя группа, вывод в файл, окружение без `CLAUDE*`, D5), `track`,
-`check`/`quickCheck`, `stop` (сверка pid, времени старта, командной строки
-и boot id; TERM, ожидание, KILL; без `pkill`, D9), `reconcile` при старте и
-по `/api/refresh`. `runCommand` — внедряемый исполнитель программ без shell.
-
-### Служба (`service-installer`)
-
-`runServiceCommand(command, context, args)` (`install`, `uninstall`, `start`, `stop`,
-`status`, `open`, `doctor [--installed]`) не бросает (`{ ok, exitCode, message }`), эффекты
-(`fs`, `run`, `spawnDetached`, `health`) внедряются; `getServiceStatus(platform, context)`
-только читает файлы для `system.service`. `install` копирует `bin`, `product-parts`,
-`package.json` в `app/<версия>/`, пишет `app/current.json`, пути программ и login PATH в
-`config.json` (D12), ставит запускатель, значок и автозапуск при входе, запускает службу.
-Контракт —
-[service-installer/module.md](../../product-parts/system-service/clusters/deployment/modules/service-installer/module.md).
-
-### Структура Kit и хук (`kit-structure`)
-
-`checkStructure`/`installStructure` — управляемые фрагменты (раздел `AGENTS.md` между
-`<!-- wfk:begin -->` и `<!-- wfk:end -->`, хуки SessionStart Claude и Codex, блок `.gitignore`,
-шаблоны, `.workflow-kit/manifest.json`) со статусами `ok`, `missing`, `modified`, `outdated`,
-`newer`. `wfk hook session-start` (`recordSessionStart`) дописывает строку в журнал хука, код
-выхода всегда 0.
-
-### Процесс Kit в проекте (`workflow-engine`, веха 2)
-
-Kit 2.2.3 ставится в проект бандлом (`install --host harness`), команды — отдельным процессом
-с JSON-ответом (`kit-runner`); `.harness/**` служба не читает и не пишет. Раздел `workflow` даёт модели
-карточек плана и выбора пути (`plan-view`). Хуки `wfk hook stop|prompt|turn-end` идут в
-`agent-channel` (`POST /api/hooks/…`, только loopback): `Stop` держится до 9 минут, пока
-пользователь решает; провайдеру без удержания `Stop` (`turn-end`) сообщение уходит промптом,
-когда сессия свободна; `autopilot` решает, продолжать ли агента, по `autopilot:status` и
-правилам Harness; кнопки панели (`POST /api/projects/:id/workflow/…`) выполняют команды Kit и
-сообщают агенту. Имена, архив и ревью сессий — в папке проекта (раздел «Данные на диске»).
-Контракты — `module.md` модулей части
-[workflow-engine](../../product-parts/workflow-engine/product-part.md).
-
-### Мастер проекта (`project-setup`, веха 2)
-
-`POST /api/setup/preview` только читает и даёт токен; `POST /api/setup/apply` по одному
-согласию делает всё: папку, git, структуру (коммит до Kit), Kit 2.2.3, доверие Claude и Codex
-(выбранному провайдеру — обязательно, другому — по возможности), одобрение хуков Kit, первую
-сессию с первым сообщением. Ход — раздел `setup` и операция `project.setup`; отмена — перед
-следующим шагом.
-
-### Панель (`panel-shell` и расширения)
-
-Вид — по макету `docs/design/ui-mockup.html`: боковая панель 270 px с деревом «проект →
-сессии», экран справа, служебные карточки в «Настройках», экран «Домой» iPad. Опрос
-`GET /api/state` раз в 3 с. Расширения подключаются через `PANEL_EXTENSIONS` и `install(shell)`:
-карточки — `registerCard`/`registerCardGroup`, мастер и экран сессии — слоты `registerSlot`
-(диалог — `sessionChat` под `sessionBody`, `session-screen.js`). Действия провайдеров — в
-мастере и на экране проекта, архив — карточка «Архив». Контракты — `module.md` модулей кластера
-[web-panel](../../product-parts/control-panel/clusters/web-panel/cluster.md).
+Вынесены в [CONTRACTS.md](CONTRACTS.md): Сборка приложения (`cli`); Реестр маршрутов и разделов
+состояния (`http-server`); Контракт провайдера (`provider-registry`); Операции (D10,
+`data-store`); Процессы (`process-supervisor`); Служба (`service-installer`); Структура Kit и
+хук (`kit-structure`); Процесс Kit в проекте (`workflow-engine`, веха 2); Мастер проекта
+(`project-setup`, веха 2); Панель (`panel-shell` и расширения).
 
 ## Данные на диске
 
@@ -215,6 +116,7 @@ Kit 2.2.3 ставится в проект бандлом (`install --host harne
 | Kimi: хук Kit в `config.toml` | `/bin/sh` | то же, тесты | `cmd.exe`, тесты (**П**) |
 | Kimi: приложение, проект в нём | `open -a`, `--workspace` | `xdg-mime`, `xdg-open` | `reg`, `--workspace` (**П**) |
 | Запуск и остановка процессов сессий | да | да | да (CIM, `taskkill`) |
+| Kit в проекте (`kit-core`, M22): запускатель, режимы файлов | `scripts/workflow` (sh), 0755 | то же | `workflow.cmd` → `workflow.ps1` (`powershell`), `.cmd` через `cmd.exe`, без режимов |
 | Корни папки проектов (M14) | дом, `/Volumes/*` | дом, `/media/<u>/*`, `/run/media/<u>/*`, `/mnt/*` | дом и диски, кроме системного |
 | Диалог (M18): лента; прямая отправка | да; Claude `expect`, ChatGPT при общем доступе | да; Claude `expect`, ChatGPT нет | да, ChatGPT через `proxy`; Claude ConPTY (**П**), ChatGPT при общем доступе |
 | Живые проверки | есть, `docs/evidence/` | нет, только тесты | установка, общий доступ, путь до запуска плана (M13–M16) |
@@ -254,3 +156,5 @@ Kit 2.2.3 ставится в проект бандлом (`install --host harne
   (макет [ui-mockup.html](../design/ui-mockup.html)), [M3](../planning/M3-fixes.md); контракт
   провайдера и факты о Claude и Codex — [M1-providers.md](../planning/M1-providers.md).
 - [README.md](../../README.md), [установка по ОС](../installation.md), [CHANGELOG.md](../../CHANGELOG.md).
+- Основные контракты модулей — [CONTRACTS.md](CONTRACTS.md); процесс Kit —
+  [workflow-kit/WorkflowKit.md](workflow-kit/WorkflowKit.md) и соседние документы.

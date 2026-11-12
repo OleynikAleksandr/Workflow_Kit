@@ -206,6 +206,20 @@
       "darwin": "папка Kimi Code.app в /Applications или ~/Applications (stat, без программы); проект открывает open -n -a <Kimi Code.app> --args --workspace=<папка>",
       "linux": "xdg-mime query default x-scheme-handler/kimi-code; приложения для Linux нет — проект открывает ссылка kimi-code:// через xdg-open",
       "win32": "reg query HKCU\\Software\\Classes\\kimi-code, затем HKCR\\kimi-code; программа из <ключ>\\shell\\open\\command, проект открывает PowerShell Start-Process <Kimi Code.exe> --workspace=\"<папка>\""
+    },
+    {
+      "file": "product-parts/kit-core/clusters/project-workflow/modules/workflow-platform/src/platform-launchers.ts",
+      "program": "powershell",
+      "darwin": "не нужно: проект запускает Kit POSIX-запускателем scripts/workflow (sh)",
+      "linux": "не нужно: проект запускает Kit POSIX-запускателем scripts/workflow (sh)",
+      "win32": "scripts/workflow.cmd передаёт вызов PowerShell-запускателю scripts/workflow.ps1 (powershell -NoProfile -ExecutionPolicy Bypass)"
+    },
+    {
+      "file": "product-parts/kit-core/clusters/project-workflow/modules/workflow-platform/src/platform-process.ts",
+      "program": "cmd.exe",
+      "darwin": "не нужно: команда запускается напрямую, без оболочки",
+      "linux": "не нужно: команда запускается напрямую, без оболочки",
+      "win32": "файл .cmd/.bat запускается через cmd.exe /d /s /c с экранированием аргументов (Node не запускает их без оболочки)"
     }
   ],
   "legacySpecs": [

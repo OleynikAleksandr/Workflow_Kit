@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 745,
+  "revision": 747,
   "rounds": [
     {
       "digest": {
@@ -70,7 +70,7 @@
       },
       "id": "R3",
       "kind": "fixes",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Тесты Kit на Windows, третий проход"
     }
   ],
@@ -104,7 +104,7 @@
         "text": "Версия остаётся 0.9.3: она не опубликована"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "8ed2f99f-7296-4ad6-ae41-6fec13ee5fdb",
@@ -379,7 +379,7 @@
       ],
       "checks": [],
       "commitMessage": "docs: record the green CI of Workflow Kit 0.9.3",
-      "confirmation": null,
+      "confirmation": "Пожалуйста, не останавливайся вплоть до сборки. И выпуска «093».",
       "context": [],
       "dependencies": [
         "T005",
@@ -395,7 +395,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R3",
-      "status": "TODO",
+      "status": "DONE",
       "title": "CI выпуска 0.9.3 на всех ОС",
       "why": "Выпуск готов только при зелёном CI на всех ОС"
     }
@@ -407,11 +407,11 @@
 ## State
 
 - Scope: m23-kit-tests-windows (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 8/9
-- Revision: 745
+- Progress: 9/9
+- Revision: 747
 
 ## Objective
 
@@ -458,7 +458,7 @@ Digest: Тесты Kit исправлены для Windows: заглушки б�
 
 Digest: Второй проход тестов Kit для Windows: ещё три временные папки — длинные пути, путь worktree от git сравнивается после path.resolve, npm.cmd печатает аргумент без кавычек cmd.exe, тест doctor ждёт проверку executable только вне Windows. Код Kit не менялся.
 
-### R3 — Тесты Kit на Windows, третий проход (fixes, OPEN)
+### R3 — Тесты Kit на Windows, третий проход (fixes, CLOSED)
 
 - [DONE] T005 — Тесты Kit на Windows: третий проход (work)
   - Commit: test(kit-core): finish the Kit tests on Windows
@@ -468,7 +468,7 @@ Digest: Второй проход тестов Kit для Windows: ещё три
   - Commit: docs: reconcile documentation for R3
   - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/kit-core/product-part.md, docs/planning/M23-kit-tests-windows.md
   - Depends on: T005
-- [TODO] T006 — CI выпуска 0.9.3 на всех ОС (delivery)
+- [DONE] T006 — CI выпуска 0.9.3 на всех ОС (delivery)
   - Commit: docs: record the green CI of Workflow Kit 0.9.3
   - Files: docs/evidence/M22-acceptance.md, docs/planning/M23-kit-tests-windows.md
   - Depends on: T005, DOCS-R3

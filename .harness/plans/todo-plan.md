@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T005",
   "lastClosed": {
     "closedAt": "2026-11-12T15:04:13.877Z",
     "scopeId": "m21-recovery-one-turn"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 719,
+  "revision": 721,
   "rounds": [
     {
       "digest": {
@@ -582,7 +582,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: release Workflow Kit 0.9.3 with Kit 2.2.4",
-      "confirmation": null,
+      "confirmation": "Пожалуйста, не останавливайся вплоть до сборки. И выпуска «093».",
       "context": [],
       "dependencies": [
         "T004",
@@ -593,18 +593,20 @@
         "package.json",
         "package-lock.json",
         "CHANGELOG.md",
+        "docs/changelog/CHANGELOG-0.5-0.6.md",
         "README.md",
         "docs/installation.md",
         "docs/usage.md",
         "docs/evidence/M22-acceptance.md",
-        "docs/architecture/OVERVIEW.md"
+        "docs/architecture/OVERVIEW.md",
+        "docs/planning/M22-kit-source.md"
       ],
       "fixes": null,
       "id": "T005",
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "Выпуск Workflow Kit 0.9.3",
       "why": "Пользователи получают Kit 2.2.4 и карточку обновления"
     }
@@ -618,9 +620,9 @@
 - Scope: m22-kit-source (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: none
+- Current task: T005
 - Progress: 6/7
-- Revision: 719
+- Revision: 721
 
 ## Objective
 
@@ -661,9 +663,9 @@
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/architecture/CONTRACTS.md, docs/planning/M22-kit-source.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/module.md, product-parts/kit-core/product-part.md, product-parts/workflow-engine/clusters/kit-host/cluster.md, product-parts/workflow-engine/product-part.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/module.md, product-parts/backend-core/clusters/projects/cluster.md, product-parts/backend-core/clusters/projects/modules/project-setup/module.md
   - Depends on: T000, T001, T002, T003, T004
-- [TODO] T005 — Выпуск Workflow Kit 0.9.3 (delivery)
+- [IN_PROGRESS] T005 — Выпуск Workflow Kit 0.9.3 (delivery)
   - Commit: chore: release Workflow Kit 0.9.3 with Kit 2.2.4
-  - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/installation.md, docs/usage.md, docs/evidence/M22-acceptance.md, docs/architecture/OVERVIEW.md
+  - Files: package.json, package-lock.json, CHANGELOG.md, docs/changelog/CHANGELOG-0.5-0.6.md, README.md, docs/installation.md, docs/usage.md, docs/evidence/M22-acceptance.md, docs/architecture/OVERVIEW.md, docs/planning/M22-kit-source.md
   - Depends on: T004, DOCS-R1
 
 Digest: Исходники Kit (12 модулей kit-core) живут в Workflow Kit; npm run build:kit собирает Kit 2.2.4; экран проекта показывает версию Kit и обновляет устаревший Kit кнопкой «Обновить Kit» с одобрением хука Codex; архивные и убранные сессии выходят из процесса Kit.

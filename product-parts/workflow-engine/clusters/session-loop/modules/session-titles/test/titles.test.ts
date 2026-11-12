@@ -301,3 +301,25 @@ test('no topic during the service greeting turn; the next turn with a task sets 
   assert.equal(set.title.name, 'Склад: анализ остатков');
   active = [];
 });
+
+test('an archived or removed session leaves the Kit process; a returned one takes part again (M22 2.8)', async () => {
+  const told: string[] = [];
+  const titles = createSessionTitles({ ...options(), rename: undefined, onExcluded: (projectId, key) => told.push(`${projectId}/${key}`) });
+  assert.equal(titles.excluded('p', 'kimi:gone'), false, 'an unknown session takes part');
+  await titles.setArchived('p', 'kimi:gone', true);
+  assert.equal(titles.excluded('p', 'kimi:gone'), true);
+  await titles.setArchived('p', 'kimi:gone', false);
+  assert.equal(titles.excluded('p', 'kimi:gone'), false, 'returned from the archive');
+  await titles.setArchived('p', 'kimi:gone', true);
+  await titles.setForgotten('p', 'kimi:gone');
+  await titles.setArchived('p', 'kimi:gone', false);
+  assert.equal(titles.excluded('p', 'kimi:gone'), true, 'a removed session never comes back');
+  assert.deepEqual(told, ['p/kimi:gone', 'p/kimi:gone', 'p/kimi:gone'], 'told at archive and removal, not at return');
+  const reloaded = createSessionTitles({ ...options(), rename: undefined });
+  await reloaded.load();
+  assert.equal(reloaded.excluded('p', 'kimi:gone'), true, 'the flag survives a restart of the service');
+  // A failing listener does not undo the archive.
+  const failing = createSessionTitles({ ...options(), rename: undefined, onExcluded: () => { throw new Error('boom'); } });
+  assert.equal((await failing.setArchived('p', 'claude:other', true)).archivedAt !== null, true);
+  assert.equal(failing.excluded('p', 'claude:other'), true);
+});

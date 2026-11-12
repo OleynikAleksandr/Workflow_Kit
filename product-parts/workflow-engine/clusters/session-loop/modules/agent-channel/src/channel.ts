@@ -142,13 +142,48 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
     }
   }
 
+  /** The session left the Kit process (spec M22 2.8); a failing check keeps it in. */
+  function excludedKey(key: string, projectId: string | null): boolean {
+    if (!projectId || !options.excluded) return false;
+    const cut = key.indexOf(':');
+    try {
+      return options.excluded({ key, client: cut < 0 ? key : key.slice(0, cut), sessionId: cut < 0 ? '' : key.slice(cut + 1), projectId });
+    } catch (error) {
+      log(`channel: excluded check failed for ${key}: ${error instanceof Error ? error.message : String(error)}`);
+      return false;
+    }
+  }
+  const isOut = (slot: Slot): boolean => excludedKey(slot.activity.key, slot.activity.projectId);
+
+  /** Drops the slot: a held Stop is released, the queue, outbox and watchers go. */
+  function drop(slot: Slot): void {
+    const key = slot.activity.key;
+    if (slots.get(key) !== slot) return;
+    slots.delete(key);
+    slot.queue.length = 0;
+    detached?.drop(slot);
+    slot.wake?.();
+    changed(key);
+    log(`channel: ${key} left the Kit process (archived or removed from the list)`);
+  }
+
+  /** True when the slot is gone or out: its hook is answered empty. */
+  function leaves(slot: Slot): boolean {
+    if (slots.get(slot.activity.key) !== slot) return true;
+    if (!isOut(slot)) return false;
+    drop(slot);
+    return true;
+  }
+
   const idleListeners = new Set<IdleListener>();
-  const core: ChannelCore = { slots, setState, notify, decide: safeDecide, idleListeners, changed, iso, now, holdMs, log, closed: () => closed };
+  const core: ChannelCore = { slots, setState, notify, decide: safeDecide, idleListeners, changed, iso, now, holdMs, log, closed: () => closed, excluded: isOut };
   const detached = options.detached ? createDetached(core, options.detached) : null;
+  const visible = (): Slot[] => [...slots.values()].filter((slot) => !isOut(slot));
 
   return {
     async stop(input, signal) {
       const slot = await slotOf(input);
+      if (leaves(slot)) return empty();
       const last = input.lastAssistantMessage ? input.lastAssistantMessage.slice(-LAST_MESSAGE_CHARS) : slot.activity.lastAssistantMessage;
       setState(slot, 'waiting', { lastStopAt: iso(), turnStartedAt: null, lastAssistantMessage: last });
       notify(slot, input.lastAssistantMessage);
@@ -156,6 +191,8 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
       let woken = false;
       let timeoutAnswer: string | undefined;
       for (;;) {
+        // Archived or removed while held: the Stop ends without an answer.
+        if (leaves(slot)) return empty();
         if (slot.queue.length > 0) {
           const reply = deliver(slot, (text) => blockAnswer(text));
           begin(slot, 'delivery');
@@ -197,6 +234,7 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
     },
     async prompt(input) {
       const slot = await slotOf(input);
+      if (leaves(slot)) return empty();
       slot.wake?.();
       if (detached?.supports(slot)) {
         if (detached.ownPrompt(slot, input.prompt)) return { ...empty(), own: true };
@@ -214,6 +252,13 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
     },
     enqueue(key, text, source = 'panel', projectId) {
       const message: QueuedMessage = { id: randomUUID(), text, source, createdAt: iso() };
+      // A session out of the Kit process gets nothing: the message is dropped, not kept.
+      if (excludedKey(key, projectId ?? slots.get(key)?.activity.projectId ?? null)) {
+        const known = slots.get(key);
+        if (known) drop(known);
+        log(`channel: a ${source} message for ${key} was dropped: the session left the Kit process`);
+        return message;
+      }
       let slot = slots.get(key);
       if (!slot) {
         const cut = key.indexOf(':');
@@ -243,6 +288,7 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
     async turnEnd(notice) {
       if (!detached || closed || !options.detached?.supports(notice.client)) return false;
       const slot = await slotOf(notice);
+      if (leaves(slot)) return true;
       // The hook is machine-wide: a session outside every project is only noted.
       if (slot.activity.projectId) await detached.turnEnd(slot, notice.event);
       return true;
@@ -258,15 +304,23 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
     },
     get: (key) => {
       const slot = slots.get(key);
-      return slot ? { ...slot.activity } : undefined;
+      return slot && !isOut(slot) ? { ...slot.activity } : undefined;
     },
-    list: () => [...slots.values()].map((slot) => ({ ...slot.activity })),
-    queued: (key) => [...(slots.get(key)?.queue ?? [])],
+    list: () => visible().map((slot) => ({ ...slot.activity })),
+    queued: (key) => {
+      const slot = slots.get(key);
+      return slot && !isOut(slot) ? [...slot.queue] : [];
+    },
     waiting: (key, id) => {
       const slot = slots.get(key);
-      return Boolean(slot && (slot.queue.some((m) => m.id === id) || slot.outbox?.messages.some((m) => m.id === id)));
+      return Boolean(slot && !isOut(slot) && (slot.queue.some((m) => m.id === id) || slot.outbox?.messages.some((m) => m.id === id)));
     },
-    section: () => ({ sessions: [...slots.values()].map((slot) => ({ ...slot.activity })) }),
+    section: () => ({ sessions: visible().map((slot) => ({ ...slot.activity })) }),
+    excluded: (key, projectId) => excludedKey(key, projectId ?? slots.get(key)?.activity.projectId ?? null),
+    forget(key) {
+      const slot = slots.get(key);
+      if (slot) drop(slot);
+    },
     close() {
       closed = true;
       detached?.close();

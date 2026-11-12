@@ -130,7 +130,7 @@ export function createDetached(core: ChannelCore, deps: DetachedDelivery): Detac
 
   async function detachedStop(slot: Slot): Promise<void> {
     const generation = slot.generation;
-    if (slot.stopping === generation || !slot.stopPending) return;
+    if (slot.stopping === generation || !slot.stopPending || core.excluded(slot)) return;
     slot.stopping = generation;
     try {
       for (const listener of core.idleListeners) {
@@ -199,7 +199,7 @@ export function createDetached(core: ChannelCore, deps: DetachedDelivery): Detac
 
   /** The decision path: an unsent message first, then the whole queue, then the decider. */
   async function advance(slot: Slot, how: { decide: boolean; woken: boolean }): Promise<void> {
-    if (slot.lockless || slot.advancing || slot.sending || core.closed() || deps.archived?.(ref(slot))) return;
+    if (slot.lockless || slot.advancing || slot.sending || core.closed() || core.excluded(slot) || deps.archived?.(ref(slot))) return;
     slot.advancing = true;
     try {
       const generation = slot.generation;
@@ -352,6 +352,15 @@ export function createDetached(core: ChannelCore, deps: DetachedDelivery): Detac
     },
     flush: (slot) => flush(slot),
     maintain,
+    drop(slot) {
+      slot.generation += 1;
+      cancelWatch(slot);
+      dropReminder(slot);
+      clearTimeout(slot.confirmTimer);
+      slot.stopPending = false;
+      slot.outbox = null;
+      slot.expected = null;
+    },
     close() {
       if (interval) clearInterval(interval);
       for (const slot of core.slots.values()) {

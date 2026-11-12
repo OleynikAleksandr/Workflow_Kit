@@ -59,12 +59,12 @@ stripping).
   реестром); `SESSION_ENV` — таблица `{ client, variable }`: в какой переменной окружения
   агент оставляет id своей сессии (`CODEX_THREAD_ID`, `CLAUDE_CODE_SESSION_ID`).
 - `wireSessions(options)` (`src/session-wiring.ts`) — проводка сессий для `createApp`: канал,
-  автопилот, переключатели ревью, имена и перекрёстное ревью. Имён провайдеров в ней нет:
-  различия читаются из реестра — `hookDialect`, `wakeSession`, `sendDirect`, `promptTitle`, возможности
+  автопилот, переключатели ревью, имена и перекрёстное ревью. Имён провайдеров нет:
+  различия — из реестра: `hookDialect`, `wakeSession`, `sendDirect`, `promptTitle`, возможности
   `orchestration` и `reviewer` (`providerCapability`). Путь без удержания `Stop` (`detached`)
   и прямой путь сообщения панели (`createDirectMessage`, `src/direct-message.ts`, опция
   `direct` маршрутов канала; `sendDirect` только для `waiting` и неизвестной каналу сессии,
-  не `ledOutside`) — в [session-chat.md](session-chat.md).
+  не `ledOutside`) и сессии вне процесса Kit — в [session-chat.md](session-chat.md).
 - `detectOs(input)`, `panelUrls(port, interfaces)`, `readPackageVersion()`.
 - Константы `COMMANDS`, `EXIT_USAGE` (64), `EXIT_NOT_IMPLEMENTED` (2).
 - Типы `CliDeps`, `App`, `AppOptions`, `SystemSection`, `OsInfo`,
@@ -201,7 +201,7 @@ stripping).
   (раунд R10); перед удалением папки проекта (`addBeforeDeleteHook`) —
   `providers.deleteSessions` (треды ChatGPT, M3-autostart R5), неудача — в журнал;
   `providers.retryDeletes()` при запуске и раз в `DELETE_RETRY_MS` (60 с) — треды,
-  которые приложение не отдало сразу (R6); `providers.maintain()` раз в `MAINTAIN_MS`
+  не отданные приложением сразу (R6); `providers.maintain()` раз в `MAINTAIN_MS`
   (60 с, опция `maintainMs`, `0` — выключено; одновременно идёт одно) — обслуживание
   провайдеров, строки — в журнал (Codex: удалённое управление — приложению ChatGPT, M7);
   `lifecycle.stop()` (из `app.stop()`) снимает оба интервала и повторы автозапуска;

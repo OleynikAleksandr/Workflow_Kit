@@ -159,6 +159,11 @@ export interface AgentChannelOptions {
   log?: (line: string) => void;
   /** Turn end and delivery of clients whose Stop hook cannot be held. */
   detached?: DetachedDelivery;
+  /**
+   * True for a session that left the Kit process: archived or removed from the list in the panel
+   * (spec M22 2.8). Its hooks get an empty answer, it gets no message and is in no list.
+   */
+  excluded?(session: SessionRef & { projectId: string }): boolean;
 }
 
 export interface AgentChannel {
@@ -191,6 +196,16 @@ export interface AgentChannel {
   /** True while the message waits for delivery: in the queue or in an unsent outbox. */
   waiting(key: string, id: string): boolean;
   section(): { sessions: SessionActivity[] };
+  /**
+   * True when the session left the Kit process (options.excluded); projectId names the project of
+   * a session the channel has not seen.
+   */
+  excluded(key: string, projectId?: string | null): boolean;
+  /**
+   * Drops the session at once (it was archived or removed): its held Stop is released, its queue,
+   * outbox and watchers go. A later hook of a session that is still excluded is answered empty.
+   */
+  forget(key: string): void;
   /** Releases every held Stop and stops the watchers (service shutdown). */
   close(): void;
 }

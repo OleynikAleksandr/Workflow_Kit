@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 699,
+  "revision": 701,
   "rounds": [
     {
       "digest": null,
@@ -106,14 +106,27 @@
         "product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts",
         "product-parts/backend-core/clusters/runtime/modules/cli/test",
         "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
-        "docs/architecture/OVERVIEW.md"
+        "docs/architecture/OVERVIEW.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/session-chat.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/session-excluded.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/channel.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/detached.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/routes.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/slots.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/types.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/excluded.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/titles.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/types.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/session-titles/test/titles.test.ts"
       ],
       "fixes": null,
       "id": "T000",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Архивные и убранные сессии выходят из процесса Kit",
       "why": "Сессия, убранная пользователем из списка, не должна прятать карточку выбора и участвовать в работе"
     },
@@ -353,8 +366,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 0/7
-- Revision: 699
+- Progress: 1/7
+- Revision: 701
 
 ## Objective
 
@@ -372,9 +385,9 @@
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T000 — Архивные и убранные сессии выходят из процесса Kit (work)
+- [DONE] T000 — Архивные и убранные сессии выходят из процесса Kit (work)
   - Commit: fix(agent-channel): leave archived and removed sessions out of the Kit process
-  - Files: product-parts/workflow-engine/clusters/session-loop/modules/agent-channel, product-parts/workflow-engine/clusters/session-loop/modules/session-titles, product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/workflow-engine/clusters/session-loop/modules/plan-review, product-parts/workflow-engine/clusters/session-loop/modules/cross-review, product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/test, product-parts/backend-core/clusters/runtime/modules/cli/module.md, docs/architecture/OVERVIEW.md
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/agent-channel, product-parts/workflow-engine/clusters/session-loop/modules/session-titles, product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/workflow-engine/clusters/session-loop/modules/plan-review, product-parts/workflow-engine/clusters/session-loop/modules/cross-review, product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/test, product-parts/backend-core/clusters/runtime/modules/cli/module.md, docs/architecture/OVERVIEW.md, product-parts/backend-core/clusters/runtime/modules/cli/session-chat.md, product-parts/backend-core/clusters/runtime/modules/cli/test/session-excluded.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/channel.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/detached.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/slots.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/types.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/excluded.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/titles.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/types.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/test/titles.test.ts
 - [TODO] T001 — Исходники Kit в Workflow Kit (work)
   - Commit: feat(kit-core): import the Workflow Kit sources from Harness AI
   - Files: product-parts/kit-core, docs/architecture/workflow-kit, tools/platform-guard/allowlist.json, package.json, package-lock.json, docs/architecture/OVERVIEW.md

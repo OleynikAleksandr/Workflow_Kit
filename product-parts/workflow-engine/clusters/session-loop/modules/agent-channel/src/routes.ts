@@ -1,6 +1,6 @@
 // HTTP side of the channel: POST /api/hooks/stop, /api/hooks/prompt and /api/hooks/turn-end (loopback only),
-// POST /api/projects/:id/sessions/:sid/message (a message from the panel: direct or queued) and the "channel"
-// section of /api/state.
+// POST /api/projects/:id/sessions/:sid/message (a message from the panel: direct or queued; 409 for a
+// session out of the Kit process) and the "channel" section of /api/state.
 import { HttpError, classifyAddress } from '#http-server';
 import type { Router, StateRegistry } from '#http-server';
 import { TURN_END_EVENTS } from './types.ts';
@@ -134,6 +134,11 @@ export function registerChannelRoutes(options: ChannelRoutesOptions): void {
     const text = typeof body === 'object' && body !== null ? (body as Record<string, unknown>)['text'] : undefined;
     const projectId = params['id']!;
     const key = params['sid']!;
+    if (channel.excluded(key, projectId)) {
+      throw new HttpError(409, 'session-archived', 'Сессия в архиве или убрана из списка: Workflow Kit с ней больше не работает', {
+        hint: 'Верните сессию из архива, чтобы снова писать ей из панели.',
+      });
+    }
     const activity = messages.get(key);
     const owned = activity?.projectId === projectId ? false : ((await options.owns?.(projectId, key).catch(() => false)) ?? false);
     const clean = checkSessionMessage(messages, projectId, key, text, owned);

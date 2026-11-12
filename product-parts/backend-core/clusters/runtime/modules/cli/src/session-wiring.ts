@@ -57,12 +57,13 @@ export function wireSessions(options: SessionWiringOptions): SessionWiring {
   const channel = createAgentChannel({
     resolveProject: resolveFolderProject,
     log: options.log,
+    // A session archived or removed from the list in the panel leaves the Kit process (spec M22 2.8).
+    excluded: (ref) => titles.excluded(ref.projectId, ref.key),
     detached: {
       supports: (client) => Boolean(providers.get(client)?.sessionIdle && providers.get(client)?.sendMessage),
       idle: async (ref) => (await reach(ref).then(({ provider, project }) => provider.sessionIdle?.(project, ref.sessionId))) === true,
       lastAnswer: async (ref) => (await reach(ref).then(({ provider, project }) => provider.lastAnswer?.(project, ref.sessionId))) ?? null,
       send: async (ref, text, delivery) => (await reach(ref).then(({ provider, project }) => provider.sendMessage?.(project, ref.sessionId, text, delivery))) === true,
-      archived: (ref) => ref.projectId !== null && titles.name(ref.projectId, ref.key).archivedAt !== null,
       names: (client) => {
         const provider = providers.get(client);
         return { label: provider ? providerLabel(provider) : client, title: provider?.title ?? client, lockSwitch: provider?.lockSwitch ?? null };
@@ -182,6 +183,7 @@ export function wireSessions(options: SessionWiringOptions): SessionWiring {
       return provider.renameSession(project, key.slice(key.indexOf(':') + 1), name);
     },
     archived: options.sessionArchived,
+    onExcluded: (projectId, key) => leaveProcess(projectId, key),
     log: options.log,
   });
   // A detached session became idle: a name that waited for the end of the turn goes before the next message.
@@ -190,5 +192,15 @@ export function wireSessions(options: SessionWiringOptions): SessionWiring {
   registerTitleRoutes({ router, state, titles, isClient });
   const crossReview = wireCrossReview({ router, state, channel, messages: wakingChannel, projects, providers, workflow, toggles: review, titles, resolveFolderProject, isClient, log: options.log });
   reviewDecider.attach(crossReview);
+  // The session leaves at once: out of the channel (a held Stop is released) and out of a running
+  // review, as main or as reviewer; nothing waits for its next hook.
+  function leaveProcess(projectId: string, key: string): void {
+    channel.forget(key);
+    const running = crossReview.get(projectId, key);
+    if (!running) return;
+    crossReview.cancel(projectId, running.mainKey, 'сессия ревью убрана в архив').catch((error: unknown) => {
+      options.log?.(`review: ${running.mainKey} could not be cancelled: ${error instanceof Error ? error.message : String(error)}`);
+    });
+  }
   return { channel, autopilot, review, titles, crossReview };
 }

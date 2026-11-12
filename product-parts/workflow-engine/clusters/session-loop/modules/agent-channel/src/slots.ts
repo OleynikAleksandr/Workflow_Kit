@@ -105,6 +105,8 @@ export interface ChannelCore {
   holdMs: number;
   log(line: string): void;
   closed(): boolean;
+  /** The session left the Kit process (archived or removed): nothing is decided or sent for it. */
+  excluded(slot: Slot): boolean;
 }
 
 export interface Detached {
@@ -119,5 +121,7 @@ export interface Detached {
   wake(slot: Slot): void;
   flush(slot: Slot): Promise<void>;
   maintain(): Promise<void>;
+  /** The slot is dropped: its watcher, reminder, confirmation timer and outbox go. */
+  drop(slot: Slot): void;
   close(): void;
 }

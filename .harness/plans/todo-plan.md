@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 664,
+  "revision": 665,
   "rounds": [
     {
       "digest": null,
@@ -169,9 +169,13 @@
       "kind": "work",
       "parallelSafe": true,
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Claude: лента из транскрипта и вставка текста в терминал",
-      "why": "Диалог и прямая отправка для сессий Claude"
+      "why": "Диалог и прямая отправка для сессий Claude",
+      "integration": {
+        "operationId": "767bd331-69e0-49ee-bf8a-89763c057a9b",
+        "sourceCommit": "eecb1597e6235ed5f6b3ce94bd7567ef6a381e7a"
+      }
     },
     {
       "acceptance": [
@@ -496,8 +500,8 @@
 - Delivery: IN_PROGRESS
 - Execution: orchestrated (max 4 workers, owner 0c355c88-f324-49fe-909c-fe5617d16288)
 - Current task: none
-- Progress: 4/9
-- Revision: 664
+- Progress: 5/9
+- Revision: 665
 
 ## Objective
 
@@ -517,7 +521,7 @@
 - [DONE] T001 — Контракт диалога сессии и маршрут чтения (work)
   - Commit: feat: add the session chat contract and the messages route
   - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/chat.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/chat-routes.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/routes.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/chat-routes.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/fake-provider.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/chat.md, product-parts/backend-core/clusters/projects/modules/git-publish/test/publication.test.ts
-- [TODO] T002 — Claude: лента из транскрипта и вставка текста в терминал (work, parallel-safe)
+- [DONE] T002 — Claude: лента из транскрипта и вставка текста в терминал (work, parallel-safe)
   - Commit: feat: read the Claude transcript as a chat and paste panel messages
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/chat.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/direct.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/runtime.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/session.exp, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/host.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/screen.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/chat.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/direct.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/windows.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/harness.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/chat.md
   - Depends on: T001

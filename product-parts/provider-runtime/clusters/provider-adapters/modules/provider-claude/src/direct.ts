@@ -1,0 +1,80 @@
+// A message from the panel straight into a Claude session the panel runs (spec M18 section 2.2):
+// <debug>.message gets "text\n" and the cleaned text; session.exp (macOS, Linux) or pty/host.ts
+// (Windows) pastes it into the terminal as a bracketed paste and presses Enter. The scripts look
+// for the file once a second and there is one file per session, so the sends of a session go one
+// after another.
+import { access, rename, rm, writeFile } from 'node:fs/promises';
+import type { Project } from '#provider-registry';
+import { poll } from './pty.ts';
+import { MESSAGE_TEXT_PREFIX } from './pty/screen.ts';
+import type { ClaudeRuntime } from './runtime.ts';
+import { runningPanelRecord } from './sessions.ts';
+
+/** How often sendDirect looks whether a control file was taken, ms. */
+export const DIRECT_POLL_MS = 200;
+
+/**
+ * The text as it may go into the terminal: CRLF and CR become LF, control characters other than
+ * LF and TAB (ESC among them, so the text cannot end the paste) are dropped.
+ */
+export function cleanDirectText(text: string): string {
+  return text.replace(/\r\n?/g, '\n').replace(/[\u0000-\u0008\u000b-\u001f\u007f-\u009f]/g, '');
+}
+
+/** The content of <debug>.message for a message text (already cleaned). */
+export function directMessageContent(text: string): string {
+  return `${MESSAGE_TEXT_PREFIX}${text}`;
+}
+
+const exists = (file: string): Promise<boolean> =>
+  access(file).then(
+    () => true,
+    () => false,
+  );
+
+/** Sends in flight per runtime and session id: the next one waits for the previous. */
+const queues = new WeakMap<ClaudeRuntime, Map<string, Promise<boolean>>>();
+
+/**
+ * Pastes text into the session as the user's message. False when the panel does not run the
+ * session, the text is empty after cleaning, the previous file was not taken in time, or the
+ * script did not take this one in time (the file is then deleted). Never throws.
+ */
+export function sendDirect(rt: ClaudeRuntime, project: Project, sid: string, text: string): Promise<boolean> {
+  let perSession = queues.get(rt);
+  if (!perSession) queues.set(rt, (perSession = new Map()));
+  const previous = perSession.get(sid) ?? Promise.resolve(true);
+  const next = previous.then(() => deliver(rt, project, sid, text));
+  perSession.set(sid, next);
+  void next.finally(() => {
+    if (perSession.get(sid) === next) perSession.delete(sid);
+  });
+  return next;
+}
+
+async function deliver(rt: ClaudeRuntime, project: Project, sid: string, text: string): Promise<boolean> {
+  const clean = cleanDirectText(text);
+  if (clean.trim() === '') return false;
+  try {
+    const record = await runningPanelRecord(rt, project, sid);
+    if (!record) return false;
+    const file = `${record.debugFile}.message`;
+    const wait = { timeoutMs: rt.options.directWaitMs, pollMs: DIRECT_POLL_MS };
+    const taken = async (): Promise<true | undefined> => ((await exists(file)) ? undefined : true);
+    if (!(await poll(taken, wait))) {
+      rt.context.log(`claude: message to ${sid} not sent: the previous control file was not taken`);
+      return false;
+    }
+    // Written aside and renamed: the script never reads half a message.
+    const partial = `${file}.partial`;
+    await writeFile(partial, directMessageContent(clean), 'utf8');
+    await rename(partial, file);
+    if (await poll(taken, wait)) return true;
+    await rm(file, { force: true });
+    rt.context.log(`claude: message to ${sid} not taken by the session script in time`);
+    return false;
+  } catch (error) {
+    rt.context.log(`claude: message to ${sid} not sent: ${error instanceof Error ? error.message : String(error)}`);
+    return false;
+  }
+}

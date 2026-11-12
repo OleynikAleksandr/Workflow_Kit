@@ -124,6 +124,23 @@ test('session host: link, first message, rename and wake files, end — the mark
   assert.deepEqual(host.codes, [0]);
 });
 
+test('session host: a text message file is pasted (bracketed paste, Enter, MESSAGE_SENT); wake keeps the phrase', async () => {
+  const host = fakeHost();
+  const done = runHost(session(), host.deps, TIMINGS);
+  host.emit('claude.ai/code/session_Txt1\r\n');
+  await until(() => host.out().includes('SESSION_URL'));
+  host.files.set(`${DEBUG}.message`, 'text\nСтрока один\nстрока два\tс табом');
+  await until(() => host.out().includes('MESSAGE_SENT'));
+  assert.deepEqual(host.written, ['\u001b[200~Строка один\nстрока два\tс табом\u001b[201~', '\r']);
+  assert.equal(host.files.has(`${DEBUG}.message`), false, 'the file is taken');
+  assert.doesNotMatch(host.out(), /WOKEN/);
+  host.files.set(`${DEBUG}.message`, 'wake\n');
+  await until(() => host.out().includes('WOKEN'));
+  assert.deepEqual(host.written.slice(2), ['Workflow Kit: новое сообщение из панели.', '\r']);
+  host.exit(0);
+  await done;
+});
+
 test('session host: --resume, the link timeout and an early exit', async () => {
   const late = fakeHost();
   const lateDone = runHost(session({ resume: 'local-1' }), late.deps, { ...TIMINGS, sessionMs: 20 });

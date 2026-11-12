@@ -1,5 +1,5 @@
 // The Claude provider (docs/planning/M1-providers.md, section 2) assembled from its parts: status
-// and capabilities, trust, the Kit hook, sessions and the folder environment.
+// and capabilities, trust, the Kit hook, sessions, their conversation and the folder environment.
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { ProviderError, createTokenStore } from '#provider-registry';
@@ -7,12 +7,13 @@ import type { HookEntry, HookState, Project, ProjectProviderState, Provider, Pro
 import { findKitHook, hookText, isKitHookEntry, normalizeHook, sha256 } from '#kit-structure';
 import { archiveSessions, restoreSessions } from './archive.ts';
 import { ENVIRONMENT_START, ENVIRONMENT_STOP, environmentActions, environmentBlockers, startEnvironment, stopEnvironment } from './environment.ts';
+import { sendDirect } from './direct.ts';
 import { claudeCapabilities, ptyUnavailableReason } from './programs.ts';
 import { purgeProject } from './purge.ts';
 import { forgetProjects } from './records.ts';
 import { PROVIDER_ID, createRuntime } from './runtime.ts';
 import type { ClaudeProviderOptions, ClaudeRuntime } from './runtime.ts';
-import { createSession, listSessions, renameSession, resumeInterrupted, resumeSession, stopSession, wakeSession } from './sessions.ts';
+import { createSession, findSession, listSessions, renameSession, resumeInterrupted, resumeSession, stopSession, wakeSession } from './sessions.ts';
 import { grantTrust, previewTrust, readTrust } from './trust.ts';
 
 /** Claude settings files whose hooks are listed (the Kit hook lives in the first one). */
@@ -113,6 +114,7 @@ export function createClaudeProvider(context: ProviderContext, options: ClaudePr
     async refresh() {
       await rt.refresh();
       rt.bridge.clear();
+      rt.chat.clear();
       return status(rt);
     },
     previewTrust: (project) => previewTrust(rt, tokens, project),
@@ -132,6 +134,9 @@ export function createClaudeProvider(context: ProviderContext, options: ClaudePr
     stopSession: (project, sid) => stopSession(rt, project, sid),
     renameSession: (project, sid, name) => renameSession(rt, project, sid, name),
     wakeSession: (project, sid) => wakeSession(rt, project, sid),
+    // The conversation from the transcript the hook journal names (spec M18 section 2.2).
+    readMessages: async (project, sid, opts) => rt.chat.read((await findSession(rt, project, sid)).hook?.hook.transcriptPath ?? null, opts.limit),
+    sendDirect: (project, sid, text) => sendDirect(rt, project, sid, text),
     actions: async (project) => (project ? environmentActions(rt, project) : []),
     async runAction(id, project) {
       if (!project || (id !== ENVIRONMENT_START && id !== ENVIRONMENT_STOP)) {

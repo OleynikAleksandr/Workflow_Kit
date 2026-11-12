@@ -321,17 +321,27 @@ export async function renameSession(rt: ClaudeRuntime, project: Project, sid: st
  * not run the session (nothing to type into). The caller wakes only sessions out of a turn.
  */
 export async function wakeSession(rt: ClaudeRuntime, project: Project, sid: string): Promise<boolean> {
-  let { record } = await findSession(rt, project, sid);
+  const record = await runningPanelRecord(rt, project, sid);
   if (!record) return false;
-  if (!(await rt.isAlive(record.processId))) {
-    // An interrupted session (reboot, crash) comes back first; one stopped on purpose stays stopped.
-    if (!isInterrupted(record)) return false;
-    await resumeSession(rt, project, sid);
-    ({ record } = await findSession(rt, project, sid));
-    if (!record || !(await rt.isAlive(record.processId))) return false;
-  }
-  await writeFile(`${record.debugFile}.message`, 'wake\n', 'utf8');
+  // A message file already waiting (sendDirect) starts a turn by itself: it is not overwritten.
+  await writeFile(`${record.debugFile}.message`, 'wake\n', { encoding: 'utf8', flag: 'wx' }).catch((error: NodeJS.ErrnoException) => {
+    if (error.code !== 'EEXIST') throw error;
+  });
   return true;
+}
+
+/**
+ * The record of a session the panel runs, with a live process: an interrupted one (reboot, crash)
+ * comes back first, one stopped on purpose stays stopped. Null when the panel does not run it.
+ */
+export async function runningPanelRecord(rt: ClaudeRuntime, project: Project, sid: string): Promise<SessionRecord | null> {
+  let { record } = await findSession(rt, project, sid);
+  if (!record) return null;
+  if (await rt.isAlive(record.processId)) return record;
+  if (!isInterrupted(record)) return null;
+  await resumeSession(rt, project, sid);
+  ({ record } = await findSession(rt, project, sid));
+  return record && (await rt.isAlive(record.processId)) ? record : null;
 }
 
 /** Started by the panel and never stopped on purpose: its process ended on its own. */

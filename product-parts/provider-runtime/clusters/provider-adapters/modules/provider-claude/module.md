@@ -25,7 +25,7 @@ D5) и останавливает только по своим записям (D
 - `createClaudeProvider(context, options?) → Provider` — то же с
   настройками для тестов (`ClaudeProviderOptions`: `scripts`,
   `sessionTimeoutMs` 120 с, `debugGraceMs` 10 с, `environmentTimeoutMs`
-  45 с, `pollMs` 250 мс, `stopGraceMs` 5 с, `afterConfigWrite(attempt)` —
+  45 с, `pollMs` 250 мс, `stopGraceMs` 5 с, `directWaitMs` 5 с, `afterConfigWrite(attempt)` —
   вызывается после каждой записи `~/.claude.json` до проверки чтением;
   только для тестов параллельной записи).
 - `PROVIDER_ID` — `claude` (ключ реестра и клиент журнала хука).
@@ -219,11 +219,13 @@ D5) и останавливает только по своим записям (D
   вызывающий (свойство `promptTitle: true`): ввод в ходе мог бы ответить
   на диалог разрешения.
 - `wakeSession(project, sid)` — то же для очереди панели: пишет
-  `<debug-файл>.message`, `session.exp` вводит «Workflow Kit: новое
+  `<debug-файл>.message` (`wake`, ждущий файл не трогает), `session.exp` вводит «Workflow Kit: новое
   сообщение из панели.» и печатает `WOKEN`; хук `UserPromptSubmit` отдаёт
   агенту очередь. Прерванная сессия сначала поднимается
   (`resumeSession`); `false` — сессию держит не панель или её остановили
   намеренно.
+- Диалог (M18): `readMessages` — лента из транскрипта, `sendDirect` — вставка текста в
+  терминал (`<debug>.message` вида `text`, `MESSAGE_SENT`); правила и ОС — [chat.md](chat.md).
 
 ### Окружение папки (особое действие проекта)
 

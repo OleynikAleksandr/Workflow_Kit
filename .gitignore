@@ -30,3 +30,7 @@ __pycache__/
 *.key
 
 # README, CHANGELOG, documentation and required Kit bundles stay versioned.
+
+# wfk:begin
+.workflow-kit/local/
+# wfk:end

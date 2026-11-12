@@ -8,6 +8,36 @@
             "type": "command"
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -x \"$HOME/.local/bin/wfk\" ] && \"$HOME/.local/bin/wfk\" hook session-start --client claude; exit 0"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -x \"$HOME/.local/bin/wfk\" ] && \"$HOME/.local/bin/wfk\" hook stop --client claude; exit 0",
+            "timeout": 600
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -x \"$HOME/.local/bin/wfk\" ] && \"$HOME/.local/bin/wfk\" hook prompt --client claude; exit 0",
+            "timeout": 30
+          }
+        ]
       }
     ]
   }

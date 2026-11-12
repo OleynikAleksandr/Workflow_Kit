@@ -1,0 +1,41 @@
+{
+  "kit": "workflow-kit",
+  "version": 3,
+  "fragments": {
+    "agents-section": {
+      "path": "AGENTS.md",
+      "sha256": "0a3581bca2cf93708568dbbc38d5dc12e4aeafd65b5c11b1f5412c84be456e7f",
+      "version": 3
+    },
+    "claude-hook": {
+      "path": ".claude/settings.json",
+      "sha256": "4ca54942b73466c6216b5c5c075debdcfb4a9267799421ea7c1eb712b13ba262",
+      "version": 3
+    },
+    "codex-hook": {
+      "path": ".codex/hooks.json",
+      "sha256": "9e054e231ffea1f98eed63a0edd61790787e15920826929b8d7e95fe83341ae6",
+      "version": 3
+    },
+    "gitignore-block": {
+      "path": ".gitignore",
+      "sha256": "f901abe31297c00cce550f2cf170c8bf4d64327076c7852fdda30afbfcddcda6",
+      "version": 3
+    },
+    "template-product-part": {
+      "path": ".workflow-kit/templates/product-part.md",
+      "sha256": "9ae5135c875e10c3e3c2fe35a99991c4cdc543ca6d799cc9c28b7fece64e566a",
+      "version": 3
+    },
+    "template-cluster": {
+      "path": ".workflow-kit/templates/cluster.md",
+      "sha256": "7ebb55b2c86e39b4b877d439fb5d1a513fda61a3025fa16e63164d6ae0be4605",
+      "version": 3
+    },
+    "template-module": {
+      "path": ".workflow-kit/templates/module.md",
+      "sha256": "bd1bcc86b8ea7c379cf8b17597d696727f23804c49ded7099076194791adbd8b",
+      "version": 3
+    }
+  }
+}

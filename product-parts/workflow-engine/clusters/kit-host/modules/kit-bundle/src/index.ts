@@ -2,7 +2,7 @@
 export type { EnsureBundleOptions, KitBundle } from './bundle.ts';
 export {
   KIT_SHA256,
-  KIT_SOURCE_COMMIT,
+  KIT_SOURCE_DIGEST,
   KIT_VERSION,
   KitBundleError,
   ensureKitBundle,

@@ -60,6 +60,17 @@
    файлы `src/` с относительным импортом, помощники и данные тестов — в `test/*-support.mjs`
    или во второй файл теста. Какие файлы появились — в `module.md` модулей.
 
+8. В `workflow-host-facade.test.mjs` обычным командам дано 30 с вместо 400 мс (запуск
+   node на загруженной машине и в CI на Windows не успевал); короткий предел остался у
+   проверки тайм-аута (`run(["sleep"], { timeoutMs: 400 })`).
+
+## Версии и сборка
+
+Версии Kit идут своей линией: `KIT_VERSION` в `workflow-installer/src/installer-payload.ts`.
+Первая версия, собранная здесь, — **2.2.4** (= 2.2.3 и правки переноса). Бандл собирает
+`npm run build:kit` ([tools/kit-build](../../tools/kit-build/README.md)) в модуль
+`workflow-engine/kit-host/kit-bundle`; тест сборки не пропускает исходники без пересборки.
+
 ## Поведение на ОС
 
 Kit работает на macOS, Linux и Windows: ветки ОС — в `workflow-platform` (пути, запускатели

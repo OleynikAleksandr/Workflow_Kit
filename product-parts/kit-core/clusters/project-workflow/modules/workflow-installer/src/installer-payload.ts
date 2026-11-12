@@ -25,7 +25,7 @@ import {
 } from "./installer-texts.js";
 
 /** Version of the Workflow Kit payload; Kit 1.x was Workflow Pilot. */
-export const KIT_VERSION = "2.2.3";
+export const KIT_VERSION = "2.2.4";
 export const MANIFEST_PATH = ".harness/workflow/manifest.json";
 export const MANIFEST_SCHEMA = "harness-workflow-manifest/1";
 export const OWN_HOOKS_DIR = ".harness/workflow/hooks";

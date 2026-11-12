@@ -41,8 +41,11 @@
   "scripts": {
     "start": "node bin/wfk.mjs serve",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "node --test \"product-parts/**/test/*.test.ts\" \"product-parts/**/test/*.test.mjs\" \"tools/**/test/*.test.ts\"",
-    "check:platforms": "node tools/platform-guard/check.ts"
+    "test": "npm run test:app && npm run test:kit",
+    "test:app": "node --test \"product-parts/**/test/*.test.ts\" \"tools/platform-guard/test/*.test.ts\"",
+    "test:kit": "node --test \"product-parts/**/test/*.test.mjs\" \"tools/kit-build/test/*.test.ts\"",
+    "check:platforms": "node tools/platform-guard/check.ts",
+    "build:kit": "node tools/kit-build/build.ts"
   },
   "devDependencies": {
     "@types/node": "24.19.2",

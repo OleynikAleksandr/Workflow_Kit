@@ -63,7 +63,7 @@ Writing rules:
 
 `manifest(entries)` → `{schema "harness-workflow-manifest/1", version,
 files: [{path, kind, executable, sha256}]}`; `sha256` hashes the managed
-part (`null` for `create`). `version` is `KIT_VERSION` (`2.2.3`; Kit 1.x
+part (`null` for `create`). `version` is `KIT_VERSION` (`2.2.4`, the first Kit built in Workflow Kit; Kit 1.x
 was Workflow Pilot). A change of a managed text or of the runtime raises the version, so
 older installations read as `KIT_OUTDATED` and the update rewrites them
 (2.1.0 added `.harness/sessions/` and `.claude/worktrees/` to `.gitignore`
@@ -308,7 +308,7 @@ Node built-ins only.
   hashes; the Execution modes block (four roles, helpers in sequential,
   integration commands, the identity rule, under 1800 bytes), the Inputs and
   documents block (`schema`, `context`, files never to read), the Harness
-  note on proposing the scope and `KIT_VERSION` 2.2.3; the six Claude
+  note on proposing the scope and `KIT_VERSION` 2.2.4; the six Claude
   groups with `--part K/6`, the replaced 2.2.2 group, a changed part read
   as a difference, the Codex entry with `additionalContextLimit`.
 - `test/workflow-installer-install.test.mjs` (with

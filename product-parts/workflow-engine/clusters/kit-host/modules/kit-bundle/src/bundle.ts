@@ -1,18 +1,16 @@
 // The vendored Harness Workflow Kit bundle: a gzip of the single-file workflow.mjs kept in the
-// module's vendor/ folder, unpacked into the app data directory and verified by SHA-256.
+// module's vendor/ folder, unpacked into the app data directory and verified by SHA-256. The
+// bundle is built in this repository from product-parts/kit-core by tools/kit-build.
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gunzipSync } from 'node:zlib';
 import { writeFileAtomic } from '#data-store';
+import { KIT_SHA256, KIT_VERSION } from './bundle-meta.ts';
 
-/** Kit version of the vendored bundle. */
-export const KIT_VERSION = '2.2.3';
-/** SHA-256 of the unpacked bundle (see vendor/PROVENANCE). */
-export const KIT_SHA256 = '8891de2ff127deae1819f132123ca12cbd98af77dec666c44209366ea925497e';
-/** harness-ai commit the bundle was built from. */
-export const KIT_SOURCE_COMMIT = '7afe27ad';
+// Version, hash and source digest are written by tools/kit-build (npm run build:kit).
+export { KIT_SHA256, KIT_SOURCE_DIGEST, KIT_VERSION } from './bundle-meta.ts';
 
 /** The gzip file shipped with the app. */
 export function vendorBundleFile(): string {

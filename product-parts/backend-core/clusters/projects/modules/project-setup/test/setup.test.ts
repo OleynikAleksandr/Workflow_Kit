@@ -1,4 +1,4 @@
-// The wizard end to end on a temporary HOME: real git and the real Kit bundle (2.2.3), fake Codex,
+// The wizard end to end on a temporary HOME: real git and the real Kit bundle (KIT_VERSION), fake Codex,
 // Claude and a third provider (a hook written into a file) that record what the wizard asks.
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
@@ -213,12 +213,12 @@ test('open: an older Kit (KIT_OUTDATED) is updated to the app bundle, not instal
   // The manifest of an older Kit: inspect answers KIT_OUTDATED.
   const manifestFile = path.join(folder, '.harness', 'workflow', 'manifest.json');
   const manifest = JSON.parse(await readFile(manifestFile, 'utf8'));
-  await writeFile(manifestFile, `${JSON.stringify({ ...manifest, version: '2.2.2' }, null, 2)}\n`);
+  await writeFile(manifestFile, `${JSON.stringify({ ...manifest, version: '2.2.3' }, null, 2)}\n`);
   const preview = await send('/api/setup/preview', { mode: 'open', path: folder });
   assert.equal(preview.status, 200, JSON.stringify(preview.json));
   assert.equal(preview.json['kit'].action, 'update');
   const kit = preview.json['actions'].find((a: { id: string }) => a.id === 'kit');
-  assert.deepEqual([kit.title, kit.detail], [`Процесс Kit ${KIT_VERSION}`, 'обновление с 2.2.2']);
+  assert.deepEqual([kit.title, kit.detail], [`Процесс Kit ${KIT_VERSION}`, 'обновление с 2.2.3']);
   const applied = await send('/api/setup/apply', { token: preview.json['token'], provider: 'claude' });
   const operation = await app.operations.wait(applied.json['operationId']);
   assert.equal(operation.status, 'succeeded', JSON.stringify(operation.error));

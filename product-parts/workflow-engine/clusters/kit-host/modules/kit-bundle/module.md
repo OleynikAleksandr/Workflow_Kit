@@ -4,19 +4,22 @@
 
 ## Назначение
 
-Бандл Harness Workflow Kit 2.2.3, с которым служба ставит и проверяет
-процесс Kit в проектах (спецификация, раздел 8.1). В репозитории лежит
-gzip (`vendor/workflow-kit-2.2.3.mjs.gz`: двоичный файл, проверка длины
-файлов его пропускает) и `vendor/PROVENANCE` — откуда он взят: harness-ai
-`7afe27ad`, `dist/workflow-kit/workflow.mjs`, 10801 строка, SHA-256
-распакованного файла
-`8891de2ff127deae1819f132123ca12cbd98af77dec666c44209366ea925497e`.
+Бандл Harness Workflow Kit, с которым служба ставит и проверяет процесс Kit
+в проектах (спецификация, раздел 8.1). С Kit 2.2.4 бандл собирается в этом
+репозитории из исходников `product-parts/kit-core` командой
+`npm run build:kit` ([tools/kit-build](../../../../../../tools/kit-build/README.md),
+M22 2.5). В модуле лежат gzip (`vendor/workflow-kit-<версия>.mjs.gz`: двоичный
+файл, проверка длины файлов его пропускает), `vendor/PROVENANCE` (кем и из чего
+собран, дайджест исходников, число строк, SHA-256 распакованного файла) и
+`src/bundle-meta.ts` — константы, которые пишет сборка; руками их не правят.
 
 ## Публичный интерфейс (`src/index.ts`)
 
-- `KIT_VERSION` (`2.2.3`), `KIT_SHA256`, `KIT_SOURCE_COMMIT`.
+- `KIT_VERSION` (`2.2.4`), `KIT_SHA256`, `KIT_SOURCE_DIGEST` — из
+  `src/bundle-meta.ts`; `KIT_SOURCE_DIGEST` — дайджест исходников Kit
+  (`kitSourceDigest` сборки).
 - `vendorBundleFile()` — путь gzip в модуле; `unpackedBundleFile(appDir)` —
-  `<appDir>/kit/workflow-kit-2.2.3.mjs`.
+  `<appDir>/kit/workflow-kit-<KIT_VERSION>.mjs`.
 - `ensureKitBundle({ appDir, vendorFile?, sha256? }) → KitBundle`
   (`file`, `version`, `sha256`): распакованный файл с верным хешем
   используется как есть; иначе gzip распаковывается, хеш проверяется,
@@ -29,7 +32,9 @@ gzip (`vendor/workflow-kit-2.2.3.mjs.gz`: двоичный файл, прове�
 ## Инварианты
 
 - Исполняется только файл, чей SHA-256 совпал с `KIT_SHA256`.
-- Обновление Kit — замена gzip и `PROVENANCE` вместе с константами модуля.
+- Обновление Kit — правка исходников `kit-core` и `npm run build:kit`: сборка
+  заменяет gzip, `PROVENANCE` и `bundle-meta.ts` вместе. Тест
+  `tools/kit-build` не пропускает исходники без пересборки.
 
 ## Зависимости
 

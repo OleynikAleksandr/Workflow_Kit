@@ -1,10 +1,12 @@
-Harness Workflow Kit 2.2.3 single-file bundle (gzip of workflow.mjs).
+Harness Workflow Kit 2.2.4 single-file bundle (gzip of workflow.mjs).
 
-source repository: harness-ai (local checkout of the Kit author)
-source commit:     7afe27ad
-source file:       dist/workflow-kit/workflow.mjs
-lines:             10801
-sha256 (unpacked): 8891de2ff127deae1819f132123ca12cbd98af77dec666c44209366ea925497e
+built by:          tools/kit-build (npm run build:kit), esbuild 0.25.12
+sources:           product-parts/kit-core/clusters/project-workflow/modules/*/src/*.ts
+source digest:     20916a85d6e3eaa17506f64bcc721ec00c962ff4b4285a935791af5c8bbe423f
+based on:          Harness AI commit 94a9d457 (Kit 2.2.3), adapted in product-parts/kit-core
+lines:             13242
+sha256 (unpacked): 56aeed885eca6277e095acf5c0004d723c817b0372cc3876b4171ccf627b3479
 
 The bundle is unpacked into <appDir>/kit/ and verified against this hash
-before use (module kit-bundle). Replace both files together when updating.
+before use (module kit-bundle). Rebuild with `npm run build:kit`: the test of
+tools/kit-build fails when the Kit sources change without a rebuild.

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 670,
+  "revision": 671,
   "rounds": [
     {
       "digest": {
@@ -57,7 +57,10 @@
       "Сессии по-прежнему открываются и ведутся в родных приложениях; автопилот, ревью и выбор пути работают как раньше",
       "Тесты, проверка типов и check:platforms зелёные локально и в CI на macOS, Linux, Windows x64 и ARM64; выпущена версия 0.9.0"
     ],
-    "acceptanceNote": null,
+    "acceptanceNote": {
+      "at": "2026-11-12T08:20:27.240Z",
+      "text": "Пользователь, 2026-11-12: «Продолжай без остановки, Выпуск тоже сделай. И я заранее его принимаю, чтобы ты его залил на GitHub. И закроем после этого данный скоп, чтобы в следующем можно было тестировать и исправлять ошибки.»"
+    },
     "approval": {
       "at": "2026-11-12T07:23:53.416Z",
       "text": "Пользователь, 2026-11-12: «сделать возможным показывать диалоги любой сессии… и диалоговая сессия с полем ввода пользователя в самом Workflow Kit. Какой именно интерфейс… решить самому, важно, чтобы это заработало… Подготовь план таким образом, чтобы ты его мог реализовывать через сабагентов с другой моделью. С Opus 5.5 Medium. Если все понятно и проблем с моей просьбой нет, переходи к спецификации.» Выбор в панели: спецификация и план без ревью. | Execution mode chosen by the user: orchestrated: Выбор пользователя в панели Workflow Kit: оркестрация с исполнителями"
@@ -97,7 +100,7 @@
         "text": "Документы у предела 28000 байт (OVERVIEW, README, module.md провайдеров и cli): подробности выносятся в отдельные документы со ссылкой"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "ACCEPTED",
     "execution": {
       "maxWorkers": 4,
       "ownerSession": "0c355c88-f324-49fe-909c-fe5617d16288",
@@ -538,11 +541,11 @@
 ## State
 
 - Scope: m18-session-chat (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: ACCEPTED
 - Execution: orchestrated (max 4 workers, owner 0c355c88-f324-49fe-909c-fe5617d16288)
 - Current task: none
 - Progress: 9/9
-- Revision: 670
+- Revision: 671
 
 ## Objective
 

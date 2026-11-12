@@ -24,7 +24,8 @@ const build = await buildWorkflowModules(
   ["workflow-kit", "workflow-assignment"],
   "workflow-kit-executor"
 );
-const sandbox = realpathSync(
+// The long path: git reports worktrees by it (Windows 8.3 names differ).
+const sandbox = realpathSync.native(
   mkdtempSync(path.join(tmpdir(), "workflow-kit-executor-"))
 );
 try {

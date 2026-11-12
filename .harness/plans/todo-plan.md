@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 733,
+  "revision": 735,
   "rounds": [
     {
       "digest": {
@@ -218,7 +218,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Тесты Kit на Windows: второй проход",
       "why": "CI 43270655505: 6 тестов Kit ещё падают на Windows"
     },
@@ -287,8 +287,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 3/6
-- Revision: 733
+- Progress: 4/6
+- Revision: 735
 
 ## Objective
 
@@ -320,7 +320,7 @@ Digest: Тесты Kit исправлены для Windows: заглушки б�
 
 ### R2 — Тесты Kit на Windows, второй проход (fixes, OPEN)
 
-- [TODO] T003 — Тесты Kit на Windows: второй проход (work)
+- [DONE] T003 — Тесты Kit на Windows: второй проход (work)
   - Commit: test(kit-core): fix the remaining Kit tests on Windows
   - Files: product-parts/kit-core/clusters/project-workflow/modules/workflow-integration/test/orchestration-scenario.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-executor.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery/test/workflow-recovery-worktree.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-assignment/test/workflow-assignment-cancel.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-worktree.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/test/workflow-installer-doctor.test.mjs, product-parts/kit-core/product-part.md
   - Fixes: T001

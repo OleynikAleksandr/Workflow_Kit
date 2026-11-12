@@ -51,6 +51,12 @@ process.exitCode = runCli(process.argv.slice(2), { cwd: process.cwd(), env: proc
   installer.install(root, { bundle, name: "Doctor", runtime });
   writeFileSync(path.join(root, "package.json"), "{}\n");
   const healthy = () => "24.1.0";
+  // Windows has no executable bits, so the doctor has no "executable" check there.
+  const { workflowPlatformFacade } = await build.load(
+    "workflow-platform",
+    "workflow-platform-facade.js"
+  );
+  const posix = workflowPlatformFacade.platform !== "win32";
   const statusOf = (report) =>
     Object.fromEntries(report.checks.map((item) => [item.id, item.status]));
 
@@ -59,7 +65,7 @@ process.exitCode = runCli(process.argv.slice(2), { cwd: process.cwd(), env: proc
   assert.equal(first.ok, true, JSON.stringify(first.checks));
   assert.deepEqual(statusOf(first), {
     "doc-size": "ok",
-    executable: "ok",
+    ...(posix ? { executable: "ok" } : {}),
     "git-hooks": "ok",
     "git-identity": "ok",
     "managed-files": "ok",
@@ -88,7 +94,7 @@ process.exitCode = runCli(process.argv.slice(2), { cwd: process.cwd(), env: proc
       .map((item) => [item.id, item.fixable]),
     [
       ["managed-files", true],
-      ["executable", true],
+      ...(posix ? [["executable", true]] : []),
       ["git-hooks", true],
     ]
   );
@@ -166,7 +172,7 @@ process.exitCode = runCli(process.argv.slice(2), { cwd: process.cwd(), env: proc
     /git config --global user\.email/u
   );
   assert.deepEqual([unknown.identityFix, unknown.fix], [null, null]);
-  assert.equal(statusOf(unknown).executable, "fail");
+  assert.equal(statusOf(unknown).executable, posix ? "fail" : undefined);
   assert.equal(git.readIdentity(root, "local"), null);
   // With a real global identity the fix copies it into the repository config.
   const copied = installer.doctor(root, {
@@ -181,7 +187,7 @@ process.exitCode = runCli(process.argv.slice(2), { cwd: process.cwd(), env: proc
   });
   assert.deepEqual(copied.fix.written, []);
   assert.equal(copied.fix.commit, null);
-  assert.equal(statusOf(copied).executable, "ok");
+  assert.equal(statusOf(copied).executable, posix ? "ok" : undefined);
   assert.deepEqual(git.readIdentity(root, "local"), copied.identityFix);
   assert.equal(identityOf(copied).status, "ok");
 

@@ -64,7 +64,7 @@ mkdir -p node_modules/left-pad
       "  echo npm ERR! fake failure 1>&2",
       "  exit /b 1",
       ")",
-      "echo fake npm %*",
+      "echo fake npm %~1",
       "if not exist node_modules\\left-pad mkdir node_modules\\left-pad",
       "exit /b 0",
       "",

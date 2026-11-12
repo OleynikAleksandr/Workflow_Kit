@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 722,
+  "revision": 723,
   "rounds": [
     {
       "digest": {
@@ -54,7 +54,10 @@
       "Экран проекта показывает версию Kit; для устаревшего Kit «Обновить Kit» обновляет его без мастера и без новой сессии, хук Codex одобряется сам",
       "CI зелёный на macOS, Linux, Windows x64 и ARM64"
     ],
-    "acceptanceNote": null,
+    "acceptanceNote": {
+      "at": "2026-11-12T17:11:30.915Z",
+      "text": "Пользователь принял план в панели Workflow Kit"
+    },
     "approval": {
       "at": "2026-11-12T15:49:59.859Z",
       "text": "Пользователь, 2026-11-12: «Давай переезжать со всем этим бэкэндом в наш проект Workflow Kit и с китом, и с харнесом… скопировать все необходимые модули, которые используются в Workflow Kit из Harness AI в сам код Workflow Kit»; в панели выбрано «спецификация и план без ревью». | Execution mode chosen by the user: sequential: Выбор пользователя в панели Workflow Kit: выполнить самому, последовательно"
@@ -89,7 +92,7 @@
         "text": "Kit этого репозитория обновляется до 2.2.4 после закрытия scope"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "ACCEPTED",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "8ed2f99f-7296-4ad6-ae41-6fec13ee5fdb",
@@ -618,11 +621,11 @@
 ## State
 
 - Scope: m22-kit-source (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: ACCEPTED
 - Execution: sequential
 - Current task: none
 - Progress: 7/7
-- Revision: 722
+- Revision: 723
 
 ## Objective
 

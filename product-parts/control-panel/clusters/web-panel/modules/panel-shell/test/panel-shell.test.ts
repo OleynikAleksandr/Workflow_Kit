@@ -199,8 +199,57 @@ test('the sessionChat slot is registered and drawn under sessionBody on the sess
   assert.match(screen, /JSON\.stringify\(\[data\.session\.key, selected\]\)/);
   assert.match(screen, /host\.firstChild !== node/);
   const app = await readFile(path.join(PANEL_ASSETS_DIR, 'app.js'), 'utf8');
-  assert.match(app, /createSessionScreen\(slotContext\)/);
+  assert.match(app, /createSessionScreen\(slotContext, \{ resume: handlers.resumeSession \}\)/);
   const html = await readFile(path.join(PANEL_ASSETS_DIR, 'index.html'), 'utf8');
   const chatCss = html.indexOf('href="session-chat/session-chat.css"');
   assert.ok(chatCss > html.indexOf('href="session-view/session-view.css"'), 'session-chat.css after the other styles');
+});
+
+/** A minimal DOM for the actions module: elements only collect their children. */
+function fakeDocument() {
+  const element = () => ({
+    className: '',
+    hidden: false,
+    children: [] as unknown[],
+    setAttribute() {},
+    append(...c: unknown[]) {
+      this.children.push(...c);
+    },
+    replaceChildren() {},
+    addEventListener() {},
+  });
+  return { createElement: element, createTextNode: (text: string) => ({ text }) };
+}
+
+test('an external session is not resumed when its screen opens; «Продолжить» resumes it on purpose (M19 2.3)', async () => {
+  const saved = { document: (globalThis as any).document, fetch: globalThis.fetch };
+  const posts: string[] = [];
+  (globalThis as any).document = fakeDocument();
+  globalThis.fetch = (async (url: string, init: RequestInit) => {
+    posts.push(`${init.method} ${url}`);
+    return new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } });
+  }) as typeof fetch;
+  try {
+    const { createActions, externalText } = await import('../src/actions.js');
+    const { handlers } = createActions({ navigate: () => {}, render: () => {}, route: () => ({ screen: 'home' }), providerNames: () => 'Claude' });
+    const row = { key: 'claude:c1', provider: 'claude', providerLabel: 'Claude', resumable: true, external: false, state: 'stopped', links: {}, note: null } as any;
+    const external = { ...row, external: true };
+    handlers.reviveSession('p1', external);
+    assert.deepEqual(posts, [], 'no resume for an external session');
+    assert.deepEqual(handlers.sessionStatus(external), { text: 'Сессию ведёт приложение Claude вне панели; сообщения придут агенту с ближайшим хуком', tone: 'muted' });
+    assert.equal(externalText({ providerLabel: 'Claude Code' }), 'Сессию ведёт приложение Claude Code вне панели; сообщения придут агенту с ближайшим хуком');
+    handlers.resumeSession('p1', external);
+    assert.deepEqual(posts, ['POST /api/projects/p1/providers/claude/sessions/c1/resume']);
+    assert.equal(handlers.sessionStatus(external).text, 'поднимаем сессию…');
+    handlers.resumeSession('p1', external);
+    assert.equal(posts.length, 1, 'a pending resume is not repeated');
+    handlers.reviveSession('p1', { ...row, key: 'claude:c2' });
+    assert.deepEqual(posts.slice(1), ['POST /api/projects/p1/providers/claude/sessions/c2/resume'], 'a session of the panel is resumed as before');
+    handlers.reviveSession('p1', { ...row, key: 'claude:c3', state: 'running' });
+    handlers.reviveSession('p1', { ...row, key: 'codex:t1', provider: 'codex', resumable: false });
+    assert.equal(posts.length, 2, 'running and non-resumable sessions are not resumed');
+  } finally {
+    (globalThis as any).document = saved.document;
+    globalThis.fetch = saved.fetch;
+  }
 });

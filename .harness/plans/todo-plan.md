@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 674,
+  "revision": 676,
   "rounds": [
     {
       "digest": null,
@@ -40,7 +40,7 @@
       }
     ],
     "decisions": [],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 1,
       "ownerSession": null,
@@ -89,7 +89,7 @@
       "kind": "work",
       "parallelSafe": true,
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Панель: внешнюю сессию не возобновлять при открытии экрана",
       "why": "Открытие экрана сессии запускало второй процесс Claude с тем же идентификатором"
     }
@@ -101,11 +101,11 @@
 ## State
 
 - Scope: assignment-m19-session-chat-fixes-T003-1 (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 0/1
-- Revision: 674
+- Progress: 1/1
+- Revision: 676
 
 ## Objective
 
@@ -122,7 +122,7 @@
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T003 — Панель: внешнюю сессию не возобновлять при открытии экрана (work, parallel-safe)
+- [DONE] T003 — Панель: внешнюю сессию не возобновлять при открытии экрана (work, parallel-safe)
   - Commit: fix: do not resume a session another process runs when its screen opens
   - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/actions.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/view-model.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/session-screen.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/panel-shell.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/activity-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md
 

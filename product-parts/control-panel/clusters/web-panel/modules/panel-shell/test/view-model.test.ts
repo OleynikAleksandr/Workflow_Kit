@@ -183,6 +183,10 @@ test('providers come from the state: names, letters, resume, and the sentence of
   assert.deepEqual(indicators(three, true).map((i) => i.id), ['service', 'codex', 'claude', 'kimi', 'ipad'], 'an indicator per provider of the service');
   const tree = projectTree(state(), { now: NOW, collapsed: new Set() }).find((p) => p.id === 'p1')!;
   assert.deepEqual(tree.sessions.map((s) => [s.provider, s.providerLabel, s.resumable]), [['codex', 'ChatGPT', false], ['claude', 'Claude', true]]);
+  assert.deepEqual(tree.sessions.map((s) => s.external), [false, false], 'a missing channel field means not external');
+  const marked = { ...state(), channel: { sessions: [{ key: 'codex:t1', state: 'waiting', external: true }, { key: 'claude:c1', state: 'waiting', external: true }] } };
+  const externals = projectTree(marked, { now: NOW, collapsed: new Set() }).find((p) => p.id === 'p1')!.sessions.map((s) => [s.key, s.external]);
+  assert.deepEqual(externals, [['codex:t1', false], ['claude:c1', true]], 'external only for a provider that resumes sessions (M19 2.3)');
   const unknown = { ...state(), providers: { providers: [], projects: (state()['providers'] as any).projects } };
   assert.deepEqual(projectTree(unknown, { now: NOW, collapsed: new Set() }).find((p) => p.id === 'p1')!.sessions.map((s) => [s.providerLabel, s.resumable]), [['codex', false], ['claude', false]], 'an unknown provider keeps its id and is not resumed');
   assert.equal(runningText({ providerLabel: 'Claude' }), 'открыта в Claude');

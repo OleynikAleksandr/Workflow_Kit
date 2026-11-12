@@ -45,10 +45,26 @@ function slotPart(host, errorLabel) {
 }
 
 /**
+ * «Продолжить» of an external session the panel does not run (M19 2.3): the panel starts its own
+ * process on purpose. Null for any other session.
+ * @param {SessionContext} data
+ * @param {((projectId: string, session: SessionContext['session']) => void) | undefined} resume
+ * @returns {HTMLElement | null}
+ */
+export function resumeButton(data, resume) {
+  const { project, session } = data;
+  if (!resume || !session.external || !session.resumable || session.state === 'running') return null;
+  const node = h('button', { type: 'button', class: 'btn primary' }, ['Продолжить']);
+  node.addEventListener('click', () => resume(project.id, session));
+  return h('div', { class: 'row' }, [node]);
+}
+
+/**
  * Creates the session screen; render() runs on every render of the panel while it is shown.
  * @param {SlotContext} ctx
+ * @param {{ resume?: (projectId: string, session: SessionContext['session']) => void }} [options]
  */
-export function createSessionScreen(ctx) {
+export function createSessionScreen(ctx, options = {}) {
   const head = h('div');
   const body = h('div', { class: 'session-body' });
   const chat = h('div', { class: 'session-chat' });
@@ -66,7 +82,7 @@ export function createSessionScreen(ctx) {
       const key = JSON.stringify(data);
       if (key !== headKey) {
         headKey = key;
-        head.replaceChildren(sessionHeader(data));
+        head.replaceChildren(...[sessionHeader(data), resumeButton(data, options.resume)].filter((n) => n !== null));
       }
       bodyPart.draw(slots.sessionBody, state, data, ctx);
       chatPart.draw(slots.sessionChat, state, data, ctx);

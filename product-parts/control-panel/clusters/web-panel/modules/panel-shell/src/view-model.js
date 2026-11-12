@@ -181,6 +181,7 @@ export function filterProjects(projects, query) {
  * @property {string} provider
  * @property {string} providerLabel
  * @property {boolean} resumable its provider brings a session without a live process back
+ * @property {boolean} external resumable, and its last hook came from a process the panel does not run (M19 2.3)
  * @property {string} name
  * @property {string} when
  * @property {boolean} isNew
@@ -229,8 +230,7 @@ export function projectTree(state, ui) {
   const providerProjects = record(record(state['providers'])['projects']);
   const titles = record(record(state['titles'])['projects']);
   const channel = Array.isArray(record(state['channel'])['sessions']) ? record(state['channel'])['sessions'] : [];
-  /** @type {Map<string, any>} */
-  const activity = new Map(channel.map((/** @type {any} */ a) => [a.key, a]));
+  const activity = /** @type {Map<string, any>} */ (new Map(channel.map((/** @type {any} */ a) => [a.key, a])));
   const isReviewer = reviewerMatcher(state);
   const known = new Map(providerViews(state).map((p) => [p.id, p]));
   return projectLists(state).active.map((project) => {
@@ -253,6 +253,7 @@ export function projectTree(state, ui) {
           provider: info.provider,
           providerLabel: known.get(info.provider)?.label ?? String(info.provider),
           resumable: known.get(info.provider)?.resume === true,
+          external: known.get(info.provider)?.resume === true && act?.external === true,
           name,
           when: formatWhen(info.createdAt),
           isNew: !act?.lastStopAt && Number.isFinite(created) && ui.now - created < NEW_SESSION_MS,

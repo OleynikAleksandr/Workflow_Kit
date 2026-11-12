@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 659,
+  "revision": 660,
   "rounds": [
     {
       "digest": null,
@@ -85,7 +85,8 @@
         "Контракт провайдера имеет ChatMessage, ChatPage, необязательные readMessages и sendDirect, CHAT_PAGE_LIMIT 100 и CHAT_TEXT_MAX_CHARS 20000, как в разделе 2.1",
         "GET /api/projects/:id/providers/:p/sessions/:sid/messages отвечает supported false без метода, страницей сообщений, 404 unknown-session для чужой сессии и 502 с кодом и текстом ProviderError",
         "Маршрут обрезает тексты длиннее CHAT_TEXT_MAX_CHARS с пометкой; тесты покрывают все ответы маршрута; fake-provider имеет оба метода",
-        "Проверки kit:doc-size (документ до 28000 байт) и kit:file-lines проходят: новый код лежит в новых файлах, подробности контракта — в отдельном документе модуля со ссылкой из module.md"
+        "Проверки kit:doc-size (документ до 28000 байт) и kit:file-lines проходят: новый код лежит в новых файлах, подробности контракта — в отдельном документе модуля со ссылкой из module.md",
+        "Тест публикации git-publish не наследует GIT_DIR, GIT_INDEX_FILE и GIT_WORK_TREE от хука коммита: коммит задачи из worktree не трогает индекс и настройки основного репозитория"
       ],
       "checks": [],
       "commitMessage": "feat: add the session chat contract and the messages route",
@@ -107,7 +108,8 @@
         "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/chat-routes.test.ts",
         "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/fake-provider.ts",
         "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md",
-        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/chat.md"
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/chat.md",
+        "product-parts/backend-core/clusters/projects/modules/git-publish/test/publication.test.ts"
       ],
       "fixes": null,
       "id": "T001",
@@ -479,7 +481,7 @@
 - Execution: orchestrated (max 4 workers, owner 0c355c88-f324-49fe-909c-fe5617d16288)
 - Current task: none
 - Progress: 0/9
-- Revision: 659
+- Revision: 660
 
 ## Objective
 
@@ -498,7 +500,7 @@
 
 - [TODO] T001 — Контракт диалога сессии и маршрут чтения (work)
   - Commit: feat: add the session chat contract and the messages route
-  - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/chat.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/chat-routes.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/routes.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/chat-routes.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/fake-provider.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/chat.md
+  - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/chat.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/chat-routes.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/routes.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/chat-routes.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/fake-provider.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/chat.md, product-parts/backend-core/clusters/projects/modules/git-publish/test/publication.test.ts
 - [TODO] T002 — Claude: лента из транскрипта и вставка текста в терминал (work, parallel-safe)
   - Commit: feat: read the Claude transcript as a chat and paste panel messages
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/chat.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/direct.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/runtime.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/session.exp, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/host.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/screen.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/chat.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/direct.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/windows.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/harness.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/chat.md

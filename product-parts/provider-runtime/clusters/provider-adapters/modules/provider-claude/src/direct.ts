@@ -1,12 +1,13 @@
-// A message from the panel straight into a Claude session the panel runs (spec M18 section 2.2):
-// <debug>.message gets "text\n" and the cleaned text; session.exp (macOS, Linux) or pty/host.ts
-// (Windows) pastes it into the terminal as a bracketed paste and presses Enter. The scripts look
-// for the file once a second and there is one file per session, so the sends of a session go one
-// after another.
+// A message from the panel straight into a Claude session the panel runs (spec M18 section 2.2,
+// M19 section 2.1): <debug>.text gets the cleaned text; session.exp (macOS, Linux) or pty/host.ts
+// (Windows) pastes it into the terminal as a bracketed paste and presses Enter. <debug>.message is
+// only a wake. A script of an older version does not know <debug>.text: the file stays untaken,
+// is deleted after directWaitMs and the message goes to the queue. The scripts look for the file
+// once a second and there is one file per session, so the sends of a session go one after another.
 import { access, rename, rm, writeFile } from 'node:fs/promises';
 import type { Project } from '#provider-registry';
 import { poll } from './pty.ts';
-import { MESSAGE_TEXT_PREFIX } from './pty/screen.ts';
+import { TEXT_FILE_SUFFIX } from './pty/screen.ts';
 import type { ClaudeRuntime } from './runtime.ts';
 import { runningPanelRecord } from './sessions.ts';
 
@@ -21,9 +22,9 @@ export function cleanDirectText(text: string): string {
   return text.replace(/\r\n?/g, '\n').replace(/[\u0000-\u0008\u000b-\u001f\u007f-\u009f]/g, '');
 }
 
-/** The content of <debug>.message for a message text (already cleaned). */
-export function directMessageContent(text: string): string {
-  return `${MESSAGE_TEXT_PREFIX}${text}`;
+/** The control file of a message text next to a debug file: <debug>.text. */
+export function directTextFile(debugFile: string): string {
+  return `${debugFile}${TEXT_FILE_SUFFIX}`;
 }
 
 const exists = (file: string): Promise<boolean> =>
@@ -58,7 +59,7 @@ async function deliver(rt: ClaudeRuntime, project: Project, sid: string, text: s
   try {
     const record = await runningPanelRecord(rt, project, sid);
     if (!record) return false;
-    const file = `${record.debugFile}.message`;
+    const file = directTextFile(record.debugFile);
     const wait = { timeoutMs: rt.options.directWaitMs, pollMs: DIRECT_POLL_MS };
     const taken = async (): Promise<true | undefined> => ((await exists(file)) ? undefined : true);
     if (!(await poll(taken, wait))) {
@@ -67,7 +68,7 @@ async function deliver(rt: ClaudeRuntime, project: Project, sid: string, text: s
     }
     // Written aside and renamed: the script never reads half a message.
     const partial = `${file}.partial`;
-    await writeFile(partial, directMessageContent(clean), 'utf8');
+    await writeFile(partial, clean, 'utf8');
     await rename(partial, file);
     if (await poll(taken, wait)) return true;
     await rm(file, { force: true });

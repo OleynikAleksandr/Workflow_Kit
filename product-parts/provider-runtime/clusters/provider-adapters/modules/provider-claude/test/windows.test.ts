@@ -10,7 +10,7 @@ import { patchProjectEntry, renameRetrying } from '../src/config-writer.ts';
 import { claudeFolderKey, findFolderKey, folderKey } from '../src/folder-key.ts';
 import { claudeCapabilities } from '../src/programs.ts';
 import { PTY_SCRIPTS, parseMarkers, ptyCommand } from '../src/pty.ts';
-import { parseHostArgs, runHost } from '../src/pty/host.ts';
+import { claudeEnv, parseHostArgs, runHost } from '../src/pty/host.ts';
 import type { HostMode, HostTerminal } from '../src/pty/host.ts';
 
 let tmp = '';
@@ -124,21 +124,36 @@ test('session host: link, first message, rename and wake files, end — the mark
   assert.deepEqual(host.codes, [0]);
 });
 
-test('session host: a text message file is pasted (bracketed paste, Enter, MESSAGE_SENT); wake keeps the phrase', async () => {
+test('session host: <debug>.text is pasted (bracketed paste, Enter, MESSAGE_SENT); <debug>.message is always a wake', async () => {
   const host = fakeHost();
   const done = runHost(session(), host.deps, TIMINGS);
   host.emit('claude.ai/code/session_Txt1\r\n');
   await until(() => host.out().includes('SESSION_URL'));
-  host.files.set(`${DEBUG}.message`, 'text\nСтрока один\nстрока два\tс табом');
+  host.files.set(`${DEBUG}.text`, 'Строка один\nстрока два\tс табом');
   await until(() => host.out().includes('MESSAGE_SENT'));
   assert.deepEqual(host.written, ['\u001b[200~Строка один\nстрока два\tс табом\u001b[201~', '\r']);
-  assert.equal(host.files.has(`${DEBUG}.message`), false, 'the file is taken');
+  assert.equal(host.files.has(`${DEBUG}.text`), false, 'the file is taken');
   assert.doesNotMatch(host.out(), /WOKEN/);
-  host.files.set(`${DEBUG}.message`, 'wake\n');
+  // The old "text\n" prefix in <debug>.message is not parsed any more: the file is a wake.
+  host.files.set(`${DEBUG}.message`, 'text\nстарый формат');
   await until(() => host.out().includes('WOKEN'));
   assert.deepEqual(host.written.slice(2), ['Workflow Kit: новое сообщение из панели.', '\r']);
+  // A text and a wake in the same poll: the text is pasted, the wake is dropped.
+  host.files.set(`${DEBUG}.text`, 'вместе с пробуждением');
+  host.files.set(`${DEBUG}.message`, 'wake\n');
+  await until(() => (host.out().match(/MESSAGE_SENT/g) ?? []).length === 2);
+  await until(() => !host.files.has(`${DEBUG}.message`));
+  assert.deepEqual(host.written.slice(4), ['\u001b[200~вместе с пробуждением\u001b[201~', '\r']);
+  assert.equal((host.out().match(/WOKEN/g) ?? []).length, 1);
   host.exit(0);
   await done;
+});
+
+test('host environment of claude: a session gets WFK_PANEL_SESSION=1 and no first message; an environment no mark', () => {
+  const env = { PATH: 'C:\\bin', WFK_FIRST_MESSAGE: 'hi' };
+  assert.deepEqual(claudeEnv(session(), env), { PATH: 'C:\\bin', WFK_PANEL_SESSION: '1' });
+  assert.deepEqual(claudeEnv({ kind: 'environment', claude: 'claude.exe', name: 'N', debug: DEBUG }, env), { PATH: 'C:\\bin' });
+  assert.deepEqual(env, { PATH: 'C:\\bin', WFK_FIRST_MESSAGE: 'hi' }, 'the input is not changed');
 });
 
 test('session host: --resume, the link timeout and an early exit', async () => {

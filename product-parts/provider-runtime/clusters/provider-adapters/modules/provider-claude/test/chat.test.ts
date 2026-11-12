@@ -29,6 +29,9 @@ test('a user line is a message as a string or as text parts; tool results and se
   assert.equal(chatMessageOfLine(user('u3', [{ type: 'tool_result', tool_use_id: 't', content: 'ok' }])), null);
   assert.equal(chatMessageOfLine(user('u4', 'x', { isMeta: true })), null);
   assert.equal(chatMessageOfLine(user('u5', 'x', { isSidechain: true })), null);
+  // The summary of a compacted context (M19 section 2.4); false keeps the line.
+  assert.equal(chatMessageOfLine(user('u6', 'This session is being continued…', { isCompactSummary: true })), null);
+  assert.equal(chatMessageOfLine(user('u7', 'обычная', { isCompactSummary: false }))?.text, 'обычная');
   for (const tag of ['<local-command-stdout>ok</local-command-stdout>', '<command-name>/clear</command-name>', '<command-message>m</command-message>', '<task-notification>t</task-notification>', '  <system-reminder>r</system-reminder>']) {
     assert.equal(chatMessageOfLine(user('u6', tag)), null, tag);
   }

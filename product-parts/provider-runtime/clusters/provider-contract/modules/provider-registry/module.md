@@ -22,6 +22,9 @@
   `agent-channel` читает вход и строит ответ хука по нему), `promptTitle?` (приложение берёт
   имя сессии из ответа хука `UserPromptSubmit`, а `renameSession` безопасен только вне хода:
   имя, заданное в ходе, ждёт хука `Stop` или следующего сообщения; так у Claude),
+  `marksPanelProcess?` (процессы, которые запускает панель, получают `WFK_PANEL_SESSION=1`,
+  хуки передают метку `panelProcess`; сессия, чей последний хук пришёл без метки, — внешняя,
+  M19 раздел 2.2; так у Claude, у ChatGPT и Kimi поля нет),
   `capabilities()`, `status()`, `refresh?()`,
   `previewTrust(project)`, `grantTrust(project, token, choices?)`,
   `trust(project)`,

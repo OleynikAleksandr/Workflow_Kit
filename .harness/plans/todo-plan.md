@@ -7,7 +7,7 @@
   "lastClosed": null,
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 674,
+  "revision": 676,
   "rounds": [
     {
       "digest": null,
@@ -42,7 +42,7 @@
       }
     ],
     "decisions": [],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 1,
       "ownerSession": null,
@@ -102,7 +102,7 @@
       "kind": "work",
       "parallelSafe": true,
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Claude: файл <debug>.text, метка процесса панели, лента без сводки сжатия",
       "why": "Старый сценарий принимал текст за просьбу разбудить, и сообщение терялось"
     }
@@ -114,11 +114,11 @@
 ## State
 
 - Scope: assignment-m19-session-chat-fixes-T001-1 (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 0/1
-- Revision: 674
+- Progress: 1/1
+- Revision: 676
 
 ## Objective
 
@@ -137,7 +137,7 @@ Claude: файл <debug>.text, метка процесса панели, лен�
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T001 — Claude: файл <debug>.text, метка процесса панели, лента без сводки сжатия (work, parallel-safe)
+- [DONE] T001 — Claude: файл <debug>.text, метка процесса панели, лента без сводки сжатия (work, parallel-safe)
   - Commit: fix: send panel text through its own control file and mark the panel process
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/direct.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/chat.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/session.exp, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/host.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/screen.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/win-host.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/direct.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/chat.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/windows.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parts.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/harness.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/chat.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md
 

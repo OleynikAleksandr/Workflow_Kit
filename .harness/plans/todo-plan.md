@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 707,
+  "revision": 708,
   "rounds": [
     {
       "digest": null,
@@ -395,7 +395,8 @@
         "product-parts/kit-core/product-part.md",
         "product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/test",
         "product-parts/backend-core/clusters/projects/modules/project-setup/test",
-        "product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/test"
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/test",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-host/test"
       ],
       "fixes": null,
       "id": "T002",
@@ -562,7 +563,7 @@
 - Execution: sequential
 - Current task: T002
 - Progress: 2/7
-- Revision: 707
+- Revision: 708
 
 ## Objective
 
@@ -589,7 +590,7 @@
   - Depends on: T000
 - [IN_PROGRESS] T002 — Сборка бандла Kit 2.2.4 здесь (work)
   - Commit: feat(kit-build): build the Kit bundle from the local sources
-  - Files: tools/kit-build, package.json, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-payload.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/module.md, product-parts/kit-core/product-part.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/test, product-parts/backend-core/clusters/projects/modules/project-setup/test, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/test
+  - Files: tools/kit-build, package.json, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-payload.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/module.md, product-parts/kit-core/product-part.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/test, product-parts/backend-core/clusters/projects/modules/project-setup/test, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/test, product-parts/kit-core/clusters/project-workflow/modules/workflow-host/test
   - Depends on: T001
 - [TODO] T003 — Служба: версия Kit проекта и его обновление (work)
   - Commit: feat(kit-update): report the project Kit version and update it

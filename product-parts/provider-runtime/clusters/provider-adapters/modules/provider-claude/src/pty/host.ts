@@ -2,7 +2,7 @@
 // the same arguments, marker lines on stdout (the supervisor's log file), control files
 // <debug>.rename and <debug>.message, timeouts and terminal size — over ConPTY instead of expect.
 // Pure logic with injected terminal, files and clock; win-host.ts runs it for real.
-import { DIALOG, ENVIRONMENT_ID, NOT_TRUSTED, SESSION_URL, WAKE_TEXT, dialogKind, notNowKeys, offerQuestion, screenText } from './screen.ts';
+import { DIALOG, ENVIRONMENT_ID, NOT_TRUSTED, PASTE_END, PASTE_ENTER_MS, PASTE_START, SESSION_URL, WAKE_TEXT, controlMessage, dialogKind, notNowKeys, offerQuestion, screenText } from './screen.ts';
 
 /** Feature offers one launch declines at most (spec M15 section 1). */
 export const MAX_OFFERS_DECLINED = 3;
@@ -145,11 +145,21 @@ export function runHost(mode: HostMode, deps: HostDeps, timings: HostTimings = H
         term.write('\r');
         deps.print('\nRENAMED\n');
       }
-      if ((await deps.takeFile(`${mode.debug}.message`)) !== null) {
-        term.write(WAKE_TEXT);
-        await deps.sleep(300);
-        term.write('\r');
-        deps.print('\nWOKEN\n');
+      const content = await deps.takeFile(`${mode.debug}.message`);
+      if (content !== null) {
+        const message = controlMessage(content);
+        if (message.kind === 'text') {
+          // A bracketed paste: the lines stay one user message (spec M18 section 2.2).
+          term.write(`${PASTE_START}${message.text}${PASTE_END}`);
+          await deps.sleep(PASTE_ENTER_MS);
+          term.write('\r');
+          deps.print('\nMESSAGE_SENT\n');
+        } else {
+          term.write(WAKE_TEXT);
+          await deps.sleep(300);
+          term.write('\r');
+          deps.print('\nWOKEN\n');
+        }
       }
     }
   }

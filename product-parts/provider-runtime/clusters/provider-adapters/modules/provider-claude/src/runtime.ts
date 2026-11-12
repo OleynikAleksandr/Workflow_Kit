@@ -1,5 +1,6 @@
 // Shared state of one Claude provider instance: located programs, the cached claude version,
-// readers of ~/.claude.json, transcripts and the panel records, plus the guards every action uses.
+// readers of ~/.claude.json, transcripts (bridge ids and the conversation) and the panel records,
+// plus the guards every action uses.
 import { randomBytes } from 'node:crypto';
 import { cleanEnv } from '#process-supervisor';
 import { ProviderError, providerLogsDir, providerSessionsFile } from '#provider-registry';
@@ -10,6 +11,8 @@ import { PTY_SCRIPTS } from './pty.ts';
 import type { PtyLauncher, PtyScripts } from './pty.ts';
 import { findClaudePrograms, parseVersion, ptyUnavailableReason } from './programs.ts';
 import type { ClaudePrograms } from './programs.ts';
+import { createChatReader } from './chat.ts';
+import type { ChatReader } from './chat.ts';
 import { createRecordStore } from './records.ts';
 import type { RecordStore } from './records.ts';
 import { createBridgeReader } from './transcripts.ts';
@@ -32,6 +35,8 @@ export interface ClaudeProviderOptions {
   pollMs?: number;
   /** TERM → KILL grace of stopSession and the environment stop, ms. */
   stopGraceMs?: number;
+  /** sendDirect: wait for the previous and for its own <debug>.message file to be taken, ms. */
+  directWaitMs?: number;
 }
 
 /** Everything the provider parts share. */
@@ -40,6 +45,8 @@ export interface ClaudeRuntime {
   readonly options: Required<ClaudeProviderOptions>;
   readonly store: RecordStore;
   readonly bridge: BridgeReader;
+  /** Conversation of transcripts (readMessages). */
+  readonly chat: ChatReader;
   readonly claudeConfig: ClaudeConfigReader;
   readonly logsDir: string;
   /** Located programs (cached; refresh re-locates them). */
@@ -75,6 +82,7 @@ export function createRuntime(context: ProviderContext, options: ClaudeProviderO
     afterConfigWrite: options.afterConfigWrite ?? (async () => undefined),
     pollMs: options.pollMs ?? 250,
     stopGraceMs: options.stopGraceMs ?? 5000,
+    directWaitMs: options.directWaitMs ?? 5000,
   };
   let located: Promise<ClaudePrograms> | undefined;
   let version: string | null = null;
@@ -87,6 +95,7 @@ export function createRuntime(context: ProviderContext, options: ClaudeProviderO
     options: resolved,
     store: createRecordStore(providerSessionsFile(context.dirs, PROVIDER_ID)),
     bridge: createBridgeReader(),
+    chat: createChatReader(),
     claudeConfig: createClaudeConfigReader(claudeConfigFile(context.homedir)),
     logsDir: providerLogsDir(context.dirs, PROVIDER_ID),
     programs: () => (located ??= locate()),

@@ -13,8 +13,10 @@
 #   DIALOG <kind>             claude showed a dialog; it was stopped, no key pressed (exit 6)
 #   PROMO_DECLINED <n>        a feature offer got "Not now" (option <n>); the wait goes on (M15)
 #   RENAMED                   the name from <debug file>.rename was typed as /rename <name>
-#   WOKEN                     <debug file>.message asked to wake the idle session: a short prompt
-#                             was typed, the prompt hook then hands the panel's queue to the agent
+#   WOKEN                     <debug file>.message ("wake") asked to wake the idle session: a short
+#                             prompt was typed, the prompt hook then hands the panel's queue to the agent
+#   MESSAGE_SENT              <debug file>.message ("text" line, then the UTF-8 text) was pasted as
+#                             a bracketed paste (ESC[200~ … ESC[201~), then Enter after 700 ms
 # After the link the screen is no longer copied to the log; the session lives until claude exits.
 # Once a second the script looks for <debug file>.rename (written by the service only while the
 # session is not in a turn, so no dialog can take the keys): it reads one line, deletes the file
@@ -78,11 +80,26 @@ expect {
     }
     set wake "$debug.message"
     if {[file exists $wake]} {
+      set content ""
+      catch {
+        set handle [open $wake r]
+        fconfigure $handle -encoding utf-8
+        set content [read $handle]
+        close $handle
+      }
       file delete -force $wake
-      send -- "Workflow Kit: новое сообщение из панели."
-      after 300
-      send "\r"
-      puts "\nWOKEN"
+      if {[string first "text\n" $content] == 0} {
+        # A bracketed paste keeps all lines one user message (spec M18 section 2.2).
+        send -- "\033\[200~[string range $content 5 end]\033\[201~"
+        after 700
+        send "\r"
+        puts "\nMESSAGE_SENT"
+      } else {
+        send -- "Workflow Kit: новое сообщение из панели."
+        after 300
+        send "\r"
+        puts "\nWOKEN"
+      }
     }
     exp_continue
   }

@@ -199,6 +199,23 @@ test('renameSession types /rename into a panel session; a session the panel does
   assert.match(stopped.note ?? '', /следующим сообщением/);
 });
 
+test('sendDirect pastes a multi-line message into a panel session under session.exp (bracketed paste, Enter)', { skip }, async () => {
+  const session = await provider.createSession(project, { title: 'Direct' });
+  const before = await readFile(`${h.fakeLog}.input`, 'utf8').catch(() => '');
+  assert.equal(await provider.sendDirect!(project, session.remoteId!, 'Строка один\r\nстрока два'), true);
+  let typed = '';
+  for (let i = 0; i < 60 && !typed.includes('\r'); i += 1) {
+    typed = (await readFile(`${h.fakeLog}.input`, 'utf8')).slice(before.length);
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  assert.equal(typed, '\u001b[200~Строка один\nстрока два\u001b[201~\r');
+  const record = JSON.parse(await readFile(providerSessionsFile(context.dirs, 'claude'), 'utf8')).sessions.find((r: { remoteId: string }) => r.remoteId === session.remoteId);
+  for (let i = 0; i < 40 && !/^MESSAGE_SENT$/m.test(await readFile(record.logFile, 'utf8')); i += 1) await new Promise((resolve) => setTimeout(resolve, 50));
+  assert.match(await readFile(record.logFile, 'utf8'), /^MESSAGE_SENT\s*$/m);
+  await provider.stopSession!(project, session.remoteId!);
+  assert.equal(await provider.sendDirect!(project, session.remoteId!, 'после остановки'), false);
+});
+
 test('an interrupted session comes back at resumeInterrupted and on wake; one stopped on purpose does not; resumes are not doubled', { skip }, async () => {
   const session = await provider.createSession(project, { title: 'Interrupted' });
   const claudePid = async (): Promise<number> =>

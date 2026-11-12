@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 662,
+  "revision": 663,
   "rounds": [
     {
       "digest": null,
@@ -299,9 +299,13 @@
       "kind": "work",
       "parallelSafe": true,
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Отправка из панели: прямой путь и предел 20000",
-      "why": "Задание из панели должно приходить агенту репликой пользователя, а не служебной фразой"
+      "why": "Задание из панели должно приходить агенту репликой пользователя, а не служебной фразой",
+      "integration": {
+        "operationId": "2238fcb9-97e4-4f40-8d31-b37e2d075376",
+        "sourceCommit": "ce3460defbfdc6f1dca1dba15bfb1d43b173ab47"
+      }
     },
     {
       "acceptance": [
@@ -488,8 +492,8 @@
 - Delivery: IN_PROGRESS
 - Execution: orchestrated (max 4 workers, owner 0c355c88-f324-49fe-909c-fe5617d16288)
 - Current task: none
-- Progress: 2/9
-- Revision: 662
+- Progress: 3/9
+- Revision: 663
 
 ## Objective
 
@@ -521,7 +525,7 @@
   - Commit: feat: read Kimi session messages as a chat
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/chat.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/messages.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/shapes.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/chat.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/shapes.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fake-sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/helpers.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/chat.md
   - Depends on: T001
-- [TODO] T005 — Отправка из панели: прямой путь и предел 20000 (work, parallel-safe)
+- [DONE] T005 — Отправка из панели: прямой путь и предел 20000 (work, parallel-safe)
   - Commit: feat: send panel messages directly when the provider can take them
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/routes.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/direct-message.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/direct-message.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/session-chat.md
   - Depends on: T001

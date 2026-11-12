@@ -1,5 +1,5 @@
 // HTTP side of the channel: POST /api/hooks/stop, /api/hooks/prompt and /api/hooks/turn-end (loopback only),
-// POST /api/projects/:id/sessions/:sid/message (a message from the panel) and the "channel"
+// POST /api/projects/:id/sessions/:sid/message (a message from the panel: direct or queued) and the "channel"
 // section of /api/state.
 import { HttpError, classifyAddress } from '#http-server';
 import type { Router, StateRegistry } from '#http-server';
@@ -21,23 +21,28 @@ export interface ChannelRoutesOptions {
   owns?: (projectId: string, key: string) => Promise<boolean>;
   /** Hook clients by the provider registry; a hook of an unknown client is refused (400). */
   dialects?: HookDialects;
+  /**
+   * Hands a checked panel message to the agent at once as a user's message; true means the
+   * provider took it and nothing is queued. False, an error or no option keeps the queue path.
+   */
+  direct?: (projectId: string, key: string, text: string) => Promise<boolean>;
 }
 
-/** Longest panel message, in characters. */
-export const MESSAGE_MAX_CHARS = 4000;
+/** Longest panel message, in characters (a task from the panel can be long). */
+export const MESSAGE_MAX_CHARS = 20_000;
 
 /**
- * Queues a message from the panel for a session of the project. The session must be known to the
- * channel (it ran a hook) and belong to the project, or be owned by the project as the provider
- * lists it (owned); the text is non-empty and not too long.
+ * Checks a message from the panel for a session of the project and returns its clean text. The
+ * session must be known to the channel (it ran a hook) and belong to the project, or be owned by
+ * the project as the provider lists it (owned); the text is non-empty and not too long.
  */
-export function queueSessionMessage(
-  channel: Pick<AgentChannel, 'enqueue' | 'get'>,
+export function checkSessionMessage(
+  channel: Pick<AgentChannel, 'get'>,
   projectId: string,
   key: string,
   text: unknown,
   owned = false,
-): QueuedMessage {
+): string {
   const clean = typeof text === 'string' ? text.trim() : '';
   if (!clean) throw new HttpError(400, 'empty-message', 'Напишите сообщение агенту');
   if (clean.length > MESSAGE_MAX_CHARS) throw new HttpError(400, 'message-too-long', `Сообщение длиннее ${MESSAGE_MAX_CHARS} символов`);
@@ -46,7 +51,29 @@ export function queueSessionMessage(
   if (!known) {
     throw new HttpError(404, 'unknown-session', 'Сессия не найдена', { hint: 'Агент этой сессии ещё не отвечал панели: дождитесь его первого ответа.' });
   }
+  return clean;
+}
+
+/** Queues a message from the panel for a session of the project after checkSessionMessage. */
+export function queueSessionMessage(
+  channel: Pick<AgentChannel, 'enqueue' | 'get'>,
+  projectId: string,
+  key: string,
+  text: unknown,
+  owned = false,
+): QueuedMessage {
+  const clean = checkSessionMessage(channel, projectId, key, text, owned);
   return channel.enqueue(key, clean, 'panel', projectId);
+}
+
+/** True only when the direct path took the message; a thrown error counts as a refusal. */
+async function sendDirect(direct: ChannelRoutesOptions['direct'], projectId: string, key: string, text: string): Promise<boolean> {
+  if (!direct) return false;
+  try {
+    return (await direct(projectId, key, text)) === true;
+  } catch {
+    return false;
+  }
 }
 
 function hookBody(body: unknown): { client: unknown; input: unknown; projectDir: unknown } {
@@ -108,7 +135,10 @@ export function registerChannelRoutes(options: ChannelRoutesOptions): void {
     const key = params['sid']!;
     const activity = messages.get(key);
     const owned = activity?.projectId === projectId ? false : ((await options.owns?.(projectId, key).catch(() => false)) ?? false);
-    const message = queueSessionMessage(messages, projectId, key, text, owned);
+    const clean = checkSessionMessage(messages, projectId, key, text, owned);
+    // The direct path gives the text to the agent as a user's message; any refusal queues it.
+    if (await sendDirect(options.direct, projectId, key, clean)) return { sent: true };
+    const message = messages.enqueue(key, clean, 'panel', projectId);
     return { queued: message.id };
   });
   options.state.add('channel', () => channel.section());

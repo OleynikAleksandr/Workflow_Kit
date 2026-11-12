@@ -1,6 +1,6 @@
 // Wiring of sessions: the agent channel, the autopilot, the plan review toggles, session names and
 // the cross review. Nothing here names a provider: what differs between them is read from the
-// registry (hook dialect, wakeSession, sendMessage, promptTitle, capabilities).
+// registry (hook dialect, wakeSession, sendMessage, sendDirect, promptTitle, capabilities).
 import { createAgentChannel, registerChannelRoutes } from '#agent-channel';
 import type { AgentChannel, SessionRef } from '#agent-channel';
 import { createAutopilot, registerAutopilotRoutes } from '#autopilot';
@@ -17,6 +17,7 @@ import { providerCapability, providerLabel } from '#provider-registry';
 import type { HookDialect, Provider, ProviderRegistry, SessionInfo } from '#provider-registry';
 import { createSessionTitles, registerTitleRoutes } from '#session-titles';
 import type { SessionTitles, SessionTitlesOptions } from '#session-titles';
+import { createDirectMessage } from './direct-message.ts';
 import { lateReviewDecider, toggleLock, wireCrossReview } from './review-wiring.ts';
 
 export interface SessionWiringOptions {
@@ -137,7 +138,10 @@ export function wireSessions(options: SessionWiringOptions): SessionWiring {
   };
   // A hook is taken only from a registered provider; its dialect decides how it is read and answered.
   const dialects = (id: string): HookDialect | undefined => providers.get(id) && (providers.get(id)?.hookDialect ?? 'claude');
-  registerChannelRoutes({ router, state, channel: observedChannel, messages: wakingChannel, owns: ownsSession, dialects });
+  // A panel message goes to a waiting agent at once as a user's message when its provider can do
+  // it (sendDirect); otherwise, and for the autopilot and the cross review, through the queue.
+  const direct = createDirectMessage({ activity: (key) => channel.get(key), provider: (id) => providers.get(id), project: (id) => projects.get(id), log: options.log });
+  registerChannelRoutes({ router, state, channel: observedChannel, messages: wakingChannel, owns: ownsSession, dialects, direct });
   registerAutopilotRoutes({ router, state, autopilot, mutex });
 
   const review = createReviewToggles({

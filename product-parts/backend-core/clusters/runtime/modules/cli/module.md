@@ -60,13 +60,11 @@ stripping).
   агент оставляет id своей сессии (`CODEX_THREAD_ID`, `CLAUDE_CODE_SESSION_ID`).
 - `wireSessions(options)` (`src/session-wiring.ts`) — проводка сессий для `createApp`: канал,
   автопилот, переключатели ревью, имена и перекрёстное ревью. Имён провайдеров в ней нет:
-  различия читаются из реестра — `hookDialect`, `wakeSession`, `promptTitle`, возможности
-  `orchestration` и `reviewer` (`providerCapability`). Провайдер с `sessionIdle` и
-  `sendMessage` получает путь канала без удержания `Stop` (опция `detached`:
-  `idle`/`lastAnswer`/`send` — методы провайдера по проекту сессии, `archived` — архив
-  панели из `titles`, `names` — `providerLabel`, `title`, `lockSwitch`); `wakeIdle` для
-  него зовёт `channel.flush`, `channel.onIdle` — `titles.onStop`, а промпт с
-  `HookReply.own` автопилот считает ходом службы.
+  различия читаются из реестра — `hookDialect`, `wakeSession`, `sendDirect`, `promptTitle`, возможности
+  `orchestration` и `reviewer` (`providerCapability`). Путь без удержания `Stop` (`detached`)
+  и прямой путь сообщения панели (`createDirectMessage`, `src/direct-message.ts`, опция
+  `direct` маршрутов канала; `sendDirect` только для `waiting` и неизвестной каналу сессии) —
+  в [session-chat.md](session-chat.md).
 - `detectOs(input)`, `panelUrls(port, interfaces)`, `readPackageVersion()`.
 - Константы `COMMANDS`, `EXIT_USAGE` (64), `EXIT_NOT_IMPLEMENTED` (2).
 - Типы `CliDeps`, `App`, `AppOptions`, `SystemSection`, `OsInfo`,

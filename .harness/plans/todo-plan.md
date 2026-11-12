@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 740,
+  "revision": 741,
   "rounds": [
     {
       "digest": {
@@ -52,6 +52,13 @@
       "kind": "fixes",
       "status": "CLOSED",
       "title": "Тесты Kit на Windows, второй проход"
+    },
+    {
+      "digest": null,
+      "id": "R3",
+      "kind": "fixes",
+      "status": "OPEN",
+      "title": "Тесты Kit на Windows, третий проход"
     }
   ],
   "schema": "harness-workflow-plan/1",
@@ -84,7 +91,7 @@
         "text": "Версия остаётся 0.9.3: она не опубликована"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "IN_PROGRESS",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "8ed2f99f-7296-4ad6-ae41-6fec13ee5fdb",
@@ -289,6 +296,94 @@
       "status": "DONE",
       "title": "CI выпуска 0.9.3 на всех ОС",
       "why": "Выпуск готов только при зелёном CI на всех ОС"
+    },
+    {
+      "acceptance": [
+        "Помощник сценария сравнивает пути worktree после path.resolve",
+        "Тест worktree принимает аргумент подставного npm.cmd в кавычках",
+        "Тест doctor на Windows ждёт fix: null",
+        "Тесты Kit проходят на macOS"
+      ],
+      "checks": [],
+      "commitMessage": "test(kit-core): finish the Kit tests on Windows",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M23-kit-tests-windows.md",
+          "required": true,
+          "heading": "2.2. Третий проход (CI 43272867981, после T003 `1ab318e`)"
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-integration/test/orchestration-scenario-support.mjs",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-worktree.test.mjs",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/test/workflow-installer-doctor.test.mjs",
+        "product-parts/kit-core/product-part.md"
+      ],
+      "fixes": "T003",
+      "id": "T005",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R3",
+      "status": "TODO",
+      "title": "Тесты Kit на Windows: третий проход",
+      "why": "CI 43272867981: 3 теста Kit ещё падают на Windows"
+    },
+    {
+      "acceptance": [
+        "Project-wide documents describe the round result",
+        "The round digest records result, decisions, contracts and references"
+      ],
+      "checks": [],
+      "commitMessage": "docs: reconcile documentation for R3",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T005"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/architecture/OVERVIEW.md",
+        "product-parts/kit-core/product-part.md"
+      ],
+      "fixes": null,
+      "id": "DOCS-R3",
+      "iteration": 1,
+      "kind": "docs",
+      "roundId": "R3",
+      "status": "TODO",
+      "title": "Reconcile project documentation and write the round digest",
+      "why": "Keep the project context current for the next agent and close the round."
+    },
+    {
+      "acceptance": [
+        "CI ветки ci/m23-kit-tests-windows зелёный на macOS ARM64, Linux x64, Windows x64 и ARM64",
+        "Запуск CI записан в docs/evidence/M22-acceptance.md"
+      ],
+      "checks": [],
+      "commitMessage": "docs: record the green CI of Workflow Kit 0.9.3",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T005",
+        "DOCS-R3"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "docs/evidence/M22-acceptance.md",
+        "docs/planning/M23-kit-tests-windows.md"
+      ],
+      "fixes": null,
+      "id": "T006",
+      "iteration": 1,
+      "kind": "delivery",
+      "roundId": "R3",
+      "status": "TODO",
+      "title": "CI выпуска 0.9.3 на всех ОС",
+      "why": "Выпуск готов только при зелёном CI на всех ОС"
     }
   ]
 }
@@ -298,11 +393,11 @@
 ## State
 
 - Scope: m23-kit-tests-windows (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 6/6
-- Revision: 740
+- Progress: 6/9
+- Revision: 741
 
 ## Objective
 
@@ -348,5 +443,20 @@ Digest: Тесты Kit исправлены для Windows: заглушки б�
   - Depends on: T003, DOCS-R2
 
 Digest: Второй проход тестов Kit для Windows: ещё три временные папки — длинные пути, путь worktree от git сравнивается после path.resolve, npm.cmd печатает аргумент без кавычек cmd.exe, тест doctor ждёт проверку executable только вне Windows. Код Kit не менялся.
+
+### R3 — Тесты Kit на Windows, третий проход (fixes, OPEN)
+
+- [TODO] T005 — Тесты Kit на Windows: третий проход (work)
+  - Commit: test(kit-core): finish the Kit tests on Windows
+  - Files: product-parts/kit-core/clusters/project-workflow/modules/workflow-integration/test/orchestration-scenario-support.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-worktree.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/test/workflow-installer-doctor.test.mjs, product-parts/kit-core/product-part.md
+  - Fixes: T003
+- [TODO] DOCS-R3 — Reconcile project documentation and write the round digest (docs)
+  - Commit: docs: reconcile documentation for R3
+  - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/kit-core/product-part.md
+  - Depends on: T005
+- [TODO] T006 — CI выпуска 0.9.3 на всех ОС (delivery)
+  - Commit: docs: record the green CI of Workflow Kit 0.9.3
+  - Files: docs/evidence/M22-acceptance.md, docs/planning/M23-kit-tests-windows.md
+  - Depends on: T005, DOCS-R3
 
 State changes only through `scripts/workflow` commands. History lives in Git.

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 698,
+  "revision": 699,
   "rounds": [
     {
       "digest": null,
@@ -78,6 +78,47 @@
   "tasks": [
     {
       "acceptance": [
+        "Сессия в архиве или убранная из списка не попадает в раздел channel, её хуки получают пустой ответ без удержания, доставки и продолжения",
+        "Её очередь очищается, новое сообщение из панели получает 409 session-archived; при архивации запись канала удаляется сразу",
+        "Автопилот и ревью не выбирают её ни основной, ни рецензентом; карточка выбора пути её не ждёт",
+        "Сессия, возвращённая из архива, снова участвует в процессе",
+        "Тесты покрывают архивную, убранную и возвращённую сессию"
+      ],
+      "checks": [],
+      "commitMessage": "fix(agent-channel): leave archived and removed sessions out of the Kit process",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M22-kit-source.md",
+          "heading": "2.8. Архивные и убранные сессии не участвуют в процессе",
+          "required": true
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel",
+        "product-parts/workflow-engine/clusters/session-loop/modules/session-titles",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot",
+        "product-parts/workflow-engine/clusters/session-loop/modules/plan-review",
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "docs/architecture/OVERVIEW.md"
+      ],
+      "fixes": null,
+      "id": "T000",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R1",
+      "status": "TODO",
+      "title": "Архивные и убранные сессии выходят из процесса Kit",
+      "why": "Сессия, убранная пользователем из списка, не должна прятать карточку выбора и участвовать в работе"
+    },
+    {
+      "acceptance": [
         "12 модулей из Harness AI 94a9d457 лежат в product-parts/kit-core/clusters/project-workflow/modules, тесты и помощники тестов — в test/",
         "product-part.md и cluster.md описывают часть, вход модулей (facade) и раздел «Происхождение и синхронизация» со списком правок",
         "Документы docs/architecture/workflow-kit/*.md перенесены",
@@ -95,7 +136,9 @@
           "required": true
         }
       ],
-      "dependencies": [],
+      "dependencies": [
+        "T000"
+      ],
       "docsWaiver": null,
       "files": [
         "product-parts/kit-core",
@@ -237,6 +280,7 @@
       "confirmation": null,
       "context": [],
       "dependencies": [
+        "T000",
         "T001",
         "T002",
         "T003",
@@ -309,8 +353,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 0/6
-- Revision: 698
+- Progress: 0/7
+- Revision: 699
 
 ## Objective
 
@@ -328,9 +372,13 @@
 
 ### R1 — Implementation (implementation, OPEN)
 
+- [TODO] T000 — Архивные и убранные сессии выходят из процесса Kit (work)
+  - Commit: fix(agent-channel): leave archived and removed sessions out of the Kit process
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/agent-channel, product-parts/workflow-engine/clusters/session-loop/modules/session-titles, product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/workflow-engine/clusters/session-loop/modules/plan-review, product-parts/workflow-engine/clusters/session-loop/modules/cross-review, product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/test, product-parts/backend-core/clusters/runtime/modules/cli/module.md, docs/architecture/OVERVIEW.md
 - [TODO] T001 — Исходники Kit в Workflow Kit (work)
   - Commit: feat(kit-core): import the Workflow Kit sources from Harness AI
   - Files: product-parts/kit-core, docs/architecture/workflow-kit, tools/platform-guard/allowlist.json, package.json, package-lock.json, docs/architecture/OVERVIEW.md
+  - Depends on: T000
 - [TODO] T002 — Сборка бандла Kit 2.2.4 здесь (work)
   - Commit: feat(kit-build): build the Kit bundle from the local sources
   - Files: tools/kit-build, package.json, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-payload.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/module.md, product-parts/kit-core/product-part.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/test, product-parts/backend-core/clusters/projects/modules/project-setup/test
@@ -346,7 +394,7 @@
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M22-kit-source.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/module.md, product-parts/kit-core/product-part.md, product-parts/workflow-engine/clusters/kit-host/cluster.md, product-parts/workflow-engine/product-part.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md
-  - Depends on: T001, T002, T003, T004
+  - Depends on: T000, T001, T002, T003, T004
 - [TODO] T005 — Выпуск Workflow Kit 0.9.3 (delivery)
   - Commit: chore: release Workflow Kit 0.9.3 with Kit 2.2.4
   - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/installation.md, docs/usage.md, docs/evidence/M22-acceptance.md, docs/architecture/OVERVIEW.md

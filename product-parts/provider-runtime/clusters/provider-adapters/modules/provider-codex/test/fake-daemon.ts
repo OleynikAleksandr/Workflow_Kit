@@ -41,6 +41,14 @@ export interface FakeDaemonOptions {
   deleteRefuse?: string;
   /** thread/delete of this thread id answers «no rollout found» (the thread is gone already). */
   deleteGone?: string;
+  /** thread/read answers with a JSON-RPC error with this message. */
+  readError?: string;
+}
+
+/** What thread/read returns for a thread (M18): its status type and turns. */
+export interface FakeThread {
+  status: string;
+  turns: unknown[];
 }
 
 /** A running fake daemon. */
@@ -52,6 +60,11 @@ export interface FakeDaemon {
   loaded: Set<string>;
   /** Thread ids in the archive (thread/archive adds, thread/unarchive removes). */
   archived: Set<string>;
+  /**
+   * Threads thread/read knows; a thread missing here reads as "idle" when loaded, else
+   * "notLoaded", without turns. thread/read never loads a thread (like the real daemon).
+   */
+  threads: Map<string, FakeThread>;
   close(): Promise<void>;
 }
 
@@ -87,7 +100,8 @@ export async function startFakeDaemon(requested: string, options: FakeDaemonOpti
   /** Idle threads without subscribers: loaded/list calls left before they unload. */
   const idle = new Map<string, number>();
   const archived = new Set<string>();
-  const daemon: FakeDaemon = { socketPath, calls, pongs: 0, loaded, archived, close: async () => undefined };
+  const threads = new Map<string, FakeThread>();
+  const daemon: FakeDaemon = { socketPath, calls, pongs: 0, loaded, archived, threads, close: async () => undefined };
   const release = (threadId: string, socket: Socket): 'unsubscribed' | 'notSubscribed' | 'notLoaded' => {
     if (!loaded.has(threadId)) return 'notLoaded';
     const set = subscribers.get(threadId);
@@ -191,6 +205,14 @@ export async function startFakeDaemon(requested: string, options: FakeDaemonOpti
             loaded.delete(id);
             answer(message.id, {});
           }
+        } else if (message.method === 'thread/read' && options.readError) {
+          sendJson(socket, { jsonrpc: '2.0', id: message.id, error: { code: -32000, message: options.readError } }, tricky);
+        } else if (message.method === 'thread/read') {
+          const params = (message.params ?? {}) as { threadId?: unknown; includeTurns?: unknown };
+          const id = String(params.threadId ?? '');
+          const known = threads.get(id);
+          const status = known?.status ?? (loaded.has(id) ? 'idle' : 'notLoaded');
+          answer(message.id, { thread: { id, status: { type: status }, turns: params.includeTurns === true ? (known?.turns ?? []) : [] } });
         } else if (message.method === 'thread/loaded/list') {
           answer(message.id, { data: [...loaded], nextCursor: null });
           for (const [id, left] of idle) {

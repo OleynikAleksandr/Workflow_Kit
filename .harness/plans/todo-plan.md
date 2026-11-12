@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 663,
+  "revision": 664,
   "rounds": [
     {
       "digest": null,
@@ -210,9 +210,13 @@
       "kind": "work",
       "parallelSafe": true,
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "ChatGPT: лента через thread/read и прямой ход",
-      "why": "Диалог и прямая отправка для сессий ChatGPT"
+      "why": "Диалог и прямая отправка для сессий ChatGPT",
+      "integration": {
+        "operationId": "54cefe30-d851-4bc6-ae39-d0c6e90d0ccb",
+        "sourceCommit": "8df3c6c1bda1e9b6fde63350bb41ef2c3b089e6b"
+      }
     },
     {
       "acceptance": [
@@ -492,8 +496,8 @@
 - Delivery: IN_PROGRESS
 - Execution: orchestrated (max 4 workers, owner 0c355c88-f324-49fe-909c-fe5617d16288)
 - Current task: none
-- Progress: 3/9
-- Revision: 663
+- Progress: 4/9
+- Revision: 664
 
 ## Objective
 
@@ -517,7 +521,7 @@
   - Commit: feat: read the Claude transcript as a chat and paste panel messages
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/chat.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/direct.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/runtime.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/session.exp, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/host.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/screen.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/chat.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/direct.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/windows.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/harness.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/chat.md
   - Depends on: T001
-- [TODO] T003 — ChatGPT: лента через thread/read и прямой ход (work, parallel-safe)
+- [DONE] T003 — ChatGPT: лента через thread/read и прямой ход (work, parallel-safe)
   - Commit: feat: read Codex threads as a chat and start turns with panel messages
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/chat.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/thread-ops.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/chat.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/helpers.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/chat.md
   - Depends on: T001

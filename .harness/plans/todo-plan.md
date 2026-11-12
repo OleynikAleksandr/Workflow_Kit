@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T001",
   "lastClosed": {
     "closedAt": "2026-11-12T15:04:13.877Z",
     "scopeId": "m21-recovery-one-turn"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 701,
+  "revision": 702,
   "rounds": [
     {
       "digest": null,
@@ -166,7 +166,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "Исходники Kit в Workflow Kit",
       "why": "Kit правится и проверяется в том же репозитории, что и приложение"
     },
@@ -365,9 +365,9 @@
 - Scope: m22-kit-source (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: none
+- Current task: T001
 - Progress: 1/7
-- Revision: 701
+- Revision: 702
 
 ## Objective
 
@@ -388,7 +388,7 @@
 - [DONE] T000 — Архивные и убранные сессии выходят из процесса Kit (work)
   - Commit: fix(agent-channel): leave archived and removed sessions out of the Kit process
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/agent-channel, product-parts/workflow-engine/clusters/session-loop/modules/session-titles, product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/workflow-engine/clusters/session-loop/modules/plan-review, product-parts/workflow-engine/clusters/session-loop/modules/cross-review, product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/test, product-parts/backend-core/clusters/runtime/modules/cli/module.md, docs/architecture/OVERVIEW.md, product-parts/backend-core/clusters/runtime/modules/cli/session-chat.md, product-parts/backend-core/clusters/runtime/modules/cli/test/session-excluded.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/channel.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/detached.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/slots.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/types.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/excluded.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/titles.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/types.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/test/titles.test.ts
-- [TODO] T001 — Исходники Kit в Workflow Kit (work)
+- [IN_PROGRESS] T001 — Исходники Kit в Workflow Kit (work)
   - Commit: feat(kit-core): import the Workflow Kit sources from Harness AI
   - Files: product-parts/kit-core, docs/architecture/workflow-kit, tools/platform-guard/allowlist.json, package.json, package-lock.json, docs/architecture/OVERVIEW.md
   - Depends on: T000

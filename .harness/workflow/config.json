@@ -70,6 +70,7 @@
           "args": [
             "--test",
             "product-parts/**/test/*.test.ts",
+            "product-parts/**/test/*.test.mjs",
             "tools/**/test/*.test.ts"
           ]
         },

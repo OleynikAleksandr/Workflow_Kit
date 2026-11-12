@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 677,
+  "revision": 679,
   "rounds": [
     {
       "digest": {
@@ -40,7 +40,7 @@
       },
       "id": "R1",
       "kind": "implementation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Implementation"
     }
   ],
@@ -79,7 +79,7 @@
         "text": "Внешнюю сессию панель не возобновляет сама; кнопка «Продолжить» остаётся"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 2,
       "ownerSession": "0c355c88-f324-49fe-909c-fe5617d16288",
@@ -301,7 +301,7 @@
         "installed-service"
       ],
       "commitMessage": "chore: release 0.9.1",
-      "confirmation": null,
+      "confirmation": "Пользователь, 2026-11-12: на вопрос «Запускать выпуск 0.9.1 (установка службы и ветка CI)?» — «Да, выпускай»",
       "context": [
         {
           "path": "docs/planning/M19-session-chat-fixes.md",
@@ -329,7 +329,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Выпуск 0.9.1",
       "why": "Пользователь проверяет исправления в установленной службе"
     }
@@ -341,11 +341,11 @@
 ## State
 
 - Scope: m19-session-chat-fixes (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: orchestrated (max 2 workers, owner 0c355c88-f324-49fe-909c-fe5617d16288)
 - Current task: none
-- Progress: 4/5
-- Revision: 677
+- Progress: 5/5
+- Revision: 679
 
 ## Objective
 
@@ -360,7 +360,7 @@
 
 ## Rounds
 
-### R1 — Implementation (implementation, OPEN)
+### R1 — Implementation (implementation, CLOSED)
 
 - [DONE] T001 — Claude: файл <debug>.text, метка процесса панели, лента без сводки сжатия (work, parallel-safe)
   - Commit: fix: send panel text through its own control file and mark the panel process
@@ -376,7 +376,7 @@
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M19-session-chat-fixes.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/chat.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/session-chat.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md
   - Depends on: T001, T002, T003
-- [TODO] T004 — Выпуск 0.9.1 (delivery)
+- [DONE] T004 — Выпуск 0.9.1 (delivery)
   - Commit: chore: release 0.9.1
   - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/architecture/OVERVIEW.md, docs/installation.md, docs/evidence/M19-acceptance.md, docs/changelog/CHANGELOG-0.5-0.8.md
   - Depends on: T002, T003, DOCS-R1

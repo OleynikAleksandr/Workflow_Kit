@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 702,
+  "revision": 703,
   "rounds": [
     {
       "digest": null,
@@ -154,11 +154,12 @@
       ],
       "docsWaiver": null,
       "files": [
-        "product-parts/kit-core",
-        "docs/architecture/workflow-kit",
-        "tools/platform-guard/allowlist.json",
-        "package.json",
-        "package-lock.json",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/hooks.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/trust.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/hooks.md",
         "docs/architecture/OVERVIEW.md"
       ],
       "fixes": null,
@@ -367,7 +368,7 @@
 - Execution: sequential
 - Current task: T001
 - Progress: 1/7
-- Revision: 702
+- Revision: 703
 
 ## Objective
 
@@ -390,7 +391,7 @@
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/agent-channel, product-parts/workflow-engine/clusters/session-loop/modules/session-titles, product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/workflow-engine/clusters/session-loop/modules/plan-review, product-parts/workflow-engine/clusters/session-loop/modules/cross-review, product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/test, product-parts/backend-core/clusters/runtime/modules/cli/module.md, docs/architecture/OVERVIEW.md, product-parts/backend-core/clusters/runtime/modules/cli/session-chat.md, product-parts/backend-core/clusters/runtime/modules/cli/test/session-excluded.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/channel.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/detached.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/slots.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/types.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/excluded.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/titles.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/types.ts, product-parts/workflow-engine/clusters/session-loop/modules/session-titles/test/titles.test.ts
 - [IN_PROGRESS] T001 — Исходники Kit в Workflow Kit (work)
   - Commit: feat(kit-core): import the Workflow Kit sources from Harness AI
-  - Files: product-parts/kit-core, docs/architecture/workflow-kit, tools/platform-guard/allowlist.json, package.json, package-lock.json, docs/architecture/OVERVIEW.md
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/hooks.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/trust.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/hooks.md, docs/architecture/OVERVIEW.md
   - Depends on: T000
 - [TODO] T002 — Сборка бандла Kit 2.2.4 здесь (work)
   - Commit: feat(kit-build): build the Kit bundle from the local sources

@@ -9,6 +9,8 @@ import type { KimiRuntime } from './provider.ts';
 import { ARCHIVED_NOTE, WAITING_NOTE } from './session-list.ts';
 import type { SessionNotes } from './session-list.ts';
 import { SESSION_ID } from './session-store.ts';
+import { createTurnGate } from './turn-gate.ts';
+import type { KimiTurnGate, SendGuard } from './turn-gate.ts';
 import { parseConfig, parseMessages, parsePrompt, parseSession } from './shapes.ts';
 
 /** Pages of the messages read back for the last answer. */
@@ -31,23 +33,12 @@ export interface KimiMessageDeps {
   retryDelaysMs?: readonly number[];
 }
 
-export function createKimiMessages(rt: KimiRuntime, notes: SessionNotes, deps: KimiMessageDeps = {}): KimiMessages {
+export function createKimiMessages(rt: KimiRuntime, notes: SessionNotes, deps: KimiMessageDeps = {}, gate: KimiTurnGate = createTurnGate()): KimiMessages {
   const { context } = rt;
   const delays = deps.retryDelaysMs ?? FOREIGN_RETRY_MS;
-  const queues = new Map<string, Promise<unknown>>();
   const describe = (error: unknown): string => describeKimiError(error, rt.program().version);
 
-  const serial = <T>(sessionId: string, task: () => Promise<T>): Promise<T> => {
-    const next = (queues.get(sessionId) ?? Promise.resolve()).then(task, task);
-    const tail = next.catch(() => undefined);
-    queues.set(sessionId, tail);
-    void tail.then(() => {
-      if (queues.get(sessionId) === tail) queues.delete(sessionId);
-    });
-    return next;
-  };
-
-  const send = async (project: Project, sessionId: string, text: string, delivery: { id: string }): Promise<boolean> => {
+  const send = async (project: Project, sessionId: string, text: string, delivery: { id: string }, guard: SendGuard): Promise<boolean> => {
     const refuse = (reason: string, note = true): false => {
       if (note) notes.set(sessionId, 'delivery', deliveryNote(reason));
       context.log(`kimi: message ${delivery.id} was not delivered to ${sessionId}: ${reason}`);
@@ -70,11 +61,13 @@ export function createKimiMessages(rt: KimiRuntime, notes: SessionNotes, deps: K
     let reloaded = false;
     let reconnected = false;
     for (;;) {
+      if (!guard.current()) return false;
       try {
         const status = parsePrompt(await client.post(`/api/v1/sessions/${sessionId}/prompts`, body, { timeoutMs: PROMPT_TIMEOUT_MS }));
         notes.set(sessionId, 'delivery', status === 'blocked' ? WAITING_NOTE : null);
         return true;
       } catch (error) {
+        if (!guard.current()) return false;
         if (!(error instanceof KimiError)) return refuse(describe(error));
         // The prompt was accepted by an earlier attempt of the same delivery.
         if (error.code === KIMI_CODES.promptUsed) {
@@ -84,7 +77,7 @@ export function createKimiMessages(rt: KimiRuntime, notes: SessionNotes, deps: K
         const wait = error.code === KIMI_CODES.foreignSession ? delays[foreign] : undefined;
         if (wait !== undefined) {
           foreign += 1;
-          await new Promise((resolve) => setTimeout(resolve, wait));
+          await guard.wait(wait);
           continue;
         }
         try {
@@ -107,7 +100,7 @@ export function createKimiMessages(rt: KimiRuntime, notes: SessionNotes, deps: K
   };
 
   return {
-    sendMessage: (project, sessionId, text, delivery) => serial(sessionId, () => send(project, sessionId, text, delivery)),
+    sendMessage: (project, sessionId, text, delivery) => gate.send(sessionId, (guard) => send(project, sessionId, text, delivery, guard)),
     async lastAnswer(_project, sessionId) {
       try {
         if (!SESSION_ID.test(sessionId)) throw new Error('неверный id сессии');

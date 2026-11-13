@@ -1,5 +1,6 @@
 // Sessions of the fake Kimi server (see helpers.ts): a small in-memory copy of the session routes
 // of Kimi 2.5.2 in the shapes of test/fixtures. Installed as the override of the fake API.
+import { rmSync } from 'node:fs';
 import { appendFile, mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { hookJournalFile } from '#provider-registry';
@@ -20,6 +21,7 @@ export interface FakeSession {
   status: string;
   model: string;
   pending: string;
+  lastReason?: string;
   /** Newest first, in the shape of GET …/messages. */
   messages: Array<Record<string, unknown>>;
 }
@@ -62,6 +64,7 @@ const full = (session: FakeSession): Record<string, unknown> => ({
   busy: session.status === 'running',
   main_turn_active: session.status === 'running',
   pending_interaction: session.pending,
+  last_turn_reason: session.lastReason,
   archived: session.archived,
   metadata: { cwd: session.cwd },
   agent_config: { model: session.model },
@@ -140,7 +143,7 @@ export function fakeSessions(machine: FakeKimi): FakeSessions {
       });
       return ok({ results, succeeded: results.filter((item) => item.ok).length, failed: results.filter((item) => !item.ok).length });
     }
-    const one = /^\/api\/v1\/sessions\/([^/:]+)(\/profile|\/prompts|\/messages|:delete|:reload)?$/.exec(route);
+    const one = /^\/api\/v1\/sessions\/([^/:]+)(\/profile|\/prompts|\/messages|:delete|:reload|:abort)?$/.exec(route);
     if (!one) return undefined;
     const session = state.sessions.get(one[1] ?? '');
     if (!session) return refusal(40401);
@@ -154,6 +157,13 @@ export function fakeSessions(machine: FakeKimi): FakeSessions {
     }
     if (request.method !== 'POST') return undefined;
     if (action === '/profile') session.title = (request.body as { title: string }).title;
+    if (action === ':abort') {
+      const aborted = session.status === 'running';
+      session.status = 'idle';
+      if (aborted) session.lastReason = 'interrupted';
+      rmSync(path.join(machine.paths.locks, `${session.id}.lock`), { force: true });
+      return ok({ aborted });
+    }
     if (action === ':delete') {
       state.sessions.delete(session.id);
       return ok({ deleted: true });

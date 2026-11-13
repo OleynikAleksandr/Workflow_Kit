@@ -156,3 +156,13 @@ test('healthz needs no token; only /api/ paths are allowed; a silent server time
   const closed = createKimiClient({ port: await freeLocalPort(), tokenFile: 'unused', timeoutMs: 500 });
   await assert.rejects(closed.get('/api/v1/healthz', { auth: false }), (error: unknown) => error instanceof KimiError && error.kind === 'transport');
 });
+
+test('abort can disable auth replay, and an expired absolute deadline sends no request', async () => {
+  await withServer(() => ({ status: 401, body: JSON.stringify({ code: 40101, msg: 'Unauthorized' }) }), async (port, seen, tokenFile) => {
+    const client = createKimiClient({ port, tokenFile });
+    await assert.rejects(client.post('/api/v1/sessions/session_1:abort', {}, { retryAuth: false }), (error: unknown) => error instanceof KimiError && error.kind === 'auth');
+    assert.equal(seen.length, 1);
+    await assert.rejects(client.post('/api/v1/sessions/session_1:abort', {}, { deadline: Date.now() - 1 }), (error: unknown) => error instanceof KimiError && error.kind === 'transport');
+    assert.equal(seen.length, 1);
+  });
+});

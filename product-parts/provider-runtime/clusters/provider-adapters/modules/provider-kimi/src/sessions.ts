@@ -3,12 +3,15 @@
 // session-list.ts, the last answer and the delivery of a message in messages.ts, the
 // conversation in chat.ts.
 import { ProviderError, readHookSessions } from '#provider-registry';
-import type { ChatPage, Project, RenameResult, SessionInfo } from '#provider-registry';
+import type { ChatPage, InterruptAvailability, InterruptResult, InterruptTarget, Project, RenameResult, SessionInfo } from '#provider-registry';
 import { readKimiChat } from './chat.ts';
 import { KIMI_CODES, KimiError, describeKimiError, shapeError } from './client.ts';
 import type { KimiClient } from './client.ts';
 import { defaultLiveness, liveSessionLocks } from './locks.ts';
 import type { Liveness } from './locks.ts';
+import { createKimiInterrupt } from './interrupt.ts';
+import type { KimiInterruptDeps } from './interrupt.ts';
+import { createTurnGate } from './turn-gate.ts';
 import { createKimiMessages } from './messages.ts';
 import type { KimiMessageDeps } from './messages.ts';
 import { inFolder } from './paths.ts';
@@ -26,6 +29,8 @@ export const BATCH_SIZE = 100;
 
 /** The session methods of the provider. */
 export interface KimiSessions {
+  interruptAvailability(project: Project, sessionId: string): InterruptAvailability;
+  interruptTurn(project: Project, sessionId: string, target: InterruptTarget): Promise<InterruptResult>;
   listSessions(project: Project): Promise<SessionInfo[]>;
   createSession(project: Project, opts: { title: string; firstMessage?: string; detached?: boolean }): Promise<SessionInfo>;
   renameSession(project: Project, sessionId: string, name: string): Promise<RenameResult>;
@@ -41,7 +46,7 @@ export interface KimiSessions {
 }
 
 /** Replacements for tests. */
-export interface KimiSessionDeps extends KimiMessageDeps {
+export interface KimiSessionDeps extends KimiMessageDeps, KimiInterruptDeps {
   liveness?: Liveness;
 }
 
@@ -52,7 +57,9 @@ export function createKimiSessions(rt: KimiRuntime, deps: KimiSessionDeps = {}):
   const store = createKimiStore(context);
   const notes = createSessionNotes();
   const list = createKimiSessionList(rt, store, liveness, notes, () => context.now().getTime());
-  const messages = createKimiMessages(rt, notes, deps);
+  const gate = createTurnGate();
+  const messages = createKimiMessages(rt, notes, deps, gate);
+  const interruptions = createKimiInterrupt(rt, liveness, gate, deps);
   const describe = (error: unknown): string => describeKimiError(error, rt.program().version);
   const report = (type: string, line: string, fields: Record<string, unknown>): void => {
     context.log(`kimi: ${line}`);
@@ -171,7 +178,13 @@ export function createKimiSessions(rt: KimiRuntime, deps: KimiSessionDeps = {}):
   };
 
   return {
-    listSessions: (project) => list.list(project),
+    async listSessions(project) {
+      const result = await list.list(project);
+      await interruptions.refresh(project, result);
+      return result;
+    },
+    interruptAvailability: interruptions.interruptAvailability,
+    interruptTurn: interruptions.interruptTurn,
     lastAnswer: (project, sessionId) => messages.lastAnswer(project, sessionId),
     sendMessage: (project, sessionId, text, delivery) => messages.sendMessage(project, sessionId, text, delivery),
     readMessages: (_project, sessionId, opts) => readKimiChat(rt, sessionId, opts),

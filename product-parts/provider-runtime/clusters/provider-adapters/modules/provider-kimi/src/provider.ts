@@ -226,6 +226,7 @@ export function createKimiRuntime(context: ProviderContext, deps: KimiDeps = {})
         hooks: cap(missing),
         sessions: { available: true },
         createSession: cap(missing),
+        interruptTurn: cap(missing),
         // Executors run through the Agent tool in worktrees the orchestrator makes (spec M10).
         orchestration: cap(missing),
         reviewer: cap('Kimi не делает перекрёстное ревью'),

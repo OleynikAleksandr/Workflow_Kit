@@ -52,6 +52,10 @@ export interface KimiRequestOptions {
   timeoutMs?: number;
   /** False for /healthz: no token is read or sent. */
   auth?: boolean;
+  /** Absolute operation deadline, checked again after token IO and on auth retries. */
+  deadline?: number;
+  /** False for a destructive command that must never be replayed automatically. */
+  retryAuth?: boolean;
 }
 
 /** Client of one server; every method resolves to the `data` of the envelope. */
@@ -96,12 +100,14 @@ export function createKimiClient(options: KimiClientOptions): KimiClient {
     let response: Response;
     let text: string;
     try {
+      const remaining = request.deadline === undefined ? Number.POSITIVE_INFINITY : request.deadline - Date.now();
+      if (remaining <= 0) throw new DOMException('Deadline expired', 'TimeoutError');
       response = await doFetch(`http://127.0.0.1:${options.port}${route}`, {
         method,
         headers,
         ...(body === undefined ? {} : { body: JSON.stringify(body) }),
         redirect: 'error',
-        signal: AbortSignal.timeout(request.timeoutMs ?? options.timeoutMs ?? KIMI_TIMEOUT_MS),
+        signal: AbortSignal.timeout(Math.min(remaining, request.timeoutMs ?? options.timeoutMs ?? KIMI_TIMEOUT_MS)),
       });
       text = await response.text();
     } catch (error) {
@@ -123,7 +129,7 @@ export function createKimiClient(options: KimiClientOptions): KimiClient {
     if (!route.startsWith('/api/')) throw new Error(`not a Kimi API path: ${route}`);
     let answer = await once(method, route, body, request);
     // A refused token: the file is read again and the request repeated once.
-    if (refused(answer) && request.auth !== false) answer = await once(method, route, body, request);
+    if (refused(answer) && request.auth !== false && request.retryAuth !== false) answer = await once(method, route, body, request);
     if (refused(answer)) throw new KimiError(KIMI_CODES.unauthorized, 'сервер Kimi не принял токен', 'auth');
     const envelope = answer.envelope;
     if (typeof envelope !== 'object' || envelope === null || typeof (envelope as Record<string, unknown>)['code'] !== 'number') throw shapeError(`${method} ${route}: нет конверта`);

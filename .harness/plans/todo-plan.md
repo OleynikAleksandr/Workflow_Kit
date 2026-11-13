@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 761,
+  "revision": 763,
   "rounds": [
     {
       "digest": null,
@@ -390,14 +390,28 @@
       "files": [
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi",
         "docs/architecture/OVERVIEW.md",
-        "docs/evidence/M24-acceptance.md"
+        "docs/evidence/M24-acceptance.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/hooks.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/interrupt.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/client.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/interrupt.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/messages.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/provider.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/sessions.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/turn-gate.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/turn-lock.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/client.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fake-sessions.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/interrupt.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/turn-gate.test.ts"
       ],
       "fixes": null,
       "id": "T004",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Stop Kimi: abort с подтверждением idle",
       "why": "Stop Kimi: abort с подтверждением idle"
     },
@@ -592,8 +606,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 4/9
-- Revision: 761
+- Progress: 5/9
+- Revision: 763
 
 ## Objective
 
@@ -629,9 +643,9 @@
   - Files: product-parts/backend-core/clusters/runtime/modules/cli, docs/architecture/OVERVIEW.md, docs/evidence/M24-acceptance.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/turn-interruption.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/turn-interruption.test.ts
   - Depends on: T003
   - Fixes: T002
-- [TODO] T004 — Stop Kimi: abort с подтверждением idle (work)
+- [DONE] T004 — Stop Kimi: abort с подтверждением idle (work)
   - Commit: feat(kimi): abort managed turns with idle confirmation
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi, docs/architecture/OVERVIEW.md, docs/evidence/M24-acceptance.md
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi, docs/architecture/OVERVIEW.md, docs/evidence/M24-acceptance.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/hooks.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/interrupt.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/client.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/interrupt.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/messages.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/turn-gate.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/turn-lock.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/client.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fake-sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/interrupt.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/turn-gate.test.ts
   - Depends on: T003, T008
 - [TODO] T005 — Stop ChatGPT/Codex: прерывание конкретного native turn (work)
   - Commit: feat(codex): interrupt the expected active turn

@@ -1,15 +1,18 @@
 // @ts-check
+import { createAccessMenu } from './access-menu.js';
 import { createEffortCard } from './effort-card.js';
 import { errorText } from './chat-model.js';
 import { contextText, createParameterPoll, limitTone, menuSections, parametersUrl, percent, safeAccent, safeFont } from './parameters-model.js';
 /** @typedef {import('#provider-registry').SessionParameters} Parameters */
 /** @typedef {import('#provider-registry').ParameterOption} Option */
 /** @param {{ shell: import('./session-chat.js').Shell, projectId: string, key: string, provider: string,
- * fallback: HTMLElement, report: (text: string, tone: 'muted' | 'ok' | 'error') => void }} options */
-export function createParameters({ shell, projectId, key, provider, fallback, report }) {
+ * fallback: HTMLElement, onLayout?: (native: boolean) => void, report: (text: string, tone: 'muted' | 'ok' | 'error') => void }} options */
+export function createParameters({ shell, projectId, key, provider, fallback, onLayout, report }) {
   const { h } = shell.dom;
   const icon = (/** @type {string} */ name) => h('span', { class: `sc-icon sc-icon-${name}`, 'aria-hidden': 'true' });
   const host = h('div', { class: 'sc-parameter-host' });
+  const accessNode = h('div', {class: 'sc-access-host'}); accessNode.hidden = true;
+  const accessButton = /** @type {HTMLButtonElement} */ (h('button', {type:'button', class:'sc-access-trigger', 'aria-haspopup':'menu'})); accessNode.append(accessButton);
   const row = h('div', { class: 'sc-parameter-row' });
   const trigger = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'sc-parameter-trigger', 'aria-label': 'Параметры сессии' }));
   const meter = h('span', { class: 'sc-meter', 'aria-hidden': 'true' });
@@ -33,7 +36,7 @@ export function createParameters({ shell, projectId, key, provider, fallback, re
   function close(focus = true) {
     nativeView?.destroy(); nativeView = null; popupKind = '';
     popup?.remove(); popup = null; menu = false; confirmation = null;
-    trigger.setAttribute('aria-expanded', 'false');
+    trigger.setAttribute('aria-expanded', 'false'); accessButton.setAttribute('aria-expanded', 'false');
     document.removeEventListener('pointerdown', outside); document.removeEventListener('keydown', keyboard);
     window.removeEventListener('resize', position); window.visualViewport?.removeEventListener('resize', position); window.visualViewport?.removeEventListener('scroll', position);
     if (focus && anchor?.isConnected) anchor.focus();
@@ -71,7 +74,7 @@ export function createParameters({ shell, projectId, key, provider, fallback, re
   function openPopup(/** @type {HTMLElement} */ button, /** @type {boolean} */ isMenu) {
     close(false); anchor = button; menu = isMenu;
     popup = h('div', { class: 'sc-parameter-popup', role: isMenu ? 'menu' : 'dialog', 'aria-label': isMenu ? 'Изменить параметры' : button.getAttribute('aria-label') || 'Состояние сессии' });
-    document.body.append(popup); trigger.setAttribute('aria-expanded', String(isMenu));
+    document.body.append(popup); button.setAttribute('aria-expanded', 'true');
     document.addEventListener('pointerdown', outside); document.addEventListener('keydown', keyboard); window.addEventListener('resize', position); window.visualViewport?.addEventListener('resize', position); window.visualViewport?.addEventListener('scroll', position);
     return popup;
   }
@@ -110,33 +113,38 @@ export function createParameters({ shell, projectId, key, provider, fallback, re
     }
   }
   async function change(/** @type {string} */ id, /** @type {Option} */ option, confirmed = false, closeAfter = true) {
-    if (busy) return; const focused = /** @type {HTMLElement | null} */ (document.activeElement); busy = true; poll.invalidate(); renderMenu(false);
+    if (busy) return; const focused = /** @type {HTMLElement | null} */ (document.activeElement); busy = true; trigger.disabled = accessButton.disabled = true; poll.invalidate(); renderMenu(false);
     report('Меняю параметры…', 'muted');
     try {
       const answer = await shell.api('POST', url, { change: { [id]: option.value, ...(confirmed ? { confirmed: true } : {}) } });
       apply({ supported: true, parameters: answer.parameters });
       report(['Параметры обновлены', ...(answer.parameters?.notes ?? [])].join('. '), 'ok'); if (closeAfter) close();
     } catch (error) { report(errorText(error), 'error'); }
-    finally { busy = false; if (popup) { renderMenu(false); if (focused?.isConnected && popup.contains(focused)) focused.focus({ preventScroll: true }); } await poll.refresh(); }
+    finally { busy = false; trigger.disabled = accessButton.disabled = false; if (popup) { renderMenu(false); if (focused?.isConnected && popup.contains(focused)) focused.focus({ preventScroll: true }); } await poll.refresh(); }
   }
   /** @param {any} answer */
   function apply(answer) {
     if (readError) { readError = false; report('', 'muted'); }
-    if (answer?.supported === false) { close(false); data = null; host.replaceChildren(fallback); return; }
+    if (answer?.supported === false) { close(false); data = null; accessNode.hidden = true; onLayout?.(false); host.replaceChildren(fallback); return; }
     if (!answer?.parameters || !Array.isArray(answer.parameters.items)) return;
     const previous = JSON.stringify(data?.items); data = /** @type {Parameters} */ (answer.parameters);
+    const native = data.presentation?.layout === 'effort-card'; accessNode.hidden = !native; onLayout?.(native);
+    const access = data.presentation?.access;
+    accessButton.replaceChildren(icon(access?.tone === 'warning' ? 'shield-alert' : access?.options?.find(o => o.value === access.value)?.icon ?? 'hand'), document.createTextNode(access?.label ?? 'Особые разрешения'));
+    accessButton.classList.toggle('sc-access-warning', access?.tone === 'warning');
+    accessButton.setAttribute('aria-label', `Доступ: ${access?.label ?? 'Особые разрешения'}`);
     const font = safeFont(data.style?.font); host.style.fontFamily = font || '';
     const accent = safeAccent(data.style?.accent); if (accent) meter.style.setProperty('--sc-context-accent', accent); else meter.style.removeProperty('--sc-context-accent');
     meter.style.setProperty('--sc-context-angle', `${(percent(data.context?.usedPercent) ?? 0) * 3.6}deg`);
     ring.setAttribute('aria-label', contextText(data.context));
     trigger.replaceChildren();
-    for (const item of data.items.filter(i => i.inRow)) {
+    for (const item of data.items.filter(i => i.inRow && !(native && i.id === 'permissions'))) {
       if (item.id === 'speed' && item.icon === 'zap') trigger.append(icon('zap'));
       else trigger.append(h('span', { class: `sc-parameter-value sc-parameter-${item.tone === 'muted' ? 'muted' : 'primary'}`, title: item.title }, [item.label]));
     }
     if (data.editable) { trigger.append(icon('chevron-down')); trigger.setAttribute('aria-haspopup', 'menu'); }
     else trigger.removeAttribute('aria-haspopup');
-    trigger.setAttribute('aria-label', `${data.items.filter(i => i.inRow).map(i => i.title).join('; ')}${data.reason ? `. ${data.reason}` : ''}`);
+    trigger.setAttribute('aria-label', `${data.items.filter(i => i.inRow && !(native && i.id === 'permissions')).map(i => i.title).join('; ')}${data.reason ? `. ${data.reason}` : ''}`);
     reconcile(row, data.style?.ring === 'last' ? [trigger, ring] : [ring, trigger]);
     limits.replaceChildren();
     for (const [index, limit] of (data.limits ?? []).entries()) {
@@ -147,6 +155,15 @@ export function createParameters({ shell, projectId, key, provider, fallback, re
     nativeView?.update();
     if (menu && !confirmation && previous !== JSON.stringify(data.items)) renderMenu();
   }
+  function openAccess() {
+    if (busy || !data) return;
+    if (anchor === accessButton) { close(); return; }
+    const element = openPopup(accessButton, true); popupKind = 'access'; element.classList.add('sc-native-access-popup'); element.setAttribute('aria-label', 'Как подтверждать действия ChatGPT?');
+    const view = createAccessMenu({h, data: () => data, busy: () => busy, change}); nativeView = view; element.append(view.node); position();
+    element.querySelector(/** @type {'button'} */ ('button:not(:disabled)'))?.focus({preventScroll: true});
+  }
+  accessButton.addEventListener('click', openAccess);
+  accessButton.addEventListener('keydown', event => {if (event.key === 'ArrowDown' && !popup) {event.preventDefault(); openAccess();}});
   function openModels() {
     const element = openPopup(trigger, true); popupKind = 'models';
     element.classList.add('sc-native-models-popup'); element.setAttribute('aria-label', 'Выбрать модель'); renderMenu();
@@ -176,7 +193,7 @@ export function createParameters({ shell, projectId, key, provider, fallback, re
     }
     position();
   });
-  return { node: host, refresh: () => poll.refresh(),
+  return { node: host, accessNode, refresh: () => poll.refresh(),
     setVisible(/** @type {boolean} */ value) { showing = value; if (!showing) close(false); poll.visible(!busy && showing && host.isConnected && document.visibilityState === 'visible'); },
   };
 }

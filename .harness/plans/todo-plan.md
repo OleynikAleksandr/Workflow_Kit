@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 836,
+  "revision": 838,
   "rounds": [
     {
       "digest": null,
@@ -262,14 +262,22 @@
       "files": [
         "product-parts/control-panel/clusters/web-panel/modules/session-chat",
         "docs/architecture/OVERVIEW.md",
-        "docs/evidence/M26-native-controls.md"
+        "docs/evidence/M26-native-controls.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/access-menu.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/composer.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/icons/hand.svg",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/icons/shield-alert.svg",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/icons/shield-check.svg",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/parameters.css",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/parameters.js"
       ],
       "fixes": null,
       "id": "T004",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Нативное меню доступа и отдельные контролы в composer",
       "why": "Доступ должен быть виден отдельно от выбора модели и усилия"
     },
@@ -443,8 +451,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 3/8
-- Revision: 836
+- Progress: 4/8
+- Revision: 838
 
 ## Objective
 
@@ -472,9 +480,9 @@
   - Commit: feat(panel): add native effort card and model picker
   - Files: product-parts/control-panel/clusters/web-panel/modules/session-chat, docs/architecture/OVERVIEW.md, docs/evidence/M26-native-controls.md, package.json, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/effort-card.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/effort-model.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/icons/chevron-right.svg, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/parameters.css, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/parameters.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/session-chat.css, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/effort-model.test.ts
   - Depends on: T002
-- [TODO] T004 — Нативное меню доступа и отдельные контролы в composer (work)
+- [DONE] T004 — Нативное меню доступа и отдельные контролы в composer (work)
   - Commit: feat(panel): separate native access menu from effort controls
-  - Files: product-parts/control-panel/clusters/web-panel/modules/session-chat, docs/architecture/OVERVIEW.md, docs/evidence/M26-native-controls.md
+  - Files: product-parts/control-panel/clusters/web-panel/modules/session-chat, docs/architecture/OVERVIEW.md, docs/evidence/M26-native-controls.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/access-menu.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/composer.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/icons/hand.svg, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/icons/shield-alert.svg, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/icons/shield-check.svg, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/parameters.css, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/parameters.js
   - Depends on: T003
 - [TODO] T005 — Сравнить с эталонами и проверить сценарии в браузере (work)
   - Commit: test(panel): verify native controls against visual references

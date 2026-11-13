@@ -44,10 +44,16 @@ export function createComposer({ shell, projectId, key, provider, onSent }) {
   const availability = h('p', { class: 'sc-availability sc-note' });
   const status = h('p', { class: 'sc-status', role: 'status', 'aria-live': 'polite' });
   status.hidden = true;
-  const parameterView = createParameters({ shell, projectId, key, provider, fallback: parameters, report });
+  const editor = h('div', {class:'sc-editor'}, [plus, input, action, microphone]);
+  const details = h('div', {class:'sc-details'}, [queue]);
+  const parameterView = createParameters({ shell, projectId, key, provider, fallback: parameters, report, onLayout(native) {
+    details.classList.toggle('sc-native-details', native);
+    if (native) { if (plus.parentElement !== details) { details.prepend(plus, parameterView.accessNode); details.append(microphone); } }
+    else if (plus.parentElement !== editor) { editor.prepend(plus); editor.append(microphone); parameterView.accessNode.remove(); }
+  }});
+  details.append(parameterView.node);
   const node = h('div', { class: 'sc-compose' }, [
-    h('div', { class: 'sc-editor' }, [plus, input, action, microphone]),
-    h('div', { class: 'sc-details' }, [queue, parameterView.node]), availability, status,
+    editor, details, availability, status,
   ]);
 
   function turn() { return effectiveTurn(data.turn, confirmedRef); }

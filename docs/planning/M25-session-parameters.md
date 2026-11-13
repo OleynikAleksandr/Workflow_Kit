@@ -103,9 +103,9 @@ interface ParameterChange { model?: string; effort?: string; speed?: string;
 
 1. `thread/read { threadId }` без ходов → `model`, `reasoningEffort`, `path`, статус.
    Тред не загружается.
-2. Файл сессии `thread.path` через `jsonl-tail`: новейшая запись настроек
-   (`thread_settings_applied` или `turn_context`) → скорость, режим, разрешения, политика
-   одобрений; новейший `token_count` → контекст. Нет файла или записи — параметра нет.
+2. Файл `thread.path` через `jsonl-tail`: последние `thread_settings_applied` /
+   `turn_context` → режим, разрешения, одобрения; последнее явное `service_tier` →
+   скорость; последний `token_count` → контекст. Нет файла/записи — параметра нет.
 3. Лимиты — `account/rateLimits/read`, кэш 60 с; каталоги `model/list`,
    `collaborationMode/list`, `permissionProfile/list` — кэш 10 минут, сброс при незнакомом
    значении и по `refresh()`. Отказ каталога не мешает показу: подпись — идентификатор.

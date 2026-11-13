@@ -10,10 +10,36 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 799,
+  "revision": 801,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "Provider.readParameters/updateParameters; GET/POST parameters; очередь, журнал и типизированные ошибки.",
+          "Атомарные снимки и createJsonlTail: блоки, редкие записи, частичная строка, сброс при замене.",
+          "Codex: каталоги, совместимость, подтверждение, следующий ход и экспериментальный API.",
+          "Claude: statusline, отдельный --settings, снимок/транскрипт/лимиты; редактирование выключено.",
+          "Диалог: видимый single-flight опрос, кольцо/лимиты, доступное меню, fallback M24."
+        ],
+        "decisions": [
+          "T001 разрешила реализацию после проверки обоих направлений с пользователем.",
+          "Живая строка установленного Claude проверяется в T008; T006 доказывает автоматическую цепочку.",
+          "Скорость сохраняет последнее явное service_tier; отсутствие поля не означает стандартную.",
+          "Общий контракт не знает провайдеров; подписи, стиль и варианты принадлежат адаптерам.",
+          "Таблица данных перенесена в CONTRACTS из-за лимита размера обзора."
+        ],
+        "references": [
+          "docs/planning/M25-session-parameters.md",
+          "docs/design/M25-session-parameters-rules.md",
+          "docs/evidence/M25-acceptance.md",
+          "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/parameters.md",
+          "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/parameters.md",
+          "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/parameters.md",
+          "product-parts/backend-core/clusters/runtime/modules/cli/statusline.md",
+          "product-parts/control-panel/clusters/web-panel/modules/session-chat/parameters.md"
+        ],
+        "result": "Реализованы чтение параметров Claude/ChatGPT, управление ChatGPT и строка/меню диалога. T001 положительная; автоматические и браузерные проверки выполнены. Поставка и живая приёмка отдельно."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -531,7 +557,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -632,8 +658,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 7/10
-- Revision: 799
+- Progress: 8/10
+- Revision: 801
 
 ## Objective
 
@@ -679,7 +705,7 @@
   - Commit: feat(panel): show and change session parameters in the dialog
   - Files: product-parts/control-panel/clusters/web-panel/modules/session-chat, product-parts/control-panel/clusters/web-panel/cluster.md, docs/architecture/OVERVIEW.md, docs/evidence/M25-acceptance.md, docs/evidence/M25, docs/evidence/M25/browser-results.json, docs/evidence/M25/chatgpt-200pct-dark.png, docs/evidence/M25/chatgpt-desktop-dark.png, docs/evidence/M25/chatgpt-desktop.png, docs/evidence/M25/chatgpt-partial-menu.png, docs/evidence/M25/chatgpt-touch-menu-dark.png, docs/evidence/M25/claude-ipad-dark.png, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/parameters.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/composer.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/icons/check.svg, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/icons/chevron-down.svg, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/icons/zap.svg, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/parameters-model.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/parameters.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/session-chat.css, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/parameters-model.test.ts
   - Depends on: T006
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M25-session-parameters.md, docs/design/M25-session-parameters-facts.md, docs/evidence/M25-acceptance.md, product-parts/provider-runtime/clusters/provider-contract/cluster.md, docs/architecture/CONTRACTS.md, product-parts/control-panel/clusters/web-panel/cluster.md
   - Depends on: T001, T002, T003, T004, T005, T006, T007
@@ -691,5 +717,7 @@
   - Commit: docs: record green CI for the M25 delivery
   - Files: docs/evidence/M25-acceptance.md
   - Depends on: T008, DOCS-R1
+
+Digest: Реализованы чтение параметров Claude/ChatGPT, управление ChatGPT и строка/меню диалога. T001 положительная; автоматические и браузерные проверки выполнены. Поставка и живая приёмка отдельно.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

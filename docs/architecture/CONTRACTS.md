@@ -33,7 +33,7 @@
 
 Интерфейс `Provider` (`status`, `capabilities`, `trust`, `previewTrust`,
 `grantTrust`, `hooks`, `approveHooks?`, `listSessions`, `createSession`,
-`resumeSession?`, `stopSession?`, `interruptAvailability?`, `interruptTurn?`, `readMessages?`, `sendDirect?`, `marksPanelProcess?`, `actions`, `runAction`,
+`resumeSession?`, `stopSession?`, `interruptAvailability?`, `interruptTurn?`, `readMessages?`, `sendDirect?`, `readParameters?`, `updateParameters?`, `marksPanelProcess?`, `actions`, `runAction`,
 `refresh?`, `removeBlockers?` и другие) и фабрика `createProvider(context)` из `src/index.ts`
 модуля провайдера. Чтение дёшево и ничего не меняет (D11); запись в чужие конфиги — по
 одноразовому токену предпросмотра с отпечатком показанного (D7). `TrustPreview.choices` —
@@ -123,8 +123,8 @@ Kit 2.2.4 ставится в проект бандлом (`install --host harne
 [web-panel](../../product-parts/control-panel/clusters/web-panel/cluster.md).
 
 Компактный ввод M24 принадлежит `session-chat`: Enter при waiting/holding/unknown,
-Stop только при working; Ctrl/⌘+Enter и touch «В очередь» сохраняют M18. Модель —
-SessionInfo.model выбранной сессии; отсутствующая телеметрия не выдумывается.
+Stop только при working; Ctrl/⌘+Enter и touch «В очередь» сохраняют M18. В M25 параметры приходят через GET/POST parameters; fallback без поддержки —
+SessionInfo.model и прочерки M24. Отсутствующая телеметрия не выдумывается.
 Stop использует channel.interruptions, не угадывает работу по HTTP-отправке. Подтверждение
 и поздние ответы привязаны к поколению; stale-turn обновляет цель без повторного Stop.
 Черновик защищён ревизией от позднего результата отправки. Подробности —
@@ -172,3 +172,16 @@ GET/POST `…/sessions/:sid/parameters` сначала находят сесси
 новейшие записи блоками 1 МиБ до 256 МиБ, затем дописанное, сохраняя редкие значения;
 неполная строка ждёт дописывания. Контракт одинаков на macOS, Linux и Windows x64/ARM64;
 программ ОС не вызывает. Подробности — `provider-registry/module.md`.
+
+## Данные на диске
+
+Каталоги (`data-store`): macOS `~/Library/Application Support/Workflow Kit`; Linux
+`$XDG_CONFIG_HOME`, `$XDG_STATE_HOME`, `$XDG_DATA_HOME` + `workflow-kit`; Windows
+`%LOCALAPPDATA%\Workflow Kit`; `WFK_DATA_DIR` — всё (экземпляр разработки). Файлы: `config.json` (порт 4747,
+корень проектов, `programs`, `loginPath`), `projects.json`, `events.jsonl`
+(ротация 5 МиБ), `processes.json`, `sessions/claude.json`,
+`sessions/codex.json`, `logs/`, `backups/` (последние 10 копий на файл),
+`app/<версия>/` и `app/current.json`. Права каталогов 0700, файлов 0600.
+В папке проекта (веха 2): `.workflow-kit/local/sessions/<клиент>.<id>.json`
+(имя, тема, архив, ревью сессии), журнал хука
+`.workflow-kit/local/sessions.jsonl`, `.harness/**` (только команды Kit).

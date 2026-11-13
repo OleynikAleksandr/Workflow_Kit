@@ -4,6 +4,10 @@
 ведёт задача DOCS каждого раунда; подробности — в `module.md` модулей, спецификации вех и
 факты о провайдерах — в `docs/planning/`. M24 включена в локальную поставку 0.10.0; пользовательская приёмка ещё не выполнена.
 
+M25 реализована в исходниках: строка параметров обоих провайдеров и управление ChatGPT.
+Локальная установка 0.11.0, CI SHA поставки и живая приёмка ещё впереди;
+[доказательства M25](../evidence/M25-acceptance.md).
+
 ## Что это
 
 Бэкенд-служба пользователя (Node 24, TypeScript без сборки, без
@@ -112,16 +116,7 @@ T001–T006 и fixes T008/T009 завершены; последний функц
 
 ## Данные на диске
 
-Каталоги (`data-store`): macOS `~/Library/Application Support/Workflow Kit`; Linux
-`$XDG_CONFIG_HOME`, `$XDG_STATE_HOME`, `$XDG_DATA_HOME` + `workflow-kit`; Windows
-`%LOCALAPPDATA%\Workflow Kit`; `WFK_DATA_DIR` — всё (экземпляр разработки). Файлы: `config.json` (порт 4747,
-корень проектов, `programs`, `loginPath`), `projects.json`, `events.jsonl`
-(ротация 5 МиБ), `processes.json`, `sessions/claude.json`,
-`sessions/codex.json`, `logs/`, `backups/` (последние 10 копий на файл),
-`app/<версия>/` и `app/current.json`. Права каталогов 0700, файлов 0600.
-В папке проекта (веха 2): `.workflow-kit/local/sessions/<клиент>.<id>.json`
-(имя, тема, архив, ревью сессии), журнал хука
-`.workflow-kit/local/sessions.jsonl`, `.harness/**` (только команды Kit).
+Полная таблица файлов и каталогов — [CONTRACTS.md](CONTRACTS.md#данные-на-диске).
 
 ## Матрица ОС
 

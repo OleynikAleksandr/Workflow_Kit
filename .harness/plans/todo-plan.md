@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 783,
+  "revision": 784,
   "rounds": [
     {
       "digest": null,
@@ -515,6 +515,45 @@
       "status": "TODO",
       "title": "Локальная поставка 0.11.0 и живая приёмка",
       "why": "Пользователь проверяет результат в установленной службе"
+    },
+    {
+      "acceptance": [
+        "Ветка ci/m25-session-parameters отправлена на SHA поставки пользователем либо агентом по его прямой команде в чате; сама задача git push не выполняет и функциональные файлы не меняет.",
+        "До task:start агент проверил прогон CI для SHA поставки; задача начата с подтверждением пользователя и только при зелёной CI на macOS, Linux, Windows x64 и Windows ARM64.",
+        "Доказательства M25 содержат SHA поставки, ссылку на прогон CI и итог по каждой из четырёх платформ.",
+        "При красной или незапущенной CI задача не начинается и остаётся TODO: дефект исправляет раунд исправлений по разделу 8 правил M25, после него проверяется новый SHA."
+      ],
+      "checks": [],
+      "commitMessage": "docs: record green CI for the M25 delivery",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/design/M25-session-parameters-rules.md",
+          "required": true,
+          "heading": "8. Поставка и CI"
+        },
+        {
+          "path": "docs/planning/M25-session-parameters.md",
+          "required": true,
+          "heading": "4. Проверка"
+        }
+      ],
+      "dependencies": [
+        "T008",
+        "DOCS-R1"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "docs/evidence/M25-acceptance.md"
+      ],
+      "fixes": null,
+      "id": "T009",
+      "iteration": 1,
+      "kind": "delivery",
+      "roundId": "R1",
+      "status": "TODO",
+      "title": "CI четырёх платформ на SHA поставки",
+      "why": "Поставка не завершена без зелёной CI на macOS, Linux, Windows x64 и Windows ARM64"
     }
   ]
 }
@@ -527,8 +566,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 0/9
-- Revision: 783
+- Progress: 0/10
+- Revision: 784
 
 ## Objective
 
@@ -582,5 +621,9 @@
   - Commit: chore(release): install Workflow Kit 0.11.0 locally
   - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/installation.md, docs/usage.md, docs/architecture/OVERVIEW.md, docs/changelog, docs/evidence/M25-acceptance.md, docs/evidence/M25
   - Depends on: T007, DOCS-R1
+- [TODO] T009 — CI четырёх платформ на SHA поставки (delivery)
+  - Commit: docs: record green CI for the M25 delivery
+  - Files: docs/evidence/M25-acceptance.md
+  - Depends on: T008, DOCS-R1
 
 State changes only through `scripts/workflow` commands. History lives in Git.

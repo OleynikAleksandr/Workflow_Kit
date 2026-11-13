@@ -42,3 +42,11 @@
 @media(pointer:coarse) { .sc-claude-option, .sc-claude-back, .sc-claude-mode-trigger { min-height: 44px; } }
 .sc-claude-menu { max-height: inherit; }
 .sc-claude-popup:has(.sc-claude-narrow) { width: 320px; }
+.sc-claude-option .sc-icon-info { width: 11px; height: 11px; color: var(--sc-claude-muted); mask-image: url('./icons/info.svg'); }
+.sc-claude-mode-menu .sc-claude-title { margin-bottom: 3px; }
+.sc-claude-mode-menu .sc-claude-option { padding-top: 5px; padding-bottom: 5px; }
+.sc-claude-sub { padding: 10px 6px 4px; }
+.sc-claude-sub.sc-claude-more-pane { padding: 6px; }
+.sc-claude-popup, .sc-claude-parameters { -webkit-font-smoothing: antialiased; }
+.sc-claude-popup .sc-claude-explanation { margin-bottom: 2px; }
+.sc-claude-sub:not(.sc-claude-more-pane) { padding-bottom: 7px; }

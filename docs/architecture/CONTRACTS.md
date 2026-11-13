@@ -228,3 +228,7 @@ item.value остаётся effective id. POST Claude — одно поле, nat
 M27/T005: claude-controls выбирает собственные nested model/Effort/More models и
 Mode menus; keyed DOM, один popup, границы visualViewport, touch 44px. Нет slider
 Claude; M26 effort-card/drag остаётся отдельным представлением. Успех без подстрочника.
+
+M27/T006: stable frame200мс; statusline событийный и bound to host; model/effort
+ACK требует новый report. Discovery понимает singular hidden row, setter не портит
+полный каталог, внешняя смена модели инвалидирует связанные опции; no-op без ввода.

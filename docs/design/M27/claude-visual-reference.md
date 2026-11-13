@@ -60,3 +60,7 @@ Polling сохраняет DOM, ввод и фокус. Успешный POST т
 Это responsive QA, не растяжение native PNG. Pixel QA — только тёмная тема того же
 компонента/состояния и DPR; светлая — только token QA. Эмуляция не считается живой
 проверкой iPad/Windows. Перед delivery P0/P1/P2 исправлены, design-qa.md: passed.
+
+T006: совместные boards effort/mode/more-comparison-final.png находятся в evidence M27;
+корневой design-qa.md — passed. Mode density и narrow More models уточнены по PNG,
+root width зависит от текущей подписи effort. Light проверена только по токенам.

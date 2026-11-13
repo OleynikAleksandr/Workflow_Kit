@@ -38,7 +38,7 @@ export function parameterFrame(screen: TerminalScreen): ParameterFrame {
         if (!/^Default\b/.test(label)) frame.rows.push({ key: nativeModelKey(label), label, index, selected: row[1] === '❯', group: more ? 'more' : 'primary' });
       }
     }
-    frame.hiddenModels = Number(/…\s*\+(\d+) models/.exec(text)?.[1] ?? 0);
+    frame.hiddenModels = Number(/…\s*\+(\d+) models?/.exec(text)?.[1] ?? 0);
     return frame;
   }
   if (!root && /^\s*Effort\s*$/m.test(text) && /s for this session only.*Esc to cancel/.test(tail)) {

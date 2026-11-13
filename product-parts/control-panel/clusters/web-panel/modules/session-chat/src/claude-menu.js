@@ -10,6 +10,7 @@ export function createClaudeMenu({h, data, busy, change, close, reposition, mode
   const node = h('div', {class:`sc-claude-menu${mode ? ' sc-claude-mode-menu' : ''}`}, [main, sub]);
   /** @type {'effort'|'more'|null} */ let level = null;
   let destroyed = false;
+  let rootWidth = 160;
   /** @type {HTMLElement|null} */ let opener = null;
   /** @type {Map<string,{button:HTMLButtonElement,label:HTMLElement,detail:HTMLElement,badge:HTMLElement,mark:HTMLElement,shortcut:HTMLElement}>} */ const rows = new Map();
   const item = (/** @type {string} */ id) => data()?.items.find(i=>i.id===id);
@@ -23,7 +24,7 @@ export function createClaudeMenu({h, data, busy, change, close, reposition, mode
     let row=rows.get(key);
     if(!row) {
       const label=h('span',{class:'sc-claude-label'}),detail=h('small'),badge=h('span',{class:'sc-claude-badge'}),mark=icon('check'),shortcut=h('span',{class:'sc-claude-shortcut','aria-hidden':'true'});
-      const copy=h('span',{class:'sc-claude-copy'},[h('span',{class:'sc-claude-option-label'},[label,badge]),detail]);
+      const copy=h('span',{class:'sc-claude-copy'},[h('span',{class:'sc-claude-option-label'},[label,badge,id==='effort'&&value.value==='max'?icon('info'):null]),detail]);
       const button=/** @type {HTMLButtonElement} */(h('button',{type:'button',class:'sc-claude-option',role:'menuitemradio','data-claude-option':key},[copy,mark,shortcut]));
       button.addEventListener('click',()=>{
         const current=item(id)?.options?.find(o=>o.value===value.value);
@@ -65,14 +66,23 @@ export function createClaudeMenu({h, data, busy, change, close, reposition, mode
   function leave(){level=null;sub.hidden=true;main.hidden=false;node.classList.remove('sc-claude-narrow');opener?.focus({preventScroll:true});effortButton.setAttribute('aria-expanded','false');moreButton.setAttribute('aria-expanded','false');reposition();}
   node.addEventListener('keydown',(/** @type {KeyboardEvent} */ event)=>{
     if(level&&['ArrowLeft','Escape'].includes(event.key)){event.preventDefault();event.stopPropagation();leave();return;}
+    if(['ArrowDown','ArrowUp','Home','End'].includes(event.key)){
+      const pane=level?sub:main;const buttons=Array.from(pane.querySelectorAll('button')).filter(b=>!b.disabled&&!b.classList.contains('sc-claude-back')&&b.getClientRects().length);
+      if(buttons.length){event.preventDefault();event.stopPropagation();const current=buttons.findIndex(b=>b===document.activeElement);const index=event.key==='Home'?0:event.key==='End'?buttons.length-1:(current+(event.key==='ArrowDown'?1:-1)+buttons.length)%buttons.length;buttons[index]?.focus();}return;
+    }
     if(/^[1-4]$/.test(event.key)&&!level){const choices=main.querySelectorAll('button[role="menuitemradio"]');const b=/** @type {HTMLButtonElement|undefined} */(choices[Number(event.key)-1]);if(b&&!b.disabled){event.preventDefault();b.click();}}
   });
   function position(){
-    if(!level||destroyed)return;
+    if(destroyed)return;
     const vv=window.visualViewport;const width=vv?.width??innerWidth,height=vv?.height??innerHeight,left=vv?.offsetLeft??0,top=vv?.offsetTop??0;
-    const narrow=width<520;node.classList.toggle('sc-claude-narrow',narrow);main.hidden=narrow;back.hidden=!narrow;
+    const narrow=width<520;
+    if(!mode&&!main.hidden){const labelWidth=effortText.getBoundingClientRect().width;if(labelWidth>0)rootWidth=Math.max(142,Math.ceil(114+labelWidth));}
+    const popup=node.closest('.sc-claude-popup');const wanted=Math.min(width-16,mode||level&&narrow?320:rootWidth);
+    if(popup instanceof HTMLElement&&popup.style.width!==`${wanted}px`){popup.style.width=`${wanted}px`;reposition();return;}
+    if(!level)return;
+    node.classList.toggle('sc-claude-narrow',narrow);main.hidden=narrow;back.hidden=!narrow;
     if(narrow){sub.style.position='static';sub.style.width='100%';sub.style.maxHeight=`${Math.max(44,height-16)}px`;return;}
-    sub.style.position='fixed';sub.style.width='320px';sub.style.maxHeight=`${Math.max(44,height-16)}px`;
+    sub.style.position='fixed';sub.style.width=level==='more'?'142px':'320px';sub.style.maxHeight=`${Math.max(44,height-16)}px`;
     const box=main.getBoundingClientRect(),r=opener?.getBoundingClientRect()??box,b=sub.getBoundingClientRect();
     const x=box.right+3+b.width<=left+width-8?box.right+3:box.left-b.width-3;
     sub.style.left=`${Math.max(left+8,Math.min(x,left+width-b.width-8))}px`;
@@ -90,7 +100,7 @@ export function createClaudeMenu({h, data, busy, change, close, reposition, mode
       effortButton.setAttribute('aria-expanded',String(level==='effort'));moreButton.setAttribute('aria-expanded',String(level==='more'));
       reconcile(main,[...primary.map((o,i)=>option('model',o,i+1)),separators[0],effortButton,separators[1],moreButton,reason]);
     }
-    sub.hidden=!level;
+    sub.hidden=!level;sub.classList.toggle('sc-claude-more-pane',level==='more');
     if(level==='effort'){
       const ultra=item('ultracode');const checked=ultra?.value==='on';toggle.setAttribute('aria-checked',String(checked));
       const target=ultra?.options?.find(o=>o.value===(checked?'off':'on'));toggle.disabled=busy()||!target||target.disabled===true;toggle.title=target?.reason??'';

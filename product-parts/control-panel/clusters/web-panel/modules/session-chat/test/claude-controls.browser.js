@@ -27,27 +27,28 @@ async (root, config = {}) => {
       card.style.width='min(768px, calc(100vw - 32px))';card.style.position='absolute';card.style.right='max(16px, calc(50% - 418px))';card.style.bottom='10px';document.body.style.background='#1a1a1a';
       view.setVisible(true);state.view=view;state.timer=setInterval(()=>view.setVisible(true),200);
     });
+    await page.evaluate(theme=>{document.documentElement.dataset.theme=theme;document.body.style.background=theme==='light'?'#f5f5f5':'#1a1a1a';},config.theme??'dark');
     const model=page.locator('.sc-parameter-trigger');await model.waitFor();await page.locator('.sc-input').fill('Черновик сохраняется');
     await model.click();check(await page.locator('.sc-claude-main [role=menuitemradio]').count()===4,'four primary models');check(await page.getByRole('slider').count()===0,'Claude has list, no slider');
     if(config.touch)await page.getByRole('menuitem',{name:'Effort',exact:false}).tap();else await page.getByRole('menuitem',{name:'Effort',exact:false}).hover();await page.locator('.sc-claude-sub').waitFor();
     check(await page.getByRole('menuitemradio',{name:'Medium Recommended'}).count()===1,'native recommended label');
+    if(config.touch){const boxes=await page.locator('.sc-claude-option:visible').evaluateAll(nodes=>nodes.map(n=>n.getBoundingClientRect().height));check(boxes.length>0&&boxes.every(h=>h>=44),'all touch targets >=44');}
     check(await page.getByRole('switch',{name:'Ultracode'}).getAttribute('aria-checked')==='false','separate Ultracode switch');
     if(config.poll){const focused=page.getByRole('menuitemradio',{name:'High',exact:true});await focused.focus();await focused.evaluate(n=>{window.m27Focused=n;});const reads=await page.evaluate(()=>window.fixture.reads);await page.waitForFunction(n=>window.fixture.reads>n,reads,{timeout:7000});check(await focused.evaluate(n=>n===window.m27Focused&&n===document.activeElement),'poll preserves open menu DOM and focus');}
     const bounds=await page.locator('.sc-claude-pane:visible').evaluateAll(nodes=>nodes.map(n=>{const b=n.getBoundingClientRect();return {x:b.x,y:b.y,right:b.right,bottom:b.bottom};}));check(bounds.every(b=>b.x>=7&&b.y>=7&&b.right<=(config.width??1542)-7&&b.bottom<=(config.height??1049)-7),'menu fits all viewport sides');
-    await page.screenshot({path:`/Users/oleksandroliinyk/VSCODE/Workflow_Kit/docs/evidence/M27/claude-effort-${config.touch?'touch':'source'}.png`});
+    await page.screenshot({path:`/Users/oleksandroliinyk/VSCODE/Workflow_Kit/docs/evidence/M27/claude-effort-${config.label??(config.touch?'touch':'source')}.png`});
     await page.getByRole('menuitemradio',{name:'High',exact:true}).click();await model.locator('text=High').waitFor();check((await page.evaluate(()=>window.fixture.posts)).length===1,'one effort POST');
     check(await page.locator('.sc-status').isHidden(),'quiet success');check(await page.locator('.sc-input').inputValue()==='Черновик сохраняется','draft preserved');
-    await model.click();await page.getByRole('menuitem',{name:'More models',exact:true}).click();check(await page.getByRole('menuitemradio',{name:'Sonnet 5',exact:true}).count()===1,'more models submenu');
+    await model.click();await page.getByRole('menuitem',{name:'More models',exact:true}).click();check(await page.getByRole('menuitemradio',{name:'Sonnet 5',exact:true}).count()===1,'more models submenu');await page.screenshot({path:`/Users/oleksandroliinyk/VSCODE/Workflow_Kit/docs/evidence/M27/claude-more-${config.label??(config.touch?'touch':'source')}.png`});
     await page.keyboard.press('Escape');check(await page.locator('.sc-claude-sub').isHidden(),'Esc closes submenu first');await page.keyboard.press('Escape');check(await page.locator('.sc-claude-popup').count()===0,'Esc closes root');
     await page.getByRole('button',{name:'Режим Claude',exact:true}).click();check(await page.getByRole('menuitemradio',{name:'Plan Create a plan before making changes'}).count()===1,'native Plan belongs only to Mode');
-    await page.screenshot({path:`/Users/oleksandroliinyk/VSCODE/Workflow_Kit/docs/evidence/M27/claude-mode-${config.touch?'touch':'source'}.png`});
+    await page.screenshot({path:`/Users/oleksandroliinyk/VSCODE/Workflow_Kit/docs/evidence/M27/claude-mode-${config.label??(config.touch?'touch':'source')}.png`});
     await page.getByRole('menuitemradio',{name:'Manual Always ask before making changes'}).click();await page.locator('.sc-claude-mode-trigger').getByText('Manual').waitFor();
     check(await page.locator('.sc-status').isHidden(),'mode success quiet');
     await model.click();await page.getByRole('menuitem',{name:'Effort',exact:false}).click();await page.getByRole('switch',{name:'Ultracode'}).click();await model.getByText('Ultracode').waitFor();check(await model.innerText().then(t=>t.includes('High')&&t.includes('Ultracode')),'Ultracode keeps base effort in footer');
-    await model.click();await page.getByRole('button',{name:'Режим Claude',exact:true}).click();check(await page.locator('.sc-claude-popup').count()===1,'single popup across anchors');await page.locator('.sc-input').click();check(await page.locator('.sc-claude-popup').count()===0,'outside click closes popup');
+    await model.click();await page.getByRole('button',{name:'Режим Claude',exact:true}).click();check(await page.locator('.sc-claude-popup').count()===1,'single popup across anchors');await page.mouse.click(4,4);check(await page.locator('.sc-claude-popup').count()===0,'outside click closes popup');
     await page.evaluate(()=>{window.fixture.fail=true;});await model.click();await page.getByRole('menuitem',{name:'Effort',exact:false}).click();await page.getByRole('menuitemradio',{name:'Low',exact:true}).click();
-    await page.getByRole('status').getByText('Claude не подтвердил изменение').waitFor();check(true,'provider failure visible');
-    if(config.touch){const boxes=await page.locator('.sc-claude-option:visible').evaluateAll(nodes=>nodes.map(n=>n.getBoundingClientRect().height));check(boxes.every(h=>h>=44),'all touch targets >=44');}
+    await page.getByRole('status').getByText('Claude не подтвердил изменение').waitFor();check(true,'provider failure visible');await page.keyboard.press('Home');check(await page.getByRole('menuitemradio',{name:'Low',exact:true}).evaluate(n=>n===document.activeElement),'Home stays in Effort submenu');await page.keyboard.press('End');check(await page.getByRole('switch',{name:'Ultracode'}).evaluate(n=>n===document.activeElement),'End reaches Ultracode');await page.keyboard.press('ArrowLeft');check(await page.locator('.sc-claude-sub').isHidden(),'ArrowLeft returns to root');await page.keyboard.press('Escape');check(await model.evaluate(n=>n===document.activeElement),'Esc returns focus to model anchor');
     check(errors.length===0,'no browser/CSP errors: '+JSON.stringify(errors));return {checks,errors};
   } finally {await context.close();}
 }

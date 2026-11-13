@@ -18,7 +18,7 @@ function world(version = '2.1.323') {
     model: { id: 'claude-sonnet-5-5', label: 'Sonnet 5.5' }, effort: 'high', fast: false, at: now };
   const feed = (text: string) => { screen.feed(`\x1b[2J\x1b[H${"\r\n".repeat(Math.max(0, 40 - text.split("\r\n").length))}${text}`); engine.observe(meta); };
   feed(idle());
-  const tick = () => { now += 150; engine.observe(meta); return engine.propose(); };
+  const tick = () => { now += 250; engine.observe(meta); return engine.propose(); };
   const request = (field = 'mode', value = 'default') => ({ version: 1, hostId, sessionId, id: randomUUID(), epoch: engine.snapshot().epoch, expires: now + 25_000, field, value });
   return { now: () => now, engine, screen, meta, feed, tick, request, advance: (n: number) => { now += n; } };
 }
@@ -89,13 +89,14 @@ test('catalogue expands and scrolls without saving defaults; setters use s and r
     + (expanded ? `${selection === 6 ? '❯' : ' '} 6. Sonnet 5  Older model\r\n` : '')
     + (selection === 'more' ? `Enter to ${expanded ? 'collapse' : 'expand'} · Esc to cancel` : 'Enter to set as default · s for this session only · Esc to cancel');
   const effortMenu = () => 'Effort\r\n' + ' '.repeat({ low: 0, medium: 7, high: 15, xhigh: 22, max: 28 }[effort]!) + '▲\r\nlow   medium  high   xhigh  max\r\nUltracode off · Tab to toggle\r\n←/→ to adjust · Enter to confirm · s for this session only · Esc to cancel';
-  const render = () => w.feed(menu === 'model' ? modelMenu() : menu === 'effort' ? effortMenu() : menu === 'fast' ? 'Fast mode requires usage credits\r\nEsc to cancel' : acknowledgements + '\r\n' + idle(draft));
+  const render = () => w.feed(menu === 'model' ? modelMenu() : menu === 'effort' ? effortMenu() : menu === 'fast' ? 'Fast mode requires usage credits\r\nEsc to cancel' : acknowledgements + '\r\n' + idle(draft) + (ultra ? '\r\n ultracode' : ''));
   const action = () => {
     const a = w.tick(); if (!a) return;
     assert.equal(w.engine.sent(a), true); written.push(a);
     if (a.kind === 'text') draft = a.value;
     else if (a.value === 'enter') {
       if (menu === 'model') { assert.equal(selection, 'more', 'Enter must never save a model default'); expanded = true; }
+      else if (draft.startsWith('/effort ultracode')) { ultra = !draft.endsWith(' off'); acknowledgements += ultra ? `\r\n⎿ Ultracode on (this session only): Effort stays ${w.meta.effort}.` : `\r\n⎿ Ultracode off. Effort stays ${w.meta.effort}.`; w.meta.at = w.now(); draft = ''; menu = ''; }
       else { menu = draft.slice(1); draft = ''; }
     } else if (a.value === 'escape') menu = '';
     else if (a.value === 'up') selection = selection === 'more' ? 5 : Math.max(1, (selection as number) - 1);
@@ -103,8 +104,8 @@ test('catalogue expands and scrolls without saving defaults; setters use s and r
     else if (a.value === 'left' || a.value === 'right') {
       const levels = ['low', 'medium', 'high', 'xhigh', 'max']; effort = levels[levels.indexOf(effort) + (a.value === 'right' ? 1 : -1)]!;
     } else if (a.value === 'session') {
-      if (menu === 'model') { w.meta.model = { id: 'claude-sonnet-5', label: 'Sonnet 5' }; acknowledgements += '\r\nSet model to Sonnet 5 (this session only)'; }
-      else { w.meta.effort = effort; acknowledgements += `\r\nSet effort level to ${effort} (this session only)`; }
+      if (menu === 'model') { w.meta.model = { id: 'claude-sonnet-5', label: 'Sonnet 5' }; acknowledgements += '\r\n⎿ Set model to Sonnet 5 for this session only'; }
+      else { w.meta.effort = effort; acknowledgements += `\r\n⎿ Set effort level to ${effort} (this session only)`; }
       w.meta.at = w.now(); menu = '';
     } else assert.fail(`unexpected key ${a.value}`);
     render();
@@ -114,10 +115,11 @@ test('catalogue expands and scrolls without saving defaults; setters use s and r
   assert.equal(w.engine.takeResult()?.status, 'applied');
   assert.equal(w.engine.snapshot().models.length, 5); assert.deepEqual(w.engine.snapshot().efforts, ['low', 'medium', 'high', 'xhigh', 'max']);
   assert.equal(w.engine.snapshot().fastReason, 'Fast mode requires usage credits');
-  for (const [field, value] of [['model', 'native:Sonnet%205'], ['effort', 'medium']]) {
+  for (const [field, value] of [['model', 'native:Sonnet%205'], ['effort', 'medium'], ['ultracode', 'on'], ['ultracode', 'off']]) {
     w.meta.at = w.now(); w.engine.observe(w.meta); w.engine.begin(w.request(field, value));
     for (let i = 0; i < 300 && w.engine.busy; i++) action();
     assert.equal(w.engine.takeResult()?.status, 'applied', field);
+    assert.equal(w.engine.snapshot().models.length, 5, 'setter navigation cannot replace a complete discovered catalogue with a partial viewport');
   }
   assert.equal(w.engine.snapshot().model?.id, 'claude-sonnet-5'); assert.equal(w.engine.snapshot().effort, 'medium');
   assert.equal(written.filter(a => a.value === 'session').length, 2);
@@ -131,4 +133,23 @@ test('native metadata is bound to the same folder; Windows casing and slash form
     engine.observe({ version: 1, hostId, sessionId, cwd: native, cliVersion: '2.1.324', model: { id: 'm', label: 'M' }, effort: 'high', fast: false, at: 1000 });
     assert.equal(engine.snapshot().status === 'idle', accepted);
   }
+});
+
+test('catalogue singular hidden row is not mistaken for the final visible model', () => {
+  const screen = new TerminalScreen();
+  screen.feed('\x1b[H' + '\r\n'.repeat(36) + 'Select model\r\n❯ 13. Opus 4.6  Older model\r\n  … +1 model\r\nEnter to set as default · s for this session only · Esc to cancel');
+  assert.equal(parameterFrame(screen).hiddenModels, 1);
+});
+test('idle host can retain an unchanged native report; writes still wait for a stable frame', () => {
+  const w = world(); w.advance(60_000); w.engine.observe(w.meta); w.engine.begin(w.request());
+  assert.equal(w.tick()?.value, 'mode', 'statusline callbacks are event-driven, not an idle heartbeat');
+  const x = world(); x.engine.discover(); assert.equal(x.engine.propose(), null, 'no key while frame is still painting');
+  x.advance(199); assert.equal(x.engine.propose(), null); x.advance(1); assert.equal(x.engine.propose()?.value, '/model');
+});
+
+test('cancellation never escapes a different native settings menu owned by the user', () => {
+  const w = world(); w.engine.discover(); w.engine.sent(w.tick()!); w.feed(idle('/model')); w.engine.sent(w.tick()!);
+  w.feed('Effort\r\n▲\r\nlow   medium  high\r\nEnter to confirm · s for this session only · Esc to cancel');
+  w.engine.cancel(); assert.equal(w.tick(), null); assert.equal(w.engine.takeResult()?.status, 'cancelled');
+  assert.equal(w.engine.busy, true, 'foreign menu retains legacy input files until a safe root returns');
 });

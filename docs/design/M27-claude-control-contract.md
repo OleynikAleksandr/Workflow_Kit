@@ -169,3 +169,17 @@ options имеют opaque value + selected/group, effective item.value оста�
 Recommended получается из native description preview. Claude presentation не имеет
 access; все M26 consumers проверяют effort-card. Codex отвергает ultracode до RPC.
 HTTP явно сохраняет 400/409/503/504 и аудит только фактических изменений items.
+
+### Уточнения реальной пробы T006
+
+Ink рисует кадр несколькими порциями: engine ждёт 200мс стабильного отображения.
+Каталог учитывает `+1 model` и не заменяется частичным viewport во время setter;
+изменение модели извне инвалидирует effort/Ultracode/recommended и запускает discovery.
+Native statusline событийный: неизменённый report действует в рамках того же host;
+heartbeat подтверждает живой frame, а успешный model/effort setter требует нового
+report после начала операции. GET не обновляет source timestamp самостоятельно.
+ACK модели — `Set model to … for this session only`; effort имеет `(this session only)`;
+Ultracode off — `Ultracode off. Effort stays …`. Новый ACK и независимый effective
+state обязательны, старый redraw/один взятый request не считаются успехом. No-op
+возвращает подтверждённый текущий набор без клавиш. Cancel закрывает только меню
+своего отправленного builtin; другая известная settings-панель тоже считается чужой.

@@ -317,3 +317,6 @@ Capability требует CLI floor и pty; конкретный host может
 M27/T005: адаптер упорядочивает только имеющиеся primary families как Desktop RC:
 Opus/Fable/Sonnet/Haiku, прочие сохраняют порядок. Каталог и effective id не меняются;
 More models остаётся в native порядке. UI не интерпретирует provider id/модель.
+
+M27/T006: стабильный frame200мс, событийный statusline, точные native ACK и no-op;
+частичный viewport не портит каталог. Уточнения — контракт M27, раздел T006.

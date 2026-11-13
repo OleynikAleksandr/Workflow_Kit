@@ -210,3 +210,17 @@ fast=true, запрос credit consent или дополнительные хо�
 Исходные контракты: provider-claude/parameters.md, interrupt.md, module.md;
 M25-session-parameters-facts.md; session-chat/parameters.md. Прототип другой
 надстройки или чужая переписка источниками не служат.
+
+## 7. Проверка production host T006
+
+native-production-final.json: 12 изменений, 13 моделей сохраняются после каждого,
+тот же local/remote id и PID, defaults hash прежний. Effort/Ultracode/modes/Haiku/
+дополнительная Sonnet 5/возврат Sonnet 5.5; все controls без UserPromptSubmit/Stop.
+Два sentinel до/во время Effort дошли в одном настоящем prompt-hook по одному разу
+(2 occurrences), Stop 0, pending 0. Один Sonnet5.5/high/fast=false ход ответил OK.
+Итого расход M27: T001 2 + T006 1; T007 остаётся максимум 1 ход. Дополнительные
+диагностические хосты T006 не имели firstMessage/генерации; остановлены и purged.
+Первый сбой и промежуточные доказательства сохранены, не подменены поздним успехом.
+native-gui-final.json: Desktop Medium прочитан Kit, High возвращён API без нового хода.
+Native cleanup: own process0, trustfalse, defaults прежние, Unarchive подтверждён;
+серверные карточки архивированы, их удаление не заявляется.

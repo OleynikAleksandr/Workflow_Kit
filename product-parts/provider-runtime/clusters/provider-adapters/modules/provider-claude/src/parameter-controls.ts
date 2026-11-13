@@ -69,6 +69,7 @@ export function createClaudeControls(rt: ClaudeRuntime, reader = createClaudePar
     const option = before.items.find(i => i.id === field)?.options?.find(o => o.value === value);
     if (!option) return invalid();
     if (option.disabled) throw new ProviderError('parameters-unavailable', option.reason ?? 'Вариант недоступен', { status: 503 });
+    if (option.selected === true || (option.selected === undefined && value === before.items.find(i => i.id === field)?.value)) return before;
     if (option.confirm && change.confirmed !== true) throw new ProviderError('confirmation-required', option.confirm, { status: 409, details: { confirm: option.confirm } });
     try { await applyNativeParameter(rt, project, sid, field as Exclude<NativeField, 'catalog'>, value); }
     catch (error) {

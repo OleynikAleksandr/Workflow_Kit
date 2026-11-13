@@ -33,7 +33,8 @@ for (const platform of ['darwin', 'linux', 'win32'] as const) test(`${platform}:
   const controls = createClaudeControls(rt, { clear() {}, read: async () => structuredClone(base) });
   try {
     await writeNativeJson(debug + PARAMETER_STATE, n);
-    const read = await controls.read(project, n.sessionId); assert.equal(read.editable, true); assert.equal(await readNativeJson(debug + PARAMETER_REQUEST), null);
+    const read = await controls.read(project, n.sessionId); assert.equal(read.editable, true);
+    assert.equal((await controls.update(project, n.sessionId, { effort: 'high' })).items.find(i => i.id === 'effort')?.value, 'high'); assert.equal(await readNativeJson(debug + PARAMETER_REQUEST), null);
     for (const change of [{ model: 'native:Sonnet%205', effort: 'medium' }, { access: 'full' }, { mode: 'bypassPermissions' }, { ultracode: 'maybe' }, { model: 'invented' }]) await assert.rejects(controls.update(project, n.sessionId, change), { code: 'parameter-invalid' });
     await assert.rejects(controls.update(project, n.sessionId, { speed: 'fast' }), { code: 'parameters-unavailable' });
     assert.equal(await readNativeJson(debug + PARAMETER_REQUEST), null);

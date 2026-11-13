@@ -12,6 +12,7 @@ type Flow = Generator<Step, void, ParameterFrame>;
 export class ParameterEngine {
   private revision = 0;
   private rendered = '';
+  private renderedAt = 0;
   private cancelRevision = -1;
   private epoch = 0;
   private signature = '';
@@ -23,6 +24,7 @@ export class ParameterEngine {
   private written = false;
   private changed = 0;
   private command: string | null = null;
+  private menuOwner: { kind: ParameterFrame['kind']; submitted: boolean; seen: boolean } | null = null;
   private commandTyped = false;
   private cancelled = false;
   private seen = new Set<string>();
@@ -47,25 +49,31 @@ export class ParameterEngine {
     this.frame = parameterFrame(screen);
   }
   observe(metadata: NativeMetadata | null): void {
+    const oldModel = this.meta?.model.id;
     this.meta = metadata?.hostId === this.hostId && folderKey(metadata.cwd) === folderKey(this.cwd) ? metadata : null;
+    if (oldModel && this.meta?.model.id !== oldModel && !this.request) { this.efforts = []; this.recommended = null; this.ultraAvailable = false; this.discoveryAttempted = false; }
     const f = parameterFrame(this.screen);
     const signature = JSON.stringify([f.kind, f.input, f.mode, f.ultracode, f.selected, f.previewEffort, this.meta?.model, this.meta?.effort]);
     if (signature !== this.signature) { this.signature = signature; this.epoch++; }
-    if (f.kind === 'idle' && f.input === '') { this.effectiveMode = f.mode; this.effectiveUltra = f.ultracode; }
+    if (f.kind === 'idle' && (f.input === '' || (this.virgin && f.placeholder))) { this.effectiveMode = f.mode; this.effectiveUltra = f.ultracode; }
+    if (this.menuOwner?.submitted) {
+      if (f.kind === this.menuOwner.kind) this.menuOwner.seen = true;
+      else if (this.menuOwner.seen && f.kind === 'idle') this.menuOwner = null;
+    }
     this.frame = f;
     const rendered = JSON.stringify([f.text, this.screen.cursor()]);
-    if (rendered !== this.rendered) { this.rendered = rendered; this.revision++; }
+    if (rendered !== this.rendered) { this.rendered = rendered; this.renderedAt = this.now(); this.revision++; }
   }
   userInput(): void { this.virgin = false; if (this.request) this.cancel(); }
   get busy(): boolean { return this.request !== null || this.unsafe; }
   private empty(): boolean { return this.frame.input === '' || (this.virgin && this.frame.placeholder); }
   private ready(): boolean {
     return !!this.meta && supportedNativeVersion(this.meta.cliVersion) && this.frame.kind === 'idle'
-      && this.empty() && this.frame.mode !== null && this.now() >= this.meta.at && this.now() - this.meta.at < 30_000;
+      && this.empty() && this.frame.mode !== null && this.now() >= this.meta.at;
   }
   snapshot(): NativeParameterState {
     const f = this.frame; const m = this.meta;
-    const status = this.request ? 'control' : !m || !supportedNativeVersion(m.cliVersion) || this.now() < m.at || this.now() - m.at >= 30_000 ? 'unknown'
+    const status = this.request ? 'control' : !m || !supportedNativeVersion(m.cliVersion) || this.now() < m.at ? 'unknown'
       : f.kind === 'idle' && this.empty() ? 'idle' : f.kind === 'busy' ? 'busy' : f.kind === 'unknown' ? 'unknown' : 'dialog';
     return { version: 1, hostId: this.hostId, sessionId: m?.sessionId ?? '', epoch: `${this.hostId}:${this.epoch}`,
       at: this.now(), cliVersion: m?.cliVersion ?? '', status, inputEmpty: this.empty(),
@@ -91,7 +99,7 @@ export class ParameterEngine {
       || (r.field === 'ultracode' && (!this.ultraAvailable || !['on', 'off'].includes(r.value)))) {
       reject('unavailable', 'Вариант не подтверждён нативным каталогом'); return;
     }
-    this.request = r; this.cancelled = false; this.cancelRevision = -1; this.unsafe = false;
+    this.request = r; this.menuOwner = null; this.cancelled = false; this.cancelRevision = -1; this.unsafe = false;
     this.flow = r.field === 'catalog' ? this.catalog() : this.setter(r);
     this.advance();
   }
@@ -105,7 +113,7 @@ export class ParameterEngine {
   cancel(): void { if (this.request) this.cancelled = true; }
   private finish(status: NativeParameterResult['status'], reason?: string): void {
     const r = this.request!;
-    this.request = null; this.flow = null; this.step = null; this.command = null;
+    this.request = null; this.flow = null; this.step = null; this.command = null; this.menuOwner = null;
     this.result = { version: 1, id: r.id, hostId: this.hostId, sessionId: r.sessionId, status, ...(reason ? { reason } : {}), state: this.snapshot() };
   }
   private advance(): void {
@@ -119,11 +127,13 @@ export class ParameterEngine {
   propose(): NativeAction | null {
     if (this.unsafe && this.frame.kind === 'idle' && this.empty()) this.unsafe = false;
     if (!this.request || !this.step) return null;
+    // Ink paints a frame in several writes; do not classify or navigate an intermediate redraw.
+    if (this.now() - this.renderedAt < 200) return null;
     const f = this.frame;
     if (this.now() >= this.request.expires) this.cancelled = true;
     if (this.cancelled) {
       if (this.cancelRevision === this.revision) return null;
-      if (['model', 'effort', 'fast'].includes(f.kind)) return { kind: 'key', value: 'escape', revision: this.revision };
+      if (this.menuOwner?.submitted && this.menuOwner.kind === f.kind) return { kind: 'key', value: 'escape', revision: this.revision };
       if (this.command && f.input === this.command) return { kind: 'key', value: 'clear', revision: this.revision };
       this.unsafe = !(f.kind === 'idle' && this.empty());
       this.finish(this.now() >= this.request.expires ? 'timeout' : 'cancelled', 'Транзакция отменена без повтора'); return null;
@@ -157,26 +167,29 @@ export class ParameterEngine {
     this.changed = this.revision; this.changedAt = this.now();
     if (this.cancelled) { this.cancelRevision = this.revision; this.written = false; return true; }
     if (action.kind === 'text') this.commandTyped = true;
-    else this.written = true;
+    else { this.written = true; if (action.value === 'enter' && this.command && this.menuOwner) this.menuOwner.submitted = true; }
     return true;
   }
   private *open(command: string, kind: ParameterFrame['kind']): Flow {
+    this.menuOwner = { kind, submitted: false, seen: false };
     yield { command }; yield { until: f => f.kind === kind };
   }
-  private collect(f: ParameterFrame): void { for (const row of f.rows) this.models.set(row.key, { ...row, group: row.index > this.primaryLast || this.models.get(row.key)?.group === 'more' ? 'more' : row.group }); }
+  private collect(f: ParameterFrame): void { for (const row of f.rows) {
+    for (const [key, old] of this.models) if (old.index === row.index && key !== row.key) this.models.delete(key);
+    this.models.set(row.key, { ...row, group: row.index > this.primaryLast || this.models.get(row.key)?.group === 'more' ? 'more' : row.group }); } }
   private *modelRows(target?: NativeModelOption): Flow {
     yield* this.open('/model', 'model');
     if (this.frame.more === 'closed') this.primaryLast = Math.max(...this.frame.rows.map(r => r.index));
     let expanded = this.frame.more === 'open';
     // Read the actual scrollable catalogue; never use Enter on a model or Default.
     for (let i = 0; i < 64; i++) {
-      const f = this.frame; this.collect(f);
+      const f = this.frame; if (!target) this.collect(f);
       if (f.selected === 1) break;
       yield { key: 'up', frame: 'model' };
       if (i === 63) throw new Error('Начало каталога не распознано');
     }
     for (let i = 0; i < 64; i++) {
-      const f = this.frame; expanded ||= f.more === 'open'; this.collect(f);
+      const f = this.frame; expanded ||= f.more === 'open'; if (!target) this.collect(f);
       const row = f.rows.find(r => r.selected);
       if (target && row?.key === target.key) return;
       if (f.selected === 'more' && f.more === 'closed' && /Enter to expand/.test(f.text)) yield { key: 'enter', frame: 'model' };
@@ -215,8 +228,13 @@ export class ParameterEngine {
       if (this.frame.mode !== r.value) throw new Error('Native mode не подтверждён');
       return;
     }
-    const ackCount = (text: string): number => (text.match(/(?:Set model to|Set effort level to|Ultracode (?:on|off)).*\(this session only\)/g) ?? []).length;
-    const baseline = ackCount(this.frame.text);
+    const acks = (text: string): string[] => text.split('\n').filter(line => /⎿\s+(?:Set model to .* for this session only|(?:Set effort level to|Ultracode on).*\(this session only\)|Ultracode off\. Effort stays )/.test(line));
+    const baseline = acks(this.frame.text);
+    const freshAck = (f: ParameterFrame): boolean => {
+      const next = acks(f.text); const last = next.at(-1);
+      if (!last || (last === baseline.at(-1) && next.length <= baseline.length)) return false;
+      return r.field === 'model' ? last.includes('Set model to ') : r.field === 'effort' ? last.includes(`Set effort level to ${r.value} `) : last.includes(`Ultracode ${r.value === 'on' ? 'on' : 'off'}`);
+    };
     if (r.field === 'model') {
       yield* this.modelRows(this.models.get(r.value)!); yield { key: 'session', frame: 'model' };
     } else if (r.field === 'effort') {
@@ -229,7 +247,7 @@ export class ParameterEngine {
       if (this.frame.previewEffort !== r.value) throw new Error('Effort не выбран');
       yield { key: 'session', frame: 'effort' };
     } else yield { command: r.value === 'on' ? '/effort ultracode' : '/effort ultracode off' };
-    yield { until: f => f.kind === 'idle' && this.empty() && ackCount(f.text) > baseline && !!this.meta && this.meta.at >= submittedAt
+    yield { until: f => f.kind === 'idle' && this.empty() && freshAck(f) && !!this.meta && this.meta.at >= submittedAt
       && (r.field === 'model' ? this.meta.model.label === this.models.get(r.value)?.label
         : r.field === 'effort' ? this.meta.effort === r.value : f.ultracode === (r.value === 'on') && this.meta.effort === before.effort) };
     if (r.field === 'model') yield* this.readEfforts();

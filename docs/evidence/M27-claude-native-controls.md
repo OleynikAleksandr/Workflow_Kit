@@ -208,3 +208,38 @@ thumb drag в обе стороны/вне трека, preview без POST, од
 polling во время захвата, Home/End/track click, Escape/blur/pointercancel/lostcapture,
 quiet success и ошибки. Browser/CSP errors отсутствовали. Это изолированный Chromium,
 не live iPad или Windows. Статика общая для трёх ОС.
+
+## T006: native production roundtrip и QA
+
+`native-production-final.json`: 12 успешных typed операций, model catalogue 13
+после каждой, local 25000cf0-7ca3-4014-b6df-ce3735e34961, remote
+session_01EyVab9SoDubn2f1J6Erx37, host 65986/Claude 65991. Один процесс и defaults
+не менялись. Medium/High, Ultracode on/off, четыре mode, Haiku5.5, More models
+Sonnet5, возврат Sonnet5.5/high. Controls не вызвали prompt/Stop и не начали inference.
+Два сообщения поставлены до и внутри native Effort; настоящий следующий prompt-hook
+содержал ровно 2 sentinel, Stop 0, pending 0. Sonnet5.5/high/fast=false ответил OK,
+ChatPage содержит 2 сообщения user/assistant. T006 расход 1, T007 остаётся 1 из лимита 2.
+Observer собственной пробы только копировал DATA, не менял production ключи/frame.
+
+Первые неудачи сохранены: native-production-roundtrip.json и phase2 — до уточнения
+точного ACK; before-cache-fix.json — успешные операции до исправления partial catalogue.
+Найдены и исправлены: ожидание стабильного Ink кадра 200 мс, singular +1 model,
+событийный statusline без ложной idle expiry, разные ACK model/Ultracode off,
+неизменность полного каталога при setter-навигации. Unit fixtures теперь повторяют
+фактические native строки; stale/unknown/foreign menu по-прежнему отказывают.
+No-op не отправляет builtin и не обещает ненужный новый ACK.
+
+`native-gui-final.json`: Medium из Desktop прочитан Kit, API вернул High, PID тот же,
+нового хода нет. `native-gui-back-production.json` отдельно фиксирует Desktop
+Haiku→Sonnet и обновление связанных каталогов. `native-production-cleanup.json`:
+processes 0 / trust false/defaults прежние, native Unarchive и отсутствие собственных
+проб в active sidebar. Пять временных папок удалены; дополнительные diagnostic hosts
+не генерировали. Purge удалил local data, удаления серверных карточек не заявляем.
+
+Visual QA: design-qa.md passed. Совместные boards effort/mode/more-comparison-final,
+12 dark/light responsive cases в browser-responsive.json, пять размеров и 200% CSS
+эквивалент. P1 narrow clipping и P2 density/width/asset/antialiasing исправлены.
+Home/End ограничены активным submenu; touch 44, Esc/back/outside, один popup,
+focus/draft/polling, quiet success и ошибка проверены. M26/R2 thumb drag сохранён.
+macOS native проверена агентом, user acceptance отдельно; Windows live ждёт
+проверяющего, Linux только CI. Светлая native pixel fidelity не заявляется.

@@ -200,3 +200,7 @@ Esc сначала закрывает submenu, потом root; outside — root
 Keyed rows сохраняют DOM/focus при polling; POST блокирует оба изменяющих триггера,
 ошибка видна, success тихий. Контекст/лимиты и draft остаются независимыми.
 Одинаковые ES/CSS для macOS/Linux/Windows; эмуляция touch не live iPad.
+
+M27/T006: QA passed (design-qa.md), density/antialiasing/narrow submenu уточнены
+совместными boards. Keyboard навигация ограничена активным уровнем. Все пять
+размеров/обе темы/200%-эквивалент прошли; Windows/iPad live не объявляются.

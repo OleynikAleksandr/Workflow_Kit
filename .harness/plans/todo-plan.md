@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 856,
+  "revision": 858,
   "rounds": [
     {
       "digest": {
@@ -58,7 +58,7 @@
       },
       "id": "R2",
       "kind": "fixes",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Замечания пользователя: тихая смена параметров и drag бегунка"
     }
   ],
@@ -106,7 +106,7 @@
         "text": "T006 локальная установка без push; T007 фиксирует зелёную CI SHA после отдельной отправки ветки вне задач."
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 1,
       "ownerSession": "01a1d50b-6999-7022-81c9-9f604ceea169",
@@ -621,7 +621,7 @@
       ],
       "checks": [],
       "commitMessage": "docs: record green CI for native controls fixes",
-      "confirmation": null,
+      "confirmation": "Выполни весь план полностью, без паузы и собери, пожалуйста, новый релиз.",
       "context": [],
       "dependencies": [
         "T009",
@@ -636,7 +636,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Зафиксировать CI исправлений на четырёх платформах",
       "why": "Зафиксировать CI исправлений на четырёх платформах"
     }
@@ -648,11 +648,11 @@
 ## State
 
 - Scope: m26-native-session-controls (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 11/12
-- Revision: 856
+- Progress: 12/12
+- Revision: 858
 
 ## Objective
 
@@ -703,7 +703,7 @@
 
 Digest: Реализованы нативные контролы ChatGPT, реальные пресеты доступа; визуальная и браузерная проверка passed.
 
-### R2 — Замечания пользователя: тихая смена параметров и drag бегунка (fixes, OPEN)
+### R2 — Замечания пользователя: тихая смена параметров и drag бегунка (fixes, CLOSED)
 
 - [DONE] T008 — Убрать служебный подстрочник и исправить захват бегунка (work)
   - Commit: fix(panel): support thumb dragging and silence parameter success notices
@@ -717,7 +717,7 @@ Digest: Реализованы нативные контролы ChatGPT, реа
   - Commit: chore(release): install Workflow Kit 0.12.1
   - Files: package.json, package-lock.json, README.md, CHANGELOG.md, docs/usage.md, docs/installation.md, docs/architecture/OVERVIEW.md, docs/evidence/M26-native-controls.md, docs/evidence/M26, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/native-controls.browser.js, docs/evidence/M26/fixes-delivery.md, docs/evidence/M26/fixes-installed-composer-touch.png, docs/evidence/M26/fixes-installed-composer.png, docs/evidence/M26/fixes-installed.json
   - Depends on: T008, DOCS-R2
-- [TODO] T010 — Зафиксировать CI исправлений на четырёх платформах (delivery)
+- [DONE] T010 — Зафиксировать CI исправлений на четырёх платформах (delivery)
   - Commit: docs: record green CI for native controls fixes
   - Files: docs/evidence/M26-native-controls.md
   - Depends on: T009, DOCS-R2

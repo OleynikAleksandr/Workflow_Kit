@@ -2,7 +2,8 @@
 
 Состояние: вехи M1–M18 приняты (приёмки — [docs/evidence/](../evidence/)), версия 0.9.3. Документ
 ведёт задача DOCS каждого раунда; подробности — в `module.md` модулей, спецификации вех и
-факты о провайдерах — в `docs/planning/`.
+факты о провайдерах — в `docs/planning/`. M24 реализована в исходниках; локальная
+поставка 0.10.0 и пользовательская приёмка ещё не выполнены.
 
 ## Что это
 
@@ -61,10 +62,10 @@ runtime-зависимостей) и веб-панель для Mac и iPad. С�
 | | | [plan-review](../../product-parts/workflow-engine/clusters/session-loop/modules/plan-review/module.md) | решение о ревью и вопрос о плане |
 | | | [cross-review](../../product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md) | ревью плана сессией другого провайдера (M4) |
 | | | [session-titles](../../product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md) | имена сессий, синхронизация с ChatGPT, архив сессий |
-| [control-panel](../../product-parts/control-panel/product-part.md) | [web-panel](../../product-parts/control-panel/clusters/web-panel/cluster.md) | [panel-shell](../../product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md) | раскладка по макету, маршруты, опрос, дерево проектов и сессий, «Настройки», слоты расширений, экран «Домой» iPad |
+| [control-panel](../../product-parts/control-panel/product-part.md) | [web-panel](../../product-parts/control-panel/clusters/web-panel/cluster.md) | [panel-shell](../../product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md) | раскладка M24, маршруты, опрос, дерево проектов и сессий, «Настройки», слоты расширений, экран «Домой» iPad |
 | | | [project-wizard](../../product-parts/control-panel/clusters/web-panel/modules/project-wizard/module.md) | мастер проекта в панели: предпросмотр, кнопки первой сессии, шаги подготовки, открытие чата |
 | | | [session-view](../../product-parts/control-panel/clusters/web-panel/modules/session-view/module.md) | экран сессии: активность агента, выбор пути, карточка плана, вопрос о плане |
-| | | [session-chat](../../product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md) | карточка «Диалог» экрана сессии: лента и отправка агенту (M18) |
+| | | [session-chat](../../product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md) | диалог: лента, компактный ввод, отправка/очередь и Stop (M18/M24) |
 | [kit-core](../../product-parts/kit-core/product-part.md) | [project-workflow](../../product-parts/kit-core/clusters/project-workflow/cluster.md) | 12 модулей `workflow-*` (список — в `cluster.md`) | исходники Kit: план, коммиты задач, пакет восстановления, качество, установка и доктор, режимы выполнения; из них собирается бандл |
 | [system-service](../../product-parts/system-service/product-part.md) | [deployment](../../product-parts/system-service/clusters/deployment/cluster.md) | [service-installer](../../product-parts/system-service/clusters/deployment/modules/service-installer/module.md) | `install`/`uninstall`, автозапуск, запускатель и значок, `service`, `open`, `doctor`, статус службы |
 
@@ -93,6 +94,22 @@ runtime-зависимостей) и веб-панель для Mac и iPad. С�
 `data-store`); Процессы (`process-supervisor`); Служба (`service-installer`); Структура Kit и
 хук (`kit-structure`); Процесс Kit в проекте (`workflow-engine`, веха 2); Мастер проекта
 (`project-setup`, веха 2); Панель (`panel-shell` и расширения).
+
+## Результат M24 в исходниках
+
+T001–T006 и fixes T008/T009 завершены; последний функциональный коммит — `2662cb88`.
+Диалог ограничен viewport, карточки процесса слева, ввод поддерживает Enter/Stop,
+очередь и IME. Подтверждённый Stop завершает только свой ход, канал сам переходит
+в waiting без нового хука; барьер удерживает очередь/автопилот/ревью. Явная реплика
+снимает барьер доставки, продолжение плана требует штатного «Продолжить».
+
+Адаптеры реализованы: Claude — управляемый pty без диалога, Codex — доступный демон
+и точный native turn id (схема 0.167.2), Kimi — сервер Kit с подтверждением idle.
+Тесты транспорта и изолированный Chromium не подтверждают живой Stop: macOS/iPad —
+пользователь, Windows x64/ARM64 — проверяющий, Linux — CI. Удалённая CI M24 ещё не
+запускалась. Исходный второй скриншот недоступен; проверена утверждённая спецификация,
+точное сравнение с изображением остаётся открытым.
+Подробные [результаты, SHA и снимки](../evidence/M24-acceptance.md).
 
 ## Данные на диске
 
@@ -166,7 +183,7 @@ runtime-зависимостей) и веб-панель для Mac и iPad. С�
   Операции в памяти пропадают при перезапуске; остановка службы процессы провайдеров не
   завершает.
 
-Раскладка панели обновляется в M24: карточки процесса под деревом, независимая прокрутка,
+Раскладка панели реализована в M24: карточки процесса под деревом, независимая прокрутка,
 ресайзер и узкий drawer. Классический `docs/design/ui-mockup.html` — исторический макет,
 по размещению областей актуальна [спецификация M24](../planning/M24-interface-polish.md).
 
@@ -174,7 +191,7 @@ runtime-зависимостей) и веб-панель для Mac и iPad. С�
 
 - Спецификации вех — `docs/planning/M<номер>-*.md` (список — `scripts/workflow context --list`):
   ядро [M1](../planning/M1-orchestrator-core.md), интерфейс [M2](../planning/M2-interface-and-process.md)
-  (макет [ui-mockup.html](../design/ui-mockup.html)), [M3](../planning/M3-fixes.md); контракт
+  (исторический макет [ui-mockup.html](../design/ui-mockup.html), актуальная раскладка — [M24](../planning/M24-interface-polish.md)), [M3](../planning/M3-fixes.md); контракт
   провайдера и факты о Claude и Codex — [M1-providers.md](../planning/M1-providers.md).
 - [README.md](../../README.md), [установка по ОС](../installation.md), [CHANGELOG.md](../../CHANGELOG.md).
 - Основные контракты модулей — [CONTRACTS.md](CONTRACTS.md); процесс Kit —

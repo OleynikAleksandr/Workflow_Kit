@@ -33,7 +33,7 @@
 
 Интерфейс `Provider` (`status`, `capabilities`, `trust`, `previewTrust`,
 `grantTrust`, `hooks`, `approveHooks?`, `listSessions`, `createSession`,
-`resumeSession?`, `stopSession?`, `readMessages?`, `sendDirect?`, `marksPanelProcess?`, `actions`, `runAction`,
+`resumeSession?`, `stopSession?`, `interruptAvailability?`, `interruptTurn?`, `readMessages?`, `sendDirect?`, `marksPanelProcess?`, `actions`, `runAction`,
 `refresh?`, `removeBlockers?` и другие) и фабрика `createProvider(context)` из `src/index.ts`
 модуля провайдера. Чтение дёшево и ничего не меняет (D11); запись в чужие конфиги — по
 одноразовому токену предпросмотра с отпечатком показанного (D7). `TrustPreview.choices` —
@@ -122,6 +122,14 @@ Kit 2.2.4 ставится в проект бандлом (`install --host harne
 мастере и на экране проекта, архив — карточка «Архив». Контракты — `module.md` модулей кластера
 [web-panel](../../product-parts/control-panel/clusters/web-panel/cluster.md).
 
+Компактный ввод M24 принадлежит `session-chat`: Enter при waiting/holding/unknown,
+Stop только при working; Ctrl/⌘+Enter и touch «В очередь» сохраняют M18. Модель —
+SessionInfo.model выбранной сессии; отсутствующая телеметрия не выдумывается.
+Stop использует channel.interruptions, не угадывает работу по HTTP-отправке. Подтверждение
+и поздние ответы привязаны к поколению; stale-turn обновляет цель без повторного Stop.
+Черновик защищён ревизией от позднего результата отправки. Подробности —
+[session-chat/module.md](../../product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md).
+
 ## Прерывание ответа (M24)
 
 Общий протокол: [M24-turn-interruption](../design/M24-turn-interruption.md).
@@ -136,4 +144,10 @@ interruptTurn. Успех требует подтверждения конкре
 без дополнительных RPC; после рестарта unknown до события хода. Новая явная отправка
 снимает барьер доставки; штатное «Продолжить» снимает также паузу плана. Kit не отменяет
 назначения. Общий контракт одинаков на macOS, Linux, Windows x64/ARM64; реальные
-адаптеры и живые проверки поставляются отдельными задачами T003–T005.
+адаптеры реализованы T003–T005; живые проверки остаются отдельной приёмкой.
+Claude допускает Esc только при свежем подтверждённом рабочем экране, без диалогов;
+Codex адресует конкретный native turn и ждёт terminal status; Kimi использует только
+сервер Kit, тот же prompt и стабильный idle/свободный замок, без takeover.
+Тайм-аут адаптера и типизированный HTTP timeout Kimi становятся HTTP 504 с подсказкой
+(T008/T009); обычный сбой — 502. Локальная поставка 0.10.0 ещё не выполнена.
+Проверенные факты и границы — [M24 evidence](../evidence/M24-acceptance.md).

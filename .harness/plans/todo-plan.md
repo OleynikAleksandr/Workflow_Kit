@@ -10,10 +10,36 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 770,
+  "revision": 772,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "panel-shell: sessionSidebar, resize/drawer, viewport и сохранение состояния слотов.",
+          "session-chat: Enter/Stop, очередь, IME, SessionInfo.model, ревизия черновика, stale без скрытого повтора.",
+          "Provider: capability interruptTurn, interruptAvailability/interruptTurn, stopped только с подтверждением.",
+          "cli/channel: POST interrupt, channel.interruptions, поколения, pending, барьер и waiting без Stop hook.",
+          "Claude: свежий marker+idle без диалогов; Codex: точный native turn; Kimi: свой сервер, prompt и idle/замок.",
+          "autopilot/cross-review: пауза владельца, барьер доставки, прерванное ревью не считается ответом."
+        ],
+        "decisions": [
+          "Сохранены порядок карточек и правила решений; узкий экран использует drawer.",
+          "Working показывает Stop; Enter/очередь сохраняют M18 и IME, черновики защищены ревизией.",
+          "Плюс и микрофон отключены; параметры только из публичных данных, без новой телеметрии.",
+          "Подтверждение Stop относится к своему поколению; барьер запрещает автопродолжение.",
+          "T008/T009 исправили HTTP 504; старый макет исторический, точная сверка со скриншотом не выполнена.",
+          "Локальная поставка отдельно; живые проверки/CI не заявлены. Push после приёмки и закрытия."
+        ],
+        "references": [
+          "docs/planning/M24-interface-polish.md",
+          "docs/design/M24-turn-interruption.md",
+          "docs/design/M24-browser-verification.md",
+          "docs/evidence/M24-acceptance.md",
+          "docs/architecture/CONTRACTS.md",
+          "product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md"
+        ],
+        "result": "M24 реализована в исходниках: карточки слева, resize/drawer, диалог в viewport, компактный ввод и действующий Stop трёх провайдеров. Тесты и Chromium с fixtures прошли. Поставка 0.10.0 и живая приёмка впереди."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -626,7 +652,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -688,8 +714,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 8/10
-- Revision: 770
+- Progress: 9/10
+- Revision: 772
 
 ## Objective
 
@@ -742,7 +768,7 @@
   - Commit: feat(chat): add compact composer with enter and stop controls
   - Files: product-parts/control-panel/clusters/web-panel/modules/session-chat, docs/architecture/OVERVIEW.md, docs/evidence/M24-acceptance.md, docs/evidence/M24, docs/evidence/M24/T006-browser-results.json, docs/evidence/M24/T006-design-qa.md, docs/evidence/M24/T006-desktop-dark-1920x1080.png, docs/evidence/M24/T006-desktop-light-1280x800.png, docs/evidence/M24/T006-landscape-light-768x400.png, docs/evidence/M24/T006-mobile-dark-375x667.png, docs/evidence/M24/T006-zoom-equivalent-640x400.png, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/composer-model.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/composer.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/icons/LICENSE, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/icons/circle.svg, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/icons/corner-down-left.svg, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/icons/mic.svg, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/icons/plus.svg, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/icons/square.svg, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/session-chat.css, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/session-chat.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/composer-model.test.ts
   - Depends on: T005, T009
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M24-interface-polish.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, product-parts/control-panel/clusters/web-panel/cluster.md, docs/architecture/CONTRACTS.md, docs/evidence/M24-acceptance.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/files.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/interrupt.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/sessions.md, product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/hooks.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/interrupt.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md
   - Depends on: T001, T002, T003, T008, T004, T005, T009, T006
@@ -750,5 +776,7 @@
   - Commit: chore(release): install Workflow Kit 0.10.0 locally
   - Files: package.json, CHANGELOG.md, README.md, docs/installation.md, docs/architecture/OVERVIEW.md, docs/usage.md, docs/changelog, docs/evidence/M24-acceptance.md
   - Depends on: T006, DOCS-R1
+
+Digest: M24 реализована в исходниках: карточки слева, resize/drawer, диалог в viewport, компактный ввод и действующий Stop трёх провайдеров. Тесты и Chromium с fixtures прошли. Поставка 0.10.0 и живая приёмка впереди.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

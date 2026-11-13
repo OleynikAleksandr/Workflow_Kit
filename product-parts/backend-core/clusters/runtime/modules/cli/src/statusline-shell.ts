@@ -23,21 +23,24 @@ export async function runStatuslineCommand(command: string, input: Buffer, optio
     const child = spawn(shell.command, [...shell.args, command], {
       cwd: options.cwd, env: options.env, detached: options.platform !== 'win32', windowsHide: true, stdio: ['pipe', 'pipe', 'ignore'],
     });
-    const chunks: Buffer[] = []; let timedOut = false; let finished = false;
+    const chunks: Buffer[] = []; let timedOut = false; let finished = false; let closed = false; let terminated = false;
     const finish = (output: Buffer) => { if (finished) return; finished = true; clearTimeout(timer); resolve(output); };
     const timer = setTimeout(() => {
       timedOut = true;
-      if (options.platform === 'win32' && child.pid) {
-        void taskkill(options.run ?? runCommand, child.pid, true).catch(() => undefined).finally(() => finish(Buffer.alloc(0)));
-      } else {
-        if (child.pid) { try { process.kill(-child.pid, 'SIGKILL'); } catch { child.kill('SIGKILL'); } }
-        finish(Buffer.alloc(0));
-      }
+      void (async () => {
+        if (options.platform === 'win32' && child.pid) {
+          await taskkill(options.run ?? runCommand, child.pid, true).catch(() => undefined);
+        } else if (child.pid) {
+          try { process.kill(-child.pid, 'SIGKILL'); } catch { child.kill('SIGKILL'); }
+        }
+        terminated = true;
+        if (closed) finish(Buffer.alloc(0));
+      })();
     }, options.timeoutMs ?? 5000);
     child.stdout.on('data', (chunk: Buffer) => chunks.push(chunk));
     child.stdin.on('error', () => undefined);
     child.on('error', () => finish(Buffer.alloc(0)));
-    child.on('close', () => finish(timedOut ? Buffer.alloc(0) : Buffer.concat(chunks)));
+    child.on('close', () => { closed = true; if (!timedOut || terminated) finish(timedOut ? Buffer.alloc(0) : Buffer.concat(chunks)); });
     child.stdin.end(input);
   });
 }

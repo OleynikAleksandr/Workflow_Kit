@@ -150,7 +150,7 @@ T001–T006 и fixes T008/T009 завершены; последний функц
 | Параметры M25: контракт, очередь, снимки, JSONL | общий Node-код; снимки сериализованы, busy-retry | то же | то же; пути win32 |
 | ChatGPT M25: чтение | WebSocket + JSONL, живая проба | то же, injected linux | proxy + JSONL, injected win32 |
 | ChatGPT M25: изменение | каталоги и общий доступ, живая проба | то же; общий доступ unsupported | proxy, injected win32 |
-| Claude M25: statusline | sh, байты, группа процессов | то же | Git Bash/PowerShell, taskkill /T /F |
+| Claude M25: statusline | sh, байты, группа; ожидание close | то же | Git Bash/PowerShell; taskkill /T /F и close |
 | Claude M25: запуск и чтение | --settings на запуск, снимок/транскрипт/лимиты | то же, expect | ConPTY --settings, снимки |
 | Строка M25 и меню параметров | браузер; изолированный Chromium и скриншоты | тот же код | тот же код, x64/ARM64 |
 | Живые проверки | есть, `docs/evidence/` | нет, только тесты | установка, общий доступ, путь до запуска плана (M13–M16) |

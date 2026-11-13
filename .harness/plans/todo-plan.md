@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 804,
+  "revision": 806,
   "rounds": [
     {
       "digest": {
@@ -616,14 +616,18 @@
       "files": [
         "product-parts/backend-core/clusters/runtime/modules/cli",
         "docs/architecture/OVERVIEW.md",
-        "docs/evidence/M25-acceptance.md"
+        "docs/evidence/M25-acceptance.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/statusline-shell.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/statusline.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/statusline.test.ts"
       ],
       "fixes": "T005",
       "id": "T011",
       "iteration": 1,
       "kind": "work",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Statusline: дождаться завершения дерева и закрытия процесса",
       "why": "Windows x64 CI 43439309345 получила EBUSY при очистке cwd ещё завершающегося процесса"
     },
@@ -752,8 +756,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 9/13
-- Revision: 804
+- Progress: 10/13
+- Revision: 806
 
 ## Objective
 
@@ -812,9 +816,9 @@ Digest: Реализованы чтение параметров Claude/ChatGPT,
   - Commit: fix(parameters): serialize atomic snapshot replacement
   - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, docs/architecture/OVERVIEW.md, docs/evidence/M25-acceptance.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/parameters.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/parameter-snapshots.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/parameter-storage.test.ts
   - Fixes: T002
-- [TODO] T011 — Statusline: дождаться завершения дерева и закрытия процесса (work)
+- [DONE] T011 — Statusline: дождаться завершения дерева и закрытия процесса (work)
   - Commit: fix(statusline): await process tree termination
-  - Files: product-parts/backend-core/clusters/runtime/modules/cli, docs/architecture/OVERVIEW.md, docs/evidence/M25-acceptance.md
+  - Files: product-parts/backend-core/clusters/runtime/modules/cli, docs/architecture/OVERVIEW.md, docs/evidence/M25-acceptance.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/statusline-shell.ts, product-parts/backend-core/clusters/runtime/modules/cli/statusline.md, product-parts/backend-core/clusters/runtime/modules/cli/test/statusline.test.ts
   - Depends on: T010
   - Fixes: T005
 - [TODO] DOCS-R2 — Reconcile project documentation and write the round digest (docs)

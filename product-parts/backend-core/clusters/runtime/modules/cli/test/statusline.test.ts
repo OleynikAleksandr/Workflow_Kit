@@ -107,3 +107,19 @@ test('newest account limits survive an older concurrent snapshot', async () => {
     assert.equal((await readSnapshot<{ at: string }>(limitsFile(f.dirs, 'claude')))?.at, '2026-11-13T11:00:00.000Z');
   } finally { await f.close(); }
 });
+test('timeout completion waits for both process close and the tree-kill operation', async () => {
+  const f = await fixture(); let treeFinished = false; let resolved = false;
+  try {
+    const result = runStatuslineCommand('setInterval(()=>{},1000)', Buffer.alloc(0), { platform: 'win32', cwd: f.cwd, env: process.env, timeoutMs: 100,
+      shell: { command: process.execPath, args: ['-e'] }, run: async (_command, args) => {
+        try { process.kill(Number(args[1]), 'SIGKILL'); } catch {}
+        await new Promise(r => setTimeout(r, 100));
+        assert.equal(resolved, false, 'process close alone must not complete tree termination');
+        treeFinished = true;
+        return { code: 0, stdout: '', stderr: '', timedOut: false, signal: null, startError: null };
+      } }).then(value => { resolved = true; return value; });
+    assert.deepEqual(await result, Buffer.alloc(0)); assert.equal(treeFinished, true);
+    // Resolving only after close is observable on Windows: cwd may now be removed immediately.
+    await rm(f.cwd, { recursive: true });
+  } finally { await f.close(); }
+});

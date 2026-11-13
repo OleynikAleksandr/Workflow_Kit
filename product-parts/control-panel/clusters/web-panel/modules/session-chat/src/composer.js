@@ -1,5 +1,6 @@
 // @ts-check
 import { canSend, errorText, sendOutcome, sendUrl } from './chat-model.js';
+import { createParameters } from './parameters.js';
 import { composerData, createInputKeys, effectiveTurn, interruptUrl, isStaleTurn, mayClearDraft } from './composer-model.js';
 
 /** Compact composer. Its DOM, draft and request lock belong to one project/session.
@@ -43,9 +44,10 @@ export function createComposer({ shell, projectId, key, provider, onSent }) {
   const availability = h('p', { class: 'sc-availability sc-note' });
   const status = h('p', { class: 'sc-status', role: 'status', 'aria-live': 'polite' });
   status.hidden = true;
+  const parameterView = createParameters({ shell, projectId, key, provider, fallback: parameters, report });
   const node = h('div', { class: 'sc-compose' }, [
     h('div', { class: 'sc-editor' }, [plus, input, action, microphone]),
-    h('div', { class: 'sc-details' }, [queue, parameters]), availability, status,
+    h('div', { class: 'sc-details' }, [queue, parameterView.node]), availability, status,
   ]);
 
   function turn() { return effectiveTurn(data.turn, confirmedRef); }
@@ -94,6 +96,7 @@ export function createComposer({ shell, projectId, key, provider, onSent }) {
       if (mayClearDraft(revision, draftRevision, text, input.value)) input.value = '';
       report(sendOutcome(response), 'ok');
       onSent();
+      void parameterView.refresh();
       requestRefresh();
     } catch (error) {
       report(errorText(error), 'error');
@@ -162,6 +165,7 @@ export function createComposer({ shell, projectId, key, provider, onSent }) {
     node,
     /** @param {boolean} visible */
     setVisible(visible) {
+      parameterView.setVisible(visible);
       if (!visible && observed) { observer.disconnect(); observed = false; }
       const card = node.closest('.sc-card');
       if (visible && card && !observed) { observer.observe(card); observed = true; fit(); }

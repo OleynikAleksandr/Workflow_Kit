@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 797,
+  "revision": 799,
   "rounds": [
     {
       "digest": null,
@@ -469,14 +469,31 @@
         "product-parts/control-panel/clusters/web-panel/cluster.md",
         "docs/architecture/OVERVIEW.md",
         "docs/evidence/M25-acceptance.md",
-        "docs/evidence/M25"
+        "docs/evidence/M25",
+        "docs/evidence/M25/browser-results.json",
+        "docs/evidence/M25/chatgpt-200pct-dark.png",
+        "docs/evidence/M25/chatgpt-desktop-dark.png",
+        "docs/evidence/M25/chatgpt-desktop.png",
+        "docs/evidence/M25/chatgpt-partial-menu.png",
+        "docs/evidence/M25/chatgpt-touch-menu-dark.png",
+        "docs/evidence/M25/claude-ipad-dark.png",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/parameters.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/composer.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/icons/check.svg",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/icons/chevron-down.svg",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/icons/zap.svg",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/parameters-model.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/parameters.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/session-chat.css",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/test/parameters-model.test.ts"
       ],
       "fixes": null,
       "id": "T007",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Диалог: строка параметров в оформлении провайдера и меню",
       "why": "Пользователь видит параметры в привычном виде и меняет параметры ChatGPT в диалоге"
     },
@@ -615,8 +632,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 6/10
-- Revision: 797
+- Progress: 7/10
+- Revision: 799
 
 ## Objective
 
@@ -658,9 +675,9 @@
   - Commit: feat(claude): read session parameters
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, tools/platform-guard/allowlist.json, docs/architecture/OVERVIEW.md, docs/evidence/M25-acceptance.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/parameters.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/parameter-settings.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/parameters.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/programs.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/host.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/session.exp, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parameter-launch.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parameters.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parts.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/provider.test.ts
   - Depends on: T005
-- [TODO] T007 — Диалог: строка параметров в оформлении провайдера и меню (work)
+- [DONE] T007 — Диалог: строка параметров в оформлении провайдера и меню (work)
   - Commit: feat(panel): show and change session parameters in the dialog
-  - Files: product-parts/control-panel/clusters/web-panel/modules/session-chat, product-parts/control-panel/clusters/web-panel/cluster.md, docs/architecture/OVERVIEW.md, docs/evidence/M25-acceptance.md, docs/evidence/M25
+  - Files: product-parts/control-panel/clusters/web-panel/modules/session-chat, product-parts/control-panel/clusters/web-panel/cluster.md, docs/architecture/OVERVIEW.md, docs/evidence/M25-acceptance.md, docs/evidence/M25, docs/evidence/M25/browser-results.json, docs/evidence/M25/chatgpt-200pct-dark.png, docs/evidence/M25/chatgpt-desktop-dark.png, docs/evidence/M25/chatgpt-desktop.png, docs/evidence/M25/chatgpt-partial-menu.png, docs/evidence/M25/chatgpt-touch-menu-dark.png, docs/evidence/M25/claude-ipad-dark.png, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/parameters.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/composer.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/icons/check.svg, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/icons/chevron-down.svg, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/icons/zap.svg, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/parameters-model.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/parameters.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/session-chat.css, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/parameters-model.test.ts
   - Depends on: T006
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1

@@ -130,3 +130,36 @@
 .sc-queue[hidden] { display: none; }
 .sc-queue:disabled { opacity: .55; cursor: default; }
 @media (pointer: coarse) { .sc-input { font-size: 16px; } }
+
+/* M25: provider-owned row, account windows and a viewport-bounded menu. */
+.sc-parameter-host { display: flex; flex: 1; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0 8px; min-width: 0; font-size: 14px; font-weight: 400; }
+.sc-parameter-row { display: flex; align-items: center; justify-content: flex-end; margin-left: auto; min-width: 0; max-width: 100%; }
+.sc-parameter-trigger, .sc-context-button, .sc-parameter-limits { border: 0; background: transparent; color: var(--text); font: inherit; padding: 2px 4px; min-height: 28px; cursor: pointer; border-radius: 7px; touch-action: manipulation; }
+.sc-parameter-trigger { display: inline-flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 5px 9px; min-width: 0; }
+.sc-parameter-value { overflow-wrap: anywhere; }
+.sc-parameter-muted { color: var(--muted); }
+.sc-parameter-primary { color: var(--text); }
+.sc-parameter-trigger .sc-icon { width: 15px; height: 15px; }
+.sc-context-button { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.sc-meter { display: block; width: 17px; height: 17px; border-radius: 50%; color: var(--muted); background: conic-gradient(var(--sc-context-accent, currentColor) var(--sc-context-angle, 0deg), var(--card-line) 0); mask: radial-gradient(transparent 53%, #000 56%); }
+.sc-parameter-limits { color: var(--muted); font-size: 12px; text-align: left; }
+.sc-parameter-limits [data-tone='warn'] { color: var(--warn); }
+.sc-parameter-limits [data-tone='error'] { color: var(--error); }
+.sc-parameter-trigger:focus-visible, .sc-context-button:focus-visible, .sc-parameter-limits:focus-visible, .sc-parameter-choice:focus-visible { outline: 2px solid var(--teal); outline-offset: -2px; }
+.sc-parameter-popup { position: fixed; z-index: 1000; width: 340px; box-sizing: border-box; padding: 8px; border: 1px solid var(--card-line); border-radius: 12px; color: var(--text); background: var(--card); box-shadow: 0 10px 40px #0004; overflow: auto; overscroll-behavior: contain; font: 14px/1.4 system-ui, sans-serif; overflow-wrap: anywhere; }
+.sc-parameter-heading { font-weight: 600; padding: 10px 8px 4px; }
+.sc-parameter-choice { box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; border: 0; border-radius: 6px; color: var(--text); background: transparent; padding: 7px 8px; font: inherit; text-align: left; cursor: pointer; }
+.sc-parameter-choice small { display: block; color: var(--muted); font-size: 12px; }
+.sc-parameter-choice .sc-icon { flex-shrink: 0; width: 16px; height: 16px; }
+.sc-parameter-choice[aria-checked='true'] { background: var(--active); }
+.sc-parameter-choice:hover:not(:disabled) { background: var(--active); }
+.sc-parameter-choice:disabled { cursor: default; color: var(--muted); }
+.sc-parameter-unavailable { color: var(--muted); margin: 4px 8px; }
+.sc-parameter-popup p { margin: 6px 8px; }
+.sc-icon-zap { mask-image: url('./icons/zap.svg'); }
+.sc-icon-chevron-down { mask-image: url('./icons/chevron-down.svg'); }
+.sc-icon-check { mask-image: url('./icons/check.svg'); }
+@media (pointer: coarse) {
+  .sc-parameter-trigger, .sc-context-button, .sc-parameter-limits, .sc-parameter-choice { min-height: 44px; }
+  .sc-context-button { min-width: 44px; }
+}

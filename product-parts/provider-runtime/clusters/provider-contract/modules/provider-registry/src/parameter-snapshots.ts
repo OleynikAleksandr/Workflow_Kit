@@ -1,6 +1,7 @@
 import path from 'node:path';
 import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
+import { createKeyedMutex } from '#data-store';
 import type { DataDirs } from '#data-store';
 
 function safe(id: string): string {
@@ -23,11 +24,31 @@ export async function readSnapshot<T = unknown>(file: string): Promise<T | null>
     throw error;
   }
 }
-export async function writeSnapshot(file: string, value: unknown): Promise<void> {
-  await mkdir(path.dirname(file), { recursive: true, mode: 0o700 });
-  const temporary = `${file}.${randomUUID()}.tmp`;
-  try {
-    await writeFile(temporary, JSON.stringify(value) + '\n', { mode: 0o600 });
-    await rename(temporary, file);
-  } finally { await rm(temporary, { force: true }); }
+export interface SnapshotWriteOptions {
+  /** Injectable filesystem replace/sleep for deterministic transient-lock tests. */
+  replace?: (source: string, destination: string) => Promise<void>;
+  sleep?: (ms: number) => Promise<void>;
+  attempts?: number;
+}
+const writes = createKeyedMutex();
+/** Serialize replacements of one destination; retain atomic rename and bounded busy retries. */
+export async function writeSnapshot(file: string, value: unknown, options: SnapshotWriteOptions = {}): Promise<void> {
+  const attempts = options.attempts ?? 6;
+  if (!Number.isSafeInteger(attempts) || attempts < 1 || attempts > 10) throw new Error('Invalid snapshot attempts');
+  const replace = options.replace ?? rename;
+  const sleep = options.sleep ?? ((ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms)));
+  return writes.run(path.resolve(file), async () => {
+    await mkdir(path.dirname(file), { recursive: true, mode: 0o700 });
+    const temporary = `${file}.${randomUUID()}.tmp`;
+    try {
+      await writeFile(temporary, JSON.stringify(value) + '\n', { mode: 0o600 });
+      for (let attempt = 0; ; attempt++) {
+        try { await replace(temporary, file); break; }
+        catch (error) {
+          if (attempt + 1 >= attempts || !['EPERM', 'EACCES', 'EBUSY'].includes((error as NodeJS.ErrnoException).code ?? '')) throw error;
+          await sleep(15 * 2 ** attempt);
+        }
+      }
+    } finally { await rm(temporary, { force: true }); }
+  });
 }

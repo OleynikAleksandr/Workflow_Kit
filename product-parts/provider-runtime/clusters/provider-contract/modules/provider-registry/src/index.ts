@@ -57,3 +57,4 @@ export { PARAMETER_IDS } from './parameters.ts';
 export { snapshotFile, limitsFile, readSnapshot, writeSnapshot } from './parameter-snapshots.ts';
 export { createJsonlTail, JSONL_BLOCK_BYTES, JSONL_MAX_BYTES } from './jsonl-tail.ts';
 export type { JsonlSelectors } from './jsonl-tail.ts';
+export type { SnapshotWriteOptions } from './parameter-snapshots.ts';

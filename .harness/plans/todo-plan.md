@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 802,
+  "revision": 804,
   "rounds": [
     {
       "digest": {
@@ -583,14 +583,19 @@
       "files": [
         "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry",
         "docs/architecture/OVERVIEW.md",
-        "docs/evidence/M25-acceptance.md"
+        "docs/evidence/M25-acceptance.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/parameters.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/parameter-snapshots.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/parameter-storage.test.ts"
       ],
       "fixes": "T002",
       "id": "T010",
       "iteration": 1,
       "kind": "work",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Снимки: сериализация и атомарная замена при занятости файла",
       "why": "Windows x64 CI 43439309345 получила EPERM при десяти одновременных переименованиях снимка"
     },
@@ -747,8 +752,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 8/13
-- Revision: 802
+- Progress: 9/13
+- Revision: 804
 
 ## Objective
 
@@ -803,9 +808,9 @@ Digest: Реализованы чтение параметров Claude/ChatGPT,
 
 ### R2 — M25: отказы Windows в предварительной CI (fixes, OPEN)
 
-- [TODO] T010 — Снимки: сериализация и атомарная замена при занятости файла (work)
+- [DONE] T010 — Снимки: сериализация и атомарная замена при занятости файла (work)
   - Commit: fix(parameters): serialize atomic snapshot replacement
-  - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, docs/architecture/OVERVIEW.md, docs/evidence/M25-acceptance.md
+  - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, docs/architecture/OVERVIEW.md, docs/evidence/M25-acceptance.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/parameters.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/parameter-snapshots.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/parameter-storage.test.ts
   - Fixes: T002
 - [TODO] T011 — Statusline: дождаться завершения дерева и закрытия процесса (work)
   - Commit: fix(statusline): await process tree termination

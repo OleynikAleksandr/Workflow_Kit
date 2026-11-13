@@ -58,3 +58,28 @@ test('cold limit does not parse a cut first line; partial final line can cross b
     await rm(file); assert.deepEqual(await tail.read(file), {});
   } finally { await rm(tmp, { recursive: true, force: true }); }
 });
+test('atomic replacement retries transient busy errors, serializes destinations and preserves old data on refusal', async () => {
+  const tmp = await mkdtemp(path.join(os.tmpdir(), 'wfk-snapshot-lock-')); const file = path.join(tmp, 'one.json');
+  try {
+    await writeSnapshot(file, { version: 'old' });
+    let attempts = 0; const pauses: number[] = [];
+    await writeSnapshot(file, { version: 'new' }, { replace: async (source, destination) => {
+      assert.deepEqual(await readSnapshot(destination), { version: 'old' }, 'destination must never be removed');
+      attempts++; if (attempts < 3) throw Object.assign(new Error('file in use'), { code: 'EPERM' }); await rename(source, destination);
+    }, sleep: async ms => { pauses.push(ms); } });
+    assert.equal(attempts, 3); assert.deepEqual(pauses, [15, 30]); assert.deepEqual(await readSnapshot(file), { version: 'new' });
+    attempts = 0;
+    await assert.rejects(writeSnapshot(file, { version: 'bad' }, { attempts: 2, replace: async () => { attempts++; throw Object.assign(new Error('busy'), { code: 'EBUSY' }); }, sleep: async () => {} }), { code: 'EBUSY' });
+    assert.equal(attempts, 2); assert.deepEqual(await readSnapshot(file), { version: 'new' });
+    assert.deepEqual(await readdir(tmp), ['one.json']);
+    attempts = 0;
+    await assert.rejects(writeSnapshot(file, {}, { replace: async () => { attempts++; throw Object.assign(new Error('gone'), { code: 'ENOENT' }); } }), { code: 'ENOENT' }); assert.equal(attempts, 1);
+    let release!: () => void; const gate = new Promise<void>(resolve => { release = resolve; });
+    let entered!: () => void; const firstEntered = new Promise<void>(resolve => { entered = resolve; });
+    const first = writeSnapshot(file, { version: 1 }, { replace: async (source, destination) => { entered(); await gate; await rename(source, destination); } }); await firstEntered;
+    let secondEntered = false;
+    const second = writeSnapshot(file, { version: 2 }, { replace: async (source, destination) => { secondEntered = true; await rename(source, destination); } });
+    await writeSnapshot(path.join(tmp, 'other.json'), { independent: true }); assert.equal(secondEntered, false);
+    release(); await Promise.all([first, second]); assert.deepEqual(await readSnapshot(file), { version: 2 });
+  } finally { await rm(tmp, { recursive: true, force: true }); }
+});

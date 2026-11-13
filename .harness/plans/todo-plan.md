@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 847,
+  "revision": 848,
   "rounds": [
     {
       "digest": {
@@ -36,6 +36,13 @@
       "kind": "implementation",
       "status": "CLOSED",
       "title": "Implementation"
+    },
+    {
+      "digest": null,
+      "id": "R2",
+      "kind": "fixes",
+      "status": "OPEN",
+      "title": "Замечания пользователя: тихая смена параметров и drag бегунка"
     }
   ],
   "schema": "harness-workflow-plan/1",
@@ -82,7 +89,7 @@
         "text": "T006 локальная установка без push; T007 фиксирует зелёную CI SHA после отдельной отправки ветки вне задач."
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "IN_PROGRESS",
     "execution": {
       "maxWorkers": 1,
       "ownerSession": "01a1d50b-6999-7022-81c9-9f604ceea169",
@@ -483,6 +490,124 @@
       "status": "DONE",
       "title": "Зафиксировать CI четырёх платформ на SHA поставки",
       "why": "Поставка не готова к приёмке без проверки точного коммита на всех ОС"
+    },
+    {
+      "acceptance": [
+        "Успешная смена параметров не выводит зелёный текст, policy/reviewer или прогресс под вводом; ошибки остаются видимыми.",
+        "Можно схватить текущий бегунок мышью и вести в обе стороны; preview движется до отпускания, один POST после отпускания, Esc/pointercancel/lost capture ничего не записывают.",
+        "Клики, клавиатура, touch, polling и draft сохранены; проверены именно drag от центра бегунка, обе темы и отключённые варианты; контракт/OS-матрица обновлены."
+      ],
+      "checks": [],
+      "commitMessage": "fix(panel): support thumb dragging and silence parameter success notices",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat",
+        "docs/architecture/OVERVIEW.md",
+        "docs/planning/M26-native-session-controls.md",
+        "docs/evidence/M26-native-controls.md",
+        "docs/evidence/M26",
+        "design-qa.md"
+      ],
+      "fixes": "T003",
+      "id": "T008",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Убрать служебный подстрочник и исправить захват бегунка",
+      "why": "Убрать служебный подстрочник и исправить захват бегунка"
+    },
+    {
+      "acceptance": [
+        "Project-wide documents describe the round result",
+        "The round digest records result, decisions, contracts and references"
+      ],
+      "checks": [],
+      "commitMessage": "docs: reconcile documentation for R2",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T008"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/architecture/OVERVIEW.md",
+        "docs/planning/M26-native-session-controls.md",
+        "docs/evidence/M26-native-controls.md",
+        "design-qa.md"
+      ],
+      "fixes": null,
+      "id": "DOCS-R2",
+      "iteration": 1,
+      "kind": "docs",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Reconcile project documentation and write the round digest",
+      "why": "Keep the project context current for the next agent and close the round."
+    },
+    {
+      "acceptance": [
+        "Версии и руководства согласованы, штатная 0.12.1 установлена, doctor installed и реальная панель/API проверены.",
+        "Сохранены результаты проверки; коммит T009 — SHA поставки; push выполняется вне задач."
+      ],
+      "checks": [],
+      "commitMessage": "chore(release): install Workflow Kit 0.12.1",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T008",
+        "DOCS-R2"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "package.json",
+        "package-lock.json",
+        "README.md",
+        "CHANGELOG.md",
+        "docs/usage.md",
+        "docs/installation.md",
+        "docs/architecture/OVERVIEW.md",
+        "docs/evidence/M26-native-controls.md",
+        "docs/evidence/M26"
+      ],
+      "fixes": null,
+      "id": "T009",
+      "iteration": 1,
+      "kind": "delivery",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Собрать и установить исправления 0.12.1",
+      "why": "Собрать и установить исправления 0.12.1"
+    },
+    {
+      "acceptance": [
+        "До старта задачи проверены точный SHA T009 и четыре успешных jobs macOS/Linux/Windows x64/ARM64.",
+        "Записаны SHA и URL CI; задача не выполняет push и не подменяет пользовательскую приёмку."
+      ],
+      "checks": [],
+      "commitMessage": "docs: record green CI for native controls fixes",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T009",
+        "DOCS-R2"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "docs/evidence/M26-native-controls.md"
+      ],
+      "fixes": null,
+      "id": "T010",
+      "iteration": 1,
+      "kind": "delivery",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Зафиксировать CI исправлений на четырёх платформах",
+      "why": "Зафиксировать CI исправлений на четырёх платформах"
     }
   ]
 }
@@ -492,11 +617,11 @@
 ## State
 
 - Scope: m26-native-session-controls (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 8/8
-- Revision: 847
+- Progress: 8/12
+- Revision: 848
 
 ## Objective
 
@@ -546,5 +671,24 @@
   - Depends on: T006, DOCS-R1
 
 Digest: Реализованы нативные контролы ChatGPT, реальные пресеты доступа; визуальная и браузерная проверка passed.
+
+### R2 — Замечания пользователя: тихая смена параметров и drag бегунка (fixes, OPEN)
+
+- [TODO] T008 — Убрать служебный подстрочник и исправить захват бегунка (work)
+  - Commit: fix(panel): support thumb dragging and silence parameter success notices
+  - Files: product-parts/control-panel/clusters/web-panel/modules/session-chat, docs/architecture/OVERVIEW.md, docs/planning/M26-native-session-controls.md, docs/evidence/M26-native-controls.md, docs/evidence/M26, design-qa.md
+  - Fixes: T003
+- [TODO] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
+  - Commit: docs: reconcile documentation for R2
+  - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M26-native-session-controls.md, docs/evidence/M26-native-controls.md, design-qa.md
+  - Depends on: T008
+- [TODO] T009 — Собрать и установить исправления 0.12.1 (delivery)
+  - Commit: chore(release): install Workflow Kit 0.12.1
+  - Files: package.json, package-lock.json, README.md, CHANGELOG.md, docs/usage.md, docs/installation.md, docs/architecture/OVERVIEW.md, docs/evidence/M26-native-controls.md, docs/evidence/M26
+  - Depends on: T008, DOCS-R2
+- [TODO] T010 — Зафиксировать CI исправлений на четырёх платформах (delivery)
+  - Commit: docs: record green CI for native controls fixes
+  - Files: docs/evidence/M26-native-controls.md
+  - Depends on: T009, DOCS-R2
 
 State changes only through `scripts/workflow` commands. History lives in Git.

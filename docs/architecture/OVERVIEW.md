@@ -34,7 +34,7 @@ runtime-зависимостей) и веб-панель для Mac и iPad. С�
 - Бандл Kit собирает `npm run build:kit` (`tools/kit-build`, esbuild): из исходников `kit-core` —
   `kit-bundle/vendor/workflow-kit-<версия>.mjs.gz`, `PROVENANCE` и `bundle-meta.ts`; тест
   `tools/kit-build` не пропускает правку исходников Kit без пересборки.
-- Проверки: `npm run typecheck`, `npm test` (сначала `test:app`, потом `test:kit` — тесты Kit
+- Проверки: `npm run typecheck`, `npm test` (сначала `test:app`, потом `test:kit`, до 4 процессов в группе — тесты Kit
   и сборки отдельной группой), `npm run check:platforms`
   (`tools/platform-guard`: платформа параметром, программы ОС в `allowlist.json`,
   раздел «Поведение на ОС» в спецификациях); CI — macOS, Linux, Windows x64 и ARM64.
@@ -153,6 +153,7 @@ T001–T006 и fixes T008/T009 завершены; последний функц
 | Claude M25: statusline | sh, байты, группа; ожидание close | то же | Git Bash/PowerShell; taskkill /T /F и close |
 | Claude M25: запуск и чтение | --settings на запуск, снимок/транскрипт/лимиты | то же, expect | ConPTY --settings, снимки |
 | Access M26: preset + policy/reviewer, свежие ограничения | общий RPC, injected darwin | то же, injected linux | proxy, injected win32 |
+| Карточка M26: усилие/скорость и список моделей | общий ES-код, visualViewport | то же | то же, x64/ARM64 |
 | Строка M25 и меню параметров | браузер; изолированный Chromium и скриншоты | тот же код | тот же код, x64/ARM64 |
 | Живые проверки | есть, `docs/evidence/` | нет, только тесты | установка, общий доступ, путь до запуска плана (M13–M16) |
 

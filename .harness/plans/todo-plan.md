@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": "T003",
+  "currentTaskId": null,
   "lastClosed": {
     "closedAt": "2026-11-13T15:14:42.535Z",
     "scopeId": "m25-session-parameters"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 835,
+  "revision": 836,
   "rounds": [
     {
       "digest": null,
@@ -215,14 +215,22 @@
         "product-parts/control-panel/clusters/web-panel/modules/session-chat",
         "docs/architecture/OVERVIEW.md",
         "docs/evidence/M26-native-controls.md",
-        "package.json"
+        "package.json",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/effort-card.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/effort-model.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/icons/chevron-right.svg",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/parameters.css",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/parameters.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/session-chat.css",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/test/effort-model.test.ts"
       ],
       "fixes": null,
       "id": "T003",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "title": "Компактная карточка усилия, выбор модели и скорость",
       "why": "Заменить длинный список компактным нативным сценарием"
     },
@@ -434,9 +442,9 @@
 - Scope: m26-native-session-controls (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: T003
-- Progress: 2/8
-- Revision: 835
+- Current task: none
+- Progress: 3/8
+- Revision: 836
 
 ## Objective
 
@@ -460,9 +468,9 @@
   - Commit: feat(parameters): expose native control presentation and access presets
   - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, docs/architecture/CONTRACTS.md, docs/architecture/OVERVIEW.md, docs/evidence/M26-native-controls.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/parameters.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/parameter-access.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/parameter-update.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/parameters.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/access-harness.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/parameter-access.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/parameters.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/parameters.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/parameter-routes.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/parameters.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/parameters.test.ts
   - Depends on: T001
-- [IN_PROGRESS] T003 — Компактная карточка усилия, выбор модели и скорость (work)
+- [DONE] T003 — Компактная карточка усилия, выбор модели и скорость (work)
   - Commit: feat(panel): add native effort card and model picker
-  - Files: product-parts/control-panel/clusters/web-panel/modules/session-chat, docs/architecture/OVERVIEW.md, docs/evidence/M26-native-controls.md, package.json
+  - Files: product-parts/control-panel/clusters/web-panel/modules/session-chat, docs/architecture/OVERVIEW.md, docs/evidence/M26-native-controls.md, package.json, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/effort-card.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/effort-model.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/icons/chevron-right.svg, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/parameters.css, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/parameters.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/session-chat.css, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/effort-model.test.ts
   - Depends on: T002
 - [TODO] T004 — Нативное меню доступа и отдельные контролы в composer (work)
   - Commit: feat(panel): separate native access menu from effort controls

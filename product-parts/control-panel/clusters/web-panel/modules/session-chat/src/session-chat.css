@@ -1,3 +1,4 @@
+@import url('./parameters.css');
 /* The «Диалог» card of the session screen (spec M18 2.6). Colours come from the panel theme. */
 .sc-card {
   width: 100%;

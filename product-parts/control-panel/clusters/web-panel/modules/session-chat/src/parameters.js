@@ -1,4 +1,5 @@
 // @ts-check
+import { createEffortCard } from './effort-card.js';
 import { errorText } from './chat-model.js';
 import { contextText, createParameterPoll, limitTone, menuSections, parametersUrl, percent, safeAccent, safeFont } from './parameters-model.js';
 /** @typedef {import('#provider-registry').SessionParameters} Parameters */
@@ -18,6 +19,8 @@ export function createParameters({ shell, projectId, key, provider, fallback, re
   /** @type {Parameters | null} */ let data = null;
   /** @type {HTMLElement | null} */ let popup = null;
   /** @type {HTMLElement | null} */ let anchor = null;
+  /** @type {{update: () => void, destroy: () => void} | null} */ let nativeView = null;
+  let popupKind = '';
   let busy = false, showing = false, menu = false, readError = false;
   /** @type {{ id: string, option: Option } | null} */ let confirmation = null;
   const url = parametersUrl(projectId, provider, key);
@@ -28,6 +31,7 @@ export function createParameters({ shell, projectId, key, provider, fallback, re
     while (container.childNodes.length > nodes.length) container.lastChild?.remove();
   }
   function close(focus = true) {
+    nativeView?.destroy(); nativeView = null; popupKind = '';
     popup?.remove(); popup = null; menu = false; confirmation = null;
     trigger.setAttribute('aria-expanded', 'false');
     document.removeEventListener('pointerdown', outside); document.removeEventListener('keydown', keyboard);
@@ -39,18 +43,24 @@ export function createParameters({ shell, projectId, key, provider, fallback, re
   function position() {
     if (!popup || !anchor) return;
     const a = anchor.getBoundingClientRect();
+    const editor = host.closest('.sc-compose')?.querySelector('.sc-editor')?.getBoundingClientRect();
     const viewport = window.visualViewport;
     const width = viewport?.width ?? window.innerWidth, height = viewport?.height ?? window.innerHeight;
     const left = viewport?.offsetLeft ?? 0, top = viewport?.offsetTop ?? 0;
     popup.style.maxWidth = `${Math.max(0, width - 16)}px`;
     popup.style.maxHeight = `${Math.max(44, height - 16)}px`;
     const box = popup.getBoundingClientRect();
-    popup.style.left = `${Math.max(left + 8, Math.min(a.right - box.width, left + width - box.width - 8))}px`;
-    popup.style.top = `${Math.max(top + 8, Math.min(a.top - box.height - 8, top + height - box.height - 8))}px`;
+    const popupLeft = Math.max(left + 8, Math.min(a.right - box.width, left + width - box.width - 8));
+    popup.style.left = `${popupLeft}px`; popup.style.setProperty('--sc-popup-left', `${popupLeft}px`);
+    const below = popupKind === 'models' && editor ? editor.bottom + 6 : a.bottom + 6;
+    const above = (popupKind === 'models' && editor ? editor.top : a.top) - box.height - 8;
+    const desired = popupKind === 'models' ? (below + box.height <= top + height - 8 ? below : above) : (above >= top + 8 ? above : below);
+    popup.style.top = `${Math.max(top + 8, Math.min(desired, top + height - box.height - 8))}px`;
   }
   function keyboard(/** @type {KeyboardEvent} */ event) {
     if (!popup) return;
     if (event.key === 'Escape') { event.preventDefault(); close(); return; }
+    if (event.target instanceof HTMLInputElement && event.target.type === 'range') return;
     if (event.key === 'Tab') { close(false); return; }
     const buttons = Array.from(popup.querySelectorAll('button')).filter(b => !b.disabled);
     if (!buttons.length || !['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
@@ -69,6 +79,7 @@ export function createParameters({ shell, projectId, key, provider, fallback, re
     if (!popup || !data) return;
     const previous = /** @type {HTMLElement | null} */ (document.activeElement);
     const previousKey = previous?.dataset['option'];
+    if (nativeView) { nativeView.update(); return; }
     popup.replaceChildren(); popup.setAttribute('aria-busy', String(busy));
     if (confirmation) {
       popup.setAttribute('role', 'dialog'); popup.setAttribute('aria-label', 'Подтверждение разрешений');
@@ -79,8 +90,8 @@ export function createParameters({ shell, projectId, key, provider, fallback, re
       }
     } else {
       popup.setAttribute('role', 'menu'); popup.setAttribute('aria-label', 'Изменить параметры');
-      for (const section of menuSections(data)) {
-        popup.append(h('div', { class: 'sc-parameter-heading', role: 'presentation' }, [section.title]));
+      for (const section of menuSections(data).filter(s => popupKind !== 'models' || ['model', 'mode'].includes(s.id))) {
+        if (popupKind !== 'models' || section.id === 'mode') popup.append(h('div', { class: 'sc-parameter-heading', role: 'presentation' }, [section.title]));
         if (!section.options.length) popup.append(h('p', { class: 'sc-parameter-unavailable' }, [`${section.label}${section.reason ? ` — ${section.reason}` : ''}`]));
         for (const option of section.options) {
           const button = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'sc-parameter-choice', role: 'menuitemradio', 'aria-checked': String(option.selected), 'data-option': `${section.id}:${option.value}` }, [
@@ -98,15 +109,15 @@ export function createParameters({ shell, projectId, key, provider, fallback, re
       const selected = buttons.find(b => b.dataset['option'] === previousKey) ?? buttons.find(b => b.getAttribute('aria-checked') === 'true') ?? buttons[0]; selected?.focus();
     }
   }
-  async function change(/** @type {string} */ id, /** @type {Option} */ option, confirmed = false) {
-    if (busy) return; busy = true; poll.invalidate(); renderMenu(false);
+  async function change(/** @type {string} */ id, /** @type {Option} */ option, confirmed = false, closeAfter = true) {
+    if (busy) return; const focused = /** @type {HTMLElement | null} */ (document.activeElement); busy = true; poll.invalidate(); renderMenu(false);
     report('Меняю параметры…', 'muted');
     try {
       const answer = await shell.api('POST', url, { change: { [id]: option.value, ...(confirmed ? { confirmed: true } : {}) } });
       apply({ supported: true, parameters: answer.parameters });
-      report(['Параметры обновлены', ...(answer.parameters?.notes ?? [])].join('. '), 'ok'); close();
+      report(['Параметры обновлены', ...(answer.parameters?.notes ?? [])].join('. '), 'ok'); if (closeAfter) close();
     } catch (error) { report(errorText(error), 'error'); }
-    finally { busy = false; if (popup) renderMenu(); await poll.refresh(); }
+    finally { busy = false; if (popup) { renderMenu(false); if (focused?.isConnected && popup.contains(focused)) focused.focus({ preventScroll: true }); } await poll.refresh(); }
   }
   /** @param {any} answer */
   function apply(answer) {
@@ -133,12 +144,26 @@ export function createParameters({ shell, projectId, key, provider, fallback, re
       limits.append(h('span', { 'data-tone': limitTone(limit.usedPercent) }, [`${limit.label} ${Math.round(limit.usedPercent)} %`]));
     }
     reconcile(host, data.limits?.length ? [limits, row] : [row]);
+    nativeView?.update();
     if (menu && !confirmation && previous !== JSON.stringify(data.items)) renderMenu();
   }
-  trigger.addEventListener('keydown', event => { if (event.key === 'ArrowDown' && data?.editable && !popup) { event.preventDefault(); openPopup(trigger, true); renderMenu(); } });
+  function openModels() {
+    const element = openPopup(trigger, true); popupKind = 'models';
+    element.classList.add('sc-native-models-popup'); element.setAttribute('aria-label', 'Выбрать модель'); renderMenu();
+  }
+  function openEffort() {
+    const element = openPopup(trigger, false); popupKind = 'effort';
+    element.classList.add('sc-native-effort-popup'); element.style.fontFamily = host.style.fontFamily;
+    element.setAttribute('aria-label', 'Модель и уровень размышлений');
+    const card = createEffortCard({ h, data: () => data, busy: () => busy, change: (id, option) => change(id, option, false, false), models: openModels });
+    nativeView = card; element.append(card.node); position();
+    element.querySelector('input')?.focus({ preventScroll: true });
+  }
+  trigger.addEventListener('keydown', event => { if (event.key === 'ArrowDown' && data?.editable && !popup) { event.preventDefault(); if (data.presentation?.layout === 'effort-card') openEffort(); else { openPopup(trigger, true); renderMenu(); } } });
   trigger.addEventListener('click', () => {
     if (!data) return;
     if (popup && anchor === trigger) { close(); return; }
+    if (data.editable && data.presentation?.layout === 'effort-card') { openEffort(); return; }
     const element = openPopup(trigger, data.editable);
     if (data.editable) renderMenu(); else { element.append(h('p', {}, [data.reason || data.items.map(i => i.title).join(' · ')])); position(); }
   });

@@ -35,24 +35,26 @@ export function createEffortCard({ h, data, busy, change, models }) {
     const effort = state.items.find(i => i.id === 'effort');
     const modelItem = state.items.find(i => i.id === 'model');
     const speedItem = state.items.find(i => i.id === 'speed');
-    optionsList = effortOptions(state);
+    if (!pointer && !keyboard) optionsList = effortOptions(state);
     const current = optionsList.findIndex(o => o.value === effort?.value);
-    label.textContent = effort?.label ?? 'Нет данных';
+    if (!pointer && !keyboard) label.textContent = effort?.label ?? 'Нет данных';
     model.replaceChildren(document.createTextNode(modelItem?.label ?? 'Модель: нет данных'), icon('chevron-right'));
     model.disabled = busy() || !modelItem?.options?.some(o => !o.disabled);
     model.title = modelItem?.reason ?? 'Выбрать модель';
     slider.max = String(Math.max(0, optionsList.length - 1));
     slider.disabled = busy() || current < 0 || optionsList.filter(o => !o.disabled).length < 2;
     track.hidden = current < 0;
-    reason.textContent = current < 0 ? effort?.reason ?? 'Усилие: нет данных' : '';
+    reason.textContent = current < 0 ? effort?.reason ?? 'Усилие: нет данных' : optionsList.filter(o => !o.disabled).length < 2 ? effort?.reason ?? 'Другие уровни недоступны' : '';
     reason.hidden = !reason.textContent;
-    if (!pointer && !keyboard) { slider.value = String(Math.max(0, current)); preview(); }
+    if (!pointer && !keyboard) slider.value = String(Math.max(0, current));
+    if (current >= 0 || pointer || keyboard) preview();
+    else slider.setAttribute('aria-valuetext', 'Нет данных');
     ticks.replaceChildren(...optionsList.map((_, index) => { const tick = h('span', { class: 'sc-effort-tick' }); tick.style.left = `${optionsList.length > 1 ? index / (optionsList.length - 1) * 100 : 0}%`; return tick; }));
     const next = speedItem?.options?.find(o => o.value === (speedItem.value === 'priority' ? 'standard' : 'priority'));
     speed.disabled = busy() || !next || next.disabled === true;
     speed.classList.toggle('sc-speed-on', speedItem?.value === 'priority');
     speed.setAttribute('aria-pressed', String(speedItem?.value === 'priority'));
-    const text = state.presentation?.speedHint ?? speedItem?.reason ?? 'Скорость недоступна';
+    const text = [state.presentation?.speedHint, !busy() && (!next || next.disabled) ? next?.reason ?? speedItem?.reason ?? 'Скорость недоступна' : null].filter(Boolean).join('\n') || 'Скорость недоступна';
     speed.title = text; speed.setAttribute('aria-label', `Быстрая скорость. ${text.replace(/\n/g, '. ')}`); hint.textContent = text;
   }
   slider.addEventListener('input', preview);

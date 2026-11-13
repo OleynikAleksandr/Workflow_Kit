@@ -53,7 +53,8 @@ export function createParameters({ shell, projectId, key, provider, fallback, on
     popup.style.maxWidth = `${Math.max(0, width - 16)}px`;
     popup.style.maxHeight = `${Math.max(44, height - 16)}px`;
     const box = popup.getBoundingClientRect();
-    const popupLeft = Math.max(left + 8, Math.min(a.right - box.width, left + width - box.width - 8));
+    const preferredLeft = popupKind === 'access' ? a.left : a.right - box.width;
+    const popupLeft = Math.max(left + 8, Math.min(preferredLeft, left + width - box.width - 8));
     popup.style.left = `${popupLeft}px`; popup.style.setProperty('--sc-popup-left', `${popupLeft}px`);
     const below = popupKind === 'models' && editor ? editor.bottom + 6 : a.bottom + 6;
     const above = (popupKind === 'models' && editor ? editor.top : a.top) - box.height - 8;
@@ -82,7 +83,7 @@ export function createParameters({ shell, projectId, key, provider, fallback, on
     if (!popup || !data) return;
     const previous = /** @type {HTMLElement | null} */ (document.activeElement);
     const previousKey = previous?.dataset['option'];
-    if (nativeView) { nativeView.update(); return; }
+    if (nativeView) { nativeView.update(); position(); return; }
     popup.replaceChildren(); popup.setAttribute('aria-busy', String(busy));
     if (confirmation) {
       popup.setAttribute('role', 'dialog'); popup.setAttribute('aria-label', 'Подтверждение разрешений');
@@ -152,7 +153,7 @@ export function createParameters({ shell, projectId, key, provider, fallback, on
       limits.append(h('span', { 'data-tone': limitTone(limit.usedPercent) }, [`${limit.label} ${Math.round(limit.usedPercent)} %`]));
     }
     reconcile(host, data.limits?.length ? [limits, row] : [row]);
-    nativeView?.update();
+    nativeView?.update(); position();
     if (menu && !confirmation && previous !== JSON.stringify(data.items)) renderMenu();
   }
   function openAccess() {

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 838,
+  "revision": 840,
   "rounds": [
     {
       "digest": null,
@@ -311,14 +311,34 @@
         "design-qa.md",
         "docs/architecture/OVERVIEW.md",
         "docs/evidence/M26-native-controls.md",
-        "docs/evidence/M26"
+        "docs/evidence/M26",
+        "docs/evidence/M26/access-before-qa.png",
+        "docs/evidence/M26/access-dark.png",
+        "docs/evidence/M26/access-light.png",
+        "docs/evidence/M26/effort-before-qa.png",
+        "docs/evidence/M26/effort-context.png",
+        "docs/evidence/M26/effort-dark.png",
+        "docs/evidence/M26/effort-light.png",
+        "docs/evidence/M26/panel-dark-375.png",
+        "docs/evidence/M26/panel-dark-768.png",
+        "docs/evidence/M26/panel-dark.png",
+        "docs/evidence/M26/panel-light-375.png",
+        "docs/evidence/M26/panel-light-768.png",
+        "docs/evidence/M26/touch-access.png",
+        "docs/evidence/M26/touch-effort.png",
+        "docs/evidence/M26/zoom-200-equivalent.png",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/effort-card.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/icons/zap.svg",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/parameters.css",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/parameters.js"
       ],
       "fixes": null,
       "id": "T005",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Сравнить с эталонами и проверить сценарии в браузере",
       "why": "Наличие работающих кнопок не доказывает совпадение интерфейса"
     },
@@ -451,8 +471,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 4/8
-- Revision: 838
+- Progress: 5/8
+- Revision: 840
 
 ## Objective
 
@@ -484,9 +504,9 @@
   - Commit: feat(panel): separate native access menu from effort controls
   - Files: product-parts/control-panel/clusters/web-panel/modules/session-chat, docs/architecture/OVERVIEW.md, docs/evidence/M26-native-controls.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/access-menu.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/composer.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/icons/hand.svg, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/icons/shield-alert.svg, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/icons/shield-check.svg, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/parameters.css, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/parameters.js
   - Depends on: T003
-- [TODO] T005 — Сравнить с эталонами и проверить сценарии в браузере (work)
+- [DONE] T005 — Сравнить с эталонами и проверить сценарии в браузере (work)
   - Commit: test(panel): verify native controls against visual references
-  - Files: product-parts/control-panel/clusters/web-panel/modules/session-chat, design-qa.md, docs/architecture/OVERVIEW.md, docs/evidence/M26-native-controls.md, docs/evidence/M26
+  - Files: product-parts/control-panel/clusters/web-panel/modules/session-chat, design-qa.md, docs/architecture/OVERVIEW.md, docs/evidence/M26-native-controls.md, docs/evidence/M26, docs/evidence/M26/access-before-qa.png, docs/evidence/M26/access-dark.png, docs/evidence/M26/access-light.png, docs/evidence/M26/effort-before-qa.png, docs/evidence/M26/effort-context.png, docs/evidence/M26/effort-dark.png, docs/evidence/M26/effort-light.png, docs/evidence/M26/panel-dark-375.png, docs/evidence/M26/panel-dark-768.png, docs/evidence/M26/panel-dark.png, docs/evidence/M26/panel-light-375.png, docs/evidence/M26/panel-light-768.png, docs/evidence/M26/touch-access.png, docs/evidence/M26/touch-effort.png, docs/evidence/M26/zoom-200-equivalent.png, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/effort-card.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/icons/zap.svg, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/parameters.css, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/parameters.js
   - Depends on: T004
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1

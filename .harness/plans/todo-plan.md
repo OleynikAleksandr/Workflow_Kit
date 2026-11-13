@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 850,
+  "revision": 851,
   "rounds": [
     {
       "digest": {
@@ -546,7 +546,8 @@
         "docs/architecture/OVERVIEW.md",
         "docs/planning/M26-native-session-controls.md",
         "docs/evidence/M26-native-controls.md",
-        "design-qa.md"
+        "design-qa.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/parameters.md"
       ],
       "fixes": null,
       "id": "DOCS-R2",
@@ -629,7 +630,7 @@
 - Execution: sequential
 - Current task: none
 - Progress: 9/12
-- Revision: 850
+- Revision: 851
 
 ## Objective
 
@@ -688,7 +689,7 @@ Digest: Реализованы нативные контролы ChatGPT, реа
   - Fixes: T003
 - [TODO] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R2
-  - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M26-native-session-controls.md, docs/evidence/M26-native-controls.md, design-qa.md
+  - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M26-native-session-controls.md, docs/evidence/M26-native-controls.md, design-qa.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/parameters.md
   - Depends on: T008
 - [TODO] T009 — Собрать и установить исправления 0.12.1 (delivery)
   - Commit: chore(release): install Workflow Kit 0.12.1

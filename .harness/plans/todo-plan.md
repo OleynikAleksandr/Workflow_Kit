@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 806,
+  "revision": 808,
   "rounds": [
     {
       "digest": {
@@ -46,7 +46,21 @@
       "title": "Implementation"
     },
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "writeSnapshot: очередь назначения и ограниченные повторы EPERM/EACCES/EBUSY.",
+          "statusline shell: возврат только после закрытия процесса и завершения дерева."
+        ],
+        "decisions": [
+          "Не удалять прежний снимок при отказе атомарной замены.",
+          "Тайм-аут ожидает close и окончание завершения дерева."
+        ],
+        "references": [
+          "docs/evidence/M25-acceptance.md",
+          "docs/architecture/OVERVIEW.md"
+        ],
+        "result": "R2 исправил два подтверждённых сбоя Windows: замену снимков и ранний возврат тайм-аута statusline. Локальные проверки прошли; повторная CI и поставка впереди."
+      },
       "id": "R2",
       "kind": "fixes",
       "status": "OPEN",
@@ -655,7 +669,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -756,8 +770,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 10/13
-- Revision: 806
+- Progress: 11/13
+- Revision: 808
 
 ## Objective
 
@@ -821,7 +835,7 @@ Digest: Реализованы чтение параметров Claude/ChatGPT,
   - Files: product-parts/backend-core/clusters/runtime/modules/cli, docs/architecture/OVERVIEW.md, docs/evidence/M25-acceptance.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/statusline-shell.ts, product-parts/backend-core/clusters/runtime/modules/cli/statusline.md, product-parts/backend-core/clusters/runtime/modules/cli/test/statusline.test.ts
   - Depends on: T010
   - Fixes: T005
-- [TODO] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R2
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/evidence/M25-acceptance.md
   - Depends on: T010, T011
@@ -833,5 +847,7 @@ Digest: Реализованы чтение параметров Claude/ChatGPT,
   - Commit: docs: record green CI for the M25 delivery
   - Files: docs/evidence/M25-acceptance.md
   - Depends on: T008, DOCS-R2
+
+Digest: R2 исправил два подтверждённых сбоя Windows: замену снимков и ранний возврат тайм-аута statusline. Локальные проверки прошли; повторная CI и поставка впереди.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

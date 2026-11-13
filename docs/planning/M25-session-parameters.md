@@ -12,8 +12,8 @@
 шрифты выбрать из тех, которые используют сами провайдеры… А для ChatGPT делаем полное
 управление прямо из диалога Workflow Kit».
 
-Проверенные факты —
-[M25-session-parameters-facts.md](../design/M25-session-parameters-facts.md).
+Проверенные факты — [факты](../design/M25-session-parameters-facts.md); правила надёжности
+по ревью плана — [правила](../design/M25-session-parameters-rules.md).
 
 ## 1. Принципы
 
@@ -21,8 +21,8 @@
   после изменения перечитывает значения.
 - Сервер и панель провайдеров не называют: подписи, порядок, шрифт и списки выбора
   приходят из модуля провайдера по общему контракту.
-- Чтение дёшево и ничего не меняет (D11): чтение параметров не загружает тред Codex и не
-  запускает программ.
+- Чтение дёшево и ничего не меняет (D11): не загружает тред Codex и не запускает программ
+  сверх штатного транспорта демона.
 - Kit ничего не одобряет за пользователя. Смена разрешений — явное действие пользователя,
   расширение до полного доступа требует подтверждения.
 - Геометрия ввода M24 сохраняется: строка параметров остаётся под рамкой ввода справа у
@@ -45,7 +45,7 @@ interface ParameterOption { value: string; label: string; description?: string;
   disabled?: boolean; reason?: string; confirm?: string }
 interface ParameterItem { id: ParameterId; value: string | null; label: string;
   tone: 'primary' | 'muted'; icon?: 'zap'; inRow: boolean; title: string;
-  options?: ParameterOption[] }
+  options?: ParameterOption[]; reason?: string }
 interface ContextUsage { usedTokens: number | null; windowTokens: number | null;
   usedPercent: number | null }
 interface LimitWindow { id: string; label: string; usedPercent: number;
@@ -61,7 +61,8 @@ interface ParameterChange { model?: string; effort?: string; speed?: string;
 - `items` идут в родном порядке провайдера; `label` — текст, как его пишет приложение
   провайдера; `title` — полная подпись («Модель: GPT-6.1 Sol»). Параметр без данных
   не включается. `inRow: false` — параметр виден только в меню.
-- `options` есть только у изменяемого параметра. `confirm` — текст подтверждения.
+- `options` есть только у параметра, который можно менять сейчас, иначе — `reason`;
+  `editable` — `options` есть хотя бы у одного. `confirm` — текст подтверждения.
 - `style.font` — значение `font-family`; `accent` — цвет дуги кольца `#rrggbb`.
 - `limits` относятся к аккаунту провайдера, одинаковы у всех его сессий.
 - `Provider.readParameters?(project, sessionId) → Promise<SessionParameters>`;
@@ -74,6 +75,8 @@ interface ParameterChange { model?: string; effort?: string; speed?: string;
   `{ supported: true, parameters }` или `{ supported: false }` (метода нет).
 - `POST …/parameters { change }` → `{ parameters }`. Тело проверяется: только известные
   поля, строки до 128 знаков, хотя бы одно поле параметра.
+- Оба маршрута сначала находят сессию проекта (нет — 404 `unknown-session`); `POST` одной
+  сессии идут по очереди (правила, раздел 2).
 
 Ошибки (`{ error: { code, message, hint? } }`):
 
@@ -91,7 +94,8 @@ interface ParameterChange { model?: string; effort?: string; speed?: string;
 `snapshotFile(dirs, provider, sessionId)`, `limitsFile(dirs, provider)`,
 `readSnapshot`, `writeSnapshot` (запись во временный файл и переименование). Каталог —
 `<state>/session-parameters/<provider>/`. Id сессии в имени файла — только
-`[A-Za-z0-9_-]{1,128}`, иначе запись и чтение отклоняются.
+`[A-Za-z0-9_-]{1,128}`, иначе запись и чтение отклоняются. `src/jsonl-tail.ts` — чтение
+новейших записей JSONL: холодное и продолжающее (правила, раздел 3).
 
 ### 2.2. ChatGPT: чтение (`provider-codex/src/parameters.ts`)
 
@@ -99,19 +103,17 @@ interface ParameterChange { model?: string; effort?: string; speed?: string;
 
 1. `thread/read { threadId }` без ходов → `model`, `reasoningEffort`, `path`, статус.
    Тред не загружается.
-2. Хвост файла сессии `thread.path` (последние 1 МиБ, строки с конца; кэш по пути, размеру
-   и времени изменения): новейшая запись настроек (`thread_settings_applied` или
-   `turn_context`) → скорость, режим, разрешения, политика одобрений; новейший
-   `token_count` → контекст. Нет файла или записи — параметр не включается.
+2. Файл сессии `thread.path` через `jsonl-tail`: новейшая запись настроек
+   (`thread_settings_applied` или `turn_context`) → скорость, режим, разрешения, политика
+   одобрений; новейший `token_count` → контекст. Нет файла или записи — параметра нет.
 3. Лимиты — `account/rateLimits/read`, кэш 60 с; каталоги `model/list`,
    `collaborationMode/list`, `permissionProfile/list` — кэш 10 минут, сброс при незнакомом
    значении и по `refresh()`. Отказ каталога не мешает показу: подпись — идентификатор.
+   Соединения и доступность вариантов — правила, раздел 5.
 
-Модель и усилие берутся из `thread/read`, остальное — из файла. Разрешения из файла:
-`sandbox_policy.type` (`read-only`, `workspace-write`, `danger-full-access`) либо
-`permission_profile` (`disabled` → полный доступ; `managed` с записью доступа `write` →
-рабочая папка, без неё → только чтение); иное — «Особые разрешения» без выбора в меню.
-Вид профиля `:workspace` снимается при реализации и входит в набор образцов.
+Модель и усилие берутся из `thread/read`, остальное — из файла. Стандартный профиль
+разрешений распознаётся только по проверенной структуре (правила, раздел 4); иное —
+«Особые разрешения».
 
 Состав `items` (порядок родной строки; `ring: 'first'`):
 
@@ -133,11 +135,11 @@ interface ParameterChange { model?: string; effort?: string; speed?: string;
 
 ### 2.3. ChatGPT: изменение (`provider-codex/src/parameters.ts`)
 
-Условие: то же, что у прямого хода, — режим общего демона активен
-(`sharedMode.refresh()`), либо общий доступ на этой ОС `unsupported` (приложения нет,
-демон Kit единственный). Иначе `editable: false` и причина «Включите общий доступ к чатам
-ChatGPT: без него приложение держит чат у себя». Тред без файла сессии — `editable: false`,
-«Параметры можно менять после первого сообщения».
+Условие: общий доступ к чатам активен либо на этой ОС `unsupported` (приложения нет,
+демон Kit единственный). `GET` берёт сохранённое состояние без запуска программ, `POST`
+перепроверяет (правила, раздел 5). Иначе вариантов нет, причина «Включите общий доступ к
+чатам ChatGPT: без него приложение держит чат у себя». Тред без файла сессии — «Параметры
+можно менять после первого сообщения».
 
 `updateParameters`:
 
@@ -150,13 +152,12 @@ ChatGPT: без него приложение держит чат у себя».
    модель её не поддерживает. Об автозамене — строка в `notes` ответа.
 3. Вариант `:danger-full-access` несёт `confirm`: «Агент получит полный доступ к диску и
    сети этого компьютера. Продолжить?». Без `confirmed: true` — `confirmation-required`.
-4. Соединение с `capabilities.experimentalApi: true` (новый необязательный параметр
-   `initializeSession` и `withDaemon`; прочие соединения не меняются). Если треда нет в
-   `thread/loaded/list` — `thread/resume`. Затем `thread/settings/update` только с
-   изменёнными полями; при смене модели, усилия или режима всегда передаётся согласованный
-   `collaborationMode: { mode, settings: { model, reasoning_effort, developer_instructions:
-   null } }`; стандартная скорость — `serviceTier: null`; профиль — `permissions`. Тред,
-   загруженный этим вызовом, выгружается `thread/unsubscribe`, как в `wakeThread`.
+4. Соединение с `experimentalApi` (новый необязательный параметр `initializeSession` и
+   `withDaemon`). Текущие значения читаются заново внутри очереди сессии. Если треда нет в
+   `thread/loaded/list` — `thread/resume`. Затем `thread/settings/update` только с изменённым
+   полем; `collaborationMode` — только при смене режима (правила, раздел 2); стандартная
+   скорость — `serviceTier: null`; профиль — `permissions`. Тред, загруженный этим вызовом,
+   выгружается `thread/unsubscribe`, как в `wakeThread`.
 5. Ответ — заново прочитанные параметры (кэш файла сессии сбрасывается).
 
 Идущий ход не трогается (`turn/settings/update` не используется): изменение действует со
@@ -178,17 +179,18 @@ ChatGPT: без него приложение держит чат у себя».
    берётся из первой найденной настройки `statusLine` типа `command`:
    `<cwd>/.claude/settings.local.json` → `<cwd>/.claude/settings.json` →
    `~/.claude/settings.json`; команда с `wfk statusline` пропускается. Ей передаётся тот же
-   stdin; ожидание 5 с. Нет настройки — вывод пустой.
+   stdin; ожидание 5 с, затем дерево процессов завершается. Нет настройки — вывод пустой.
+   Оболочка и завершение — правила, раздел 6.
 3. Всегда завершается с кодом 0; ошибка записи снимка или пользовательской команды вывода
-   не портит. Служба для работы команды не нужна.
+   не портит.
 
 Снимок не содержит текста переписки. Снимки сессий старше 30 суток удаляются при записи.
 
 ### 2.5. Claude: чтение и запуск (`provider-claude`)
 
 Запуск: `session.exp`, `pty/host.ts` и `pty/win-host.ts` добавляют к `claude`
-`--settings <файл>`. Файл `<logs>/claude/session-settings.json` пишет провайдер перед
-запуском: `{ "statusLine": { "type": "command", "command": <команда>, … } }`, где команда —
+`--settings <файл>`. Свой файл на каждый запуск (правила, раздел 7) пишет провайдер перед
+стартом: `{ "statusLine": { "type": "command", "command": <команда>, … } }`, где команда —
 `wfk statusline --client claude` в той же машинно-независимой форме, что команды хуков,
 а `padding` и `refreshInterval` копируются
 из действующей настройки пользователя. Возобновление запускается так же. Окружение папки
@@ -198,8 +200,7 @@ ChatGPT: без него приложение держит чат у себя».
 
 1. Снимок сессии: модель (`display_name`), усилие, контекст (`used_percentage`,
    `context_window_size`).
-2. Хвост транскрипта (путь из журнала хука, последние 1 МиБ, кэш по размеру и времени):
-   новейшая запись `permission-mode` → режим; при отсутствии снимка — `message.model` и
+2. Транскрипт (путь из журнала хука) через `jsonl-tail`: новейшая запись `permission-mode` → режим; при отсутствии снимка — `message.model` и
    `effort` новейшей записи `assistant`.
 3. Лимиты — файл лимитов провайдера: окна `five_hour` («5 ч») и `seven_day` («7 д»).
    Окно с прошедшим `resets_at` не показывается до следующего снимка.
@@ -259,12 +260,12 @@ Lucide 0.468.0 `zap`, `chevron-down`, `check` в `src/icons/`.
 | Строка, кольцо, лимиты, меню | браузерный код, одинаково | одинаково | одинаково |
 | ChatGPT: чтение | сокет демона, файл сессии по `thread.path` | то же | `codex app-server proxy`, путь файла через `path` |
 | ChatGPT: изменение | при активном общем доступе | общий доступ `unsupported` — доступно всегда | при активном общем доступе |
-| `wfk statusline` | запуск команды пользователя через `/bin/sh -c` | то же | через `bash -c` (Git Bash из окружения, как хуки), нет `bash` — `cmd /c` |
+| `wfk statusline` | команда пользователя через `/bin/sh -c` | то же | Git Bash, нет его — PowerShell; завершение дерева — `taskkill` |
 | Claude: `--settings` | `session.exp` | `session.exp` | `pty/win-host.ts` |
 | Снимки | `<state>/session-parameters/` | то же | то же, пути через `path` |
 
 Платформа передаётся параметром (`platform ?? process.platform`). Новые вызовы программ ОС
-(`/bin/sh`, `bash`, `cmd`) вносятся в `tools/platform-guard/allowlist.json`.
+(`/bin/sh`, `bash`, `powershell`, `taskkill`) вносятся в `tools/platform-guard/allowlist.json`.
 
 ## 4. Проверка
 
@@ -272,10 +273,13 @@ Lucide 0.468.0 `zap`, `chevron-down`, `check` в `src/icons/`.
   подписи и порядок; кэши; проверка значений, автозамена усилия, подтверждение, условия
   `editable`, отказы — на подставном демоне; `wfk statusline` (снимок, цепочка, пустая
   настройка, сбой команды) с платформами `darwin`, `linux`, `win32`; маршруты и коды
-  ошибок; чистая логика строки и меню. Браузерная проверка строки и меню — по
+  ошибок. Браузерная проверка строки и меню — по
   [M24-browser-verification.md](../design/M24-browser-verification.md).
-- CI на macOS, Linux, Windows x64 и ARM64 — при публикации ветки `ci/m25-session-parameters`
-  по команде пользователя; публикация в задачи плана не входит.
+- CI на macOS, Linux, Windows x64 и ARM64 — на ветке `ci/m25-session-parameters`, которую
+  отправляют по прямой команде пользователя вне задач плана; приёмка scope требует зелёной
+  CI на SHA поставки (правила, раздел 8).
+- Проба осуществимости управления ChatGPT с пользователем — первая задача (правила,
+  раздел 1).
 - Живая проверка macOS и iPad (пользователь): строки обеих сессий совпадают со
   скриншотами; лимиты и кольцо сходятся с приложениями; смена модели, усилия, скорости,
   режима и разрешений ChatGPT из Kit видна в приложении ChatGPT и действует на следующий
@@ -288,26 +292,23 @@ Lucide 0.468.0 `zap`, `chevron-down`, `check` в `src/icons/`.
 Codex; Kimi; вложения и микрофон; файлы фирменных шрифтов; строка состояния для сессий
 Claude, запущенных не панелью; публикация на GitHub.
 
-Риски: `thread/settings/update` — экспериментальный (при отказе показ остаётся, меню
-отключается с причиной); формат файла сессии и транскрипта не публичен (незнакомая
-запись пропускается); приложение ChatGPT может отправить свои значения со следующим
-ходом — Kit покажет фактические.
+Риски — [правила](../design/M25-session-parameters-rules.md), раздел 9.
 
 ## 6. План
 
-Все задачи `parallelSafe: false`, режим последовательный: контракт первым, общие
+Все задачи `parallelSafe: false`, режим последовательный: проба и контракт первыми, общие
 документы (OVERVIEW, доказательства) меняются в каждой задаче.
-Модуль ниже — его исходники, тесты, `module.md` и связанные документы.
 
 | Задача | Содержание | Файлы |
 | --- | --- | --- |
-| T001 | Контракт `SessionParameters`, маршруты, ошибки, снимки | provider-registry; CONTRACTS.md; OVERVIEW.md |
-| T002 | ChatGPT: чтение параметров, каталоги, лимиты, подписи | provider-codex; OVERVIEW.md; доказательства M25 |
-| T003 | ChatGPT: изменение параметров | provider-codex; OVERVIEW.md; доказательства M25 |
-| T004 | `wfk statusline`: снимок и цепочка к строке пользователя | cli; platform-guard allowlist; OVERVIEW.md; доказательства M25 |
-| T005 | Claude: запуск с `--settings`, чтение параметров | provider-claude; platform-guard allowlist; OVERVIEW.md; доказательства M25 |
-| T006 | Диалог: строка в оформлении провайдера, кольцо, лимиты, меню | session-chat; OVERVIEW.md; доказательства M25 |
+| T001 | Проба с пользователем: изменение из Kit и приложение ChatGPT | факты M25; доказательства M25 |
+| T002 | Контракт, маршруты, очередь, снимки, чтение JSONL | provider-registry; CONTRACTS.md; OVERVIEW.md |
+| T003 | ChatGPT: чтение параметров | provider-codex; OVERVIEW.md; доказательства M25 |
+| T004 | ChatGPT: изменение параметров | provider-codex; OVERVIEW.md; доказательства M25 |
+| T005 | `wfk statusline` | cli; platform-guard allowlist; OVERVIEW.md; доказательства M25 |
+| T006 | Claude: запуск с `--settings`, чтение параметров | provider-claude; platform-guard allowlist; OVERVIEW.md; доказательства M25 |
+| T007 | Диалог: строка, кольцо, лимиты, меню | session-chat; OVERVIEW.md; доказательства M25 |
 | DOCS | Согласование документов | добавляет Kit |
-| T007 | Локальная поставка 0.11.0 и живая приёмка | package.json, CHANGELOG.md, README.md, docs/installation.md, docs/usage.md, OVERVIEW.md, docs/changelog, доказательства M25 |
+| T008 | Локальная поставка 0.11.0 и живая приёмка | файлы версии и выпуска; доказательства M25 |
 
-Зависимости: T001 → T002 → T003 → T004 → T005 → T006 → DOCS → T007.
+Зависимости: T001 → T002 → T003 → T004 → T005 → T006 → T007 → DOCS → T008.

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 784,
+  "revision": 786,
   "rounds": [
     {
       "digest": null,
@@ -137,7 +137,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Проба с пользователем: изменение из Kit и приложение ChatGPT",
       "why": "Управление ChatGPT имеет смысл, только если изменение из Kit действует на ходы из приложения"
     },
@@ -566,8 +566,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 0/10
-- Revision: 784
+- Progress: 1/10
+- Revision: 786
 
 ## Objective
 
@@ -586,7 +586,7 @@
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T001 — Проба с пользователем: изменение из Kit и приложение ChatGPT (work)
+- [DONE] T001 — Проба с пользователем: изменение из Kit и приложение ChatGPT (work)
   - Commit: docs: record the ChatGPT parameter control probe
   - Files: docs/design/M25-session-parameters-facts.md, docs/evidence/M25-acceptance.md
 - [TODO] T002 — Контракт параметров сессии, маршруты, очередь, снимки и чтение JSONL (work)

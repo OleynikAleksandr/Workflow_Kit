@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T003",
   "lastClosed": {
     "closedAt": "2026-11-12T18:46:52.163Z",
     "scopeId": "m23-kit-tests-windows"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 755,
+  "revision": 757,
   "rounds": [
     {
       "digest": null,
@@ -298,9 +298,39 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "Stop Claude: pty/ConPTY, диалоги и подтверждение",
       "why": "Stop Claude: pty/ConPTY, диалоги и подтверждение"
+    },
+    {
+      "acceptance": [
+        "ProviderError interrupt-timeout возвращается как HTTP 504 interrupt-timeout с подсказкой; общий лимит 10 с и барьер сохранены.",
+        "Прочие ошибки адаптера остаются HTTP 502 interrupt-failed, недоступность и stale сохраняют штатные ответы; покрыты тестами и обновлён контракт cli."
+      ],
+      "checks": [],
+      "commitMessage": "fix(session): preserve adapter interruption timeouts",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/design/M24-turn-interruption.md",
+          "required": true
+        }
+      ],
+      "dependencies": [
+        "T003"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/backend-core/clusters/runtime/modules/cli"
+      ],
+      "fixes": "T002",
+      "id": "T008",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R1",
+      "status": "TODO",
+      "title": "Корректная передача ошибок адаптера Stop в HTTP API",
+      "why": "При подключении Claude обнаружено: ProviderError interrupt-timeout с status 504 общий API ошибочно превращает в 502; завершённая T002 не редактируется."
     },
     {
       "acceptance": [
@@ -326,7 +356,8 @@
         }
       ],
       "dependencies": [
-        "T003"
+        "T003",
+        "T008"
       ],
       "docsWaiver": null,
       "files": [
@@ -444,6 +475,7 @@
         "T001",
         "T002",
         "T003",
+        "T008",
         "T004",
         "T005",
         "T006"
@@ -456,7 +488,15 @@
         "product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md",
         "product-parts/control-panel/clusters/web-panel/cluster.md",
         "docs/architecture/CONTRACTS.md",
-        "docs/evidence/M24-acceptance.md"
+        "docs/evidence/M24-acceptance.md",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/files.md",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md"
       ],
       "fixes": null,
       "id": "DOCS-R1",
@@ -524,9 +564,9 @@
 - Scope: m24-interface-polish (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: none
-- Progress: 2/8
-- Revision: 755
+- Current task: T003
+- Progress: 2/9
+- Revision: 757
 
 ## Objective
 
@@ -553,14 +593,19 @@
   - Commit: feat(session): add guarded turn interruption and continuation barrier
   - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel, product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/workflow-engine/clusters/session-loop/modules/cross-review, product-parts/backend-core/clusters/runtime/modules/cli, docs/architecture/CONTRACTS.md, docs/architecture/OVERVIEW.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/direct-message.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/review-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/turn-interruption.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/hook-channel.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/turn-interruption.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/interrupt.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/registry.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/channel.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/detached.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/slots.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/turn-control.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/turn-state.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/types.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/channel.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/turn-lifecycle.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/autopilot.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/interrupt.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/interrupt.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/contract.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/review.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/texts.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test/interruption.test.ts
   - Depends on: T001
-- [TODO] T003 — Stop Claude: pty/ConPTY, диалоги и подтверждение (work)
+- [IN_PROGRESS] T003 — Stop Claude: pty/ConPTY, диалоги и подтверждение (work)
   - Commit: feat(claude): interrupt managed turns with explicit confirmation
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, docs/architecture/OVERVIEW.md, docs/evidence/M24-acceptance.md, product-parts/provider-runtime/clusters/provider-contract/modules/pty-host, tools/platform-guard/allowlist.json
   - Depends on: T002
+- [TODO] T008 — Корректная передача ошибок адаптера Stop в HTTP API (work)
+  - Commit: fix(session): preserve adapter interruption timeouts
+  - Files: product-parts/backend-core/clusters/runtime/modules/cli
+  - Depends on: T003
+  - Fixes: T002
 - [TODO] T004 — Stop Kimi: abort с подтверждением idle (work)
   - Commit: feat(kimi): abort managed turns with idle confirmation
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi, docs/architecture/OVERVIEW.md, docs/evidence/M24-acceptance.md
-  - Depends on: T003
+  - Depends on: T003, T008
 - [TODO] T005 — Stop ChatGPT/Codex: прерывание конкретного native turn (work)
   - Commit: feat(codex): interrupt the expected active turn
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, docs/architecture/OVERVIEW.md, docs/evidence/M24-acceptance.md
@@ -571,8 +616,8 @@
   - Depends on: T005
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
-  - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M24-interface-polish.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, product-parts/control-panel/clusters/web-panel/cluster.md, docs/architecture/CONTRACTS.md, docs/evidence/M24-acceptance.md
-  - Depends on: T001, T002, T003, T004, T005, T006
+  - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M24-interface-polish.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, product-parts/control-panel/clusters/web-panel/cluster.md, docs/architecture/CONTRACTS.md, docs/evidence/M24-acceptance.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/files.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md
+  - Depends on: T001, T002, T003, T008, T004, T005, T006
 - [TODO] T007 — Локальная поставка Workflow Kit 0.10.0 (delivery)
   - Commit: chore(release): install Workflow Kit 0.10.0 locally
   - Files: package.json, CHANGELOG.md, README.md, docs/installation.md, docs/architecture/OVERVIEW.md, docs/usage.md, docs/changelog, docs/evidence/M24-acceptance.md

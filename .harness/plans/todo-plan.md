@@ -10,10 +10,28 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 841,
+  "revision": 843,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "SessionParameters.presentation: effort-card, speedHint, access; ParameterChange.access.",
+          "POST access проверяет ограничения и confirmed; read-back по полному набору полей.",
+          "Один POST на жест, preview/focus/draft сохраняются; desktop255×97, access644×162, touch44."
+        ],
+        "decisions": [
+          "Сброс и Подробнее исключены; модели отдельным списком под вводом.",
+          "Пресеты используют штатные policy/reviewer Codex, без одобрения силами Kit.",
+          "Поставка 0.12.0 и CI точного SHA выполняются отдельно от живой приёмки."
+        ],
+        "references": [
+          "docs/planning/M26-native-session-controls.md",
+          "docs/design/M26/access-preset-contract.md",
+          "docs/evidence/M26-native-controls.md",
+          "design-qa.md"
+        ],
+        "result": "Реализованы нативные контролы ChatGPT, реальные пресеты доступа; визуальная и браузерная проверка passed."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -374,7 +392,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -472,8 +490,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 5/8
-- Revision: 841
+- Progress: 6/8
+- Revision: 843
 
 ## Objective
 
@@ -509,7 +527,7 @@
   - Commit: test(panel): verify native controls against visual references
   - Files: product-parts/control-panel/clusters/web-panel/modules/session-chat, design-qa.md, docs/architecture/OVERVIEW.md, docs/evidence/M26-native-controls.md, docs/evidence/M26, docs/evidence/M26/access-before-qa.png, docs/evidence/M26/access-dark.png, docs/evidence/M26/access-light.png, docs/evidence/M26/effort-before-qa.png, docs/evidence/M26/effort-context.png, docs/evidence/M26/effort-dark.png, docs/evidence/M26/effort-light.png, docs/evidence/M26/panel-dark-375.png, docs/evidence/M26/panel-dark-768.png, docs/evidence/M26/panel-dark.png, docs/evidence/M26/panel-light-375.png, docs/evidence/M26/panel-light-768.png, docs/evidence/M26/touch-access.png, docs/evidence/M26/touch-effort.png, docs/evidence/M26/zoom-200-equivalent.png, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/effort-card.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/icons/zap.svg, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/parameters.css, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/parameters.js
   - Depends on: T004
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M26-native-session-controls.md, docs/design/M26-native-controls-reference.md, docs/evidence/M26-native-controls.md, docs/architecture/CONTRACTS.md, design-qa.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/parameters.md
   - Depends on: T001, T002, T003, T004, T005
@@ -521,5 +539,7 @@
   - Commit: docs: record green CI for native session controls
   - Files: docs/evidence/M26-native-controls.md
   - Depends on: T006, DOCS-R1
+
+Digest: Реализованы нативные контролы ChatGPT, реальные пресеты доступа; визуальная и браузерная проверка passed.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

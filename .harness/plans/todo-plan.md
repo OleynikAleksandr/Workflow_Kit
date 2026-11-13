@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 792,
+  "revision": 794,
   "rounds": [
     {
       "digest": null,
@@ -347,14 +347,21 @@
         "bin",
         "tools/platform-guard/allowlist.json",
         "docs/architecture/OVERVIEW.md",
-        "docs/evidence/M25-acceptance.md"
+        "docs/evidence/M25-acceptance.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/commands.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/index.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/statusline-shell.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/statusline.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/statusline.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/statusline.test.ts"
       ],
       "fixes": null,
       "id": "T005",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Команда wfk statusline: снимок и строка пользователя",
       "why": "Лимиты, размер окна и имя модели Claude отдаёт только команде строки состояния"
     },
@@ -594,8 +601,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 4/10
-- Revision: 792
+- Progress: 5/10
+- Revision: 794
 
 ## Objective
 
@@ -629,9 +636,9 @@
   - Commit: feat(codex): update session parameters
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, docs/architecture/OVERVIEW.md, docs/evidence/M25-acceptance.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/parameters.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/parameter-update.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/parameters.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/parameter-update.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/parameters.test.ts
   - Depends on: T003
-- [TODO] T005 — Команда wfk statusline: снимок и строка пользователя (work)
+- [DONE] T005 — Команда wfk statusline: снимок и строка пользователя (work)
   - Commit: feat(cli): capture Claude status line snapshots
-  - Files: product-parts/backend-core/clusters/runtime/modules/cli, bin, tools/platform-guard/allowlist.json, docs/architecture/OVERVIEW.md, docs/evidence/M25-acceptance.md
+  - Files: product-parts/backend-core/clusters/runtime/modules/cli, bin, tools/platform-guard/allowlist.json, docs/architecture/OVERVIEW.md, docs/evidence/M25-acceptance.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/commands.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/index.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/statusline-shell.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/statusline.ts, product-parts/backend-core/clusters/runtime/modules/cli/statusline.md, product-parts/backend-core/clusters/runtime/modules/cli/test/statusline.test.ts
   - Depends on: T004
 - [TODO] T006 — Claude: запуск с --settings и чтение параметров (work)
   - Commit: feat(claude): read session parameters

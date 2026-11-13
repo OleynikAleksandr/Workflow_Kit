@@ -16,3 +16,7 @@ export type { LinkOptions, LinkResult } from './link.ts';
 export { LAUNCHER_MARK, LinkError, REPO_ROOT, launcherPath, launcherScript, linkLauncher } from './link.ts';
 export type { DetectOsInput, OsInfo } from './system-info.ts';
 export { detectOs, panelUrls, readPackageVersion } from './system-info.ts';
+
+export { runStatusline, readStatuslineInput, userStatusline, STATUSLINE_MAX_INPUT } from './statusline.ts';
+export { statuslineShell, runStatuslineCommand } from './statusline-shell.ts';
+export type { StatuslineDeps } from './statusline.ts';

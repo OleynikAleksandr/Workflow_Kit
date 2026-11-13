@@ -4,6 +4,7 @@ import { runServiceCommand } from '#service-installer';
 import type { ServiceCommand, ServiceDeps } from '#service-installer';
 import { createApp } from './app.ts';
 import type { App, AppOptions } from './app.ts';
+import { runStatusline } from './statusline.ts';
 import { readProcessStdin, runHook } from './hook.ts';
 import type { PostJson, RequestJson } from './hook-service.ts';
 import { runSessionCommand } from './session-command.ts';
@@ -35,7 +36,7 @@ export interface CliDeps {
 }
 
 /** Top-level commands of wfk, in help order. */
-export const COMMANDS: readonly string[] = ['serve', 'open', 'install', 'uninstall', 'service', 'doctor', 'link', 'hook', 'session', 'project'];
+export const COMMANDS: readonly string[] = ['serve', 'open', 'install', 'uninstall', 'service', 'doctor', 'link', 'hook', 'session', 'project', 'statusline'];
 
 /** Exit code for usage errors (unknown command or subcommand). */
 export const EXIT_USAGE = 64;
@@ -59,6 +60,7 @@ const USAGE = `Использование: wfk <команда>
   session title "<тема>"        имя сессии от агента (один раз, в идущем ходе)
   session plan "<что делаем>"   вопрос пользователю: спецификация и план (с ревью или без)
   project publish               опубликовать проект папки в upstream git (только при закрытом scope)
+  statusline --client <id>       снимок параметров и строка состояния пользователя
   --version                     версия
 `;
 
@@ -188,6 +190,8 @@ export async function main(argv: readonly string[], deps?: Partial<CliDeps>): Pr
       return service(rest, full);
     case 'link':
       return link(rest, full);
+    case 'statusline':
+      try { return await runStatusline(rest, { platform: full.app?.platform, env: full.app?.env, homedir: full.app?.homedir, cwd: full.cwd, ...(full.readStdin ? { input: Buffer.from(await full.readStdin(2000)) } : {}), ...(deps?.stdout ? { write: bytes => full.stdout(bytes.toString('utf8')) } : {}) }); } catch { return 0; }
     case 'hook':
       return runHook(rest, {
         stdout: full.stdout,

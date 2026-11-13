@@ -18,7 +18,9 @@
     "cmd.exe",
     "schtasks",
     "wmic",
-    "reg"
+    "reg",
+    "/bin/sh",
+    "bash"
   ],
   "directPlatform": [
     {
@@ -220,6 +222,48 @@
       "darwin": "не нужно: команда запускается напрямую, без оболочки",
       "linux": "не нужно: команда запускается напрямую, без оболочки",
       "win32": "файл .cmd/.bat запускается через cmd.exe /d /s /c с экранированием аргументов (Node не запускает их без оболочки)"
+    },
+    {
+      "file": "product-parts/backend-core/clusters/runtime/modules/cli/src/statusline-shell.ts",
+      "program": "powershell",
+      "darwin": "/bin/sh -c для строки состояния пользователя",
+      "linux": "/bin/sh -c, как на macOS",
+      "win32": "Git Bash; без него powershell -NoProfile -Command; дерево завершается публичным taskkill /T /F process-supervisor"
+    },
+    {
+      "file": "product-parts/backend-core/clusters/runtime/modules/cli/src/statusline-shell.ts",
+      "program": "/bin/sh",
+      "darwin": "/bin/sh -c для строки состояния пользователя",
+      "linux": "/bin/sh -c, как на macOS",
+      "win32": "Git Bash; без него powershell -NoProfile -Command; дерево завершается публичным taskkill /T /F process-supervisor"
+    },
+    {
+      "file": "product-parts/backend-core/clusters/runtime/modules/cli/src/statusline-shell.ts",
+      "program": "bash",
+      "darwin": "/bin/sh -c для строки состояния пользователя",
+      "linux": "/bin/sh -c, как на macOS",
+      "win32": "Git Bash; без него powershell -NoProfile -Command; дерево завершается публичным taskkill /T /F process-supervisor"
+    },
+    {
+      "file": "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/shared-files.ts",
+      "program": "bash",
+      "darwin": "Имя оболочки для выбора существующего login-профиля; не запускается здесь",
+      "linux": "Та же чистая функция выбора профиля",
+      "win32": "Профиль Git Bash для SSH; не запускается здесь"
+    },
+    {
+      "file": "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/shared-plan.ts",
+      "program": "bash",
+      "darwin": "Профиль оболочки пользователя; подготовка плана, без запуска",
+      "linux": "Подготовка плана, без запуска",
+      "win32": "Читает профиль Git Bash для SSH, без запуска"
+    },
+    {
+      "file": "product-parts/system-service/clusters/deployment/modules/service-installer/src/programs.ts",
+      "program": "/bin/sh",
+      "darwin": "Login shell пользователя, резерв /bin/zsh",
+      "linux": "Login shell пользователя, резерв /bin/sh",
+      "win32": "Не вызывается: loginShellPath возвращает null"
     }
   ],
   "legacySpecs": [

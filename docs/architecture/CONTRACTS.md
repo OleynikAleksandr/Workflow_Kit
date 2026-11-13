@@ -185,3 +185,11 @@ GET/POST `…/sessions/:sid/parameters` сначала находят сесси
 В папке проекта (веха 2): `.workflow-kit/local/sessions/<клиент>.<id>.json`
 (имя, тема, архив, ревью сессии), журнал хука
 `.workflow-kit/local/sessions.jsonl`, `.harness/**` (только команды Kit).
+
+## Нативные контролы M26
+
+Общий SessionParameters.presentation описывает effort-card, speedHint и отдельный access;
+клиент не проверяет имя провайдера. ParameterChange.access — opaque id; смешивать с
+legacy permissions нельзя. Codex проверяет профили, policy, reviewer и feature перед
+записью, подтверждает результат по полному набору метаданных. Аудит содержит старые/новые
+поля. Старые провайдеры и клиенты сохраняют API M25. Подробности — parameters.md модулей.

@@ -114,3 +114,16 @@ test('new capabilities require explicit opt-in, legacy ones keep availability', 
   for (const name of ['sessionParameters', 'updateParameters']) assert.equal((await providerCapability(fake, name)).available, false);
   assert.equal((await providerCapability(fake, 'unmentioned-legacy')).available, true);
 });
+
+test('access writes accept opaque ids, reject legacy mixing, and audit the effective preset fields', async () => {
+  const withAccess = (value: string): SessionParameters => ({ ...params(), notes: ['Одобрения: on-request', `Проверяющий: ${value === 'auto' ? 'auto_review' : 'user'}`], presentation: { layout: 'effort-card', access: { value, label: value, tone: 'primary' } } });
+  current = withAccess('ask'); let mutations = 0;
+  fake.updateParameters = async (_p, _id, change) => { mutations++; assert.equal(change.access, 'auto'); return current = withAccess('auto'); };
+  assert.equal((await call('POST', 's1', { change: { access: 'auto', permissions: ':workspace' } })).status, 400);
+  assert.equal((await call('POST', 's1', { change: { access: 1 } })).status, 400);
+  assert.equal(mutations, 0);
+  assert.equal((await call('POST', 'r-s1', { change: { access: 'auto' } })).status, 200);
+  const events = (await readFile(path.join(tmp, 'events.jsonl'), 'utf8')).trim().split('\n').map(l => JSON.parse(l));
+  const event = events.findLast(e => e.parameter === 'access' && e.new === 'auto');
+  assert.equal(event.old, 'ask'); assert.deepEqual(event.fields.approvalsReviewer, { old: 'user', new: 'auto_review' });
+});

@@ -8,6 +8,7 @@ import { FULL_ACCESS_CONFIRM, UPDATE_UNSUPPORTED } from './parameters.ts';
 import { obj, str, list } from './parameter-values.ts';
 import type { Dict } from './parameter-values.ts';
 import { RpcError } from './rpc.ts';
+import { ACCESS_PRESETS } from './parameter-access.ts';
 
 const invalid = (field: string, value: unknown): never => { throw new ProviderError('parameter-invalid', `Недопустимый параметр ${field}: ${String(value)}`, { status: 400 }); };
 function unavailable(message: string, hint = 'Проверьте подключение демона Codex'): never {
@@ -16,12 +17,12 @@ function unavailable(message: string, hint = 'Проверьте подключ�
 /** All entry points serialize by thread. The HTTP route also locks for its before/after journal. */
 export function createParameterUpdater(rt: CodexRuntime, parts: ReturnType<typeof createParameterParts>, shared: SharedMode) {
   const queue = createKeyedMutex();
-  return (id: string, change: ParameterChange): Promise<SessionParameters> => queue.run(id, async () => {
+  return (id: string, change: ParameterChange, cwd?: string): Promise<SessionParameters> => queue.run(id, async () => {
     try {
       await shared.refresh();
       return await parts.connect(async (session, experimental) => {
         if (!experimental) unavailable(UPDATE_UNSUPPORTED, 'Обновите Codex');
-        const state = await parts.readState(session, id, experimental);
+        const state = await parts.readState(session, id, experimental, cwd, change.access !== undefined);
         if (state.parameters.reason) unavailable(state.parameters.reason, state.parameters.reason === UPDATE_UNSUPPORTED ? 'Обновите Codex' : 'Проверьте общий доступ к чатам ChatGPT');
         const notes: string[] = [];
         const request: Dict = { threadId: id };
@@ -54,6 +55,14 @@ export function createParameterUpdater(rt: CodexRuntime, parts: ReturnType<typeo
           if (!state.modes.some(m => m['mode'] === change.mode)) invalid('mode', change.mode);
           request['collaborationMode'] = { mode: change.mode, settings: { model: targetId, reasoning_effort: effort, developer_instructions: null } };
         }
+        if (change.access !== undefined) {
+          if (change.permissions !== undefined) invalid('access', 'cannot combine permissions');
+          const preset = Object.hasOwn(ACCESS_PRESETS, change.access) ? ACCESS_PRESETS[change.access] : undefined;
+          const option = state.parameters.presentation?.access.options?.find(o => o.value === change.access);
+          if (!preset || !option || option.disabled) invalid('access', option?.reason ?? change.access);
+          if (change.access === 'full' && change.confirmed !== true) throw new ProviderError('confirmation-required', FULL_ACCESS_CONFIRM, { status: 409, details: { confirm: FULL_ACCESS_CONFIRM } });
+          Object.assign(request, preset);
+        }
         if (change.permissions !== undefined) {
           if (!state.catalogs['permissions']) unavailable('Список разрешений сейчас недоступен');
           if (!state.profiles.some(p => p['id'] === change.permissions && p['allowed'] === true)) invalid('permissions', change.permissions);
@@ -78,7 +87,8 @@ export function createParameterUpdater(rt: CodexRuntime, parts: ReturnType<typeo
             throw error;
           }
           if (state.file) parts.clearFile(state.file);
-          const result = (await parts.readState(session, id, experimental)).parameters;
+          const result = (await parts.readState(session, id, experimental, cwd)).parameters;
+          if (change.access !== undefined && result.presentation?.access.value !== change.access) unavailable('Codex не подтвердил выбранный доступ', 'Проверьте фактические настройки сессии');
           if (obj(state.thread['status'])['type'] === 'active') notes.push('Применится со следующего хода');
           return { ...result, ...((notes.length || result.notes?.length) ? { notes: [...(result.notes ?? []), ...notes] } : {}) };
         } finally {

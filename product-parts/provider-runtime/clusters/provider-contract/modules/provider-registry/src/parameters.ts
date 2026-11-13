@@ -18,10 +18,24 @@ export interface LimitWindow {
 export interface ParameterStyle { font: string; ring: 'first' | 'last'; accent?: string }
 export interface SessionParameters {
   items: ParameterItem[]; context: ContextUsage | null; limits: LimitWindow[];
-  style: ParameterStyle; editable: boolean; reason?: string; notes?: string[]; at: string;
+  presentation?: ParameterPresentation; style: ParameterStyle; editable: boolean; reason?: string; notes?: string[]; at: string;
 }
 export interface ParameterChange {
   model?: string; effort?: string; speed?: string; mode?: string;
-  permissions?: string; confirmed?: boolean;
+  permissions?: string; access?: string; confirmed?: boolean;
 }
 export const PARAMETER_IDS: readonly ParameterId[] = ['model', 'effort', 'speed', 'mode', 'permissions'];
+
+/** Optional provider-owned compact controls; older clients keep the item list. */
+export interface AccessOption extends ParameterOption {
+  icon: 'hand' | 'shield-check' | 'shield-alert';
+}
+export interface AccessPresentation {
+  value: string | null; label: string; tone: 'primary' | 'warning';
+  options?: AccessOption[]; reason?: string;
+}
+export interface ParameterPresentation {
+  layout: 'effort-card'; speedHint?: string; access: AccessPresentation;
+}
+
+export const PARAMETER_CHANGE_IDS = [...PARAMETER_IDS, 'access'] as const;

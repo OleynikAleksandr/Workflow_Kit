@@ -43,3 +43,14 @@ R2/T010: writeSnapshot сериализует запись одного назн
 Разные файлы не ждут друг друга. Необязательные SnapshotWriteOptions позволяют проверить
 отказы детерминированно. Поведение одинаково на трёх ОС; исправляет Windows EPERM
 предварительной CI M25, новые программы ОС не вызываются.
+
+## M26: компактная презентация и нативный access
+
+SessionParameters.presentation optional: layout effort-card, speedHint optional и access
+(value string|null, label, tone primary|warning, options, reason). AccessOption дополняет
+ParameterOption фиксированной icon hand|shield-check|shield-alert. Старые клиенты продолжают
+читать items; Claude/Kimi не обязаны возвращать presentation. Общая панель не знает id провайдера.
+ParameterChange.access — opaque id; одновременно access/permissions запрещены HTTP-валидацией.
+PARAMETER_IDS не меняет значения; PARAMETER_CHANGE_IDS добавляет access только для записи.
+Аудит access сохраняет прежний/новый пресет и реальные permissions/policy/reviewer.
+Контракт и очередь одинаковы на macOS, Linux и Windows x64/ARM64; программ ОС нет.

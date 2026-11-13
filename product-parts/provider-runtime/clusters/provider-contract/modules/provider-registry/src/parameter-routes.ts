@@ -2,7 +2,7 @@ import { HttpError } from '#http-server';
 import type { EventLog, KeyedMutex } from '#data-store';
 import type { ChatRouteParts } from './chat-routes.ts';
 import { ProviderError } from './contract.ts';
-import { PARAMETER_IDS } from './parameters.ts';
+import { PARAMETER_CHANGE_IDS } from './parameters.ts';
 import type { ParameterChange } from './parameters.ts';
 
 function object(value: unknown): value is Record<string, unknown> {
@@ -12,11 +12,12 @@ function changeOf(body: unknown): ParameterChange {
   const invalid = (): never => { throw new HttpError(400, 'parameter-invalid', 'Ожидается change с известными параметрами (строки до 128 знаков)'); };
   if (!object(body) || Object.keys(body).some(k => k !== 'change') || !object(body['change'])) return invalid();
   const change = body['change'];
-  if (!PARAMETER_IDS.some(k => Object.hasOwn(change, k))) return invalid();
+  if (!PARAMETER_CHANGE_IDS.some(k => Object.hasOwn(change, k))) return invalid();
   for (const [k, v] of Object.entries(change)) {
     if (k === 'confirmed') { if (typeof v !== 'boolean') return invalid(); }
-    else if (!PARAMETER_IDS.includes(k as typeof PARAMETER_IDS[number]) || typeof v !== 'string' || !v.trim() || v.length > 128) return invalid();
+    else if (!PARAMETER_CHANGE_IDS.includes(k as typeof PARAMETER_CHANGE_IDS[number]) || typeof v !== 'string' || !v.trim() || v.length > 128) return invalid();
   }
+  if (Object.hasOwn(change, 'access') && Object.hasOwn(change, 'permissions')) return invalid();
   return change as ParameterChange;
 }
 
@@ -48,6 +49,9 @@ export function registerParameterRoutes(parts: ChatRouteParts & { mutex: KeyedMu
             parameter: item.id, old, new: item.value,
           });
         }
+        const oldAccess = before?.presentation?.access.value ?? null;
+        const newAccess = parameters.presentation?.access.value ?? null;
+        if (oldAccess !== newAccess) await events?.append('provider.parameters.changed', { provider: provider.id, project: project.id, session: session.localId, parameter: 'access', old: oldAccess, new: newAccess, fields: { permissions: { old: before?.items.find(i => i.id === 'permissions')?.value ?? null, new: parameters.items.find(i => i.id === 'permissions')?.value ?? null }, approvalPolicy: { old: before?.notes?.find(n => n.startsWith('Одобрения:'))?.slice(10).trim() ?? null, new: parameters.notes?.find(n => n.startsWith('Одобрения:'))?.slice(10).trim() ?? null }, approvalsReviewer: { old: before?.notes?.find(n => n.startsWith('Проверяющий:'))?.slice(12).trim() ?? null, new: parameters.notes?.find(n => n.startsWith('Проверяющий:'))?.slice(12).trim() ?? null } } });
         return { parameters };
       });
     } catch (error) {

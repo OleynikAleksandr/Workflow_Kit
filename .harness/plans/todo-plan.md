@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 831,
+  "revision": 833,
   "rounds": [
     {
       "digest": null,
@@ -160,14 +160,29 @@
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex",
         "docs/architecture/CONTRACTS.md",
         "docs/architecture/OVERVIEW.md",
-        "docs/evidence/M26-native-controls.md"
+        "docs/evidence/M26-native-controls.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/parameters.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/parameter-access.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/parameter-update.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/parameters.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/access-harness.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/parameter-access.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/parameters.test.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/parameters.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/parameter-routes.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/parameters.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/parameters.test.ts"
       ],
       "fixes": null,
       "id": "T002",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Презентация контролов и настоящие пресеты доступа Codex",
       "why": "Общий UI должен получить подписи и семантику от провайдера"
     },
@@ -419,8 +434,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 1/8
-- Revision: 831
+- Progress: 2/8
+- Revision: 833
 
 ## Objective
 
@@ -440,9 +455,9 @@
 - [DONE] T001 — Проверить нативные пресеты, сброс и визуальные эталоны (work)
   - Commit: docs: verify native session control behavior
   - Files: docs/planning/M26-native-session-controls.md, docs/design/M26-native-controls-reference.md, docs/design/M26, docs/evidence/M26-native-controls.md, docs/evidence/M26, docs/planning/M26-native-session-controls-plan.md, docs/design/M26/access-preset-contract.md, docs/design/M26/native-access-menu.png, docs/design/M26/native-effort-card.png, docs/design/M26/workflow-kit-before.png, docs/evidence/M26/access-ephemeral-roundtrip.json, docs/evidence/M26/access-fresh-connection.json, docs/evidence/M26/access-persistent-roundtrip.json, docs/evidence/M26/access-proof-unload-not-observed.json, docs/evidence/M26/access-start-catalog-probe.json, docs/evidence/M26/catalogs.json, docs/evidence/M26/cleanup.json
-- [TODO] T002 — Презентация контролов и настоящие пресеты доступа Codex (work)
+- [DONE] T002 — Презентация контролов и настоящие пресеты доступа Codex (work)
   - Commit: feat(parameters): expose native control presentation and access presets
-  - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, docs/architecture/CONTRACTS.md, docs/architecture/OVERVIEW.md, docs/evidence/M26-native-controls.md
+  - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, docs/architecture/CONTRACTS.md, docs/architecture/OVERVIEW.md, docs/evidence/M26-native-controls.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/parameters.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/parameter-access.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/parameter-update.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/parameters.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/access-harness.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/parameter-access.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/parameters.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/parameters.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/parameter-routes.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/parameters.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/parameters.test.ts
   - Depends on: T001
 - [TODO] T003 — Компактная карточка усилия, выбор модели и скорость (work)
   - Commit: feat(panel): add native effort card and model picker

@@ -67,7 +67,7 @@ for (const platform of ['darwin', 'linux', 'win32'] as const) test(`${platform}:
     assert.equal(f.calls.filter(m => m === 'model/list').length, 1);
     f.advance(600000); await f.parts.readParameters('s1');
     assert.equal(f.calls.filter(m => m === 'model/list').length, 2);
-    assert.ok(f.calls.every(m => ['thread/read', 'model/list', 'account/rateLimits/read', 'collaborationMode/list', 'permissionProfile/list'].includes(m)));
+    assert.ok(f.calls.every(m => ['thread/read', 'model/list', 'account/rateLimits/read', 'collaborationMode/list', 'permissionProfile/list', 'configRequirements/read', 'experimentalFeature/list', 'config/read'].includes(m)));
     assert.ok(f.flags.every(Boolean));
   } finally { await f.close(); }
 });

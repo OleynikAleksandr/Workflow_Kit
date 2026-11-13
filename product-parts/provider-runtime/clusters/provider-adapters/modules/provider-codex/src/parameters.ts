@@ -3,17 +3,23 @@ import type { ParameterId, ParameterItem, ParameterOption, SessionParameters, Sh
 import type { CodexRuntime } from './runtime.ts';
 import type { RpcSession } from './rpc.ts';
 import { RpcError } from './rpc.ts';
+import { createAccessReader, accessPresentation, speedHint } from './parameter-access.ts';
 import { obj, str, finite, list, valueLabel, permissionId, LABELS } from './parameter-values.ts';
 import type { Dict } from './parameter-values.ts';
 
 export const PARAMETER_FONT = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif';
 export const FULL_ACCESS_CONFIRM = 'Агент получит полный доступ к диску и сети этого компьютера. Продолжить?';
 export const UPDATE_UNSUPPORTED = 'Эта версия Codex не поддерживает изменение параметров';
-interface FileValues { settings: { value: Dict; fromTurn: boolean }; tokens: Dict; speed: string | null }
+interface FileValues { settings: { value: Dict; fromTurn: boolean }; tokens: Dict; speed: string | null; reviewer: unknown; approval: unknown; accessProfile: Dict }
 export interface ParameterState {
   thread: Dict; file: string | null; settings: Dict; fromTurn: boolean;
   models: Dict[]; modes: Dict[]; profiles: Dict[]; catalogs: Record<string, boolean>;
   experimental: boolean; parameters: SessionParameters;
+}
+
+function recordSettings(record: unknown): Dict {
+  const r = obj(record); const p = obj(r['payload']);
+  return r['type'] === 'turn_context' ? p : r['type'] === 'event_msg' && p['type'] === 'thread_settings_applied' ? obj(p['thread_settings']) : {};
 }
 
 /** All calls in a read share one connection. No daemon probe, load or external program. */
@@ -30,15 +36,19 @@ export function createParameterParts(rt: CodexRuntime, shared: Pick<SharedAccess
       const s = r['type'] === 'turn_context' ? p : r['type'] === 'event_msg' && p['type'] === 'thread_settings_applied' ? obj(p['thread_settings']) : {};
       return Object.hasOwn(s, 'service_tier') ? str(s['service_tier']) : undefined;
     },
+    reviewer(record) { const s = recordSettings(record); return Object.hasOwn(s, 'approvals_reviewer') ? s['approvals_reviewer'] : undefined; },
+    approval(record) { const s = recordSettings(record); return Object.hasOwn(s, 'approval_policy') ? s['approval_policy'] : undefined; },
+    accessProfile(record) { const s = recordSettings(record); return Object.hasOwn(s, 'permission_profile') ? s : undefined; },
     tokens(record) { const r = obj(record); const p = obj(r['payload']); return r['type'] === 'event_msg' && p['type'] === 'token_count' && p['info'] ? obj(p['info']) : undefined; },
   });
+  const accessReader = createAccessReader(rt.context.now);
   const caches = new Map<string, { at: number; value: Dict | null }>();
   let unsupported = false;
-  async function cached(session: RpcSession, method: string, ttl: number, force = false): Promise<Dict | null> {
-    const now = rt.context.now().getTime(); const old = caches.get(method);
+  async function cached(session: RpcSession, method: string, ttl: number, force = false, params: Dict = {}): Promise<Dict | null> {
+    const now = rt.context.now().getTime(); const key = method + JSON.stringify(params); const old = caches.get(key);
     if (!force && old && now - old.at < ttl) return old.value;
-    const value = await session.request(method, {}).then(obj).catch(() => null);
-    caches.set(method, { at: now, value }); return value;
+    const value = await session.request(method, params).then(obj).catch(() => null);
+    caches.set(key, { at: now, value }); return value;
   }
   async function connect<T>(fn: (session: RpcSession, experimental: boolean) => Promise<T>): Promise<T> {
     try { return await rt.withDaemon(s => fn(s, true), undefined, true); }
@@ -50,14 +60,14 @@ export function createParameterParts(rt: CodexRuntime, shared: Pick<SharedAccess
   function unavailable(error: unknown): ProviderError {
     return error instanceof ProviderError ? error : new ProviderError('parameters-unavailable', `Не удалось прочитать параметры ChatGPT: ${(error as Error).message}`, { status: 503, hint: 'Проверьте подключение демона Codex' });
   }
-  async function readState(session: RpcSession, id: string, experimental: boolean): Promise<ParameterState> {
+  async function readState(session: RpcSession, id: string, experimental: boolean, cwd?: string, freshAccess = false): Promise<ParameterState> {
     const answer = obj(await session.request('thread/read', { threadId: id, includeTurns: false }));
-    const thread = obj(answer['thread']); const file = str(thread['path']);
+    const thread = obj(answer['thread']); const scopeCwd = cwd ?? str(thread['cwd']); const file = str(thread['path']);
     const values = file ? await tail.read(file).catch(() => ({} as Partial<FileValues>)) : {};
     const settings = values.settings?.value ?? {}; const fromTurn = values.settings?.fromTurn ?? false;
     let [modelData, modeData, profileData, rateData] = await Promise.all([
       cached(session, 'model/list', 600000), cached(session, 'collaborationMode/list', 600000),
-      cached(session, 'permissionProfile/list', 600000), cached(session, 'account/rateLimits/read', 60000),
+      cached(session, 'permissionProfile/list', 600000, freshAccess, scopeCwd ? { cwd: scopeCwd } : {}), cached(session, 'account/rateLimits/read', 60000),
     ]);
     let models = list(modelData?.['data']);
     const model = str(thread['model']); const effort = str(thread['reasoningEffort']);
@@ -68,7 +78,7 @@ export function createParameterParts(rt: CodexRuntime, shared: Pick<SharedAccess
     const currentMode = str(obj(settings['collaboration_mode'])['mode']);
     if (modeData && currentMode && !list(modeData['data']).some(m => m['mode'] === currentMode)) modeData = await cached(session, 'collaborationMode/list', 600000, true);
     const currentProfile = permissionId(settings, fromTurn, rt.context.platform);
-    if (profileData && currentProfile && !list(profileData['data']).some(p => p['id'] === currentProfile)) profileData = await cached(session, 'permissionProfile/list', 600000, true);
+    if (profileData && currentProfile && !list(profileData['data']).some(p => p['id'] === currentProfile)) profileData = await cached(session, 'permissionProfile/list', 600000, true, scopeCwd ? { cwd: scopeCwd } : {});
     const modes = list(modeData?.['data']); const profiles = list(profileData?.['data']);
     const catalogs = { model: !!modelData, effort: !!modelData, speed: !!modelData, mode: !!modeData, permissions: !!profileData };
     const activeModel = models.find(m => m['model'] === model || m['id'] === model);
@@ -111,18 +121,23 @@ export function createParameterParts(rt: CodexRuntime, shared: Pick<SharedAccess
       const reset = finite(w['resetsAt']); const date = reset === null ? null : new Date(reset * 1000);
       return [{ id, label: minutes < 60 ? `${minutes} мин` : minutes < 1440 ? `${minutes / 60} ч` : `${minutes / 1440} д`, usedPercent: Math.min(100, percent), resetsAt: date && Number.isFinite(date.getTime()) ? date.toISOString() : null }];
     });
-    const approval = str(settings['approval_policy']);
+    const approval = str(values.approval);
+    let accessProfile = currentProfile;
+    if (fromTurn && !accessProfile && obj(settings['sandbox_policy'])['type'] === 'workspace-write' && values.accessProfile && permissionId(values.accessProfile, false, rt.context.platform) === ':workspace') accessProfile = ':workspace';
+    const access = accessPresentation(accessProfile, values.approval, values.reviewer, profiles, await accessReader.read(session, scopeCwd, freshAccess), reason, FULL_ACCESS_CONFIRM);
+    const reviewer = str(values.reviewer);
+    const hint = speedHint(activeModel);
     const parameters: SessionParameters = { items, context: info ? { usedTokens: used, windowTokens: window, usedPercent: used !== null && window ? Math.min(100, 100 * used / window) : null } : null,
-      limits, style: { font: PARAMETER_FONT, ring: 'first' }, editable: items.some(i => !!i.options?.length), ...(reason ? { reason } : {}), ...(approval ? { notes: [`Одобрения: ${approval}`] } : {}), at: rt.context.now().toISOString() };
+      limits, presentation: { layout: 'effort-card', ...(hint ? { speedHint: hint } : {}), access }, style: { font: PARAMETER_FONT, ring: 'first' }, editable: items.some(i => !!i.options?.length) || !!access.options?.some(o => !o.disabled), ...(reason ? { reason } : {}), ...((approval || reviewer) ? { notes: [...(approval ? [`Одобрения: ${approval}`] : []), ...(reviewer ? [`Проверяющий: ${reviewer}`] : [])] } : {}), at: rt.context.now().toISOString() };
     return { thread, file, settings, fromTurn, models, modes, profiles, catalogs, experimental, parameters };
   }
   return {
     connect, readState, unavailable,
-    clearCache() { caches.clear(); tail.clear(); unsupported = false; },
+    clearCache() { caches.clear(); accessReader.clear(); tail.clear(); unsupported = false; },
     clearFile(file: string) { tail.clear(file); },
     markUnsupported() { unsupported = true; },
-    async readParameters(id: string): Promise<SessionParameters> {
-      try { return await connect(async (s, experimental) => (await readState(s, id, experimental)).parameters); }
+    async readParameters(id: string, cwd?: string): Promise<SessionParameters> {
+      try { return await connect(async (s, experimental) => (await readState(s, id, experimental, cwd)).parameters); }
       catch (error) { throw unavailable(error); }
     },
   };

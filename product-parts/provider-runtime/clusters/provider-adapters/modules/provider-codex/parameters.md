@@ -71,3 +71,26 @@ confirmed true — confirmation-required с confirm; allowed false — parameter
 совместимости при смене модели. Незнакомые модель/усилие, режим и профиль инвалидируют
 соответствующий каталог. Все изменения используют тот же транспорт на трёх ОС;
 ветки проверяются с внедрёнными darwin/linux/win32.
+
+## M26: нативные пресеты и презентация
+
+parameter-access.ts возвращает layout effort-card, описание ускорения из serviceTiers
+и три opaque пресета: ask (:workspace/on-request/user), auto
+(:workspace/on-request/auto_review), full (:danger-full-access/never/user).
+Распознавание учитывает точный профиль, policy и reviewer; read-only не равен ask,
+неизвестное сочетание — Особые разрешения. Alias guardian_subagent распознаётся как auto_review.
+Последние явно сообщённые reviewer/policy/profile сохраняются tail-читателем; устаревший
+full-профиль не переносится на новый turn_context workspace-write.
+
+Проверяются permissionProfile/list для cwd, allowedApprovalPolicies,
+allowedApprovalsReviewers и guardian_approval (feature плюс effective config).
+Неизвестная форма/ошибка requirements запрещает пресеты; неизвестный или выключенный
+проверяющий запрещает auto. GET читает только RPC/метаданные, кэш доступа 60 секунд по cwd;
+POST access внутри очереди принудительно перечитывает ограничения и список профилей.
+Конфиг не меняется, программы не запускаются. Подтверждение full проверяется на сервере.
+
+Один thread/settings/update передаёт три поля пресета; read-back обязан распознать тот же
+access, иначе parameters-unavailable. Остальные настройки сохраняются. Legacy permissions
+остаётся прежним API и не смешивается с access. Скорость 1.5x/2x берётся из каталога,
+известное описание переводится; неизвестное сохраняется. Сброса и Подробнее нет.
+Поведение одинаково на трёх ОС, пути и тесты используют injected platform.

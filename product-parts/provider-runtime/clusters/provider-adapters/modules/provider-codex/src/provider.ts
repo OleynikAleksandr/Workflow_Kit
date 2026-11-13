@@ -284,8 +284,8 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
       return true;
     },
     // Conversation (spec M18 section 2.3): thread/read with turns; a direct turn in the shared mode.
-    updateParameters: (_project, sessionId, change) => updateParameters(sessionId, change),
-    readParameters: (_project, sessionId) => parameters.readParameters(sessionId),
+    updateParameters: (project, sessionId, change) => updateParameters(sessionId, change, project.path),
+    readParameters: (project, sessionId) => parameters.readParameters(sessionId, project.path),
     readMessages: (_project, sessionId, opts) => chatParts.readMessages(sessionId, opts.limit),
     sendDirect: (_project, sessionId, text) => chatParts.sendDirect(sessionId, text),
     async renameSession(project, sessionId, name) {

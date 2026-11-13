@@ -24,13 +24,16 @@ export class KimiError extends Error {
   readonly code: number;
   readonly msg: string;
   readonly kind: KimiErrorKind;
+  /** Transport timeout/cancellation provenance; never inferred from an API message. */
+  readonly timedOut: boolean;
 
-  constructor(code: number, msg: string, kind: KimiErrorKind = 'api') {
+  constructor(code: number, msg: string, kind: KimiErrorKind = 'api', options: { timedOut?: boolean } = {}) {
     super(msg);
     this.name = 'KimiError';
     this.code = code;
     this.msg = msg;
     this.kind = kind;
+    this.timedOut = kind === 'transport' && options.timedOut === true;
   }
 }
 
@@ -77,10 +80,19 @@ export interface KimiClientOptions {
 /** Default timeout of a request. */
 export const KIMI_TIMEOUT_MS = 10_000;
 
-function transportMessage(error: unknown): string {
+function transportTimedOut(error: unknown, signal?: AbortSignal): boolean {
+  if (signal?.aborted) return true;
+  let cause = error;
+  for (let depth = 0; depth < 4 && cause instanceof Error; depth++) {
+    if (cause.name === 'TimeoutError' || cause.name === 'AbortError') return true;
+    cause = cause.cause;
+  }
+  return false;
+}
+
+function transportMessage(error: unknown, timedOut: boolean): string {
   const cause = error instanceof Error && error.cause instanceof Error ? error.cause : error;
-  const name = error instanceof Error ? error.name : '';
-  if (name === 'TimeoutError' || name === 'AbortError') return 'сервер Kimi не ответил вовремя';
+  if (timedOut) return 'сервер Kimi не ответил вовремя';
   return `сервер Kimi недоступен: ${cause instanceof Error ? cause.message : String(cause)}`;
 }
 
@@ -99,19 +111,22 @@ export function createKimiClient(options: KimiClientOptions): KimiClient {
     if (body !== undefined) headers['content-type'] = 'application/json';
     let response: Response;
     let text: string;
+    let signal: AbortSignal | undefined;
     try {
       const remaining = request.deadline === undefined ? Number.POSITIVE_INFINITY : request.deadline - Date.now();
       if (remaining <= 0) throw new DOMException('Deadline expired', 'TimeoutError');
+      signal = AbortSignal.timeout(Math.min(remaining, request.timeoutMs ?? options.timeoutMs ?? KIMI_TIMEOUT_MS));
       response = await doFetch(`http://127.0.0.1:${options.port}${route}`, {
         method,
         headers,
         ...(body === undefined ? {} : { body: JSON.stringify(body) }),
         redirect: 'error',
-        signal: AbortSignal.timeout(Math.min(remaining, request.timeoutMs ?? options.timeoutMs ?? KIMI_TIMEOUT_MS)),
+        signal,
       });
       text = await response.text();
     } catch (error) {
-      throw new KimiError(-1, transportMessage(error), 'transport');
+      const timedOut = transportTimedOut(error, signal);
+      throw new KimiError(-1, transportMessage(error, timedOut), 'transport', { timedOut });
     }
     let envelope: unknown;
     try {

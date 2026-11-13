@@ -166,3 +166,36 @@ test('abort can disable auth replay, and an expired absolute deadline sends no r
     assert.equal(seen.length, 1);
   });
 });
+
+test('transport timeout provenance survives wrapping; ordinary errors and API text do not acquire it', async () => {
+  for (const entry of [
+    { error: new DOMException('arbitrary text', 'TimeoutError'), timedOut: true },
+    { error: new DOMException('arbitrary text', 'AbortError'), timedOut: true },
+    { error: new TypeError('wrapped', { cause: new DOMException('expired', 'TimeoutError') }), timedOut: true },
+    { error: new TypeError('connection reset'), timedOut: false },
+    { error: new Error('сервер Kimi не ответил вовремя'), timedOut: false },
+  ]) {
+    const client = createKimiClient({ port: 1, tokenFile: 'unused', fetch: async () => { throw entry.error; } });
+    await assert.rejects(client.get('/api/v1/meta', { auth: false }), (error: unknown) => {
+      assert.ok(error instanceof KimiError);
+      assert.equal(error.kind, 'transport');
+      assert.equal(error.timedOut, entry.timedOut);
+      return true;
+    });
+  }
+  const client = createKimiClient({ port: 1, tokenFile: 'unused', fetch: async () => new Response(JSON.stringify({ code: 50001, msg: 'TimeoutError: сервер Kimi не ответил вовремя' })) });
+  await assert.rejects(client.get('/api/v1/meta', { auth: false }), (error: unknown) => {
+    assert.ok(error instanceof KimiError);
+    assert.equal(error.kind, 'api');
+    assert.equal(error.timedOut, false);
+    return true;
+  });
+});
+
+test('an expired request signal remains typed as timeout when fetch throws a generic error', async () => {
+  const client = createKimiClient({ port: 1, tokenFile: 'unused', timeoutMs: 1, fetch: async () => {
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    throw new TypeError('generic cancellation');
+  } });
+  await assert.rejects(client.get('/api/v1/meta', { auth: false }), (error: unknown) => error instanceof KimiError && error.kind === 'transport' && error.timedOut);
+});

@@ -185,3 +185,34 @@ test('expired preflight cannot send a late abort even if a transport ignores can
     return fetch(url, init);
   } });
 });
+
+test('transport timeouts before the operation deadline are 504; ordinary failures and timeout-looking text stay 502', async () => {
+  const failures = [
+    { error: new DOMException('unrelated text', 'TimeoutError'), code: 'interrupt-timeout', status: 504 },
+    { error: new DOMException('cancelled request', 'AbortError'), code: 'interrupt-timeout', status: 504 },
+    { error: new TypeError('wrapped fetch failure', { cause: new DOMException('request expired', 'TimeoutError') }), code: 'interrupt-timeout', status: 504 },
+    { error: new TypeError('ECONNRESET'), code: 'interrupt-failed', status: 502 },
+    { error: new Error('сервер Kimi не ответил вовремя'), code: 'interrupt-failed', status: 502 },
+  ];
+  for (const entry of failures) {
+    let fault: Error | null = null;
+    await withSessions(async (w) => {
+      const { session } = await active(w);
+      fault = entry.error;
+      const channel = createAgentChannel({ resolveProject: async () => ({ id: w.project.id }) });
+      const key = `kimi:${session.id}`;
+      try {
+        channel.enqueue(key, 'preserve', 'panel', w.project.id);
+        channel.suspend(key);
+        await assert.rejects(w.provider.interruptTurn!(w.project, session.id, target), { code: entry.code, status: entry.status });
+        assert.equal(channel.interruption(key)!.barrier, true);
+        assert.equal(channel.queued(key)[0]!.text, 'preserve');
+        assert.equal(session.status, 'running');
+        assert.equal(w.seen(/POST .*:abort$/).length, 0, 'a rejected fetch is not replayed');
+      } finally { channel.close(); }
+    }, { ...deps, interruptWaitMs: 60_000, fetch: async (url, init) => {
+      if (fault && init?.method === 'POST' && String(url).endsWith(':abort')) throw fault;
+      return fetch(url, init);
+    } });
+  }
+});

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 766,
+  "revision": 768,
   "rounds": [
     {
       "digest": null,
@@ -493,14 +493,21 @@
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi",
         "docs/architecture/OVERVIEW.md",
         "docs/evidence/M24-acceptance.md",
-        "docs/evidence/M24"
+        "docs/evidence/M24",
+        "docs/evidence/M24/history-before-T009.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/interrupt.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/client.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/interrupt.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/client.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/interrupt.test.ts"
       ],
       "fixes": "T004",
       "id": "T009",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Надёжная классификация HTTP-тайм-аута Stop Kimi",
       "why": "Полная проверка T005 выявила: HTTP timeout Kimi иногда становится interrupt-failed до срабатывания проверки Date.now; необходим типизированный признак тайм-аута клиента, без зависимости от текста ошибки/гонки часов."
     },
@@ -662,8 +669,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 6/10
-- Revision: 766
+- Progress: 7/10
+- Revision: 768
 
 ## Objective
 
@@ -707,9 +714,9 @@
   - Commit: feat(codex): interrupt the expected active turn
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, docs/architecture/OVERVIEW.md, docs/evidence/M24-acceptance.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/chat.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/interrupt.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/chat.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/interrupt.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/runtime.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/turn-snapshot.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fixtures/fake-proxy.mjs, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/interrupt-transport.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/interrupt-world.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/interrupt.test.ts
   - Depends on: T004
-- [TODO] T009 — Надёжная классификация HTTP-тайм-аута Stop Kimi (work)
+- [DONE] T009 — Надёжная классификация HTTP-тайм-аута Stop Kimi (work)
   - Commit: fix(kimi): preserve transport timeout classification
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi, docs/architecture/OVERVIEW.md, docs/evidence/M24-acceptance.md, docs/evidence/M24
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi, docs/architecture/OVERVIEW.md, docs/evidence/M24-acceptance.md, docs/evidence/M24, docs/evidence/M24/history-before-T009.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/interrupt.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/client.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/interrupt.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/client.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/interrupt.test.ts
   - Depends on: T005
   - Fixes: T004
 - [TODO] T006 — Поле ввода по образцу, Enter/Stop и визуальная проверка (work)

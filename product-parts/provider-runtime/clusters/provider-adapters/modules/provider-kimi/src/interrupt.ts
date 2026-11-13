@@ -130,7 +130,7 @@ export function createKimiInterrupt(rt: KimiRuntime, live: Liveness, gate: KimiT
       }
     })).catch((error: unknown) => {
       if (error instanceof ProviderError) throw error;
-      if (Date.now() >= expires) throw timeout();
+      if (Date.now() >= expires || (error instanceof KimiError && error.kind === 'transport' && error.timedOut)) throw timeout();
       if (error instanceof KimiError && error.code === KIMI_CODES.foreignSession) return unavailable(FOREIGN);
       throw new ProviderError('interrupt-failed', `Kimi: ${describeKimiError(error, rt.program().version)}`, { status: 502, hint: TIMEOUT_HINT });
     });

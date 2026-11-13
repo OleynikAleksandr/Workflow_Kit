@@ -6,6 +6,7 @@ import path from 'node:path';
 import { ProviderError, hookSessionInfo, readHookSessions } from '#provider-registry';
 import type { HookSession, Project, RenameResult, SessionInfo } from '#provider-registry';
 import { ProcessError } from '#process-supervisor';
+import { sessionSettings } from './parameter-settings.ts';
 import { resumeEnvironment } from './environment.ts';
 import { sessionLinks } from './links.ts';
 import { debugSessionId, dialogError, logTail, parseMarkers, poll, ptyCommand, readText } from './pty.ts';
@@ -101,6 +102,7 @@ async function startSessionProcess(rt: ClaudeRuntime, project: Project, title: s
   const key = rt.newKey('session');
   const logFile = path.join(rt.logsDir, `${key}.log`);
   const debugFile = path.join(rt.logsDir, `${key}.debug.log`);
+  const settingsFile = await sessionSettings(rt, project, key);
   const run = ptyCommand(launcher, rt.options.scripts, 'session', [project.path, claude, title, debugFile, ...(resume ? [resume] : [])]);
   let record;
   try {
@@ -109,7 +111,7 @@ async function startSessionProcess(rt: ClaudeRuntime, project: Project, title: s
       ...run,
       cwd: project.path,
       // session.exp types the first message into the session once the link is there.
-      env: firstMessage ? { ...rt.context.env, WFK_PTY_NODE: process.execPath, WFK_FIRST_MESSAGE: firstMessage.replace(/\s+/g, ' ').trim() } : { ...rt.context.env, WFK_PTY_NODE: process.execPath },
+      env: firstMessage ? { ...rt.context.env, WFK_PTY_NODE: process.execPath, WFK_STATUSLINE_SETTINGS: settingsFile, WFK_STATUSLINE_BASH: rt.context.env['CLAUDE_CODE_GIT_BASH_PATH'] ?? '', WFK_FIRST_MESSAGE: firstMessage.replace(/\s+/g, ' ').trim() } : { ...rt.context.env, WFK_PTY_NODE: process.execPath, WFK_STATUSLINE_SETTINGS: settingsFile, WFK_STATUSLINE_BASH: rt.context.env['CLAUDE_CODE_GIT_BASH_PATH'] ?? '' },
       logFile,
     });
   } catch (error) {

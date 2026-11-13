@@ -31,7 +31,7 @@ export interface HostDeps {
 }
 
 export type HostMode =
-  | { kind: 'session'; claude: string; title: string; debug: string; resume: string | null; first: string | null }
+  | { kind: 'session'; claude: string; title: string; debug: string; resume: string | null; first: string | null; settings?: string }
   | { kind: 'environment'; claude: string; name: string; debug: string };
 
 export interface HostTimings {
@@ -51,7 +51,7 @@ export function parseHostArgs(argv: readonly string[], env: Readonly<Record<stri
   if (!dir || !claude || label === undefined || !debug) return null;
   if (kind === 'session') {
     const first = env['WFK_FIRST_MESSAGE']?.trim() || null;
-    return { dir, mode: { kind, claude, title: label, debug, resume: resume || null, first } };
+    return { dir, mode: { kind, claude, title: label, debug, resume: resume || null, first, ...(env['WFK_STATUSLINE_SETTINGS'] ? { settings: env['WFK_STATUSLINE_SETTINGS'] } : {}) } };
   }
   if (kind === 'environment') return { dir, mode: { kind, claude, name: label, debug } };
   return null;
@@ -65,6 +65,9 @@ export function claudeEnv(mode: HostMode, env: Readonly<Record<string, string | 
   const result = { ...env };
   delete result['WFK_FIRST_MESSAGE'];
   delete result['WFK_PTY_NODE'];
+  delete result['WFK_STATUSLINE_SETTINGS'];
+  if (result['WFK_STATUSLINE_BASH']) result['CLAUDE_CODE_GIT_BASH_PATH'] = result['WFK_STATUSLINE_BASH'];
+  delete result['WFK_STATUSLINE_BASH'];
   if (mode.kind === 'session') result[PANEL_SESSION_ENV] = '1';
   return result;
 }
@@ -73,7 +76,7 @@ export function claudeEnv(mode: HostMode, env: Readonly<Record<string, string | 
 export function runHost(mode: HostMode, deps: HostDeps, timings: HostTimings = HOST_TIMINGS): Promise<void> {
   const session = mode.kind === 'session';
   const args = session
-    ? [...(mode.resume ? ['--resume', mode.resume] : []), '--remote-control', mode.title, '--debug-file', mode.debug]
+    ? [...(mode.resume ? ['--resume', mode.resume] : []), '--remote-control', mode.title, '--debug-file', mode.debug, ...(mode.settings ? ['--settings', mode.settings] : [])]
     : ['remote-control', '--name', mode.name, '--spawn=same-dir', '--debug-file', mode.debug];
   const term = deps.start(mode.claude, args, session ? { cols: 160, rows: 40 } : { cols: 120, rows: 40 });
   deps.print(`\nCLAUDE_PID ${term.pid}\n`);

@@ -14,3 +14,6 @@ export { ENVIRONMENT_START, ENVIRONMENT_STOP } from './environment.ts';
 
 /** Creates the Claude provider with the production settings. */
 export const createProvider: ProviderFactory = (context: ProviderContext): Provider => createClaudeProvider(context);
+
+export { createClaudeParameterReader, claudeModelLabel, CLAUDE_PARAMETER_FONT } from './parameters.ts';
+export { sessionSettings, statuslineCommand } from './parameter-settings.ts';

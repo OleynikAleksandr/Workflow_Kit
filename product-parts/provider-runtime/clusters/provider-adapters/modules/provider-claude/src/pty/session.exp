@@ -36,11 +36,15 @@ source [file join [file dirname [info script]] interrupt.tcl]
 cd $dir
 # Marks the panel's process for the hooks (spec M19 section 2.2).
 set env(WFK_PANEL_SESSION) 1
-if {$resume ne ""} {
-  spawn $claude --resume $resume --remote-control $title --debug-file $debug
-} else {
-  spawn $claude --remote-control $title --debug-file $debug
+set command [list $claude]
+if {$resume ne ""} { lappend command --resume $resume }
+lappend command --remote-control $title --debug-file $debug
+if {[info exists env(WFK_STATUSLINE_SETTINGS)]} {
+  lappend command --settings $env(WFK_STATUSLINE_SETTINGS)
+  unset env(WFK_STATUSLINE_SETTINGS)
 }
+unset -nocomplain env(WFK_STATUSLINE_BASH)
+spawn {*}$command
 puts "\nCLAUDE_PID [exp_pid]"
 # Without a controlling terminal the pty has no size and claude prints nothing; give it one.
 stty rows 40 columns 160 < $spawn_out(slave,name)

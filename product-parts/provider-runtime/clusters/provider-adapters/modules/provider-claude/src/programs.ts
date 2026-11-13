@@ -108,6 +108,8 @@ export function claudeCapabilities(platform: NodeJS.Platform, programs: ClaudePr
     trust: trustReason ? { available: false, reason: trustReason } : { available: true },
     hooks: { available: true },
     sessions: { available: true },
+    sessionParameters: { available: true },
+    updateParameters: { available: false, reason: 'Изменяйте параметры в приложении Claude' },
     createSession: { ...pty },
     resumeSession: { ...pty },
     stopSession: { available: true },

@@ -156,6 +156,7 @@ T001–T006 и fixes T008/T009 завершены; последний функц
 | ChatGPT M25 (T003): чтение параметров и лимитов | WebSocket + JSONL, живая проба чтения | тот же код, injected linux | существующий proxy, injected win32, x64/ARM64 |
 | ChatGPT M25 (T004): изменение параметров | проверка каталогов, общий доступ, проба на удалённом после неё треде | тот же код, injected linux, unsupported общего доступа | существующий proxy, injected win32, x64/ARM64 |
 | Claude M25 (T005): снимок строки состояния | sh, byte passthrough, группа процессов | то же, injected linux | Git Bash/PowerShell, taskkill /T /F через публичный вход |
+| Claude M25 (T006): запуск и чтение | --settings на запуск, снимок/транскрипт/лимиты, expect-тест | тот же путь, injected linux | ConPTY --settings, снимки, injected win32, x64/ARM64 |
 | Живые проверки | есть, `docs/evidence/` | нет, только тесты | установка, общий доступ, путь до запуска плана (M13–M16) |
 
 ## Известные ограничения

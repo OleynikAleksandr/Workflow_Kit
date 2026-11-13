@@ -56,7 +56,8 @@ test('status reads files only; refresh reads the version; capabilities are avail
   assert.equal(refreshed.state, 'ready');
   assert.equal(refreshed.details?.['account'], 'нет входа');
   const caps = await provider.capabilities();
-  assert.deepEqual(Object.entries(caps).filter(([, c]) => !c.available), []);
+  assert.deepEqual(Object.entries(caps).filter(([id, c]) => id !== 'updateParameters' && !c.available), []);
+  assert.equal(caps['updateParameters']?.available, false);
   const hooks = await provider.hooks(project);
   assert.equal(hooks.complete, true);
   assert.equal(hooks.kitHook?.kit, true);
@@ -163,24 +164,31 @@ test('the debug file is the fallback source of the session id; a failing claude 
   assert.equal((await supervisor.list({ provider: 'claude', kind: 'session' })).length, 0);
 });
 
-test('createSession with a first message types it into the session after the link', { skip }, async () => {
-  const session = await provider.createSession(project, { title: 'First', firstMessage: 'Проект создан.\nПрочитай AGENTS.md' });
-  const started = (await fakeCalls()).filter((c) => c.argv.includes('--remote-control')).at(-1)!;
-  assert.deepEqual(started.vars, { WFK_PANEL_SESSION: '1' }, 'the message is not in claude\'s environment');
-  let input = '';
-  for (let i = 0; i < 100 && !input.includes('\r'); i += 1) {
-    input = await readFile(`${h.fakeLog}.input`, 'utf8').catch(() => '');
-    await new Promise((resolve) => setTimeout(resolve, 50));
+async function waitInput(offset: number, expected: string): Promise<string> {
+  let value = '';
+  for (let i = 0; i < 200; i++) {
+    value = (await readFile(`${h.fakeLog}.input`, 'utf8').catch(() => '')).slice(offset);
+    if (value === expected) return value;
+    await new Promise(resolve => setTimeout(resolve, 50));
   }
-  assert.equal(input, 'Проект создан. Прочитай AGENTS.md\r');
-  await provider.stopSession!(project, session.remoteId!);
+  return value;
+}
+
+test('createSession with a first message types it into the session after the link', { skip }, async () => {
+  const before = (await readFile(`${h.fakeLog}.input`, 'utf8').catch(() => '')).length;
+  const session = await provider.createSession(project, { title: 'First', firstMessage: 'Проект создан.\nПрочитай AGENTS.md' });
+  try {
+    const started = (await fakeCalls()).filter((c) => c.argv.includes('--remote-control')).at(-1)!;
+    assert.deepEqual(started.vars, { WFK_PANEL_SESSION: '1' }, 'the message is not in claude\'s environment');
+    assert.equal(await waitInput(before, 'Проект создан. Прочитай AGENTS.md\r'), 'Проект создан. Прочитай AGENTS.md\r');
+  } finally { await provider.stopSession!(project, session.remoteId!); }
 });
 
 test('renameSession types /rename into a panel session; a session the panel does not run is left to the hook', { skip }, async () => {
   const session = await provider.createSession(project, { title: 'Rename me' });
   const before = await readFile(`${h.fakeLog}.input`, 'utf8').catch(() => '');
   assert.deepEqual(await provider.renameSession!(project, session.remoteId!, 'Склад:  ревизия'), { synced: true });
-  const input = (await readFile(`${h.fakeLog}.input`, 'utf8')).slice(before.length);
+  const input = await waitInput(before.length, '/rename Склад: ревизия\r');
   assert.equal(input, '/rename Склад: ревизия\r');
   const records = JSON.parse(await readFile(providerSessionsFile(context.dirs, 'claude'), 'utf8'));
   assert.equal(records.sessions.find((r: { remoteId: string }) => r.remoteId === session.remoteId).title, 'Склад: ревизия');

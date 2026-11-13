@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 795,
+  "revision": 797,
   "rounds": [
     {
       "digest": null,
@@ -401,14 +401,28 @@
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude",
         "tools/platform-guard/allowlist.json",
         "docs/architecture/OVERVIEW.md",
-        "docs/evidence/M25-acceptance.md"
+        "docs/evidence/M25-acceptance.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/parameters.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/index.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/parameter-settings.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/parameters.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/programs.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/provider.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/host.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/session.exp",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/sessions.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parameter-launch.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parameters.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parts.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/provider.test.ts"
       ],
       "fixes": null,
       "id": "T006",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Claude: запуск с --settings и чтение параметров",
       "why": "Строка Claude показывает фактические модель, усилие, режим, контекст и лимиты"
     },
@@ -601,8 +615,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 5/10
-- Revision: 795
+- Progress: 6/10
+- Revision: 797
 
 ## Objective
 
@@ -640,9 +654,9 @@
   - Commit: feat(cli): capture Claude status line snapshots
   - Files: product-parts/backend-core/clusters/runtime/modules/cli, bin, tools/platform-guard/allowlist.json, docs/architecture/OVERVIEW.md, docs/evidence/M25-acceptance.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/commands.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/index.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/statusline-shell.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/statusline.ts, product-parts/backend-core/clusters/runtime/modules/cli/statusline.md, product-parts/backend-core/clusters/runtime/modules/cli/test/statusline.test.ts
   - Depends on: T004
-- [TODO] T006 — Claude: запуск с --settings и чтение параметров (work)
+- [DONE] T006 — Claude: запуск с --settings и чтение параметров (work)
   - Commit: feat(claude): read session parameters
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, tools/platform-guard/allowlist.json, docs/architecture/OVERVIEW.md, docs/evidence/M25-acceptance.md
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, tools/platform-guard/allowlist.json, docs/architecture/OVERVIEW.md, docs/evidence/M25-acceptance.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/parameters.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/parameter-settings.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/parameters.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/programs.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/host.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/session.exp, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parameter-launch.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parameters.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parts.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/provider.test.ts
   - Depends on: T005
 - [TODO] T007 — Диалог: строка параметров в оформлении провайдера и меню (work)
   - Commit: feat(panel): show and change session parameters in the dialog

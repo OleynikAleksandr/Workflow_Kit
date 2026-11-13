@@ -207,6 +207,6 @@ test('session.exp: <debug>.text is the message, <debug>.message only a wake, cla
   assert.match(script, /set wake "\$debug\.message"/);
   assert.doesNotMatch(script, /"text\\n"/, 'the old prefix is not parsed');
   const mark = script.indexOf('set env(WFK_PANEL_SESSION) 1');
-  assert.ok(mark > 0 && mark < script.indexOf('spawn $claude'), 'the mark is set before spawn');
+  assert.ok(mark > 0 && mark < script.indexOf('spawn {*}$command'), 'the mark is set before spawn');
   assert.ok(script.indexOf('MESSAGE_SENT') > 0 && script.indexOf('WOKEN') > 0);
 });

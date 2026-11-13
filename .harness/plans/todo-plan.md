@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 753,
+  "revision": 755,
   "rounds": [
     {
       "digest": null,
@@ -215,14 +215,46 @@
         "product-parts/workflow-engine/clusters/session-loop/modules/cross-review",
         "product-parts/backend-core/clusters/runtime/modules/cli",
         "docs/architecture/CONTRACTS.md",
-        "docs/architecture/OVERVIEW.md"
+        "docs/architecture/OVERVIEW.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/direct-message.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/review-wiring.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/turn-interruption.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/hook-channel.test.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/turn-interruption.test.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/interrupt.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/registry.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/channel.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/detached.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/index.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/routes.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/slots.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/turn-control.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/turn-state.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/types.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/channel.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/turn-lifecycle.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/autopilot.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/interrupt.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/interrupt.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/contract.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/review.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/texts.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test/interruption.test.ts"
       ],
       "fixes": null,
       "id": "T002",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Контракт прерывания ответа, API и барьер автопродолжения",
       "why": "Контракт прерывания ответа, API и барьер автопродолжения"
     },
@@ -493,8 +525,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 1/8
-- Revision: 753
+- Progress: 2/8
+- Revision: 755
 
 ## Objective
 
@@ -517,9 +549,9 @@
 - [DONE] T001 — Сайдбар с планом, изменяемая ширина и диалог в области окна (work)
   - Commit: feat(panel): move workflow cards into a resizable sidebar
   - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/control-panel/clusters/web-panel/modules/session-view, docs/architecture/OVERVIEW.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/session-chat.css, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, product-parts/control-panel/clusters/web-panel/cluster.md, docs/architecture/CONTRACTS.md, docs/evidence/M24-acceptance.md, docs/evidence/M24, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/chat-model.test.ts, docs/evidence/M24/T001-browser-results.json, docs/evidence/M24/T001-desktop-dark.png, docs/evidence/M24/T001-desktop-light.png, docs/evidence/M24/T001-mobile-dialog.png, docs/evidence/M24/T001-mobile-sidebar.png, product-parts/control-panel/clusters/web-panel/modules/panel-shell/files.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/index.html, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/layout-model.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/layout.css, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/panel-layout.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/session-screen.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/sidebar-slots.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/sidebar.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/slots.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/tree.css, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/viewport.css, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/layout-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/panel-shell.test.ts, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.css, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/sidebar-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts
-- [TODO] T002 — Контракт прерывания ответа, API и барьер автопродолжения (work)
+- [DONE] T002 — Контракт прерывания ответа, API и барьер автопродолжения (work)
   - Commit: feat(session): add guarded turn interruption and continuation barrier
-  - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel, product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/workflow-engine/clusters/session-loop/modules/cross-review, product-parts/backend-core/clusters/runtime/modules/cli, docs/architecture/CONTRACTS.md, docs/architecture/OVERVIEW.md
+  - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel, product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/workflow-engine/clusters/session-loop/modules/cross-review, product-parts/backend-core/clusters/runtime/modules/cli, docs/architecture/CONTRACTS.md, docs/architecture/OVERVIEW.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/direct-message.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/review-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/turn-interruption.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/hook-channel.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/turn-interruption.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/interrupt.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/registry.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/channel.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/detached.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/slots.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/turn-control.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/turn-state.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/types.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/channel.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/turn-lifecycle.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/autopilot.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/interrupt.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/interrupt.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/contract.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/review.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/texts.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test/interruption.test.ts
   - Depends on: T001
 - [TODO] T003 — Stop Claude: pty/ConPTY, диалоги и подтверждение (work)
   - Commit: feat(claude): interrupt managed turns with explicit confirmation

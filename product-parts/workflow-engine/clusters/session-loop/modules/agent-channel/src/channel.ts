@@ -5,6 +5,8 @@
 // A client whose Stop hook cannot be held gets its next message as a prompt (detached.ts).
 import { randomUUID } from 'node:crypto';
 import { createDetached } from './detached.ts';
+import { createTurnControl } from './turn-control.ts';
+import { acceptTurn, beginTurn, ownPrompt, reserveTurn } from './turn-state.ts';
 import { blockAnswer, promptAnswer, sessionKey } from './hook-input.ts';
 import { newSlot, pendingOf } from './slots.ts';
 import type { ChannelCore, Slot } from './slots.ts';
@@ -85,13 +87,26 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
 
   const empty = (answer: Record<string, unknown> | null = null): HookReply => ({ answer, ack: noop, nack: noop });
 
-  /** The next turn of the slot begins with this origin. */
-  function begin(slot: Slot, origin: TurnOrigin, sources: string[] = []): void {
-    slot.origin = origin;
-    if (origin !== 'delivery') slot.sources = sources;
+  /** Only an acknowledged block starts a public generation; nack retains the queue. */
+  function blockReply(slot: Slot, reply: HookReply, text: string, origin: TurnOrigin): HookReply {
+    const reservation = reserveTurn(slot, text, origin, slot.sources, now().getTime());
+    const native = slot.turn.nativeTurnId; // A block may continue the same provider-native turn.
+    return {
+      ...reply,
+      ack() { reply.ack(); if (acceptTurn(slot, reservation, native)) setState(slot, 'working', { turnStartedAt: iso() }); },
+      nack() {
+        reply.nack();
+        if (slot.turn.reservation === reservation) {
+          slot.turn.reservation = null;
+          setState(slot, 'waiting', { turnStartedAt: null });
+        }
+      },
+    };
   }
 
   function notify(slot: Slot, lastAssistantMessage: string | null): void {
+    if (slot.turn.barrier || (slot.turn.turnRef !== null && slot.turn.notifiedRef === slot.turn.turnRef)) return;
+    slot.turn.notifiedRef = slot.turn.turnRef;
     const event: StopEvent = {
       key: slot.activity.key,
       client: slot.activity.client,
@@ -180,10 +195,25 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
   const detached = options.detached ? createDetached(core, options.detached) : null;
   const visible = (): Slot[] => [...slots.values()].filter((slot) => !isOut(slot));
 
+  const ensure = (key: string, projectId: string): Slot => {
+    let slot = slots.get(key);
+    if (!slot) {
+      const cut = key.indexOf(':');
+      slot = newSlot(key, key.slice(0, cut), key.slice(cut + 1), projectId, iso());
+      slots.set(key, slot);
+    }
+    return slot;
+  };
+  const turns = createTurnControl(core, ensure);
+
   return {
+    ...turns,
     async stop(input, signal) {
       const slot = await slotOf(input);
-      if (leaves(slot)) return empty();
+      if (leaves(slot) || (input.turnId && slot.turn.retired.has(input.turnId))) return empty();
+      if (!slot.turn.turnRef) beginTurn(slot, slot.origin, input.turnId, slot.sources);
+      else if (input.turnId) slot.turn.nativeTurnId = input.turnId;
+      const generation = slot.generation;
       const last = input.lastAssistantMessage ? input.lastAssistantMessage.slice(-LAST_MESSAGE_CHARS) : slot.activity.lastAssistantMessage;
       setState(slot, 'waiting', { lastStopAt: iso(), turnStartedAt: null, lastAssistantMessage: last });
       notify(slot, input.lastAssistantMessage);
@@ -192,12 +222,11 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
       let timeoutAnswer: string | undefined;
       for (;;) {
         // Archived or removed while held: the Stop ends without an answer.
-        if (leaves(slot)) return empty();
+        if (leaves(slot) || slot.turn.barrier || slot.generation !== generation) return empty();
         if (slot.queue.length > 0) {
           const reply = deliver(slot, (text) => blockAnswer(text));
-          begin(slot, 'delivery');
           setState(slot, 'working', { turnStartedAt: iso() });
-          return reply;
+          return blockReply(slot, reply, String(reply.answer?.['reason'] ?? ''), 'delivery');
         }
         const decision = await safeDecide({
           key: slot.activity.key,
@@ -208,11 +237,11 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
           lastAssistantMessage: input.lastAssistantMessage,
           woken,
         });
+        if (slot.turn.barrier || slot.generation !== generation) return empty();
         if (slot.queue.length > 0) continue;
         if (decision.kind === 'continue') {
-          begin(slot, 'decider');
           setState(slot, 'working', { turnStartedAt: iso() });
-          return empty(blockAnswer(decision.text));
+          return blockReply(slot, empty(blockAnswer(decision.text)), decision.text, 'decider');
         }
         timeoutAnswer = decision.kind === 'hold' ? decision.timeoutAnswer : undefined;
         if (decision.kind === 'release' || closed) {
@@ -220,10 +249,10 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
           return empty();
         }
         const result = now().getTime() >= deadline ? 'timeout' : await hold(slot, decision.reason, deadline, signal);
+        if (slot.turn.barrier || slot.generation !== generation) return empty();
         if (result === 'timeout' && timeoutAnswer && !closed) {
-          begin(slot, 'reminder');
           setState(slot, 'working', { turnStartedAt: iso() });
-          return empty(blockAnswer(timeoutAnswer));
+          return blockReply(slot, empty(blockAnswer(timeoutAnswer)), timeoutAnswer, 'reminder');
         }
         if (result !== 'woken') {
           setState(slot, 'waiting');
@@ -235,20 +264,35 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
     async prompt(input) {
       const slot = await slotOf(input);
       if (leaves(slot)) return empty();
+      const own = ownPrompt(slot, input.prompt, input.turnId, now().getTime());
+      if (own === 'late' || (!own && input.turnId && slot.turn.retired.has(input.turnId))) return empty();
       slot.wake?.();
+      const automaticWake = slot.turn.wakingUntil > now().getTime();
+      slot.turn.wakingUntil = 0;
+      const duplicate = !own && input.turnId !== null && slot.turn.nativeTurnId === input.turnId && slot.activity.state === 'working' && slot.turn.lastPrompt === input.prompt;
+      if (!own && !duplicate) {
+        slot.turn.reservation = null;
+        if (!automaticWake) slot.turn.barrier = false;
+        beginTurn(slot, automaticWake ? 'delivery' : 'user', input.turnId, automaticWake ? slot.queue.map((m) => m.source) : []);
+        slot.turn.lastPrompt = input.prompt;
+      }
+      if (duplicate) return empty();
       if (detached?.supports(slot)) {
         if (detached.ownPrompt(slot, input.prompt)) return { ...empty(), own: true };
-        detached.userPrompt(slot);
+        if (!own && !duplicate) detached.userPrompt(slot);
+      }
+      if (slot.turn.barrier) {
+        setState(slot, 'working', { turnStartedAt: iso() });
+        return { ...empty(), own: true };
       }
       if (slot.queue.length > 0) {
         const reply = deliver(slot, (text) => promptAnswer(input.dialect, text));
-        slot.origin = 'user';
+        slot.origin = automaticWake ? 'delivery' : 'user';
         setState(slot, 'working', { turnStartedAt: iso() });
         return reply;
       }
-      begin(slot, 'user');
       setState(slot, 'working', { turnStartedAt: iso() });
-      return empty();
+      return own && slot.turn.origin !== 'user' ? { ...empty(), own: true } : empty();
     },
     enqueue(key, text, source = 'panel', projectId) {
       const message: QueuedMessage = { id: randomUUID(), text, source, createdAt: iso() };
@@ -269,14 +313,14 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
       slot.queue.push(message);
       slot.activity.pending = pendingOf(slot);
       changed(key);
-      slot.wake?.();
+      if (!slot.turn.barrier) slot.wake?.();
       if (detached?.supports(slot)) detached.enqueued(slot);
       return message;
     },
     wake(key) {
       const slot = slots.get(key);
-      slot?.wake?.();
-      if (slot && detached?.supports(slot)) detached.wake(slot);
+      if (!slot?.turn.barrier) slot?.wake?.();
+      if (slot && !slot.turn.barrier && detached?.supports(slot)) detached.wake(slot);
     },
     setDecider(next) {
       decide = next;
@@ -289,6 +333,7 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
       if (!detached || closed || !options.detached?.supports(notice.client)) return false;
       const slot = await slotOf(notice);
       if (leaves(slot)) return true;
+      if (!slot.turn.turnRef) beginTurn(slot, 'unknown');
       // The hook is machine-wide: a session outside every project is only noted.
       if (slot.activity.projectId) await detached.turnEnd(slot, notice.event);
       return true;

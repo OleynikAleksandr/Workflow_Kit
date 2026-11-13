@@ -1,6 +1,8 @@
 // One slot per agent session: its activity, the queue, what the current turn began with and, for
 // clients whose Stop hook cannot be held, the state of the detached turn end and delivery.
 import type { AgentClient } from './hook-input.ts';
+import { newTurnState } from './turn-state.ts';
+import type { TurnState } from './turn-state.ts';
 import type { ActivityState, IdleListener, QueuedMessage, SessionActivity, StopContext, StopDecision, TurnEndEvent, TurnOrigin } from './types.ts';
 
 type Timer = ReturnType<typeof setTimeout>;
@@ -17,6 +19,7 @@ export interface Outbox {
 }
 
 export interface Slot {
+  turn: TurnState;
   activity: SessionActivity;
   queue: QueuedMessage[];
   /** Wakes the held Stop hook of the slot. */
@@ -50,6 +53,7 @@ export interface Slot {
 
 export function newSlot(key: string, client: AgentClient, sessionId: string, projectId: string | null, since: string): Slot {
   return {
+    turn: newTurnState(),
     activity: {
       key,
       client,

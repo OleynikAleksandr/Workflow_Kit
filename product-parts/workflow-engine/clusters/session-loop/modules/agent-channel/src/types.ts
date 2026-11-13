@@ -1,6 +1,7 @@
 // Types of the channel to agents: the activity of a session shown in the panel, queued messages,
 // the Stop decider, hook replies and the options of createAgentChannel.
 import type { AgentClient, HookInput } from './hook-input.ts';
+import type { TurnControl } from './turn-state.ts';
 
 /** Longest hold of a Stop hook; the hook itself may wait 600 s. */
 export const STOP_HOLD_MS = 9 * 60_000;
@@ -166,7 +167,7 @@ export interface AgentChannelOptions {
   excluded?(session: SessionRef & { projectId: string }): boolean;
 }
 
-export interface AgentChannel {
+export interface AgentChannel extends TurnControl {
   stop(input: HookInput, signal?: AbortSignal): Promise<HookReply>;
   prompt(input: HookInput): Promise<HookReply>;
   /**

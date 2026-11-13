@@ -197,7 +197,7 @@ test('stop listeners hear the whole last message and what started the turn', asy
   const off = ch.onStop((event) => events.push(event));
   const long = 'x'.repeat(500);
   await ch.prompt(input('claude', CLAUDE_STOP));
-  await ch.stop(input('claude', CLAUDE_STOP, { lastAssistantMessage: long }));
+  (await ch.stop(input('claude', CLAUDE_STOP, { lastAssistantMessage: long }))).ack();
   ch.enqueue(key, 'замечания', 'review');
   (await ch.stop(input('claude', CLAUDE_STOP))).ack();
   await ch.stop(input('claude', CLAUDE_STOP));
@@ -212,7 +212,7 @@ test('a reminder turn is reported as such', async () => {
   const ch = channel(() => ({ kind: 'hold', reason: 'waiting-for-review', timeoutAnswer: 'жди' }), 20);
   const origins: string[] = [];
   ch.onStop((event) => origins.push(event.origin));
-  await ch.stop(input('codex', CODEX_STOP));
+  (await ch.stop(input('codex', CODEX_STOP))).ack();
   await ch.stop(input('codex', CODEX_STOP));
   assert.deepEqual(origins, ['unknown', 'reminder']);
 });

@@ -7,6 +7,7 @@ import { FINISHED, readReviews, saveReview } from './store.ts';
 import type { Review, ReviewStatus } from './store.ts';
 import {
   FINISHED_FOR_REVIEWER,
+  INTERRUPTED_REVIEW_REASON,
   MAX_ROUNDS,
   PLAN_REQUEST,
   clip,
@@ -90,6 +91,7 @@ export function createCrossReview(deps: CrossReviewDeps): CrossReview {
     review.reason = reason;
     review.entries.push({ from: 'kit', round: review.round, text: reason ? `${STATUS_LABELS[status]}: ${reason}` : STATUS_LABELS[status]!, at: iso() });
     await save(review);
+    if (review.status !== status) return;
     if (review.reviewerKey && (status === 'agreed' || status === 'disagreed' || status === 'cancelled')) {
       deps.enqueue(review.reviewerKey, FINISHED_FOR_REVIEWER[status], review.projectId);
     }
@@ -107,6 +109,7 @@ export function createCrossReview(deps: CrossReviewDeps): CrossReview {
     review.entries.push({ from: 'reviewer', round: review.round, text, at: iso() });
     review.status = 'answering';
     await save(review);
+    if (review.status !== 'answering') return;
     deps.enqueue(review.mainKey, toMain(titleOf(review.reviewerProvider), review.round, text), review.projectId);
   }
 
@@ -118,7 +121,7 @@ export function createCrossReview(deps: CrossReviewDeps): CrossReview {
       review.entries.push({ from: 'main', round: 0, text: plan || '(агент не описал план)', at: iso() });
       review.status = 'starting';
       await save(review);
-      launch(review, plan);
+      if (review.status === 'starting') launch(review, plan);
       return;
     }
     if (review.status !== 'answering' || event.origin !== 'delivery' || !event.sources.includes(SOURCE)) return;
@@ -128,7 +131,7 @@ export function createCrossReview(deps: CrossReviewDeps): CrossReview {
     if (review.round >= review.maxRounds) return finish(review, 'disagreed', `${review.maxRounds} кругов без согласия`);
     review.status = 'reviewing';
     await save(review);
-    if (review.reviewerKey) deps.enqueue(review.reviewerKey, toReviewer(titleOf(review.mainProvider), review.round, text), review.projectId);
+    if (review.status === 'reviewing' && review.reviewerKey) deps.enqueue(review.reviewerKey, toReviewer(titleOf(review.mainProvider), review.round, text), review.projectId);
   }
 
   /** Starts the review; false when the main provider has no reviewer (the review is kept as failed). */
@@ -159,6 +162,7 @@ export function createCrossReview(deps: CrossReviewDeps): CrossReview {
       createdAt: iso(),
       updatedAt: iso(),
     };
+    if (deps.continuationBlocked?.(mainKey)) return false;
     const old = reviews.get(mainKey);
     if (old?.reviewerKey) reviewers.delete(old.reviewerKey);
     reviews.set(mainKey, review);
@@ -169,7 +173,7 @@ export function createCrossReview(deps: CrossReviewDeps): CrossReview {
     }
     await save(review);
     log(`review: ${mainKey} starts, reviewer ${review.reviewerProvider}; the main agent describes the plan first`);
-    return true;
+    return review.status === 'preparing';
   }
 
   /** Creates the reviewer session with the brief and the main agent's plan description. */
@@ -178,6 +182,7 @@ export function createCrossReview(deps: CrossReviewDeps): CrossReview {
     void queue(mainKey, async () => {
       try {
         const project = (await deps.listProjects()).find((p) => p.id === projectId);
+        if (review.status !== 'starting') return;
         const brief = reviewerBrief({ projectName: project?.name ?? projectId, projectPath: project?.path ?? '', mainName: titleOf(mainProvider), mainTitle, plan });
         // A brief typed into a terminal session was not sent (M4 13.9): such a provider gets it by the queue.
         const typed = !deps.briefByQueue?.(review.reviewerProvider);
@@ -215,7 +220,7 @@ export function createCrossReview(deps: CrossReviewDeps): CrossReview {
       if (!key && !review.reviewerKey) return finish(review, 'failed', `сессия ревьюера ${titleOf(review.reviewerProvider)} не отозвалась за 3 минуты`);
       if (!review.reviewerKey) setReviewer(review, key!);
       await save(review);
-      (deps.deliver ?? deps.enqueue)(review.reviewerKey!, brief, review.projectId);
+      if (review.status === 'starting') (deps.deliver ?? deps.enqueue)(review.reviewerKey!, brief, review.projectId);
     });
   }
 
@@ -269,6 +274,7 @@ export function createCrossReview(deps: CrossReviewDeps): CrossReview {
       if (asReviewer && active(asReviewer)) void queue(asReviewer.mainKey, () => fromReviewer(asReviewer, event));
     },
     async decide(context, canStart = false) {
+      if (deps.continuationBlocked?.(context.key)) return { kind: 'release' };
       if (!context.projectId) return null;
       const mainKey = reviewers.get(context.key);
       if (mainKey) {
@@ -328,6 +334,15 @@ export function createCrossReview(deps: CrossReviewDeps): CrossReview {
       else await cancel(projectId, key, 'переключатель «Ревью плана» выключен');
     },
     cancel,
+    async interrupted(projectId, key) {
+      const review = reviews.get(key) ?? reviews.get(reviewers.get(key) ?? '');
+      if (!review || review.projectId !== projectId || !active(review)) return;
+      review.status = 'failed'; // Invalidate pending forwarding before awaiting the work queue.
+      review.approved = false;
+      review.reason = INTERRUPTED_REVIEW_REASON;
+      review.entries.push({ from: 'kit', round: review.round, text: INTERRUPTED_REVIEW_REASON, at: iso() });
+      await queue(review.mainKey, () => save(review));
+    },
     async retry(projectId, key) {
       const review = reviews.get(key);
       if (!review || review.projectId !== projectId || review.status !== 'failed') return false;
@@ -335,7 +350,10 @@ export function createCrossReview(deps: CrossReviewDeps): CrossReview {
       if (!proposal || proposal.scopeId !== review.scopeId) return false;
       retries.add(key);
       log(`review: ${key} retry requested`);
-      deps.wake(key);
+      if (review.reason === INTERRUPTED_REVIEW_REASON) {
+        deps.resumeDelivery?.(key);
+        (deps.deliver ?? deps.enqueue)(key, 'Workflow Kit: пользователь просит повторить ревью плана после остановки ответа. Закончи ход; Kit запустит ревью заново.', projectId);
+      } else deps.wake(key);
       return true;
     },
     isReviewer: (key) => reviewers.has(key),

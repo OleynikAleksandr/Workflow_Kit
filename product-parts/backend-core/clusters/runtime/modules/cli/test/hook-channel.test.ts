@@ -262,6 +262,7 @@ test('the hooks carry the panel mark: a marked session keeps the direct path and
   reach.accept = true;
   assert.deepEqual(await panelMessage(key, 'прямо'), { sent: true });
   assert.deepEqual(reach.direct, [key]);
+  await hook('stop', stop, { WFK_PANEL_SESSION: '1' }, 'mark'); // The accepted direct turn ended.
   reach.accept = false;
   const queued = await panelMessage(key, 'в очередь');
   assert.ok(queued.queued, 'a refused direct path queues');
@@ -297,6 +298,7 @@ test('a provider without marksPanelProcess keeps the direct path and the wake wi
   await hook('stop', { session_id: 'p-1', cwd: folder, hook_event_name: 'Stop', stop_hook_active: false }, {}, 'plain');
   assert.equal(app.channel.get(key)!.external, true);
   assert.deepEqual(await panelMessage(key, 'прямо'), { sent: true });
+  await hook('stop', { session_id: 'p-1', cwd: folder, hook_event_name: 'Stop', stop_hook_active: false }, {}, 'plain');
   reach.accept = false;
   assert.ok((await panelMessage(key, 'в очередь')).queued);
   await settle();

@@ -6,9 +6,7 @@ import type { CommandRunner, ProcessSupervisor } from '#process-supervisor';
 import type { Project } from '#project-registry';
 import type { ChatPage } from './chat.ts';
 import type { SharedAccess } from './shared-access.ts';
-
 export type { Project };
-
 /** Registry key of a provider ("claude", "codex", ...); the set is open for new providers. */
 export type ProviderId = string;
 
@@ -46,7 +44,7 @@ export interface Capability {
 
 /**
  * Capabilities by name. Common names: trust, hooks, sessions, createSession, resumeSession,
- * stopSession, environment, daemon; a provider may add its own. Two names describe the provider's
+ * stopSession, interruptTurn, environment, daemon; a provider may add its own. Two names describe the provider's
  * part in a plan, and a provider that does not report them has them: orchestration (its session
  * may run a scope with executors) and reviewer (its session may review another provider's plan).
  */
@@ -63,11 +61,11 @@ export function providerMark(provider: Pick<Provider, 'title' | 'label' | 'mark'
   return first ? first.toUpperCase() : '?';
 }
 
-/** One capability of a provider: a name it does not report is available; no provider — unavailable. */
+/** Absent capabilities keep legacy availability, except explicit opt-in interruptTurn. */
 export async function providerCapability(provider: Pick<Provider, 'capabilities'> | undefined, name: string): Promise<Capability> {
   if (!provider) return { available: false, reason: 'провайдер не подключён' };
   const found = (await provider.capabilities().catch(() => ({}) as Capabilities))[name];
-  return found ?? { available: true };
+  return found ?? { available: name !== 'interruptTurn' };
 }
 
 /** Overall state of a provider for the panel. */
@@ -291,6 +289,10 @@ export interface Provider {
   createSession(project: Project, opts: { title: string; firstMessage?: string; detached?: boolean }): Promise<SessionInfo>;
   resumeSession?(project: Project, sessionId: string): Promise<SessionInfo>;
   stopSession?(project: Project, sessionId: string): Promise<void>;
+  /** Cheap cached session availability; never launches a program or RPC during state polling. */
+  interruptAvailability?(project: Project, sessionId: string): import('./interrupt.ts').InterruptAvailability;
+  /** Resolves stopped:true only after confirmation of this turn; preserves the session/history. */
+  interruptTurn?(project: Project, sessionId: string, target: import('./interrupt.ts').InterruptTarget): Promise<import('./interrupt.ts').InterruptResult>;
   /**
    * Gives a session a new name in the provider app when that is safe now; synced false with a
    * note when the name stays only in Workflow Kit (for now or for good).

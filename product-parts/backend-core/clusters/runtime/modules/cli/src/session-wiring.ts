@@ -17,6 +17,7 @@ import { providerCapability, providerLabel } from '#provider-registry';
 import type { HookDialect, Provider, ProviderRegistry, SessionInfo } from '#provider-registry';
 import { createSessionTitles, registerTitleRoutes } from '#session-titles';
 import type { SessionTitles, SessionTitlesOptions } from '#session-titles';
+import { createTurnInterruption } from './turn-interruption.ts';
 import { createDirectMessage, ledOutside } from './direct-message.ts';
 import { lateReviewDecider, toggleLock, wireCrossReview } from './review-wiring.ts';
 
@@ -76,13 +77,13 @@ export function wireSessions(options: SessionWiringOptions): SessionWiring {
   // panel (ledOutside, M19) is not woken: its own process takes the queue with the next hook.
   const wakeIdle = async (key: string): Promise<void> => {
     const activity = channel.get(key);
-    if (!activity || activity.state === 'working' || !activity.projectId) return;
+    if (!activity || activity.state === 'working' || !activity.projectId || channel.interruption(key)?.barrier) return;
     const provider = providers.get(activity.client);
     if (provider?.sendMessage) return channel.flush(key);
     if (!provider?.wakeSession || activity.state !== 'waiting' || ledOutside(provider, activity)) return;
     const project = await projects.get(activity.projectId);
-    if (!project) return;
-    const woken = await provider.wakeSession(project, activity.sessionId).catch(() => false);
+    if (!project || channel.interruption(key)?.barrier) return;
+    const woken = await channel.automaticWake(key, () => provider.wakeSession!(project, activity.sessionId).catch(() => false));
     if (woken) options.log?.(`channel: woke ${key} for queued panel messages`);
   };
   const wakingChannel: AgentChannel = {
@@ -142,8 +143,7 @@ export function wireSessions(options: SessionWiringOptions): SessionWiring {
   const dialects = (id: string): HookDialect | undefined => providers.get(id) && (providers.get(id)?.hookDialect ?? 'claude');
   // A panel message goes to a waiting agent at once as a user's message when its provider can do
   // it (sendDirect); otherwise, and for the autopilot and the cross review, through the queue.
-  const direct = createDirectMessage({ activity: (key) => channel.get(key), provider: (id) => providers.get(id), project: (id) => projects.get(id), log: options.log });
-  registerChannelRoutes({ router, state, channel: observedChannel, messages: wakingChannel, owns: ownsSession, dialects, direct });
+  const direct = createDirectMessage({ channel, activity: (key) => channel.get(key), provider: (id) => providers.get(id), project: (id) => projects.get(id), log: options.log });
   registerAutopilotRoutes({ router, state, autopilot, mutex });
 
   const review = createReviewToggles({
@@ -202,5 +202,7 @@ export function wireSessions(options: SessionWiringOptions): SessionWiring {
       options.log?.(`review: ${running.mainKey} could not be cancelled: ${error instanceof Error ? error.message : String(error)}`);
     });
   }
+  const interruptions = createTurnInterruption({ channel, providers, projects, autopilot, reviews: crossReview });
+  registerChannelRoutes({ router, state, channel: observedChannel, messages: wakingChannel, owns: ownsSession, dialects, direct, interrupt: interruptions.interrupt, interruptions: interruptions.section });
   return { channel, autopilot, review, titles, crossReview };
 }

@@ -1,7 +1,7 @@
 // The direct path of a panel message (M18 section 2.5): the text goes to the agent at once as a
 // user's message when the provider can take it (sendDirect) and the session is not in a turn.
 // Nothing here names a provider; a false answer keeps the channel queue path.
-import type { SessionActivity } from '#agent-channel';
+import type { AgentChannel, SessionActivity } from '#agent-channel';
 import type { Project } from '#project-registry';
 import type { Provider } from '#provider-registry';
 
@@ -11,6 +11,7 @@ export interface DirectMessageOptions {
   provider: (id: string) => Provider | undefined;
   project: (id: string) => Promise<Project | undefined>;
   log?: (line: string) => void;
+  channel?: Pick<AgentChannel, 'directTurn'>;
 }
 
 /**
@@ -44,7 +45,8 @@ export function createDirectMessage(options: DirectMessageOptions): DirectMessag
     const project = await options.project(projectId).catch(() => undefined);
     if (!project) return false;
     try {
-      return (await provider.sendDirect(project, key.slice(colon + 1), text)) === true;
+      const send = async () => (await provider.sendDirect!(project, key.slice(colon + 1), text)) === true;
+      return await (options.channel ? options.channel.directTurn(key, projectId, text, send) : send());
     } catch (error) {
       options.log?.(`channel: direct message to ${key} failed, queued instead: ${error instanceof Error ? error.message : String(error)}`);
       return false;

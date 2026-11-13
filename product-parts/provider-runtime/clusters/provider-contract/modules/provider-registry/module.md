@@ -267,3 +267,27 @@ mutex, events?, platform, now?, onRefresh? }) → { refresh() }` регистр�
 
 T005 рисует карточки провайдеров из раздела `providers` и `operations`;
 T006 и T007 заменяют заглушки `provider-claude` и `provider-codex`.
+
+## Прерывание ответа (M24)
+
+Публичные `InterruptTarget`, `InterruptResult`, `InterruptAvailability` экспортируются из
+`src/index.ts`; их точные поля и подтверждения заданы в
+[контракте M24](../../../../../../docs/design/M24-turn-interruption.md#1-общий-контракт-и-канал-t002).
+`INTERRUPT_TIMEOUT_MS = 10000`. Необязательные `Provider.interruptAvailability(project, id)`
+и `interruptTurn(project, id, target)` работают только при явной capability `interruptTurn`.
+Отсутствующий ключ capability означает отсутствие поддержки этого действия.
+`interruptAvailability` синхронно читает кэш адаптера, без RPC и запуска процессов.
+`stopped: true` требует подтверждения конкретного хода; запись команды сама по себе
+не является подтверждением. `stopSession` остаётся отдельной остановкой всей сессии.
+
+`ProviderRegistry.cachedProjects()` возвращает копии последнего собранного состояния:
+`{ project, providerId, sessions, capabilities, failed }[]`. Ждёт уже идущий `section`,
+не запускает новых чтений. Ошибка listing помечает `failed`; ошибка capabilities даёт
+пустые возможности. `section` удаляет кэш проектов, которых больше нет в его входе.
+Этот снимок используется для `channel.interruptions`, без второго опроса провайдеров.
+
+## Поведение на ОС
+
+Контракт прерывания и кэш реестра одинаковы на macOS, Linux и Windows x64/ARM64.
+Фактическое управление ходом и ограничения ОС принадлежат адаптерам провайдеров;
+общий контракт не запускает программы ОС и не объявляет возможности за адаптер.

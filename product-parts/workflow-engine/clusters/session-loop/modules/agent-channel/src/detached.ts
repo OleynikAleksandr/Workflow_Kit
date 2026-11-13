@@ -4,6 +4,7 @@
 // queue, then the decider. What is to be said goes as a prompt with a stable id (the outbox), and
 // the UserPromptSubmit of that prompt is recognised by its text.
 import { randomUUID } from 'node:crypto';
+import { acceptTurn, reserveTurn } from './turn-state.ts';
 import type { ChannelCore, Detached, Outbox, Slot } from './slots.ts';
 import { LAST_MESSAGE_CHARS } from './types.ts';
 import type { DetachedDelivery, SessionRef, StopDecision, TurnEndEvent, TurnOrigin } from './types.ts';
@@ -75,7 +76,7 @@ export function createDetached(core: ChannelCore, deps: DetachedDelivery): Detac
     slot.watch = token;
     let left = Math.max(1, Math.ceil(watchMs / pollMs));
     const tick = async (): Promise<void> => {
-      if (token.cancelled || core.closed()) return;
+      if (token.cancelled || core.closed() || slot.turn.barrier) return;
       const idle = await isIdle(slot);
       if (token.cancelled) return;
       left -= 1;
@@ -91,6 +92,7 @@ export function createDetached(core: ChannelCore, deps: DetachedDelivery): Detac
   }
 
   async function turnEnd(slot: Slot, event: TurnEndEvent): Promise<void> {
+    if (slot.turn.barrier) return;
     slot.generation += 1;
     const generation = slot.generation;
     cancelWatch(slot);
@@ -130,7 +132,7 @@ export function createDetached(core: ChannelCore, deps: DetachedDelivery): Detac
 
   async function detachedStop(slot: Slot): Promise<void> {
     const generation = slot.generation;
-    if (slot.stopping === generation || !slot.stopPending || core.excluded(slot)) return;
+    if (slot.turn.barrier || slot.stopping === generation || !slot.stopPending || core.excluded(slot)) return;
     slot.stopping = generation;
     try {
       for (const listener of core.idleListeners) {
@@ -144,7 +146,7 @@ export function createDetached(core: ChannelCore, deps: DetachedDelivery): Detac
       let failure: string | null = null;
       for (let attempt = 0; attempt < ANSWER_TRIES; attempt += 1) {
         if (attempt > 0) await sleep(retryMs);
-        if (slot.generation !== generation || core.closed()) return;
+        if (slot.turn.barrier || slot.generation !== generation || core.closed()) return;
         try {
           answer = await deps.lastAnswer(ref(slot));
           failure = null;
@@ -153,7 +155,7 @@ export function createDetached(core: ChannelCore, deps: DetachedDelivery): Detac
           failure = reasonOf(error);
         }
       }
-      if (slot.generation !== generation || !slot.stopPending) return;
+      if (slot.turn.barrier || slot.generation !== generation || !slot.stopPending) return;
       // Busy again without a prompt hook: the turn end stays pending for maintain().
       if (!(await isIdle(slot)) || slot.generation !== generation) return;
       slot.stopPending = false;
@@ -189,7 +191,7 @@ export function createDetached(core: ChannelCore, deps: DetachedDelivery): Detac
     dropReminder(slot);
     const timer = later(() => {
       slot.reminder = null;
-      if (slot.activity.state !== 'holding' || slot.outbox || core.closed()) return;
+      if (slot.turn.barrier || slot.activity.state !== 'holding' || slot.outbox || core.closed()) return;
       slot.outbox = outboxOf(text, 'reminder');
       background(advance(slot, { decide: false, woken: false }), 'reminder', slot);
     }, Math.max(0, at - core.now().getTime()));
@@ -199,7 +201,7 @@ export function createDetached(core: ChannelCore, deps: DetachedDelivery): Detac
 
   /** The decision path: an unsent message first, then the whole queue, then the decider. */
   async function advance(slot: Slot, how: { decide: boolean; woken: boolean }): Promise<void> {
-    if (slot.lockless || slot.advancing || slot.sending || core.closed() || core.excluded(slot) || deps.archived?.(ref(slot))) return;
+    if (slot.turn.barrier || slot.lockless || slot.advancing || slot.sending || core.closed() || core.excluded(slot) || deps.archived?.(ref(slot))) return;
     slot.advancing = true;
     try {
       const generation = slot.generation;
@@ -213,7 +215,7 @@ export function createDetached(core: ChannelCore, deps: DetachedDelivery): Detac
           lastAssistantMessage: slot.lastAnswer,
           woken: how.woken,
         });
-        if (slot.generation !== generation || core.closed()) return;
+        if (slot.turn.barrier || slot.generation !== generation || core.closed()) return;
         if (!slot.outbox && slot.queue.length === 0) {
           if (decision.kind === 'hold') return hold(slot, decision);
           dropReminder(slot);
@@ -236,12 +238,13 @@ export function createDetached(core: ChannelCore, deps: DetachedDelivery): Detac
 
   async function send(slot: Slot): Promise<void> {
     const outbox = slot.outbox;
-    if (!outbox || slot.sending) return;
-    if (!(await isIdle(slot)) || slot.outbox !== outbox || slot.sending) return;
+    if (!outbox || slot.sending || slot.turn.barrier) return;
+    if (!(await isIdle(slot)) || slot.outbox !== outbox || slot.sending || slot.turn.barrier || core.excluded(slot)) return;
     const generation = slot.generation;
     slot.sending = true;
     // Remembered before the request: the hook of the prompt may come before the answer.
     slot.expected = outbox.text.trim();
+    const reservation = reserveTurn(slot, outbox.text, outbox.origin, outbox.sources, core.now().getTime());
     let ok = false;
     let why = 'провайдер не принял сообщение';
     try {
@@ -261,7 +264,7 @@ export function createDetached(core: ChannelCore, deps: DetachedDelivery): Detac
     }
     slot.outbox = null;
     slot.failures = 0;
-    if (same) {
+    if (acceptTurn(slot, reservation) || same) {
       slot.origin = outbox.origin;
       slot.sources = [...outbox.sources];
       core.setState(slot, 'working', { turnStartedAt: core.iso(), note: null });
@@ -294,7 +297,6 @@ export function createDetached(core: ChannelCore, deps: DetachedDelivery): Detac
   }
 
   function userPrompt(slot: Slot): void {
-    slot.generation += 1;
     cancelWatch(slot);
     dropReminder(slot);
     slot.stopPending = false;
@@ -312,7 +314,7 @@ export function createDetached(core: ChannelCore, deps: DetachedDelivery): Detac
 
   async function flush(slot: Slot, retry = false): Promise<void> {
     await Promise.resolve(); // Messages queued in one go leave as one prompt.
-    if (slot.lockless || slot.sending || slot.advancing || slot.stopPending || slot.stopping !== null) return;
+    if (slot.turn.barrier || slot.lockless || slot.sending || slot.advancing || slot.stopPending || slot.stopping !== null) return;
     if (slot.activity.state === 'working') return;
     if (!slot.outbox && slot.queue.length === 0) return;
     if (retry && slot.failures >= MAX_SEND_FAILURES) return;
@@ -322,7 +324,7 @@ export function createDetached(core: ChannelCore, deps: DetachedDelivery): Detac
   async function maintain(): Promise<void> {
     for (const slot of [...core.slots.values()]) {
       if (core.closed()) return;
-      if (!deps.supports(slot.activity.client) || slot.lockless) continue;
+      if (!deps.supports(slot.activity.client) || slot.lockless || slot.turn.barrier) continue;
       try {
         if (slot.stopPending) {
           if (!slot.watch && slot.stopping === null && (await isIdle(slot))) await detachedStop(slot);

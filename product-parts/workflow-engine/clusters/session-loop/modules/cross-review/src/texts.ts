@@ -19,6 +19,7 @@ export const MAX_ROUNDS = 5;
 /** Longest forwarded text; the full one stays in the sender's chat. */
 export const FORWARD_MAX_CHARS = 12_000;
 export const SOURCE = 'review';
+export const INTERRUPTED_REVIEW_REASON = 'Ответ остановлен пользователем; ревью приостановлено. Нажмите «Повторить ревью».';
 
 const APPROVED = /REVIEW:\s*APPROVED/i;
 const AGREED = /REVIEW:\s*AGREED/i;

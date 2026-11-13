@@ -184,3 +184,32 @@
 ## Зависимости
 
 `#http-server` (`HttpError`, `classifyAddress`, типы реестров).
+
+## Поколения и барьер прерывания (M24)
+
+`AgentChannel` также предоставляет `interruption`, `suspend`, `resumeDelivery`,
+`interruptionPending`, `confirmInterrupted`, `directTurn`, `automaticWake`.
+`TurnSnapshot`, `InterruptView`, `InterruptionOutcome`, `TurnControl` экспортированы
+публично. Формат `InterruptView` и протокол HTTP — в
+[контракте M24](../../../../../../docs/design/M24-turn-interruption.md).
+Поколение (`turnRef`, UUID) начинается на новом prompt, ack ответа block, принятом
+прямом/detached сообщении и подтверждённом прерывании. Nack возвращает очередь,
+повторный ack и собственный echo-prompt не создают второе поколение. Block может
+продолжать тот же native turn (Codex); при этом поколение Kit всё равно меняется. Native id из
+хука привязывается к тому же поколению; известные прежние native id игнорируются.
+Резервация отправки учитывает prompt до ответа RPC: такой prompt уже доказывает приём.
+
+`suspend(key, projectId?)` сразу ставит барьер, инвалидирует ожидающие решения,
+наблюдатели, напоминания, освобождает удержанный Stop. Очередь и недоставленный outbox
+сохраняются с прежним delivery id. Барьер проверяется перед каждым автоматическим
+block/send/retry/maintain/wake; уже отправленный запрос нельзя отменить задним числом.
+`automaticWake` помечает ожидаемый prompt: позднее пробуждение не снимает барьер.
+`directTurn` резервирует поколение до вызова sendDirect и фиксирует принятый ход.
+
+`confirmInterrupted(key, expectedRef, nativeId)` подтверждает только текущую цель,
+сам переводит канал в waiting и инвалидирует ref, без ожидания Stop hook провайдера.
+Поздний результат не меняет новый ход; pending/result принадлежат своей операции.
+Барьер остаётся при успехе, stale и ошибке; обычные слушатели Stop через него не вызываются.
+Новый явный prompt либо `resumeDelivery` разрешает доставку; паузу плана канал не снимает.
+После рестарта неизвестная сессия имеет null ref до первого события, без угадывания busy.
+Правила одинаковы на macOS, Linux и Windows x64/ARM64, программ ОС здесь нет.

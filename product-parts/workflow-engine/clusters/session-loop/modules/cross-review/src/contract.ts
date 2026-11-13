@@ -32,6 +32,10 @@ export interface CrossReviewDeps {
   findReviewer?: { pollMs: number; timeoutMs: number };
   /** Asks the decider again for a held Stop. */
   wake(key: string): void;
+  /** Cheap channel barrier, rechecked after asynchronous review preparation. */
+  continuationBlocked?(key: string): boolean;
+  /** Explicit retry after interruption: allow delivery again. */
+  resumeDelivery?(key: string): void;
   toggle(projectId: string, key: string): boolean;
   /** The open plan proposal of a project, or null. */
   proposal(projectId: string): Promise<{ generation: number; scopeId: string | null } | null>;
@@ -71,6 +75,7 @@ export interface CrossReview {
   /** The toggle changed: on asks the held Stop again (starts the review), off cancels it. */
   toggled(projectId: string, key: string, on: boolean): Promise<void>;
   cancel(projectId: string, key: string, reason: string): Promise<Review | null>;
+  interrupted(projectId: string, key: string): Promise<void>;
   /**
    * «Повторить ревью» (spec M4 13.2): the session's review of the open proposal failed — its held
    * Stop is asked again and the review starts anew. False when there is nothing to retry.

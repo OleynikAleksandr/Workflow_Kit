@@ -26,6 +26,8 @@ export interface ChannelRoutesOptions {
    * provider took it and nothing is queued. False, an error or no option keeps the queue path.
    */
   direct?: (projectId: string, key: string, text: string) => Promise<boolean>;
+  interrupt?: (projectId: string, key: string, body: unknown) => Promise<unknown>;
+  interruptions?: () => Promise<Record<string, unknown>>;
 }
 
 /** Longest panel message, in characters (a task from the panel can be long). */
@@ -142,10 +144,12 @@ export function registerChannelRoutes(options: ChannelRoutesOptions): void {
     const activity = messages.get(key);
     const owned = activity?.projectId === projectId ? false : ((await options.owns?.(projectId, key).catch(() => false)) ?? false);
     const clean = checkSessionMessage(messages, projectId, key, text, owned);
+    channel.resumeDelivery(key); // Only a validated, explicit user message releases the barrier.
     // The direct path gives the text to the agent as a user's message; any refusal queues it.
     if (await sendDirect(options.direct, projectId, key, clean)) return { sent: true };
     const message = messages.enqueue(key, clean, 'panel', projectId);
     return { queued: message.id };
   });
-  options.state.add('channel', () => channel.section());
+  if (options.interrupt) router.post('/api/projects/:id/sessions/:sid/interrupt', ({ params, body }) => options.interrupt!(params['id']!, params['sid']!, body));
+  options.state.add('channel', async () => ({ ...channel.section(), ...(options.interruptions ? { interruptions: await options.interruptions() } : {}) }));
 }

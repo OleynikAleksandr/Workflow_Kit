@@ -22,6 +22,7 @@ import {
   fixesMessage,
 } from './texts.ts';
 import { createPlanStarts } from './start.ts';
+import { blockedByInterruption, pauseInterruptedOwner } from './interrupt.ts';
 import type { PlanStart } from './start.ts';
 
 /** Stops that wait for a user decision in the panel: the Stop hook is held. */
@@ -104,6 +105,7 @@ export interface Autopilot {
   /** `already` — a start runs without a problem: nothing was sent again (spec M11 2.3). */
   start(projectId: string, session?: string): Promise<{ owner: string; already?: boolean }>;
   pause(projectId: string): Promise<void>;
+  interrupt(projectId: string, key: string): Promise<void>;
   resume(projectId: string, session?: string): Promise<{ owner: string }>;
   accept(projectId: string, note?: string): Promise<void>;
   close(projectId: string, note?: string): Promise<void>;
@@ -113,13 +115,8 @@ export interface Autopilot {
   section(): { sessions: SessionAutopilot[] };
 }
 
-function clientOf(key: string): string {
-  return key.split(':')[0] ?? '';
-}
-
-function idOf(key: string): string {
-  return key.slice(key.indexOf(':') + 1);
-}
+const clientOf = (key: string): string => key.split(':')[0] ?? '';
+const idOf = (key: string): string => key.slice(key.indexOf(':') + 1);
 
 export function createAutopilot(options: AutopilotOptions): Autopilot {
   const now = options.now ?? (() => new Date());
@@ -213,6 +210,7 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
   return {
     async decide(context) {
       const entry = state(context.key, context.projectId);
+      if (blockedByInterruption(options.channel, context.key)) return { kind: 'release' };
       if (!context.projectId) return { kind: 'release' };
       const status = await autopilotStatus(context.projectId);
       if (!status) return { kind: 'release' };
@@ -323,7 +321,6 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
     async start(projectId, session) {
       const key = await owner(projectId, session);
       const entry = state(key, projectId);
-      // M11 2.3: a start under way without a problem is not sent again.
       const current = starts.view(key);
       if (current && !current.problem) return { owner: key, already: true };
       const mode = await strategy(projectId);
@@ -335,12 +332,15 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
         await options.channel.flush(key);
         return { owner: key };
       }
-      // Orchestration runs with the subagents of the session's app: the procedure differs.
       const messageId = await enable(projectId, key, mode === 'orchestrated' ? `${START_MESSAGES.orchestrated} ${executorHowto(key)}` : `${START_MESSAGES[mode]}${await sequentialOnly(key)}`);
       starts.begin(key, projectId, messageId);
       return { owner: key };
     },
 
+    async interrupt(projectId, key) {
+      state(key, projectId).enabled = false;
+      await pauseInterruptedOwner({ workflow: options.workflow, projectId, key, pause: () => kit(projectId, ['pause:set', '--on', '--note', 'Пользователь остановил ответ в панели Workflow Kit']) });
+    },
     async pause(projectId) {
       await kit(projectId, ['pause:set', '--on', '--note', 'Пользователь поставил план на паузу в панели Workflow Kit']);
     },
@@ -349,6 +349,7 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
       const status = await autopilotStatus(projectId);
       if (status?.paused) await kit(projectId, ['pause:set', '--off', '--note', 'Пользователь продолжил план в панели Workflow Kit']);
       const key = await owner(projectId, session);
+      options.channel.resumeDelivery?.(key);
       await enable(projectId, key, RESUME_MESSAGE);
       return { owner: key };
     },

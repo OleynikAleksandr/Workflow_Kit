@@ -49,7 +49,7 @@ export function toggleLock(review: CrossReview, workflow: WorkflowState, project
  */
 export async function deliverToSession(
   deps: {
-    channel: Pick<AgentChannel, 'enqueue'> & Partial<Pick<AgentChannel, 'get'>>;
+    channel: Pick<AgentChannel, 'enqueue'> & Partial<Pick<AgentChannel, 'get' | 'interruption' | 'automaticWake'>>;
     providers: Pick<ProviderRegistry, 'get'>;
     project: (id: string) => Promise<Parameters<NonNullable<ReturnType<ProviderRegistry['get']>>['listSessions']>[0]>;
     log?: (line: string) => void;
@@ -66,7 +66,11 @@ export async function deliverToSession(
     deps.log?.(`review: ${key} runs outside the panel, its brief waits for the next hook`);
     return false;
   }
-  const woken = await provider.wakeSession(await deps.project(projectId), key.slice(colon + 1)).catch(() => false);
+  if (deps.channel.interruption?.(key)?.barrier) return false;
+  const project = await deps.project(projectId);
+  if (deps.channel.interruption?.(key)?.barrier) return false;
+  const send = () => provider.wakeSession!(project, key.slice(colon + 1)).catch(() => false);
+  const woken = await (deps.channel.automaticWake ? deps.channel.automaticWake(key, send) : send());
   deps.log?.(`review: ${woken ? 'woke' : 'could not wake'} ${key} for its brief`);
   return woken;
 }
@@ -119,6 +123,8 @@ export function wireCrossReview(options: {
     enqueue: (key, text, projectId) => void options.messages.enqueue(key, text, 'review', projectId),
     deliver: (key, text, projectId) => void deliverToSession({ channel: options.channel, providers, project, log: options.log }, key, text, projectId),
     wake: (key) => options.channel.wake(key),
+    continuationBlocked: (key) => options.channel.interruption(key)?.barrier === true,
+    resumeDelivery: (key) => options.channel.resumeDelivery(key),
     toggle: (projectId, key) => options.toggles.get(projectId, key),
     proposal: async (projectId) => {
       const view = (await options.workflow.refresh(projectId)) ?? options.workflow.get(projectId);

@@ -10,6 +10,7 @@ import type {
   ProviderErrorInfo,
   ProviderId,
   ProviderStatus,
+  SessionInfo,
 } from './contract.ts';
 
 /** Longest time one read of a provider may take inside GET /api/state. */
@@ -38,6 +39,15 @@ export interface ProvidersSection {
   projects: Record<string, Record<ProviderId, ProjectProviderState>>;
 }
 
+/** Last collected, read-only input for other state sections; collecting it performs no RPC. */
+export interface CachedProviderProject {
+  project: Project;
+  providerId: string;
+  sessions: SessionInfo[];
+  capabilities: Capabilities;
+  failed: boolean;
+}
+
 /** Providers by id, in registration order. */
 export interface ProviderRegistry {
   register(provider: Provider): void;
@@ -47,6 +57,7 @@ export interface ProviderRegistry {
   summary(provider: Provider): Promise<ProviderSummary>;
   projectState(provider: Provider, project: Project): Promise<ProjectProviderState>;
   section(projects: readonly Project[]): Promise<ProvidersSection>;
+  cachedProjects(): Promise<CachedProviderProject[]>;
   /** Why a project cannot be removed: running sessions and provider blockers (environments). */
   removeBlockers(project: Project): Promise<string[]>;
   /** Drops the records of projects not in keep in every provider; failures stay per provider. */
@@ -94,6 +105,9 @@ function withTimeout<T>(promise: Promise<T>, ms: number, what: string): Promise<
 export function createProviderRegistry(options: { readTimeoutMs?: number } = {}): ProviderRegistry {
   const providers = new Map<ProviderId, Provider>();
   const limit = options.readTimeoutMs ?? STATE_READ_TIMEOUT_MS;
+  const cached = new Map<string, CachedProviderProject>();
+  const capabilityCache = new Map<string, Capabilities>();
+  let collecting: Promise<ProvidersSection> | null = null;
 
   async function read<T>(errors: Record<string, ProviderErrorInfo>, name: string, provider: Provider, fallback: T, run: () => Promise<T>): Promise<T> {
     try {
@@ -120,6 +134,7 @@ export function createProviderRegistry(options: { readTimeoutMs?: number } = {})
         read(errors, 'capabilities', provider, {}, () => provider.capabilities()),
         read(errors, 'actions', provider, [], () => provider.actions(null)),
       ]);
+      capabilityCache.set(provider.id, capabilities);
       const resume = typeof provider.resumeSession === 'function';
       return { id: provider.id, title: provider.title, label: providerLabel(provider), mark: providerMark(provider), status, capabilities, resume, actions, errors };
     },
@@ -131,18 +146,28 @@ export function createProviderRegistry(options: { readTimeoutMs?: number } = {})
         read(errors, 'sessions', provider, [], () => provider.listSessions(project)),
         read(errors, 'actions', provider, [], () => provider.actions(project)),
       ]);
+      cached.set(`${project.id}\n${provider.id}`, { project: { ...project }, providerId: provider.id, sessions: [...sessions], capabilities: capabilityCache.get(provider.id) ?? {}, failed: Boolean(errors['sessions']) });
       return { provider: provider.id, trust, hooks, sessions, actions, errors };
     },
-    async section(projects) {
-      const list = registry.list();
-      const summaries = await Promise.all(list.map((p) => registry.summary(p)));
-      const entries = await Promise.all(
-        projects.map(async (project) => {
-          const states = await Promise.all(list.map(async (p) => [p.id, await registry.projectState(p, project)] as const));
-          return [project.id, Object.fromEntries(states)] as const;
-        }),
-      );
-      return { providers: summaries, projects: Object.fromEntries(entries) };
+    section(projects) {
+      collecting = (async () => {
+        const keep = new Set(projects.map((p) => p.id));
+        for (const [key, row] of cached) if (!keep.has(row.project.id)) cached.delete(key);
+        const list = registry.list();
+        const summaries = await Promise.all(list.map((p) => registry.summary(p)));
+        const entries = await Promise.all(
+          projects.map(async (project) => {
+            const states = await Promise.all(list.map(async (p) => [p.id, await registry.projectState(p, project)] as const));
+            return [project.id, Object.fromEntries(states)] as const;
+          }),
+        );
+        return { providers: summaries, projects: Object.fromEntries(entries) };
+      })();
+      return collecting;
+    },
+    async cachedProjects() {
+      await collecting?.catch(() => undefined);
+      return [...cached.values()].map((row) => ({ ...row, project: { ...row.project }, sessions: row.sessions.map((s) => ({ ...s })), capabilities: { ...(capabilityCache.get(row.providerId) ?? {}) } }));
     },
     async removeBlockers(project) {
       const reasons: string[] = [];

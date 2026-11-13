@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 877,
+  "revision": 879,
   "rounds": [
     {
       "digest": {
@@ -639,7 +639,7 @@
       ],
       "checks": [],
       "commitMessage": "chore(release): install Workflow Kit 0.13.0 locally",
-      "confirmation": null,
+      "confirmation": "Весь план выполняй самостоятельно без привлечения меня к каким-то выборам вплоть до сборки нового релиза, пожалуйста. Принимай все решения самостоятельно. Я совсем заранее согласен",
       "context": [
         {
           "path": "README.md",
@@ -667,14 +667,26 @@
         "docs/architecture/OVERVIEW.md",
         "docs/evidence/M27-claude-native-controls.md",
         "docs/evidence/M27",
-        "docs/setup.md"
+        "docs/setup.md",
+        "docs/evidence/M27/claude-effort-installed-touch.png",
+        "docs/evidence/M27/claude-effort-installed.png",
+        "docs/evidence/M27/claude-mode-installed-touch.png",
+        "docs/evidence/M27/claude-mode-installed.png",
+        "docs/evidence/M27/claude-more-installed-touch.png",
+        "docs/evidence/M27/claude-more-installed.png",
+        "docs/evidence/M27/installed-browser.json",
+        "docs/evidence/M27/installed-cleanup.json",
+        "docs/evidence/M27/installed-health.json",
+        "docs/evidence/M27/installed-legacy-hosts.json",
+        "docs/evidence/M27/installed-native-roundtrip.json",
+        "docs/evidence/M27/local-delivery.md"
       ],
       "fixes": null,
       "id": "T007",
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Собрать и установить локальную поставку 0.13.0",
       "why": "Собрать и установить локальную поставку 0.13.0"
     },
@@ -715,8 +727,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 7/9
-- Revision: 877
+- Progress: 8/9
+- Revision: 879
 
 ## Objective
 
@@ -761,9 +773,9 @@
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M27-claude-native-controls.md, docs/design/M27-claude-controls-facts.md, docs/design/M27-claude-control-contract.md, docs/evidence/M27-claude-native-controls.md, docs/design/M27/claude-visual-reference.md, docs/architecture/CONTRACTS.md, design-qa.md
   - Depends on: T001, T002, T003, T004, T005, T006
-- [TODO] T007 — Собрать и установить локальную поставку 0.13.0 (delivery)
+- [DONE] T007 — Собрать и установить локальную поставку 0.13.0 (delivery)
   - Commit: chore(release): install Workflow Kit 0.13.0 locally
-  - Files: package.json, package-lock.json, README.md, CHANGELOG.md, docs/usage.md, docs/installation.md, docs/changelog, docs/architecture/OVERVIEW.md, docs/evidence/M27-claude-native-controls.md, docs/evidence/M27, docs/setup.md
+  - Files: package.json, package-lock.json, README.md, CHANGELOG.md, docs/usage.md, docs/installation.md, docs/changelog, docs/architecture/OVERVIEW.md, docs/evidence/M27-claude-native-controls.md, docs/evidence/M27, docs/setup.md, docs/evidence/M27/claude-effort-installed-touch.png, docs/evidence/M27/claude-effort-installed.png, docs/evidence/M27/claude-mode-installed-touch.png, docs/evidence/M27/claude-mode-installed.png, docs/evidence/M27/claude-more-installed-touch.png, docs/evidence/M27/claude-more-installed.png, docs/evidence/M27/installed-browser.json, docs/evidence/M27/installed-cleanup.json, docs/evidence/M27/installed-health.json, docs/evidence/M27/installed-legacy-hosts.json, docs/evidence/M27/installed-native-roundtrip.json, docs/evidence/M27/local-delivery.md
   - Depends on: T006, DOCS-R1
 - [TODO] T008 — Зафиксировать зелёную CI четырёх платформ на SHA поставки (delivery)
   - Commit: docs: record green CI for Claude native controls

@@ -254,3 +254,21 @@ README отделяет готовые исходники M27 от ещё не �
 contracts/spec/facts/visual QA согласованы; пользовательская приёмка и закрытие не
 подменяются успешными тестами. Новый budget: T0061, T007 максимум1, без дополнительных
 Sonnet/Fable/fast ходов в DOCS.
+
+## T007: установлена 0.13.0
+
+`local-delivery.md`: build:kit, штатный install, doctor installed — всё ok;
+служба 94479 отвечает 0.13.0, ChatGPT shared access работает. README/setup/usage/
+installation обновлены, история CHANGELOG сохранена. Dependency versions прежние.
+`installed-browser.json`: реальный installed ES/CSS на :4747, desktop/touch,
+все controls/error/quiet success/focus/draft/bounds и CSP 0. Старые рабочие host
+читаются с причиной, без перезапуска. Четыре прежних Claude PID/starttime сохранены.
+
+`installed-native-roundtrip.json`: установленный app/0.13.0 без observer override,
+новый host и stop/resume, тот же local/remote id и прежняя история; новый PID,
+каталог 13 после 11 операций, defaults прежние. Один Sonnet5.5/high/fast=false OK,
+очередь доставлена prompt-hook 1/Stop 0. Всего M27 израсходовано 4/4 хода
+(T001 2 / T006 1 / T007 1); дальнейшая генерация в этот бюджет не входит.
+`installed-cleanup.json`: own processes 0 / trust false, native Unarchive,
+временные папки/службы удалены. Основная 0.13.0 работает. CI точного SHA — T008;
+пользовательская приёмка, закрытие и main publication ещё не выполнялись.

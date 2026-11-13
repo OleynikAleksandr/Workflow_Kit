@@ -8,6 +8,18 @@
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-11-13
+
+### Added
+
+- Claude: native model/Effort/More models, отдельные Ultracode и Mode в диалоге.
+  Session-local управление той же беседой; CLI 2.1.323+ и новый host.
+- Проверенные транзакции, общий арбитр send/Stop, native read-back и сохранение очереди.
+- Обе темы, keyboard/touch, visual QA и настоящая Sonnet-проба; fast restriction сохранён.
+
+Подробности/границы — [M27](docs/evidence/M27-claude-native-controls.md),
+[Design QA](design-qa.md). Старые host остаются для чтения; живая приёмка отдельно.
+
 ## [0.12.1] - 2026-11-13
 
 ### Fixed

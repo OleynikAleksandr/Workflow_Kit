@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 843,
+  "revision": 845,
   "rounds": [
     {
       "digest": {
@@ -404,7 +404,7 @@
       ],
       "checks": [],
       "commitMessage": "chore(release): install Workflow Kit 0.12.0 locally",
-      "confirmation": null,
+      "confirmation": "Выполни весь план полностью, без паузы и собери, пожалуйста, новый релиз.",
       "context": [
         {
           "path": "docs/planning/M26-native-session-controls.md",
@@ -431,14 +431,19 @@
         "docs/architecture/OVERVIEW.md",
         "docs/changelog",
         "docs/evidence/M26-native-controls.md",
-        "docs/evidence/M26"
+        "docs/evidence/M26",
+        "docs/evidence/M26/installed-access.png",
+        "docs/evidence/M26/installed-composer.png",
+        "docs/evidence/M26/installed-effort.png",
+        "docs/evidence/M26/installed-parameters.json",
+        "docs/evidence/M26/local-delivery.md"
       ],
       "fixes": null,
       "id": "T006",
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Установить локальную поставку 0.12.0",
       "why": "Проверить новую реализацию в установленной службе"
     },
@@ -490,8 +495,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 6/8
-- Revision: 843
+- Progress: 7/8
+- Revision: 845
 
 ## Objective
 
@@ -531,9 +536,9 @@
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M26-native-session-controls.md, docs/design/M26-native-controls-reference.md, docs/evidence/M26-native-controls.md, docs/architecture/CONTRACTS.md, design-qa.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/parameters.md
   - Depends on: T001, T002, T003, T004, T005
-- [TODO] T006 — Установить локальную поставку 0.12.0 (delivery)
+- [DONE] T006 — Установить локальную поставку 0.12.0 (delivery)
   - Commit: chore(release): install Workflow Kit 0.12.0 locally
-  - Files: package.json, package-lock.json, README.md, CHANGELOG.md, docs/usage.md, docs/installation.md, docs/architecture/OVERVIEW.md, docs/changelog, docs/evidence/M26-native-controls.md, docs/evidence/M26
+  - Files: package.json, package-lock.json, README.md, CHANGELOG.md, docs/usage.md, docs/installation.md, docs/architecture/OVERVIEW.md, docs/changelog, docs/evidence/M26-native-controls.md, docs/evidence/M26, docs/evidence/M26/installed-access.png, docs/evidence/M26/installed-composer.png, docs/evidence/M26/installed-effort.png, docs/evidence/M26/installed-parameters.json, docs/evidence/M26/local-delivery.md
   - Depends on: T005, DOCS-R1
 - [TODO] T007 — Зафиксировать CI четырёх платформ на SHA поставки (delivery)
   - Commit: docs: record green CI for native session controls

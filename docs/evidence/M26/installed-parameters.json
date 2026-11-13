@@ -1,0 +1,61 @@
+{
+  "supported": true,
+  "items": [
+    {
+      "id": "speed",
+      "value": "priority",
+      "label": "Быстрая"
+    },
+    {
+      "id": "model",
+      "value": "gpt-6.1-sol",
+      "label": "GPT-6.1 Sol"
+    },
+    {
+      "id": "effort",
+      "value": "high",
+      "label": "Высокое"
+    },
+    {
+      "id": "permissions",
+      "value": ":danger-full-access",
+      "label": "Полный доступ"
+    },
+    {
+      "id": "mode",
+      "value": "default",
+      "label": "Обычный"
+    }
+  ],
+  "presentation": {
+    "layout": "effort-card",
+    "speedHint": "Скорость 2×\nБольше использования",
+    "access": {
+      "value": "full",
+      "label": "Полный доступ",
+      "tone": "warning",
+      "options": [
+        {
+          "value": "ask",
+          "label": "Запрашивать разрешение",
+          "description": "Всегда запрашивать разрешение перед изменением внешних файлов и использованием интернета",
+          "icon": "hand"
+        },
+        {
+          "value": "auto",
+          "label": "Подтверждать за меня",
+          "description": "Запрашивать подтверждение только для потенциально небезопасных действий",
+          "icon": "shield-check"
+        },
+        {
+          "value": "full",
+          "label": "Полный доступ",
+          "description": "Неограниченный доступ к интернету и любым файлам на вашем компьютере",
+          "icon": "shield-alert",
+          "confirm": "Агент получит полный доступ к диску и сети этого компьютера. Продолжить?"
+        }
+      ]
+    }
+  },
+  "editable": true
+}

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 811,
+  "revision": 813,
   "rounds": [
     {
       "digest": {
@@ -67,7 +67,20 @@
       "title": "M25: отказы Windows в предварительной CI"
     },
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "Kimi probe: оба запроса наблюдаются Promise.all, deadline остаётся общим."
+        ],
+        "decisions": [
+          "Получать один набор options до запуска параллельных запросов.",
+          "Сохранить первоначальные отказы CI; проверить логи затянувшихся Windows jobs."
+        ],
+        "references": [
+          "docs/evidence/M25-acceptance.md",
+          "docs/architecture/OVERVIEW.md"
+        ],
+        "result": "R3 устранил потерю обработчика запроса Kimi при истечении срока между запросами; тест воспроизвёл дефект на трёх injected ОС. Полные локальные проверки прошли."
+      },
       "id": "R3",
       "kind": "fixes",
       "status": "OPEN",
@@ -732,7 +745,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R3",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -833,8 +846,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 12/15
-- Revision: 811
+- Progress: 13/15
+- Revision: 813
 
 ## Objective
 
@@ -910,7 +923,7 @@ Digest: R2 исправил два подтверждённых сбоя Windows
 - [DONE] T012 — Kimi: обработать истечение срока при подготовке параллельной проверки (work)
   - Commit: fix(kimi): prepare probe deadline before starting requests
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi, docs/architecture/OVERVIEW.md, docs/evidence/M25-acceptance.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/interrupt.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/interrupt-deadline.test.ts
-- [TODO] DOCS-R3 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R3 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R3
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/evidence/M25-acceptance.md
   - Depends on: T012
@@ -922,5 +935,7 @@ Digest: R2 исправил два подтверждённых сбоя Windows
   - Commit: docs: record green CI for the M25 delivery
   - Files: docs/evidence/M25-acceptance.md
   - Depends on: T008, DOCS-R3
+
+Digest: R3 устранил потерю обработчика запроса Kimi при истечении срока между запросами; тест воспроизвёл дефект на трёх injected ОС. Полные локальные проверки прошли.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

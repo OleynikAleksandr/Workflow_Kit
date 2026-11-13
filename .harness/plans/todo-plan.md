@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 829,
+  "revision": 830,
   "rounds": [
     {
       "digest": null,
@@ -256,7 +256,7 @@
         },
         {
           "path": "docs/design/M26-native-controls-reference.md",
-          "required": false
+          "required": true
         }
       ],
       "dependencies": [
@@ -409,7 +409,7 @@
 - Execution: sequential
 - Current task: T001
 - Progress: 0/8
-- Revision: 829
+- Revision: 830
 
 ## Objective
 

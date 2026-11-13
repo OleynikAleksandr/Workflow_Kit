@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T008",
   "lastClosed": {
     "closedAt": "2026-11-12T18:46:52.163Z",
     "scopeId": "m23-kit-tests-windows"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 758,
+  "revision": 760,
   "rounds": [
     {
       "digest": null,
@@ -343,14 +343,16 @@
       ],
       "docsWaiver": null,
       "files": [
-        "product-parts/backend-core/clusters/runtime/modules/cli"
+        "product-parts/backend-core/clusters/runtime/modules/cli",
+        "docs/architecture/OVERVIEW.md",
+        "docs/evidence/M24-acceptance.md"
       ],
       "fixes": "T002",
       "id": "T008",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "Корректная передача ошибок адаптера Stop в HTTP API",
       "why": "При подключении Claude обнаружено: ProviderError interrupt-timeout с status 504 общий API ошибочно превращает в 502; завершённая T002 не редактируется."
     },
@@ -586,9 +588,9 @@
 - Scope: m24-interface-polish (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: none
+- Current task: T008
 - Progress: 3/9
-- Revision: 758
+- Revision: 760
 
 ## Objective
 
@@ -619,9 +621,9 @@
   - Commit: feat(claude): interrupt managed turns with explicit confirmation
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, docs/architecture/OVERVIEW.md, docs/evidence/M24-acceptance.md, product-parts/provider-runtime/clusters/provider-contract/modules/pty-host, tools/platform-guard/allowlist.json, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/interrupt.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/sessions.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/interrupt.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/programs.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/host.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/interrupt-control.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/interrupt-worker.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/interrupt.tcl, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/session.exp, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/win-host.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/runtime.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/fixtures/fake-claude.mjs, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/interrupt-control.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/interrupt-host.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/interrupt.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/src/index.ts, product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/src/screen.ts, product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/test/screen.test.ts
   - Depends on: T002
-- [TODO] T008 — Корректная передача ошибок адаптера Stop в HTTP API (work)
+- [IN_PROGRESS] T008 — Корректная передача ошибок адаптера Stop в HTTP API (work)
   - Commit: fix(session): preserve adapter interruption timeouts
-  - Files: product-parts/backend-core/clusters/runtime/modules/cli
+  - Files: product-parts/backend-core/clusters/runtime/modules/cli, docs/architecture/OVERVIEW.md, docs/evidence/M24-acceptance.md
   - Depends on: T003
   - Fixes: T002
 - [TODO] T004 — Stop Kimi: abort с подтверждением idle (work)

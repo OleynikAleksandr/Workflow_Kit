@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 845,
+  "revision": 847,
   "rounds": [
     {
       "digest": {
@@ -34,7 +34,7 @@
       },
       "id": "R1",
       "kind": "implementation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Implementation"
     }
   ],
@@ -82,7 +82,7 @@
         "text": "T006 локальная установка без push; T007 фиксирует зелёную CI SHA после отдельной отправки ветки вне задач."
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 1,
       "ownerSession": "01a1d50b-6999-7022-81c9-9f604ceea169",
@@ -455,7 +455,7 @@
       ],
       "checks": [],
       "commitMessage": "docs: record green CI for native session controls",
-      "confirmation": null,
+      "confirmation": "Выполни весь план полностью, без паузы и собери, пожалуйста, новый релиз.",
       "context": [
         {
           "path": "docs/planning/M26-native-session-controls.md",
@@ -480,7 +480,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Зафиксировать CI четырёх платформ на SHA поставки",
       "why": "Поставка не готова к приёмке без проверки точного коммита на всех ОС"
     }
@@ -492,11 +492,11 @@
 ## State
 
 - Scope: m26-native-session-controls (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 7/8
-- Revision: 845
+- Progress: 8/8
+- Revision: 847
 
 ## Objective
 
@@ -511,7 +511,7 @@
 
 ## Rounds
 
-### R1 — Implementation (implementation, OPEN)
+### R1 — Implementation (implementation, CLOSED)
 
 - [DONE] T001 — Проверить нативные пресеты, сброс и визуальные эталоны (work)
   - Commit: docs: verify native session control behavior
@@ -540,7 +540,7 @@
   - Commit: chore(release): install Workflow Kit 0.12.0 locally
   - Files: package.json, package-lock.json, README.md, CHANGELOG.md, docs/usage.md, docs/installation.md, docs/architecture/OVERVIEW.md, docs/changelog, docs/evidence/M26-native-controls.md, docs/evidence/M26, docs/evidence/M26/installed-access.png, docs/evidence/M26/installed-composer.png, docs/evidence/M26/installed-effort.png, docs/evidence/M26/installed-parameters.json, docs/evidence/M26/local-delivery.md
   - Depends on: T005, DOCS-R1
-- [TODO] T007 — Зафиксировать CI четырёх платформ на SHA поставки (delivery)
+- [DONE] T007 — Зафиксировать CI четырёх платформ на SHA поставки (delivery)
   - Commit: docs: record green CI for native session controls
   - Files: docs/evidence/M26-native-controls.md
   - Depends on: T006, DOCS-R1

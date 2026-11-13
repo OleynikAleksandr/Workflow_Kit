@@ -275,3 +275,25 @@ app-server на весь Mac, доверие к папке, одобрение �
 
 `forgetProjects(keep)` стирает записи панели (`sessions/codex.json` и треды в выгрузке) проектов, чьих id нет в
 `keep`, и отвечает, сколько стёрто; файл переписывается только при изменении.
+
+## Stop ответа и поведение на ОС (M24)
+
+Provider.interruptAvailability/interruptTurn и capability interruptTurn реализуют
+прерывание конкретного native turn, сохраняя тред/демон. Локальная схема Codex 0.167.2
+подтвердила turn/interrupt {threadId, turnId} и turn/completed {threadId, turn}.
+Пустой RPC не даёт успеха: нужен interrupted/terminal статус именно этой цели.
+Свежий successor даёт stale. Полные правила, хеши схемы и ограничения —
+[interrupt.md](interrupt.md). Stop требует версии не старее проверенной 0.167.2.
+
+Доступность использует снимок штатного readMessages (ChatDeps.onThreadRead), без новых
+RPC при опросе. CodexRuntime.cachedDaemon() — последнее состояние без IO; forgetDaemon
+его сбрасывает. CodexDeps: interruptWaitMs (8000), interruptPollMs (200). Внешний
+notLoaded-тред, неизвестное состояние и недоступный демон дают причину отказа.
+Stop не включает общий доступ, не меняет разрешения и не отменяет назначения Kit.
+
+| macOS | Linux | Windows x64/ARM64 |
+| --- | --- | --- |
+| Существующий Unix WebSocket демона | то же, без приложения ChatGPT | существующий proxy, тот же native-id контракт |
+
+Новых вызовов программ ОС нет. Подставные RPC/proxy проверены с injected платформами;
+живая macOS-проверка — пользователь, Windows — проверяющий, Linux — CI.

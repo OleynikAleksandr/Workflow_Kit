@@ -43,6 +43,8 @@ export interface FakeDaemonOptions {
   deleteGone?: string;
   /** thread/read answers with a JSON-RPC error with this message. */
   readError?: string;
+  /** Confirm interrupt by a matching completion, state only, or an empty RPC without proof. */
+  interruptMode?: 'event' | 'state' | 'empty';
 }
 
 /** What thread/read returns for a thread (M18): its status type and turns. */
@@ -172,6 +174,17 @@ export async function startFakeDaemon(requested: string, options: FakeDaemonOpti
           sendJson(socket, { jsonrpc: '2.0', id: message.id, error: { code: -32000, message: options.nameError } }, tricky);
         } else if (message.method === 'thread/name/set') {
           answer(message.id, {});
+        } else if (message.method === 'turn/interrupt' && options.interruptMode) {
+          const params = message.params as { threadId: string; turnId: string };
+          const known = threads.get(params.threadId);
+          const turn = known?.turns.find((value) => value && typeof value === 'object' && (value as { id?: string }).id === params.turnId) as { id: string; status: string; items?: unknown[] } | undefined;
+          if (!turn || turn.status !== 'inProgress') {
+            sendJson(socket, { id: message.id, error: { code: -32000, message: 'expected turn is not active' } }, tricky);
+          } else {
+            if (options.interruptMode !== 'empty') { turn.status = 'interrupted'; known!.status = 'idle'; }
+            answer(message.id, {});
+            if (options.interruptMode === 'event') sendJson(socket, { method: 'turn/completed', params: { threadId: params.threadId, turn } }, tricky);
+          }
         } else if (message.method === 'turn/start') {
           answer(message.id, { turn: { id: 'turn-1' } });
           if (!options.silentTurn) sendJson(socket, { method: 'turn/completed', params: { threadId } }, tricky);

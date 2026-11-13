@@ -82,6 +82,8 @@ export interface ChatDeps {
   /** The shared daemon mode is on (SharedMode.refresh). */
   shared(): Promise<boolean>;
   log(line: string): void;
+  /** Reuses the existing feed read for interruption availability; no additional RPC. */
+  onThreadRead?(threadId: string, answer: unknown): void;
 }
 
 /** readMessages and sendDirect of the Codex provider; the session id is the thread id. */
@@ -99,8 +101,10 @@ export function createChatParts(deps: ChatDeps): ChatParts {
       try {
         answer = await deps.withDaemon((session) => session.request('thread/read', { threadId, includeTurns: true }, CHAT_TIMEOUT_MS), CHAT_TIMEOUT_MS);
       } catch (error) {
+        deps.onThreadRead?.(threadId, null);
         throw new ProviderError('chat-unavailable', `Codex не отдал переписку: ${reason(error)}`, { status: 502 });
       }
+      deps.onThreadRead?.(threadId, answer);
       return chatPage(threadMessages(answer), limit);
     },
     async sendDirect(threadId, text) {

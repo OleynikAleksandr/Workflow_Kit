@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": "T005",
+  "currentTaskId": null,
   "lastClosed": {
     "closedAt": "2026-11-12T18:46:52.163Z",
     "scopeId": "m23-kit-tests-windows"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 765,
+  "revision": 766,
   "rounds": [
     {
       "digest": null,
@@ -446,14 +446,27 @@
       "files": [
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex",
         "docs/architecture/OVERVIEW.md",
-        "docs/evidence/M24-acceptance.md"
+        "docs/evidence/M24-acceptance.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/chat.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/interrupt.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/chat.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/interrupt.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/runtime.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/turn-snapshot.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fixtures/fake-proxy.mjs",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/interrupt-transport.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/interrupt-world.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/interrupt.test.ts"
       ],
       "fixes": null,
       "id": "T005",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "title": "Stop ChatGPT/Codex: прерывание конкретного native turn",
       "why": "Stop ChatGPT/Codex: прерывание конкретного native turn"
     },
@@ -648,9 +661,9 @@
 - Scope: m24-interface-polish (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: T005
-- Progress: 5/10
-- Revision: 765
+- Current task: none
+- Progress: 6/10
+- Revision: 766
 
 ## Objective
 
@@ -690,9 +703,9 @@
   - Commit: feat(kimi): abort managed turns with idle confirmation
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi, docs/architecture/OVERVIEW.md, docs/evidence/M24-acceptance.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/hooks.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/interrupt.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/client.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/interrupt.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/messages.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/turn-gate.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/turn-lock.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/client.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fake-sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/interrupt.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/turn-gate.test.ts
   - Depends on: T003, T008
-- [IN_PROGRESS] T005 — Stop ChatGPT/Codex: прерывание конкретного native turn (work)
+- [DONE] T005 — Stop ChatGPT/Codex: прерывание конкретного native turn (work)
   - Commit: feat(codex): interrupt the expected active turn
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, docs/architecture/OVERVIEW.md, docs/evidence/M24-acceptance.md
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, docs/architecture/OVERVIEW.md, docs/evidence/M24-acceptance.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/chat.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/interrupt.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/chat.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/interrupt.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/runtime.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/turn-snapshot.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fixtures/fake-proxy.mjs, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/interrupt-transport.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/interrupt-world.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/interrupt.test.ts
   - Depends on: T004
 - [TODO] T009 — Надёжная классификация HTTP-тайм-аута Stop Kimi (work)
   - Commit: fix(kimi): preserve transport timeout classification

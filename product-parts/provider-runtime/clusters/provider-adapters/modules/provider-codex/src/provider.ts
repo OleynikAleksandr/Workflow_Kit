@@ -7,6 +7,7 @@ import { ELEVATED_HINT, ELEVATED_REASON, isElevatedRefusal } from './elevation.t
 import { createSharedAccess } from './shared-access.ts';
 import { appOwnerNote, createSharedMode } from './shared-mode.ts';
 import { wakeThread } from './thread-ops.ts';
+import { createInterruptParts, interruptProgramReason } from './interrupt.ts';
 import { createChatParts } from './chat.ts';
 import { createCodexRuntime } from './runtime.ts';
 import type { CodexDeps, CodexRuntime, DaemonState } from './runtime.ts';
@@ -110,7 +111,8 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
   const sharedMode = createSharedMode(shared);
   const handover = createHandover(rt, { ...deps.handover, busy: () => creating > 0, shared: () => sharedMode.active() });
   const trustParts = createTrustParts(rt);
-  const chatParts = createChatParts({ withDaemon: (fn, timeoutMs) => rt.withDaemon((session) => fn(session), timeoutMs), shared: () => sharedMode.refresh(), log: context.log });
+  const interruptions = createInterruptParts(rt, deps, () => handover.active ? HANDOVER_REASON : null);
+  const chatParts = createChatParts({ withDaemon: (fn, timeoutMs) => rt.withDaemon((session) => fn(session), timeoutMs), shared: () => sharedMode.refresh(), log: context.log, onThreadRead: interruptions.observe });
   const sessionParts = createSessionParts(rt, {
     shared: sharedMode,
     ...(deps.serviceTurnWaitMs === undefined ? {} : { serviceTurnWaitMs: deps.serviceTurnWaitMs }),
@@ -136,7 +138,7 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
     else if (!create && daemon.error) create = `демон Codex не отвечает: ${daemon.error}`;
     else if (!create && !linked(daemon)) create = 'демон Codex не подключён к ChatGPT — «Подключить к ChatGPT»';
     const cap = (reason: string | null) => (reason ? { available: false, reason } : { available: true });
-    return { trust: cap(missing), hooks: cap(missing), sessions: { available: true }, createSession: cap(create), daemon: cap(missing) };
+    return { trust: cap(missing), hooks: cap(missing), sessions: { available: true }, createSession: cap(create), daemon: cap(missing), interruptTurn: cap(interruptProgramReason(rt)) };
   };
 
   const actions = async (project: Project | null): Promise<ProviderAction[]> => {
@@ -246,7 +248,13 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
     grantTrust: (project, token) => trustParts.grantTrust(project, token),
     hooks: (project) => trustParts.hooks(project),
     approveHooks: (project, expected) => trustParts.approveHooks(project, expected),
-    listSessions: (project) => sessionParts.listSessions(project),
+    async listSessions(project) {
+      const sessions = await sessionParts.listSessions(project);
+      interruptions.sessions(project, sessions);
+      return sessions;
+    },
+    interruptAvailability: interruptions.interruptAvailability,
+    interruptTurn: interruptions.interruptTurn,
     forgetProjects: (keep) => sessionParts.forgetProjects(keep),
     deleteSessions: (project) => sessionParts.deleteSessions(project),
     retryDeletes: () => sessionParts.retryDeletes(),

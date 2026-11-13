@@ -39,6 +39,9 @@ export interface CodexDeps {
   handover?: { waitMs?: number; sleep?: (ms: number) => Promise<void> };
   /** Shared access (spec M12): port probe, login shell, user, app presence (tests make them fake). */
   sharedAccess?: SharedAccessDeps;
+  /** One confirmed interruption and native state polling. */
+  interruptWaitMs?: number;
+  interruptPollMs?: number;
 }
 
 /** What the last daemon probe found. */
@@ -166,6 +169,8 @@ export interface CodexRuntime {
   /** Daemon state: the pid file on every call, the socket probe cached for daemonTtlMs. */
   daemon(force?: boolean): Promise<DaemonState>;
   forgetDaemon(): void;
+  /** Last observed daemon state, without file IO or RPC. */
+  cachedDaemon(): DaemonState | null;
   /** Runs fn on a fresh, initialized `codex app-server` session in cwd and closes it. */
   withAppServer<T>(cwd: string, fn: (session: RpcSession) => Promise<T>): Promise<T>;
   /** Runs fn on an initialized connection to the daemon and closes it. */
@@ -187,6 +192,8 @@ export function createCodexRuntime(context: ProviderContext, deps: CodexDeps = {
   // The last status a daemon process reported; refresh() drops the cache but not this.
   let lastKnown: { pid: number; remoteControl: string; serverName: string | null } | null = null;
   let inflight: Promise<DaemonState> | null = null;
+  let observed: DaemonState | null = null;
+  const remember = (state: DaemonState): DaemonState => { observed = state; return state; };
 
   const socketPath = async (): Promise<string> => {
     // The socket is a symlink into a short /tmp path; connecting through the real path avoids the
@@ -236,9 +243,9 @@ export function createCodexRuntime(context: ProviderContext, deps: CodexDeps = {
       const now = Date.now();
       if (!pid) {
         probe = null;
-        return { running: false, pid: null, remoteControl: null, serverName: null, userAgent: null, tokenError: null, staleLogin: false, remoteOwner: null, settling: false, error: null, checkedAt: context.now().toISOString() };
+        return remember({ running: false, pid: null, remoteControl: null, serverName: null, userAgent: null, tokenError: null, staleLogin: false, remoteOwner: null, settling: false, error: null, checkedAt: context.now().toISOString() });
       }
-      if (!force && probe && probe.state.pid === pid && now - probe.at < ttl) return probe.state;
+      if (!force && probe && probe.state.pid === pid && now - probe.at < ttl) return remember(probe.state);
       const known = lastKnown && lastKnown.pid === pid ? lastKnown : null;
       inflight ??= (async (): Promise<DaemonState> => {
         const state: DaemonState = { running: true, pid, remoteControl: null, serverName: null, userAgent: null, tokenError: null, staleLogin: false, remoteOwner: null, settling: false, error: null, checkedAt: context.now().toISOString() };
@@ -269,14 +276,16 @@ export function createCodexRuntime(context: ProviderContext, deps: CodexDeps = {
         }
         state.settling = isSettling(state, pidFile?.startMs ?? null, context.now().getTime());
         probe = { state, at: Date.now() };
-        return state;
+        return remember(state);
       })().finally(() => {
         inflight = null;
       });
       return inflight;
     },
+    cachedDaemon: () => observed ? { ...observed } : null,
     forgetDaemon() {
       probe = null;
+      observed = null;
     },
     async withAppServer(cwd, fn) {
       const transport = await openAppServer({ command: runtime.command(), cwd, env: runtime.childEnv(), platform: context.platform });

@@ -78,9 +78,10 @@ export function createKimiInterrupt(rt: KimiRuntime, live: Liveness, gate: KimiT
       if (acceptedWhileWaiting()) return { status: 'stale', stopped: false };
       const client = mine.client;
       const probe = async () => {
+        const options = requestOptions();
         const [raw, page, lock] = await Promise.all([
-          client.get(`/api/v1/sessions/${id}`, requestOptions()),
-          client.get(`/api/v1/sessions/${id}/messages?role=user&page_size=100`, requestOptions()),
+          client.get(`/api/v1/sessions/${id}`, options),
+          client.get(`/api/v1/sessions/${id}/messages?role=user&page_size=100`, options),
           turnLock(rt.paths.locks, id, mine.pid, live),
         ]);
         const session = parseSession(raw);

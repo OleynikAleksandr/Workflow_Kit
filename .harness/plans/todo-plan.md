@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 809,
+  "revision": 811,
   "rounds": [
     {
       "digest": {
@@ -695,14 +695,17 @@
       "files": [
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi",
         "docs/architecture/OVERVIEW.md",
-        "docs/evidence/M25-acceptance.md"
+        "docs/evidence/M25-acceptance.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/interrupt.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/interrupt-deadline.test.ts"
       ],
       "fixes": null,
       "id": "T012",
       "iteration": 1,
       "kind": "work",
       "roundId": "R3",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Kimi: обработать истечение срока при подготовке параллельной проверки",
       "why": "macOS CI 43440918187 job 131937986212 получила необработанный KimiError в тесте истечения срока Stop; синхронный requestOptions между созданием Promise оставляет первый запрос без обработчика"
     },
@@ -830,8 +833,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 11/15
-- Revision: 809
+- Progress: 12/15
+- Revision: 811
 
 ## Objective
 
@@ -904,9 +907,9 @@ Digest: R2 исправил два подтверждённых сбоя Windows
 
 ### R3 — CI: истечение срока между параллельными запросами Kimi (fixes, OPEN)
 
-- [TODO] T012 — Kimi: обработать истечение срока при подготовке параллельной проверки (work)
+- [DONE] T012 — Kimi: обработать истечение срока при подготовке параллельной проверки (work)
   - Commit: fix(kimi): prepare probe deadline before starting requests
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi, docs/architecture/OVERVIEW.md, docs/evidence/M25-acceptance.md
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi, docs/architecture/OVERVIEW.md, docs/evidence/M25-acceptance.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/interrupt.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/interrupt-deadline.test.ts
 - [TODO] DOCS-R3 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R3
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/evidence/M25-acceptance.md

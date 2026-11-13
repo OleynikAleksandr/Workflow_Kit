@@ -58,3 +58,5 @@ export { snapshotFile, limitsFile, readSnapshot, writeSnapshot } from './paramet
 export { createJsonlTail, JSONL_BLOCK_BYTES, JSONL_MAX_BYTES } from './jsonl-tail.ts';
 export type { JsonlSelectors } from './jsonl-tail.ts';
 export type { SnapshotWriteOptions } from './parameter-snapshots.ts';
+
+export type { NativeHookEvent } from './contract.ts';

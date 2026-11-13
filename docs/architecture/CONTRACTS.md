@@ -209,3 +209,13 @@ Confirm выполняется до POST полного доступа; все �
 исходный deadline и epoch: ожидание не продлевает timeout и не меняет целевой ход.
 Клавиши/ACK/барьер/файлы управления прежние; новые parameter setters — отдельная T003.
 Поведение одинаково macOS/Linux/Windows; injected tests не называются Windows live.
+
+## Claude native parameters (M27/T003)
+
+`controlHostId` привязывает per-launch statusline и bounded request/state/result
+к живому собственному процессу. UUID/session/epoch/expires, floor + frame, пустой
+idle и native ACK/read-back обязательны. Команды закрытого набора, model/effort
+только `s`; fast без доказанного session-local пути отказывает. Общий engine через
+expect и ConPTY не меняет defaults, не вызывает inference и не перезапускает Claude.
+Provider.nativeControlHook проверяется до канала/autopilot; неожиданные control hooks
+не получают очередь и не начинают ход. Send/Stop используют общий арбитр T002.

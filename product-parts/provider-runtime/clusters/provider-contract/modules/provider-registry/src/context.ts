@@ -15,5 +15,7 @@ export interface ProviderContext {
   runCommand: CommandRunner;
   now: () => Date;
   log: (line: string) => void;
+  /** Optional command for a new managed host's native metadata + unchanged user statusline. */
+  nativeStatuslineCommand?: (binding: { file: string; hostId: string }) => string;
 }
 

@@ -25,6 +25,7 @@ await runHost(parsed.mode, {
     return term;
   },
   print: (text) => void process.stdout.write(text),
+  async readFile(file) { try { return await readFile(file, 'utf8'); } catch { return null; } },
   async takeFile(file) {
     let text: string;
     try {

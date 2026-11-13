@@ -158,3 +158,23 @@ epoch во время ожидания. Существующие interrupt*/dire
 Проверено перед коммитом T002: целевые native-arbiter/direct/interrupt/control/host
 28/28 без пропусков; npm run check:platforms — ok. Проверки workflow commit
 выполняются штатным профилем; native Windows live по этим тестам не заявляется.
+
+## T003: native transactions и hooks
+
+Общий ParameterEngine получает bounded native statusline с per-host UUID и проверяет
+floor 2.1.323 плюс форму экрана. Каталог модели раскрывается/прокручивается, effort
+берётся из native menu. Model/effort используют `s`, mode — Shift+Tab/footer,
+Ultracode — отдельный builtin/ACK/base. Fast account restriction не обходится.
+Unix worker и ConPTY используют один engine, ввод отделён от Enter, stale revision
+не пишет клавишу. Cancel/timeout закрывает только собственное известное меню,
+неизвестный экран удерживает legacy files. Старые host не становятся editable.
+
+Проверены compatible patch, old/unknown version/frame, draft/busy/dialog, UUID/session/
+epoch/deadline, повтор UUID, поздний экран, независимый read-back, More models,
+побайтовые границы nonvisual controls; реальные обезличенные frame T001 тоже читаются.
+Injected darwin/linux/win32: trusted hook guard не трогает channel/barrier/ack,
+похожие обычные prompts не привилегированы, sentinels до/во время control доставлены
+ровно один раз на обычном prompt. Direct при занятом арбитре возвращается в очередь.
+Исходные interrupt*/direct assertions проходят, пользовательская statusline сохраняет
+байты/ошибки. Это автоматизированная проверка; live нового host — T006/T007,
+Windows live остаётся задачей проверяющего, Linux — CI.

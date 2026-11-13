@@ -2,6 +2,7 @@
 // the same arguments, marker lines on stdout (the supervisor's log file), control files
 // <debug>.rename, <debug>.text and <debug>.message, timeouts and terminal size — over ConPTY instead
 // of expect. Pure logic with injected terminal, files and clock; win-host.ts runs it for real.
+import { ParameterHost } from './parameter-files.ts';
 import { randomUUID } from 'node:crypto';
 import { InterruptControl, REQUEST_SUFFIX, RESULT_SUFFIX, STATE_SUFFIX } from './interrupt-control.ts';
 import type { HostRequest } from './interrupt-control.ts';
@@ -24,6 +25,7 @@ export interface HostDeps {
   print(text: string): void;
   /** Reads and deletes a control file: its text, or null when it does not exist. */
   takeFile(file: string): Promise<string | null>;
+  readFile?(file: string): Promise<string | null>;
   putFile?(file: string, value: unknown): Promise<void>;
   sleep(ms: number): Promise<void>;
   now(): number;
@@ -31,7 +33,7 @@ export interface HostDeps {
 }
 
 export type HostMode =
-  | { kind: 'session'; claude: string; title: string; debug: string; resume: string | null; first: string | null; settings?: string }
+  | { kind: 'session'; claude: string; title: string; debug: string; resume: string | null; first: string | null; settings?: string; native?: { hostId: string; cwd: string } }
   | { kind: 'environment'; claude: string; name: string; debug: string };
 
 export interface HostTimings {
@@ -51,7 +53,7 @@ export function parseHostArgs(argv: readonly string[], env: Readonly<Record<stri
   if (!dir || !claude || label === undefined || !debug) return null;
   if (kind === 'session') {
     const first = env['WFK_FIRST_MESSAGE']?.trim() || null;
-    return { dir, mode: { kind, claude, title: label, debug, resume: resume || null, first, ...(env['WFK_STATUSLINE_SETTINGS'] ? { settings: env['WFK_STATUSLINE_SETTINGS'] } : {}) } };
+    return { dir, mode: { kind, claude, title: label, debug, resume: resume || null, first, ...(env['WFK_NATIVE_HOST_ID'] ? { native: { hostId: env['WFK_NATIVE_HOST_ID'], cwd: dir } } : {}), ...(env['WFK_STATUSLINE_SETTINGS'] ? { settings: env['WFK_STATUSLINE_SETTINGS'] } : {}) } };
   }
   if (kind === 'environment') return { dir, mode: { kind, claude, name: label, debug } };
   return null;
@@ -65,6 +67,7 @@ export function claudeEnv(mode: HostMode, env: Readonly<Record<string, string | 
   const result = { ...env };
   delete result['WFK_FIRST_MESSAGE'];
   delete result['WFK_PTY_NODE'];
+  delete result['WFK_NATIVE_HOST_ID'];
   delete result['WFK_STATUSLINE_SETTINGS'];
   if (result['WFK_STATUSLINE_BASH']) result['CLAUDE_CODE_GIT_BASH_PATH'] = result['WFK_STATUSLINE_BASH'];
   delete result['WFK_STATUSLINE_BASH'];
@@ -81,6 +84,9 @@ export function runHost(mode: HostMode, deps: HostDeps, timings: HostTimings = H
   const term = deps.start(mode.claude, args, session ? { cols: 160, rows: 40 } : { cols: 120, rows: 40 });
   deps.print(`\nCLAUDE_PID ${term.pid}\n`);
   const interrupt = new InterruptControl(randomUUID(), deps.now, (text) => term.write(text));
+  const parameters = mode.kind === 'session' && mode.native && deps.readFile && deps.putFile
+    ? new ParameterHost(mode.debug, mode.native.hostId, mode.native.cwd, interrupt.screen,
+      { read: deps.readFile, take: deps.takeFile, put: deps.putFile }, deps.now) : null;
   let screen = '';
   let copying = true;
   let phase: 'waiting' | 'dialog' | 'running' | 'done' = 'waiting';
@@ -149,6 +155,7 @@ export function runHost(mode: HostMode, deps: HostDeps, timings: HostTimings = H
     copying = false;
     if (!session) return;
     if (first) {
+      parameters?.userInput();
       await deps.sleep(1500);
       term.write(first);
       await deps.sleep(500);
@@ -156,8 +163,16 @@ export function runHost(mode: HostMode, deps: HostDeps, timings: HostTimings = H
       deps.print('\nFIRST_MESSAGE_SENT\n');
     }
     while (phase === 'running') {
-      await deps.sleep(timings.pollMs);
+      await deps.sleep(parameters?.busy ? Math.min(100, timings.pollMs) : timings.pollMs);
       if (phase !== 'running') break;
+      if (parameters && deps.readFile) {
+        if (await deps.readFile(mode.debug + REQUEST_SUFFIX)) parameters.engine.cancel();
+        const legacy = (await Promise.all(['.text', '.message', '.rename'].map(s => deps.readFile!(mode.debug + s)))).some(v => v !== null);
+        if (legacy) parameters.userInput();
+        const action = await parameters.poll(!legacy);
+        if (action) parameters.write(action, text => term.write(text));
+        if (parameters.busy) continue;
+      }
       if (deps.putFile) try {
         const raw = await deps.takeFile(`${mode.debug}${REQUEST_SUFFIX}`);
         if (raw) {
@@ -169,6 +184,7 @@ export function runHost(mode: HostMode, deps: HostDeps, timings: HostTimings = H
       } catch { interrupt.cancel(); deps.print('\nINTERRUPT_CONTROL_ERROR\n'); }
       const name = ((await deps.takeFile(`${mode.debug}.rename`)) ?? '').replace(/\s+/g, ' ').trim();
       if (name !== '') {
+        parameters?.userInput();
         term.write(`/rename ${name}`);
         await deps.sleep(300);
         term.write('\r');
@@ -177,6 +193,7 @@ export function runHost(mode: HostMode, deps: HostDeps, timings: HostTimings = H
       const text = await deps.takeFile(`${mode.debug}${TEXT_FILE_SUFFIX}`);
       const pasted = text !== null && text !== '';
       if (pasted) {
+        parameters?.userInput();
         // A bracketed paste: the lines stay one user message (spec M19 section 2.1).
         term.write(`${PASTE_START}${text}${PASTE_END}`);
         await deps.sleep(PASTE_ENTER_MS);
@@ -186,6 +203,7 @@ export function runHost(mode: HostMode, deps: HostDeps, timings: HostTimings = H
       // Any content of <debug>.message is a wake; a message pasted just now starts the turn itself.
       const wake = await deps.takeFile(`${mode.debug}${WAKE_FILE_SUFFIX}`);
       if (wake !== null && !pasted) {
+        parameters?.userInput();
         term.write(WAKE_TEXT);
         await deps.sleep(300);
         term.write('\r');
@@ -196,7 +214,7 @@ export function runHost(mode: HostMode, deps: HostDeps, timings: HostTimings = H
 
   term.onData((text) => {
     lastData = deps.now();
-    if (session) interrupt.feed(text);
+    if (session) { interrupt.feed(text); parameters?.observe(); }
     if (copying) deps.print(text);
     if (phase !== 'waiting') {
       if (phase === 'dialog') screen += text;

@@ -66,3 +66,8 @@ Claude использует класс через #pty-host; локальный 
 Проверки: независимые hosts, ошибка/следующая операция, отмена ожидающей и запрет
 преждевременного освобождения активной lease. Provider tests проверяют alias send/Stop
 с injected darwin/linux/win32; существующие expect/ConPTY тесты сохраняются.
+
+M27/T003: `TerminalScreen.cursor()` возвращает row/col для различения placeholder
+и draft. Streaming parser принимает только наблюдённые nonvisual ESC(B, CSI r,
+CSI >0q, CSI ?u/<u/c; частичные чанки сохраняются, другие формы fail closed.
+Поведение одинаково на macOS, Linux и Windows; viewport не записывается на диск.

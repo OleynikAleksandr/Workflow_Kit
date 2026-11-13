@@ -49,7 +49,10 @@ async function deliver(rt: ClaudeRuntime, project: Project, sid: string, text: s
   try {
     const record = await runningPanelRecord(rt, project, sid);
     if (!record) return false;
-    return await withNativeHost(rt, record.debugFile, async () => {
+    const admission = new AbortController();
+    const timer = setTimeout(() => admission.abort(new Error('Native control admission timeout')), rt.options.directWaitMs);
+    try { return await withNativeHost(rt, record.debugFile, async () => {
+      clearTimeout(timer);
       const file = directTextFile(record.debugFile);
       const wait = { timeoutMs: rt.options.directWaitMs, pollMs: DIRECT_POLL_MS };
       const taken = async (): Promise<true | undefined> => ((await exists(file)) ? undefined : true);
@@ -65,7 +68,7 @@ async function deliver(rt: ClaudeRuntime, project: Project, sid: string, text: s
       await rm(file, { force: true });
       rt.context.log(`claude: message to ${sid} not taken by the session script in time`);
       return false;
-    });
+    }, admission.signal); } finally { clearTimeout(timer); }
   } catch (error) {
     rt.context.log(`claude: message to ${sid} not sent: ${error instanceof Error ? error.message : String(error)}`);
     return false;

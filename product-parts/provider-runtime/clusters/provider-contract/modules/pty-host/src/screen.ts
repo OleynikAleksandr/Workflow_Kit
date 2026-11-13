@@ -10,6 +10,7 @@ export class TerminalScreen {
   private cols: number;
   constructor(rows = 40, cols = 160) { this.rows = rows; this.cols = cols; this.grid = Array.from({ length: rows }, () => Array<string>(cols).fill(' ')); }
   text(): string { return this.grid.map((r) => r.join('').trimEnd()).join('\n'); }
+  cursor(): { row: number; col: number } { return { row: this.row, col: this.col }; }
   feed(chunk: string): void {
     this.revision += 1;
     const input = this.pending + chunk;
@@ -17,9 +18,11 @@ export class TerminalScreen {
     for (let i = 0; i < input.length;) {
       if (input[i] === '\x1b') {
         const rest = input.slice(i);
+        if (rest.startsWith('\x1b(B')) { i += 3; continue; }
+        if (rest === '\x1b(') { this.pending = rest; break; }
         const csi = /^\x1b\[([0-?]*)([ -/]*)([@-~])/.exec(rest);
         const osc = /^\x1b\][\s\S]*?(?:\x07|\x1b\\)/.exec(rest);
-        if (csi) { this.csi(csi[1]!, csi[3]!); i += csi[0].length; continue; }
+        if (csi) { if (csi[2] !== '') this.valid = false; else this.csi(csi[1]!, csi[3]!); i += csi[0].length; continue; }
         if (osc) { i += osc[0].length; continue; }
         if (rest.length < 256 && (/^\x1b(?:\[[0-?]*[ -/]*|\][^\x07]*)?$/.test(rest))) { this.pending = rest; break; }
         this.valid = false; i += 2; continue;
@@ -41,6 +44,8 @@ export class TerminalScreen {
   }
   private csi(raw: string, op: string): void {
     if (op === 'm' || (/^[?>]/.test(raw) && ['h', 'l'].includes(op))) return;
+    // Exact non-visual sequences observed in Claude 2.1.323. Other forms stay invalid.
+    if ((op === 'r' && raw === '') || (op === 'q' && raw === '>0') || (op === 'c' && raw === '') || (op === 'u' && ['?', '<'].includes(raw))) return;
     const args = raw.split(';').map((v) => Number(v || 0));
     const n = args[0] || 1;
     const clamp = () => { this.row = Math.max(0, Math.min(this.rows - 1, this.row)); this.col = Math.max(0, Math.min(this.cols - 1, this.col)); };

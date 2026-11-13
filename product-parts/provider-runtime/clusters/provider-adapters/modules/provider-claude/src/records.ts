@@ -23,6 +23,7 @@ export interface SessionRecord {
   claudePid: number | null;
   logFile: string;
   debugFile: string;
+  controlHostId?: string;
   stoppedAt: string | null;
   /**
    * Put into the archive in Workflow Kit with its project or alone: the process was stopped and
@@ -45,6 +46,7 @@ export interface EnvironmentRecord {
   stoppedAt: string | null;
   logFile: string;
   debugFile: string;
+  controlHostId?: string;
 }
 
 /** Contents of sessions/claude.json. */

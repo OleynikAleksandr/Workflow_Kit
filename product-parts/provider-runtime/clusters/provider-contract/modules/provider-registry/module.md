@@ -304,3 +304,9 @@ R2/T010: атомарная запись снимка сериализуется
 M26: optional presentation effort-card и opaque ParameterChange.access описаны в
 parameters.md; PARAMETER_CHANGE_IDS включает access, смешанный legacy запрос отклоняется.
 Аудит пишет фактические старые/новые поля пресета. Поведение одинаково на трёх ОС.
+
+M27/T003: optional `ProviderContext.nativeStatuslineCommand({file,hostId})`
+создаёт per-host обёртку, сохраняя старый statusline. `NativeHookEvent` и optional
+`Provider.nativeControlHook(input)` возвращают true только при проверенной pending
+транзакции собственного host. CLI вызывает guard до channel, titles и autopilot;
+это не exemption по тексту команды. Общий контракт одинаков на трёх ОС.

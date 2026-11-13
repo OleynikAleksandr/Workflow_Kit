@@ -1,4 +1,5 @@
 // Claude adapter: a bounded host request, never stopSession/resumeSession or a permission answer.
+import { cancelNativeParameters } from './native-parameters.ts';
 import { randomUUID } from 'node:crypto';
 import { readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { ProviderError } from '#provider-registry';
@@ -39,6 +40,8 @@ export function interruptAvailability(rt: ClaudeRuntime, project: Project, sid: 
 }
 
 export async function interruptTurn(rt: ClaudeRuntime, project: Project, sid: string, target: InterruptTarget): Promise<InterruptResult> {
+  const owned = await findSession(rt, project, sid);
+  if (owned.record?.controlHostId && await rt.isAlive(owned.record.processId)) await cancelNativeParameters(rt, owned.record.debugFile, owned.record.controlHostId);
   const technical = interruptAvailability(rt, project, sid);
   const cached = cache.get(rt)?.get(sid);
   if (!technical.available || !cached) return { status: 'unavailable', stopped: false, reason: technical.reason ?? 'Терминал недоступен' };

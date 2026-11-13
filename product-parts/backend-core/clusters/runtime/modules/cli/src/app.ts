@@ -13,6 +13,7 @@ import type { ProjectSetup } from '#project-setup';
 import type { SessionTitles } from '#session-titles';
 import type { ReviewToggles } from '#plan-review';
 import { wireSessions } from './session-wiring.ts';
+import { nativeStatuslineCommand } from './native-statusline.ts';
 import { createKitRunner, createWorkflowState } from '#kit-runner';
 import type { KitRunner, WorkflowState } from '#kit-runner';
 import { registerStructureRoutes } from '#kit-structure';
@@ -195,6 +196,7 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
     runCommand: options.runCommand ?? runCommand,
     now: () => new Date(),
     log: options.log ?? (() => undefined),
+    nativeStatuslineCommand,
   };
   const providers = createProviderRegistry();
   for (const factory of options.providers ?? DEFAULT_PROVIDERS) providers.register(factory(providerContext));

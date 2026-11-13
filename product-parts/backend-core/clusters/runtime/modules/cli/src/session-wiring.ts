@@ -1,7 +1,7 @@
 // Wiring of sessions: the agent channel, the autopilot, the plan review toggles, session names and
 // the cross review. Nothing here names a provider: what differs between them is read from the
 // registry (hook dialect, wakeSession, sendMessage, sendDirect, promptTitle, capabilities).
-import { createAgentChannel, registerChannelRoutes } from '#agent-channel';
+import { createAgentChannel, registerChannelRoutes, nativeControlHookReply } from '#agent-channel';
 import type { AgentChannel, SessionRef } from '#agent-channel';
 import { createAutopilot, registerAutopilotRoutes } from '#autopilot';
 import type { Autopilot } from '#autopilot';
@@ -113,10 +113,12 @@ export function wireSessions(options: SessionWiringOptions): SessionWiring {
     ...channel,
     // At Stop the agent is out of its turn: a name that waited for it can go to the app.
     async stop(input, signal) {
+      if (await providers.get(input.client)?.nativeControlHook?.({ ...input, event: 'stop' })) return nativeControlHookReply('stop');
       void titles.onStop(`${input.client}:${input.sessionId}`);
       return channel.stop(input, signal);
     },
     async prompt(input) {
+      if (await providers.get(input.client)?.nativeControlHook?.({ ...input, event: 'prompt' })) return nativeControlHookReply('prompt');
       const reply = await channel.prompt(input);
       const key = `${input.client}:${input.sessionId}`;
       // The panel's first message is a service greeting: no session topic is taken in that turn.

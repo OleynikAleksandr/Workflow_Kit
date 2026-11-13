@@ -26,3 +26,5 @@ export type { AgentClient, HookDialects, HookInput } from './hook-input.ts';
 export { blockAnswer, contextAnswer, messageAnswer, parseHookInput, promptAnswer, sessionKey } from './hook-input.ts';
 export type { ChannelRoutesOptions } from './routes.ts';
 export { MESSAGE_MAX_CHARS, checkSessionMessage, queueSessionMessage, registerChannelRoutes } from './routes.ts';
+
+export { nativeControlHookReply } from './native-hook.ts';

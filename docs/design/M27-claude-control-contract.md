@@ -148,3 +148,14 @@ Native menus/disabled получены после AX_TRUSTED=true; test cloud ar
 по исходному deadline; новая epoch за время ожидания даёт stale, не Esc в новый ход.
 Начатая операция освобождает lease только после cleanup. Новых parameters API,
 терминальных последовательностей и изменений user message route в T002 нет.
+
+### Реализация T003
+
+Per-launch `controlHostId`, `.parameters-native/state/request/result/cancel` и общий
+ParameterEngine воплощают протокол. Worker публикует pending до ввода, host проверяет
+revision после drain и перед записью. Каталоги читаются host в собственном idle,
+GET их не открывает. Старый host без binding остаётся read-only. Typed builtin paste
+отделён от Enter проверкой собственного echoed input. Model/effort — только `s`,
+mode — footer, Ultracode — ACK плюс отдельный marker/base; request echo не proof.
+CLI guard проверяет доверенную транзакцию до channel/titles/autopilot. Обычный prompt
+с похожим текстом проходит обычный канал. Cancel/timeout не повторяет setter.

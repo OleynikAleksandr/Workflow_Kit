@@ -3,6 +3,7 @@
 // only the panel's own processes (D9).
 import { access, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { randomUUID } from 'node:crypto';
 import { ProviderError, hookSessionInfo, readHookSessions } from '#provider-registry';
 import type { HookSession, Project, RenameResult, SessionInfo } from '#provider-registry';
 import { ProcessError } from '#process-supervisor';
@@ -31,6 +32,7 @@ interface StartedSession {
   logFile: string;
   debugFile: string;
   startedAt: string;
+  controlHostId?: string;
 }
 
 /** A hook session with its Remote Control id (null until the transcript has bridge-session). */
@@ -48,7 +50,7 @@ function failure(code: string, message: string, logFile: string, log: string): P
 }
 
 /** Waits for the Remote Control id of a just started session.exp; tracks the claude pid (D9). */
-async function followSession(rt: ClaudeRuntime, processId: string, logFile: string, debugFile: string): Promise<Omit<StartedSession, 'processId' | 'logFile' | 'debugFile' | 'startedAt'>> {
+async function followSession(rt: ClaudeRuntime, processId: string, logFile: string, debugFile: string): Promise<Omit<StartedSession, 'processId' | 'logFile' | 'debugFile' | 'startedAt' | 'controlHostId'>> {
   const { supervisor } = rt.context;
   let claudePid: number | null = null;
   let noUrlSince: number | null = null;
@@ -102,7 +104,8 @@ async function startSessionProcess(rt: ClaudeRuntime, project: Project, title: s
   const key = rt.newKey('session');
   const logFile = path.join(rt.logsDir, `${key}.log`);
   const debugFile = path.join(rt.logsDir, `${key}.debug.log`);
-  const settingsFile = await sessionSettings(rt, project, key);
+  const controlHostId = rt.context.nativeStatuslineCommand ? randomUUID() : undefined;
+  const settingsFile = await sessionSettings(rt, project, key, controlHostId ? { file: debugFile + '.parameters-native', hostId: controlHostId } : undefined);
   const run = ptyCommand(launcher, rt.options.scripts, 'session', [project.path, claude, title, debugFile, ...(resume ? [resume] : [])]);
   let record;
   try {
@@ -111,7 +114,7 @@ async function startSessionProcess(rt: ClaudeRuntime, project: Project, title: s
       ...run,
       cwd: project.path,
       // session.exp types the first message into the session once the link is there.
-      env: firstMessage ? { ...rt.context.env, WFK_PTY_NODE: process.execPath, WFK_STATUSLINE_SETTINGS: settingsFile, WFK_STATUSLINE_BASH: rt.context.env['CLAUDE_CODE_GIT_BASH_PATH'] ?? '', WFK_FIRST_MESSAGE: firstMessage.replace(/\s+/g, ' ').trim() } : { ...rt.context.env, WFK_PTY_NODE: process.execPath, WFK_STATUSLINE_SETTINGS: settingsFile, WFK_STATUSLINE_BASH: rt.context.env['CLAUDE_CODE_GIT_BASH_PATH'] ?? '' },
+      env: firstMessage ? { ...rt.context.env, WFK_PTY_NODE: process.execPath, WFK_NATIVE_HOST_ID: controlHostId ?? '', WFK_STATUSLINE_SETTINGS: settingsFile, WFK_STATUSLINE_BASH: rt.context.env['CLAUDE_CODE_GIT_BASH_PATH'] ?? '', WFK_FIRST_MESSAGE: firstMessage.replace(/\s+/g, ' ').trim() } : { ...rt.context.env, WFK_PTY_NODE: process.execPath, WFK_NATIVE_HOST_ID: controlHostId ?? '', WFK_STATUSLINE_SETTINGS: settingsFile, WFK_STATUSLINE_BASH: rt.context.env['CLAUDE_CODE_GIT_BASH_PATH'] ?? '' },
       logFile,
     });
   } catch (error) {
@@ -121,7 +124,7 @@ async function startSessionProcess(rt: ClaudeRuntime, project: Project, title: s
   try {
     const followed = await followSession(rt, record.id, logFile, debugFile);
     if (followed.source === 'debug') rt.context.log(`claude: session id of ${key} taken from the debug file`);
-    return { ...followed, processId: record.id, logFile, debugFile, startedAt: rt.context.now().toISOString() };
+    return { ...followed, ...(controlHostId ? { controlHostId } : {}), processId: record.id, logFile, debugFile, startedAt: rt.context.now().toISOString() };
   } catch (error) {
     // The claude child is in its own pty session: add it to the record so the stop reaches it too.
     const pid = parseMarkers(await readText(logFile)).claudePid;
@@ -191,6 +194,7 @@ export async function createSession(rt: ClaudeRuntime, project: Project, title: 
     claudePid: started.claudePid,
     logFile: started.logFile,
     debugFile: started.debugFile,
+    ...(started.controlHostId ? { controlHostId: started.controlHostId } : {}),
     stoppedAt: null,
   };
   await rt.store.update((records) => void records.sessions.push(record));
@@ -255,6 +259,7 @@ async function resumeFound(rt: ClaudeRuntime, project: Project, sid: string, rec
       claudePid: started.claudePid,
       logFile: started.logFile,
       debugFile: started.debugFile,
+    ...(started.controlHostId ? { controlHostId: started.controlHostId } : {}),
       stoppedAt: null,
     };
     if (existing) Object.assign(existing, next);

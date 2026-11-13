@@ -282,3 +282,23 @@ epoch и не прерывает новый ход. Его прежний interr
 
 interrupt*/direct assertions и deadlines не ослаблены. Дополнительные race tests
 проверяют два alias, сообщения до/после Stop, timeout admission и смену native epoch.
+
+## Native parameters (M27/T003)
+
+Новый собственный host получает UUID `controlHostId` и per-launch native statusline:
+CLI обёртка сохраняет identity/model/effort/fast, затем делегирует прежнюю строку.
+`pty/parameter-{protocol,screen,engine,files}.ts` — общий контроллер expect/ConPTY:
+свежий пустой idle, floor 2.1.323 плюс известный frame, UUID/session/epoch/deadline,
+каталог из `/model` с More models/scroll и `/effort`. Enter разрешён только для
+открытия builtin и раскрытия More models; модель/effort сохраняются клавишей `s`.
+Ultracode — отдельный session-only builtin; mode — Shift+Tab с footer read-back.
+Fast не включается: account prohibition либо недоказанный session-local путь.
+Метаданные не содержат переписки. ACK + независимое наблюдение обязательны.
+При отмене Esc закрывает только собственное распознанное меню; неизвестный экран
+удерживает legacy input files. Стоп отменяет control перед общим FIFO; direct
+имеет ограниченное ожидание admission и возвращает текст в обычную очередь.
+`nativeControlHook` проверяет live owned host, session UUID, epoch и expires;
+неожиданный hook отменяет control до channel/autopilot, без slash-prefix exemption.
+На macOS/Linux worker отдаёт предложенную клавишу после повторного drain; Windows
+вызывает тот же engine и проверяет revision непосредственно перед term.write.
+Одинаковые ограничения на трёх ОС; Windows live ждёт отдельного проверяющего.

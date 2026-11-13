@@ -174,3 +174,9 @@ native-вызова адаптера также становится HTTP 504 `i
 дерева через публичный taskkill; macOS/Linux — sh и своя группа процессов.
 R2/T011: тайм-аут statusline ждёт и close процесса, и окончание завершения дерева;
 раннее возвращение до освобождения cwd исключено на всех трёх ОС (statusline.md).
+
+M27/T003: `native-statusline.ts` добавляет per-host nonce и bounded native metadata,
+после чего `runStatusline` получает прежние stdin/stdout. Пути внутри base64 data,
+без интерполяции shell. `session-wiring` вызывает provider nativeControlHook перед
+каналом, titles и autopilot; quarantined hook не начинает ход и не получает очередь.
+macOS/Linux/Windows используют один контракт, shell delegation прежний.

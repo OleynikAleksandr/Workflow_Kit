@@ -52,6 +52,7 @@ expect {
   -re {claude\.ai/code/(session_[A-Za-z0-9]+)} {
     puts "\nSESSION_URL $expect_out(1,string)"
     if {$first ne ""} {
+      interrupt_exchange USER_INPUT
       after 1500
       send -- $first
       after 500
@@ -73,6 +74,8 @@ expect {
   eof {}
   timeout {
     interrupt_tick
+    if {$parameter_busy} { after 100; set timeout 0; exp_continue }
+    set timeout 1
     if {[file exists $control]} {
       set name ""
       catch {
@@ -84,6 +87,7 @@ expect {
       file delete -force $control
       regsub -all {\s+} $name { } name
       if {$name ne ""} {
+        interrupt_exchange USER_INPUT
         send -- "/rename $name"
         after 300
         send "\r"
@@ -102,6 +106,7 @@ expect {
       }
       file delete -force $textfile
       if {$content ne ""} {
+        interrupt_exchange USER_INPUT
         # A bracketed paste keeps all lines one user message (spec M19 section 2.1).
         send -- "\033\[200~$content\033\[201~"
         after 700
@@ -115,6 +120,7 @@ expect {
     if {[file exists $wake]} {
       file delete -force $wake
       if {!$pasted} {
+        interrupt_exchange USER_INPUT
         send -- "Workflow Kit: новое сообщение из панели."
         after 300
         send "\r"

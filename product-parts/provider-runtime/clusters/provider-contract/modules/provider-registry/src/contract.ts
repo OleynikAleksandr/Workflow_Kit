@@ -248,6 +248,10 @@ export interface RenameResult {
  */
 export type HookDialect = 'claude' | 'kimi';
 
+export interface NativeHookEvent {
+  event: 'prompt' | 'stop'; sessionId: string; cwd: string | null; panelProcess: boolean; prompt: string | null;
+}
+
 /** The provider contract. All read methods must be cheap and read-only (D11). */
 export interface Provider {
   readonly id: ProviderId;
@@ -266,6 +270,8 @@ export interface Provider {
   readonly promptTitle?: boolean;
   /** The processes it runs mark their hooks (WFK_PANEL_SESSION=1); unmarked ones are external (M19). */
   readonly marksPanelProcess?: boolean;
+  /** True quarantines an unexpected hook of a trusted pending native transaction. */
+  nativeControlHook?(input: NativeHookEvent): Promise<boolean>;
   capabilities(): Promise<Capabilities>;
   status(): Promise<ProviderStatus>;
   /** Re-reads versions and daemons with external programs (POST /api/refresh, start of the service). */

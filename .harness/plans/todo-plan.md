@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 813,
+  "revision": 814,
   "rounds": [
     {
       "digest": {
@@ -752,8 +752,8 @@
     {
       "acceptance": [
         "После отдельного подтверждения пользователя и задачи DOCS штатным способом подготовлен и установлен локальный релиз 0.11.0; установленная служба проверена.",
-        "Версия согласована в package.json, README.md, docs/installation.md, docs/usage.md, OVERVIEW.md и CHANGELOG; доказательства M25 содержат команды, результаты, SHA поставки и список живых проверок раздела 4 с исполнителями по ОС.",
-        "Задача не выполняет git push; её коммит — SHA поставки; в доказательствах записано «CI ожидает отправки ветки ci/m25-session-parameters» с этим SHA. Зелёную CI проверяет T009 (раздел 8 правил M25)."
+        "Версия согласована в package.json, package-lock.json, README.md, docs/installation.md, docs/usage.md, OVERVIEW.md и CHANGELOG; доказательства M25 содержат команды, результаты, ссылку на коммит T008 как SHA поставки и список живых проверок раздела 4 с исполнителями по ОС. Точный хеш появляется при завершении T008 и записывается в доказательства задачей T009.",
+        "Задача не выполняет git push; её коммит — SHA поставки; в доказательствах записано «CI ожидает отправки ветки ci/m25-session-parameters». Зелёную CI точного SHA и сам хеш фиксирует T009 (раздел 8 правил M25)."
       ],
       "checks": [],
       "commitMessage": "chore(release): install Workflow Kit 0.11.0 locally",
@@ -847,7 +847,7 @@
 - Execution: sequential
 - Current task: none
 - Progress: 13/15
-- Revision: 813
+- Revision: 814
 
 ## Objective
 

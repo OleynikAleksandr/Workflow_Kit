@@ -139,3 +139,12 @@ beginTurn/queue ACK/resumeDelivery и не вводит исключение д�
 Живые пробы очереди и обратной GUI-смены не потребовали новых model turns: T001 2/2.
 Native menus/disabled получены после AX_TRUSTED=true; test cloud archive подтверждён
 отдельно по native Unarchive/archived state, не по одному локальному purge.
+
+## Реализация T002
+
+Общий NativeControlArbiter в #pty-host и per-runtime wrapper Claude объединяют
+существующий send/Stop по canonical debugFile; aliases не обходят lease. FIFO send
+одного sid сохраняется и при resolve/resume. AbortSignal отменяет ожидающий Stop
+по исходному deadline; новая epoch за время ожидания даёт stale, не Esc в новый ход.
+Начатая операция освобождает lease только после cleanup. Новых parameters API,
+терминальных последовательностей и изменений user message route в T002 нет.

@@ -15,6 +15,10 @@ import { cleanDirectText, directTextFile, sendDirect } from '../src/direct.ts';
 import { createClaudeProvider } from '../src/index.ts';
 import { createRuntime } from '../src/runtime.ts';
 import type { ClaudeRuntime } from '../src/runtime.ts';
+import { interruptTurn, refreshInterruptions } from '../src/interrupt.ts';
+import { listSessions } from '../src/sessions.ts';
+import { REQUEST_SUFFIX, RESULT_SUFFIX, STATE_SUFFIX } from '../src/pty/interrupt-control.ts';
+import { withNativeHost } from '../src/native-arbiter.ts';
 
 let tmp = '';
 let project: Project;
@@ -69,6 +73,10 @@ before(async () => {
   const file = providerSessionsFile(dirs, 'claude');
   await mkdir(path.dirname(file), { recursive: true });
   const sessions = [record('Live', 'proc-live'), record('Slow', 'proc-slow'), record('Stopped', null, '2026-11-12T08:00:00.000Z'), record('Gone', 'proc-gone', '2026-11-12T08:00:00.000Z')];
+  for (const platform of ['darwin', 'linux', 'win32']) {
+    sessions.push(record(`Race-${platform}`, `proc-race-${platform}`));
+    alive.add(`proc-race-${platform}`);
+  }
   await writeFile(file, JSON.stringify({ version: 1, sessions, environments: [] }));
   alive.add('proc-live').add('proc-slow');
 });
@@ -96,6 +104,79 @@ function script(name: string, pollMs: number): { taken: string[]; stop(): void }
 }
 
 const runtime = (waitMs: number): ClaudeRuntime => createRuntime(context, { directWaitMs: waitMs });
+
+async function nativeFile(file: string): Promise<void> {
+  const deadline = Date.now() + 1500;
+  while (!(await exists(file))) {
+    assert.ok(Date.now() < deadline, `native file did not arrive: ${file}`);
+    await sleep(10);
+  }
+}
+
+for (const platform of ['darwin', 'linux', 'win32'] as const) {
+  test(`${platform}: local/remote aliases share send/Stop ownership without losing or duplicating text`, async () => {
+    const name = `Race-${platform}`;
+    const debug = debugFile(name);
+    const rt = createRuntime({ ...context, platform }, { directWaitMs: 2000, interruptWaitMs: 2000, pollMs: 10 });
+    await writeFile(debug + STATE_SUFFIX, JSON.stringify({ version: 1, epoch: 'native-host:1', state: 'working', at: Date.now() }));
+    await refreshInterruptions(rt, project, await listSessions(rt, project));
+    const before = sendDirect(rt, project, `local-${name}`, 'before Stop');
+    await nativeFile(debug + '.text');
+    const stop = interruptTurn(rt, project, `session_${name}`, { turnRef: 'original-turn', nativeTurnId: 'native-turn' });
+    await sleep(60);
+    assert.equal(await exists(debug + REQUEST_SUFFIX), false, 'Stop cannot overlap the current text lease');
+    const taken = [await readFile(debug + '.text', 'utf8')];
+    await rm(debug + '.text');
+    assert.equal(await before, true);
+    await nativeFile(debug + REQUEST_SUFFIX);
+    const request = JSON.parse(await readFile(debug + REQUEST_SUFFIX, 'utf8')) as { id: string };
+    const after = sendDirect(rt, project, `session_${name}`, 'after Stop');
+    await sleep(60);
+    assert.equal(await exists(debug + '.text'), false, 'the remote alias must wait for the same host ACK');
+    await writeFile(debug + RESULT_SUFFIX, JSON.stringify({ id: request.id, status: 'interrupted' }));
+    assert.deepEqual(await stop, { status: 'interrupted', stopped: true, proof: 'pty-marker', nativeTurnId: 'native-turn' });
+    await nativeFile(debug + '.text');
+    taken.push(await readFile(debug + '.text', 'utf8'));
+    await rm(debug + '.text');
+    assert.equal(await after, true);
+    assert.deepEqual(taken, ['before Stop', 'after Stop']);
+    assert.equal(await exists(debug + REQUEST_SUFFIX), false);
+  });
+}
+
+test('a queued Stop keeps its original timeout and cannot write a late native request', { timeout: 2000 }, async () => {
+  const debug = debugFile('Race-darwin');
+  const rt = createRuntime(context, { interruptWaitMs: 80, pollMs: 10 });
+  await writeFile(debug + STATE_SUFFIX, JSON.stringify({ version: 1, epoch: 'native-host:1', state: 'working', at: Date.now() }));
+  await refreshInterruptions(rt, project, await listSessions(rt, project));
+  let release!: () => void; let entered!: () => void;
+  const ready = new Promise<void>(ok => { entered = ok; });
+  const held = withNativeHost(rt, debug, async () => { entered(); await new Promise<void>(ok => { release = ok; }); });
+  await ready;
+  try {
+    await assert.rejects(interruptTurn(rt, project, 'local-Race-darwin', { turnRef: 'old', nativeTurnId: null }), { code: 'interrupt-timeout', status: 504 });
+    assert.equal(await exists(debug + REQUEST_SUFFIX), false);
+  } finally { release(); await held; }
+  await withNativeHost(rt, debug, async () => undefined);
+  assert.equal(await exists(debug + REQUEST_SUFFIX), false, 'expired admission must not run later');
+});
+
+test('a native epoch that changes while Stop waits is never interrupted as the original target', async () => {
+  const debug = debugFile('Race-linux');
+  const rt = createRuntime(context, { interruptWaitMs: 2000, pollMs: 10 });
+  await writeFile(debug + STATE_SUFFIX, JSON.stringify({ version: 1, epoch: 'native-host:1', state: 'working', at: Date.now() }));
+  await refreshInterruptions(rt, project, await listSessions(rt, project));
+  let release!: () => void; let entered!: () => void;
+  const ready = new Promise<void>(ok => { entered = ok; });
+  const held = withNativeHost(rt, debug, async () => { entered(); await new Promise<void>(ok => { release = ok; }); });
+  await ready;
+  const stop = interruptTurn(rt, project, 'local-Race-linux', { turnRef: 'old', nativeTurnId: 'old' });
+  await writeFile(debug + STATE_SUFFIX, JSON.stringify({ version: 1, epoch: 'native-host:2', state: 'working', at: Date.now() }));
+  await refreshInterruptions(rt, project, await listSessions(rt, project));
+  release(); await held;
+  assert.deepEqual(await stop, { status: 'stale', stopped: false });
+  assert.equal(await exists(debug + REQUEST_SUFFIX), false);
+});
 
 test('the text is cleaned: line breaks to LF, control characters and ESC dropped, TAB kept', () => {
   assert.equal(cleanDirectText('a\r\nb\rc\nd\te'), 'a\nb\nc\nd\te');

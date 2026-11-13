@@ -264,3 +264,21 @@ macOS — живая приёмка пользователя, Windows — про
 неизменяемый --settings; окружение папки не меняется. Полный контракт, подписи,
 матрица ОС и проверки — [parameters.md](parameters.md). Изменение параметров Claude
 не поддерживается. Живая проверка установленной строки — после поставки в T008.
+
+## Общий арбитр send/Stop (M27/T002)
+
+native-arbiter.ts хранит общий NativeControlArbiter (#pty-host) на ClaudeRuntime.
+Порядок send одного session id сохраняется при resolve/resume; реальная операция
+затем владеет canonical host key debugFile. Поэтому local/remote aliases делят
+одну lease с interruptTurn. Протоколы .text/.interrupt, их подтверждения, cleanup
+и отсутствие kill/resume при Stop сохранены; новых parameter setters пока нет.
+Stop перепроверяет liveness/fresh cache после ожидания, сравнивает **исходный**
+epoch и не прерывает новый ход. Его прежний interruptWaitMs включает admission: при
+истечении ожидания — interrupt-timeout/504, поздний запрос не записывается.
+
+| macOS | Linux | Windows x64/ARM64 |
+| --- | --- | --- |
+| Общий backend arbiter, прежний expect host | тот же arbiter/expect, injected linux | тот же arbiter, прежний ConPTY, injected win32 |
+
+interrupt*/direct assertions и deadlines не ослаблены. Дополнительные race tests
+проверяют два alias, сообщения до/после Stop, timeout admission и смену native epoch.

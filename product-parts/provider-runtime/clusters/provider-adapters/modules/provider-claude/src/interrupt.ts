@@ -8,6 +8,7 @@ import type { ClaudeRuntime } from './runtime.ts';
 import { DIALOG_REASON, REQUEST_SUFFIX, RESULT_SUFFIX, STATE_SUFFIX } from './pty/interrupt-control.ts';
 import type { HostResult, HostSnapshot } from './pty/interrupt-control.ts';
 import { poll } from './pty.ts';
+import { withNativeHost } from './native-arbiter.ts';
 
 interface Cached { snapshot: HostSnapshot; debug: string; projectId: string }
 const cache = new WeakMap<ClaudeRuntime, Map<string, Cached>>();
@@ -43,23 +44,39 @@ export async function interruptTurn(rt: ClaudeRuntime, project: Project, sid: st
   if (!technical.available || !cached) return { status: 'unavailable', stopped: false, reason: technical.reason ?? 'Терминал недоступен' };
   const { record } = await findSession(rt, project, sid);
   if (!record || record.archived || record.debugFile !== cached.debug || !(await rt.isAlive(record.processId))) return { status: 'unavailable', stopped: false, reason: 'Сессия не управляется действующим терминалом Kit' };
-  const id = randomUUID();
-  const file = cached.debug + REQUEST_SUFFIX;
-  const timeout = rt.options.interruptWaitMs;
-  const request = { id, epoch: cached.snapshot.epoch, expires: Date.now() + Math.max(1, timeout - 500) };
+  const timeoutError = (): ProviderError => new ProviderError('interrupt-timeout', 'Остановка ответа Claude не подтверждена', { status: 504, hint: 'Автопродолжение удерживается; проверьте терминал и повторите.' });
+  const deadline = Date.now() + rt.options.interruptWaitMs;
+  const admission = new AbortController();
+  const timer = setTimeout(() => admission.abort(timeoutError()), rt.options.interruptWaitMs);
   try {
-    await writeFile(file + '.partial', JSON.stringify(request), { encoding: 'utf8', mode: 0o600 });
-    await rename(file + '.partial', file);
-    const result = await poll<HostResult>(async () => {
-      const response = await readJson(cached.debug + RESULT_SUFFIX).catch(() => null) as HostResult | null;
-      return response?.id === id ? response : undefined;
-    }, { timeoutMs: timeout, pollMs: Math.min(100, rt.options.pollMs) });
-    if (!result || result.status === 'timeout') throw new ProviderError('interrupt-timeout', 'Остановка ответа Claude не подтверждена', { status: 504, hint: 'Автопродолжение удерживается; проверьте терминал и повторите.' });
-    if (result.status === 'stale') return { status: 'stale', stopped: false };
-    if (result.status === 'unavailable') return { status: 'unavailable', stopped: false, reason: result.reason ?? 'Экран Claude изменился' };
-    if (result.status !== 'interrupted' && result.status !== 'already-idle') throw new ProviderError('interrupt-failed', 'Неизвестный ответ терминала');
-    return { status: result.status, stopped: true, proof: result.status === 'interrupted' ? 'pty-marker' : 'provider-state', nativeTurnId: target.nativeTurnId };
+    return await withNativeHost(rt, cached.debug, async () => {
+      const fresh = cache.get(rt)?.get(sid);
+      const available = interruptAvailability(rt, project, sid);
+      if (!fresh || fresh.debug !== cached.debug || !(await rt.isAlive(record.processId))) return { status: 'unavailable', stopped: false, reason: 'Сессия не управляется действующим терминалом Kit' };
+      if (fresh.snapshot.epoch !== cached.snapshot.epoch) return { status: 'stale', stopped: false };
+      if (!available.available) return { status: 'unavailable', stopped: false, reason: available.reason ?? 'Терминал недоступен' };
+      if (Date.now() >= deadline) throw timeoutError();
+      const id = randomUUID();
+      const file = cached.debug + REQUEST_SUFFIX;
+      const timeout = Math.max(1, deadline - Date.now());
+      const request = { id, epoch: cached.snapshot.epoch, expires: Math.max(Date.now() + 1, deadline - 500) };
+      try {
+        await writeFile(file + '.partial', JSON.stringify(request), { encoding: 'utf8', mode: 0o600 });
+        await rename(file + '.partial', file);
+        const result = await poll<HostResult>(async () => {
+          const response = await readJson(cached.debug + RESULT_SUFFIX).catch(() => null) as HostResult | null;
+          return response?.id === id ? response : undefined;
+        }, { timeoutMs: timeout, pollMs: Math.min(100, rt.options.pollMs) });
+        if (!result || result.status === 'timeout') throw timeoutError();
+        if (result.status === 'stale') return { status: 'stale', stopped: false };
+        if (result.status === 'unavailable') return { status: 'unavailable', stopped: false, reason: result.reason ?? 'Экран Claude изменился' };
+        if (result.status !== 'interrupted' && result.status !== 'already-idle') throw new ProviderError('interrupt-failed', 'Неизвестный ответ терминала');
+        return { status: result.status, stopped: true, proof: result.status === 'interrupted' ? 'pty-marker' : 'provider-state', nativeTurnId: target.nativeTurnId };
+      } finally {
+        if ((await readJson(file).catch(() => null))?.id === id) await rm(file, { force: true });
+      }
+    }, admission.signal);
   } finally {
-    if ((await readJson(file).catch(() => null))?.id === id) await rm(file, { force: true });
+    clearTimeout(timer);
   }
 }

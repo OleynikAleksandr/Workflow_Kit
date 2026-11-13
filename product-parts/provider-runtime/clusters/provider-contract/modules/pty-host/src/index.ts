@@ -4,3 +4,4 @@ export { NODE_PTY_VERSION, PtyUnavailableError, loadNodePty, ptyUnavailable, ven
 export type { Terminal, TerminalOptions, TreeKiller } from './terminal.ts';
 export { startTerminal, taskkillTree } from './terminal.ts';
 export { TerminalScreen } from './screen.ts';
+export { NativeControlArbiter } from './native-arbiter.ts';

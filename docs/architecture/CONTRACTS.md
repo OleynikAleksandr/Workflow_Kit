@@ -199,3 +199,13 @@ legacy permissions нельзя. Codex проверяет профили, policy
 Esc/pointercancel отменяют preview, polling и старые GET не перезаписывают его.
 Confirm выполняется до POST полного доступа; все изменения блокируются на время
 записи. Общий код трёх ОС, 44px для touch; эталоны/ограничения — [Design QA](../../design-qa.md).
+
+## Native host admission (M27/T002)
+
+#pty-host экспортирует NativeControlArbiter: независимый FIFO по opaque key, очередь
+освобождается после результата/ошибки action. AbortSignal отменяет admission, но не
+освобождает начатую lease до завершения native операции. Provider Claude держит
+один экземпляр на runtime; debugFile объединяет local/remote aliases. Stop имеет
+исходный deadline и epoch: ожидание не продлевает timeout и не меняет целевой ход.
+Клавиши/ACK/барьер/файлы управления прежние; новые parameter setters — отдельная T003.
+Поведение одинаково macOS/Linux/Windows; injected tests не называются Windows live.

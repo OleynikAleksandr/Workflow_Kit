@@ -145,3 +145,16 @@ M27_native_probe_wnkIrA и её scoped trust/processes удалены; чужи�
 поставке. Native UI macOS/iPad проверяет пользователь; Windows — проверяющий,
 Linux остаётся CI-only. Неизвестный frame/старый host остаётся read-only. T001 не
 проверяет новую производственную функцию: UUID/races/ошибки/регрессии — T003–T006.
+
+## T002: общий арбитр send/Stop
+
+Добавлен общий per-host FIFO с отменой ожидающего admission; Claude local/remote
+aliases используют одну lease, очередность send одного sid сохраняется. Прежние
+.text/.interrupt и подтверждения остаются; новые параметры здесь не реализованы.
+Новые проверки: alias race на injected darwin/linux/win32 без потери/дублирования
+сообщений, отмена очереди, ошибка/освобождение, active lease, deadline Stop и новая
+epoch во время ожидания. Существующие interrupt*/direct tests не ослаблялись.
+
+Проверено перед коммитом T002: целевые native-arbiter/direct/interrupt/control/host
+28/28 без пропусков; npm run check:platforms — ok. Проверки workflow commit
+выполняются штатным профилем; native Windows live по этим тестам не заявляется.

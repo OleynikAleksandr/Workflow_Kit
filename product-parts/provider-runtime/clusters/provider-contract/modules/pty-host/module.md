@@ -49,3 +49,20 @@
 Классификация Claude и доказательство остановки принадлежат provider-claude; `TerminalScreen`
 не знает провайдера. На macOS/Linux его загружает Node-помощник expect, на Windows x64/ARM64
 — ConPTY-host. Для этого класса не нужны node-pty, программы ОС или native-библиотеки.
+
+## Арбитр native host (M27/T002)
+
+Публичный NativeControlArbiter.run(key, action, signal?) сериализует admission одного
+opaque host key; разные ключи независимы. Ошибка action освобождает lease. AbortSignal
+отменяет только ещё не начатую операцию, которая затем не запускается; начатая
+сохраняет lease до завершения. Это не native ACK и не механизм отправки клавиш.
+Claude использует класс через #pty-host; локальный и remote id одного host не
+получают независимых очередей. Новых setters или изменений ConPTY API в T002 нет.
+
+| macOS | Linux | Windows x64/ARM64 |
+| --- | --- | --- |
+| Общий Promise/AbortSignal arbiter | тот же код | тот же код, без native-зависимостей |
+
+Проверки: независимые hosts, ошибка/следующая операция, отмена ожидающей и запрет
+преждевременного освобождения активной lease. Provider tests проверяют alias send/Stop
+с injected darwin/linux/win32; существующие expect/ConPTY тесты сохраняются.

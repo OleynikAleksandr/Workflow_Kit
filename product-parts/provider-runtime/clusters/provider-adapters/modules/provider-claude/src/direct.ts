@@ -10,6 +10,7 @@ import { poll } from './pty.ts';
 import { TEXT_FILE_SUFFIX } from './pty/screen.ts';
 import type { ClaudeRuntime } from './runtime.ts';
 import { runningPanelRecord } from './sessions.ts';
+import { withNativeHost, withNativeSession } from './native-arbiter.ts';
 
 /** How often sendDirect looks whether a control file was taken, ms. */
 export const DIRECT_POLL_MS = 200;
@@ -33,24 +34,13 @@ const exists = (file: string): Promise<boolean> =>
     () => false,
   );
 
-/** Sends in flight per runtime and session id: the next one waits for the previous. */
-const queues = new WeakMap<ClaudeRuntime, Map<string, Promise<boolean>>>();
-
 /**
  * Pastes text into the session as the user's message. False when the panel does not run the
  * session, the text is empty after cleaning, the previous file was not taken in time, or the
  * script did not take this one in time (the file is then deleted). Never throws.
  */
 export function sendDirect(rt: ClaudeRuntime, project: Project, sid: string, text: string): Promise<boolean> {
-  let perSession = queues.get(rt);
-  if (!perSession) queues.set(rt, (perSession = new Map()));
-  const previous = perSession.get(sid) ?? Promise.resolve(true);
-  const next = previous.then(() => deliver(rt, project, sid, text));
-  perSession.set(sid, next);
-  void next.finally(() => {
-    if (perSession.get(sid) === next) perSession.delete(sid);
-  });
-  return next;
+  return withNativeSession(rt, project.id, sid, () => deliver(rt, project, sid, text));
 }
 
 async function deliver(rt: ClaudeRuntime, project: Project, sid: string, text: string): Promise<boolean> {
@@ -59,21 +49,23 @@ async function deliver(rt: ClaudeRuntime, project: Project, sid: string, text: s
   try {
     const record = await runningPanelRecord(rt, project, sid);
     if (!record) return false;
-    const file = directTextFile(record.debugFile);
-    const wait = { timeoutMs: rt.options.directWaitMs, pollMs: DIRECT_POLL_MS };
-    const taken = async (): Promise<true | undefined> => ((await exists(file)) ? undefined : true);
-    if (!(await poll(taken, wait))) {
-      rt.context.log(`claude: message to ${sid} not sent: the previous control file was not taken`);
+    return await withNativeHost(rt, record.debugFile, async () => {
+      const file = directTextFile(record.debugFile);
+      const wait = { timeoutMs: rt.options.directWaitMs, pollMs: DIRECT_POLL_MS };
+      const taken = async (): Promise<true | undefined> => ((await exists(file)) ? undefined : true);
+      if (!(await poll(taken, wait))) {
+        rt.context.log(`claude: message to ${sid} not sent: the previous control file was not taken`);
+        return false;
+      }
+      // Written aside and renamed: the script never reads half a message.
+      const partial = `${file}.partial`;
+      await writeFile(partial, clean, 'utf8');
+      await rename(partial, file);
+      if (await poll(taken, wait)) return true;
+      await rm(file, { force: true });
+      rt.context.log(`claude: message to ${sid} not taken by the session script in time`);
       return false;
-    }
-    // Written aside and renamed: the script never reads half a message.
-    const partial = `${file}.partial`;
-    await writeFile(partial, clean, 'utf8');
-    await rename(partial, file);
-    if (await poll(taken, wait)) return true;
-    await rm(file, { force: true });
-    rt.context.log(`claude: message to ${sid} not taken by the session script in time`);
-    return false;
+    });
   } catch (error) {
     rt.context.log(`claude: message to ${sid} not sent: ${error instanceof Error ? error.message : String(error)}`);
     return false;

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 858,
+  "revision": 859,
   "rounds": [
     {
       "digest": {
@@ -70,7 +70,10 @@
       "Обе темы, клавиатура и touch проверены; visual QA passed, контракты и OS-матрица согласованы; Claude/Kimi и рабочий ввод сохранены.",
       "Локальная 0.12.0 установлена, CI четырёх платформ зелёная на её SHA; живая проверка устройств и приёмка отмечены отдельно."
     ],
-    "acceptanceNote": null,
+    "acceptanceNote": {
+      "at": "2026-11-13T17:02:06.116Z",
+      "text": "Проверил, теперь всё работает. Принимаю результат, закрывай план."
+    },
     "approval": {
       "at": "2026-11-13T15:15:13.014Z",
       "text": "Пользователь: «Ты не мог бы повторить полностью то, как это сделано в родном десктопе?»; в панели выбраны спецификация и план без ревью. | Execution mode chosen by the user: sequential: Выбор пользователя в панели Workflow Kit: выполнить самому, последовательно"
@@ -106,7 +109,7 @@
         "text": "T006 локальная установка без push; T007 фиксирует зелёную CI SHA после отдельной отправки ветки вне задач."
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "ACCEPTED",
     "execution": {
       "maxWorkers": 1,
       "ownerSession": "01a1d50b-6999-7022-81c9-9f604ceea169",
@@ -648,11 +651,11 @@
 ## State
 
 - Scope: m26-native-session-controls (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: ACCEPTED
 - Execution: sequential
 - Current task: none
 - Progress: 12/12
-- Revision: 858
+- Revision: 859
 
 ## Objective
 

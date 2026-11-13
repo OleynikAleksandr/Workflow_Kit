@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T007",
   "lastClosed": {
     "closedAt": "2026-11-12T18:46:52.163Z",
     "scopeId": "m23-kit-tests-windows"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 772,
+  "revision": 774,
   "rounds": [
     {
       "digest": {
@@ -664,7 +664,7 @@
       ],
       "checks": [],
       "commitMessage": "chore(release): install Workflow Kit 0.10.0 locally",
-      "confirmation": null,
+      "confirmation": "Подтверждаю",
       "context": [
         {
           "path": "docs/planning/M24-interface-polish.md",
@@ -686,11 +686,14 @@
       "docsWaiver": null,
       "files": [
         "package.json",
+        "package-lock.json",
         "CHANGELOG.md",
         "README.md",
         "docs/installation.md",
         "docs/architecture/OVERVIEW.md",
+        "docs/architecture/CONTRACTS.md",
         "docs/usage.md",
+        "docs/planning/M24-interface-polish.md",
         "docs/changelog",
         "docs/evidence/M24-acceptance.md"
       ],
@@ -699,7 +702,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "Локальная поставка Workflow Kit 0.10.0",
       "why": "Локальная поставка Workflow Kit 0.10.0"
     }
@@ -713,9 +716,9 @@
 - Scope: m24-interface-polish (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: none
+- Current task: T007
 - Progress: 9/10
-- Revision: 772
+- Revision: 774
 
 ## Objective
 
@@ -772,9 +775,9 @@
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M24-interface-polish.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, product-parts/control-panel/clusters/web-panel/cluster.md, docs/architecture/CONTRACTS.md, docs/evidence/M24-acceptance.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/files.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/interrupt.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/sessions.md, product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/hooks.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/interrupt.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md
   - Depends on: T001, T002, T003, T008, T004, T005, T009, T006
-- [TODO] T007 — Локальная поставка Workflow Kit 0.10.0 (delivery)
+- [IN_PROGRESS] T007 — Локальная поставка Workflow Kit 0.10.0 (delivery)
   - Commit: chore(release): install Workflow Kit 0.10.0 locally
-  - Files: package.json, CHANGELOG.md, README.md, docs/installation.md, docs/architecture/OVERVIEW.md, docs/usage.md, docs/changelog, docs/evidence/M24-acceptance.md
+  - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/installation.md, docs/architecture/OVERVIEW.md, docs/architecture/CONTRACTS.md, docs/usage.md, docs/planning/M24-interface-polish.md, docs/changelog, docs/evidence/M24-acceptance.md
   - Depends on: T006, DOCS-R1
 
 Digest: M24 реализована в исходниках: карточки слева, resize/drawer, диалог в viewport, компактный ввод и действующий Stop трёх провайдеров. Тесты и Chromium с fixtures прошли. Поставка 0.10.0 и живая приёмка впереди.

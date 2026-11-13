@@ -174,7 +174,7 @@ export interface CodexRuntime {
   /** Runs fn on a fresh, initialized `codex app-server` session in cwd and closes it. */
   withAppServer<T>(cwd: string, fn: (session: RpcSession) => Promise<T>): Promise<T>;
   /** Runs fn on an initialized connection to the daemon and closes it. */
-  withDaemon<T>(fn: (session: RpcSession, init: InitializeResult) => Promise<T>, timeoutMs?: number): Promise<T>;
+  withDaemon<T>(fn: (session: RpcSession, init: InitializeResult) => Promise<T>, timeoutMs?: number, experimentalApi?: boolean): Promise<T>;
 }
 
 /** Creates the runtime. */
@@ -297,11 +297,11 @@ export function createCodexRuntime(context: ProviderContext, deps: CodexDeps = {
         session.close();
       }
     },
-    async withDaemon(fn, timeoutMs) {
+    async withDaemon(fn, timeoutMs, experimentalApi = false) {
       const transport = await openDaemon(await socketPath(), { timeoutMs: timeoutMs ?? 5000 });
       const session = createRpcSession(transport, timeoutMs ? { timeoutMs } : {});
       try {
-        const init = await initializeSession(session);
+        const init = await initializeSession(session, undefined, experimentalApi);
         return await fn(session, init);
       } finally {
         session.close();

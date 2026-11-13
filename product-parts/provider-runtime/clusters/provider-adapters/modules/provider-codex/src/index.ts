@@ -23,3 +23,5 @@ export type { CodexRecord } from './sessions.ts';
 
 /** Creates the Codex provider with the real transports (stdio app-server, daemon socket). */
 export const createProvider: ProviderFactory = (context: ProviderContext): Provider => createCodexProvider(context);
+
+export { createParameterParts, PARAMETER_FONT, FULL_ACCESS_CONFIRM, UPDATE_UNSUPPORTED } from './parameters.ts';

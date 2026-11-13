@@ -155,8 +155,8 @@ export interface InitializeResult {
 }
 
 /** initialize → initialized: the handshake every Codex app-server connection starts with. */
-export async function initializeSession(session: RpcSession, timeoutMs?: number): Promise<InitializeResult> {
-  const result = await session.request<InitializeResult>('initialize', { clientInfo: CLIENT_INFO }, timeoutMs);
+export async function initializeSession(session: RpcSession, timeoutMs?: number, experimentalApi = false): Promise<InitializeResult> {
+  const result = await session.request<InitializeResult>('initialize', { clientInfo: CLIENT_INFO, ...(experimentalApi ? { capabilities: { experimentalApi: true } } : {}) }, timeoutMs);
   session.notify('initialized');
   return isObject(result) ? result : {};
 }

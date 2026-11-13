@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 788,
+  "revision": 790,
   "rounds": [
     {
       "digest": null,
@@ -237,14 +237,23 @@
       "files": [
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex",
         "docs/architecture/OVERVIEW.md",
-        "docs/evidence/M25-acceptance.md"
+        "docs/evidence/M25-acceptance.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/parameters.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/parameter-values.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/parameters.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/rpc.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/runtime.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/parameters.test.ts"
       ],
       "fixes": null,
       "id": "T003",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "ChatGPT: чтение параметров сессии",
       "why": "Строка ChatGPT показывает фактические модель, усилие, скорость, режим, разрешения, контекст и лимиты"
     },
@@ -578,8 +587,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 2/10
-- Revision: 788
+- Progress: 3/10
+- Revision: 790
 
 ## Objective
 
@@ -605,9 +614,9 @@
   - Commit: feat: add the session parameters contract and routes
   - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/provider-runtime/clusters/provider-contract/cluster.md, docs/architecture/CONTRACTS.md, docs/architecture/OVERVIEW.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/parameters.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/context.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/jsonl-tail.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/parameter-routes.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/parameter-snapshots.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/parameters.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/routes.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/parameter-storage.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/parameters.test.ts
   - Depends on: T001
-- [TODO] T003 — ChatGPT: чтение параметров сессии (work)
+- [DONE] T003 — ChatGPT: чтение параметров сессии (work)
   - Commit: feat(codex): read session parameters
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, docs/architecture/OVERVIEW.md, docs/evidence/M25-acceptance.md
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, docs/architecture/OVERVIEW.md, docs/evidence/M25-acceptance.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/parameters.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/parameter-values.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/parameters.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/rpc.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/runtime.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/parameters.test.ts
   - Depends on: T002
 - [TODO] T004 — ChatGPT: изменение параметров сессии (work)
   - Commit: feat(codex): update session parameters

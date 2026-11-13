@@ -23,7 +23,8 @@ codex-cli 0.167.2, демон Codex 0.169.0, Claude Code 2.1.323. Пометки
 
 Значения `permission_profile` в файле: `{ "type": "disabled" }` при полном доступе;
 `{ "type": "managed", "file_system": { "entries": [{ …, "access": "read" }] } }` при
-`:read-only`. Вид для `:workspace` не снят — снять при реализации.
+`:read-only`. Вид `:workspace` и правило распознавания —
+[правила](M25-session-parameters-rules.md), раздел 4.
 
 Модели (видимые): `gpt-6.1-sol` (по умолчанию), `gpt-6-astra`, `gpt-6.1-terra`, `gpt-6-sol`,
 `gpt-6-luna`, `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`. Усилия: `low`, `medium`, `high`,
@@ -86,3 +87,22 @@ codex-cli 0.167.2, демон Codex 0.169.0, Claude Code 2.1.323. Пометки
   `Auto` (основной), кольцо контекста с синей дугой.
 - ChatGPT: кольцо контекста (серое), значок молнии, `GPT-6.1 Sol` (основной), `Высокое`
   (приглушённый), стрелка вниз.
+
+## 6. Пробы по ревью плана (13.11.2026)
+
+- Без `experimentalApi` работают `thread/read`, `account/rateLimits/read`, `model/list`,
+  `permissionProfile/list`; `collaborationMode/list` и `thread/settings/update` отвечают
+  `-32600 … requires experimentalApi capability`. **[проверено]**
+- `thread/settings/update { effort }` и `{ model }` без `collaborationMode`: демон сам
+  обновляет `collaborationMode.settings.model` и `reasoning_effort` и сохраняет заданные
+  `developer_instructions`. **[проверено]**
+- `collaborationMode` с `developer_instructions: null`: демон подставляет встроенные
+  инструкции выбранного режима (текст режима «План» — 9 156 знаков, режима «Обычный» —
+  1 288); прежние свои инструкции заменяются. **[проверено]**
+- `thread/settings/update { permissions }` для `:workspace`, `:danger-full-access`,
+  `:read-only`: уведомление несёт `activePermissionProfile.id` и `sandboxPolicy.type`
+  (`workspaceWrite`, `dangerFullAccess`, `readOnly`); структура в файле сессии —
+  в правилах, раздел 4. **[проверено]**
+- Строка состояния Claude на Windows запускается через Git Bash, без него — через
+  PowerShell; `CLAUDE_CODE_GIT_BASH_PATH` задаёт путь к `bash.exe`; пустой вывод скрывает
+  строку; тайм-аут не описан. **[документация]** (statusline.md, env-vars.md)

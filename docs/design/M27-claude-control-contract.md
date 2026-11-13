@@ -10,7 +10,9 @@ provider-registry расширяет ParameterPresentation дискримини�
 {layout:'claude-controls', speedHint?}; существующий effort-card/access остаётся
 обратно совместимым. Claude presentation использует items model/effort/speed/mode,
 options/description/disabled/reason/confirm. Интерфейс не интерпретирует native id.
-У всех обращений к access M26 появляется layout guard, включая аудит и старый UI.
+У всех обращений к access M26 появляется layout guard, включая аудит, старый UI
+и provider-codex/parameter-update. Код Codex явно отклоняет ultracode также в смешанном
+запросе с допустимой моделью, а не молча игнорирует новый ключ.
 
 Если T001 подтвердил отдельный Ultracode, ParameterId/ParameterChange и допустимые
 ключи расширяются ultracode со строками on/off; в native запросе это boolean.

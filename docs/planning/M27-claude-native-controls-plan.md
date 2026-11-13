@@ -123,6 +123,7 @@ QUALITY/DOCS добавляет Kit; DOCS должен завершиться д
       "commitMessage": "feat(parameters): expose effective Claude session controls",
       "files": [
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex",
         "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry",
         "product-parts/backend-core/clusters/runtime/modules/cli",
         "product-parts/control-panel/clusters/web-panel/modules/session-chat",
@@ -191,6 +192,7 @@ QUALITY/DOCS добавляет Kit; DOCS должен завершиться д
       "files": [
         "product-parts/control-panel/clusters/web-panel/modules/session-chat",
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex",
         "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry",
         "product-parts/backend-core/clusters/runtime/modules/cli",
         "design-qa.md",

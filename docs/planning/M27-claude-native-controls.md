@@ -219,7 +219,7 @@ headSha и четырёх зелёных jobs; меняет доказатель
 | --- | --- | --- |
 | T001 | Доказать setters и persistence, получить Claude PNG | docs/design/M27*, docs/evidence/M27*; эта спецификация |
 | T002 | Проверенный native control и арбитраж PTY/send/Stop | provider-claude; при необходимости pty-host; platform guard; контракты |
-| T003 | State/catalogs/HTTP update и общий тип презентации | provider-claude/registry; cli statusline; совместимость session-chat; контракты |
+| T003 | State/catalogs/HTTP update и общий тип презентации | provider-claude/registry; cli statusline; совместимость Codex/session-chat; контракты |
 | T004 | Нативные Claude controls в composer | session-chat, Claude presentation; контракты |
 | T005 | Browser/native regression и visual QA | session-chat/claude/registry, design-qa, evidence |
 | DOCS | Согласовать общие документы и digest | добавляет Kit |

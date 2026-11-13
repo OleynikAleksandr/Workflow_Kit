@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 840,
+  "revision": 841,
   "rounds": [
     {
       "digest": null,
@@ -366,7 +366,8 @@
         "docs/design/M26-native-controls-reference.md",
         "docs/evidence/M26-native-controls.md",
         "docs/architecture/CONTRACTS.md",
-        "design-qa.md"
+        "design-qa.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/parameters.md"
       ],
       "fixes": null,
       "id": "DOCS-R1",
@@ -472,7 +473,7 @@
 - Execution: sequential
 - Current task: none
 - Progress: 5/8
-- Revision: 840
+- Revision: 841
 
 ## Objective
 
@@ -510,7 +511,7 @@
   - Depends on: T004
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
-  - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M26-native-session-controls.md, docs/design/M26-native-controls-reference.md, docs/evidence/M26-native-controls.md, docs/architecture/CONTRACTS.md, design-qa.md
+  - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M26-native-session-controls.md, docs/design/M26-native-controls-reference.md, docs/evidence/M26-native-controls.md, docs/architecture/CONTRACTS.md, design-qa.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/parameters.md
   - Depends on: T001, T002, T003, T004, T005
 - [TODO] T006 — Установить локальную поставку 0.12.0 (delivery)
   - Commit: chore(release): install Workflow Kit 0.12.0 locally

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 848,
+  "revision": 850,
   "rounds": [
     {
       "digest": {
@@ -509,14 +509,22 @@
         "docs/planning/M26-native-session-controls.md",
         "docs/evidence/M26-native-controls.md",
         "docs/evidence/M26",
-        "design-qa.md"
+        "design-qa.md",
+        "docs/evidence/M26/fixes-composer-touch.png",
+        "docs/evidence/M26/fixes-composer.png",
+        "docs/evidence/M26/user-fixes-reference.png",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/parameters.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/effort-card.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/parameters.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/test/native-controls.browser.js"
       ],
       "fixes": "T003",
       "id": "T008",
       "iteration": 1,
       "kind": "work",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Убрать служебный подстрочник и исправить захват бегунка",
       "why": "Убрать служебный подстрочник и исправить захват бегунка"
     },
@@ -620,8 +628,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 8/12
-- Revision: 848
+- Progress: 9/12
+- Revision: 850
 
 ## Objective
 
@@ -674,9 +682,9 @@ Digest: Реализованы нативные контролы ChatGPT, реа
 
 ### R2 — Замечания пользователя: тихая смена параметров и drag бегунка (fixes, OPEN)
 
-- [TODO] T008 — Убрать служебный подстрочник и исправить захват бегунка (work)
+- [DONE] T008 — Убрать служебный подстрочник и исправить захват бегунка (work)
   - Commit: fix(panel): support thumb dragging and silence parameter success notices
-  - Files: product-parts/control-panel/clusters/web-panel/modules/session-chat, docs/architecture/OVERVIEW.md, docs/planning/M26-native-session-controls.md, docs/evidence/M26-native-controls.md, docs/evidence/M26, design-qa.md
+  - Files: product-parts/control-panel/clusters/web-panel/modules/session-chat, docs/architecture/OVERVIEW.md, docs/planning/M26-native-session-controls.md, docs/evidence/M26-native-controls.md, docs/evidence/M26, design-qa.md, docs/evidence/M26/fixes-composer-touch.png, docs/evidence/M26/fixes-composer.png, docs/evidence/M26/user-fixes-reference.png, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/parameters.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/effort-card.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/parameters.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/native-controls.browser.js
   - Fixes: T003
 - [TODO] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R2

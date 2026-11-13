@@ -115,11 +115,11 @@ export function createParameters({ shell, projectId, key, provider, fallback, on
   }
   async function change(/** @type {string} */ id, /** @type {Option} */ option, confirmed = false, closeAfter = true) {
     if (busy) return; const focused = /** @type {HTMLElement | null} */ (document.activeElement); busy = true; trigger.disabled = accessButton.disabled = true; poll.invalidate(); renderMenu(false);
-    report('Меняю параметры…', 'muted');
+    report('', 'muted');
     try {
       const answer = await shell.api('POST', url, { change: { [id]: option.value, ...(confirmed ? { confirmed: true } : {}) } });
       apply({ supported: true, parameters: answer.parameters });
-      report(['Параметры обновлены', ...(answer.parameters?.notes ?? [])].join('. '), 'ok'); if (closeAfter) close();
+      report('', 'muted'); if (closeAfter) close();
     } catch (error) { report(errorText(error), 'error'); }
     finally { busy = false; trigger.disabled = accessButton.disabled = false; if (popup) { renderMenu(false); if (focused?.isConnected && popup.contains(focused)) focused.focus({ preventScroll: true }); } await poll.refresh(); }
   }

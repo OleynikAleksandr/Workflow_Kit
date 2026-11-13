@@ -14,7 +14,8 @@ export function createEffortCard({ h, data, busy, change, models }) {
   const reason = h('p', { class: 'sc-effort-reason' });
   const hint = h('div', { class: 'sc-speed-hint', role: 'tooltip' }); hint.hidden = true;
   const node = h('div', { class: 'sc-effort-card' }, [h('div', { class: 'sc-effort-header' }, [speed, label, model]), track, reason, hint]);
-  let pointer = false, keyboard = false, submitted = false, destroyed = false;
+  let pointer = false, keyboard = false, submitted = false, destroyed = false, cancelled = false;
+  /** @type {number | null} */ let pointerId = null;
   /** @type {import('#provider-registry').ParameterOption[]} */ let optionsList = [];
   function preview() {
     const option = effortChoice(slider.value, optionsList);
@@ -41,8 +42,10 @@ export function createEffortCard({ h, data, busy, change, models }) {
     model.replaceChildren(document.createTextNode(modelItem?.label ?? 'Модель: нет данных'), icon('chevron-right'));
     model.disabled = busy() || !modelItem?.options?.some(o => !o.disabled);
     model.title = modelItem?.reason ?? 'Выбрать модель';
-    slider.max = String(Math.max(0, optionsList.length - 1));
-    slider.disabled = busy() || current < 0 || optionsList.filter(o => !o.disabled).length < 2;
+    const max = String(Math.max(0, optionsList.length - 1));
+    if (slider.max !== max) slider.max = max;
+    const disabled = busy() || current < 0 || optionsList.filter(o => !o.disabled).length < 2;
+    if (slider.disabled !== disabled) slider.disabled = disabled;
     track.hidden = current < 0;
     reason.textContent = current < 0 ? effort?.reason ?? 'Усилие: нет данных' : optionsList.filter(o => !o.disabled).length < 2 ? effort?.reason ?? 'Другие уровни недоступны' : '';
     reason.hidden = !reason.textContent;
@@ -57,14 +60,35 @@ export function createEffortCard({ h, data, busy, change, models }) {
     const text = [state.presentation?.speedHint, !busy() && (!next || next.disabled) ? next?.reason ?? speedItem?.reason ?? 'Скорость недоступна' : null].filter(Boolean).join('\n') || 'Скорость недоступна';
     speed.title = text; speed.setAttribute('aria-label', `Быстрая скорость. ${text.replace(/\n/g, '. ')}`); hint.textContent = text;
   }
-  slider.addEventListener('input', preview);
-  slider.addEventListener('pointerdown', event => { pointer = true; slider.setPointerCapture(event.pointerId); });
-  slider.addEventListener('pointerup', () => { pointer = false; void commit(); });
-  slider.addEventListener('pointercancel', () => { pointer = false; update(); });
-  slider.addEventListener('keydown', event => { if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) keyboard = true; });
+  function clearPointer() {
+    pointer = false; pointerId = null;
+    document.removeEventListener('pointerup', finishPointer, true);
+    document.removeEventListener('pointercancel', cancelPointer, true);
+    document.removeEventListener('lostpointercapture', cancelPointer, true);
+    window.removeEventListener('blur', cancelPointer);
+  }
+  function cancelPointer(/** @type {Event} */ event) {
+    if (pointerId === null || (event instanceof PointerEvent && event.pointerId !== pointerId)) return;
+    cancelled = true; clearPointer(); update();
+  }
+  function finishPointer(/** @type {PointerEvent} */ event) {
+    if (event.pointerId !== pointerId) return;
+    clearPointer(); void commit();
+  }
+  slider.addEventListener('input', () => { if (cancelled) update(); else preview(); });
+  slider.addEventListener('pointerdown', event => {
+    if (slider.disabled || event.button !== 0 || pointer) return;
+    pointer = true; pointerId = event.pointerId; cancelled = false;
+    // Native range owns its thumb capture. Capturing the outer input steals the drag.
+    document.addEventListener('pointerup', finishPointer, true);
+    document.addEventListener('pointercancel', cancelPointer, true);
+    document.addEventListener('lostpointercapture', cancelPointer, true);
+    window.addEventListener('blur', cancelPointer);
+  });
+  slider.addEventListener('keydown', event => { if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) { keyboard = true; cancelled = false; } });
   slider.addEventListener('keyup', () => { if (keyboard) { keyboard = false; void commit(); } });
   slider.addEventListener('blur', () => { if (keyboard) { keyboard = false; void commit(); } });
-  slider.addEventListener('change', () => { if (!pointer && !keyboard) void commit(); });
+  slider.addEventListener('change', () => { if (!pointer && !keyboard && !cancelled) void commit(); });
   speed.addEventListener('mouseenter', () => { hint.hidden = false; }); speed.addEventListener('mouseleave', () => { hint.hidden = true; });
   speed.addEventListener('focus', () => { hint.hidden = false; }); speed.addEventListener('blur', () => { hint.hidden = true; });
   speed.addEventListener('click', () => {
@@ -72,5 +96,5 @@ export function createEffortCard({ h, data, busy, change, models }) {
     hint.hidden = false; if (next && !next.disabled && !busy()) void change('speed', next);
   });
   model.addEventListener('click', models);
-  update(); return { node, update, destroy() { destroyed = true; pointer = keyboard = false; } };
+  update(); return { node, update, destroy() { destroyed = true; clearPointer(); keyboard = false; } };
 }

@@ -175,3 +175,11 @@ M26/T005: native CSS перекрывает базовые popup/mask-прави
 переживает polling; неизвестное усилие не подменяется. Размер пересчитывается после
 изменения содержимого. Визуальные и browser evidence: корневой design-qa.md и M26 evidence.
 Все исправления — общий DOM/CSS на macOS/Linux/Windows, новых ОС-зависимостей нет.
+
+M26/R2: смена параметров не пишет служебные success/progress/notes в sc-status;
+ошибки остаются видимыми. Родной input range владеет захватом своего thumb:
+на внешнем input setPointerCapture не вызывается. Временные document-listeners
+завершают жест за пределами дорожки; cancel/lostcapture/blur/destroy снимают их
+и не отправляют POST. max/disabled не переписываются при прежнем значении, чтобы
+polling не сбрасывал нативный drag. Общий код на macOS/Linux/Windows, без программ ОС.
+Регрессия: test/native-controls.browser.js, реальный thumb-center drag и touch.

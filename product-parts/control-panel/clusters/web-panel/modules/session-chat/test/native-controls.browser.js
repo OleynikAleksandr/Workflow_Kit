@@ -11,6 +11,7 @@ async (root) => {
   try {
     await page.route('**/native-controls-test', route => route.fulfill({contentType:'text/html',headers:{'Content-Security-Policy':"default-src 'self'; base-uri 'none'; form-action 'self'"},body:'<!doctype html><html data-theme="dark"><head><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/session-chat/session-chat.css"></head><body></body></html>'}));
     await page.goto('http://127.0.0.1:48762/native-controls-test');
+    await page.bringToFront();
     await page.evaluate(async () => {
       const {h} = await import('/dom.js');
       const {createComposer} = await import('/session-chat/composer.js');
@@ -41,6 +42,8 @@ async (root) => {
     const read=()=>page.evaluate(()=>({posts:window.fixture.posts,reads:window.fixture.reads}));
     const settle=()=>page.locator('.sc-parameter-trigger:enabled').waitFor();
     const start=async()=>{
+      // Wait for stable layout after the anchor's press animation before measuring the thumb.
+      await range.hover();
       const b=await range.boundingBox(),v=Number(await range.inputValue()),max=Number(await range.getAttribute('max'));
       const center=b.x+14+v/max*(b.width-28),y=b.y+b.height/2;
       await page.mouse.move(center,y);await page.mouse.down();return {...b,y};
@@ -70,6 +73,7 @@ async (root) => {
     }
     await page.locator('.sc-parameter-trigger').click();
     let before=(await read()).posts.length,b=await start();await move(b,4);
+    check(await range.inputValue()==='4','drag preview reached target before polling');
     const reads=(await read()).reads,deadline=Date.now()+7000;
     while((await read()).reads<=reads&&Date.now()<deadline)await page.waitForTimeout(50);
     check((await read()).reads>reads,'poll completed while holding thumb');

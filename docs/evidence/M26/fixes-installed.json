@@ -1,0 +1,14 @@
+{
+  "version": "0.12.1",
+  "sharedAccess": "active",
+  "parameters": {
+    "speed": "priority",
+    "model": "gpt-6.1-sol",
+    "effort": "xhigh",
+    "permissions": ":danger-full-access",
+    "mode": "default"
+  },
+  "layout": "effort-card",
+  "filesCompared": 527,
+  "differences": []
+}

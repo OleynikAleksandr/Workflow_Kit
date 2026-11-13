@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": "T009",
+  "currentTaskId": null,
   "lastClosed": {
     "closedAt": "2026-11-13T15:14:42.535Z",
     "scopeId": "m25-session-parameters"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 855,
+  "revision": 856,
   "rounds": [
     {
       "digest": {
@@ -599,14 +599,18 @@
         "docs/architecture/OVERVIEW.md",
         "docs/evidence/M26-native-controls.md",
         "docs/evidence/M26",
-        "product-parts/control-panel/clusters/web-panel/modules/session-chat/test/native-controls.browser.js"
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/test/native-controls.browser.js",
+        "docs/evidence/M26/fixes-delivery.md",
+        "docs/evidence/M26/fixes-installed-composer-touch.png",
+        "docs/evidence/M26/fixes-installed-composer.png",
+        "docs/evidence/M26/fixes-installed.json"
       ],
       "fixes": null,
       "id": "T009",
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R2",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "title": "Собрать и установить исправления 0.12.1",
       "why": "Собрать и установить исправления 0.12.1"
     },
@@ -646,9 +650,9 @@
 - Scope: m26-native-session-controls (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: T009
-- Progress: 10/12
-- Revision: 855
+- Current task: none
+- Progress: 11/12
+- Revision: 856
 
 ## Objective
 
@@ -709,9 +713,9 @@ Digest: Реализованы нативные контролы ChatGPT, реа
   - Commit: docs: reconcile documentation for R2
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M26-native-session-controls.md, docs/evidence/M26-native-controls.md, design-qa.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/parameters.md
   - Depends on: T008
-- [IN_PROGRESS] T009 — Собрать и установить исправления 0.12.1 (delivery)
+- [DONE] T009 — Собрать и установить исправления 0.12.1 (delivery)
   - Commit: chore(release): install Workflow Kit 0.12.1
-  - Files: package.json, package-lock.json, README.md, CHANGELOG.md, docs/usage.md, docs/installation.md, docs/architecture/OVERVIEW.md, docs/evidence/M26-native-controls.md, docs/evidence/M26, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/native-controls.browser.js
+  - Files: package.json, package-lock.json, README.md, CHANGELOG.md, docs/usage.md, docs/installation.md, docs/architecture/OVERVIEW.md, docs/evidence/M26-native-controls.md, docs/evidence/M26, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/native-controls.browser.js, docs/evidence/M26/fixes-delivery.md, docs/evidence/M26/fixes-installed-composer-touch.png, docs/evidence/M26/fixes-installed-composer.png, docs/evidence/M26/fixes-installed.json
   - Depends on: T008, DOCS-R2
 - [TODO] T010 — Зафиксировать CI исправлений на четырёх платформах (delivery)
   - Commit: docs: record green CI for native controls fixes

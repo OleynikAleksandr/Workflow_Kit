@@ -219,3 +219,8 @@ idle и native ACK/read-back обязательны. Команды закрыт
 expect и ConPTY не меняет defaults, не вызывает inference и не перезапускает Claude.
 Provider.nativeControlHook проверяется до канала/autopilot; неожиданные control hooks
 не получают очередь и не начинают ход. Send/Stop используют общий арбитр T002.
+
+M27/T004: ParameterPresentation — discriminated effort-card/claude-controls;
+Ultracode on/off только Claude. Opaque model options отмечаются selected/group,
+item.value остаётся effective id. POST Claude — одно поле, native read-back всего
+набора; 400/409/503/504 явно сохраняются. Codex отклоняет чужой ключ до RPC.

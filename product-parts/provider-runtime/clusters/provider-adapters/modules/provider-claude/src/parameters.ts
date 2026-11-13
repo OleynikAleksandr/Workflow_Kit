@@ -5,7 +5,7 @@ const obj = (v: unknown): Dict => v !== null && typeof v === 'object' && !Array.
 const str = (v: unknown): string | null => typeof v === 'string' && v ? v : null;
 const num = (v: unknown): number | null => typeof v === 'number' && Number.isFinite(v) && v >= 0 ? v : null;
 const EFFORT: Record<string, string> = { low: 'Low', medium: 'Medium', high: 'High', xhigh: 'Extra', max: 'Max', ultra: 'Ultracode' };
-const MODE: Record<string, string> = { auto: 'Auto', plan: 'Plan', acceptEdits: 'Accept edits', default: 'Ask', bypassPermissions: 'Bypass', dontAsk: "Don't ask", manual: 'Manual' };
+const MODE: Record<string, string> = { auto: 'Auto', plan: 'Plan', acceptEdits: 'Accept edits', default: 'Manual', bypassPermissions: 'Bypass', dontAsk: "Don't ask", manual: 'Manual' };
 export const CLAUDE_PARAMETER_FONT = '"Anthropic Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif';
 export function claudeModelLabel(id: string): string {
   const m = /^claude-([a-z]+)-(\d+(?:-\d+)*)$/.exec(id);
@@ -43,7 +43,7 @@ export function createClaudeParameterReader(context: ProviderContext, read: (fil
         return [{ id, label: id === 'five_hour' ? '5 ч' : '7 д', usedPercent: Math.min(100, used), resetsAt: at }];
       });
       return { items, context: Object.keys(window).length ? { usedTokens: num(window['total_input_tokens']), windowTokens: num(window['context_window_size']), usedPercent: percent === null ? null : Math.min(100, percent) } : null,
-        limits, style: { font: CLAUDE_PARAMETER_FONT, ring: 'last', accent: '#4c8dff' }, editable: false, at: context.now().toISOString() };
+        limits, style: { font: CLAUDE_PARAMETER_FONT, ring: 'last', accent: '#4c8dff' }, editable: false, at: typeof snapshot['at'] === 'string' ? snapshot['at'] : '' };
     },
   };
 }

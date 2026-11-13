@@ -49,14 +49,14 @@ export function registerParameterRoutes(parts: ChatRouteParts & { mutex: KeyedMu
             parameter: item.id, old, new: item.value,
           });
         }
-        const oldAccess = before?.presentation?.access.value ?? null;
-        const newAccess = parameters.presentation?.access.value ?? null;
+        const oldAccess = before?.presentation?.layout === 'effort-card' ? before.presentation.access.value : null;
+        const newAccess = parameters.presentation?.layout === 'effort-card' ? parameters.presentation.access.value : null;
         if (oldAccess !== newAccess) await events?.append('provider.parameters.changed', { provider: provider.id, project: project.id, session: session.localId, parameter: 'access', old: oldAccess, new: newAccess, fields: { permissions: { old: before?.items.find(i => i.id === 'permissions')?.value ?? null, new: parameters.items.find(i => i.id === 'permissions')?.value ?? null }, approvalPolicy: { old: before?.notes?.find(n => n.startsWith('Одобрения:'))?.slice(10).trim() ?? null, new: parameters.notes?.find(n => n.startsWith('Одобрения:'))?.slice(10).trim() ?? null }, approvalsReviewer: { old: before?.notes?.find(n => n.startsWith('Проверяющий:'))?.slice(12).trim() ?? null, new: parameters.notes?.find(n => n.startsWith('Проверяющий:'))?.slice(12).trim() ?? null } } });
         return { parameters };
       });
     } catch (error) {
-      if (error instanceof ProviderError && ['parameter-invalid', 'confirmation-required', 'parameters-unavailable'].includes(error.code)) {
-        const status = error.code === 'parameter-invalid' ? 400 : error.code === 'confirmation-required' ? 409 : 503;
+      if (error instanceof ProviderError && ['parameter-invalid', 'confirmation-required', 'parameters-unavailable', 'parameters-busy', 'parameters-stale', 'parameters-timeout'].includes(error.code)) {
+        const status = error.code === 'parameter-invalid' ? 400 : ['confirmation-required', 'parameters-busy', 'parameters-stale'].includes(error.code) ? 409 : error.code === 'parameters-timeout' ? 504 : 503;
         throw new HttpError(status, error.code, error.message, { ...error.details, ...(error.hint ? { hint: error.hint } : {}) });
       }
       throw parts.toHttpError(error);

@@ -52,7 +52,7 @@ export type { CachedProviderProject, ProviderRegistry, ProviderSummary, Provider
 export { STATE_READ_TIMEOUT_MS, createProviderRegistry, errorInfo } from './registry.ts';
 export type { ProviderRoutes, ProviderRoutesOptions } from './routes.ts';
 export { OPERATION_EVENTS, defaultSessionTitle, registerProviderRoutes } from './routes.ts';
-export type { ParameterId, ParameterOption, ParameterItem, ContextUsage, LimitWindow, ParameterStyle, SessionParameters, ParameterChange, AccessOption, AccessPresentation, ParameterPresentation } from './parameters.ts';
+export type { ParameterId, ParameterOption, ParameterItem, ContextUsage, LimitWindow, ParameterStyle, SessionParameters, ParameterChange, AccessOption, AccessPresentation, ParameterPresentation, EffortCardPresentation, ClaudeControlsPresentation } from './parameters.ts';
 export { PARAMETER_IDS, PARAMETER_CHANGE_IDS } from './parameters.ts';
 export { snapshotFile, limitsFile, readSnapshot, writeSnapshot } from './parameter-snapshots.ts';
 export { createJsonlTail, JSONL_BLOCK_BYTES, JSONL_MAX_BYTES } from './jsonl-tail.ts';

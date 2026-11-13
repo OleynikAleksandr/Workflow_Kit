@@ -27,8 +27,11 @@ export class ParameterEngine {
   private cancelled = false;
   private seen = new Set<string>();
   private result: NativeParameterResult | null = null;
+  private effectiveMode: string | null = null;
+  private effectiveUltra: boolean | null = null;
   private primaryLast = 5;
   private models = new Map<string, ModelRow>();
+  private recommended: string | null = null;
   private efforts: string[] = [];
   private fastReason: string | null = null;
   private ultraAvailable = false;
@@ -48,6 +51,7 @@ export class ParameterEngine {
     const f = parameterFrame(this.screen);
     const signature = JSON.stringify([f.kind, f.input, f.mode, f.ultracode, f.selected, f.previewEffort, this.meta?.model, this.meta?.effort]);
     if (signature !== this.signature) { this.signature = signature; this.epoch++; }
+    if (f.kind === 'idle' && f.input === '') { this.effectiveMode = f.mode; this.effectiveUltra = f.ultracode; }
     this.frame = f;
     const rendered = JSON.stringify([f.text, this.screen.cursor()]);
     if (rendered !== this.rendered) { this.rendered = rendered; this.revision++; }
@@ -67,8 +71,8 @@ export class ParameterEngine {
       at: this.now(), cliVersion: m?.cliVersion ?? '', status, inputEmpty: this.empty(),
       reason: status === 'idle' ? null : !m ? 'Нет native statusline этого host' : !this.empty() && f.input !== null ? 'В Claude есть черновик' : 'Терминал Claude занят или не распознан',
       model: m?.model ?? null, effort: m?.effort === 'ultra' ? f.baseEffort : m?.effort ?? null,
-      mode: f.mode, fast: m?.fast ?? null, ultracode: f.ultracode, models: [...this.models.values()].map(({ key, label, group }) => ({ key, label, group })),
-      efforts: this.efforts, fastReason: this.fastReason, pending: this.request ? { id: this.request.id, sessionId: this.request.sessionId,
+      mode: f.mode ?? (this.request ? this.effectiveMode : null), fast: m?.fast ?? null, ultracode: f.ultracode ?? (this.request ? this.effectiveUltra : null), ultracodeAvailable: this.ultraAvailable, models: [...this.models.values()].map(({ key, label, group }) => ({ key, label, group })),
+      efforts: this.efforts, effortRecommended: this.recommended, fastReason: this.fastReason, pending: this.request ? { id: this.request.id, sessionId: this.request.sessionId,
         epoch: this.request.epoch, expires: this.request.expires, field: this.request.field, command: this.command } : null };
   }
   takeResult(): NativeParameterResult | null { const result = this.result; this.result = null; return result; }
@@ -195,6 +199,13 @@ export class ParameterEngine {
     yield* this.open('/effort', 'effort');
     if (!this.frame.efforts.length) throw new Error('Неизвестная форма effort');
     this.efforts = this.frame.efforts; this.ultraAvailable = this.frame.ultraAvailable;
+    this.recommended = null;
+    // Preview only: inspect native descriptions without saving any effort/default.
+    for (let i = 0; this.frame.previewEffort !== this.efforts[0] && i < 5; i++) yield { key: 'left', frame: 'effort' };
+    for (let i = 0; i < this.efforts.length; i++) {
+      if (/The default effort for this model/.test(this.frame.text)) this.recommended = this.frame.previewEffort;
+      if (i < this.efforts.length - 1) yield { key: 'right', frame: 'effort' };
+    }
     yield { key: 'escape', frame: 'effort' }; yield { until: f => f.kind === 'idle' && this.empty() };
   }
   private *setter(r: NativeParameterRequest): Flow {

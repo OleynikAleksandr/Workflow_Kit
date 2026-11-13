@@ -178,3 +178,17 @@ Injected darwin/linux/win32: trusted hook guard не трогает channel/barr
 Исходные interrupt*/direct assertions проходят, пользовательская statusline сохраняет
 байты/ошибки. Это автоматизированная проверка; live нового host — T006/T007,
 Windows live остаётся задачей проверяющего, Linux — CI.
+
+## T004: effective state и HTTP
+
+Claude-controls объединяет source native snapshot и M25 context/limits. Effective
+model.id отделён от opaque option key; explicit selected/group и recommended из
+native preview. Ultracode не меняет базовый effort, legacy raw ultra оставляет
+base неизвестным. Fast требует доказанной доступности и здесь disabled с причиной.
+Старый/stale host не становится editable, GET не открывает native меню/программы.
+
+Injected darwin/linux/win32 тесты: одно изменение, unsupported/mixed поля, старый
+host, busy/stale, native result и сохранение unrelated model/effort/context/limits.
+Общие HTTP тесты проверили ownership/canonical alias, очередь и effective audit,
+явные 400/409/503/504 и отсутствие access у Claude layout. Codex отвергает ultracode
+до RPC, включая mixed model; M26 access assertions сохранены с layout guard.

@@ -130,7 +130,7 @@ export function createParameters({ shell, projectId, key, provider, fallback, on
     if (!answer?.parameters || !Array.isArray(answer.parameters.items)) return;
     const previous = JSON.stringify(data?.items); data = /** @type {Parameters} */ (answer.parameters);
     const native = data.presentation?.layout === 'effort-card'; accessNode.hidden = !native; onLayout?.(native);
-    const access = data.presentation?.access;
+    const access = data.presentation?.layout === 'effort-card' ? data.presentation.access : undefined;
     accessButton.replaceChildren(icon(access?.tone === 'warning' ? 'shield-alert' : access?.options?.find(o => o.value === access.value)?.icon ?? 'hand'), document.createTextNode(access?.label ?? 'Особые разрешения'));
     accessButton.classList.toggle('sc-access-warning', access?.tone === 'warning');
     accessButton.setAttribute('aria-label', `Доступ: ${access?.label ?? 'Особые разрешения'}`);

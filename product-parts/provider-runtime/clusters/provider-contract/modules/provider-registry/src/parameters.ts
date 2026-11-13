@@ -1,8 +1,8 @@
 /** Provider-owned presentation and editing of effective session parameters (M25). */
-export type ParameterId = 'model' | 'effort' | 'speed' | 'mode' | 'permissions';
+export type ParameterId = 'model' | 'effort' | 'speed' | 'mode' | 'permissions' | 'ultracode';
 export interface ParameterOption {
   value: string; label: string; description?: string;
-  disabled?: boolean; reason?: string; confirm?: string;
+  disabled?: boolean; reason?: string; confirm?: string; selected?: boolean; group?: 'primary' | 'more'; recommended?: boolean;
 }
 export interface ParameterItem {
   id: ParameterId; value: string | null; label: string;
@@ -21,10 +21,10 @@ export interface SessionParameters {
   presentation?: ParameterPresentation; style: ParameterStyle; editable: boolean; reason?: string; notes?: string[]; at: string;
 }
 export interface ParameterChange {
-  model?: string; effort?: string; speed?: string; mode?: string;
+  model?: string; effort?: string; speed?: string; mode?: string; ultracode?: string;
   permissions?: string; access?: string; confirmed?: boolean;
 }
-export const PARAMETER_IDS: readonly ParameterId[] = ['model', 'effort', 'speed', 'mode', 'permissions'];
+export const PARAMETER_IDS: readonly ParameterId[] = ['model', 'effort', 'speed', 'mode', 'permissions', 'ultracode'];
 
 /** Optional provider-owned compact controls; older clients keep the item list. */
 export interface AccessOption extends ParameterOption {
@@ -34,8 +34,11 @@ export interface AccessPresentation {
   value: string | null; label: string; tone: 'primary' | 'warning';
   options?: AccessOption[]; reason?: string;
 }
-export interface ParameterPresentation {
+export interface EffortCardPresentation {
   layout: 'effort-card'; speedHint?: string; access: AccessPresentation;
 }
+
+export interface ClaudeControlsPresentation { layout: 'claude-controls'; speedHint?: string }
+export type ParameterPresentation = EffortCardPresentation | ClaudeControlsPresentation;
 
 export const PARAMETER_CHANGE_IDS = [...PARAMETER_IDS, 'access'] as const;

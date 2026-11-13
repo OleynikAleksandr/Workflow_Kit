@@ -78,7 +78,7 @@ test('invalid bodies are rejected without provider mutations', async () => {
   assert.equal(calls, 0);
 });
 test('provider errors preserve confirm and hints with specified HTTP statuses', async () => {
-  for (const [code, status] of [['parameter-invalid', 400], ['confirmation-required', 409], ['parameters-unavailable', 503]] as const) {
+  for (const [code, status] of [['parameter-invalid', 400], ['confirmation-required', 409], ['parameters-unavailable', 503], ['parameters-busy', 409], ['parameters-stale', 409], ['parameters-timeout', 504]] as const) {
     fake.updateParameters = async () => { throw new ProviderError(code, 'Reason', { hint: 'Hint', details: { confirm: 'Continue?' } }); };
     const answer = await call('POST', 's1', { change: { model: 'b', confirmed: true } });
     assert.equal(answer.status, status);
@@ -126,4 +126,16 @@ test('access writes accept opaque ids, reject legacy mixing, and audit the effec
   const events = (await readFile(path.join(tmp, 'events.jsonl'), 'utf8')).trim().split('\n').map(l => JSON.parse(l));
   const event = events.findLast(e => e.parameter === 'access' && e.new === 'auto');
   assert.equal(event.old, 'ask'); assert.deepEqual(event.fields.approvalsReviewer, { old: 'user', new: 'auto_review' });
+});
+
+test('Claude layout audits effective Ultracode/base changes without reading access fields', async () => {
+  const state = (on: boolean): SessionParameters => ({ ...params('effective-model-id'), presentation: { layout: 'claude-controls' }, items: [
+    { id: 'effort', value: 'high', label: 'High', title: 'Effort', inRow: true, tone: 'muted' },
+    { id: 'ultracode', value: on ? 'on' : 'off', label: 'Ultracode', title: 'Ultracode', inRow: on, tone: 'muted' },
+  ] });
+  current = state(false);
+  fake.updateParameters = async (_p, _id, change) => { assert.equal(change.ultracode, 'on'); return current = state(true); };
+  assert.equal((await call('POST', 'r-s1', { change: { ultracode: 'on' } })).status, 200);
+  const events = (await readFile(path.join(tmp, 'events.jsonl'), 'utf8')).trim().split('\n').map(l => JSON.parse(l));
+  const event = events.findLast(e => e.parameter === 'ultracode'); assert.equal(event.old, 'off'); assert.equal(event.new, 'on');
 });

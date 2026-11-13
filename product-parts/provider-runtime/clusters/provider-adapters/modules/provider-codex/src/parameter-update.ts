@@ -19,6 +19,7 @@ export function createParameterUpdater(rt: CodexRuntime, parts: ReturnType<typeo
   const queue = createKeyedMutex();
   return (id: string, change: ParameterChange, cwd?: string): Promise<SessionParameters> => queue.run(id, async () => {
     try {
+      for (const key of Object.keys(change)) if (!['model', 'effort', 'speed', 'mode', 'permissions', 'access', 'confirmed'].includes(key)) invalid(key, change[key as keyof ParameterChange]);
       await shared.refresh();
       return await parts.connect(async (session, experimental) => {
         if (!experimental) unavailable(UPDATE_UNSUPPORTED, 'Обновите Codex');
@@ -58,7 +59,7 @@ export function createParameterUpdater(rt: CodexRuntime, parts: ReturnType<typeo
         if (change.access !== undefined) {
           if (change.permissions !== undefined) invalid('access', 'cannot combine permissions');
           const preset = Object.hasOwn(ACCESS_PRESETS, change.access) ? ACCESS_PRESETS[change.access] : undefined;
-          const option = state.parameters.presentation?.access.options?.find(o => o.value === change.access);
+          const option = state.parameters.presentation?.layout === 'effort-card' ? state.parameters.presentation.access.options?.find(o => o.value === change.access) : undefined;
           if (!preset || !option || option.disabled) invalid('access', option?.reason ?? change.access);
           if (change.access === 'full' && change.confirmed !== true) throw new ProviderError('confirmation-required', FULL_ACCESS_CONFIRM, { status: 409, details: { confirm: FULL_ACCESS_CONFIRM } });
           Object.assign(request, preset);
@@ -88,7 +89,7 @@ export function createParameterUpdater(rt: CodexRuntime, parts: ReturnType<typeo
           }
           if (state.file) parts.clearFile(state.file);
           const result = (await parts.readState(session, id, experimental, cwd)).parameters;
-          if (change.access !== undefined && result.presentation?.access.value !== change.access) unavailable('Codex не подтвердил выбранный доступ', 'Проверьте фактические настройки сессии');
+          if (change.access !== undefined && (result.presentation?.layout !== 'effort-card' || result.presentation.access.value !== change.access)) unavailable('Codex не подтвердил выбранный доступ', 'Проверьте фактические настройки сессии');
           if (obj(state.thread['status'])['type'] === 'active') notes.push('Применится со следующего хода');
           return { ...result, ...((notes.length || result.notes?.length) ? { notes: [...(result.notes ?? []), ...notes] } : {}) };
         } finally {

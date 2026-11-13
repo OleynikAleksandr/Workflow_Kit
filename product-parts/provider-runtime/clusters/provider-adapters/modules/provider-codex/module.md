@@ -311,3 +311,6 @@ Stop не включает общий доступ, не меняет разре
 
 M26: parameter-access.ts даёт нативные ask/auto/full и компактную presentation.
 Свежие ограничения, read-back, метаданные и OS-контракт — parameters.md.
+
+M27/T004: access — только effort-card. Неизвестный ключ (ultracode, также
+с model) отклоняется до RPC; injected darwin/linux/win32 проверены.

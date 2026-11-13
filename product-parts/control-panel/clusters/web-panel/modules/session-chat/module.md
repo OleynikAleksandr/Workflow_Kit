@@ -183,3 +183,7 @@ M26/R2: смена параметров не пишет служебные succe
 и не отправляют POST. max/disabled не переписываются при прежнем значении, чтобы
 polling не сбрасывал нативный drag. Общий код на macOS/Linux/Windows, без программ ОС.
 Регрессия: test/native-controls.browser.js, реальный thumb-center drag и touch.
+
+M27/T004: presentation — discriminated union. M26 access-menu читает access только
+при effort-card; неизвестный/Claude layout сохраняет fallback. menuSections уважает
+explicit option.selected для opaque native model keys. Одинаково на трёх ОС.

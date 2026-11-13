@@ -3,6 +3,7 @@
  * @param {{h: any, data: () => import('#provider-registry').SessionParameters | null,
  * busy: () => boolean, change: (id: string, option: import('#provider-registry').ParameterOption, confirmed: boolean) => Promise<void>}} args */
 export function createAccessMenu({ h, data, busy, change }) {
+  const accessData = () => { const p = data()?.presentation; return p?.layout === 'effort-card' ? p.access : undefined; };
   const icon = (/** @type {string} */ name) => h('span', { class: `sc-icon sc-icon-${name}`, 'aria-hidden': 'true' });
   const title = h('div', { class: 'sc-access-title' }, ['Как подтверждать действия ChatGPT?']);
   const rows = h('div', { class: 'sc-access-rows' });
@@ -16,7 +17,7 @@ export function createAccessMenu({ h, data, busy, change }) {
   /** @type {import('#provider-registry').ParameterOption | null} */ let pending = null;
   let destroyed = false;
   function update() {
-    const access = data()?.presentation?.access;
+    const access = accessData();
     const options = access?.options ?? [];
     const keys = new Set(options.map(o => o.value));
     for (const [key, control] of controls) if (!keys.has(key)) { control.button.remove(); controls.delete(key); }
@@ -27,7 +28,7 @@ export function createAccessMenu({ h, data, busy, change }) {
         const mark = icon('check'), image = icon(option.icon);
         const button = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'sc-access-option', role: 'menuitemradio', 'data-access': option.value }, [image, h('span', { class: 'sc-access-copy' }, [text, description, detail]), mark]));
         button.addEventListener('click', () => {
-          const current = data()?.presentation?.access.options?.find(o => o.value === option.value);
+          const current = accessData()?.options?.find(o => o.value === option.value);
           if (destroyed || busy() || !current || current.disabled) return;
           if (current.confirm) { pending = current; update(); cancel.focus(); }
           else void change('access', current, false);
@@ -52,7 +53,7 @@ export function createAccessMenu({ h, data, busy, change }) {
   }
   cancel.addEventListener('click', () => { const key = pending?.value; pending = null; update(); if (key) controls.get(key)?.button.focus(); });
   proceed.addEventListener('click', () => {
-    const option = data()?.presentation?.access.options?.find(o => o.value === pending?.value);
+    const option = accessData()?.options?.find(o => o.value === pending?.value);
     if (option && !option.disabled && !busy() && !destroyed) void change('access', option, true);
   });
   update(); return { node, update, destroy() { destroyed = true; pending = null; } };

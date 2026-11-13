@@ -310,3 +310,6 @@ M27/T003: optional `ProviderContext.nativeStatuslineCommand({file,hostId})`
 `Provider.nativeControlHook(input)` возвращают true только при проверенной pending
 транзакции собственного host. CLI вызывает guard до channel, titles и autopilot;
 это не exemption по тексту команды. Общий контракт одинаков на трёх ОС.
+
+M27/T004: discriminated presentation `effort-card | claude-controls`, Ultracode,
+opaque option selection и явные HTTP 409/504 — [parameters.md](parameters.md).

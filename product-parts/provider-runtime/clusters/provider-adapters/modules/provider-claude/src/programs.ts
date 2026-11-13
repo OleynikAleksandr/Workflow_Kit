@@ -109,7 +109,7 @@ export function claudeCapabilities(platform: NodeJS.Platform, programs: ClaudePr
     hooks: { available: true },
     sessions: { available: true },
     sessionParameters: { available: true },
-    updateParameters: { available: false, reason: 'Изменяйте параметры в приложении Claude' },
+    updateParameters: !reason && version && compareVersions(version, '2.1.323') >= 0 ? { available: true } : { available: false, reason: reason ?? 'Нужен Claude 2.1.323+ и новый управляемый host' },
     createSession: { ...pty },
     resumeSession: { ...pty },
     stopSession: { available: true },

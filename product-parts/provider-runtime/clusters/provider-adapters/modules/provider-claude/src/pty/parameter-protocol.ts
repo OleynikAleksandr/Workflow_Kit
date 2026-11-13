@@ -21,7 +21,7 @@ export interface NativeParameterState {
   status: 'idle' | 'busy' | 'dialog' | 'unknown' | 'control'; inputEmpty: boolean; reason: string | null;
   model: { id: string; label: string } | null; effort: string | null; mode: string | null;
   fast: boolean | null; ultracode: boolean | null; models: NativeModelOption[]; efforts: string[];
-  fastReason: string | null; pending: NativePending | null;
+  effortRecommended?: string | null; fastReason: string | null; ultracodeAvailable?: boolean; pending: NativePending | null;
 }
 export interface NativeParameterRequest {
   version: 1; id: string; hostId: string; sessionId: string; epoch: string; expires: number;

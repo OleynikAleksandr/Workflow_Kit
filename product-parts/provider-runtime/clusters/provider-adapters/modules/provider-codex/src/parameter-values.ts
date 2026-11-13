@@ -6,7 +6,7 @@ export const str = (v: unknown): string | null => typeof v === 'string' && v ? v
 export const finite = (v: unknown): number | null => typeof v === 'number' && Number.isFinite(v) && v >= 0 ? v : null;
 export const list = (v: unknown): Dict[] => Array.isArray(v) ? v.map(obj) : [];
 export const EFFORT: Record<string, string> = { low: 'Низкое', medium: 'Среднее', high: 'Высокое', xhigh: 'Очень высокое', max: 'Максимальное', ultra: 'Ультра' };
-export const LABELS: Record<ParameterId, string> = { model: 'Модель', effort: 'Усилие', speed: 'Скорость', mode: 'Режим', permissions: 'Разрешения' };
+export const LABELS: Record<ParameterId, string> = { ultracode: 'Ultracode', model: 'Модель', effort: 'Усилие', speed: 'Скорость', mode: 'Режим', permissions: 'Разрешения' };
 export const PERMISSIONS: Record<string, string> = { ':read-only': 'Только чтение', ':workspace': 'Рабочая папка', ':danger-full-access': 'Полный доступ' };
 export function valueLabel(id: ParameterId, value: string, models: Dict[]): string {
   if (id === 'effort') return EFFORT[value] ?? value;

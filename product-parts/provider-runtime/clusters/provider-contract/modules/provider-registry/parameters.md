@@ -54,3 +54,17 @@ ParameterChange.access — opaque id; одновременно access/permission
 PARAMETER_IDS не меняет значения; PARAMETER_CHANGE_IDS добавляет access только для записи.
 Аудит access сохраняет прежний/новый пресет и реальные permissions/policy/reviewer.
 Контракт и очередь одинаковы на macOS, Linux и Windows x64/ARM64; программ ОС нет.
+
+## Claude layout (M27/T004)
+
+`ParameterPresentation` — union `effort-card` (обязательный access) и
+`claude-controls` (без access). Любое обращение к access проверяет layout.
+`ultracode` добавлен в ParameterId/Change: строки on/off, только Claude; Codex
+отклоняет также смешанный запрос. ParameterOption.selected позволяет отмечать
+opaque native row key при независимом effective model.id; group primary/more,
+recommended — подтверждённые свойства native каталога, не правила общего UI.
+Claude принимает одно поле плюс confirmed; HTTP 400 parameter-invalid,
+409 confirmation-required/parameters-busy/parameters-stale, 503 parameters-unavailable,
+504 parameters-timeout. Аудит пишет effective items, не желаемые значения.
+GET не открывает меню/программы; старый host — только чтение с причиной. Контракт
+одинаков на macOS/Linux/Windows x64/ARM64; live Windows ждёт проверяющего.

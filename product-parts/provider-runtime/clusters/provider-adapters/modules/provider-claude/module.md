@@ -302,3 +302,14 @@ Fast не включается: account prohibition либо недоказан�
 На macOS/Linux worker отдаёт предложенную клавишу после повторного drain; Windows
 вызывает тот же engine и проверяет revision непосредственно перед term.write.
 Одинаковые ограничения на трёх ОС; Windows live ждёт отдельного проверяющего.
+
+M27/T004: `parameter-controls.ts` объединяет read-only M25 context/limits и свежий
+native state. `readParameters` не открывает меню; source timestamp не заменяется
+временем GET. Старый host/raw ultra сохраняет подпись Ultracode и неизвестный base.
+`updateParameters` принимает ровно одно поле model/effort/speed/mode/ultracode плюс
+confirmed, проверяет native options и перечитывает весь effective набор. Model id
+не равен opaque row key: selected/group передаются отдельно. Recommended effort
+читается preview-проходом описаний native меню без `s`/изменения defaults.
+Ошибки переводятся в parameter-invalid / parameters-busy/stale/unavailable/timeout.
+Capability требует CLI floor и pty; конкретный host может оставаться read-only.
+Одинаковый контракт на трёх ОС, live Windows ожидается.

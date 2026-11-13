@@ -8,6 +8,7 @@ import { findKitHook, hookText, isKitHookEntry, normalizeHook, sha256 } from '#k
 import { archiveSessions, restoreSessions } from './archive.ts';
 import { ENVIRONMENT_START, ENVIRONMENT_STOP, environmentActions, environmentBlockers, startEnvironment, stopEnvironment } from './environment.ts';
 import { interruptAvailability, interruptTurn, refreshInterruptions } from './interrupt.ts';
+import { createClaudeControls } from './parameter-controls.ts';
 import { createClaudeParameterReader } from './parameters.ts';
 import { nativeControlHook } from './native-parameters.ts';
 import { sendDirect } from './direct.ts';
@@ -104,6 +105,7 @@ async function hooks(project: Project): Promise<HookState> {
 export function createClaudeProvider(context: ProviderContext, options: ClaudeProviderOptions = {}): Provider {
   const rt = createRuntime(context, options);
   const parameters = createClaudeParameterReader(context);
+  const controls = createClaudeControls(rt, parameters);
   const tokens = createTokenStore({ now: context.now });
   /** Copies of ~/.claude.json taken by the last grantTrust per folder (until the service restarts). */
   const backups = new Map<string, string | null>();
@@ -150,7 +152,8 @@ export function createClaudeProvider(context: ProviderContext, options: ClaudePr
     wakeSession: (project, sid) => wakeSession(rt, project, sid),
     // The conversation from the transcript the hook journal names (spec M18 section 2.2).
     readMessages: async (project, sid, opts) => rt.chat.read((await findSession(rt, project, sid)).hook?.hook.transcriptPath ?? null, opts.limit),
-    readParameters: async (project, sid) => { const found = await findSession(rt, project, sid); return parameters.read(found.hook?.hook.sessionId ?? found.record?.localId ?? sid, found.hook?.hook.transcriptPath ?? null); },
+    readParameters: controls.read,
+    updateParameters: controls.update,
     sendDirect: (project, sid, text) => sendDirect(rt, project, sid, text),
     actions: async (project) => (project ? environmentActions(rt, project) : []),
     async runAction(id, project) {

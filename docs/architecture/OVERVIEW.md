@@ -141,9 +141,7 @@ T001–T006 и fixes T008/T009 завершены; последний функц
 | Диалог (M18): лента; прямая отправка | да; Claude `expect`, ChatGPT при общем доступе | да; Claude `expect`, ChatGPT нет | да, ChatGPT через `proxy`; Claude ConPTY (**П**), ChatGPT при общем доступе |
 | Раскладка панели M24: изменяемый сайдбар с карточками, диалог в viewport | одинаковая, браузер | то же | то же, x64/ARM64 |
 | Ввод M24: Enter/Stop, очередь, IME, фактическая модель и нейтральные параметры | одинаковые ES-модули; изолированный Chromium, живая проверка macOS/iPad ожидается | тот же код; CI после публикации | тот же код, x64/ARM64; живая проверка ожидается |
-| Stop Claude M24: свежая классификация, подтверждённый маркер; диалоги запрещают Esc | expect + общий Node-классификатор; живая проверка ожидается | тот же путь, тесты с injected linux | ConPTY + тот же классификатор, тесты; живая проверка ожидается |
-| Stop Kimi M24: abort, тот же промпт, idle и свободный замок | общий HTTP-код, только сервер Kit; живая проверка ожидается | тот же код, injected linux | тот же код, injected win32, x64/ARM64; живая проверка ожидается |
-| Stop Codex M24: точный native turn id и подтверждённый terminal status | Unix WebSocket, схема 0.167.2; живая проверка ожидается | тот же демон, без ChatGPT; injected linux | существующий proxy, injected win32 с Node-реле; native живая проверка ожидается |
+| Stop M24 адаптеров: Claude marker, Kimi abort/lock, Codex turn id | expect/HTTP/WebSocket; проверки в evidence M24 | общий код, injected linux; без ChatGPT | ConPTY/proxy/HTTP, injected win32; live ожидается |
 | Прерывание ответа M24: API, поколения, барьер очереди/ревью/автопилота | общий контракт реализован; адаптеры T003–T005 отдельно | то же | то же, x64/ARM64 |
 | Тайм-аут адаптера Stop (T008): HTTP 504 с подсказкой, барьер сохраняется | общий API, локальный HTTP-тест | тот же код | тот же код, x64/ARM64 |
 | Тайм-аут Kimi: типизированный 504, общий deadline; R3 готовит options до запросов | общий HTTP-код, тест гонки | то же, injected linux | то же, injected win32, x64/ARM64 |
@@ -156,7 +154,7 @@ T001–T006 и fixes T008/T009 завершены; последний функц
 | Контролы M26/R2: native drag, тихий success; QA passed | общий ES-код, visualViewport | то же | то же, x64/ARM64 |
 | Строка M25 и меню параметров | браузер; изолированный Chromium и скриншоты | тот же код | тот же код, x64/ARM64 |
 | Живые проверки | есть, `docs/evidence/` | нет, только тесты | установка, общий доступ, путь до запуска плана (M13–M16) |
-| Claude M27: арбитр и native parameters | FIFO, expect; floor/frame/ACK | тот же engine | ConPTY; CI, live ожидается |
+| Claude M27: native parameters/API | FIFO, expect; floor/frame/ACK; discriminated layout | тот же engine | ConPTY; CI, live ожидается |
 
 ## Известные ограничения
 

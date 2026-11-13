@@ -159,3 +159,13 @@ GET их не открывает. Старый host без binding остаёт�
 mode — footer, Ultracode — ACK плюс отдельный marker/base; request echo не proof.
 CLI guard проверяет доверенную транзакцию до channel/titles/autopilot. Обычный prompt
 с похожим текстом проходит обычный канал. Cancel/timeout не повторяет setter.
+
+### Реализация T004
+
+Provider.readParameters объединяет M25 context/limits с новым native snapshot;
+старые host остаются read-only, raw ultra не получает выдуманный base. POST принимает
+одно поле, проверяет actual options и после ACK перечитывает весь набор. Model
+options имеют opaque value + selected/group, effective item.value остаётся model.id.
+Recommended получается из native description preview. Claude presentation не имеет
+access; все M26 consumers проверяют effort-card. Codex отвергает ultracode до RPC.
+HTTP явно сохраняет 400/409/503/504 и аудит только фактических изменений items.

@@ -1,7 +1,7 @@
 // @ts-check
 import { localIdOf } from './chat-model.js';
 export const PARAMETER_POLL_MS = 5000;
-export const PARAMETER_TITLES = { model: 'Модель', effort: 'Усилие', speed: 'Скорость', mode: 'Режим', permissions: 'Разрешения' };
+export const PARAMETER_TITLES = { model: 'Модель', effort: 'Усилие', speed: 'Скорость', mode: 'Режим', permissions: 'Разрешения', ultracode: 'Ultracode' };
 /** @param {string} project @param {string} provider @param {string} key */
 export const parametersUrl = (project, provider, key) => `/api/projects/${encodeURIComponent(project)}/providers/${encodeURIComponent(provider)}/sessions/${encodeURIComponent(localIdOf(key))}/parameters`;
 /** @param {unknown} value */
@@ -19,7 +19,7 @@ export const contextText = context => context ? `Контекст: ${count(conte
 /** @param {import('#provider-registry').SessionParameters} parameters */
 export function menuSections(parameters) {
   return parameters.items.map(item => ({ id: item.id, title: PARAMETER_TITLES[item.id] ?? item.id, label: item.label, reason: item.reason,
-    options: (item.options ?? []).map(option => ({ ...option, selected: item.value !== null && option.value === item.value })) }));
+    options: (item.options ?? []).map(option => ({ ...option, selected: option.selected ?? (item.value !== null && option.value === item.value) })) }));
 }
 /** Single-flight polling with stale-response protection and visible-only forced refreshes.
  * @param {() => Promise<any>} read @param {(value: any) => void} apply @param {(error: any) => void} failed

@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": "T001",
+  "currentTaskId": null,
   "lastClosed": {
     "closedAt": "2026-11-13T15:14:42.535Z",
     "scopeId": "m25-session-parameters"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 830,
+  "revision": 831,
   "rounds": [
     {
       "digest": null,
@@ -104,14 +104,25 @@
         "docs/design/M26",
         "docs/evidence/M26-native-controls.md",
         "docs/evidence/M26",
-        "docs/planning/M26-native-session-controls-plan.md"
+        "docs/planning/M26-native-session-controls-plan.md",
+        "docs/design/M26/access-preset-contract.md",
+        "docs/design/M26/native-access-menu.png",
+        "docs/design/M26/native-effort-card.png",
+        "docs/design/M26/workflow-kit-before.png",
+        "docs/evidence/M26/access-ephemeral-roundtrip.json",
+        "docs/evidence/M26/access-fresh-connection.json",
+        "docs/evidence/M26/access-persistent-roundtrip.json",
+        "docs/evidence/M26/access-proof-unload-not-observed.json",
+        "docs/evidence/M26/access-start-catalog-probe.json",
+        "docs/evidence/M26/catalogs.json",
+        "docs/evidence/M26/cleanup.json"
       ],
       "fixes": null,
       "id": "T001",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "title": "Проверить нативные пресеты, сброс и визуальные эталоны",
       "why": "Нативные варианты доступа не равны трём filesystem-профилям M25; полное соответствие нельзя выдумывать"
     },
@@ -407,9 +418,9 @@
 - Scope: m26-native-session-controls (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: T001
-- Progress: 0/8
-- Revision: 830
+- Current task: none
+- Progress: 1/8
+- Revision: 831
 
 ## Objective
 
@@ -426,9 +437,9 @@
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [IN_PROGRESS] T001 — Проверить нативные пресеты, сброс и визуальные эталоны (work)
+- [DONE] T001 — Проверить нативные пресеты, сброс и визуальные эталоны (work)
   - Commit: docs: verify native session control behavior
-  - Files: docs/planning/M26-native-session-controls.md, docs/design/M26-native-controls-reference.md, docs/design/M26, docs/evidence/M26-native-controls.md, docs/evidence/M26, docs/planning/M26-native-session-controls-plan.md
+  - Files: docs/planning/M26-native-session-controls.md, docs/design/M26-native-controls-reference.md, docs/design/M26, docs/evidence/M26-native-controls.md, docs/evidence/M26, docs/planning/M26-native-session-controls-plan.md, docs/design/M26/access-preset-contract.md, docs/design/M26/native-access-menu.png, docs/design/M26/native-effort-card.png, docs/design/M26/workflow-kit-before.png, docs/evidence/M26/access-ephemeral-roundtrip.json, docs/evidence/M26/access-fresh-connection.json, docs/evidence/M26/access-persistent-roundtrip.json, docs/evidence/M26/access-proof-unload-not-observed.json, docs/evidence/M26/access-start-catalog-probe.json, docs/evidence/M26/catalogs.json, docs/evidence/M26/cleanup.json
 - [TODO] T002 — Презентация контролов и настоящие пресеты доступа Codex (work)
   - Commit: feat(parameters): expose native control presentation and access presets
   - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, docs/architecture/CONTRACTS.md, docs/architecture/OVERVIEW.md, docs/evidence/M26-native-controls.md

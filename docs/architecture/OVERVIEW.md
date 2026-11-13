@@ -154,7 +154,7 @@ T001–T006 и fixes T008/T009 завершены; последний функц
 | Контролы M26/R2: native drag, тихий success; QA passed | общий ES-код, visualViewport | то же | то же, x64/ARM64 |
 | Строка M25 и меню параметров | браузер; изолированный Chromium и скриншоты | тот же код | тот же код, x64/ARM64 |
 | Живые проверки | есть, `docs/evidence/` | нет, только тесты | установка, общий доступ, путь до запуска плана (M13–M16) |
-| Claude M27: native parameters/API | FIFO, expect; floor/frame/ACK; discriminated layout | тот же engine | ConPTY; CI, live ожидается |
+| Claude M27: native parameters/API/UI | FIFO, expect; floor/frame/ACK; nested menus | тот же engine и ES/CSS | ConPTY; UI тот же; live ожидается |
 
 ## Известные ограничения
 

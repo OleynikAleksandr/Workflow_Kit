@@ -1,4 +1,5 @@
 // @ts-check
+import { createClaudeMenu } from './claude-menu.js';
 import { createAccessMenu } from './access-menu.js';
 import { createEffortCard } from './effort-card.js';
 import { errorText } from './chat-model.js';
@@ -13,6 +14,7 @@ export function createParameters({ shell, projectId, key, provider, fallback, on
   const host = h('div', { class: 'sc-parameter-host' });
   const accessNode = h('div', {class: 'sc-access-host'}); accessNode.hidden = true;
   const accessButton = /** @type {HTMLButtonElement} */ (h('button', {type:'button', class:'sc-access-trigger', 'aria-haspopup':'menu'})); accessNode.append(accessButton);
+  const modeButton = /** @type {HTMLButtonElement} */ (h('button', {type:'button',class:'sc-claude-mode-trigger','aria-label':'Режим Claude','aria-haspopup':'menu'}));
   const row = h('div', { class: 'sc-parameter-row' });
   const trigger = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'sc-parameter-trigger', 'aria-label': 'Параметры сессии' }));
   const meter = h('span', { class: 'sc-meter', 'aria-hidden': 'true' });
@@ -22,7 +24,7 @@ export function createParameters({ shell, projectId, key, provider, fallback, on
   /** @type {Parameters | null} */ let data = null;
   /** @type {HTMLElement | null} */ let popup = null;
   /** @type {HTMLElement | null} */ let anchor = null;
-  /** @type {{update: () => void, destroy: () => void} | null} */ let nativeView = null;
+  /** @type {{update: () => void, destroy: () => void, position?: () => void} | null} */ let nativeView = null;
   let popupKind = '';
   let busy = false, showing = false, menu = false, readError = false;
   /** @type {{ id: string, option: Option } | null} */ let confirmation = null;
@@ -36,7 +38,7 @@ export function createParameters({ shell, projectId, key, provider, fallback, on
   function close(focus = true) {
     nativeView?.destroy(); nativeView = null; popupKind = '';
     popup?.remove(); popup = null; menu = false; confirmation = null;
-    trigger.setAttribute('aria-expanded', 'false'); accessButton.setAttribute('aria-expanded', 'false');
+    trigger.setAttribute('aria-expanded', 'false'); accessButton.setAttribute('aria-expanded', 'false'); modeButton.setAttribute('aria-expanded', 'false');
     document.removeEventListener('pointerdown', outside); document.removeEventListener('keydown', keyboard);
     window.removeEventListener('resize', position); window.visualViewport?.removeEventListener('resize', position); window.visualViewport?.removeEventListener('scroll', position);
     if (focus && anchor?.isConnected) anchor.focus();
@@ -60,6 +62,7 @@ export function createParameters({ shell, projectId, key, provider, fallback, on
     const above = (popupKind === 'models' && editor ? editor.top : a.top) - box.height - 8;
     const desired = popupKind === 'models' ? (below + box.height <= top + height - 8 ? below : above) : (above >= top + 8 ? above : below);
     popup.style.top = `${Math.max(top + 8, Math.min(desired, top + height - box.height - 8))}px`;
+    nativeView?.position?.();
   }
   function keyboard(/** @type {KeyboardEvent} */ event) {
     if (!popup) return;
@@ -114,14 +117,14 @@ export function createParameters({ shell, projectId, key, provider, fallback, on
     }
   }
   async function change(/** @type {string} */ id, /** @type {Option} */ option, confirmed = false, closeAfter = true) {
-    if (busy) return; const focused = /** @type {HTMLElement | null} */ (document.activeElement); busy = true; trigger.disabled = accessButton.disabled = true; poll.invalidate(); renderMenu(false);
+    if (busy) return; const focused = /** @type {HTMLElement | null} */ (document.activeElement); busy = true; trigger.disabled = accessButton.disabled = modeButton.disabled = true; poll.invalidate(); renderMenu(false);
     report('', 'muted');
     try {
       const answer = await shell.api('POST', url, { change: { [id]: option.value, ...(confirmed ? { confirmed: true } : {}) } });
       apply({ supported: true, parameters: answer.parameters });
       report('', 'muted'); if (closeAfter) close();
     } catch (error) { report(errorText(error), 'error'); }
-    finally { busy = false; trigger.disabled = accessButton.disabled = false; if (popup) { renderMenu(false); if (focused?.isConnected && popup.contains(focused)) focused.focus({ preventScroll: true }); } await poll.refresh(); }
+    finally { busy = false; trigger.disabled = accessButton.disabled = modeButton.disabled = false; if (popup) { renderMenu(false); if (focused?.isConnected && popup.contains(focused)) focused.focus({ preventScroll: true }); } await poll.refresh(); }
   }
   /** @param {any} answer */
   function apply(answer) {
@@ -129,6 +132,7 @@ export function createParameters({ shell, projectId, key, provider, fallback, on
     if (answer?.supported === false) { close(false); data = null; accessNode.hidden = true; onLayout?.(false); host.replaceChildren(fallback); return; }
     if (!answer?.parameters || !Array.isArray(answer.parameters.items)) return;
     const previous = JSON.stringify(data?.items); data = /** @type {Parameters} */ (answer.parameters);
+    const claude = data.presentation?.layout === 'claude-controls'; host.classList.toggle('sc-claude-parameters', claude);
     const native = data.presentation?.layout === 'effort-card'; accessNode.hidden = !native; onLayout?.(native);
     const access = data.presentation?.layout === 'effort-card' ? data.presentation.access : undefined;
     accessButton.replaceChildren(icon(access?.tone === 'warning' ? 'shield-alert' : access?.options?.find(o => o.value === access.value)?.icon ?? 'hand'), document.createTextNode(access?.label ?? 'Особые разрешения'));
@@ -139,14 +143,16 @@ export function createParameters({ shell, projectId, key, provider, fallback, on
     meter.style.setProperty('--sc-context-angle', `${(percent(data.context?.usedPercent) ?? 0) * 3.6}deg`);
     ring.setAttribute('aria-label', contextText(data.context));
     trigger.replaceChildren();
-    for (const item of data.items.filter(i => i.inRow && !(native && i.id === 'permissions'))) {
+    for (const item of data.items.filter(i => i.inRow && !(native && i.id === 'permissions') && !(claude && i.id === 'mode'))) {
       if (item.id === 'speed' && item.icon === 'zap') trigger.append(icon('zap'));
-      else trigger.append(h('span', { class: `sc-parameter-value sc-parameter-${item.tone === 'muted' ? 'muted' : 'primary'}`, title: item.title }, [item.label]));
+      else { if (claude && item.id === 'ultracode') trigger.append('·'); trigger.append(h('span', { class: `sc-parameter-value sc-parameter-${item.tone === 'muted' ? 'muted' : 'primary'}`, title: item.title }, [item.label])); }
     }
-    if (data.editable) { trigger.append(icon('chevron-down')); trigger.setAttribute('aria-haspopup', 'menu'); }
+    if (data.editable || claude) { trigger.append(icon('chevron-down')); trigger.setAttribute('aria-haspopup', 'menu'); }
     else trigger.removeAttribute('aria-haspopup');
-    trigger.setAttribute('aria-label', `${data.items.filter(i => i.inRow && !(native && i.id === 'permissions')).map(i => i.title).join('; ')}${data.reason ? `. ${data.reason}` : ''}`);
-    reconcile(row, data.style?.ring === 'last' ? [trigger, ring] : [ring, trigger]);
+    trigger.setAttribute('aria-label', `${data.items.filter(i => i.inRow && !(native && i.id === 'permissions') && !(claude && i.id === 'mode')).map(i => i.title).join('; ')}${data.reason ? `. ${data.reason}` : ''}`);
+    modeButton.textContent = data.items.find(i => i.id === 'mode')?.label ?? 'Mode';
+    modeButton.title = data.reason ?? 'Режим Claude';
+    reconcile(row, claude ? [trigger, modeButton, ring] : data.style?.ring === 'last' ? [trigger, ring] : [ring, trigger]);
     limits.replaceChildren();
     for (const [index, limit] of (data.limits ?? []).entries()) {
       if (index) limits.append(' · ');
@@ -177,10 +183,25 @@ export function createParameters({ shell, projectId, key, provider, fallback, on
     nativeView = card; element.append(card.node); position();
     element.querySelector('input')?.focus({ preventScroll: true });
   }
-  trigger.addEventListener('keydown', event => { if (event.key === 'ArrowDown' && data?.editable && !popup) { event.preventDefault(); if (data.presentation?.layout === 'effort-card') openEffort(); else { openPopup(trigger, true); renderMenu(); } } });
+  function openClaude(mode = false) {
+    const button = mode ? modeButton : trigger;
+    const element = openPopup(button, true); popupKind = mode ? 'claude-mode' : 'claude-model';
+    element.classList.add('sc-claude-popup'); if (mode) element.classList.add('sc-claude-mode-popup');
+    const choose = (/** @type {string} */ id, /** @type {Option} */ option) => {
+      if (option.confirm) { confirmation = {id, option}; nativeView?.destroy(); nativeView = null; element.classList.remove('sc-claude-popup', 'sc-claude-mode-popup'); renderMenu(); return Promise.resolve(); }
+      return change(id, option);
+    };
+    const view = createClaudeMenu({h, data: () => data, busy: () => busy, change: choose, close, reposition: position, mode});
+    nativeView = view; element.append(view.node); position();
+    element.querySelector(/** @type {'button'} */ ('button:not(:disabled)'))?.focus({preventScroll: true});
+  }
+  modeButton.addEventListener('click', () => {if (popup && anchor === modeButton) close(); else if (!busy) openClaude(true);});
+  modeButton.addEventListener('keydown', event => {if (event.key === 'ArrowDown' && !popup) {event.preventDefault(); openClaude(true);}});
+  trigger.addEventListener('keydown', event => { if (event.key === 'ArrowDown' && (data?.editable || data?.presentation?.layout === 'claude-controls') && !popup) { event.preventDefault(); if (data.presentation?.layout === 'claude-controls') openClaude(); else if (data.presentation?.layout === 'effort-card') openEffort(); else { openPopup(trigger, true); renderMenu(); } } });
   trigger.addEventListener('click', () => {
     if (!data) return;
     if (popup && anchor === trigger) { close(); return; }
+    if (data.presentation?.layout === 'claude-controls') { openClaude(); return; }
     if (data.editable && data.presentation?.layout === 'effort-card') { openEffort(); return; }
     const element = openPopup(trigger, data.editable);
     if (data.editable) renderMenu(); else { element.append(h('p', {}, [data.reason || data.items.map(i => i.title).join(' · ')])); position(); }

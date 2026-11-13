@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 871,
+  "revision": 873,
   "rounds": [
     {
       "digest": null,
@@ -420,14 +420,27 @@
         "docs/architecture/OVERVIEW.md",
         "docs/architecture/CONTRACTS.md",
         "docs/evidence/M27-claude-native-controls.md",
-        "docs/evidence/M27"
+        "docs/evidence/M27",
+        "docs/evidence/M26/fixes-composer.png",
+        "docs/evidence/M27/claude-effort-source.png",
+        "docs/evidence/M27/claude-effort-touch.png",
+        "docs/evidence/M27/claude-mode-source.png",
+        "docs/evidence/M27/claude-mode-touch.png",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/claude-controls.css",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/claude-menu.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/parameters.css",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/parameters.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/test/claude-controls.browser.js",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/parameter-controls.ts"
       ],
       "fixes": null,
       "id": "T005",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Добавить нативные контролы Claude в composer",
       "why": "Добавить нативные контролы Claude в composer"
     },
@@ -610,8 +623,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 4/9
-- Revision: 871
+- Progress: 5/9
+- Revision: 873
 
 ## Objective
 
@@ -644,9 +657,9 @@
   - Commit: feat(parameters): expose effective Claude session controls
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/control-panel/clusters/web-panel/modules/session-chat, docs/design/M27-claude-control-contract.md, docs/architecture/OVERVIEW.md, docs/architecture/CONTRACTS.md, docs/evidence/M27-claude-native-controls.md, docs/evidence/M27, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/access-menu.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/parameters-model.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/parameters.js, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/parameter-controls.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/parameters.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/programs.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-engine.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-protocol.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parameter-controls.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/parameter-update.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/parameter-values.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/parameter-access.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/parameters.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/parameter-routes.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/parameters.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/parameters.test.ts
   - Depends on: T003
-- [TODO] T005 — Добавить нативные контролы Claude в composer (work)
+- [DONE] T005 — Добавить нативные контролы Claude в composer (work)
   - Commit: feat(panel): add Claude native parameter controls
-  - Files: product-parts/control-panel/clusters/web-panel/modules/session-chat, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, docs/architecture/OVERVIEW.md, docs/architecture/CONTRACTS.md, docs/evidence/M27-claude-native-controls.md, docs/evidence/M27
+  - Files: product-parts/control-panel/clusters/web-panel/modules/session-chat, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, docs/architecture/OVERVIEW.md, docs/architecture/CONTRACTS.md, docs/evidence/M27-claude-native-controls.md, docs/evidence/M27, docs/evidence/M26/fixes-composer.png, docs/evidence/M27/claude-effort-source.png, docs/evidence/M27/claude-effort-touch.png, docs/evidence/M27/claude-mode-source.png, docs/evidence/M27/claude-mode-touch.png, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/claude-controls.css, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/claude-menu.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/parameters.css, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/parameters.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/claude-controls.browser.js, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/parameter-controls.ts
   - Depends on: T004
 - [TODO] T006 — Проверить native round trip, браузерные сценарии и визуальное совпадение (work)
   - Commit: test(claude): verify native controls and visual fidelity

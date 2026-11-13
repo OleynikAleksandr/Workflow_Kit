@@ -224,3 +224,7 @@ M27/T004: ParameterPresentation — discriminated effort-card/claude-controls;
 Ultracode on/off только Claude. Opaque model options отмечаются selected/group,
 item.value остаётся effective id. POST Claude — одно поле, native read-back всего
 набора; 400/409/503/504 явно сохраняются. Codex отклоняет чужой ключ до RPC.
+
+M27/T005: claude-controls выбирает собственные nested model/Effort/More models и
+Mode menus; keyed DOM, один popup, границы visualViewport, touch 44px. Нет slider
+Claude; M26 effort-card/drag остаётся отдельным представлением. Успех без подстрочника.

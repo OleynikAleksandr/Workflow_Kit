@@ -1,3 +1,4 @@
+@import url('./claude-controls.css');
 /* Provider-selected compact controls. Native desktop dimensions, larger touch targets. */
 .sc-parameter-popup.sc-native-effort-popup, .sc-parameter-popup.sc-native-models-popup, .sc-parameter-popup.sc-native-access-popup {
   --sc-native-bg: #fff; --sc-native-muted: #767676; --sc-native-ink: #202020;

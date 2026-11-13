@@ -192,3 +192,19 @@ host, busy/stale, native result и сохранение unrelated model/effort/c
 Общие HTTP тесты проверили ownership/canonical alias, очередь и effective audit,
 явные 400/409/503/504 и отсутствие access у Claude layout. Codex отвергает ultracode
 до RPC, включая mixed model; M26 access assertions сохранены с layout guard.
+
+## T005: Claude composer
+
+Реальный composer с подменой только I/O: model → Effort/More models, отдельный Mode,
+Ultracode on/off с сохранением High, native descriptions/recommended, один popup,
+Esc/back/outside, quiet success и видимая ошибка; исходник claude-controls.browser.js.
+DPR2 1542×1049 и touch 375×667: active options, минимум 44px, все четыре границы
+popup. Исправлено смещение narrow popup после раскрытия; проверка границ добавлена.
+Polling >5с сохранил идентичность DOM строки High и keyboard focus; draft сохранён.
+Снимки claude-{effort,mode}-{source,touch}.png. Полная visual QA — T006.
+
+Прежний native-controls.browser.js M26/R2 повторно прошёл обе темы: настоящий
+thumb drag в обе стороны/вне трека, preview без POST, один POST после release,
+polling во время захвата, Home/End/track click, Escape/blur/pointercancel/lostcapture,
+quiet success и ошибки. Browser/CSP errors отсутствовали. Это изолированный Chromium,
+не live iPad или Windows. Статика общая для трёх ОС.

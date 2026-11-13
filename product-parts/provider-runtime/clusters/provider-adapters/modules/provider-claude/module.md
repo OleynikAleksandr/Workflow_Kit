@@ -313,3 +313,7 @@ confirmed, проверяет native options и перечитывает вес�
 Ошибки переводятся в parameter-invalid / parameters-busy/stale/unavailable/timeout.
 Capability требует CLI floor и pty; конкретный host может оставаться read-only.
 Одинаковый контракт на трёх ОС, live Windows ожидается.
+
+M27/T005: адаптер упорядочивает только имеющиеся primary families как Desktop RC:
+Opus/Fable/Sonnet/Haiku, прочие сохраняют порядок. Каталог и effective id не меняются;
+More models остаётся в native порядке. UI не интерпретирует provider id/модель.

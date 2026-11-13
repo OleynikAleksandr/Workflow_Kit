@@ -25,7 +25,14 @@ export function nativeClaudeParameters(base: SessionParameters, state: NativePar
     const item: ParameterItem = { id, value, label, title: `${id}: ${label}`, inRow, tone }; items.push(item); return item;
   };
   const model = add('model', state.model?.id ?? null, state.model?.label ?? 'Модель неизвестна', true);
-  model.options = state.models.map(m => ({ value: m.key, label: m.label, group: m.group, selected: m.label === state.model?.label, ...(!ready ? { disabled: true, reason } : {}) }));
+  const order = ['Opus', 'Fable', 'Sonnet', 'Haiku'];
+  const ordered = [...state.models].sort((a, b) => {
+    if (a.group !== b.group) return a.group === 'primary' ? -1 : 1;
+    if (a.group !== 'primary') return 0;
+    const rank = (label: string): number => { const index = order.indexOf(label.split(' ')[0]!); return index < 0 ? order.length : index; };
+    return rank(a.label) - rank(b.label);
+  });
+  model.options = ordered.map(m => ({ value: m.key, label: m.label, group: m.group, selected: m.label === state.model?.label, ...(!ready ? { disabled: true, reason } : {}) }));
   const effort = add('effort', state.effort, state.effort ? EFFORT[state.effort] ?? state.effort : 'Усилие неизвестно', true, 'muted');
   effort.options = state.efforts.map(value => ({ value, label: EFFORT[value] ?? value, selected: value === state.effort, ...(state.effortRecommended === value ? { recommended: true } : {}), ...(!ready ? { disabled: true, reason } : {}) }));
   // Recommended is native model policy; absent evidence is not guessed from a screenshot.

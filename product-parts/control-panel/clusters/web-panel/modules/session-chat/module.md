@@ -187,3 +187,16 @@ polling не сбрасывал нативный drag. Общий код на ma
 M27/T004: presentation — discriminated union. M26 access-menu читает access только
 при effort-card; неизвестный/Claude layout сохраняет fallback. menuSections уважает
 explicit option.selected для opaque native model keys. Одинаково на трёх ОС.
+
+## Claude native composer (M27/T005)
+
+`claude-controls` выбирает `claude-menu.js`/`claude-controls.css`: одна model+effort
+кнопка, отдельный Mode, независимый Ultracode в Effort submenu. Claude не получает
+ChatGPT slider/Access. Primary/more/selected/recommended берутся из адаптера;
+Desktop family ordering не добавляет отсутствующие модели. Hover на широком экране,
+клик/ArrowRight/touch — вложенный уровень; narrow показывает Back в том же popup.
+Esc сначала закрывает submenu, потом root; outside — root. visualViewport ограничивает
+четыре стороны, при смене уровня положение пересчитывается. Touch target 44px.
+Keyed rows сохраняют DOM/focus при polling; POST блокирует оба изменяющих триггера,
+ошибка видна, success тихий. Контекст/лимиты и draft остаются независимыми.
+Одинаковые ES/CSS для macOS/Linux/Windows; эмуляция touch не live iPad.

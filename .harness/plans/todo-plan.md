@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 816,
+  "revision": 818,
   "rounds": [
     {
       "digest": {
@@ -83,7 +83,7 @@
       },
       "id": "R3",
       "kind": "fixes",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "CI: истечение срока между параллельными запросами Kimi"
     }
   ],
@@ -160,7 +160,7 @@
         "text": "Последовательное выполнение: проба и общий контракт первыми, общие документы меняются в каждой задаче."
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "802334f8-ed69-4bb0-b3e7-d06d00de96af",
@@ -809,7 +809,7 @@
       ],
       "checks": [],
       "commitMessage": "docs: record green CI for the M25 delivery",
-      "confirmation": null,
+      "confirmation": "Заранее даю тебе добро на все действия, на выбор тобой самостоятельно; выполнить весь план без моего участия, без остановок и выборов в диалоге.",
       "context": [
         {
           "path": "docs/design/M25-session-parameters-rules.md",
@@ -835,7 +835,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R3",
-      "status": "TODO",
+      "status": "DONE",
       "title": "CI четырёх платформ на SHA поставки",
       "why": "Поставка не завершена без зелёной CI на macOS, Linux, Windows x64 и Windows ARM64"
     }
@@ -847,11 +847,11 @@
 ## State
 
 - Scope: m25-session-parameters (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 14/15
-- Revision: 816
+- Progress: 15/15
+- Revision: 818
 
 ## Objective
 
@@ -922,7 +922,7 @@ Digest: Реализованы чтение параметров Claude/ChatGPT,
 
 Digest: R2 исправил два подтверждённых сбоя Windows: замену снимков и ранний возврат тайм-аута statusline. Локальные проверки прошли; повторная CI и поставка впереди.
 
-### R3 — CI: истечение срока между параллельными запросами Kimi (fixes, OPEN)
+### R3 — CI: истечение срока между параллельными запросами Kimi (fixes, CLOSED)
 
 - [DONE] T012 — Kimi: обработать истечение срока при подготовке параллельной проверки (work)
   - Commit: fix(kimi): prepare probe deadline before starting requests
@@ -935,7 +935,7 @@ Digest: R2 исправил два подтверждённых сбоя Windows
   - Commit: chore(release): install Workflow Kit 0.11.0 locally
   - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/installation.md, docs/usage.md, docs/architecture/OVERVIEW.md, docs/changelog, docs/evidence/M25-acceptance.md, docs/evidence/M25, docs/evidence/M25/installed-chatgpt-row.png, docs/evidence/M25/installed-claude-row.png, docs/evidence/M25/installed-results.json, docs/evidence/M25/local-delivery.md
   - Depends on: T007, DOCS-R3
-- [TODO] T009 — CI четырёх платформ на SHA поставки (delivery)
+- [DONE] T009 — CI четырёх платформ на SHA поставки (delivery)
   - Commit: docs: record green CI for the M25 delivery
   - Files: docs/evidence/M25-acceptance.md
   - Depends on: T008, DOCS-R3

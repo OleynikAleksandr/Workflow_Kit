@@ -4,7 +4,7 @@ import type { Autopilot } from '#autopilot';
 import type { CrossReview } from '#cross-review';
 import { HttpError } from '#http-server';
 import type { ProjectRegistry } from '#project-registry';
-import { INTERRUPT_TIMEOUT_MS } from '#provider-registry';
+import { INTERRUPT_TIMEOUT_MS, ProviderError } from '#provider-registry';
 import type { CachedProviderProject, InterruptAvailability, InterruptResult, Project, Provider, ProviderRegistry } from '#provider-registry';
 
 export interface TurnInterruptionOptions {
@@ -119,7 +119,12 @@ export function createTurnInterruption(options: TurnInterruptionOptions) {
     const activeKey = `${projectId}\n${key}`;
     active.set(activeKey, ref);
     // Start the review barrier and plan pause before calling the provider, without waiting for IO.
-    const native = Promise.resolve().then(() => provider!.interruptTurn!(project, id, { turnRef: ref, nativeTurnId: current.nativeTurnId }));
+    const native = Promise.resolve().then(() => provider!.interruptTurn!(project, id, { turnRef: ref, nativeTurnId: current.nativeTurnId })).catch((error: unknown) => {
+      if (error instanceof ProviderError && error.code === 'interrupt-timeout') {
+        throw new HttpError(504, 'interrupt-timeout', error.message, { hint: error.hint ?? 'Автоматическое продолжение удерживается; проверьте сессию и повторите действие.' });
+      }
+      throw error;
+    });
     const job = (async (): Promise<Success> => {
       try {
         const result = await bounded(native);

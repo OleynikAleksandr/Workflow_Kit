@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { createAgentChannel, parseHookInput } from '#agent-channel';
-import { createRouter, createStateRegistry } from '#http-server';
+import { createHttpServer, createRouter, createStateRegistry } from '#http-server';
 import { registerChannelRoutes } from '#agent-channel';
-import { createProviderRegistry, createStubProvider, providerCapability } from '#provider-registry';
+import { createProviderRegistry, createStubProvider, providerCapability, ProviderError } from '#provider-registry';
 import type { InterruptResult, Project, Provider } from '#provider-registry';
 import { createTurnInterruption } from '../src/turn-interruption.ts';
 
@@ -232,4 +232,50 @@ test('archiving during asynchronous validation refuses Stop before effects', asy
     await assert.rejects(request, { code: 'session-archived' });
     assert.deepEqual([w.calls, w.pauses, w.reviews], [0, 0, 0]);
   } finally { listed.open(); channel.close(); }
+});
+
+test('HTTP interruption errors preserve adapter timeout and hint while retaining failure, unavailable and stale contracts', async () => {
+  const cases = [
+    { error: new ProviderError('interrupt-timeout', 'Claude confirmation timed out', { status: 504, hint: 'Check the terminal, then retry.' }), status: 504, code: 'interrupt-timeout', hint: 'Check the terminal, then retry.' },
+    { error: new ProviderError('interrupt-timeout', 'No confirmation'), status: 504, code: 'interrupt-timeout' },
+    { error: new ProviderError('transport-failed', 'Disconnected', { status: 504 }), status: 502, code: 'interrupt-failed' },
+    { error: new Error('Unexpected adapter error'), status: 502, code: 'interrupt-failed' },
+    { error: Object.assign(new Error('Not a ProviderError'), { code: 'interrupt-timeout', status: 504 }), status: 502, code: 'interrupt-failed' },
+    { result: { status: 'unavailable', stopped: false, reason: 'Dialog' } as InterruptResult, status: 409, code: 'interrupt-not-supported' },
+    { result: { status: 'stale', stopped: false } as InterruptResult, status: 409, code: 'stale-turn' },
+  ];
+  for (const entry of cases) {
+    const { w, channel, control, ref } = await world();
+    if (entry.error) w.run = async () => { throw entry.error; };
+    else w.result = entry.result!;
+    const router = createRouter();
+    registerChannelRoutes({ router, state: createStateRegistry(), channel, interrupt: control.interrupt });
+    const server = createHttpServer({ router, staticMounts: [], getInterfaces: () => ({}) });
+    try {
+      const { port } = await server.listen(0);
+      const origin = `http://127.0.0.1:${port}`;
+      const expected = ref();
+      channel.enqueue(KEY, 'preserved queue');
+      const response = await fetch(`${origin}/api/projects/p/sessions/alpha%3As1/interrupt`, {
+        method: 'POST', headers: { Origin: origin, 'Content-Type': 'application/json' }, body: JSON.stringify({ turnRef: expected }),
+      });
+      const body = await response.json() as { error: { code: string; message: string; hint?: string } };
+      assert.equal(response.status, entry.status, body.error.message);
+      assert.equal(body.error.code, entry.code);
+      if (entry.hint) assert.equal(body.error.hint, entry.hint);
+      if (entry.code === 'interrupt-timeout') assert.ok(body.error.hint, 'timeout without an adapter hint has a fallback');
+      assert.equal(channel.interruption(KEY)!.barrier, true);
+      assert.equal(channel.interruption(KEY)!.pending, false);
+      assert.equal(channel.interruption(KEY)!.result, entry.code === 'stale-turn' ? 'stale' : 'failed');
+      assert.equal(channel.get(KEY)!.state, 'working');
+      assert.equal(ref(), expected);
+      assert.equal(channel.queued(KEY)[0]!.text, 'preserved queue');
+      if (entry.code === 'interrupt-timeout') {
+        w.run = null;
+        await control.interrupt('p', KEY, { turnRef: expected });
+        assert.equal(w.calls, 2, 'settled adapter timeout permits an explicit retry');
+        assert.equal(channel.get(KEY)!.state, 'waiting');
+      }
+    } finally { await server.close(); channel.close(); }
+  }
 });

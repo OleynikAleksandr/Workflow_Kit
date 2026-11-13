@@ -1,0 +1,315 @@
+{
+  "baseCommit": "213461259666d37dc17cd6e26f6c78c2a7080b35",
+  "behavior": [
+    "waiting Enter, duplicate lock, newer draft",
+    "holding Enter and Shift+Enter",
+    "working newline, Cmd+Enter and touch queue",
+    "Stop waits for confirmation, draft intact, stale poll guarded",
+    "stale neutral refresh, no hidden retry, timeout and hint",
+    "unavailable reason visible; inert placeholders",
+    "browser IME, Safari trailing Enter, deliberate next Enter",
+    "edit and restore same text during send",
+    "send error keeps draft",
+    "late Stop response cannot overwrite a newer generation",
+    "already-idle confirmation",
+    "unknown allows send; no invented metadata",
+    "focus/caret/scroll over three polls",
+    "resize and session switch preserve separate drafts/reading",
+    "200% equivalent 640x400 CSS, DPR2",
+    "coarse pointer 16px/44px targets, dispatched touch queue",
+    "orientation resize, drawer open/Escape"
+  ],
+  "layout": [
+    {
+      "theme": "light",
+      "w": 1920,
+      "h": 1080,
+      "inputHeight": 120,
+      "cardHeight": 973.5078125,
+      "overflow": false,
+      "controlsFit": true
+    },
+    {
+      "theme": "light",
+      "w": 1280,
+      "h": 800,
+      "inputHeight": 120,
+      "cardHeight": 693.5078125,
+      "overflow": false,
+      "controlsFit": true
+    },
+    {
+      "theme": "light",
+      "w": 1024,
+      "h": 768,
+      "inputHeight": 120,
+      "cardHeight": 661.5078125,
+      "overflow": false,
+      "controlsFit": true
+    },
+    {
+      "theme": "light",
+      "w": 768,
+      "h": 400,
+      "inputHeight": 68.25,
+      "cardHeight": 274.6640625,
+      "overflow": false,
+      "controlsFit": true
+    },
+    {
+      "theme": "light",
+      "w": 375,
+      "h": 667,
+      "inputHeight": 120,
+      "cardHeight": 484.171875,
+      "overflow": false,
+      "controlsFit": true
+    },
+    {
+      "theme": "dark",
+      "w": 1920,
+      "h": 1080,
+      "inputHeight": 120,
+      "cardHeight": 973.5078125,
+      "overflow": false,
+      "controlsFit": true
+    },
+    {
+      "theme": "dark",
+      "w": 1280,
+      "h": 800,
+      "inputHeight": 120,
+      "cardHeight": 693.5078125,
+      "overflow": false,
+      "controlsFit": true
+    },
+    {
+      "theme": "dark",
+      "w": 1024,
+      "h": 768,
+      "inputHeight": 120,
+      "cardHeight": 661.5078125,
+      "overflow": false,
+      "controlsFit": true
+    },
+    {
+      "theme": "dark",
+      "w": 768,
+      "h": 400,
+      "inputHeight": 68.25,
+      "cardHeight": 274.6640625,
+      "overflow": false,
+      "controlsFit": true
+    },
+    {
+      "theme": "dark",
+      "w": 375,
+      "h": 667,
+      "inputHeight": 120,
+      "cardHeight": 484.171875,
+      "overflow": false,
+      "controlsFit": true
+    }
+  ],
+  "cards": [
+    {
+      "name": "question",
+      "cards": 2,
+      "leftCards": true,
+      "rightCards": 0,
+      "pageW": 1024,
+      "pageH": 768,
+      "controlsBottom": 728
+    },
+    {
+      "name": "choice",
+      "cards": 2,
+      "leftCards": true,
+      "rightCards": 0,
+      "pageW": 1024,
+      "pageH": 768,
+      "controlsBottom": 728
+    },
+    {
+      "name": "review",
+      "cards": 2,
+      "leftCards": true,
+      "rightCards": 0,
+      "pageW": 1024,
+      "pageH": 768,
+      "controlsBottom": 728
+    },
+    {
+      "name": "ready",
+      "cards": 2,
+      "leftCards": true,
+      "rightCards": 0,
+      "pageW": 1024,
+      "pageH": 768,
+      "controlsBottom": 728
+    },
+    {
+      "name": "start-pending",
+      "cards": 2,
+      "leftCards": true,
+      "rightCards": 0,
+      "pageW": 1024,
+      "pageH": 768,
+      "controlsBottom": 728
+    },
+    {
+      "name": "running",
+      "cards": 2,
+      "leftCards": true,
+      "rightCards": 0,
+      "pageW": 1024,
+      "pageH": 768,
+      "controlsBottom": 728
+    },
+    {
+      "name": "paused",
+      "cards": 2,
+      "leftCards": true,
+      "rightCards": 0,
+      "pageW": 1024,
+      "pageH": 768,
+      "controlsBottom": 728
+    },
+    {
+      "name": "blocked",
+      "cards": 2,
+      "leftCards": true,
+      "rightCards": 0,
+      "pageW": 1024,
+      "pageH": 768,
+      "controlsBottom": 728
+    },
+    {
+      "name": "acceptance",
+      "cards": 2,
+      "leftCards": true,
+      "rightCards": 0,
+      "pageW": 1024,
+      "pageH": 768,
+      "controlsBottom": 728
+    },
+    {
+      "name": "accepted",
+      "cards": 2,
+      "leftCards": true,
+      "rightCards": 0,
+      "pageW": 1024,
+      "pageH": 768,
+      "controlsBottom": 728
+    },
+    {
+      "name": "delivery",
+      "cards": 3,
+      "leftCards": true,
+      "rightCards": 0,
+      "pageW": 1024,
+      "pageH": 768,
+      "controlsBottom": 728
+    },
+    {
+      "name": "empty",
+      "cards": 2,
+      "leftCards": true,
+      "rightCards": 0,
+      "pageW": 1024,
+      "pageH": 768,
+      "controlsBottom": 728
+    }
+  ],
+  "zoom": {
+    "w": 640,
+    "h": 400,
+    "dpr": 2,
+    "scrollW": 640,
+    "scrollH": 400,
+    "inputBottom": 314,
+    "paramsBottom": 355.6953125
+  },
+  "touch": {
+    "coarse": true,
+    "font": "16px",
+    "targets": [
+      {
+        "w": 44,
+        "h": 44
+      },
+      {
+        "w": 44,
+        "h": 44
+      },
+      {
+        "w": 44,
+        "h": 44
+      }
+    ]
+  },
+  "special": [
+    {
+      "mode": "empty",
+      "w": 768,
+      "h": 400,
+      "pageW": 768,
+      "pageH": 400,
+      "bottom": 360
+    },
+    {
+      "mode": "empty",
+      "w": 375,
+      "h": 667,
+      "pageW": 375,
+      "pageH": 667,
+      "bottom": 636
+    },
+    {
+      "mode": "unsupported",
+      "w": 768,
+      "h": 400,
+      "pageW": 768,
+      "pageH": 400,
+      "bottom": 360
+    },
+    {
+      "mode": "unsupported",
+      "w": 375,
+      "h": 667,
+      "pageW": 375,
+      "pageH": 667,
+      "bottom": 636
+    },
+    {
+      "mode": "read-error",
+      "w": 768,
+      "h": 400,
+      "pageW": 768,
+      "pageH": 400,
+      "bottom": 360
+    },
+    {
+      "mode": "read-error",
+      "w": 375,
+      "h": 667,
+      "pageW": 375,
+      "pageH": 667,
+      "bottom": 636
+    }
+  ],
+  "errors": [],
+  "zoomCapture": {
+    "width": 640,
+    "height": 400,
+    "dpr": 2,
+    "pngScale": "css",
+    "drawer": "flex",
+    "controlsBottom": 369
+  },
+  "limits": [
+    "Fixtures only; no real provider/service interruption",
+    "Original second screenshot is no longer present; exact reference comparison unverified",
+    "200% is emulated CSS size and DPR; real zoom and iPad keyboard remain live checks"
+  ]
+}

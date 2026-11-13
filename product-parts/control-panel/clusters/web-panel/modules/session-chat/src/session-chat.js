@@ -3,7 +3,10 @@
 // a field to write to its agent. Panel extension: install(shell) fills the "sessionChat" slot of
 // panel-shell. One element per session lives in a Map and is updated in place by its own polling,
 // so the typed text and the scroll position survive polls and leaving the screen.
-import { EMPTY_TEXT, LOADING_TEXT, POLL_MS, TRUNCATED_TEXT, canSend, errorText, mergePage, messagesUrl, roleLabel, sendOutcome, sendUrl, timeLabel, unsupportedText } from './chat-model.js';
+import { EMPTY_TEXT, LOADING_TEXT, POLL_MS, TRUNCATED_TEXT, errorText, mergePage, messagesUrl, roleLabel, timeLabel, unsupportedText } from './chat-model.js';
+
+import { createComposer } from './composer.js';
+import { composerData } from './composer-model.js';
 
 /**
  * Helpers the panel shell gives to extensions (see panel-shell app.js).
@@ -27,16 +30,13 @@ import { EMPTY_TEXT, LOADING_TEXT, POLL_MS, TRUNCATED_TEXT, canSend, errorText, 
  * @property {HTMLElement} feed
  * @property {HTMLElement} note truncated or unsupported line
  * @property {HTMLElement} error read error
- * @property {HTMLTextAreaElement} input
- * @property {HTMLButtonElement} button
- * @property {HTMLElement} status outcome of the last send
+ * @property {ReturnType<typeof createComposer>} composer
  * @property {Map<string, HTMLElement>} nodes message nodes by id
  * @property {ChatMessage[] | null} messages null before the first page
  * @property {boolean} inflight a GET is under way
  * @property {boolean} again poll once more when the GET in flight ends
  * @property {boolean} shown the card was visible at the last check
  * @property {number} lastPoll
- * @property {boolean} busy a send is under way
  * @property {number} version grows on every change of the card
  */
 
@@ -56,11 +56,6 @@ export function install(shell) {
 
   /** @param {string} projectId @param {string} key */
   const idOf = (projectId, key) => `${projectId}\n${key}`;
-
-  /** @param {ChatEntry} entry */
-  function refreshButton(entry) {
-    entry.button.disabled = !canSend(entry.input.value, entry.busy);
-  }
 
   /**
    * @param {HTMLElement} node
@@ -165,6 +160,7 @@ export function install(shell) {
    * @param {ChatEntry} entry
    */
   function check(entry) {
+    entry.composer.setVisible(visible(entry));
     if (!visible(entry)) {
       entry.shown = false;
       return;
@@ -178,28 +174,6 @@ export function install(shell) {
   const checkAll = () => {
     for (const entry of entries.values()) check(entry);
   };
-
-  /** @param {ChatEntry} entry */
-  async function send(entry) {
-    const text = entry.input.value;
-    if (!canSend(text, entry.busy)) return;
-    entry.busy = true;
-    refreshButton(entry);
-    line(entry.status, 'Отправляю…', 'muted');
-    try {
-      const response = await shell.api('POST', sendUrl(entry.projectId, entry.key), { text });
-      if (entry.input.value === text) entry.input.value = '';
-      line(entry.status, sendOutcome(response), 'ok');
-      void poll(entry);
-    } catch (error) {
-      // The typed text stays for another try.
-      line(entry.status, errorText(error), 'error');
-    } finally {
-      entry.busy = false;
-      refreshButton(entry);
-      entry.version += 1;
-    }
-  }
 
   /**
    * @param {SessionContext} session
@@ -217,45 +191,33 @@ export function install(shell) {
     const feed = h('div', { class: 'sc-feed', role: 'log', 'aria-live': 'polite' }, [h('p', { class: 'sc-empty' }, [LOADING_TEXT])]);
     const note = h('p', { class: 'sc-note' });
     const error = h('p', { class: 'sc-error', role: 'alert' });
-    const input = /** @type {HTMLTextAreaElement} */ (h('textarea', { class: 'sc-input', rows: '3', 'aria-label': 'Сообщение агенту', placeholder: 'Сообщение агенту (Ctrl+Enter или ⌘+Enter — отправить)', autocapitalize: 'sentences' }));
-    const button = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'btn primary' }, ['Отправить']));
-    const status = h('p', { class: 'sc-status', 'aria-live': 'polite' });
+    const composer = createComposer({ shell, projectId, key, provider, onSent: () => void poll(entry) });
     note.hidden = true;
     error.hidden = true;
-    status.hidden = true;
     const root = h('div', { class: 'panel sc-card' }, [
       h('h2', {}, ['Диалог']),
       note,
       feed,
       error,
-      h('div', { class: 'sc-compose' }, [input, h('div', { class: 'sc-actions' }, [button])]),
-      status,
+      composer.node,
     ]);
     /** @type {ChatEntry} */
     const entry = {
-      projectId, key, provider, providerLabel, root, feed, note, error, input, button, status,
-      nodes: new Map(), messages: null, inflight: false, again: false, shown: false, lastPoll: 0, busy: false, version: 0,
+      projectId, key, provider, providerLabel, root, feed, note, error, composer,
+      nodes: new Map(), messages: null, inflight: false, again: false, shown: false, lastPoll: 0, version: 0,
     };
-    input.addEventListener('input', () => refreshButton(entry));
-    input.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
-        event.preventDefault();
-        void send(entry);
-      }
-    });
-    button.addEventListener('click', () => void send(entry));
-    refreshButton(entry);
     entries.set(id, entry);
     return entry;
   }
 
   shell.registerSlot('sessionChat', {
-    select(_state, session) {
+    select(state, session) {
       const entry = entries.get(idOf(session.project.id, session.session.key));
-      return { key: session.session.key, label: session.session.providerLabel, version: entry?.version ?? 0 };
+      return { key: session.session.key, label: session.session.providerLabel, version: entry?.version ?? 0, composer: composerData(state, session.project.id, session.session.key, session.session.provider) };
     },
-    render(_data, _state, session) {
+    render(data, _state, session, ctx) {
       const entry = entryOf(session);
+      entry.composer.update(data.composer, ctx.requestRefresh);
       // The shell attaches the element after render; poll as soon as it is in the document.
       setTimeout(() => check(entry), 0);
       return entry.root;

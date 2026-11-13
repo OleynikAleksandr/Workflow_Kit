@@ -68,38 +68,6 @@
   color: var(--error);
 }
 
-.sc-compose {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.sc-input {
-  box-sizing: border-box;
-  width: 100%;
-  min-height: 44px;
-  height: 64px;
-  max-height: min(120px, 25dvh);
-  padding: 8px 10px;
-  border: 1px solid var(--card-line);
-  border-radius: 8px;
-  background: var(--input);
-  color: var(--text);
-  font: inherit;
-  resize: vertical;
-}
-
-.sc-actions {
-  display: flex;
-  justify-content: flex-end;
-}
-
-/* A touch-sized button; no hover-only controls. */
-.sc-actions .btn {
-  min-height: 40px;
-  min-width: 120px;
-}
-
 .panel p.sc-status {
   margin: 0;
   color: var(--muted);
@@ -120,3 +88,45 @@
 .sc-card .sc-compose { min-width: 0; }
 .sc-msg { flex-shrink: 0; min-width: 0; }
 .sc-compose { margin-top: auto; }
+
+/* M24: one editor frame; the information below it stays in the dialogue. */
+.sc-compose { display: flex; flex-direction: column; gap: 6px; }
+.sc-editor {
+  display: flex; align-items: flex-end; gap: 2px;
+  border: 1px solid var(--card-line); border-radius: 16px;
+  background: var(--input); padding: 4px; min-width: 0;
+}
+.sc-editor:focus-within { border-color: var(--teal); }
+.sc-input {
+  box-sizing: border-box; flex: 1; min-width: 0; width: 0;
+  height: 44px; min-height: 44px; max-height: 120px;
+  padding: 11px 4px; margin: 0; border: 0; outline: none;
+  background: transparent; color: var(--text); font: inherit;
+  line-height: 22px; resize: none; overflow-y: auto;
+}
+.sc-input::placeholder { color: var(--muted); opacity: 1; }
+.sc-icon-button, .sc-queue {
+  font: inherit; color: var(--text); background: transparent;
+  border: 0; border-radius: 10px; cursor: pointer; flex-shrink: 0;
+  min-height: 44px; touch-action: manipulation;
+}
+.sc-icon-button { display: inline-flex; align-items: center; justify-content: center; width: 44px; }
+.sc-icon-button:disabled { color: var(--muted); cursor: default; opacity: .55; }
+.sc-icon-button:not(:disabled):hover, .sc-queue:not(:disabled):hover { background: var(--card); }
+.sc-icon-button:focus-visible, .sc-queue:focus-visible { outline: 2px solid var(--teal); outline-offset: 1px; }
+.sc-stop:not(:disabled) { color: var(--teal); }
+.sc-icon { display: inline-block; width: 20px; height: 20px; background: currentColor; mask: center / contain no-repeat; }
+.sc-icon-plus { mask-image: url('./icons/plus.svg'); }
+.sc-icon-enter { mask-image: url('./icons/corner-down-left.svg'); }
+.sc-icon-mic { mask-image: url('./icons/mic.svg'); }
+.sc-icon-stop { mask-image: url('./icons/square.svg'); }
+.sc-icon-circle { mask-image: url('./icons/circle.svg'); }
+.sc-details { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 4px 12px; min-width: 0; }
+.sc-parameters { display: flex; align-items: center; justify-content: flex-end; flex: 1; flex-wrap: wrap; gap: 12px; min-width: 0; color: var(--muted); font-size: 12px; }
+.sc-model { overflow-wrap: anywhere; min-width: 0; }
+.sc-context { display: inline-flex; }
+.sc-context .sc-icon { width: 17px; height: 17px; }
+.sc-queue { min-width: 80px; padding: 0 8px; color: var(--teal); }
+.sc-queue[hidden] { display: none; }
+.sc-queue:disabled { opacity: .55; cursor: default; }
+@media (pointer: coarse) { .sc-input { font-size: 16px; } }

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 768,
+  "revision": 770,
   "rounds": [
     {
       "digest": null,
@@ -547,14 +547,33 @@
         "product-parts/control-panel/clusters/web-panel/modules/session-chat",
         "docs/architecture/OVERVIEW.md",
         "docs/evidence/M24-acceptance.md",
-        "docs/evidence/M24"
+        "docs/evidence/M24",
+        "docs/evidence/M24/T006-browser-results.json",
+        "docs/evidence/M24/T006-design-qa.md",
+        "docs/evidence/M24/T006-desktop-dark-1920x1080.png",
+        "docs/evidence/M24/T006-desktop-light-1280x800.png",
+        "docs/evidence/M24/T006-landscape-light-768x400.png",
+        "docs/evidence/M24/T006-mobile-dark-375x667.png",
+        "docs/evidence/M24/T006-zoom-equivalent-640x400.png",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/composer-model.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/composer.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/icons/LICENSE",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/icons/circle.svg",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/icons/corner-down-left.svg",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/icons/mic.svg",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/icons/plus.svg",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/icons/square.svg",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/session-chat.css",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/session-chat.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/test/composer-model.test.ts"
       ],
       "fixes": null,
       "id": "T006",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Поле ввода по образцу, Enter/Stop и визуальная проверка",
       "why": "Поле ввода по образцу, Enter/Stop и визуальная проверка"
     },
@@ -669,8 +688,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 7/10
-- Revision: 768
+- Progress: 8/10
+- Revision: 770
 
 ## Objective
 
@@ -719,9 +738,9 @@
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi, docs/architecture/OVERVIEW.md, docs/evidence/M24-acceptance.md, docs/evidence/M24, docs/evidence/M24/history-before-T009.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/interrupt.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/client.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/interrupt.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/client.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/interrupt.test.ts
   - Depends on: T005
   - Fixes: T004
-- [TODO] T006 — Поле ввода по образцу, Enter/Stop и визуальная проверка (work)
+- [DONE] T006 — Поле ввода по образцу, Enter/Stop и визуальная проверка (work)
   - Commit: feat(chat): add compact composer with enter and stop controls
-  - Files: product-parts/control-panel/clusters/web-panel/modules/session-chat, docs/architecture/OVERVIEW.md, docs/evidence/M24-acceptance.md, docs/evidence/M24
+  - Files: product-parts/control-panel/clusters/web-panel/modules/session-chat, docs/architecture/OVERVIEW.md, docs/evidence/M24-acceptance.md, docs/evidence/M24, docs/evidence/M24/T006-browser-results.json, docs/evidence/M24/T006-design-qa.md, docs/evidence/M24/T006-desktop-dark-1920x1080.png, docs/evidence/M24/T006-desktop-light-1280x800.png, docs/evidence/M24/T006-landscape-light-768x400.png, docs/evidence/M24/T006-mobile-dark-375x667.png, docs/evidence/M24/T006-zoom-equivalent-640x400.png, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/composer-model.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/composer.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/icons/LICENSE, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/icons/circle.svg, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/icons/corner-down-left.svg, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/icons/mic.svg, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/icons/plus.svg, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/icons/square.svg, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/session-chat.css, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/session-chat.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/composer-model.test.ts
   - Depends on: T005, T009
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1

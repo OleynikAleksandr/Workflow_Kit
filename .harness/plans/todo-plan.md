@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 851,
+  "revision": 853,
   "rounds": [
     {
       "digest": {
@@ -38,7 +38,24 @@
       "title": "Implementation"
     },
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "Один POST на завершённый drag; cancel/lostcapture/blur/Esc не записывают.",
+          "Polling не переписывает неизменённые max/disabled; preview и draft сохраняются."
+        ],
+        "decisions": [
+          "Успех смены параметров молчит, ошибки видны.",
+          "Захват thumb принадлежит native range; document listeners завершают жест вне дорожки.",
+          "0.12.1 и CI точного SHA идут отдельно от пользовательской приёмки."
+        ],
+        "references": [
+          "docs/planning/M26-native-session-controls.md",
+          "docs/evidence/M26-native-controls.md",
+          "design-qa.md",
+          "product-parts/control-panel/clusters/web-panel/modules/session-chat/test/native-controls.browser.js"
+        ],
+        "result": "Исправлены захват бегунка и служебный подстрочник; обязательные проверки и browser-регрессия прошли."
+      },
       "id": "R2",
       "kind": "fixes",
       "status": "OPEN",
@@ -554,7 +571,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -629,8 +646,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 9/12
-- Revision: 851
+- Progress: 10/12
+- Revision: 853
 
 ## Objective
 
@@ -687,7 +704,7 @@ Digest: Реализованы нативные контролы ChatGPT, реа
   - Commit: fix(panel): support thumb dragging and silence parameter success notices
   - Files: product-parts/control-panel/clusters/web-panel/modules/session-chat, docs/architecture/OVERVIEW.md, docs/planning/M26-native-session-controls.md, docs/evidence/M26-native-controls.md, docs/evidence/M26, design-qa.md, docs/evidence/M26/fixes-composer-touch.png, docs/evidence/M26/fixes-composer.png, docs/evidence/M26/user-fixes-reference.png, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/parameters.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/effort-card.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/parameters.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/native-controls.browser.js
   - Fixes: T003
-- [TODO] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R2
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M26-native-session-controls.md, docs/evidence/M26-native-controls.md, design-qa.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/parameters.md
   - Depends on: T008
@@ -699,5 +716,7 @@ Digest: Реализованы нативные контролы ChatGPT, реа
   - Commit: docs: record green CI for native controls fixes
   - Files: docs/evidence/M26-native-controls.md
   - Depends on: T009, DOCS-R2
+
+Digest: Исправлены захват бегунка и служебный подстрочник; обязательные проверки и browser-регрессия прошли.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

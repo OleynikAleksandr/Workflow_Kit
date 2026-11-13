@@ -109,7 +109,7 @@ setPointerCapture внешнего input убран, родное перетас
 
 [P2, исправлено] По новому указанию пользователя убран зелёный служебный подстрочник
 после смены параметров, включая policy/reviewer. Ошибки остаются видимыми.
-Source: docs/evidence/M26/user-fixes-reference.png, 986×274 physical.
+Source: docs/evidence/M26/user-fixes-reference.png, 962×274 physical.
 Implementation: docs/evidence/M26/fixes-composer.png, composer700px/DPR2;
 fixes-composer-touch.png, composer343px/DPR2 при viewport375×667, desktop1000×700.
 Источник и оба снимка открыты в одном comparison input: подстрочника нет, плашки,

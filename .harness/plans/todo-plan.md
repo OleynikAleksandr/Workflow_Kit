@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 801,
+  "revision": 802,
   "rounds": [
     {
       "digest": {
@@ -42,8 +42,15 @@
       },
       "id": "R1",
       "kind": "implementation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Implementation"
+    },
+    {
+      "digest": null,
+      "id": "R2",
+      "kind": "fixes",
+      "status": "OPEN",
+      "title": "M25: отказы Windows в предварительной CI"
     }
   ],
   "schema": "harness-workflow-plan/1",
@@ -563,6 +570,88 @@
     },
     {
       "acceptance": [
+        "Записи одного файла выполняются по очереди; записи разных файлов не блокируют друг друга; временный файл переименовывается атомарно без предварительного удаления назначения.",
+        "EPERM/EACCES/EBUSY при переименовании имеют ограниченный повтор; прочие ошибки возвращаются сразу; тесты воспроизводят transient отказ и сохраняют прежний снимок при постоянном отказе.",
+        "Тест десяти конкурентных записей сохранён; локальные обязательные проверки прошли. Контракт и доказательства содержат исходный Windows сбой и изменение."
+      ],
+      "checks": [],
+      "commitMessage": "fix(parameters): serialize atomic snapshot replacement",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry",
+        "docs/architecture/OVERVIEW.md",
+        "docs/evidence/M25-acceptance.md"
+      ],
+      "fixes": "T002",
+      "id": "T010",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Снимки: сериализация и атомарная замена при занятости файла",
+      "why": "Windows x64 CI 43439309345 получила EPERM при десяти одновременных переименованиях снимка"
+    },
+    {
+      "acceptance": [
+        "После тайм-аута вывод пустой, а Promise завершается после закрытия процесса и завершения операции уничтожения дерева, включая Windows taskkill /T /F.",
+        "Детерминированный тест задержанного завершения taskkill и существующий тест гибели команды/дочернего процесса проходят; тесты Windows не ослабляются удалением проверок.",
+        "Контракт, матрица ОС и доказательства обновлены; обязательные проверки прошли. Предварительная CI после раунда проверяется до начала поставки."
+      ],
+      "checks": [],
+      "commitMessage": "fix(statusline): await process tree termination",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T010"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/backend-core/clusters/runtime/modules/cli",
+        "docs/architecture/OVERVIEW.md",
+        "docs/evidence/M25-acceptance.md"
+      ],
+      "fixes": "T005",
+      "id": "T011",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Statusline: дождаться завершения дерева и закрытия процесса",
+      "why": "Windows x64 CI 43439309345 получила EBUSY при очистке cwd ещё завершающегося процесса"
+    },
+    {
+      "acceptance": [
+        "Project-wide documents describe the round result",
+        "The round digest records result, decisions, contracts and references"
+      ],
+      "checks": [],
+      "commitMessage": "docs: reconcile documentation for R2",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T010",
+        "T011"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/architecture/OVERVIEW.md",
+        "docs/evidence/M25-acceptance.md"
+      ],
+      "fixes": null,
+      "id": "DOCS-R2",
+      "iteration": 1,
+      "kind": "docs",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Reconcile project documentation and write the round digest",
+      "why": "Keep the project context current for the next agent and close the round."
+    },
+    {
+      "acceptance": [
         "После отдельного подтверждения пользователя и задачи DOCS штатным способом подготовлен и установлен локальный релиз 0.11.0; установленная служба проверена.",
         "Версия согласована в package.json, README.md, docs/installation.md, docs/usage.md, OVERVIEW.md и CHANGELOG; доказательства M25 содержат команды, результаты, SHA поставки и список живых проверок раздела 4 с исполнителями по ОС.",
         "Задача не выполняет git push; её коммит — SHA поставки; в доказательствах записано «CI ожидает отправки ветки ci/m25-session-parameters» с этим SHA. Зелёную CI проверяет T009 (раздел 8 правил M25)."
@@ -584,7 +673,7 @@
       ],
       "dependencies": [
         "T007",
-        "DOCS-R1"
+        "DOCS-R2"
       ],
       "docsWaiver": null,
       "files": [
@@ -603,7 +692,7 @@
       "id": "T008",
       "iteration": 1,
       "kind": "delivery",
-      "roundId": "R1",
+      "roundId": "R2",
       "status": "TODO",
       "title": "Локальная поставка 0.11.0 и живая приёмка",
       "why": "Пользователь проверяет результат в установленной службе"
@@ -632,7 +721,7 @@
       ],
       "dependencies": [
         "T008",
-        "DOCS-R1"
+        "DOCS-R2"
       ],
       "docsWaiver": null,
       "files": [
@@ -642,7 +731,7 @@
       "id": "T009",
       "iteration": 1,
       "kind": "delivery",
-      "roundId": "R1",
+      "roundId": "R2",
       "status": "TODO",
       "title": "CI четырёх платформ на SHA поставки",
       "why": "Поставка не завершена без зелёной CI на macOS, Linux, Windows x64 и Windows ARM64"
@@ -658,8 +747,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 8/10
-- Revision: 801
+- Progress: 8/13
+- Revision: 802
 
 ## Objective
 
@@ -676,7 +765,7 @@
 
 ## Rounds
 
-### R1 — Implementation (implementation, OPEN)
+### R1 — Implementation (implementation, CLOSED)
 
 - [DONE] T001 — Проба с пользователем: изменение из Kit и приложение ChatGPT (work)
   - Commit: docs: record the ChatGPT parameter control probe
@@ -709,15 +798,31 @@
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M25-session-parameters.md, docs/design/M25-session-parameters-facts.md, docs/evidence/M25-acceptance.md, product-parts/provider-runtime/clusters/provider-contract/cluster.md, docs/architecture/CONTRACTS.md, product-parts/control-panel/clusters/web-panel/cluster.md
   - Depends on: T001, T002, T003, T004, T005, T006, T007
+
+Digest: Реализованы чтение параметров Claude/ChatGPT, управление ChatGPT и строка/меню диалога. T001 положительная; автоматические и браузерные проверки выполнены. Поставка и живая приёмка отдельно.
+
+### R2 — M25: отказы Windows в предварительной CI (fixes, OPEN)
+
+- [TODO] T010 — Снимки: сериализация и атомарная замена при занятости файла (work)
+  - Commit: fix(parameters): serialize atomic snapshot replacement
+  - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, docs/architecture/OVERVIEW.md, docs/evidence/M25-acceptance.md
+  - Fixes: T002
+- [TODO] T011 — Statusline: дождаться завершения дерева и закрытия процесса (work)
+  - Commit: fix(statusline): await process tree termination
+  - Files: product-parts/backend-core/clusters/runtime/modules/cli, docs/architecture/OVERVIEW.md, docs/evidence/M25-acceptance.md
+  - Depends on: T010
+  - Fixes: T005
+- [TODO] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
+  - Commit: docs: reconcile documentation for R2
+  - Files: README.md, docs/architecture/OVERVIEW.md, docs/evidence/M25-acceptance.md
+  - Depends on: T010, T011
 - [TODO] T008 — Локальная поставка 0.11.0 и живая приёмка (delivery)
   - Commit: chore(release): install Workflow Kit 0.11.0 locally
   - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/installation.md, docs/usage.md, docs/architecture/OVERVIEW.md, docs/changelog, docs/evidence/M25-acceptance.md, docs/evidence/M25
-  - Depends on: T007, DOCS-R1
+  - Depends on: T007, DOCS-R2
 - [TODO] T009 — CI четырёх платформ на SHA поставки (delivery)
   - Commit: docs: record green CI for the M25 delivery
   - Files: docs/evidence/M25-acceptance.md
-  - Depends on: T008, DOCS-R1
-
-Digest: Реализованы чтение параметров Claude/ChatGPT, управление ChatGPT и строка/меню диалога. T001 положительная; автоматические и браузерные проверки выполнены. Поставка и живая приёмка отдельно.
+  - Depends on: T008, DOCS-R2
 
 State changes only through `scripts/workflow` commands. History lives in Git.

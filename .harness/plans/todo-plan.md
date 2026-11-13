@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T001",
   "lastClosed": {
     "closedAt": "2026-11-13T15:14:42.535Z",
     "scopeId": "m25-session-parameters"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 821,
+  "revision": 823,
   "rounds": [
     {
       "digest": null,
@@ -80,7 +80,7 @@
       "acceptance": [
         "Три исходных PNG сохранены без изменений с SHA-256 и замерами Retina 2×; источники и состояния различены.",
         "Для трёх нативных пресетов зафиксированы проверенные RPC, read-back полного набора permissions/approval/reviewer, ограничения allowed и распознавание текущего состояния; рабочий чат не менялся.",
-        "Проверены сброс усилия, вложенный выбор модели, цель Подробнее и данные ускорения. При недоказанной полной семантике доступа записан исход и scope заблокирован, без ложных названий или самостоятельного одобрения запросов."
+        "Зафиксированы отдельный список моделей под полем ввода и данные ускорения. Круговая стрелка и Подробнее исключены прямым указанием пользователя. При недоказанной полной семантике доступа записан исход и scope заблокирован, без ложных названий или самостоятельного одобрения запросов."
       ],
       "checks": [],
       "commitMessage": "docs: verify native session control behavior",
@@ -103,14 +103,15 @@
         "docs/design/M26-native-controls-reference.md",
         "docs/design/M26",
         "docs/evidence/M26-native-controls.md",
-        "docs/evidence/M26"
+        "docs/evidence/M26",
+        "docs/planning/M26-native-session-controls-plan.md"
       ],
       "fixes": null,
       "id": "T001",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "Проверить нативные пресеты, сброс и визуальные эталоны",
       "why": "Нативные варианты доступа не равны трём filesystem-профилям M25; полное соответствие нельзя выдумывать"
     },
@@ -402,9 +403,9 @@
 - Scope: m26-native-session-controls (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: none
+- Current task: T001
 - Progress: 0/8
-- Revision: 821
+- Revision: 823
 
 ## Objective
 
@@ -421,9 +422,9 @@
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T001 — Проверить нативные пресеты, сброс и визуальные эталоны (work)
+- [IN_PROGRESS] T001 — Проверить нативные пресеты, сброс и визуальные эталоны (work)
   - Commit: docs: verify native session control behavior
-  - Files: docs/planning/M26-native-session-controls.md, docs/design/M26-native-controls-reference.md, docs/design/M26, docs/evidence/M26-native-controls.md, docs/evidence/M26
+  - Files: docs/planning/M26-native-session-controls.md, docs/design/M26-native-controls-reference.md, docs/design/M26, docs/evidence/M26-native-controls.md, docs/evidence/M26, docs/planning/M26-native-session-controls-plan.md
 - [TODO] T002 — Презентация контролов и настоящие пресеты доступа Codex (work)
   - Commit: feat(parameters): expose native control presentation and access presets
   - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, docs/architecture/CONTRACTS.md, docs/architecture/OVERVIEW.md, docs/evidence/M26-native-controls.md

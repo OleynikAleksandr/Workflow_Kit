@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T005",
   "lastClosed": {
     "closedAt": "2026-11-12T18:46:52.163Z",
     "scopeId": "m23-kit-tests-windows"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 763,
+  "revision": 765,
   "rounds": [
     {
       "digest": null,
@@ -453,9 +453,43 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "Stop ChatGPT/Codex: прерывание конкретного native turn",
       "why": "Stop ChatGPT/Codex: прерывание конкретного native turn"
+    },
+    {
+      "acceptance": [
+        "Клиент Kimi сохраняет типизированное происхождение timeout/abort транспорта; Stop переводит его в ProviderError interrupt-timeout (504) независимо от сравнения часов, сетевые ошибки остаются 502.",
+        "Регрессионные тесты детерминированно проверяют HTTP timeout до общего дедлайна и обыкновенный transport error; запрет replay abort, deadline и барьер сохранены.",
+        "Контракты, матрица ОС и evidence обновлены; при достижении лимита evidence прежние разделы вынесены без потери текста в связанные документы M24."
+      ],
+      "checks": [],
+      "commitMessage": "fix(kimi): preserve transport timeout classification",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/design/M24-turn-interruption.md",
+          "required": true
+        }
+      ],
+      "dependencies": [
+        "T005"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi",
+        "docs/architecture/OVERVIEW.md",
+        "docs/evidence/M24-acceptance.md",
+        "docs/evidence/M24"
+      ],
+      "fixes": "T004",
+      "id": "T009",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R1",
+      "status": "TODO",
+      "title": "Надёжная классификация HTTP-тайм-аута Stop Kimi",
+      "why": "Полная проверка T005 выявила: HTTP timeout Kimi иногда становится interrupt-failed до срабатывания проверки Date.now; необходим типизированный признак тайм-аута клиента, без зависимости от текста ошибки/гонки часов."
     },
     {
       "acceptance": [
@@ -485,7 +519,8 @@
         }
       ],
       "dependencies": [
-        "T005"
+        "T005",
+        "T009"
       ],
       "docsWaiver": null,
       "files": [
@@ -519,6 +554,7 @@
         "T008",
         "T004",
         "T005",
+        "T009",
         "T006"
       ],
       "docsWaiver": null,
@@ -537,7 +573,14 @@
         "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md",
         "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md",
         "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md",
-        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md"
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/interrupt.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/sessions.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/hooks.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/interrupt.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md"
       ],
       "fixes": null,
       "id": "DOCS-R1",
@@ -605,9 +648,9 @@
 - Scope: m24-interface-polish (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: none
-- Progress: 5/9
-- Revision: 763
+- Current task: T005
+- Progress: 5/10
+- Revision: 765
 
 ## Objective
 
@@ -647,18 +690,23 @@
   - Commit: feat(kimi): abort managed turns with idle confirmation
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi, docs/architecture/OVERVIEW.md, docs/evidence/M24-acceptance.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/hooks.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/interrupt.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/client.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/interrupt.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/messages.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/turn-gate.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/turn-lock.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/client.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/fake-sessions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/interrupt.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/turn-gate.test.ts
   - Depends on: T003, T008
-- [TODO] T005 — Stop ChatGPT/Codex: прерывание конкретного native turn (work)
+- [IN_PROGRESS] T005 — Stop ChatGPT/Codex: прерывание конкретного native turn (work)
   - Commit: feat(codex): interrupt the expected active turn
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, docs/architecture/OVERVIEW.md, docs/evidence/M24-acceptance.md
   - Depends on: T004
+- [TODO] T009 — Надёжная классификация HTTP-тайм-аута Stop Kimi (work)
+  - Commit: fix(kimi): preserve transport timeout classification
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi, docs/architecture/OVERVIEW.md, docs/evidence/M24-acceptance.md, docs/evidence/M24
+  - Depends on: T005
+  - Fixes: T004
 - [TODO] T006 — Поле ввода по образцу, Enter/Stop и визуальная проверка (work)
   - Commit: feat(chat): add compact composer with enter and stop controls
   - Files: product-parts/control-panel/clusters/web-panel/modules/session-chat, docs/architecture/OVERVIEW.md, docs/evidence/M24-acceptance.md, docs/evidence/M24
-  - Depends on: T005
+  - Depends on: T005, T009
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
-  - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M24-interface-polish.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, product-parts/control-panel/clusters/web-panel/cluster.md, docs/architecture/CONTRACTS.md, docs/evidence/M24-acceptance.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/files.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md
-  - Depends on: T001, T002, T003, T008, T004, T005, T006
+  - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M24-interface-polish.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, product-parts/control-panel/clusters/web-panel/cluster.md, docs/architecture/CONTRACTS.md, docs/evidence/M24-acceptance.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/files.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/interrupt.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/sessions.md, product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/hooks.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/interrupt.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md
+  - Depends on: T001, T002, T003, T008, T004, T005, T009, T006
 - [TODO] T007 — Локальная поставка Workflow Kit 0.10.0 (delivery)
   - Commit: chore(release): install Workflow Kit 0.10.0 locally
   - Files: package.json, CHANGELOG.md, README.md, docs/installation.md, docs/architecture/OVERVIEW.md, docs/usage.md, docs/changelog, docs/evidence/M24-acceptance.md

@@ -110,3 +110,32 @@ Gate и бюджет — facts §3–§6; native геометрия/темы —
 Ни одна ссылка на PENDING не означает готовности; при блокере T001 не коммитится.
 На Windows нет объявления live-проверки по одному CI; неизвестный ConPTY frame
 всегда даёт read-only независимо от версии и результатов тестов.
+
+## Наблюдение T001 от 13.11.2026
+
+Исследовательский gate PASS: [отчёт](../evidence/M27-claude-native-controls.md),
+facts §4/§5, [native канал](M27/claude-native-channel.md) и visual contract заполнены.
+В production коде T001 setters нет. T003 переносит доказанные primitives и exact
+нормализацию служебных terminal sequences в streaming engine; чужой frame отказывает.
+Минимальная испытанная версия 2.1.323 + shape/protocol, не exact version equality.
+
+Model/effort выбираются через picker + s; model More models раскрывается Enter
+только при Enter to expand. Enter на строке модели сохраняет default и запрещён.
+Native model catalog может иметь opaque keys выбора; labels/aliases не effective id.
+Если options используют такие keys, у options добавляется selected (и group primary/
+more для native меню), а item.value продолжает отражать фактический native model.id.
+Claude UI использует selected; Codex сохраняет прежнее сравнение value. Аудит хранит
+фактические old/new. Не зашивать перечень версий моделей со скриншота в allowlist.
+
+Ultracode имеет отдельный switch и on/off API; effort при переключении остаётся high.
+Legacy raw ultra подписывается Ultracode, неизвестный base не выдумывается. Fast
+в этом аккаунте native недоступен до usage credits, которые не включались. Native
+RC bypass не предлагает. Mode читается из свежего host footer, не старого transcript
+permission-mode; исходный M25 reader может отставать до следующего обычного prompt.
+
+Обычный HTTP user message route нельзя использовать для controls: он помечает
+builtin /effort как working без последующего Stop. Native control route не делает
+beginTurn/queue ACK/resumeDelivery и не вводит исключение для любого slash-prefix.
+Живые пробы очереди и обратной GUI-смены не потребовали новых model turns: T001 2/2.
+Native menus/disabled получены после AX_TRUSTED=true; test cloud archive подтверждён
+отдельно по native Unarchive/archived state, не по одному локальному purge.

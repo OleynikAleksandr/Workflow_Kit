@@ -103,7 +103,8 @@ native-доступные speed/mode/Ultracode должны иметь дока�
 можно только по реальному native запрету/отсутствию, не из-за недописанного канала.
 Иначе T001 НЕ коммитится, выполняется task:block --reason с точной причиной.
 Дальше только решение пользователя и task:unblock после устранения причины либо
-согласованный пересмотр scope. Заглушка, гипотеза или SDK-копия не закрывают gate.
+согласованный пересмотр scope: `task:update` ещё не выполненных задач по решению
+пользователя либо `carryover`. Заглушка, гипотеза или SDK-копия не закрывают gate.
 
 Исключение из запрета менять trust — scoped запись для собственного временного
 Kit-проекта через штатный preview/apply. Прежние записи, defaults, hooks, statusline
@@ -117,37 +118,61 @@ Kit archive также не равен нативному archive. Тестов�
 
 ## 4. Таблица управления (заполняет T001)
 
-Статус: PENDING. Этот раздел — обязательный context T002–T006. Заглушка не является proof.
+Статус: **PASS** для доказанного native набора; fast — NATIVE_UNAVAILABLE аккаунта.
+После AX_TRUSTED=true получены обязательные native PNG, обратные смены из GUI,
+нормализованный PTY proof и подтверждение native archive собственных карточек.
+[Канал и семантика](M27/claude-native-channel.md),
+[визуальный контракт](M27/claude-visual-reference.md),
+[полный отчёт](../evidence/M27-claude-native-controls.md).
 
 | Поле | State/catalog | Setter/read-back | Scope/next turn | Hooks/ограничения | Итог |
 | --- | --- | --- | --- | --- | --- |
-| model | не исследовано | не исследовано | не исследовано | не исследовано | PENDING |
-| effort | не исследовано | не исследовано | не исследовано | не исследовано | PENDING |
-| fast | не исследовано | не исследовано | не исследовано | не исследовано | PENDING |
-| mode | не исследовано | не исследовано | не исследовано | не исследовано | PENDING |
-| ultra/Ultracode | raw statusline/reader, base effort — неизвестны | не исследовано | не исследовано | native UI не снят | PENDING |
+| model | /model, More models + Enter to expand, прокрутка; Desktop четыре основные + More models | Точная строка → s, native session-only ACK + fresh model.id/display_name; GUI Opus→Sonnet и дополнительная Sonnet 5→Sonnet 5.5 | Та же identity/PID, defaults hash прежний; два прежних Sonnet OK подтверждают следующий ход | Kit prompt/Stop не вызываются; Default не заменяет явную модель; Enter на модели запрещён | PASS |
+| effort | Native low/medium/high/xhigh/max; Desktop список Low/Medium/High/Extra/Max, не slider | /effort → стрелки → s; native session-only ACK, /effort status + statusline; GUI medium→high прочитан в Kit | medium→high, два OK на Sonnet/high; defaults hash прежний | Рекомендация зависит от модели, нельзя выдавать default за явный выбор | PASS |
+| fast | CLI /fast: Fast mode requires usage credits; GUI не предлагает fast даже на Opus 5.5 | Нативное включение недоступно, только Esc; statusline fast_mode=false | Ни кредитов, ни платной генерации; global fast preference не менялась | Не обходить account restriction; нет editable setter по одному знанию CLI /fast | NATIVE_UNAVAILABLE |
+| mode | Native RC: Auto/Manual/Accept edits/Plan; CLI footer auto/manual/accept edits/plan | Shift+Tab с проверкой каждого шага; GUI Manual меняет native footer; legacy reader отстаёт до prompt | Четыре режима пройдены и возврат Auto, defaults hash прежний | Manual canonical default; bypass native RC не предлагает; legacy transcript не немедленный ACK | PASS |
+| ultra/Ultracode | Отдельный native switch и footer marker; statusline effort.level=high при on | /effort ultracode и /effort ultracode off, native session-only ответ; base high сохраняется | Отдельная подпись High · Ultracode на Desktop | В этой CLI raw ultra не воспроизведён; историческая подпись Ultracode сохраняется, base для legacy raw ultra явно неизвестен | PASS |
 
-T001 заменяет PENDING на PASS или NATIVE_UNAVAILABLE с доказательством; если опция
-доступна native, но setter не доказан, итог BLOCKED. Model/effort обязаны быть PASS.
-Для raw ultra нужны отдельные примеры полей statusline и штатного transcript reader,
-настройка базового усилия до/после и её соответствие native UI. Не выводить boolean
-или базовый effort из одной подписи M25. Неразрешимое противоречие — BLOCKED.
-При изменении таблицы последующие задачи читают её повторно перед реализацией.
+Для модели каталог может использовать opaque native row key: это идентификатор
+выбора, не обещание effective model id. После смены model.id берётся только из
+свежего native statusline. Состав primary/more не зашивается по PNG для других
+аккаунтов; host получает реальное меню, включая прокручиваемые строки.
+Для текущего native состояния effort и ultracode раздельны. В legacy raw ultra
+не придумывать base effort или шестую точку: показывать Ultracode с неизвестным
+base и прежним read-only режимом, пока новый host не дал независимый base/state.
+
+Native primitives подтверждены без изменения кода продукта. T003 обязана воплотить
+их в типизированной транзакции нового host: UUID/session/epoch/deadline, явный ACK,
+свежий пустой idle и независимый read-back. Лабораторный observer не production API.
 
 ## 5. Совместимость версии и хуки (заполняет T001)
 
-Статус: PENDING. Фиксируются минимальная поддерживаемая версия и capability/сигнатуры
-экрана или протокола. 2.1.323 — версия исходной пробы, не точное равенство для допуска.
-Новая версия при распознанной совместимой форме допускается, неизвестная форма/
-старый protocol/версия ниже минимума дают read-only с причиной «Версия или интерфейс
-Claude не распознаны». Тесты: новый patch+известный frame, новый patch+чужой frame,
-слишком старая/null версия. Смена версии сбрасывает кэш, не обязательно capability.
-Для Windows отдельно хранится статус CI и ожидаемой живой ConPTY-проверки.
+Статус: **PASS** исследовательского gate. Испытаны CLI 2.1.323, Desktop 5.11492.2.
+Floor для нового канала — 2.1.323 плюс распознанная форма меню/idle и protocol host;
+не точное равенство версии. Новый patch с известным frame допускается, unknown/
+старый protocol/null/ниже floor — read-only «Версия или интерфейс Claude не распознаны».
+Новая версия инвалидирует кэш. На Windows это CI/injected проверка, не live proof.
 
-Для каждой операции T001 перечисляет наблюдавшиеся hooks и последствия для channel,
-autopilot, queue/ack. Если нужен guard, он коррелирует серверную control-транзакцию,
-UUID/session/epoch/expiry и точное действие; одного префикса /model недостаточно.
-T003 проверяет, что обычная пользовательская реплика не может выдать себя за control.
+В реальном PTY найдены ASCII ESC ( B и служебные CSI r (только пустые параметры),
+>0q, ?u, c, <u. Их точная нормализация в одноразовом observer дала valid=true на
+idle, model/effort меню, Ultracode и всех mode. Исходный production TerminalScreen
+без этого был invalid. T003 переносит поддержку в streaming parser, проверяет
+разрыв последовательности между chunks и сохраняет отказ на unknown; regex на
+отдельном chunk не является готовой реализацией. Детали/источники — канал T001.
+
+Kit устанавливает только SessionStart/UserPromptSubmit/Stop. SessionStart один раз
+сопоставил local/remote id. На исследованных native builtin/keys UserPromptSubmit/
+Stop не пришли; оба обычных prompt дали пары hooks. На прямом provider native пути
+очередь и autopilot не менялись. Sentinel до /effort status дошёл ровно один раз
+со следующим обычным prompt. Дополнительные zero-inference пробы проверили sentinel
+до model и во время effort menu, затем все controls: pending сохранялся, hooks не
+появлялись. Тестовые sentinel последней пробы удалены штатным channel.forget при cleanup.
+
+Обнаружен отдельный дефект обычного HTTP message route: /effort помечает turn working,
+но native builtin не вызывает Stop, следующие команды остаются queued. Controls
+не используют этот маршрут. T003 не вырезает slash-prefix у обычного prompt:
+допуск определяется доверенной control-транзакцией. Вслед за ней реальный prompt
+доставляется ровно один раз; T003/T006 сохраняют тесты очереди и barrier.
 
 ## 6. Бюджет генерации и согласие
 
@@ -166,6 +191,12 @@ fast=true, запрос credit consent или дополнительные хо�
 оставшийся бюджет не является обязанностью тратить его. Fast и платные модели
 проверяются metadata/read-back, не генерацией. Остальные переключения/control-команды
 не считаются ходами только после подтверждения T001, что они не вызывают inference.
+
+Применимое согласие получено в ходе T001 13.11.2026: пользователь прямо поручил
+выполнить весь план самостоятельно и заранее согласился с решениями агента.
+Использовано 2/2 хода T001, оба claude-sonnet-5-5, high, fast=false, ответ OK, без
+инструментов. Bootstrap prompt отсутствовал. Дополнительных T001 model turns нет
+без согласованного пересмотра бюджета. Хуки/sentinel и подсчёт — отчёт evidence M27.
 
 ## Поведение на ОС
 

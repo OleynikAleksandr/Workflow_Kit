@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 861,
+  "revision": 865,
   "rounds": [
     {
       "digest": null,
@@ -143,14 +143,38 @@
         "docs/design/M27",
         "docs/evidence/M27-claude-native-controls.md",
         "docs/evidence/M27",
-        "docs/design/M27/claude-visual-reference.md"
+        "docs/design/M27/claude-visual-reference.md",
+        "docs/design/M27/claude-native-channel.md",
+        "docs/design/M27/native-composer-dark.png",
+        "docs/design/M27/native-disabled-dark.png",
+        "docs/design/M27/native-effort-dark.png",
+        "docs/design/M27/native-fast-dark.png",
+        "docs/design/M27/native-mode-dark.png",
+        "docs/design/M27/native-model-dark.png",
+        "docs/design/M27/native-more-models-dark.png",
+        "docs/evidence/M27/before-final-cleanup.json",
+        "docs/evidence/M27/extra-probe-inference.json",
+        "docs/evidence/M27/final-native-cleanup.json",
+        "docs/evidence/M27/generic-message-control-regression.json",
+        "docs/evidence/M27/local-cleanup.json",
+        "docs/evidence/M27/more-models-queue-probe.json",
+        "docs/evidence/M27/native-ax-helper.md",
+        "docs/evidence/M27/native-gui-roundtrip.json",
+        "docs/evidence/M27/native-probe-observations.json",
+        "docs/evidence/M27/normalized-controls-probe.json",
+        "docs/evidence/M27/normalized-model-mode.json",
+        "docs/evidence/M27/normalized-native-direct.json",
+        "docs/evidence/M27/normalized-terminal-probe.json",
+        "docs/evidence/M27/probe-harness.md",
+        "docs/evidence/M27/queue-during-all-controls.json",
+        "docs/evidence/M27/second-local-cleanup.json"
       ],
       "fixes": null,
       "id": "T001",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Доказать управление сессией Claude и зафиксировать нативные эталоны",
       "why": "Доказать управление сессией Claude и зафиксировать нативные эталоны"
     },
@@ -521,8 +545,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 0/9
-- Revision: 861
+- Progress: 1/9
+- Revision: 865
 
 ## Objective
 
@@ -540,9 +564,9 @@
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T001 — Доказать управление сессией Claude и зафиксировать нативные эталоны (work)
+- [DONE] T001 — Доказать управление сессией Claude и зафиксировать нативные эталоны (work)
   - Commit: docs: verify Claude native parameter controls
-  - Files: docs/planning/M27-claude-native-controls.md, docs/design/M27-claude-controls-facts.md, docs/design/M27-claude-control-contract.md, docs/design/M27, docs/evidence/M27-claude-native-controls.md, docs/evidence/M27, docs/design/M27/claude-visual-reference.md
+  - Files: docs/planning/M27-claude-native-controls.md, docs/design/M27-claude-controls-facts.md, docs/design/M27-claude-control-contract.md, docs/design/M27, docs/evidence/M27-claude-native-controls.md, docs/evidence/M27, docs/design/M27/claude-visual-reference.md, docs/design/M27/claude-native-channel.md, docs/design/M27/native-composer-dark.png, docs/design/M27/native-disabled-dark.png, docs/design/M27/native-effort-dark.png, docs/design/M27/native-fast-dark.png, docs/design/M27/native-mode-dark.png, docs/design/M27/native-model-dark.png, docs/design/M27/native-more-models-dark.png, docs/evidence/M27/before-final-cleanup.json, docs/evidence/M27/extra-probe-inference.json, docs/evidence/M27/final-native-cleanup.json, docs/evidence/M27/generic-message-control-regression.json, docs/evidence/M27/local-cleanup.json, docs/evidence/M27/more-models-queue-probe.json, docs/evidence/M27/native-ax-helper.md, docs/evidence/M27/native-gui-roundtrip.json, docs/evidence/M27/native-probe-observations.json, docs/evidence/M27/normalized-controls-probe.json, docs/evidence/M27/normalized-model-mode.json, docs/evidence/M27/normalized-native-direct.json, docs/evidence/M27/normalized-terminal-probe.json, docs/evidence/M27/probe-harness.md, docs/evidence/M27/queue-during-all-controls.json, docs/evidence/M27/second-local-cleanup.json
 - [TODO] T002 — Объединить существующие send и Stop общим арбитром (work)
   - Commit: refactor(claude): share native send and interrupt arbitration
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, product-parts/provider-runtime/clusters/provider-contract/modules/pty-host, docs/design/M27-claude-control-contract.md, docs/architecture/OVERVIEW.md, docs/architecture/CONTRACTS.md, docs/evidence/M27-claude-native-controls.md, docs/evidence/M27

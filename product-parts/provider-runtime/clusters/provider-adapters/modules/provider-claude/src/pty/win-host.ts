@@ -1,6 +1,6 @@
 // Entry point of the Windows pty host: node win-host.ts session|environment <args…> (spec M5 4.1).
 // The process supervisor starts it detached with stdout and stderr going to the session log.
-import { readFile, rm } from 'node:fs/promises';
+import { readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { loadNodePty, startTerminal } from '#pty-host';
 import { HOST_TIMINGS, claudeEnv, parseHostArgs, runHost } from './host.ts';
 
@@ -34,6 +34,10 @@ await runHost(parsed.mode, {
     }
     await rm(file, { force: true });
     return text;
+  },
+  async putFile(file, value) {
+    await writeFile(file + '.partial', JSON.stringify(value), { encoding: 'utf8', mode: 0o600 });
+    await rename(file + '.partial', file);
   },
   sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
   now: () => Date.now(),

@@ -32,6 +32,7 @@ if {[info exists env(WFK_FIRST_MESSAGE)]} {
   unset env(WFK_FIRST_MESSAGE)
 }
 source [file join [file dirname [info script]] dialogs.tcl]
+source [file join [file dirname [info script]] interrupt.tcl]
 cd $dir
 # Marks the panel's process for the hooks (spec M19 section 2.2).
 set env(WFK_PANEL_SESSION) 1
@@ -59,12 +60,15 @@ expect {
   timeout { puts "\nNO_SESSION_URL" }
   eof { puts "\nSESSION_EXITED"; exit 4 }
 }
+if {[info exists expect_out(buffer)]} { interrupt_data $expect_out(buffer) }
 log_user 0
 set control "$debug.rename"
 set timeout 1
 expect {
+  -re {(?s).+} { interrupt_data $expect_out(buffer); exp_continue -continue_timer }
   eof {}
   timeout {
+    interrupt_tick
     if {[file exists $control]} {
       set name ""
       catch {

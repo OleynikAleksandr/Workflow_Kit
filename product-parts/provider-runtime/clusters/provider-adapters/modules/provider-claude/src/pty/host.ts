@@ -2,6 +2,9 @@
 // the same arguments, marker lines on stdout (the supervisor's log file), control files
 // <debug>.rename, <debug>.text and <debug>.message, timeouts and terminal size — over ConPTY instead
 // of expect. Pure logic with injected terminal, files and clock; win-host.ts runs it for real.
+import { randomUUID } from 'node:crypto';
+import { InterruptControl, REQUEST_SUFFIX, RESULT_SUFFIX, STATE_SUFFIX } from './interrupt-control.ts';
+import type { HostRequest } from './interrupt-control.ts';
 import { DIALOG, ENVIRONMENT_ID, NOT_TRUSTED, PANEL_SESSION_ENV, PASTE_END, PASTE_ENTER_MS, PASTE_START, SESSION_URL, TEXT_FILE_SUFFIX, WAKE_FILE_SUFFIX, WAKE_TEXT, dialogKind, notNowKeys, offerQuestion, screenText } from './screen.ts';
 
 /** Feature offers one launch declines at most (spec M15 section 1). */
@@ -21,6 +24,7 @@ export interface HostDeps {
   print(text: string): void;
   /** Reads and deletes a control file: its text, or null when it does not exist. */
   takeFile(file: string): Promise<string | null>;
+  putFile?(file: string, value: unknown): Promise<void>;
   sleep(ms: number): Promise<void>;
   now(): number;
   exit(code: number): void;
@@ -60,6 +64,7 @@ export function parseHostArgs(argv: readonly string[], env: Readonly<Record<stri
 export function claudeEnv(mode: HostMode, env: Readonly<Record<string, string | undefined>>): Record<string, string | undefined> {
   const result = { ...env };
   delete result['WFK_FIRST_MESSAGE'];
+  delete result['WFK_PTY_NODE'];
   if (mode.kind === 'session') result[PANEL_SESSION_ENV] = '1';
   return result;
 }
@@ -72,6 +77,7 @@ export function runHost(mode: HostMode, deps: HostDeps, timings: HostTimings = H
     : ['remote-control', '--name', mode.name, '--spawn=same-dir', '--debug-file', mode.debug];
   const term = deps.start(mode.claude, args, session ? { cols: 160, rows: 40 } : { cols: 120, rows: 40 });
   deps.print(`\nCLAUDE_PID ${term.pid}\n`);
+  const interrupt = new InterruptControl(randomUUID(), deps.now, (text) => term.write(text));
   let screen = '';
   let copying = true;
   let phase: 'waiting' | 'dialog' | 'running' | 'done' = 'waiting';
@@ -149,6 +155,15 @@ export function runHost(mode: HostMode, deps: HostDeps, timings: HostTimings = H
     while (phase === 'running') {
       await deps.sleep(timings.pollMs);
       if (phase !== 'running') break;
+      if (deps.putFile) try {
+        const raw = await deps.takeFile(`${mode.debug}${REQUEST_SUFFIX}`);
+        if (raw) {
+          try { const result = interrupt.request(JSON.parse(raw) as HostRequest); if (result) await deps.putFile(`${mode.debug}${RESULT_SUFFIX}`, result); } catch { /* malformed: no keys */ }
+        }
+        const result = interrupt.poll();
+        if (result) await deps.putFile(`${mode.debug}${RESULT_SUFFIX}`, result);
+        await deps.putFile(`${mode.debug}${STATE_SUFFIX}`, interrupt.snapshot());
+      } catch { interrupt.cancel(); deps.print('\nINTERRUPT_CONTROL_ERROR\n'); }
       const name = ((await deps.takeFile(`${mode.debug}.rename`)) ?? '').replace(/\s+/g, ' ').trim();
       if (name !== '') {
         term.write(`/rename ${name}`);
@@ -178,6 +193,7 @@ export function runHost(mode: HostMode, deps: HostDeps, timings: HostTimings = H
 
   term.onData((text) => {
     lastData = deps.now();
+    if (session) interrupt.feed(text);
     if (copying) deps.print(text);
     if (phase !== 'waiting') {
       if (phase === 'dialog') screen += text;

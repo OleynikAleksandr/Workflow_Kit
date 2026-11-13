@@ -70,9 +70,9 @@
     {
       "file": "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty.ts",
       "program": "expect",
-      "darwin": "expect запускает session.exp и environment.exp",
-      "linux": "expect, как на macOS",
-      "win32": "не нужно: ConPTY через node-pty (win-host.ts)"
+      "darwin": "expect запускает session.exp и environment.exp; сессия использует Node interrupt-worker через WFK_PTY_NODE, перед Esc повторно читает pty",
+      "linux": "как macOS: expect и тот же Node worker, без отдельной программы ОС для Stop",
+      "win32": "не нужно: ConPTY через win-host.ts с той же InterruptControl, без expect/worker"
     },
     {
       "file": "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/runtime.ts",

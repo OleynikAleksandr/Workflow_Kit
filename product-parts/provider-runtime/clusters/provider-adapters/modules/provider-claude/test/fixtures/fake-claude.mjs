@@ -211,6 +211,25 @@ function startSession() {
     if (debug) writeFileSync(debug, `[DEBUG] Created session cse_${remote}\n[DEBUG] server title ${option('--remote-control')}\n`);
     if (mode !== 'debug-only') process.stdout.write(`\x1b[2mRemote Control:\x1b[0m https://claude.ai/code/session_${remote}\r\n`);
     else process.stdout.write('Remote Control connecting...\r\n');
+    if (mode.startsWith('interrupt-')) {
+      let confirm = mode !== 'interrupt-no-confirm';
+      const paint = (text) => process.stdout.write(`\x1b[2J\x1b[H${text}\r\n`);
+      const busy = () => paint(`${mode === 'interrupt-old-marker' ? '[Request interrupted by user]\r\n' : ''}Thinking (esc to interrupt)`);
+      busy();
+      setInterval(() => {
+        const file = debug + '.fixture-mode';
+        if (!existsSync(file)) return;
+        const next = readFileSync(file, 'utf8');
+        writeFileSync(file, '');
+        if (next === 'dialog') paint('Do you want to proceed?\r\n❯ 1. Yes\r\nEsc to cancel');
+        if (next === 'idle') paint('❯');
+        if (next === 'working') busy();
+        if (next === 'confirm-off') confirm = false;
+      }, 50).unref();
+      process.stdin.on('data', (chunk) => {
+        if (chunk.toString('utf8') === '\x1b' && confirm) paint(`${mode === 'interrupt-old-marker' ? '[Request interrupted by user]\r\n' : ''}[Request interrupted by user]\r\n❯`);
+      });
+    }
     // What is typed into the session (the first message) goes to FAKE_CLAUDE_LOG + ".input".
     if (process.stdin.isTTY) process.stdin.setRawMode(true);
     process.stdin.on('data', (chunk) => {

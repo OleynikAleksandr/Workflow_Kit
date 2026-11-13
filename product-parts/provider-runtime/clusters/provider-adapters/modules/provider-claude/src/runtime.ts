@@ -37,6 +37,8 @@ export interface ClaudeProviderOptions {
   stopGraceMs?: number;
   /** sendDirect: wait for the previous and for its own <debug>.message file to be taken, ms. */
   directWaitMs?: number;
+  /** Confirmed interruption deadline; lower than the common API timeout. */
+  interruptWaitMs?: number;
 }
 
 /** Everything the provider parts share. */
@@ -83,6 +85,7 @@ export function createRuntime(context: ProviderContext, options: ClaudeProviderO
     pollMs: options.pollMs ?? 250,
     stopGraceMs: options.stopGraceMs ?? 5000,
     directWaitMs: options.directWaitMs ?? 5000,
+    interruptWaitMs: options.interruptWaitMs ?? 8000,
   };
   let located: Promise<ClaudePrograms> | undefined;
   let version: string | null = null;

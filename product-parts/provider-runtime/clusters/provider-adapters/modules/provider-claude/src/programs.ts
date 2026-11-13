@@ -111,6 +111,7 @@ export function claudeCapabilities(platform: NodeJS.Platform, programs: ClaudePr
     createSession: { ...pty },
     resumeSession: { ...pty },
     stopSession: { available: true },
+    interruptTurn: { ...pty },
     environment: { ...pty },
   };
 }

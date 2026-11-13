@@ -7,6 +7,7 @@ import type { HookEntry, HookState, Project, ProjectProviderState, Provider, Pro
 import { findKitHook, hookText, isKitHookEntry, normalizeHook, sha256 } from '#kit-structure';
 import { archiveSessions, restoreSessions } from './archive.ts';
 import { ENVIRONMENT_START, ENVIRONMENT_STOP, environmentActions, environmentBlockers, startEnvironment, stopEnvironment } from './environment.ts';
+import { interruptAvailability, interruptTurn, refreshInterruptions } from './interrupt.ts';
 import { sendDirect } from './direct.ts';
 import { claudeCapabilities, ptyUnavailableReason } from './programs.ts';
 import { purgeProject } from './purge.ts';
@@ -130,7 +131,13 @@ export function createClaudeProvider(context: ProviderContext, options: ClaudePr
       return backups.has(project.path) ? { ...state, backup: backups.get(project.path) ?? null } : state;
     },
     hooks,
-    listSessions: (project) => listSessions(rt, project),
+    async listSessions(project) {
+      const sessions = await listSessions(rt, project);
+      await refreshInterruptions(rt, project, sessions);
+      return sessions;
+    },
+    interruptAvailability: (project, sid) => interruptAvailability(rt, project, sid),
+    interruptTurn: (project, sid, target) => interruptTurn(rt, project, sid, target),
     createSession: (project, opts) => createSession(rt, project, opts.title, opts.firstMessage),
     resumeSession: (project, sid) => resumeSession(rt, project, sid),
     stopSession: (project, sid) => stopSession(rt, project, sid),

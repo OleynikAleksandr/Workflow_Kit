@@ -109,7 +109,7 @@ async function startSessionProcess(rt: ClaudeRuntime, project: Project, title: s
       ...run,
       cwd: project.path,
       // session.exp types the first message into the session once the link is there.
-      env: firstMessage ? { ...rt.context.env, WFK_FIRST_MESSAGE: firstMessage.replace(/\s+/g, ' ').trim() } : rt.context.env,
+      env: firstMessage ? { ...rt.context.env, WFK_PTY_NODE: process.execPath, WFK_FIRST_MESSAGE: firstMessage.replace(/\s+/g, ' ').trim() } : { ...rt.context.env, WFK_PTY_NODE: process.execPath },
       logFile,
     });
   } catch (error) {

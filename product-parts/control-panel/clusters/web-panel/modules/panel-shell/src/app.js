@@ -19,6 +19,8 @@ import { createSessionScreen } from './session-screen.js';
 import { archivedSessions, currentProjectId } from './selection.js';
 import { applyTheme, createSettings } from './settings.js';
 import { createSidebar } from './sidebar.js';
+import { createPanelLayout } from './panel-layout.js';
+import { createSidebarSlots } from './sidebar-slots.js';
 import { registerSlot, slots } from './slots.js';
 import { indicators, providerNames, providerViews } from './providers.js';
 import { deviceLink, parseRoute, projectLists, projectTree, routeHash, settingsExit, shortPath, statusLine } from './view-model.js';
@@ -126,9 +128,10 @@ const newProjectHost = h('div', { class: 'new-project' });
 const dynamic = h('div', { class: 'dynamic' });
 // The session screen keeps its nodes, so typed text in its cards survives polling.
 const sessionScreen = createSessionScreen(slotContext, { resume: handlers.resumeSession });
-let reviewKey = '';
 const main = h('main', { class: 'main', id: 'main' }, [toast, dynamic, newProjectHost, settings.element, archive.element]);
-document.body.prepend(h('div', { class: 'app' }, [sidebar.element, main]));
+const layout = createPanelLayout(sidebar.element, main);
+const sidebarSlots = createSidebarSlots(sidebar, slotContext);
+document.body.prepend(layout.element);
 
 /** Key of the last drawn dynamic screen, to skip redraws with unchanged data. */
 let drawn = '';
@@ -193,38 +196,11 @@ function renderMain() {
   dynamic.replaceChildren(screen[2]());
 }
 
-/**
- * «Ревью плана» of the selected session in the sidebar (the "sessionReview" slot).
- * @param {import('./view-model.js').ProjectRow[]} tree
- */
-function renderReview(tree) {
-  const r = route;
-  const slot = slots.sessionReview;
-  const project = r.screen === 'session' ? tree.find((p) => p.id === r.projectId) : undefined;
-  const session = r.screen === 'session' ? project?.sessions.find((s) => s.key === r.key) : undefined;
-  if (!slot || !project || !session) {
-    if (reviewKey !== '') sidebar.setReview(null);
-    reviewKey = '';
-    return;
-  }
-  const context = { project, session, link: null };
-  try {
-    const selected = slot.select(state, context);
-    const key = JSON.stringify([session.key, selected]);
-    if (key === reviewKey) return;
-    reviewKey = key;
-    sidebar.setReview(slot.render(selected, state, context, slotContext));
-  } catch (error) {
-    reviewKey = '';
-    sidebar.setReview(h('p', { class: 'error' }, [`Ошибка «Ревью плана»: ${String(error)}`]));
-  }
-}
-
 function renderSidebar() {
   const lists = projectLists(state);
   const system = /** @type {{ version?: string }} */ (state['system'] ?? {});
   const tree = projectTree(state, { now: Date.now(), collapsed });
-  renderReview(tree);
+  layout.setAttention(sidebarSlots.render(route, tree, state));
   // Only the selected project is in the tree; the others are in the «Ваши проекты» menu.
   const current = currentProjectId(route, rememberedProject, tree.map((p) => p.id));
   sidebar.render({
@@ -240,6 +216,7 @@ function renderSidebar() {
 }
 
 function render() {
+  layout.setRoute(routeHash(route), route.screen === 'session');
   renderSidebar();
   renderMain();
 }

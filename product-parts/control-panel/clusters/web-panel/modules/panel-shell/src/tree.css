@@ -164,8 +164,7 @@
   flex-direction: column;
   gap: 6px;
   margin: 0 0 4px 16px;
-  padding: 3px 0 0 14px;
-  border-left: 1px solid var(--line);
+  padding: 3px 0 0 15px;
 }
 
 .session {
@@ -180,10 +179,30 @@
 .session::before {
   content: '';
   position: absolute;
-  top: 18px;
-  left: -15px;
-  width: 14px;
+  top: calc(50% - 0.5px);
+  left: -16px;
+  width: 15px;
   border-top: 1px solid var(--line);
+}
+
+.session::after {
+  content: '';
+  position: absolute;
+  left: -16px;
+  top: -7px;
+  bottom: -7px;
+  width: 15px;
+  border-left: 1px solid var(--line);
+  pointer-events: none;
+}
+
+.session:first-child::after { top: -4px; }
+.session::before { pointer-events: none; }
+.session:last-child::before { display: none; }
+.session:last-child::after {
+  bottom: calc(50% - 0.5px);
+  border-bottom: 1px solid var(--line);
+  border-bottom-left-radius: 10px;
 }
 
 .session.active {

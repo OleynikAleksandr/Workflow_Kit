@@ -270,24 +270,6 @@
   color: var(--teal);
 }
 
-.cols {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 12px;
-  align-items: start;
-  max-width: 900px;
-}
-
-.cols > .plan-card {
-  max-width: none;
-}
-
-@media (max-width: 1100px) {
-  .cols {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
 /* «Ревью плана» in the sidebar */
 .review {
   display: flex;
@@ -385,3 +367,15 @@
 .sv-xr-entry.kit summary {
   color: var(--muted);
 }
+
+/* M24: the same workflow models in the resizable sidebar. */
+.sv-sidebar { gap: 12px; overflow-wrap: anywhere; }
+.sv-sidebar > * { min-width: 0; max-width: none; }
+.sv-sidebar .plan-card, .sv-sidebar .choice, .sv-sidebar .panel { padding: 12px; }
+.sv-sidebar .row, .sv-sidebar .sv-xr-buttons { flex-direction: column; align-items: stretch; }
+.sv-sidebar .btn { width: 100%; white-space: normal; }
+.sv-sidebar .tasks li { grid-template-columns: 12px minmax(0, 1fr); }
+.sv-sidebar .work > div { min-width: 0; }
+.sv-sidebar .spin { flex-shrink: 0; }
+.sv-sidebar textarea { max-height: 160px; }
+.sv-empty { margin: 0; font-size: 12px; }

@@ -1,0 +1,318 @@
+{
+  "matrix": [
+    {
+      "theme": "light",
+      "width": 1920,
+      "height": 1080,
+      "inputBottom": 994,
+      "buttonBottom": 1040,
+      "feedHeight": 795.2109375
+    },
+    {
+      "theme": "light",
+      "width": 1280,
+      "height": 800,
+      "inputBottom": 714,
+      "buttonBottom": 760,
+      "feedHeight": 515.2109375
+    },
+    {
+      "theme": "light",
+      "width": 1024,
+      "height": 768,
+      "inputBottom": 682,
+      "buttonBottom": 728,
+      "feedHeight": 483.2109375
+    },
+    {
+      "theme": "light",
+      "width": 768,
+      "height": 400,
+      "inputBottom": 314,
+      "buttonBottom": 360,
+      "feedHeight": 96.3671875
+    },
+    {
+      "theme": "light",
+      "width": 375,
+      "height": 667,
+      "inputBottom": 590,
+      "buttonBottom": 636,
+      "feedHeight": 305.875
+    },
+    {
+      "theme": "dark",
+      "width": 1920,
+      "height": 1080,
+      "inputBottom": 994,
+      "buttonBottom": 1040,
+      "feedHeight": 795.2109375
+    },
+    {
+      "theme": "dark",
+      "width": 1280,
+      "height": 800,
+      "inputBottom": 714,
+      "buttonBottom": 760,
+      "feedHeight": 515.2109375
+    },
+    {
+      "theme": "dark",
+      "width": 1024,
+      "height": 768,
+      "inputBottom": 682,
+      "buttonBottom": 728,
+      "feedHeight": 483.2109375
+    },
+    {
+      "theme": "dark",
+      "width": 768,
+      "height": 400,
+      "inputBottom": 314,
+      "buttonBottom": 360,
+      "feedHeight": 96.3671875
+    },
+    {
+      "theme": "dark",
+      "width": 375,
+      "height": 667,
+      "inputBottom": 590,
+      "buttonBottom": 636,
+      "feedHeight": 305.875
+    }
+  ],
+  "scenarios": [
+    {
+      "phase": "ready",
+      "cards": [
+        "fixture ready"
+      ],
+      "mainPlan": 0
+    },
+    {
+      "phase": "running",
+      "cards": [
+        "fixture running"
+      ],
+      "mainPlan": 0
+    },
+    {
+      "phase": "paused",
+      "cards": [
+        "fixture paused"
+      ],
+      "mainPlan": 0
+    },
+    {
+      "phase": "blocked",
+      "cards": [
+        "fixture blocked"
+      ],
+      "mainPlan": 0
+    },
+    {
+      "phase": "acceptance",
+      "cards": [
+        "fixture acceptance"
+      ],
+      "mainPlan": 0
+    },
+    {
+      "case": "fixesProgress",
+      "text": "Сохранить фокус и текст",
+      "focus": true,
+      "before": true
+    },
+    {
+      "phase": "accepted",
+      "cards": [
+        "fixture accepted"
+      ],
+      "mainPlan": 0
+    },
+    {
+      "case": "question",
+      "options": 3
+    },
+    {
+      "case": "choice",
+      "buttons": 2
+    },
+    {
+      "case": "delivery",
+      "text": "Подтверждение не отправляется",
+      "focus": true
+    },
+    {
+      "case": "review",
+      "opensBefore": [
+        true,
+        false,
+        true
+      ],
+      "opensAfter": [
+        true,
+        false,
+        true
+      ]
+    }
+  ],
+  "ordinary": {
+    "preview": {
+      "top": 682,
+      "scroll": 1349,
+      "client": 667
+    },
+    "run": {
+      "top": 895,
+      "scroll": 1562,
+      "client": 667
+    },
+    "settings": {
+      "top": 0,
+      "scroll": 1249,
+      "client": 667
+    },
+    "archive": {
+      "top": 0,
+      "scroll": 825,
+      "client": 667
+    }
+  },
+  "advanced": {
+    "touch": "436",
+    "zoom": {
+      "width": 640,
+      "height": 400,
+      "dpr": 2,
+      "input": 323,
+      "button": 369,
+      "doc": [
+        640,
+        400
+      ]
+    }
+  },
+  "tree": {
+    "startPending": 1,
+    "lines": [
+      {
+        "height": 78.0859375,
+        "last": false,
+        "offset": 37.5391,
+        "radius": "0px",
+        "branchCenter": 39.04296875
+      },
+      {
+        "height": 59.2421875,
+        "last": false,
+        "offset": 28.1172,
+        "radius": "0px",
+        "branchCenter": 29.62109375
+      },
+      {
+        "height": 115.7734375,
+        "last": true,
+        "offset": 56.3828,
+        "radius": "10px",
+        "branchCenter": 57.88671875
+      }
+    ],
+    "single": {
+      "radius": "10px",
+      "bottom": "37.5391px",
+      "before": "none"
+    },
+    "empty": 0,
+    "collapsed": 0
+  },
+  "feedStates": [
+    {
+      "state": "unsupported",
+      "viewport": [
+        768,
+        400
+      ],
+      "input": 314,
+      "button": 360,
+      "feed": 0,
+      "doc": [
+        768,
+        400
+      ]
+    },
+    {
+      "state": "empty",
+      "viewport": [
+        768,
+        400
+      ],
+      "input": 314,
+      "button": 360,
+      "feed": 60.3671875,
+      "doc": [
+        768,
+        400
+      ]
+    },
+    {
+      "state": "error",
+      "viewport": [
+        768,
+        400
+      ],
+      "input": 325.6328125,
+      "button": 371.6328125,
+      "feed": 8,
+      "doc": [
+        768,
+        400
+      ]
+    },
+    {
+      "state": "multiline",
+      "viewport": [
+        768,
+        400
+      ],
+      "input": 314,
+      "button": 360,
+      "feed": 60.3671875,
+      "doc": [
+        768,
+        400
+      ]
+    }
+  ],
+  "runtimeErrors": [],
+  "interactions": {
+    "keyboard": {
+      "End": 560,
+      "Home": 240,
+      "ArrowRight": 256
+    },
+    "mouseDrag": {
+      "width": 426,
+      "stored": "426"
+    },
+    "pointerCancel": {
+      "dragging": false
+    },
+    "invalidStorage": {
+      "width": 320
+    },
+    "sessionSwitch": {
+      "draft": "Первый черновик",
+      "feedScrollBefore": 100,
+      "feedScrollAfter": 100,
+      "otherSessionPlanCount": 0
+    },
+    "drawer": {
+      "opened": true,
+      "focusTrapped": true,
+      "escapeClosed": true,
+      "focusReturned": true,
+      "backdropClosed": true
+    }
+  }
+}

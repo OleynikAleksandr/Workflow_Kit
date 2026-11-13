@@ -1,5 +1,5 @@
 // @ts-check
-// The sidebar (270 px): brand with version and settings, status line of the preparation,
+// The resizable sidebar: brand with version and settings, status line of the preparation,
 // «Ваши проекты» menu, the project → session tree, the slot of «Ревью плана» and the connection
 // indicators. Built once; render(model) updates the parts whose data changed.
 import { h, plainInput } from './dom.js';
@@ -78,7 +78,6 @@ function iconButton(label, cls = 'icon') {
 
 /**
  * @param {SidebarHandlers} handlers
- * @returns {{ element: HTMLElement, render: (model: SidebarModel) => void, setReview: (node: Node | null) => void }}
  */
 export function createSidebar(handlers) {
   const version = h('small', {}, ['']);
@@ -123,9 +122,11 @@ export function createSidebar(handlers) {
 
   const tree = h('div', { class: 'tree' });
   const review = h('div', { class: 'review-slot' });
+  const session = h('div', { class: 'session-sidebar' });
   const conn = h('div', { class: 'conn' });
   const foot = h('div', { class: 'foot' }, [conn]);
-  const element = h('aside', { class: 'side' }, [brand, status, h('div', { class: 'projects-head' }, [heading, menu]), tree, review, foot]);
+  const scroller = h('div', { class: 'side-scroll' }, [tree, review, session, foot]);
+  const element = h('aside', { class: 'side' }, [brand, status, h('div', { class: 'projects-head' }, [heading, menu]), scroller]);
 
   /** @type {SidebarModel | null} */
   let last = null;
@@ -252,10 +253,10 @@ export function createSidebar(handlers) {
 
   return {
     element,
-    setReview(node) {
-      review.replaceChildren(...(node ? [node] : []));
-      review.hidden = !node;
-    },
+    scroller,
+    review,
+    session,
+    /** @param {SidebarModel} model */
     render(model) {
       last = model;
       version.textContent = model.version;

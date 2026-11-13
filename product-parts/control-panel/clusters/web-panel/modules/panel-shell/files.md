@@ -9,7 +9,7 @@
 | --- | --- |
 | `index.html` | метаданные (manifest, значки, standalone, цвет темы), стили (после своих — стили расширений `project-wizard`, `session-view`, `session-chat`), `app.js`; без встроенных скриптов и стилей (CSP) |
 | `styles.css` | токены темы (светлая, тёмная по системе и по `data-theme`), прежние имена токенов для карточек, базовый текст 13 px, стили служебных карточек |
-| `layout.css` | раскладка макета: боковая панель (бренд, строка подготовки, заголовок «Ваши проекты»), экраны, панели, сетка карточек «Настроек», перестройка уже 680 px, safe-area; пустой `.session-chat` скрыт |
+| `layout.css` | раскладка макета: изменяемая боковая панель (бренд, строка подготовки, заголовок «Ваши проекты»), экраны, панели, сетка карточек «Настроек», перестройка уже 680 px, safe-area; пустой `.session-chat` скрыт |
 | `tree.css` | меню «Ваши проекты» и «⋯», дерево проектов и сессий, метки провайдеров, индикаторы связи |
 | `controls.css` | кнопки и поля (44 px на сенсорных экранах), сообщения, выбор папки |
 | `buttons.css` | состояния кнопок: наведение, нажатие, кольцо щелчка; стрелка «Ваши проекты» |
@@ -23,11 +23,11 @@
 | `reload.js` | `shouldReload(loaded, current, reloadedFor)` — нужна ли перезагрузка: версия службы известна, отличается от версии при загрузке и для неё перезагрузки ещё не было (M4 13.5) |
 | `app.js` | состояние и маршрут, опрос `/api/state` (следующий запрос — через 3 с после ответа, таймаут 8 с, сразу при возврате на вкладку, тик таймера строки подготовки раз в секунду), самоперезагрузка страницы, когда служба отвечает другой версией, чем при загрузке (один раз на версию, `sessionStorage`, M4 13.5), экраны и слоты; загрузка расширений `PANEL_EXTENSIONS` (`/project-wizard/project-wizard.js`, `/session-view/session-view.js`, `/session-chat/session-chat.js`) до первого опроса: `install(shell)` с помощниками `registerCard`, `registerCardGroup`, `registerSlot`, `requestRefresh`, `api`, `ApiError`, `dom`, `createFolderPicker`, `showError` |
 | `actions.js` | `createActions({ navigate, render, route })` → `{ handlers, toast, say, collapsed }`: в архив; для «Архива» — `restoreProjects`, `forgetProjects`, `deleteProject`, `restoreSessions`, `forgetSessions`; новая сессия, обновить сессии, копировать путь, открыть чат, переименовать и архивировать сессию; сообщения над экраном; свёрнутые проекты |
-| `slots.js` | слоты раскладки для расширений: `registerSlot('newProject' \| 'sessionBody' \| 'sessionReview' \| 'sessionChat', definition)`, `slots`; типы `SlotContext` (`navigate`, `requestRefresh`, `say`, `selectProject`), `SessionContext` (`project`, `session`, `link`) |
-| `session-screen.js` | `createSessionScreen(ctx, { resume }) → { element, render(data, state) }`: шапка (у внешней сессии без процесса панели — кнопка «Продолжить», `resumeButton`), слот `sessionBody` (`.session-body`) и под ним слот `sessionChat` (`.session-chat`); узлы постоянные, каждая часть перерисовывается, только если изменились её данные (ключ `[ключ сессии, select()]`), узел слота заменяется, только если это другой узел; ошибка слота — строка ошибки |
+| `slots.js` | типизированные слоты newProject, sessionBody, sessionReview, sessionSidebar, sessionChat; registerSlot, slots, типы SlotContext и SessionContext |
+| `session-screen.js` | `createSessionScreen(ctx, { resume }) → { element, render(data, state) }`: шапка (у внешней сессии без процесса панели — кнопка «Продолжить», `resumeButton`), слот `sessionBody` (`.session-body`) и под ним слот `sessionChat` (`.session-chat`); узлы постоянные, каждая часть перерисовывается, только если изменились её данные (ключ `[проект, сессия, select()]`), узел слота заменяется, только если это другой узел; ошибка слота — строка ошибки |
 | `view-model.js` | чистые модели без DOM: `parseRoute`/`routeHash` (`#/`, `#/settings`, `#/new`, `#/open`, `#/archive`, `#/p/<id>`, `#/s/<id>/<ключ>`), `projectLists`, `filterProjects`, `projectTree`, `ownerObjective`, `sessionKey` (`<провайдер>:<localId>` — ключ разделов `channel`, `titles`, `review`), `runningText`, `statusLine`, `chatStatus`, `opensByItself`, `deviceLink`, `formatWhen`, `formatElapsed`, `sessionsLabel`, `shortPath`, `themeAttribute`; в строке сессии — `providerLabel` и `resumable` из сводки провайдера, `external` из активности канала |
 | `providers.js` | провайдеры из раздела `providers` состояния: `providerViews(state)` (`id`, `label`, `mark`, `resume`, `ready`, `statusLabel`), `providerNamer(state)`, `providerNames(state)` («ChatGPT и Claude»), `indicators(state, linked)` |
-| `sidebar.js` | боковая панель: `createSidebar(handlers) → { element, render(model), setReview(node) }` |
+| `sidebar.js` | боковая панель: `createSidebar(handlers) → { element, render(model), scroller, review, session }`: стабильные узлы двух слотов под деревом и прокрутки |
 | `menus.js` | всплывающие меню «⋯»: `openMenu(anchor, items)`, `closeMenu()` |
 | `screens.js` | экраны из состояния: `homeScreen` (только приветствие; создание и выбор проекта — в меню «Ваши проекты»), `projectScreen` (строка Kit в шапке, карточка «Обновить Kit», сессии, «GitHub», блок «Провайдеры» с действиями уровня провайдера), `sessionHeader`, `missingScreen` |
 | `provider-actions.js` | `providerActionRows(state)` — включённые действия `scope: 'provider'` каждого провайдера раздела `providers`, готового тоже (`{ provider, id, label, confirm }`); обработчик `runProviderAction` в `actions.js`: вопрос `confirm`, `POST /api/providers/:p/actions/:a`, отказ `action-disabled` ошибкой не показывается |
@@ -43,3 +43,15 @@
 | `shared-access-card.js` | группа карточек «Общий доступ к чатам · <провайдер>» в «Настройках» (`order` 5): состояние, что работает или чего не хватает, блок для ручной вставки (`manualProfile`), кнопки модели. «Настроить» → `GET …/shared-access/preview` → список записей и заметки → «Записать» → `POST …/apply { token }`; «Открыть …» → `POST …/open { target }`; «Перепроверить» → `POST …/recheck`; «Убрать настройку» — с подтверждением (`removeConfirm`) → `POST …/remove`. Windows (M13): блок шага администратора — `adminNote` и команда (`admin.command`); «Показать скрипт» раскрывает путь и текст (`admin.file`, `admin.text`), «Скопировать команду запуска» — `navigator.clipboard`; Kit скрипт не запускает. Команда и текст скрипта (`pre.path`) переносятся по ширине карточки; заметка операции («… выполняется…») убирается, как только операция закончилась (M14). Пока идёт операция, кнопки выключены; ошибка — в карточке. Узел карточки один на провайдера: открытый предпросмотр переживает опрос |
 | `system-card.js` | карточка «Система» (версия, ОС, служба, автозапуск, запускатель, значок, программы, адреса); «Программы» — имена из `system.service.programNames` службы (найденные — с путём, остальные — «не найдена»), у службы без этого поля — найденные |
 | `manifest.webmanifest`, `icons/` | экран «Домой»: `icon.svg` (источник) и `icon-180/192/512.png` |
+
+### Раскладка M24
+
+- `layout-model.js` — допустимый диапазон ширины, проверка сохранённого значения, клавиши.
+- `panel-layout.js` — корень раскладки, мышь/перо/touch, capture/cancel, хранилище,
+  drawer, inert и фокус, состояние внимания, visualViewport.
+- `viewport.css` — ограничение высоты оболочки и независимая прокрутка областей;
+  остальные экраны прокручиваются внутри main.
+- `sidebar-slots.js` — sessionReview/sessionSidebar выбранного проекта и сессии;
+  очистка вне сессии, сохранение боковой прокрутки.
+- `session-screen.js` — экспортирует также slotPart: ключ проект+сессия, сохранение
+  фокуса/выделения и вложенной прокрутки при обновлении/снятии DOM.

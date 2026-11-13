@@ -16,7 +16,8 @@ test('the mount serves the session chat under /session-chat/', async () => {
   const css = await readFile(path.join(SESSION_CHAT_ASSETS_DIR, 'session-chat.css'), 'utf8');
   for (const name of ['.sc-card', '.sc-feed', '.sc-msg', '.sc-msg-user', '.sc-msg-agent', '.sc-meta', '.sc-input', '.sc-status']) assert.ok(css.includes(name), name);
   assert.match(css, /white-space: pre-wrap/);
-  assert.match(css, /max-height: 60vh/);
+  assert.doesNotMatch(css, /max-height: 60vh/);
+  assert.match(css, /min-height: 0/);
 });
 
 test('request URLs: the local id after the first colon, every part encoded', () => {

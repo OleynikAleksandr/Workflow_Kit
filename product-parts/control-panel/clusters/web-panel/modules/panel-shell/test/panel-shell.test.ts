@@ -87,7 +87,7 @@ test('the iPad home screen gets a manifest, icons and the standalone mode', asyn
     assert.equal(png.readUInt32BE(20), size, `${name} height`);
   }
   const layout = await readFile(path.join(PANEL_ASSETS_DIR, 'layout.css'), 'utf8');
-  assert.match(layout, /grid-template-columns: 270px minmax\(0, 1fr\)/);
+  assert.match(layout, /grid-template-columns: var\(--sidebar-width, 320px\) 8px minmax\(0, 1fr\)/);
   assert.match(layout, /@media \(max-width: 680px\)/);
   assert.match(layout, /env\(safe-area-inset-bottom\)/);
 });
@@ -191,12 +191,15 @@ test('the sessionChat slot is registered and drawn under sessionBody on the sess
   registerSlot('sessionChat', definition);
   assert.equal(slots.sessionChat, definition);
   slots.sessionChat = null;
+  registerSlot('sessionSidebar', definition);
+  assert.equal(slots.sessionSidebar, definition);
+  slots.sessionSidebar = null;
   assert.throws(() => registerSlot('sessionNope' as never, definition), /Unknown panel slot/);
   const screen = await readFile(path.join(PANEL_ASSETS_DIR, 'session-screen.js'), 'utf8');
   assert.match(screen, /\[head, body, chat\]/);
   assert.match(screen, /h\('div', \{ class: 'session-chat' \}\)/);
   assert.match(screen, /slots\.sessionChat/);
-  assert.match(screen, /JSON\.stringify\(\[data\.session\.key, selected\]\)/);
+  assert.match(screen, /JSON\.stringify\(\[data\.project\.id, data\.session\.key, selected\]\)/);
   assert.match(screen, /host\.firstChild !== node/);
   const app = await readFile(path.join(PANEL_ASSETS_DIR, 'app.js'), 'utf8');
   assert.match(app, /createSessionScreen\(slotContext, \{ resume: handlers.resumeSession \}\)/);

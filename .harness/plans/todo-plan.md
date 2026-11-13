@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": "T001",
+  "currentTaskId": null,
   "lastClosed": {
     "closedAt": "2026-11-12T18:46:52.163Z",
     "scopeId": "m23-kit-tests-windows"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 752,
+  "revision": 753,
   "rounds": [
     {
       "digest": null,
@@ -142,14 +142,39 @@
         "docs/architecture/CONTRACTS.md",
         "docs/evidence/M24-acceptance.md",
         "docs/evidence/M24",
-        "product-parts/control-panel/clusters/web-panel/modules/session-chat/test/chat-model.test.ts"
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/test/chat-model.test.ts",
+        "docs/evidence/M24/T001-browser-results.json",
+        "docs/evidence/M24/T001-desktop-dark.png",
+        "docs/evidence/M24/T001-desktop-light.png",
+        "docs/evidence/M24/T001-mobile-dialog.png",
+        "docs/evidence/M24/T001-mobile-sidebar.png",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/files.md",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/index.html",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/layout-model.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/layout.css",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/panel-layout.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/session-screen.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/sidebar-slots.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/sidebar.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/slots.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/tree.css",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/viewport.css",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/layout-model.test.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/panel-shell.test.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.css",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/sidebar-view.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts"
       ],
       "fixes": null,
       "id": "T001",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "title": "Сайдбар с планом, изменяемая ширина и диалог в области окна",
       "why": "Сайдбар с планом, изменяемая ширина и диалог в области окна"
     },
@@ -467,9 +492,9 @@
 - Scope: m24-interface-polish (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: T001
-- Progress: 0/8
-- Revision: 752
+- Current task: none
+- Progress: 1/8
+- Revision: 753
 
 ## Objective
 
@@ -489,9 +514,9 @@
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [IN_PROGRESS] T001 — Сайдбар с планом, изменяемая ширина и диалог в области окна (work)
+- [DONE] T001 — Сайдбар с планом, изменяемая ширина и диалог в области окна (work)
   - Commit: feat(panel): move workflow cards into a resizable sidebar
-  - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/control-panel/clusters/web-panel/modules/session-view, docs/architecture/OVERVIEW.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/session-chat.css, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, product-parts/control-panel/clusters/web-panel/cluster.md, docs/architecture/CONTRACTS.md, docs/evidence/M24-acceptance.md, docs/evidence/M24, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/chat-model.test.ts
+  - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/control-panel/clusters/web-panel/modules/session-view, docs/architecture/OVERVIEW.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/session-chat.css, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, product-parts/control-panel/clusters/web-panel/cluster.md, docs/architecture/CONTRACTS.md, docs/evidence/M24-acceptance.md, docs/evidence/M24, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/chat-model.test.ts, docs/evidence/M24/T001-browser-results.json, docs/evidence/M24/T001-desktop-dark.png, docs/evidence/M24/T001-desktop-light.png, docs/evidence/M24/T001-mobile-dialog.png, docs/evidence/M24/T001-mobile-sidebar.png, product-parts/control-panel/clusters/web-panel/modules/panel-shell/files.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/index.html, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/layout-model.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/layout.css, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/panel-layout.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/session-screen.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/sidebar-slots.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/sidebar.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/slots.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/tree.css, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/viewport.css, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/layout-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/panel-shell.test.ts, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.css, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/sidebar-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts
 - [TODO] T002 — Контракт прерывания ответа, API и барьер автопродолжения (work)
   - Commit: feat(session): add guarded turn interruption and continuation barrier
   - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel, product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/workflow-engine/clusters/session-loop/modules/cross-review, product-parts/backend-core/clusters/runtime/modules/cli, docs/architecture/CONTRACTS.md, docs/architecture/OVERVIEW.md

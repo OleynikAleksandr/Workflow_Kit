@@ -47,19 +47,20 @@
  * @property {NewProjectSlot | null} newProject
  * @property {SessionSlot | null} sessionBody
  * @property {SessionSlot | null} sessionReview
+ * @property {SessionSlot | null} sessionSidebar Workflow cards below the project tree.
  * @property {SessionSlot | null} sessionChat Dialogue of the session, under sessionBody.
  */
 
 /** @type {SlotMap} */
-export const slots = { newProject: null, sessionBody: null, sessionReview: null, sessionChat: null };
+export const slots = { newProject: null, sessionBody: null, sessionReview: null, sessionSidebar: null, sessionChat: null };
 
 /**
  * Fills a slot; a second call replaces the previous definition.
- * @param {'newProject' | 'sessionBody' | 'sessionReview' | 'sessionChat'} name
+ * @param {'newProject' | 'sessionBody' | 'sessionReview' | 'sessionSidebar' | 'sessionChat'} name
  * @param {NewProjectSlot | SessionSlot} definition
  */
 export function registerSlot(name, definition) {
   if (name === 'newProject') slots.newProject = /** @type {NewProjectSlot} */ (definition);
-  else if (name === 'sessionBody' || name === 'sessionReview' || name === 'sessionChat') slots[name] = /** @type {SessionSlot} */ (definition);
+  else if (name === 'sessionBody' || name === 'sessionReview' || name === 'sessionSidebar' || name === 'sessionChat') slots[name] = /** @type {SessionSlot} */ (definition);
   else throw new Error(`Unknown panel slot: ${String(name)}`);
 }

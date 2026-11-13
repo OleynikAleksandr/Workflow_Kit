@@ -59,7 +59,9 @@ const plan = {
 test('the mount serves the session view under /session-view/', async () => {
   assert.deepEqual(sessionViewMount(), { prefix: SESSION_VIEW_PREFIX, dir: SESSION_VIEW_ASSETS_DIR });
   const source = await readFile(path.join(SESSION_VIEW_ASSETS_DIR, 'session-view.js'), 'utf8');
-  assert.match(source, /registerSlot\('sessionBody'/);
+  assert.match(source, /installSidebarSlot\(shell/);
+  const sidebar = await readFile(path.join(SESSION_VIEW_ASSETS_DIR, 'sidebar-view.js'), 'utf8');
+  assert.match(sidebar, /registerSlot\('sessionSidebar'/);
   assert.match(source, /registerSlot\('sessionReview'/);
   assert.match(source, /\/workflow\/\$\{route\}/);
   assert.match(source, /\/plan-decision`/);

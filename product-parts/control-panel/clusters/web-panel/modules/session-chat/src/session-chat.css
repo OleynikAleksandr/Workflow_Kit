@@ -1,6 +1,10 @@
 /* The «Диалог» card of the session screen (spec M18 2.6). Colours come from the panel theme. */
 .sc-card {
-  max-width: 760px;
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  min-height: 0;
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -10,7 +14,8 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  max-height: 60vh;
+  min-height: 0;
+  flex: 1 1 0;
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
@@ -72,7 +77,9 @@
 .sc-input {
   box-sizing: border-box;
   width: 100%;
-  min-height: 4.5em;
+  min-height: 44px;
+  height: 64px;
+  max-height: min(120px, 25dvh);
   padding: 8px 10px;
   border: 1px solid var(--card-line);
   border-radius: 8px;
@@ -105,3 +112,11 @@
 .panel p.sc-status[data-tone='error'] {
   color: var(--error);
 }
+
+/* The feed shrinks; all controls remain inside the session viewport. */
+.sc-card > :not(.sc-feed) { flex-shrink: 0; }
+.sc-card > h2 { margin: 0; }
+.sc-note, .sc-error, .sc-status { max-height: min(12dvh, 64px); overflow: auto; }
+.sc-card .sc-compose { min-width: 0; }
+.sc-msg { flex-shrink: 0; min-width: 0; }
+.sc-compose { margin-top: auto; }

@@ -1,0 +1,39 @@
+/* M24: bounded panes; ordinary screens scroll in main, the session scrolls in its feed. */
+.app { position: fixed; top: var(--viewport-top, 0); left: 0; right: 0; }
+.side { min-width: 0; min-height: 0; border-right: 0; }
+.brand, .side > .status, .projects-head { flex-shrink: 0; }
+.brand > div:not(.logo) { min-width: 0; }
+.side-scroll { display: flex; flex: 1; flex-direction: column; gap: 14px; min-height: 0; overflow: auto; overscroll-behavior: contain; padding: 1px; }
+.side-scroll > * { flex-shrink: 0; min-width: 0; }
+.session-sidebar:empty, .review-slot:empty { display: none; }
+.main { min-height: 0; overflow: auto; overscroll-behavior: contain; }
+.main > * { flex-shrink: 0; min-width: 0; }
+.main > .notice { max-height: min(20dvh, 100px); overflow: auto; }
+.main.is-session { overflow: hidden; }
+.main.is-session > .dynamic { display: flex; flex: 1; min-height: 0; }
+.session-screen { flex: 1; min-width: 0; min-height: 0; }
+.session-head { flex-shrink: 0; max-height: 25%; overflow: auto; overflow-wrap: anywhere; }
+.session-body:empty { display: none; }
+.session-body:not(:empty) { flex-shrink: 1; min-height: 0; overflow: auto; }
+.session-chat { display: flex; flex: 1; min-width: 0; min-height: 0; }
+.sidebar-separator { position: relative; cursor: col-resize; touch-action: none; outline-offset: -2px; background: var(--panel); }
+.sidebar-separator::before { content: ''; position: absolute; width: 1px; top: 0; bottom: 0; left: 3px; background: var(--line); }
+.sidebar-separator:hover::before, .sidebar-separator:focus-visible::before { width: 3px; left: 2px; background: var(--teal); }
+.sidebar-dragging { cursor: col-resize; user-select: none; }
+.sidebar-open, .sidebar-close, .sidebar-backdrop { display: none; }
+
+@media (max-width: 680px) {
+  .app { grid-template-columns: minmax(0, 1fr); }
+  .app > .side { position: absolute; z-index: 60; top: 0; bottom: 0; left: 0; width: min(320px, calc(100vw - 48px)); visibility: hidden; border-right: 1px solid var(--line); border-bottom: 0; box-shadow: var(--shadow); }
+  .sidebar-visible > .side { visibility: visible; }
+  .sidebar-separator { display: none; }
+  .sidebar-open { display: inline-flex; align-items: center; gap: 8px; flex-shrink: 0; align-self: flex-start; min-height: 32px; max-width: 100%; border: 1px solid var(--card-line); border-radius: 8px; padding: 6px 10px; background: var(--panel); color: var(--text); cursor: pointer; }
+  .sidebar-open.needs-attention::after { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--warn); }
+  .sidebar-close { display: grid; flex-shrink: 0; }
+  .sidebar-visible > .sidebar-backdrop { display: block; position: absolute; z-index: 50; inset: 0; background: rgb(0 0 0 / 35%); }
+}
+
+@media (pointer: coarse) {
+  .sidebar-open, .sidebar-close { min-height: 44px; }
+  .sidebar-close { min-width: 44px; }
+}

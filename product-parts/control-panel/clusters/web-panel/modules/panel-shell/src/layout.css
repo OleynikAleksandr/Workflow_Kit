@@ -2,8 +2,10 @@
    columns stack. Safe-area insets keep the content clear of the iPad home indicator and notch. */
 .app {
   display: grid;
-  grid-template-columns: 270px minmax(0, 1fr);
-  min-height: 100vh;
+  grid-template-columns: var(--sidebar-width, 320px) 8px minmax(0, 1fr);
+  height: 100vh;
+  height: var(--viewport-height, 100dvh);
+  min-height: 0;
 }
 
 .side {
@@ -371,7 +373,7 @@
 @media (max-width: 680px) {
   .app {
     grid-template-columns: minmax(0, 1fr);
-    align-content: start;
+    min-height: 0;
   }
 
   .side {

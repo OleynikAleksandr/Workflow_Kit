@@ -1,7 +1,8 @@
 // @ts-check
-// The session screen body (activity line, path choice, plan card, delivery confirmation) and
-// «Ревью плана» in the sidebar. Panel extension: install(shell) fills the "sessionBody" and
+// The sidebar workflow cards (activity, path choice, plan, delivery confirmation) and
+// «Ревью плана» in the sidebar. Panel extension: install(shell) fills the "sessionSidebar" and
 // "sessionReview" slots of panel-shell. Typed text lives in inputs kept per session.
+import { installSidebarSlot } from './sidebar-view.js';
 import { START_SLOW_TEXT, START_STEPS, activityView, choiceView, crossReviewView, planQuestionView, planView, reviewView, timer } from './session-model.js';
 
 /**
@@ -20,8 +21,10 @@ import { START_SLOW_TEXT, START_STEPS, activityView, choiceView, crossReviewView
  */
 export function install(shell) {
   const { h } = shell.dom;
-  /** @type {Map<string, { fixes: HTMLTextAreaElement, delivery: HTMLTextAreaElement, fixesOpen: boolean, pressed: string | null }>} */
+  /** @type {Map<string, { fixes: HTMLTextAreaElement, delivery: HTMLTextAreaElement, fixesOpen: boolean, pressed: string | null, version: number }>} */
   const inputs = new Map();
+  /** @type {Map<string, boolean>} */
+  const journalOpen = new Map();
   let busy = false;
 
   /** @param {string} key */
@@ -29,7 +32,7 @@ export function install(shell) {
     let entry = inputs.get(key);
     if (!entry) {
       const area = (/** @type {string} */ label) => /** @type {HTMLTextAreaElement} */ (h('textarea', { rows: '3', 'aria-label': label, autocapitalize: 'sentences' }));
-      entry = { fixes: area('Что исправить'), delivery: area('Подтверждение выпуска'), fixesOpen: false, pressed: null };
+      entry = { fixes: area('Что исправить'), delivery: area('Подтверждение выпуска'), fixesOpen: false, pressed: null, version: 0 };
       inputs.set(key, entry);
     }
     return entry;
@@ -190,7 +193,7 @@ export function install(shell) {
   async function startPlan(ctx, projectId, key, row) {
     if (busy) return;
     busy = true;
-    const fields = inputsOf(key);
+    const fields = inputsOf(`${projectId}\n${key}`);
     fields.pressed = new Date().toISOString();
     row.replaceChildren(startingBlock({ stepText: START_STEPS.sending, since: fields.pressed, slow: false }));
     try {
@@ -199,6 +202,7 @@ export function install(shell) {
       ctx.say('error', 'Не удалось начать выполнение плана', error);
     } finally {
       fields.pressed = null;
+      fields.version += 1;
       busy = false;
       ctx.requestRefresh();
     }
@@ -212,7 +216,7 @@ export function install(shell) {
   function planCard(plan, session, ctx) {
     const projectId = session.project.id;
     const key = session.session.key;
-    const fields = inputsOf(key);
+    const fields = inputsOf(`${projectId}\n${key}`);
     const bar = h('i');
     bar.style.width = `${plan.percent}%`;
     const tasks = h('ul', { class: 'tasks' }, plan.tasks.map((t) =>
@@ -275,7 +279,7 @@ export function install(shell) {
    * @param {SlotContext} ctx
    */
   function deliveryCard(session, ctx) {
-    const fields = inputsOf(session.session.key);
+    const fields = inputsOf(`${session.project.id}\n${session.session.key}`);
     return h('div', { class: 'choice' }, [
       h('div', { class: 'eyebrow' }, ['Выбор пользователя']),
       h('h2', {}, ['Подтвердить выпуск']),
@@ -337,9 +341,13 @@ export function install(shell) {
         : null,
     ].filter((n) => n !== null);
     // The newest entry (the first: newest on top) is open, the rest fold.
-    const journal = review.entries.map((entry, index) =>
-      h('details', { class: `sv-xr-entry ${entry.from}`, ...(index === 0 ? { open: '' } : {}) }, [h('summary', {}, [`${entry.who}${entry.round ? ` · круг ${entry.round}` : ''}`]), h('p', {}, [entry.text])]),
-    );
+    const journal = review.entries.map((entry, index) => {
+      const key = JSON.stringify([projectId, session.session.key, entry.from, entry.round, entry.text]);
+      const opened = journalOpen.get(key) ?? index === 0;
+      const node = h('details', { class: `sv-xr-entry ${entry.from}`, ...(opened ? { open: '' } : {}) }, [h('summary', {}, [`${entry.who}${entry.round ? ` · круг ${entry.round}` : ''}`]), h('p', {}, [entry.text])]);
+      node.addEventListener('toggle', () => journalOpen.set(key, /** @type {HTMLDetailsElement} */ (node).open));
+      return node;
+    });
     const tone = review.status === 'agreed' ? ' ok' : review.active ? '' : ' muted';
     return h('div', { class: `panel sv-xreview${tone}` }, [
       h('h2', {}, ['Ревью плана']),
@@ -351,25 +359,15 @@ export function install(shell) {
     ].filter((n) => n !== null));
   }
 
-  shell.registerSlot('sessionBody', {
-    select(state, session) {
-      const { id } = session.project;
-      const { key } = session.session;
-      return { activity: activityView(state, id, key), question: planQuestionView(state, id, key), choice: choiceView(state, id, key), plan: planView(state, id, key), review: crossReviewView(state, id, key), name: session.session.name };
-    },
-    render(data, _state, session, ctx) {
-      const activity = activityBlock(data.activity);
-      const cards = [];
-      if (data.question) cards.push(questionCard(data.question, session, ctx));
-      if (data.review && (data.review.active || data.review.role === 'reviewer' || !data.plan)) cards.push(crossReviewCard(data.review, session, ctx));
-      if (data.plan?.delivery) cards.push(deliveryCard(session, ctx));
-      if (data.choice) cards.push(choiceCard(data.choice, session, ctx));
-      if (data.plan) return h('div', { class: 'sv' }, [...cards, h('div', { class: 'cols' }, [planCard(data.plan, session, ctx), h('div', {}, [activity])])]);
-      return h('div', { class: 'sv' }, [h('div', { class: 'sv-activity' }, [activity]), ...cards,
-        data.choice || data.review || data.question ? null : h('div', { class: 'panel' }, [h('h2', {}, ['План сессии']), h('p', {}, ['Появится, когда агент предложит план: сначала спецификация, затем выбор пути.'])]),
-      ].filter((n) => n !== null));
-    },
-  });
+  installSidebarSlot(shell, {
+    question: questionCard,
+    review: crossReviewCard,
+    delivery: (_data, session, ctx) => deliveryCard(session, ctx),
+    choice: choiceCard,
+    plan: planCard,
+    activity: activityBlock,
+    empty: () => h('p', { class: 'sv-empty sv-muted' }, ['План появится, когда агент его предложит.']),
+  }, (session) => inputsOf(`${session.project.id}\n${session.session.key}`).version);
 
   // M4 12.3: the review decision is read-only; the answer to the plan question sets it.
   shell.registerSlot('sessionReview', {

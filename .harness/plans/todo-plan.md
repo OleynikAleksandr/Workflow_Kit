@@ -10,10 +10,35 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 875,
+  "revision": 877,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "Shared FIFO for parameters/send/Stop; UUID/session/epoch/deadline, stable frame and independent ACK/read-back.",
+          "Trusted native hook guard runs before channel/autopilot; queued messages preserved exactly once.",
+          "Discriminated claude-controls/effort-card; Ultracode only Claude; explicit HTTP 400/409/503/504.",
+          "Design QA passed; common ES/CSS with nested keyboard/touch menus; Windows live remains pending."
+        ],
+        "decisions": [
+          "Session-local PTY controls only; minimum 2.1.323 plus known frame; old/external hosts read-only.",
+          "Effort is a nested list; Ultracode is separate; fast account prohibition is preserved.",
+          "Native T006 used one Sonnet/high/fast=false turn; T007 has at most one remaining turn.",
+          "README and setup/usage/installation fully read; versioned guide changes ship in T007.",
+          "User authorized autonomous execution through release; acceptance/closing/main publication remain separate."
+        ],
+        "references": [
+          "README.md",
+          "docs/planning/M27-claude-native-controls.md",
+          "docs/design/M27-claude-controls-facts.md",
+          "docs/design/M27-claude-control-contract.md",
+          "docs/design/M27/claude-native-channel.md",
+          "docs/design/M27/claude-visual-reference.md",
+          "docs/evidence/M27-claude-native-controls.md",
+          "design-qa.md"
+        ],
+        "result": "M27: native model/effort/Ultracode/mode, guarded transactions and Claude menus implemented. Native roundtrip, queue and visual QA passed; release 0.13.0 and CI remain T007/T008."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -602,7 +627,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -690,8 +715,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 6/9
-- Revision: 875
+- Progress: 7/9
+- Revision: 877
 
 ## Objective
 
@@ -732,7 +757,7 @@
   - Commit: test(claude): verify native controls and visual fidelity
   - Files: product-parts/control-panel/clusters/web-panel/modules/session-chat, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/backend-core/clusters/runtime/modules/cli, design-qa.md, docs/design/M27-claude-control-contract.md, docs/architecture/OVERVIEW.md, docs/architecture/CONTRACTS.md, docs/evidence/M27-claude-native-controls.md, docs/evidence/M27, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel, product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/provider-runtime/clusters/provider-contract/modules/pty-host, docs/design/M27/claude-visual-reference.md, docs/design/M27-claude-controls-facts.md, docs/evidence/M27/browser-responsive.json, docs/evidence/M27/claude-effort-dark-1024x768.png, docs/evidence/M27/claude-effort-dark-1280x800.png, docs/evidence/M27/claude-effort-dark-1920x1080.png, docs/evidence/M27/claude-effort-dark-375x667.png, docs/evidence/M27/claude-effort-dark-640x400.png, docs/evidence/M27/claude-effort-dark-768x400.png, docs/evidence/M27/claude-effort-debug.png, docs/evidence/M27/claude-effort-final.png, docs/evidence/M27/claude-effort-light-1024x768.png, docs/evidence/M27/claude-effort-light-1280x800.png, docs/evidence/M27/claude-effort-light-1920x1080.png, docs/evidence/M27/claude-effort-light-375x667.png, docs/evidence/M27/claude-effort-light-640x400.png, docs/evidence/M27/claude-effort-light-768x400.png, docs/evidence/M27/claude-mode-dark-1024x768.png, docs/evidence/M27/claude-mode-dark-1280x800.png, docs/evidence/M27/claude-mode-dark-1920x1080.png, docs/evidence/M27/claude-mode-dark-375x667.png, docs/evidence/M27/claude-mode-dark-640x400.png, docs/evidence/M27/claude-mode-dark-768x400.png, docs/evidence/M27/claude-mode-debug.png, docs/evidence/M27/claude-mode-final.png, docs/evidence/M27/claude-mode-light-1024x768.png, docs/evidence/M27/claude-mode-light-1280x800.png, docs/evidence/M27/claude-mode-light-1920x1080.png, docs/evidence/M27/claude-mode-light-375x667.png, docs/evidence/M27/claude-mode-light-640x400.png, docs/evidence/M27/claude-mode-light-768x400.png, docs/evidence/M27/claude-more-dark-1024x768.png, docs/evidence/M27/claude-more-dark-1280x800.png, docs/evidence/M27/claude-more-dark-1920x1080.png, docs/evidence/M27/claude-more-dark-375x667.png, docs/evidence/M27/claude-more-dark-640x400.png, docs/evidence/M27/claude-more-dark-768x400.png, docs/evidence/M27/claude-more-debug.png, docs/evidence/M27/claude-more-final.png, docs/evidence/M27/claude-more-light-1024x768.png, docs/evidence/M27/claude-more-light-1280x800.png, docs/evidence/M27/claude-more-light-1920x1080.png, docs/evidence/M27/claude-more-light-375x667.png, docs/evidence/M27/claude-more-light-640x400.png, docs/evidence/M27/claude-more-light-768x400.png, docs/evidence/M27/effort-comparison-final.png, docs/evidence/M27/effort-comparison-initial.png, docs/evidence/M27/mode-comparison-final.png, docs/evidence/M27/mode-comparison-initial.png, docs/evidence/M27/more-comparison-final.png, docs/evidence/M27/native-gui-back-production.json, docs/evidence/M27/native-gui-final.json, docs/evidence/M27/native-production-before-cache-fix.json, docs/evidence/M27/native-production-cleanup.json, docs/evidence/M27/native-production-final.json, docs/evidence/M27/native-production-phase2.json, docs/evidence/M27/native-production-roundtrip.json, docs/evidence/M27/native-queue-during-production.json, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/claude-controls.css, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/claude-menu.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/icons/info.svg, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/claude-controls.browser.js, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/parameter-controls.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-engine.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-screen.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parameter-controls.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parameter-engine.test.ts
   - Depends on: T005
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M27-claude-native-controls.md, docs/design/M27-claude-controls-facts.md, docs/design/M27-claude-control-contract.md, docs/evidence/M27-claude-native-controls.md, docs/design/M27/claude-visual-reference.md, docs/architecture/CONTRACTS.md, design-qa.md
   - Depends on: T001, T002, T003, T004, T005, T006
@@ -744,5 +769,7 @@
   - Commit: docs: record green CI for Claude native controls
   - Files: docs/evidence/M27-claude-native-controls.md
   - Depends on: T007, DOCS-R1
+
+Digest: M27: native model/effort/Ultracode/mode, guarded transactions and Claude menus implemented. Native roundtrip, queue and visual QA passed; release 0.13.0 and CI remain T007/T008.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

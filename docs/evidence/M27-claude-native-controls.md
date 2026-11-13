@@ -243,3 +243,14 @@ Home/End ограничены активным submenu; touch 44, Esc/back/outsi
 focus/draft/polling, quiet success и ошибка проверены. M26/R2 thumb drag сохранён.
 macOS native проверена агентом, user acceptance отдельно; Windows live ждёт
 проверяющего, Linux только CI. Светлая native pixel fidelity не заявляется.
+
+## DOCS-R1: сверка документации
+
+README перечитан целиком. Полностью сверены docs/setup.md, usage.md и installation.md
+с кодом и реальными пробами. Версионные руководства пока относятся к установленной
+0.12.1: их переключение на0.13.0, замена прежнего описания read-only Claude в usage
+и уточнение minimum/new host в setup/installation входят в T007 (его allowed files).
+README отделяет готовые исходники M27 от ещё не выполненной поставки/CI. Shared
+contracts/spec/facts/visual QA согласованы; пользовательская приёмка и закрытие не
+подменяются успешными тестами. Новый budget: T0061, T007 максимум1, без дополнительных
+Sonnet/Fable/fast ходов в DOCS.

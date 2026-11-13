@@ -111,6 +111,16 @@ CI точного SHA и пользовательская живая приём�
 Подробности — [результаты R2](docs/evidence/M26-native-controls.md#r2--t008-замечания-пользователя-после-0120).
 Исправления установлены в локальной 0.12.1; CI и живая приёмка фиксируются отдельно.
 
+**Контролы Claude M27 (исходники следующей 0.13.0).** В управляемой беседе можно
+выбирать модель, Effort и отдельный Ultracode через вложенные меню, а Auto/Manual/
+Accept edits/Plan — отдельной кнопкой Mode, как в Claude Desktop. Нужны Claude
+2.1.323+ и новый запуск/штатное возобновление панелью; старые и внешние host остаются
+для чтения с причиной. Изменения действуют только в этой беседе и не меняют defaults.
+Скорость доступна только при нативном разрешении аккаунта; в проверенном аккаунте
+fast требует usage credits и не включается. Native roundtrip и визуальная проверка
+завершены — [результаты M27](docs/evidence/M27-claude-native-controls.md),
+[Design QA](design-qa.md). Сборка/установка 0.13.0 и CI — следующие этапы плана.
+
 ## Запуск из исходников и разработка
 
 `node bin/wfk.mjs serve` запускает сервер из репозитория без установки; `npm ci`,
@@ -131,4 +141,5 @@ CI точного SHA и пользовательская живая приём�
   границы.
 - [Спецификации](docs/planning/) и [исторический макет панели](docs/design/ui-mockup.html).
   Раскладка — [M24](docs/planning/M24-interface-polish.md), актуальные контролы —
-  [M26](docs/planning/M26-native-session-controls.md) и [Design QA](design-qa.md).
+  [M26](docs/planning/M26-native-session-controls.md),
+  [M27](docs/planning/M27-claude-native-controls.md) и [Design QA](design-qa.md).

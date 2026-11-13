@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 823,
+  "revision": 824,
   "rounds": [
     {
       "digest": null,
@@ -158,9 +158,9 @@
     },
     {
       "acceptance": [
-        "Настольная карточка повторяет эталон 255×97 CSS px: молния, усилие, сброс, модель и дискретный ползунок; общего списка всех секций нет.",
-        "Модель выбирается во вложенном экране с возвратом; усилия и default идут из каталога; один POST на законченный жест/клавиатурное действие, отмена ничего не пишет.",
-        "Скорость переключается молнией, подсказка показывает данные выбранной модели; обычный/плановый режим остаётся доступным в компактном вложенном разделе.",
+        "Настольная карточка повторяет эталон 255×97 CSS px с согласованным исключением круговой стрелки: молния, усилие, модель и дискретный ползунок; общего списка всех секций нет.",
+        "При нажатии названия модели появляется отдельный список под полем ввода, а не экран внутри карточки; поддерживаемые усилия идут из каталога; один POST на законченный жест/клавиатурное действие, отмена ничего не пишет.",
+        "Скорость переключается молнией, подсказка показывает данные выбранной модели; обычный/плановый режим остаётся доступным в компактном разделе списка моделей.",
         "Неизвестные/недоступные значения не подменяются, partial catalog не блокирует рабочие контролы; unit tests, module contract и OS-матрица обновлены."
       ],
       "checks": [],
@@ -192,7 +192,7 @@
       "kind": "work",
       "roundId": "R1",
       "status": "TODO",
-      "title": "Компактная карточка усилия, модель, скорость и сброс",
+      "title": "Компактная карточка усилия, выбор модели и скорость",
       "why": "Заменить длинный список компактным нативным сценарием"
     },
     {
@@ -405,7 +405,7 @@
 - Execution: sequential
 - Current task: T001
 - Progress: 0/8
-- Revision: 823
+- Revision: 824
 
 ## Objective
 
@@ -429,7 +429,7 @@
   - Commit: feat(parameters): expose native control presentation and access presets
   - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, docs/architecture/CONTRACTS.md, docs/architecture/OVERVIEW.md, docs/evidence/M26-native-controls.md
   - Depends on: T001
-- [TODO] T003 — Компактная карточка усилия, модель, скорость и сброс (work)
+- [TODO] T003 — Компактная карточка усилия, выбор модели и скорость (work)
   - Commit: feat(panel): add native effort card and model picker
   - Files: product-parts/control-panel/clusters/web-panel/modules/session-chat, docs/architecture/OVERVIEW.md, docs/evidence/M26-native-controls.md
   - Depends on: T002

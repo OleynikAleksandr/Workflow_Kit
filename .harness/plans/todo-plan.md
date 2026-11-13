@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 774,
+  "revision": 775,
   "rounds": [
     {
       "digest": {
@@ -695,7 +695,8 @@
         "docs/usage.md",
         "docs/planning/M24-interface-polish.md",
         "docs/changelog",
-        "docs/evidence/M24-acceptance.md"
+        "docs/evidence/M24-acceptance.md",
+        "docs/installation"
       ],
       "fixes": null,
       "id": "T007",
@@ -718,7 +719,7 @@
 - Execution: sequential
 - Current task: T007
 - Progress: 9/10
-- Revision: 774
+- Revision: 775
 
 ## Objective
 
@@ -777,7 +778,7 @@
   - Depends on: T001, T002, T003, T008, T004, T005, T009, T006
 - [IN_PROGRESS] T007 — Локальная поставка Workflow Kit 0.10.0 (delivery)
   - Commit: chore(release): install Workflow Kit 0.10.0 locally
-  - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/installation.md, docs/architecture/OVERVIEW.md, docs/architecture/CONTRACTS.md, docs/usage.md, docs/planning/M24-interface-polish.md, docs/changelog, docs/evidence/M24-acceptance.md
+  - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/installation.md, docs/architecture/OVERVIEW.md, docs/architecture/CONTRACTS.md, docs/usage.md, docs/planning/M24-interface-polish.md, docs/changelog, docs/evidence/M24-acceptance.md, docs/installation
   - Depends on: T006, DOCS-R1
 
 Digest: M24 реализована в исходниках: карточки слева, resize/drawer, диалог в viewport, компактный ввод и действующий Stop трёх провайдеров. Тесты и Chromium с fixtures прошли. Поставка 0.10.0 и живая приёмка впереди.

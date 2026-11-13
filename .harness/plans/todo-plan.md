@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 808,
+  "revision": 809,
   "rounds": [
     {
       "digest": {
@@ -63,8 +63,15 @@
       },
       "id": "R2",
       "kind": "fixes",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "M25: отказы Windows в предварительной CI"
+    },
+    {
+      "digest": null,
+      "id": "R3",
+      "kind": "fixes",
+      "status": "OPEN",
+      "title": "CI: истечение срока между параллельными запросами Kimi"
     }
   ],
   "schema": "harness-workflow-plan/1",
@@ -675,6 +682,59 @@
     },
     {
       "acceptance": [
+        "Подготовка параллельной проверки использует один набор deadline/options до запуска запросов; истечение срока не оставляет необработанный Promise и не отправляет поздний abort.",
+        "Детерминированный тест переводит часы через deadline между подготовкой первого и второго запроса и проверяет наблюдение всех Promise; существующие тесты тайм-аутов и происхождения ошибок сохранены.",
+        "Контракт модуля, матрица ОС и доказательства обновлены; обязательные проверки проходят."
+      ],
+      "checks": [],
+      "commitMessage": "fix(kimi): prepare probe deadline before starting requests",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi",
+        "docs/architecture/OVERVIEW.md",
+        "docs/evidence/M25-acceptance.md"
+      ],
+      "fixes": null,
+      "id": "T012",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R3",
+      "status": "TODO",
+      "title": "Kimi: обработать истечение срока при подготовке параллельной проверки",
+      "why": "macOS CI 43440918187 job 131937986212 получила необработанный KimiError в тесте истечения срока Stop; синхронный requestOptions между созданием Promise оставляет первый запрос без обработчика"
+    },
+    {
+      "acceptance": [
+        "Project-wide documents describe the round result",
+        "The round digest records result, decisions, contracts and references"
+      ],
+      "checks": [],
+      "commitMessage": "docs: reconcile documentation for R3",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T012"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/architecture/OVERVIEW.md",
+        "docs/evidence/M25-acceptance.md"
+      ],
+      "fixes": null,
+      "id": "DOCS-R3",
+      "iteration": 1,
+      "kind": "docs",
+      "roundId": "R3",
+      "status": "TODO",
+      "title": "Reconcile project documentation and write the round digest",
+      "why": "Keep the project context current for the next agent and close the round."
+    },
+    {
+      "acceptance": [
         "После отдельного подтверждения пользователя и задачи DOCS штатным способом подготовлен и установлен локальный релиз 0.11.0; установленная служба проверена.",
         "Версия согласована в package.json, README.md, docs/installation.md, docs/usage.md, OVERVIEW.md и CHANGELOG; доказательства M25 содержат команды, результаты, SHA поставки и список живых проверок раздела 4 с исполнителями по ОС.",
         "Задача не выполняет git push; её коммит — SHA поставки; в доказательствах записано «CI ожидает отправки ветки ci/m25-session-parameters» с этим SHA. Зелёную CI проверяет T009 (раздел 8 правил M25)."
@@ -696,7 +756,7 @@
       ],
       "dependencies": [
         "T007",
-        "DOCS-R2"
+        "DOCS-R3"
       ],
       "docsWaiver": null,
       "files": [
@@ -715,7 +775,7 @@
       "id": "T008",
       "iteration": 1,
       "kind": "delivery",
-      "roundId": "R2",
+      "roundId": "R3",
       "status": "TODO",
       "title": "Локальная поставка 0.11.0 и живая приёмка",
       "why": "Пользователь проверяет результат в установленной службе"
@@ -744,7 +804,7 @@
       ],
       "dependencies": [
         "T008",
-        "DOCS-R2"
+        "DOCS-R3"
       ],
       "docsWaiver": null,
       "files": [
@@ -754,7 +814,7 @@
       "id": "T009",
       "iteration": 1,
       "kind": "delivery",
-      "roundId": "R2",
+      "roundId": "R3",
       "status": "TODO",
       "title": "CI четырёх платформ на SHA поставки",
       "why": "Поставка не завершена без зелёной CI на macOS, Linux, Windows x64 и Windows ARM64"
@@ -770,8 +830,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 11/13
-- Revision: 808
+- Progress: 11/15
+- Revision: 809
 
 ## Objective
 
@@ -824,7 +884,7 @@
 
 Digest: Реализованы чтение параметров Claude/ChatGPT, управление ChatGPT и строка/меню диалога. T001 положительная; автоматические и браузерные проверки выполнены. Поставка и живая приёмка отдельно.
 
-### R2 — M25: отказы Windows в предварительной CI (fixes, OPEN)
+### R2 — M25: отказы Windows в предварительной CI (fixes, CLOSED)
 
 - [DONE] T010 — Снимки: сериализация и атомарная замена при занятости файла (work)
   - Commit: fix(parameters): serialize atomic snapshot replacement
@@ -839,15 +899,25 @@ Digest: Реализованы чтение параметров Claude/ChatGPT,
   - Commit: docs: reconcile documentation for R2
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/evidence/M25-acceptance.md
   - Depends on: T010, T011
+
+Digest: R2 исправил два подтверждённых сбоя Windows: замену снимков и ранний возврат тайм-аута statusline. Локальные проверки прошли; повторная CI и поставка впереди.
+
+### R3 — CI: истечение срока между параллельными запросами Kimi (fixes, OPEN)
+
+- [TODO] T012 — Kimi: обработать истечение срока при подготовке параллельной проверки (work)
+  - Commit: fix(kimi): prepare probe deadline before starting requests
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi, docs/architecture/OVERVIEW.md, docs/evidence/M25-acceptance.md
+- [TODO] DOCS-R3 — Reconcile project documentation and write the round digest (docs)
+  - Commit: docs: reconcile documentation for R3
+  - Files: README.md, docs/architecture/OVERVIEW.md, docs/evidence/M25-acceptance.md
+  - Depends on: T012
 - [TODO] T008 — Локальная поставка 0.11.0 и живая приёмка (delivery)
   - Commit: chore(release): install Workflow Kit 0.11.0 locally
   - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/installation.md, docs/usage.md, docs/architecture/OVERVIEW.md, docs/changelog, docs/evidence/M25-acceptance.md, docs/evidence/M25
-  - Depends on: T007, DOCS-R2
+  - Depends on: T007, DOCS-R3
 - [TODO] T009 — CI четырёх платформ на SHA поставки (delivery)
   - Commit: docs: record green CI for the M25 delivery
   - Files: docs/evidence/M25-acceptance.md
-  - Depends on: T008, DOCS-R2
-
-Digest: R2 исправил два подтверждённых сбоя Windows: замену снимков и ранний возврат тайм-аута statusline. Локальные проверки прошли; повторная CI и поставка впереди.
+  - Depends on: T008, DOCS-R3
 
 State changes only through `scripts/workflow` commands. History lives in Git.

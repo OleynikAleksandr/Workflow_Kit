@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": "T007",
+  "currentTaskId": null,
   "lastClosed": {
     "closedAt": "2026-11-12T18:46:52.163Z",
     "scopeId": "m23-kit-tests-windows"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 775,
+  "revision": 776,
   "rounds": [
     {
       "digest": {
@@ -42,7 +42,7 @@
       },
       "id": "R1",
       "kind": "implementation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Implementation"
     }
   ],
@@ -116,7 +116,7 @@
         "text": "Проверка раскладки выполняется в T001 через доступный Playwright MCP и полностью подставной API; реальные сессии пользователя не затрагиваются."
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 1,
       "ownerSession": "01a1d3ac-d295-7992-a65e-b522efe4bf4e",
@@ -696,14 +696,15 @@
         "docs/planning/M24-interface-polish.md",
         "docs/changelog",
         "docs/evidence/M24-acceptance.md",
-        "docs/installation"
+        "docs/installation",
+        "docs/installation/development.md"
       ],
       "fixes": null,
       "id": "T007",
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "title": "Локальная поставка Workflow Kit 0.10.0",
       "why": "Локальная поставка Workflow Kit 0.10.0"
     }
@@ -715,11 +716,11 @@
 ## State
 
 - Scope: m24-interface-polish (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
-- Current task: T007
-- Progress: 9/10
-- Revision: 775
+- Current task: none
+- Progress: 10/10
+- Revision: 776
 
 ## Objective
 
@@ -737,7 +738,7 @@
 
 ## Rounds
 
-### R1 — Implementation (implementation, OPEN)
+### R1 — Implementation (implementation, CLOSED)
 
 - [DONE] T001 — Сайдбар с планом, изменяемая ширина и диалог в области окна (work)
   - Commit: feat(panel): move workflow cards into a resizable sidebar
@@ -776,9 +777,9 @@
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M24-interface-polish.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, product-parts/control-panel/clusters/web-panel/cluster.md, docs/architecture/CONTRACTS.md, docs/evidence/M24-acceptance.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/files.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/interrupt.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/sessions.md, product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/hooks.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/interrupt.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md
   - Depends on: T001, T002, T003, T008, T004, T005, T009, T006
-- [IN_PROGRESS] T007 — Локальная поставка Workflow Kit 0.10.0 (delivery)
+- [DONE] T007 — Локальная поставка Workflow Kit 0.10.0 (delivery)
   - Commit: chore(release): install Workflow Kit 0.10.0 locally
-  - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/installation.md, docs/architecture/OVERVIEW.md, docs/architecture/CONTRACTS.md, docs/usage.md, docs/planning/M24-interface-polish.md, docs/changelog, docs/evidence/M24-acceptance.md, docs/installation
+  - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/installation.md, docs/architecture/OVERVIEW.md, docs/architecture/CONTRACTS.md, docs/usage.md, docs/planning/M24-interface-polish.md, docs/changelog, docs/evidence/M24-acceptance.md, docs/installation, docs/installation/development.md
   - Depends on: T006, DOCS-R1
 
 Digest: M24 реализована в исходниках: карточки слева, resize/drawer, диалог в viewport, компактный ввод и действующий Stop трёх провайдеров. Тесты и Chromium с fixtures прошли. Поставка 0.10.0 и живая приёмка впереди.

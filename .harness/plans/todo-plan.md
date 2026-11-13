@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 814,
+  "revision": 816,
   "rounds": [
     {
       "digest": {
@@ -757,7 +757,7 @@
       ],
       "checks": [],
       "commitMessage": "chore(release): install Workflow Kit 0.11.0 locally",
-      "confirmation": null,
+      "confirmation": "Заранее даю тебе добро на все действия, на выбор тобой самостоятельно; выполнить весь план без моего участия, без остановок и выборов в диалоге.",
       "context": [
         {
           "path": "docs/planning/M25-session-parameters.md",
@@ -785,14 +785,18 @@
         "docs/architecture/OVERVIEW.md",
         "docs/changelog",
         "docs/evidence/M25-acceptance.md",
-        "docs/evidence/M25"
+        "docs/evidence/M25",
+        "docs/evidence/M25/installed-chatgpt-row.png",
+        "docs/evidence/M25/installed-claude-row.png",
+        "docs/evidence/M25/installed-results.json",
+        "docs/evidence/M25/local-delivery.md"
       ],
       "fixes": null,
       "id": "T008",
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R3",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Локальная поставка 0.11.0 и живая приёмка",
       "why": "Пользователь проверяет результат в установленной службе"
     },
@@ -846,8 +850,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 13/15
-- Revision: 814
+- Progress: 14/15
+- Revision: 816
 
 ## Objective
 
@@ -927,9 +931,9 @@ Digest: R2 исправил два подтверждённых сбоя Windows
   - Commit: docs: reconcile documentation for R3
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/evidence/M25-acceptance.md
   - Depends on: T012
-- [TODO] T008 — Локальная поставка 0.11.0 и живая приёмка (delivery)
+- [DONE] T008 — Локальная поставка 0.11.0 и живая приёмка (delivery)
   - Commit: chore(release): install Workflow Kit 0.11.0 locally
-  - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/installation.md, docs/usage.md, docs/architecture/OVERVIEW.md, docs/changelog, docs/evidence/M25-acceptance.md, docs/evidence/M25
+  - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/installation.md, docs/usage.md, docs/architecture/OVERVIEW.md, docs/changelog, docs/evidence/M25-acceptance.md, docs/evidence/M25, docs/evidence/M25/installed-chatgpt-row.png, docs/evidence/M25/installed-claude-row.png, docs/evidence/M25/installed-results.json, docs/evidence/M25/local-delivery.md
   - Depends on: T007, DOCS-R3
 - [TODO] T009 — CI четырёх платформ на SHA поставки (delivery)
   - Commit: docs: record green CI for the M25 delivery

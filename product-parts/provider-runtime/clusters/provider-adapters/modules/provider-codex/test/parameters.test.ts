@@ -121,3 +121,12 @@ for (const platform of ['darwin', 'linux', 'win32'] as const) test(`${platform}:
   assert.equal(permissionId({ sandbox_policy: { type: 'workspace-write' } }, true, platform), null);
   assert.equal(permissionId({ sandbox_policy: { type: 'read-only' } }, true, platform), ':read-only');
 });
+test('a later turn_context without service tier preserves the latest explicitly reported speed', async () => {
+  const f = await fixture('darwin');
+  try {
+    const { appendFile } = await import('node:fs/promises');
+    await appendFile(f.file, JSON.stringify({ type: 'turn_context', payload: { model: 'gpt-6.1-sol', effort: 'high', sandbox_policy: { type: 'danger-full-access' } } }) + '\n');
+    const result = await f.parts.readParameters('s1');
+    assert.equal(result.items.find(i => i.id === 'speed')?.value, 'priority');
+  } finally { await f.close(); }
+});

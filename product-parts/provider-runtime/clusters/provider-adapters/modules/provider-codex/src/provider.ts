@@ -8,6 +8,7 @@ import { createSharedAccess } from './shared-access.ts';
 import { appOwnerNote, createSharedMode } from './shared-mode.ts';
 import { wakeThread } from './thread-ops.ts';
 import { createInterruptParts, interruptProgramReason } from './interrupt.ts';
+import { createParameterUpdater } from './parameter-update.ts';
 import { createParameterParts } from './parameters.ts';
 import { createChatParts } from './chat.ts';
 import { createCodexRuntime } from './runtime.ts';
@@ -111,6 +112,7 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
   const shared = createSharedAccess(rt, deps.sharedAccess);
   const sharedMode = createSharedMode(shared);
   const parameters = createParameterParts(rt, shared);
+  const updateParameters = createParameterUpdater(rt, parameters, sharedMode);
   const handover = createHandover(rt, { ...deps.handover, busy: () => creating > 0, shared: () => sharedMode.active() });
   const trustParts = createTrustParts(rt);
   const interruptions = createInterruptParts(rt, deps, () => handover.active ? HANDOVER_REASON : null);
@@ -140,7 +142,7 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
     else if (!create && daemon.error) create = `демон Codex не отвечает: ${daemon.error}`;
     else if (!create && !linked(daemon)) create = 'демон Codex не подключён к ChatGPT — «Подключить к ChatGPT»';
     const cap = (reason: string | null) => (reason ? { available: false, reason } : { available: true });
-    return { trust: cap(missing), hooks: cap(missing), sessions: { available: true }, createSession: cap(create), daemon: cap(missing), interruptTurn: cap(interruptProgramReason(rt)), sessionParameters: cap(missing), updateParameters: { available: false, reason: 'Изменение параметров ещё не подключено' } };
+    return { trust: cap(missing), hooks: cap(missing), sessions: { available: true }, createSession: cap(create), daemon: cap(missing), interruptTurn: cap(interruptProgramReason(rt)), sessionParameters: cap(missing), updateParameters: cap(missing) };
   };
 
   const actions = async (project: Project | null): Promise<ProviderAction[]> => {
@@ -282,6 +284,7 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
       return true;
     },
     // Conversation (spec M18 section 2.3): thread/read with turns; a direct turn in the shared mode.
+    updateParameters: (_project, sessionId, change) => updateParameters(sessionId, change),
     readParameters: (_project, sessionId) => parameters.readParameters(sessionId),
     readMessages: (_project, sessionId, opts) => chatParts.readMessages(sessionId, opts.limit),
     sendDirect: (_project, sessionId, text) => chatParts.sendDirect(sessionId, text),

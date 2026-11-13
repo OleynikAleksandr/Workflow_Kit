@@ -9,7 +9,7 @@ import type { Dict } from './parameter-values.ts';
 export const PARAMETER_FONT = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif';
 export const FULL_ACCESS_CONFIRM = 'Агент получит полный доступ к диску и сети этого компьютера. Продолжить?';
 export const UPDATE_UNSUPPORTED = 'Эта версия Codex не поддерживает изменение параметров';
-interface FileValues { settings: { value: Dict; fromTurn: boolean }; tokens: Dict }
+interface FileValues { settings: { value: Dict; fromTurn: boolean }; tokens: Dict; speed: string | null }
 export interface ParameterState {
   thread: Dict; file: string | null; settings: Dict; fromTurn: boolean;
   models: Dict[]; modes: Dict[]; profiles: Dict[]; catalogs: Record<string, boolean>;
@@ -24,6 +24,11 @@ export function createParameterParts(rt: CodexRuntime, shared: Pick<SharedAccess
       if (r['type'] === 'turn_context') return { value: p, fromTurn: true };
       if (r['type'] === 'event_msg' && p['type'] === 'thread_settings_applied' && p['thread_settings']) return { value: obj(p['thread_settings']), fromTurn: false };
       return undefined;
+    },
+    speed(record) {
+      const r = obj(record); const p = obj(r['payload']);
+      const s = r['type'] === 'turn_context' ? p : r['type'] === 'event_msg' && p['type'] === 'thread_settings_applied' ? obj(p['thread_settings']) : {};
+      return Object.hasOwn(s, 'service_tier') ? str(s['service_tier']) : undefined;
     },
     tokens(record) { const r = obj(record); const p = obj(r['payload']); return r['type'] === 'event_msg' && p['type'] === 'token_count' && p['info'] ? obj(p['info']) : undefined; },
   });
@@ -50,7 +55,7 @@ export function createParameterParts(rt: CodexRuntime, shared: Pick<SharedAccess
     const thread = obj(answer['thread']); const file = str(thread['path']);
     const values = file ? await tail.read(file).catch(() => ({} as Partial<FileValues>)) : {};
     const settings = values.settings?.value ?? {}; const fromTurn = values.settings?.fromTurn ?? false;
-    const [modelData, modeData, profileData, rateData] = await Promise.all([
+    let [modelData, modeData, profileData, rateData] = await Promise.all([
       cached(session, 'model/list', 600000), cached(session, 'collaborationMode/list', 600000),
       cached(session, 'permissionProfile/list', 600000), cached(session, 'account/rateLimits/read', 60000),
     ]);
@@ -60,6 +65,10 @@ export function createParameterParts(rt: CodexRuntime, shared: Pick<SharedAccess
     if (modelData && model && (!knownModel || (effort && !list(knownModel['supportedReasoningEfforts']).some(e => e['reasoningEffort'] === effort)))) {
       models = list((await cached(session, 'model/list', 600000, true))?.['data']);
     }
+    const currentMode = str(obj(settings['collaboration_mode'])['mode']);
+    if (modeData && currentMode && !list(modeData['data']).some(m => m['mode'] === currentMode)) modeData = await cached(session, 'collaborationMode/list', 600000, true);
+    const currentProfile = permissionId(settings, fromTurn, rt.context.platform);
+    if (profileData && currentProfile && !list(profileData['data']).some(p => p['id'] === currentProfile)) profileData = await cached(session, 'permissionProfile/list', 600000, true);
     const modes = list(modeData?.['data']); const profiles = list(profileData?.['data']);
     const catalogs = { model: !!modelData, effort: !!modelData, speed: !!modelData, mode: !!modeData, permissions: !!profileData };
     const activeModel = models.find(m => m['model'] === model || m['id'] === model);
@@ -67,7 +76,7 @@ export function createParameterParts(rt: CodexRuntime, shared: Pick<SharedAccess
     if (model) current.model = model;
     if (effort) current.effort = effort;
     if (values.settings) {
-      if (Object.hasOwn(settings, 'service_tier')) current.speed = str(settings['service_tier']) ?? 'standard';
+      if (Object.hasOwn(values, 'speed')) current.speed = values.speed ?? 'standard';
       const mode = str(obj(settings['collaboration_mode'])['mode']); if (mode) current.mode = mode;
       if (settings['permission_profile'] || settings['sandbox_policy']) current.permissions = permissionId(settings, fromTurn, rt.context.platform);
     }

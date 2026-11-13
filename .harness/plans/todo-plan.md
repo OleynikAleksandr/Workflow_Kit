@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 879,
+  "revision": 881,
   "rounds": [
     {
       "digest": {
@@ -41,7 +41,7 @@
       },
       "id": "R1",
       "kind": "implementation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Implementation"
     }
   ],
@@ -119,7 +119,7 @@
         "text": "Все work parallelSafe:false, sequential/maxWorkers1; local delivery, CI exact SHA, приёмка/закрытие и main publication разделены."
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 1,
       "ownerSession": "01a1d50b-6999-7022-81c9-9f604ceea169",
@@ -697,7 +697,7 @@
       ],
       "checks": [],
       "commitMessage": "docs: record green CI for Claude native controls",
-      "confirmation": null,
+      "confirmation": "Весь план выполняй самостоятельно без привлечения меня к каким-то выборам вплоть до сборки нового релиза, пожалуйста. Принимай все решения самостоятельно. Я совсем заранее согласен",
       "context": [],
       "dependencies": [
         "T007",
@@ -712,7 +712,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Зафиксировать зелёную CI четырёх платформ на SHA поставки",
       "why": "Зафиксировать зелёную CI четырёх платформ на SHA поставки"
     }
@@ -724,11 +724,11 @@
 ## State
 
 - Scope: m27-claude-native-controls (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 8/9
-- Revision: 879
+- Progress: 9/9
+- Revision: 881
 
 ## Objective
 
@@ -744,7 +744,7 @@
 
 ## Rounds
 
-### R1 — Implementation (implementation, OPEN)
+### R1 — Implementation (implementation, CLOSED)
 
 - [DONE] T001 — Доказать управление сессией Claude и зафиксировать нативные эталоны (work)
   - Commit: docs: verify Claude native parameter controls
@@ -777,7 +777,7 @@
   - Commit: chore(release): install Workflow Kit 0.13.0 locally
   - Files: package.json, package-lock.json, README.md, CHANGELOG.md, docs/usage.md, docs/installation.md, docs/changelog, docs/architecture/OVERVIEW.md, docs/evidence/M27-claude-native-controls.md, docs/evidence/M27, docs/setup.md, docs/evidence/M27/claude-effort-installed-touch.png, docs/evidence/M27/claude-effort-installed.png, docs/evidence/M27/claude-mode-installed-touch.png, docs/evidence/M27/claude-mode-installed.png, docs/evidence/M27/claude-more-installed-touch.png, docs/evidence/M27/claude-more-installed.png, docs/evidence/M27/installed-browser.json, docs/evidence/M27/installed-cleanup.json, docs/evidence/M27/installed-health.json, docs/evidence/M27/installed-legacy-hosts.json, docs/evidence/M27/installed-native-roundtrip.json, docs/evidence/M27/local-delivery.md
   - Depends on: T006, DOCS-R1
-- [TODO] T008 — Зафиксировать зелёную CI четырёх платформ на SHA поставки (delivery)
+- [DONE] T008 — Зафиксировать зелёную CI четырёх платформ на SHA поставки (delivery)
   - Commit: docs: record green CI for Claude native controls
   - Files: docs/evidence/M27-claude-native-controls.md
   - Depends on: T007, DOCS-R1

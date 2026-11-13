@@ -272,3 +272,16 @@ installation обновлены, история CHANGELOG сохранена. De
 `installed-cleanup.json`: own processes 0 / trust false, native Unarchive,
 временные папки/службы удалены. Основная 0.13.0 работает. CI точного SHA — T008;
 пользовательская приёмка, закрытие и main publication ещё не выполнялись.
+
+## T008: CI поставки
+
+До task:start проверен завершённый push-run [43507200344](https://github.com/OleynikAleksandr/Workflow_Kit/actions/runs/43507200344):
+headSha `8bea2d15800d4da0de39b18af67cc903ac498d14` — точный коммит T007,
+ветка `ci/m27-claude-native-controls`, общий conclusion **success**.
+macOS ARM64, Linux x64, Windows x64 и Windows ARM64 — все **success**:
+установка зависимостей, typecheck, npm test и platform-guard прошли.
+CI-ветка отправлена вне задач по ранее данному разрешению пользователя на весь план.
+T008 меняет только этот отчёт, без push или функциональных изменений.
+Повторный doctor installed: 0.13.0, PID 94479, все проверки ok.
+Windows live остаётся за проверяющим; Linux — CI-only. Пользовательская приёмка,
+закрытие scope и публикация main остаются отдельными действиями пользователя.

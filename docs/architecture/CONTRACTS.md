@@ -151,3 +151,24 @@ Codex адресует конкретный native turn и ждёт terminal sta
 Тайм-аут адаптера и типизированный HTTP timeout Kimi становятся HTTP 504 с подсказкой
 (T008/T009); обычный сбой — 502. Изменения включены в локальную поставку 0.10.0; живая приёмка отдельно.
 Проверенные факты и границы — [M24 evidence](../evidence/M24-acceptance.md).
+
+## Параметры сессии (M25)
+
+`Provider.readParameters?` и `updateParameters?` обмениваются `SessionParameters` /
+`ParameterChange` через публичный вход `provider-registry`. Порядок, подписи, стиль,
+контекст, лимиты и варианты принадлежат провайдеру. `options` — доступные изменения,
+`reason` — причина отсутствия вариантов; `editable` означает наличие вариантов хотя бы
+у одного параметра. Capabilities `sessionParameters` / `updateParameters` — явные.
+
+GET/POST `…/sessions/:sid/parameters` сначала находят сессию проекта по localId или remoteId;
+адаптер получает localId. Без метода GET возвращает `{ supported: false }`, POST — 404
+`parameters-unsupported`. POST проверяет `{ change }` (известные поля, строки ≤128,
+хотя бы один параметр), сериализует изменения одной сессии и пишет эффективные old/new
+в `provider.parameters.changed`. Ошибки: 400 `parameter-invalid`, 409
+`confirmation-required` с confirm, 503 `parameters-unavailable` с hint.
+
+Общие `snapshotFile`/`limitsFile`, `readSnapshot`/`writeSnapshot` хранят атомарные снимки
+под `<state>/session-parameters/`, проверяя идентификаторы. `createJsonlTail` читает
+новейшие записи блоками 1 МиБ до 256 МиБ, затем дописанное, сохраняя редкие значения;
+неполная строка ждёт дописывания. Контракт одинаков на macOS, Linux и Windows x64/ARM64;
+программ ОС не вызывает. Подробности — `provider-registry/module.md`.

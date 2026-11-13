@@ -1,8 +1,9 @@
 // The provider contract (docs/planning/M1-providers.md, section 1). The server and the panel know
 // providers only through these types; Claude and Codex implement them in provider-adapters.
 import path from 'node:path';
-import type { DataDirs, EventLog, WfkConfig } from '#data-store';
-import type { CommandRunner, ProcessSupervisor } from '#process-supervisor';
+import type { DataDirs } from '#data-store';
+import type { ProviderContext } from './context.ts';
+export type { ProviderContext } from './context.ts';
 import type { Project } from '#project-registry';
 import type { ChatPage } from './chat.ts';
 import type { SharedAccess } from './shared-access.ts';
@@ -65,7 +66,7 @@ export function providerMark(provider: Pick<Provider, 'title' | 'label' | 'mark'
 export async function providerCapability(provider: Pick<Provider, 'capabilities'> | undefined, name: string): Promise<Capability> {
   if (!provider) return { available: false, reason: 'провайдер не подключён' };
   const found = (await provider.capabilities().catch(() => ({}) as Capabilities))[name];
-  return found ?? { available: name !== 'interruptTurn' };
+  return found ?? { available: !['interruptTurn', 'sessionParameters', 'updateParameters'].includes(name) };
 }
 
 /** Overall state of a provider for the panel. */
@@ -320,6 +321,8 @@ export interface Provider {
   sendMessage?(project: Project, sessionId: string, text: string, delivery: { id: string }): Promise<boolean>;
   /** Newest opts.limit messages, oldest first; changes nothing at the provider (spec M18, chat.md). */
   readMessages?(project: Project, sessionId: string, opts: { limit: number }): Promise<ChatPage>;
+  readParameters?(project: Project, sessionId: string): Promise<import('./parameters.ts').SessionParameters>;
+  updateParameters?(project: Project, sessionId: string, change: import('./parameters.ts').ParameterChange): Promise<import('./parameters.ts').SessionParameters>;
   /** Hands text to the agent as a user turn now; false when it cannot now (the caller queues it). */
   sendDirect?(project: Project, sessionId: string, text: string): Promise<boolean>;
   /** Name of the setting that turns session locks off; without locks the turn end cannot be told. */
@@ -368,22 +371,6 @@ export interface Provider {
    * the sessions back at once. Resolves to the session ids resumed.
    */
   restoreSessions?(project: Project, sessionId: string | null): Promise<string[]>;
-}
-
-/** What the backend gives a provider factory; everything machine-specific is injectable. */
-export interface ProviderContext {
-  platform: NodeJS.Platform;
-  /** Service environment (PATH from D12); strip CLAUDE* before starting children. */
-  env: Readonly<Record<string, string | undefined>>;
-  homedir: string;
-  dirs: DataDirs;
-  config: WfkConfig;
-  events: EventLog;
-  supervisor: ProcessSupervisor;
-  /** Runner of external programs (`--version`, `app-server`); tests pass fakes. */
-  runCommand: CommandRunner;
-  now: () => Date;
-  log: (line: string) => void;
 }
 
 /** Each provider module exports a factory of this type from its src/index.ts. */

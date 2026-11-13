@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 786,
+  "revision": 788,
   "rounds": [
     {
       "digest": null,
@@ -179,14 +179,26 @@
         "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry",
         "product-parts/provider-runtime/clusters/provider-contract/cluster.md",
         "docs/architecture/CONTRACTS.md",
-        "docs/architecture/OVERVIEW.md"
+        "docs/architecture/OVERVIEW.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/parameters.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/context.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/jsonl-tail.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/parameter-routes.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/parameter-snapshots.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/parameters.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/routes.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/parameter-storage.test.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/parameters.test.ts"
       ],
       "fixes": null,
       "id": "T002",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Контракт параметров сессии, маршруты, очередь, снимки и чтение JSONL",
       "why": "Провайдеры и панель обмениваются параметрами по одному контракту, не называя провайдеров"
     },
@@ -566,8 +578,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 1/10
-- Revision: 786
+- Progress: 2/10
+- Revision: 788
 
 ## Objective
 
@@ -589,9 +601,9 @@
 - [DONE] T001 — Проба с пользователем: изменение из Kit и приложение ChatGPT (work)
   - Commit: docs: record the ChatGPT parameter control probe
   - Files: docs/design/M25-session-parameters-facts.md, docs/evidence/M25-acceptance.md
-- [TODO] T002 — Контракт параметров сессии, маршруты, очередь, снимки и чтение JSONL (work)
+- [DONE] T002 — Контракт параметров сессии, маршруты, очередь, снимки и чтение JSONL (work)
   - Commit: feat: add the session parameters contract and routes
-  - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/provider-runtime/clusters/provider-contract/cluster.md, docs/architecture/CONTRACTS.md, docs/architecture/OVERVIEW.md
+  - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/provider-runtime/clusters/provider-contract/cluster.md, docs/architecture/CONTRACTS.md, docs/architecture/OVERVIEW.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/parameters.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/context.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/jsonl-tail.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/parameter-routes.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/parameter-snapshots.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/parameters.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/routes.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/parameter-storage.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/parameters.test.ts
   - Depends on: T001
 - [TODO] T003 — ChatGPT: чтение параметров сессии (work)
   - Commit: feat(codex): read session parameters

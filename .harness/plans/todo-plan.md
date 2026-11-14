@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 924,
+  "revision": 925,
   "rounds": [
     {
       "digest": {
@@ -925,7 +925,7 @@
     },
     {
       "acceptance": [
-        "До task:start проверены headSha T008 и success на macOS, Linux, Windows x64 и ARM64; ветка ci/m28-claude-controls-fixes отправлена вне задач по прямой команде пользователя.",
+        "До task:start проверены headSha последней поставки (T015, 0.13.2) и success на macOS, Linux, Windows x64 и ARM64; ветка ci/m28-claude-controls-fixes отправлена вне задач по прямой команде пользователя.",
         "Записаны SHA, URL и четыре результата CI; без функциональных изменений и push из задачи; приёмка и закрытие — отдельно."
       ],
       "checks": [],
@@ -961,7 +961,7 @@
 - Execution: sequential
 - Current task: none
 - Progress: 16/17
-- Revision: 924
+- Revision: 925
 
 ## Objective
 

@@ -50,3 +50,8 @@
 .sc-claude-popup, .sc-claude-parameters { -webkit-font-smoothing: antialiased; }
 .sc-claude-popup .sc-claude-explanation { margin-bottom: 2px; }
 .sc-claude-sub:not(.sc-claude-more-pane) { padding-bottom: 7px; }
+/* M29: a choice waiting for Claude shows at once, muted, with a thin pulsing mark. */
+.sc-parameter-pending { opacity: .62; }
+.sc-parameter-pending::after { content: ""; display: inline-block; width: 5px; height: 5px; margin-left: 4px; vertical-align: middle; border-radius: 50%; background: currentColor; animation: sc-pending-pulse 1.2s ease-in-out infinite; }
+@keyframes sc-pending-pulse { 0%, 100% { opacity: .25; } 50% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .sc-parameter-pending::after { animation: none; opacity: .6; } }

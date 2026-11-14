@@ -1,4 +1,5 @@
 // @ts-check
+import { chosen } from './parameters-model.js';
 /** One rooted native menu, with keyed rows so polling preserves focus.
  * @param {{h:any, data:()=>import('#provider-registry').SessionParameters|null, busy:()=>boolean,
  * change:(id:string, option:import('#provider-registry').ParameterOption)=>Promise<void>,
@@ -29,13 +30,13 @@ export function createClaudeMenu({h, data, busy, change, close, reposition, mode
       button.addEventListener('click',()=>{
         const current=item(id)?.options?.find(o=>o.value===value.value);
         if(!current||busy()||current.disabled)return;
-        const selected=current.selected??current.value===item(id)?.value;
-        if(selected){close();return;}
+        if(chosen(item(id),current)){close();return;}
         void change(id,current);
       });
       row={button,label,detail,badge,mark,shortcut};rows.set(key,row);
     }
-    const selected=value.selected??value.value===item(id)?.value;
+    // M29: a waiting choice is marked; picking the confirmed value again cancels it.
+    const selected=chosen(item(id),value);
     text(row.label,value.label);text(row.detail,value.disabled&&value.reason?value.reason:value.description??'');row.detail.hidden=!row.detail.textContent;
     text(row.badge,value.recommended?'Recommended':'');row.badge.hidden=!value.recommended;
     row.button.disabled=busy()||value.disabled===true;row.button.title=value.reason??'';row.button.setAttribute('aria-checked',String(selected));
@@ -53,7 +54,8 @@ export function createClaudeMenu({h, data, busy, change, close, reposition, mode
   const subReason=h('p',{class:'sc-claude-reason'});
   const reason=h('p',{class:'sc-claude-reason'});
   const toggle=/** @type {HTMLButtonElement} */(h('button',{type:'button',class:'sc-claude-option sc-claude-ultra',role:'switch','aria-label':'Ultracode'},[h('span',{},['Ultracode']),h('span',{class:'sc-claude-switch','aria-hidden':'true'})]));
-  toggle.addEventListener('click',()=>{const value=item('ultracode')?.value==='on'?'off':'on';const o=item('ultracode')?.options?.find(o=>o.value===value);if(o&&!o.disabled&&!busy())void change('ultracode',o);});
+  const ultraOn=()=>(item('ultracode')?.pending?.value??item('ultracode')?.value)==='on';
+  toggle.addEventListener('click',()=>{const value=ultraOn()?'off':'on';const o=item('ultracode')?.options?.find(o=>o.value===value);if(o&&!o.disabled&&!busy())void change('ultracode',o);});
   const separators=[separator(),separator(),separator()];
   /** @param {'effort'|'more'} next @param {HTMLElement} button @param {boolean} focus */
   function enter(next,button,focus) {if(busy())return;level=next;opener=button;update();reposition();if(focus)sub.querySelector('button:not(:disabled)')?.focus({preventScroll:true});}
@@ -95,14 +97,14 @@ export function createClaudeMenu({h, data, busy, change, close, reposition, mode
     const primary=(item('model')?.options??[]).filter(o=>o.group!=='more');
     if(mode)reconcile(main,[modeTitle,...(item('mode')?.options??[]).map((o,i)=>option('mode',o,i+1)),reason]);
     else {
-      text(effortText,item('effort')?.label??'');
+      text(effortText,item('effort')?.pending?.label??item('effort')?.label??'');
       effortButton.disabled=moreButton.disabled=busy();
       effortButton.setAttribute('aria-expanded',String(level==='effort'));moreButton.setAttribute('aria-expanded',String(level==='more'));
       reconcile(main,[...primary.map((o,i)=>option('model',o,i+1)),separators[0],effortButton,separators[1],moreButton,reason]);
     }
     sub.hidden=!level;sub.classList.toggle('sc-claude-more-pane',level==='more');
     if(level==='effort'){
-      const ultra=item('ultracode');const checked=ultra?.value==='on';toggle.setAttribute('aria-checked',String(checked));
+      const ultra=item('ultracode');const checked=ultraOn();toggle.setAttribute('aria-checked',String(checked));
       const target=ultra?.options?.find(o=>o.value===(checked?'off':'on'));toggle.disabled=busy()||!target||target.disabled===true;toggle.title=target?.reason??'';
       reconcile(sub,[back,explanation,...(item('effort')?.options??[]).map(o=>option('effort',o)),separators[2],toggle,subReason]);
     } else if(level==='more')reconcile(sub,[back,...(item('model')?.options??[]).filter(o=>o.group==='more').map(o=>option('model',o)),subReason]);

@@ -3,7 +3,7 @@ import { createClaudeMenu } from './claude-menu.js';
 import { createAccessMenu } from './access-menu.js';
 import { createEffortCard } from './effort-card.js';
 import { errorText } from './chat-model.js';
-import { contextText, contextWindowText, createParameterPoll, limitTone, menuSections, parametersUrl, percent, safeAccent, safeFont } from './parameters-model.js';
+import { FAILURE_SHOW_MS, PENDING_POLL_MS, contextText, contextWindowText, createParameterPoll, failureText, hasPending, limitTone, menuSections, parametersUrl, percent, safeAccent, safeFont, shownItem } from './parameters-model.js';
 /** @typedef {import('#provider-registry').SessionParameters} Parameters */
 /** @typedef {import('#provider-registry').ParameterOption} Option */
 /** @param {{ shell: import('./session-chat.js').Shell, projectId: string, key: string, provider: string,
@@ -30,6 +30,10 @@ export function createParameters({ shell, projectId, key, provider, fallback, on
   /** @type {{ id: string, option: Option } | null} */ let confirmation = null;
   const url = parametersUrl(projectId, provider, key);
   const poll = createParameterPoll(() => shell.api('GET', url), apply, () => {});
+  /** @type {ReturnType<typeof setTimeout> | undefined} */ let pendingTick;
+  /** @type {ReturnType<typeof setTimeout> | undefined} */ let failureTick;
+  /** Failures already reported, by field and time (M29). */ const reported = new Set();
+  let failureLine = '';
   /** @param {HTMLElement} container @param {HTMLElement[]} nodes */
   function reconcile(container, nodes) {
     nodes.forEach((node, index) => { if (container.childNodes[index] !== node) container.insertBefore(node, container.childNodes[index] ?? null); });
@@ -118,7 +122,7 @@ export function createParameters({ shell, projectId, key, provider, fallback, on
   }
   async function change(/** @type {string} */ id, /** @type {Option} */ option, confirmed = false, closeAfter = true) {
     if (busy) return; const focused = /** @type {HTMLElement | null} */ (document.activeElement); busy = true; trigger.disabled = accessButton.disabled = modeButton.disabled = true; poll.invalidate(); renderMenu(false);
-    report('', 'muted');
+    report('', 'muted'); failureLine = ''; clearTimeout(failureTick);
     try {
       const answer = await shell.api('POST', url, { change: { [id]: option.value, ...(confirmed ? { confirmed: true } : {}) } });
       apply({ supported: true, parameters: answer.parameters });
@@ -142,15 +146,19 @@ export function createParameters({ shell, projectId, key, provider, fallback, on
     meter.style.setProperty('--sc-context-angle', `${(percent(data.context?.usedPercent) ?? 0) * 3.6}deg`);
     ring.setAttribute('aria-label', contextText(data.context));
     trigger.replaceChildren();
-    for (const item of data.items.filter(i => i.inRow && !(native && i.id === 'permissions') && !(claude && i.id === 'mode'))) {
+    // M29: a choice that waits for the agent shows at once, muted, with its note in the title.
+    for (const item of data.items.filter(i => (i.inRow || (i.id === 'ultracode' && i.pending?.value === 'on')) && !(native && i.id === 'permissions') && !(claude && i.id === 'mode'))) {
+      if (item.id === 'ultracode' && item.pending?.value === 'off') continue;
+      const shown = shownItem(item);
       if (item.id === 'speed' && item.icon === 'zap') trigger.append(icon('zap'));
-      else { if (claude && item.id === 'ultracode') trigger.append('·'); trigger.append(h('span', { class: `sc-parameter-value sc-parameter-${item.tone === 'muted' ? 'muted' : 'primary'}`, title: item.title }, [item.label])); }
+      else { if (claude && item.id === 'ultracode') trigger.append('·'); trigger.append(h('span', { class: `sc-parameter-value sc-parameter-${item.tone === 'muted' ? 'muted' : 'primary'}${shown.pending ? ' sc-parameter-pending' : ''}`, title: shown.title }, [shown.label])); }
     }
     if (data.editable || claude) { trigger.append(icon('chevron-down')); trigger.setAttribute('aria-haspopup', 'menu'); }
     else trigger.removeAttribute('aria-haspopup');
-    trigger.setAttribute('aria-label', `${data.items.filter(i => i.inRow && !(native && i.id === 'permissions') && !(claude && i.id === 'mode')).map(i => i.title).join('; ')}${data.reason ? `. ${data.reason}` : ''}`);
-    modeButton.textContent = data.items.find(i => i.id === 'mode')?.label ?? 'Mode';
-    modeButton.title = data.reason ?? 'Режим Claude';
+    trigger.setAttribute('aria-label', `${data.items.filter(i => i.inRow && !(native && i.id === 'permissions') && !(claude && i.id === 'mode')).map(i => shownItem(i).title).join('; ')}${data.reason ? `. ${data.reason}` : ''}`);
+    const modeItem = data.items.find(i => i.id === 'mode'); const modeShown = modeItem ? shownItem(modeItem) : null;
+    modeButton.textContent = modeShown?.label ?? 'Mode'; modeButton.classList.toggle('sc-parameter-pending', modeShown?.pending === true);
+    modeButton.title = modeShown?.pending ? modeShown.title : data.reason ?? 'Режим Claude';
     reconcile(row, claude ? [trigger, modeButton, ring] : data.style?.ring === 'last' ? [trigger, ring] : [ring, trigger]);
     limits.replaceChildren();
     for (const [index, limit] of (data.limits ?? []).entries()) {
@@ -160,6 +168,15 @@ export function createParameters({ shell, projectId, key, provider, fallback, on
     reconcile(host, data.limits?.length ? [limits, row] : [row]);
     nativeView?.update(); position();
     if (menu && !confirmation && previous !== JSON.stringify(data.items)) renderMenu();
+    // Polled every second while a choice waits; a refused choice is one line for FAILURE_SHOW_MS.
+    clearTimeout(pendingTick);
+    if (hasPending(data)) pendingTick = setTimeout(() => { if (showing) void poll.refresh(); }, PENDING_POLL_MS);
+    for (const failure of data.failures ?? []) {
+      const id = `${failure.field}:${failure.at}`; if (reported.has(id)) continue;
+      reported.add(id); failureLine = failureText(failure, data); report(failureLine, 'error');
+      clearTimeout(failureTick); const line = failureLine;
+      failureTick = setTimeout(() => { if (failureLine === line) { failureLine = ''; report('', 'muted'); } }, FAILURE_SHOW_MS);
+    }
   }
   function openAccess() {
     if (busy || !data) return;

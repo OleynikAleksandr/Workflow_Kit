@@ -46,3 +46,21 @@ test('polls only when visible, single flight, stale reads ignored and errors pre
   const failed = poll.refresh(); reject('offline'); await failed; assert.deepEqual(values, ['fresh']); assert.deepEqual(errors, ['offline']);
   poll.visible(false); await poll.refresh(); assert.equal(calls, 3);
 });
+test('M29: a waiting choice shows in the row and marks its option; failures read as one line', async () => {
+  const { chosen, failureText, hasPending, shownItem } = await import('../src/parameters-model.js');
+  const data: SessionParameters = { items: [
+    { id: 'model', value: 'claude-opus-5-5', label: 'Opus 5.5', title: 'model: Opus 5.5', tone: 'primary', inRow: true,
+      options: [{ value: 'native:Opus', label: 'Opus 5.5', selected: true }, { value: 'native:Haiku', label: 'Haiku 5.5', selected: false }],
+      pending: { value: 'native:Haiku', label: 'Haiku 5.5', note: 'применится, когда Claude закончит ответ' } },
+    { id: 'effort', value: 'high', label: 'High', title: 'effort: High', tone: 'muted', inRow: true, options: [{ value: 'high', label: 'High' }, { value: 'low', label: 'Low' }] },
+  ], context: null, limits: [], style: { font: 'system-ui', ring: 'last' }, editable: true, at: '',
+  failures: [{ field: 'effort', value: 'low', reason: 'Claude не принял изменение', at: '2026-11-14T12:00:00Z' }] };
+  assert.equal(hasPending(data), true); assert.equal(hasPending({ ...data, items: [data.items[1]!] }), false); assert.equal(hasPending(null), false);
+  assert.deepEqual(shownItem(data.items[0]!), { label: 'Haiku 5.5', pending: true, title: 'model: Opus 5.5 → Haiku 5.5: применится, когда Claude закончит ответ' });
+  assert.deepEqual(shownItem(data.items[1]!), { label: 'High', pending: false, title: 'effort: High' });
+  assert.equal(chosen(data.items[0], data.items[0]!.options![1]!), true, 'the waiting choice is marked');
+  assert.equal(chosen(data.items[0], data.items[0]!.options![0]!), false, 'the confirmed value can be picked to cancel');
+  assert.deepEqual(menuSections(data)[0]!.options.map(o => o.selected), [false, true]);
+  assert.equal(failureText(data.failures![0]!, data), 'Claude не принял усилие Low', 'a generic reason is not repeated');
+  assert.equal(failureText({ ...data.failures![0]!, reason: 'Этого уровня усилия нет у модели' }, data), 'Claude не принял усилие Low: Этого уровня усилия нет у модели');
+});

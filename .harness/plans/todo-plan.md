@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 960,
+  "revision": 961,
   "rounds": [
     {
       "digest": {
@@ -49,7 +49,10 @@
       "No /fast, Cancelled or Fast mode OFF lines appear in the session feed after the catalog is cached",
       "CI is green on macOS, Linux, Windows x64 and Windows ARM64 for the delivery commit"
     ],
-    "acceptanceNote": null,
+    "acceptanceNote": {
+      "at": "2026-11-14T15:25:31.820Z",
+      "text": "Пользователь принял план в панели Workflow Kit"
+    },
     "approval": {
       "at": "2026-11-14T13:39:10.269Z",
       "text": "Пользователь 14.11.2026: «почему не сделать выбор всего этого внутри Workflow Kit, без всяких фидбэков со стороны терминала? … выбирает. И после этого эта команда уходит с нашего Workflow Kit в терминал, а отображение меню … делать один раз при старте». В панели выбрано: спецификация и план без ревью. | Execution mode chosen by the user: sequential: Выбор пользователя в панели Workflow Kit: выполнить самому, последовательно"
@@ -80,7 +83,7 @@
         "text": "The panel never waits for the terminal: pending value with a note, rollback with a short error after three failed attempts"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "ACCEPTED",
     "execution": {
       "maxWorkers": 2,
       "ownerSession": "92b77570-773b-4173-8244-c327d009daa3",
@@ -460,11 +463,11 @@
 ## State
 
 - Scope: m29-claude-controls-instant (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: ACCEPTED
 - Execution: sequential
 - Current task: none
 - Progress: 8/8
-- Revision: 960
+- Revision: 961
 
 ## Objective
 

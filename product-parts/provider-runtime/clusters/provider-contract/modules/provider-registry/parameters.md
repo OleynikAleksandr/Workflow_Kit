@@ -72,3 +72,8 @@ GET не открывает меню/программы; старый host — �
 M28: `ContextUsage.modelWindowTokens?: number | null` — окно модели, когда провайдер
 считает `windowTokens`/`usedPercent` от меньшего порога (Claude `autoCompactWindow`).
 Необязательное поле: Codex и Kimi его не заполняют.
+
+M28/T014: `ProviderContext.autoCompactWindow?(modelId, cwd)` — порог автосжатия Claude по
+файлам настроек (managed, `.claude/settings.local.json`, `.claude/settings.json` папки,
+пользовательский); служба передаёт его провайдерам для снимков старых host. Переменная
+окружения сессии здесь не видна: служба не передаёт детям `CLAUDE*`.

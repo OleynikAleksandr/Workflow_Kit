@@ -202,3 +202,7 @@ M28/T010: барьер Stop больше не держит ход в `working`. 
 сообщение пользователя (`USER_MESSAGE_SOURCE`), которое снимает барьер, как новое сообщение.
 Тот же шаг выполняет подтверждённый Stop (опция `wake` у `createTurnInterruption`). Поведение
 одинаково на macOS, Linux и Windows.
+
+M28/T014: `app.ts` передаёт провайдерам `autoCompactWindow(modelId, cwd)` —
+`resolveAutoCompactWindow` без окружения службы (детям `CLAUDE*` не передаются); пути managed
+по подставленной платформе. Тест `auto-compact-context.test.ts` для darwin, linux и win32.

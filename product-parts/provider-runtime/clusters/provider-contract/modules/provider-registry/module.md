@@ -319,3 +319,5 @@ M28/T002: `ContextUsage` получил необязательное `modelWindo
 M28/T004: `Provider.turnState?(project, sid)` → `ProviderTurnState | null` (`state`, `at`,
 `source: 'hook' | 'interrupt'`) — граница хода, увиденная провайдером; `NativeHookEvent.event`
 получил `continue` (удержанный Stop ответил block, ход идёт без prompt-хука).
+
+M28/T014: `ProviderContext.autoCompactWindow?` — порог Claude для снимков старых host (parameters.md).

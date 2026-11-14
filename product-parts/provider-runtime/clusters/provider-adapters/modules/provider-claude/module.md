@@ -329,4 +329,4 @@ M28/T004: доставка и `turnState` — sessions.md.
 
 M28/T005: Stop весь ход — interrupt.md.
 
-M28/T010, T012: Stop по кадру, до занятого движка — interrupt.md.
+M28/T010, T012 — interrupt.md; T014 — parameters.md.

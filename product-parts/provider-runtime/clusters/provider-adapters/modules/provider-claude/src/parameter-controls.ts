@@ -12,14 +12,21 @@ export const CLAUDE_MODES = [
   { value: 'acceptEdits', label: 'Accept edits', description: 'Automatically accept all file edits' },
   { value: 'plan', label: 'Plan', description: 'Create a plan before making changes' },
 ];
+/** The catalog is read on a free, empty Claude input; a turn may postpone it (M28 T014). */
+export const CATALOG_PENDING = 'Список моделей Claude появится, когда Claude будет свободен';
+export const EFFORTS_PENDING = 'Варианты усилия появятся, когда Claude будет свободен';
 export function nativeClaudeParameters(base: SessionParameters, state: NativeParameterState | null): SessionParameters {
   if (!state) return { ...base, presentation: { layout: 'claude-controls' }, editable: false,
     reason: 'Управление этой сессией недоступно: нет свежего состояния нового host Claude',
     ...(base.items.some(i => i.id === 'effort' && i.value === 'ultra') ? { notes: ['Ultracode: базовый effort неизвестен в старом снимке'] } : {}) };
-  const ready = state.status === 'idle' && state.inputEmpty && state.models.length > 0 && state.efforts.length > 0;
-  const reason = ready ? undefined : state.status === 'control' ? 'Нативный ввод Claude занят'
+  // M28 T014: each menu needs only its own part of the catalog; the reason is one line per menu,
+  // never repeated under every option.
+  const free = state.status === 'idle' && state.inputEmpty;
+  const statusReason = free ? undefined : state.status === 'control' ? 'Нативный ввод Claude занят'
     : state.status === 'busy' ? 'Claude ещё отвечает' : state.status === 'dialog' ? 'Claude ждёт решения в своём приложении'
-    : state.reason ?? 'Нативный каталог Claude ещё не получен';
+    : state.reason ?? 'Терминал Claude не распознан';
+  const modelsReady = free && state.models.length > 0; const effortsReady = free && state.efforts.length > 0;
+  const reason = statusReason ?? (!state.models.length ? CATALOG_PENDING : !state.efforts.length ? EFFORTS_PENDING : undefined);
   const items: ParameterItem[] = [];
   const add = (id: ParameterId, value: string | null, label: string, inRow: boolean, tone: ParameterItem['tone'] = 'primary'): ParameterItem => {
     const item: ParameterItem = { id, value, label, title: `${id}: ${label}`, inRow, tone }; items.push(item); return item;
@@ -32,24 +39,24 @@ export function nativeClaudeParameters(base: SessionParameters, state: NativePar
     const rank = (label: string): number => { const index = order.indexOf(label.split(' ')[0]!); return index < 0 ? order.length : index; };
     return rank(a.label) - rank(b.label);
   });
-  model.options = ordered.map(m => ({ value: m.key, label: m.label, group: m.group, selected: m.label === state.model?.label, ...(!ready ? { disabled: true, reason } : {}) }));
+  model.options = ordered.map(m => ({ value: m.key, label: m.label, group: m.group, selected: m.label === state.model?.label, ...(!modelsReady ? { disabled: true } : {}) }));
   const effort = add('effort', state.effort, state.effort ? EFFORT[state.effort] ?? state.effort : 'Усилие неизвестно', true, 'muted');
-  effort.options = state.efforts.map(value => ({ value, label: EFFORT[value] ?? value, selected: value === state.effort, ...(state.effortRecommended === value ? { recommended: true } : {}), ...(!ready ? { disabled: true, reason } : {}) }));
+  effort.options = state.efforts.map(value => ({ value, label: EFFORT[value] ?? value, selected: value === state.effort, ...(state.effortRecommended === value ? { recommended: true } : {}), ...(!effortsReady ? { disabled: true } : {}) }));
   // Recommended is native model policy; absent evidence is not guessed from a screenshot.
   const ultra = add('ultracode', state.ultracode === null ? null : state.ultracode ? 'on' : 'off', 'Ultracode', state.ultracode === true, 'muted');
   ultra.options = ['on', 'off'].map(value => ({ value, label: value === 'on' ? 'On' : 'Off', selected: ultra.value === value,
-    ...(!ready || !state.ultracodeAvailable ? { disabled: true, reason: reason ?? 'Ultracode недоступен в native меню этой модели' } : {}) }));
+    ...(!free ? { disabled: true } : !state.ultracodeAvailable ? { disabled: true, reason: 'Ultracode недоступен в native меню этой модели' } : {}) }));
   const mode = add('mode', state.mode, CLAUDE_MODES.find(m => m.value === state.mode)?.label ?? state.mode ?? 'Режим неизвестен', false);
-  mode.options = CLAUDE_MODES.map(option => ({ ...option, selected: state.mode === option.value, ...(!ready ? { disabled: true, reason } : {}) }));
+  mode.options = CLAUDE_MODES.map(option => ({ ...option, selected: state.mode === option.value, ...(!free ? { disabled: true } : {}) }));
   const speed = add('speed', state.fast === null ? null : state.fast ? 'fast' : 'standard', state.fast === null ? 'Скорость неизвестна' : state.fast ? 'Fast' : 'Standard', state.fast === true);
   speed.options = ['standard', 'fast'].map(value => ({ value, label: value === 'fast' ? 'Fast' : 'Standard', disabled: true,
     reason: state.fastReason ?? 'Session-local управление скоростью не подтверждено' }));
-  return { ...base, items, presentation: { layout: 'claude-controls' }, editable: ready, ...(reason ? { reason } : {}), at: new Date(state.at).toISOString() };
+  return { ...base, items, presentation: { layout: 'claude-controls' }, editable: free, ...(reason ? { reason } : {}), at: new Date(state.at).toISOString() };
 }
 export function createClaudeControls(rt: ClaudeRuntime, reader = createClaudeParameterReader(rt.context)) {
   async function read(project: Project, sid: string): Promise<SessionParameters> {
     const found = await findSession(rt, project, sid);
-    const [base, state] = await Promise.all([reader.read(found.hook?.hook.sessionId ?? found.record?.localId ?? sid, found.hook?.hook.transcriptPath ?? null), nativeParameterState(rt, project, sid)]);
+    const [base, state] = await Promise.all([reader.read(found.hook?.hook.sessionId ?? found.record?.localId ?? sid, found.hook?.hook.transcriptPath ?? null, found.hook?.hook.cwd ?? found.record?.projectPath ?? project.path), nativeParameterState(rt, project, sid)]);
     return nativeClaudeParameters(base, state);
   }
   return { read, async update(project: Project, sid: string, change: ParameterChange): Promise<SessionParameters> {

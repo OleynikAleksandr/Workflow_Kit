@@ -14,6 +14,7 @@ import type { SessionTitles } from '#session-titles';
 import type { ReviewToggles } from '#plan-review';
 import { wireSessions } from './session-wiring.ts';
 import { nativeStatuslineCommand } from './native-statusline.ts';
+import { resolveAutoCompactWindow } from './auto-compact-window.ts';
 import { createKitRunner, createWorkflowState } from '#kit-runner';
 import type { KitRunner, WorkflowState } from '#kit-runner';
 import { registerStructureRoutes } from '#kit-structure';
@@ -197,6 +198,8 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
     now: () => new Date(),
     log: options.log ?? (() => undefined),
     nativeStatuslineCommand,
+    // Children get no CLAUDE* variables from the service, so only settings files apply here.
+    autoCompactWindow: (modelId, cwd) => resolveAutoCompactWindow(modelId, { platform, env: {}, cwd, homedir }),
   };
   const providers = createProviderRegistry();
   for (const factory of options.providers ?? DEFAULT_PROVIDERS) providers.register(factory(providerContext));

@@ -51,3 +51,17 @@ for (const platform of ['darwin', 'linux', 'win32'] as const) test(`${platform}:
     await assert.rejects(controls.update(project, n.sessionId, { effort: 'medium' }), { code: 'parameters-unavailable' });
   } finally { await rm(root, { recursive: true, force: true }); }
 });
+test('M28 T014: each menu needs only its own catalog; one reason per menu, none under the options', () => {
+  const n = { ...native(), efforts: [] as string[] };
+  const p = nativeClaudeParameters(base, n);
+  assert.equal(p.editable, true); assert.equal(p.reason, 'Варианты усилия появятся, когда Claude будет свободен');
+  const model = p.items.find(i => i.id === 'model')!; const effort = p.items.find(i => i.id === 'effort')!; const mode = p.items.find(i => i.id === 'mode')!;
+  assert.equal(model.options?.every(o => !o.disabled && !o.reason), true, 'models are selectable without efforts');
+  assert.equal(mode.options?.every(o => !o.disabled), true, 'mode needs no catalog');
+  assert.equal(effort.options?.length, 0);
+  const empty = nativeClaudeParameters(base, { ...n, models: [] });
+  assert.equal(empty.reason, 'Список моделей Claude появится, когда Claude будет свободен');
+  const busy = nativeClaudeParameters(base, { ...native(), status: 'busy' });
+  assert.equal(busy.reason, 'Claude ещё отвечает'); assert.equal(busy.editable, false);
+  for (const item of busy.items.filter(i => i.id !== 'speed')) assert.equal(item.options?.every(o => o.disabled && !o.reason), true, item.id);
+});

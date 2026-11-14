@@ -27,7 +27,7 @@ export function createClaudeParameterReader(context: ProviderContext, read: (fil
   });
   return {
     clear() { tail.clear(); },
-    async read(sessionId: string, transcript: string | null): Promise<SessionParameters> {
+    async read(sessionId: string, transcript: string | null, cwd: string | null = null): Promise<SessionParameters> {
       const safeRead = async (file: string) => obj(await read(file).catch(() => null));
       const [snapshot, account, values] = await Promise.all([
         safeRead(snapshotFile(context.dirs, 'claude', sessionId, context.platform)),
@@ -43,6 +43,11 @@ export function createClaudeParameterReader(context: ProviderContext, read: (fil
       if (effort) items.push({ id: 'effort', value: effort, label: EFFORT[effort] ?? effort, title: `Усилие: ${EFFORT[effort] ?? effort}`, tone: 'muted', inRow: true });
       if (values.mode) items.push({ id: 'mode', value: values.mode, label: MODE[values.mode] ?? values.mode, title: `Режим: ${MODE[values.mode] ?? values.mode}`, tone: 'primary', inRow: true });
       const window = obj(snapshot['context_window']); const percent = num(window['used_percentage']);
+      // A snapshot of a host started before 0.13.1 has no threshold: the service reads it itself (M28 T014).
+      if (!('auto_compact_window' in window) && Object.keys(window).length && id && cwd && context.autoCompactWindow) {
+        const threshold = await context.autoCompactWindow(id, cwd).catch(() => null);
+        if (threshold) Object.assign(window, { auto_compact_window: threshold.window, auto_compact_source: threshold.source });
+      }
       const limits = ['five_hour', 'seven_day'].flatMap(id => {
         const limit = obj(obj(account['rate_limits'])[id]); const used = num(limit['used_percentage']);
         const reset = limit['resets_at']; const date = typeof reset === 'number' ? new Date(reset * 1000) : typeof reset === 'string' ? new Date(reset) : null;

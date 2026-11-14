@@ -17,5 +17,10 @@ export interface ProviderContext {
   log: (line: string) => void;
   /** Optional command for a new managed host's native metadata + unchanged user statusline. */
   nativeStatuslineCommand?: (binding: { file: string; hostId: string }) => string;
+  /**
+   * Claude's auto-compact threshold for a model in a folder, read by the service from settings files
+   * (M28 T014): a snapshot of an older host lacks it. Null: no threshold, the model window applies.
+   */
+  autoCompactWindow?: (modelId: string, cwd: string) => Promise<{ window: number; source: string } | null>;
 }
 

@@ -107,3 +107,18 @@ test('a user file outranks a transaction: cancelled, at most 2 s of cleanup, the
   w.advance(600); assert.equal(w.engine.yieldToUser(), false, 'never longer than 2 s');
   assert.equal(w.engine.busy, false); assert.equal(w.engine.takeResult()?.status, 'cancelled');
 });
+test('M28 T014: a discovery cancelled by a turn retries on a later free input, at most 3 times and 30 s apart', () => {
+  const w = engineWorld();
+  const begun = () => w.engine.snapshot().status === 'control';
+  w.engine.discover(); assert.equal(begun(), true, 'first attempt');
+  const tries: number[] = [1];
+  for (let i = 0; i < 4; i++) {
+    w.engine.observeTurn({ version: 1, state: 'working', at: w.now(), source: 'hook' });
+    w.advance(300); paint(w.screen, 'idle-empty'); w.advance(300); w.engine.propose(); w.engine.propose();
+    w.engine.observeTurn({ version: 1, state: 'idle', at: w.now(), source: 'hook' });
+    assert.equal(begun(), false, 'cancelled by the turn');
+    w.engine.discover(); assert.equal(begun(), false, 'not again within 30 s');
+    w.advance(30_000); w.engine.discover(); if (begun()) tries.push(i + 2);
+  }
+  assert.deepEqual(tries, [1, 2, 3], 'three attempts per model');
+});

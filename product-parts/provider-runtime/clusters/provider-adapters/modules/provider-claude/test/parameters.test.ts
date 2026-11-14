@@ -80,3 +80,18 @@ test('M28: context counts against the auto-compact window, the model window stay
   assert.deepEqual(contextUsage({ context_window_size: 1000000, used_percentage: 8, total_input_tokens: 78451 }, 8), { usedTokens: 78451, windowTokens: 1000000, usedPercent: 8 });
   assert.equal(contextUsage({ context_window_size: 1000000, total_input_tokens: 999999, auto_compact_window: 500000 }, null).usedPercent, 100);
 });
+test('M28 T014: an old host snapshot without a threshold gets it from the service; a new one keeps its own', async () => {
+  const asked: Array<[string, string]> = [];
+  let snapshot: Record<string, unknown> = { model: { id: 'claude-opus-5-5', display_name: 'Opus 5.5' }, context_window: { used_percentage: 31, context_window_size: 1000000, total_input_tokens: 313356 } };
+  const context = { platform: 'darwin', dirs: { stateDir: '/tmp/none' }, now: () => new Date('2026-11-14T12:00:00Z'),
+    autoCompactWindow: async (modelId: string, cwd: string) => { asked.push([modelId, cwd]); return { window: 500000, source: 'user' }; } } as unknown as ProviderContext;
+  const reader = createClaudeParameterReader(context, async name => name.endsWith('account.limits.json') ? null : snapshot);
+  const old = await reader.read('s', null, '/Users/user/project');
+  assert.deepEqual(old.context, { usedTokens: 313356, windowTokens: 500000, usedPercent: 63, modelWindowTokens: 1000000 });
+  assert.deepEqual(asked, [['claude-opus-5-5', '/Users/user/project']]);
+  snapshot = { ...snapshot, context_window: { ...obj(snapshot['context_window']), auto_compact_window: 400000, auto_compact_source: 'project' } };
+  assert.equal((await reader.read('s', null, '/Users/user/project')).context?.windowTokens, 400000, 'the host value wins');
+  assert.equal(asked.length, 1, 'the service is not asked when the snapshot has the threshold');
+  const none = createClaudeParameterReader({ ...context, autoCompactWindow: async () => null } as ProviderContext, async name => name.endsWith('account.limits.json') ? null : { ...snapshot, context_window: { context_window_size: 1000000, total_input_tokens: 10, used_percentage: 0 } });
+  assert.equal((await none.read('s', null, '/x')).context?.windowTokens, 1000000, 'no threshold: the model window');
+});

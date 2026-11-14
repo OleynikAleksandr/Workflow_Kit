@@ -15,6 +15,9 @@ export function insideFolder(cwd: string, root: string): boolean {
 }
 type Step = { command: string } | { key: string; frame: ParameterFrame['kind'] } | { until: (f: ParameterFrame) => boolean };
 type Flow = Generator<Step, void, ParameterFrame>;
+/** Discovery of the native catalog: attempts per model and the pause between them (M28 T014). */
+export const DISCOVERY_TRIES = 3;
+export const DISCOVERY_RETRY_MS = 30_000;
 export class ParameterEngine {
   private revision = 0;
   private rendered = '';
@@ -43,7 +46,10 @@ export class ParameterEngine {
   private efforts: string[] = [];
   private fastReason: string | null = null;
   private ultraAvailable = false;
-  private discoveryAttempted = false;
+  /** The catalog of the current model was read; a cancelled discovery retries (M28 T014). */
+  private catalogDone = false;
+  private discoveryTries = 0;
+  private discoveryAt = 0;
   private unsafe = false;
   private unsafeAt = 0;
   private requestAt = 0;
@@ -59,7 +65,7 @@ export class ParameterEngine {
   observe(metadata: NativeMetadata | null): void {
     const oldModel = this.meta?.model.id;
     this.meta = metadata?.hostId === this.hostId && insideFolder(metadata.cwd, this.cwd) ? metadata : null;
-    if (oldModel && this.meta?.model.id !== oldModel && !this.request) { this.efforts = []; this.recommended = null; this.ultraAvailable = false; this.discoveryAttempted = false; }
+    if (oldModel && this.meta?.model.id !== oldModel && !this.request) { this.efforts = []; this.recommended = null; this.ultraAvailable = false; this.catalogDone = false; this.discoveryTries = 0; }
     const f = parameterFrame(this.screen);
     const signature = JSON.stringify([f.kind, f.input, f.mode, f.ultracode, f.selected, f.previewEffort, this.meta?.model, this.meta?.effort]);
     if (signature !== this.signature) { this.signature = signature; this.epoch++; }
@@ -138,8 +144,11 @@ export class ParameterEngine {
     this.advance();
   }
   discover(): void {
-    if (this.discoveryAttempted || this.busy || !this.ready()) return;
-    this.discoveryAttempted = true;
+    // A turn often cancels the startup discovery: retry on a later free, empty input, bounded so the
+    // terminal is not typed into again and again.
+    if (this.catalogDone || this.busy || !this.ready()) return;
+    if (this.discoveryTries >= DISCOVERY_TRIES || (this.discoveryTries > 0 && this.now() - this.discoveryAt < DISCOVERY_RETRY_MS)) return;
+    this.discoveryTries += 1; this.discoveryAt = this.now();
     const state = this.snapshot();
     this.begin({ version: 1, id: randomUUID(), hostId: this.hostId, sessionId: state.sessionId,
       epoch: state.epoch, expires: this.now() + 55_000, field: 'catalog', value: '' });
@@ -147,6 +156,7 @@ export class ParameterEngine {
   cancel(): void { if (this.request) this.cancelled = true; }
   private finish(status: NativeParameterResult['status'], reason?: string): void {
     const r = this.request!;
+    if (r.field === 'catalog' && status === 'applied') this.catalogDone = true;
     this.request = null; this.flow = null; this.step = null; this.command = null; this.menuOwner = null;
     this.result = { version: 1, id: r.id, hostId: this.hostId, sessionId: r.sessionId, status, ...(reason ? { reason } : {}), state: this.snapshot() };
   }

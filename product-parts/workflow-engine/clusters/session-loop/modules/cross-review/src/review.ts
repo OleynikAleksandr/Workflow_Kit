@@ -3,6 +3,7 @@
 // through the agent channel until the reviewer approves and the main agent agrees, or the rounds
 // run out. Only turns started by a delivery of the other side are forwarded.
 import type { StopContext, StopDecision, StopEvent } from '#agent-channel';
+import { isAuthor } from './author.ts';
 import { FINISHED, readReviews, saveReview } from './store.ts';
 import type { Review, ReviewStatus } from './store.ts';
 import {
@@ -305,15 +306,16 @@ export function createCrossReview(deps: CrossReviewDeps): CrossReview {
         return { kind: 'hold', reason: 'waiting-for-main' };
       }
       if (!canStart) return null;
+      const proposal = await deps.proposal(context.projectId);
+      if (!proposal) return null;
+      // M31 3.2: a session whose turn began after the proposal did not write it.
+      if (!isAuthor(context.turnStartedAt, proposal.createdAt)) return null;
       if (deps.decided && deps.askProposal && !deps.decided(context.projectId, context.key)) {
         // A plan came without a decision about its review: the user decides now (spec M4 12.2).
-        if (!(await deps.proposal(context.projectId))) return null;
         await deps.askProposal(context.projectId, context.key);
         return { kind: 'hold', reason: 'waiting-for-plan-decision', timeoutAnswer: QUESTION_REMINDER };
       }
       if (!deps.toggle(context.projectId, context.key)) return null;
-      const proposal = await deps.proposal(context.projectId);
-      if (!proposal) return null;
       if (own && own.scopeId === proposal.scopeId && !(own.status === 'failed' && retries.has(context.key))) return null;
       retries.delete(context.key);
       if ([...reviews.values()].some((r) => r.projectId === context.projectId && active(r))) return null;
@@ -327,7 +329,9 @@ export function createCrossReview(deps: CrossReviewDeps): CrossReview {
       if (candidates.length === 0) return null;
       const proposal = await deps.proposal(projectId);
       if (!proposal) return null;
-      return candidates.some((key) => reviews.get(key)?.scopeId !== proposal.scopeId) ? CHOICE_WAITS_TURN : null;
+      // M31 3.2: only an author's working turn may still bring a review.
+      const authors = candidates.filter((key) => isAuthor(deps.turnStartedAt?.(key) ?? null, proposal.createdAt));
+      return authors.some((key) => reviews.get(key)?.scopeId !== proposal.scopeId) ? CHOICE_WAITS_TURN : null;
     },
     async toggled(projectId, key, on) {
       if (on) deps.wake(key);

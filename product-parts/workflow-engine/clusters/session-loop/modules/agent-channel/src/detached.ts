@@ -213,6 +213,7 @@ export function createDetached(core: ChannelCore, deps: DetachedDelivery): Detac
           projectId: slot.activity.projectId,
           stopHookActive: false,
           lastAssistantMessage: slot.lastAnswer,
+          turnStartedAt: slot.endedTurnStartedAt,
           woken: how.woken,
         });
         if (slot.turn.barrier || slot.generation !== generation || core.closed()) return;

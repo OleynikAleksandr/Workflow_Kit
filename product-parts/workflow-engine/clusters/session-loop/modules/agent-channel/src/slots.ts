@@ -46,6 +46,8 @@ export interface Slot {
   sending: boolean;
   /** The whole last answer read at the turn end (for a decider asked again after a wake). */
   lastAnswer: string | null;
+  /** Start of the last ended turn (M31: the proposal author), null when unknown. */
+  endedTurnStartedAt: string | null;
   watch: { cancelled: boolean; timer?: Timer } | null;
   confirmTimer?: Timer;
   /** The reminder of a hold with timeoutAnswer: when it goes and with what text. */
@@ -95,6 +97,7 @@ export function newSlot(key: string, client: AgentClient, sessionId: string, pro
     advancing: false,
     sending: false,
     lastAnswer: null,
+    endedTurnStartedAt: null,
     watch: null,
     reminder: null,
     released: null,

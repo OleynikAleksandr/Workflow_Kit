@@ -62,7 +62,9 @@ stripping).
 - `wireSessions(options)` (`src/session-wiring.ts`) — проводка сессий для `createApp`: канал,
   автопилот, переключатели ревью, имена и перекрёстное ревью. Имён провайдеров нет:
   различия — из реестра: `hookDialect`, `wakeSession`, `sendDirect`, `promptTitle`, возможности
-  `orchestration` и `reviewer` (`providerCapability`). Путь без удержания `Stop` (`detached`)
+  `orchestration` и `reviewer` (`providerCapability`). Перекрёстное ревью (`src/review-wiring.ts`)
+  получает `createdAt` открытого предложения и `turnStartedAt(key)` из канала (автор
+  предложения, M31). Путь без удержания `Stop` (`detached`)
   и прямой путь сообщения панели (`createDirectMessage`, `src/direct-message.ts`, опция
   `direct` маршрутов канала; `sendDirect` только для `waiting` и неизвестной каналу сессии,
   не `ledOutside`) и сессии вне процесса Kit — в [session-chat.md](session-chat.md).

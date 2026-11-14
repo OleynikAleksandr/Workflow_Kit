@@ -37,8 +37,10 @@ export interface CrossReviewDeps {
   /** Explicit retry after interruption: allow delivery again. */
   resumeDelivery?(key: string): void;
   toggle(projectId: string, key: string): boolean;
-  /** The open plan proposal of a project, or null. */
-  proposal(projectId: string): Promise<{ generation: number; scopeId: string | null } | null>;
+  /** The open plan proposal of a project (createdAt: when Kit stored it, M31), or null. */
+  proposal(projectId: string): Promise<{ generation: number; scopeId: string | null; createdAt?: string | null } | null>;
+  /** Start of the current turn of a working session, or null (M31: the proposal author). */
+  turnStartedAt?(key: string): string | null;
   sessionTitle(projectId: string, key: string): string | null;
   /** The session has an open plan question (spec M4 12): its Stop waits for the answer. */
   question?(projectId: string, key: string): boolean;

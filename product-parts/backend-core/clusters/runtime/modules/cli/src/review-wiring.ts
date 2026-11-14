@@ -129,8 +129,9 @@ export function wireCrossReview(options: {
     proposal: async (projectId) => {
       const view = (await options.workflow.refresh(projectId)) ?? options.workflow.get(projectId);
       const proposal = view?.proposal ?? null;
-      return proposal && !view?.execution ? { generation: proposal.generation, scopeId: proposal.scopeId } : null;
+      return proposal && !view?.execution ? { generation: proposal.generation, scopeId: proposal.scopeId, createdAt: proposal.createdAt } : null;
     },
+    turnStartedAt: (key) => options.channel.get(key)?.turnStartedAt ?? null,
     sessionTitle: (projectId, key) => options.titles.name(projectId, key).name || null,
     question: (projectId, key) => options.toggles.question(projectId, key) !== null,
     asking: (projectId) => options.toggles.asking(projectId),

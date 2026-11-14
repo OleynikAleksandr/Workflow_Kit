@@ -59,6 +59,8 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
 
   function setState(slot: Slot, state: ActivityState, extra: Partial<SessionActivity> = {}): void {
     if (slot.activity.state !== state) slot.activity.since = iso();
+    // M31: a working turn that ends keeps its start for the decider (the proposal author).
+    if (slot.activity.state === 'working' && state !== 'working' && 'turnStartedAt' in extra) slot.endedTurnStartedAt = slot.activity.turnStartedAt;
     Object.assign(slot.activity, { state, holdReason: null, holdUntil: null }, extra);
     // Any other state ends a released hold (a new turn, an interruption, a decision).
     if (slot.released && state !== 'holding') release.drop(slot);
@@ -242,6 +244,7 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
           projectId: slot.activity.projectId,
           stopHookActive: input.stopHookActive,
           lastAssistantMessage: input.lastAssistantMessage,
+          turnStartedAt: slot.endedTurnStartedAt,
           woken,
         };
         const decision = await safeDecide(context);

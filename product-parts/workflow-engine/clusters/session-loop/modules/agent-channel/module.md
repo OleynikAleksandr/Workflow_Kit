@@ -177,6 +177,10 @@
 
 - новое сообщение очереди вызывает `wake(ref)`; хук `UserPromptSubmit`
   разбуженного хода отдаёт очередь;
+- `StopContext.turnStartedAt` (M31, раздел 3.2) — начало закончившегося хода (ISO): слот
+  запоминает `activity.turnStartedAt` при выходе из `working` (`endedTurnStartedAt`), его
+  получают решатель `stop()` хука и detached-путь; `null` или нет поля — начало неизвестно.
+  `SessionActivity.turnStartedAt` по-прежнему обнуляется при конце хода.
 - `wake(key)` спрашивает решатель (`woken: true`, контекст прежнего
   `Stop`): `continue` встаёт в очередь (источник `autopilot`) и будит
   сессию, `release` снимает ожидание, `hold` меняет причину с прежним

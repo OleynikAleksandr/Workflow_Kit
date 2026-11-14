@@ -97,6 +97,8 @@ export interface StopContext {
   projectId: string | null;
   stopHookActive: boolean;
   lastAssistantMessage: string | null;
+  /** Start of the ended turn (ISO); null or absent when unknown (M31: the proposal author). */
+  turnStartedAt?: string | null;
   /** True when the decider is asked again after a wake-up of a held Stop. */
   woken: boolean;
 }

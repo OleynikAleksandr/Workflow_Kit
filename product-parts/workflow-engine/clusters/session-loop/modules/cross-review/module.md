@@ -19,7 +19,8 @@
   умолчанию id), `reviewerBlocked(provider)` (причина, почему провайдер сейчас не ревьюер, или
   `null`), `briefByQueue(provider)` (задание идёт очередью и пробуждением, M4 13.9), `enqueue(key, text, projectId)` (очередь и пробуждение), `wake(key)`
   (переспросить удержанный `Stop`), `toggle(projectId, key)`, `proposal(projectId)` (открытое
-  предложение `{ generation, scopeId }` или `null`), `sessionTitle`, вопрос о плане (M4,
+  предложение `{ generation, scopeId, createdAt? }` или `null`), необязательная
+  `turnStartedAt(key)` (начало текущего хода работающей сессии, M31), `sessionTitle`, вопрос о плане (M4,
   раздел 12, необязательные) — `question(projectId, key)`, `asking(projectId)`,
   `decided(projectId, key)`, `askProposal(projectId, key)`, `deliver(key, text, projectId)`
   (необязательная: очередь и немедленное пробуждение сессии без первого `Stop`; по умолчанию
@@ -49,11 +50,15 @@
     (`waiting-for-main`); после создания она переспрашивается (`wake`).
     Открытый вопрос о плане (не у ревьюера) — держать `waiting-for-plan-decision` с
     `QUESTION_REMINDER`; `canStart` без решения о ревью — `askProposal` и то же удержание.
+    Автор предложения (M31, раздел 3.2, `src/author.ts`, `isAuthor`) — сессия, чей ход
+    (`StopContext.turnStartedAt`) начался не позже `createdAt` предложения; неизвестное время —
+    автор. Не автор при `canStart` не получает ни вопроса о ревью, ни нового ревью — `null`.
     Остальное — `null` (решает автопилот).
   - `toggled(projectId, key, on)` — включение будит удержанный `Stop` (старт), выключение
     отменяет; `choiceBlocked(projectId, working)` — почему выбор пути ждёт ревью
     (`CHOICE_WAITS_QUESTION` — открыт вопрос о плане; `CHOICE_WAITS_REVIEW` — ревью идёт; `CHOICE_WAITS_TURN` — работающая сессия с включённым
-    переключателем или без решения ещё не проходила ревью открытого предложения; раздел 11.3) или `null`;
+    переключателем или без решения ещё не проходила ревью открытого предложения и её текущий ход
+    начался не позже предложения — автор, M31; раздел 11.3) или `null`;
     `cancel(projectId, key, reason)`; `retry(projectId, key)` — «Повторить ревью»: последнее
     ревью сессии `failed` и относится к открытому предложению → удержанный `Stop`
     переспрашивается (`wake`) и ревью этого же scope начинается заново, иначе `false`

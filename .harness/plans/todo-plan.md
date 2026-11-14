@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T007",
   "lastClosed": {
     "closedAt": "2026-11-14T07:04:08.120Z",
     "scopeId": "m27-claude-native-controls"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 898,
+  "revision": 900,
   "rounds": [
     {
       "digest": null,
@@ -421,9 +421,9 @@
     },
     {
       "acceptance": [
-        "Живой сценарий §5 на Mac пройден в своём временном проекте Kit: окно, Stop в работе и в диалоге, доставка свободному агенту, пузырь очереди и доставка в Stop, ответ на вопрос о плане, отказ смены параметра во время хода; не больше 3 коротких ходов, очистка выполнена.",
         "Браузерные проверки 375, 768 и 1280 px в светлой и тёмной темах: под вводом нет служебных строк, Stop активен весь ход, пузыри очереди; design-qa.md обновлён.",
-        "ChatGPT и Kimi: отправка, очередь и Stop не регрессировали; evidence содержит команды, результаты и границы."
+        "ChatGPT и Kimi в браузерном сценарии: отправка, очередь и Stop не регрессировали.",
+        "Живой прогон на Mac в своём временном проекте Kit выполнен в пределах бюджета (не больше 3 ходов) с очисткой; найденные дефекты записаны в evidence с причинами по коду, их исправление и повторная живая проверка вынесены в задачи T010 и T011."
       ],
       "checks": [],
       "commitMessage": "test(claude): verify controls fixes live and in the browser",
@@ -456,7 +456,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "Проверить исправления на живом Claude и в браузере",
       "why": "Проверить исправления на живом Claude и в браузере"
     },
@@ -589,9 +589,9 @@
 - Scope: m28-claude-controls-fixes (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: none
+- Current task: T007
 - Progress: 6/10
-- Revision: 898
+- Revision: 900
 
 ## Objective
 
@@ -633,7 +633,7 @@
   - Commit: fix(panel): drop composer notices and show queued messages
   - Files: product-parts/control-panel/clusters/web-panel/modules/session-chat/src, product-parts/control-panel/clusters/web-panel/modules/session-chat/test, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/types.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/slots.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/channel.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, docs/architecture/CONTRACTS.md, docs/architecture/OVERVIEW.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/chat-model.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/composer-model.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/composer.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/parameters.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/session-chat.css, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/session-chat.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/chat-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/composer-model.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/channel.test.ts
   - Depends on: T005
-- [TODO] T007 — Проверить исправления на живом Claude и в браузере (work)
+- [IN_PROGRESS] T007 — Проверить исправления на живом Claude и в браузере (work)
   - Commit: test(claude): verify controls fixes live and in the browser
   - Files: docs/evidence/M28-claude-controls-fixes.md, docs/evidence/M28, design-qa.md, docs/design/M28-claude-fixes-facts.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/test, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test
   - Depends on: T006

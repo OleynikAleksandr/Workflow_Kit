@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 901,
+  "revision": 902,
   "rounds": [
     {
       "digest": null,
@@ -472,6 +472,94 @@
     },
     {
       "acceptance": [
+        "Stop подтверждается по новой строке «Interrupted · …» или метке прерывания в кадре TerminalScreen; сырой поток терминала не обязателен; тест на потоке с управляющими кодами между словами.",
+        "Ход, прерывание которого хост записал в .turn, завершается в канале и после неподтверждённого Stop (барьер не держит working); автоматическое продолжение по барьеру по-прежнему не запускается, а сообщение пользователя уходит сразу.",
+        "Доступность Stop для сессии терминала Kit не зависит от того, прочитан ли список сессий: в первые секунды хода нет причины «Остановите ответ в приложении Claude».",
+        "Тесты с подставленными платформами darwin, linux и win32; контракты и матрица ОС обновлены."
+      ],
+      "checks": [],
+      "commitMessage": "fix(claude): confirm Stop by the screen and end the interrupted turn",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/evidence/M28-claude-controls-fixes.md",
+          "required": true,
+          "heading": "T007: браузер и живая проверка"
+        },
+        {
+          "path": "docs/planning/M28-claude-controls-fixes.md",
+          "required": true,
+          "heading": "3.4. Stop (`cli`, `provider-claude`, `session-chat`)"
+        }
+      ],
+      "dependencies": [
+        "T007"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/interrupt-control.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/interrupt-worker.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/host.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/win-host.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/interrupt.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/interrupt.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/turn-interruption.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/turn-control.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/turn-state.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md",
+        "docs/architecture/CONTRACTS.md",
+        "docs/architecture/OVERVIEW.md"
+      ],
+      "fixes": "T005",
+      "id": "T010",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R1",
+      "status": "TODO",
+      "title": "Подтверждать Stop по кадру Claude и завершать ход после прерывания",
+      "why": "Живая проверка T007: одно Esc остановило Claude, но Kit ответил interrupt-timeout, канал остался в working, очередь и сообщения свободному агенту не уходили"
+    },
+    {
+      "acceptance": [
+        "Живой сценарий на Mac в своём временном проекте Kit, не больше 2 коротких ходов Haiku с очисткой: Stop в диалоге и во время генерации подтверждается, канал выходит из working, очередь уходит сразу после прерывания, сообщение свободному агенту получает sent и начинает ход.",
+        "Evidence содержит команды, результаты, израсходованные ходы (всего по M28 не больше 6) и границы: ответ на вопрос о плане и Stop из приложения Claude."
+      ],
+      "checks": [],
+      "commitMessage": "test(claude): repeat the live Stop and delivery check",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/evidence/M28/t007-harness.md",
+          "required": true
+        }
+      ],
+      "dependencies": [
+        "T010"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "docs/evidence/M28-claude-controls-fixes.md",
+        "docs/evidence/M28",
+        "docs/design/M28-claude-fixes-facts.md",
+        "design-qa.md"
+      ],
+      "fixes": null,
+      "id": "T011",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R1",
+      "status": "TODO",
+      "title": "Повторить живую проверку Stop и доставки на Claude",
+      "why": "Живой сценарий T007 не прошёл из-за дефекта; его надо повторить после T010"
+    },
+    {
+      "acceptance": [
         "Project-wide documents describe the round result",
         "The round digest records result, decisions, contracts and references"
       ],
@@ -486,7 +574,9 @@
         "T004",
         "T005",
         "T006",
-        "T007"
+        "T007",
+        "T010",
+        "T011"
       ],
       "docsWaiver": null,
       "files": [
@@ -506,7 +596,9 @@
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/sessions.md",
         "product-parts/workflow-engine/clusters/session-loop/modules/plan-review/module.md",
         "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md",
-        "design-qa.md"
+        "design-qa.md",
+        "docs/evidence/M28/probe-harness.md",
+        "docs/evidence/M28/t007-harness.md"
       ],
       "fixes": null,
       "id": "DOCS-R1",
@@ -600,8 +692,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 7/10
-- Revision: 901
+- Progress: 7/12
+- Revision: 902
 
 ## Objective
 
@@ -647,10 +739,19 @@
   - Commit: test(claude): verify controls fixes live and in the browser
   - Files: docs/evidence/M28-claude-controls-fixes.md, docs/evidence/M28, design-qa.md, docs/design/M28-claude-fixes-facts.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/test, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test, docs/evidence/M28/composer-claude-dark-1280.png, docs/evidence/M28/composer-claude-dark-375.png, docs/evidence/M28/composer-claude-dark-768.png, docs/evidence/M28/composer-claude-light-1280.png, docs/evidence/M28/composer-claude-light-375.png, docs/evidence/M28/composer-claude-light-768.png, docs/evidence/M28/t007-browser.json, docs/evidence/M28/t007-harness.md, docs/evidence/M28/t007-live.json, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/m28-composer.browser.js
   - Depends on: T006
+- [TODO] T010 — Подтверждать Stop по кадру Claude и завершать ход после прерывания (work)
+  - Commit: fix(claude): confirm Stop by the screen and end the interrupted turn
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/interrupt-control.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/interrupt-worker.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/host.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/win-host.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/interrupt.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/interrupt.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/turn-interruption.ts, product-parts/backend-core/clusters/runtime/modules/cli/test, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/turn-control.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/turn-state.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, docs/architecture/CONTRACTS.md, docs/architecture/OVERVIEW.md
+  - Depends on: T007
+  - Fixes: T005
+- [TODO] T011 — Повторить живую проверку Stop и доставки на Claude (work)
+  - Commit: test(claude): repeat the live Stop and delivery check
+  - Files: docs/evidence/M28-claude-controls-fixes.md, docs/evidence/M28, docs/design/M28-claude-fixes-facts.md, design-qa.md
+  - Depends on: T010
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
-  - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M28-claude-controls-fixes.md, docs/design/M28-claude-fixes-facts.md, docs/evidence/M28-claude-controls-fixes.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/parameters.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/parameters.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, docs/architecture/CONTRACTS.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/interrupt.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/sessions.md, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, design-qa.md
-  - Depends on: T001, T002, T003, T004, T005, T006, T007
+  - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M28-claude-controls-fixes.md, docs/design/M28-claude-fixes-facts.md, docs/evidence/M28-claude-controls-fixes.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/parameters.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/parameters.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, docs/architecture/CONTRACTS.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/interrupt.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/sessions.md, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, design-qa.md, docs/evidence/M28/probe-harness.md, docs/evidence/M28/t007-harness.md
+  - Depends on: T001, T002, T003, T004, T005, T006, T007, T010, T011
 - [TODO] T008 — Собрать и установить локальную поставку 0.13.1 (delivery)
   - Commit: chore(release): install Workflow Kit 0.13.1 locally
   - Files: package.json, package-lock.json, README.md, CHANGELOG.md, docs/usage.md, docs/installation.md, docs/setup.md, docs/architecture/OVERVIEW.md, docs/evidence/M28-claude-controls-fixes.md, docs/evidence/M28

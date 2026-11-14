@@ -29,6 +29,11 @@
 `cross-review/test/author.test.ts`, `autopilot/test/owner.test.ts`,
 `session-view/test/plan-cards.test.ts`.
 
+## T006: локальная поставка 0.13.5
+
+Установлена штатно, doctor в порядке, служба 0.13.5; проект с Kit 2.2.4 получает «Обновить
+Kit» до 2.2.5 — [local-delivery.md](M31/local-delivery.md).
+
 ## Живая проверка по ОС
 
 Сценарий одинаков на всех ОС (поведение без платформенных веток, спецификация, раздел 4).

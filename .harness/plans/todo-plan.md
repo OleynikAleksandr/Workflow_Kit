@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 994,
+  "revision": 996,
   "rounds": [
     {
       "digest": {
@@ -366,7 +366,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: release 0.13.5",
-      "confirmation": null,
+      "confirmation": "Подтверждаю выпуск.",
       "context": [],
       "dependencies": [
         "T005",
@@ -382,14 +382,15 @@
         "docs/installation.md",
         "docs/setup.md",
         "docs/evidence/M31-plan-in-any-session.md",
-        "docs/evidence/M31"
+        "docs/evidence/M31",
+        "docs/evidence/M31/local-delivery.md"
       ],
       "fixes": null,
       "id": "T006",
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Поставка 0.13.5 и локальная установка",
       "why": "The user checks the fix in the installed panel"
     },
@@ -429,8 +430,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 6/8
-- Revision: 994
+- Progress: 7/8
+- Revision: 996
 
 ## Objective
 
@@ -471,9 +472,9 @@ An unstarted plan belongs to the project: its mode choice card and ready plan ca
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M31-plan-in-any-session.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md, docs/architecture/workflow-kit/WorkflowKitCommands.md, docs/architecture/OS-MATRIX.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, design-qa.md, docs/evidence/M31-plan-in-any-session.md, docs/architecture/CONTRACTS.md, product-parts/backend-core/clusters/projects/cluster.md, product-parts/backend-core/clusters/projects/modules/project-setup/module.md, product-parts/backend-core/clusters/runtime/modules/cli/connected-modules.md
   - Depends on: T001, T002, T003, T004, T005
-- [TODO] T006 — Поставка 0.13.5 и локальная установка (delivery)
+- [DONE] T006 — Поставка 0.13.5 и локальная установка (delivery)
   - Commit: chore: release 0.13.5
-  - Files: package.json, package-lock.json, README.md, CHANGELOG.md, docs/usage.md, docs/installation.md, docs/setup.md, docs/evidence/M31-plan-in-any-session.md, docs/evidence/M31
+  - Files: package.json, package-lock.json, README.md, CHANGELOG.md, docs/usage.md, docs/installation.md, docs/setup.md, docs/evidence/M31-plan-in-any-session.md, docs/evidence/M31, docs/evidence/M31/local-delivery.md
   - Depends on: T005, DOCS-R1
 - [TODO] T007 — CI точного SHA поставки на четырёх платформах (delivery)
   - Commit: docs: record green CI for the plan in any session

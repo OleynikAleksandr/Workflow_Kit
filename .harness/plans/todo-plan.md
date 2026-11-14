@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 925,
+  "revision": 926,
   "rounds": [
     {
       "digest": {
@@ -60,8 +60,15 @@
       },
       "id": "R2",
       "kind": "fixes",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Каталог параметров и окно старых сессий Claude"
+    },
+    {
+      "digest": null,
+      "id": "R3",
+      "kind": "fixes",
+      "status": "OPEN",
+      "title": "Тесты M28 на Windows"
     }
   ],
   "schema": "harness-workflow-plan/1",
@@ -925,6 +932,67 @@
     },
     {
       "acceptance": [
+        "Тест auto-compact-context для подставленной платформы, путь которой недостижим на текущей ОС, проверяет только отказ от окружения службы; на родной ОС — полностью.",
+        "Тесты сверки ходов задают время прерывания от начала хода в канале, а не от часов, снятых до него.",
+        "Тест Kimi ждёт запись события в журнал с ограничением по времени вместо однократного чтения.",
+        "Функциональный код не меняется; npm test, typecheck и platform-guard проходят."
+      ],
+      "checks": [],
+      "commitMessage": "test: make the M28 and Kimi delivery tests stable on Windows",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/evidence/M28-claude-controls-fixes.md",
+          "required": true,
+          "heading": "T015: локальная поставка 0.13.2"
+        }
+      ],
+      "dependencies": [
+        "T015"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/auto-compact-context.test.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/turn-reconcile.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/messages.test.ts"
+      ],
+      "fixes": null,
+      "id": "T016",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R3",
+      "status": "TODO",
+      "title": "Сделать тесты M28 устойчивыми на Windows",
+      "why": "CI точного SHA поставки 0.13.2 (afba623): macOS и Linux зелёные, Windows x64 и ARM64 упали только в тестах — POSIX-путь подставленных darwin/linux из временной папки Windows, зависимость теста барьера от миллисекунд, гонка чтения журнала событий Kimi"
+    },
+    {
+      "acceptance": [
+        "Project-wide documents describe the round result",
+        "The round digest records result, decisions, contracts and references"
+      ],
+      "checks": [],
+      "commitMessage": "docs: reconcile documentation for R3",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T016"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/architecture/OVERVIEW.md"
+      ],
+      "fixes": null,
+      "id": "DOCS-R3",
+      "iteration": 1,
+      "kind": "docs",
+      "roundId": "R3",
+      "status": "TODO",
+      "title": "Reconcile project documentation and write the round digest",
+      "why": "Keep the project context current for the next agent and close the round."
+    },
+    {
+      "acceptance": [
         "До task:start проверены headSha последней поставки (T015, 0.13.2) и success на macOS, Linux, Windows x64 и ARM64; ветка ci/m28-claude-controls-fixes отправлена вне задач по прямой команде пользователя.",
         "Записаны SHA, URL и четыре результата CI; без функциональных изменений и push из задачи; приёмка и закрытие — отдельно."
       ],
@@ -934,7 +1002,7 @@
       "context": [],
       "dependencies": [
         "T008",
-        "DOCS-R2"
+        "DOCS-R3"
       ],
       "docsWaiver": null,
       "files": [
@@ -944,7 +1012,7 @@
       "id": "T009",
       "iteration": 1,
       "kind": "delivery",
-      "roundId": "R2",
+      "roundId": "R3",
       "status": "TODO",
       "title": "Зафиксировать зелёную CI четырёх платформ на SHA поставки",
       "why": "Зафиксировать зелёную CI четырёх платформ на SHA поставки"
@@ -960,8 +1028,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 16/17
-- Revision: 925
+- Progress: 16/19
+- Revision: 926
 
 ## Objective
 
@@ -1036,7 +1104,7 @@
 
 Digest: Claude: контекст от autoCompactWindow, окно модели второй строкой; Stop активен весь ход, одно Esc, подтверждение по кадру, хост обрабатывает Stop раньше занятого движка параметров; ход завершается без Stop-хука; сообщение свободному агенту уходит сразу; очередь — пузыри «в очереди»; под вводом нет служебных строк. Живая проверка пройдена (T013).
 
-### R2 — Каталог параметров и окно старых сессий Claude (fixes, OPEN)
+### R2 — Каталог параметров и окно старых сессий Claude (fixes, CLOSED)
 
 - [DONE] T014 — Повторять discovery каталога Claude и считать окно старых сессий от порога (work)
   - Commit: fix(claude): retry the native catalog and read the compact window for old hosts
@@ -1050,11 +1118,22 @@ Digest: Claude: контекст от autoCompactWindow, окно модели �
   - Commit: chore(release): install Workflow Kit 0.13.2 locally
   - Files: package.json, package-lock.json, README.md, CHANGELOG.md, docs/usage.md, docs/installation.md, docs/evidence/M28-claude-controls-fixes.md, docs/evidence/M28, docs/evidence/M28/local-delivery.md
   - Depends on: T014, DOCS-R2
+
+Digest: Claude: discovery каталога повторяется при свободном вводе (до 3 раз, раз в 30 с), меню доступно по своим спискам, причина — одна строка на меню; окно сессий, запущенных до 0.13.1, считается от autoCompactWindow, который служба читает из файлов настроек.
+
+### R3 — Тесты M28 на Windows (fixes, OPEN)
+
+- [TODO] T016 — Сделать тесты M28 устойчивыми на Windows (work)
+  - Commit: test: make the M28 and Kimi delivery tests stable on Windows
+  - Files: product-parts/backend-core/clusters/runtime/modules/cli/test/auto-compact-context.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/turn-reconcile.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/messages.test.ts
+  - Depends on: T015
+- [TODO] DOCS-R3 — Reconcile project documentation and write the round digest (docs)
+  - Commit: docs: reconcile documentation for R3
+  - Files: README.md, docs/architecture/OVERVIEW.md
+  - Depends on: T016
 - [TODO] T009 — Зафиксировать зелёную CI четырёх платформ на SHA поставки (delivery)
   - Commit: docs: record green CI for Claude controls fixes
   - Files: docs/evidence/M28-claude-controls-fixes.md
-  - Depends on: T008, DOCS-R2
-
-Digest: Claude: discovery каталога повторяется при свободном вводе (до 3 раз, раз в 30 с), меню доступно по своим спискам, причина — одна строка на меню; окно сессий, запущенных до 0.13.1, считается от autoCompactWindow, который служба читает из файлов настроек.
+  - Depends on: T008, DOCS-R3
 
 State changes only through `scripts/workflow` commands. History lives in Git.

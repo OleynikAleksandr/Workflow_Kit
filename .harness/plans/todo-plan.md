@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 911,
+  "revision": 913,
   "rounds": [
     {
       "digest": null,
@@ -629,14 +629,16 @@
       "files": [
         "docs/evidence/M28-claude-controls-fixes.md",
         "docs/evidence/M28",
-        "docs/design/M28-claude-fixes-facts.md"
+        "docs/design/M28-claude-fixes-facts.md",
+        "docs/evidence/M28/t011-harness.md",
+        "docs/evidence/M28/t013-live.json"
       ],
       "fixes": null,
       "id": "T013",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Живая проверка Stop и доставки после T012",
       "why": "Живые прогоны T007 и T011 не прошли; после T012 сценарий надо повторить в остатке бюджета"
     },
@@ -777,8 +779,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 10/14
-- Revision: 911
+- Progress: 11/14
+- Revision: 913
 
 ## Objective
 
@@ -838,9 +840,9 @@
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/interrupt-control.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/interrupt-worker.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/host.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-engine.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-files.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/interrupt.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/parameters.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, docs/architecture/CONTRACTS.md, docs/architecture/OVERVIEW.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/stop-priority.test.ts
   - Depends on: T011
   - Fixes: T010
-- [TODO] T013 — Живая проверка Stop и доставки после T012 (work)
+- [DONE] T013 — Живая проверка Stop и доставки после T012 (work)
   - Commit: test(claude): verify Stop and delivery live after the host fix
-  - Files: docs/evidence/M28-claude-controls-fixes.md, docs/evidence/M28, docs/design/M28-claude-fixes-facts.md
+  - Files: docs/evidence/M28-claude-controls-fixes.md, docs/evidence/M28, docs/design/M28-claude-fixes-facts.md, docs/evidence/M28/t011-harness.md, docs/evidence/M28/t013-live.json
   - Depends on: T012
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1

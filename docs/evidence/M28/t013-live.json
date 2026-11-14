@@ -1,0 +1,180 @@
+{
+ "date": "2026-11-14",
+ "cliVersion": "2.1.325",
+ "model": "claude-haiku-5-5",
+ "effort": "low",
+ "source": "Kit sources at 171c120 (T012)",
+ "generatedTurns": 2,
+ "result": "ok",
+ "log": [
+  {
+   "t": 1.3,
+   "step": "launched with the first message",
+   "localId": "session_01EyVab9me3V87YQFZG58GMi"
+  },
+  {
+   "t": 3.8,
+   "step": "turn 1 started",
+   "key": "claude:c3e6547c-1bb3-460f-bd67-769a36fc166a",
+   "localKey": "claude:session_01EyVab9me3V87YQFZG58GMi",
+   "activity": "working"
+  },
+  {
+   "t": 6.1,
+   "step": "dialog",
+   "seen": true,
+   "interruption": {
+    "available": true,
+    "reason": null,
+    "turnRef": "2b46b20f-8c65-48c6-ae2a-06cc29389443",
+    "state": "working",
+    "pending": false,
+    "barrier": false,
+    "result": null
+   }
+  },
+  {
+   "t": 6.1,
+   "step": "parameter change during the turn",
+   "ok": false,
+   "code": "parameters-busy",
+   "error": "Claude ещё отвечает"
+  },
+  {
+   "t": 8.5,
+   "step": "Stop in the dialog",
+   "before": {
+    "available": true,
+    "reason": null,
+    "turnRef": "2b46b20f-8c65-48c6-ae2a-06cc29389443",
+    "state": "working",
+    "pending": false,
+    "barrier": false,
+    "result": null
+   },
+   "status": 200,
+   "body": {
+    "status": "interrupted",
+    "stopped": true,
+    "proof": "pty-marker",
+    "nativeTurnId": null
+   },
+   "ms": 2360
+  },
+  {
+   "t": 8.5,
+   "step": "file after Esc",
+   "created": false,
+   "screen": [
+    "  ⎿  Interrupted · What should Claude do instead?"
+   ]
+  },
+  {
+   "t": 8.5,
+   "step": "after Stop 1",
+   "waiting": true,
+   "msAfterStop": 2378,
+   "activity": {
+    "state": "waiting",
+    "pending": 0
+   },
+   "interruption": {
+    "available": false,
+    "reason": null,
+    "turnRef": "11c221bc-a20a-42ae-9a6f-8a90e92a8013",
+    "state": "waiting",
+    "pending": false,
+    "barrier": true,
+    "result": "interrupted"
+   },
+   "stopHooks": 0
+  },
+  {
+   "t": 9.8,
+   "step": "message to the free agent",
+   "status": 200,
+   "body": {
+    "sent": true
+   }
+  },
+  {
+   "t": 10.8,
+   "step": "turn 2",
+   "started": true,
+   "prompt": "Перечисли числа от 1 до 400 через запятую, без инструментов.",
+   "activity": "working"
+  },
+  {
+   "t": 14.3,
+   "step": "Stop while generating",
+   "before": {
+    "available": true,
+    "reason": null,
+    "turnRef": "7b565f0b-460d-420f-9fd2-0fcdb0fc84f1",
+    "state": "working",
+    "pending": false,
+    "barrier": false,
+    "result": null
+   },
+   "status": 200,
+   "body": {
+    "status": "interrupted",
+    "stopped": true,
+    "proof": "pty-marker",
+    "nativeTurnId": null
+   },
+   "ms": 2056,
+   "numbers": 97
+  },
+  {
+   "t": 18.4,
+   "step": "after Stop 2",
+   "waiting": true,
+   "activity": {
+    "state": "waiting",
+    "pending": 0,
+    "queued": []
+   },
+   "prompts": 2,
+   "stopHooks": 0,
+   "screen": [
+    "  ⎿  Interrupted · What should Claude do instead?",
+    "  ⎿  Interrupted · What should Claude do instead?"
+   ]
+  },
+  {
+   "t": 18.4,
+   "step": "context window",
+   "context": {
+    "usedTokens": 57497,
+    "windowTokens": 150000,
+    "usedPercent": 38,
+    "modelWindowTokens": 1000000
+   }
+  },
+  {
+   "t": 20.4,
+   "step": "cleanup",
+   "deleted": 1,
+   "trusted": false,
+   "processes": 0,
+   "defaultsUnchanged": true,
+   "baseRemoved": true,
+   "claudeDirRemoved": true
+  }
+ ],
+ "hooks": [
+  {
+   "at": "2026-11-14T11:51:34.228Z",
+   "hookEvent": "UserPromptSubmit",
+   "prompt": "Выполни в Bash ровно одну команду: touch m28-probe.txt. Больше ничего не делай.",
+   "reply": "{\"answer\":null}"
+  },
+  {
+   "at": "2026-11-14T11:51:41.236Z",
+   "hookEvent": "UserPromptSubmit",
+   "prompt": "Перечисли числа от 1 до 400 через запятую, без инструментов.",
+   "reply": "{\"answer\":null}"
+  }
+ ]
+}

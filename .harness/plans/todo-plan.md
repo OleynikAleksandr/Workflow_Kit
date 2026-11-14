@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 976,
+  "revision": 977,
   "rounds": [
     {
       "digest": {
@@ -45,7 +45,10 @@
       "A model without an effort row shows no effort options and a reason instead of waiting",
       "CI is green on macOS, Linux, Windows x64 and Windows ARM64 for the delivery commit"
     ],
-    "acceptanceNote": null,
+    "acceptanceNote": {
+      "at": "2026-11-14T16:25:58.962Z",
+      "text": "Пользователь принял план в панели Workflow Kit"
+    },
     "approval": {
       "at": "2026-11-14T15:40:21.566Z",
       "text": "Пользователь, 14.11.2026: «Нельзя никак этот нюанс исправить, чтобы в диалоге на десктопе не появлялись эти слэш-команды?» и «Ну да, открывай новый скоп, создавай план и выполняй его.» | Execution mode chosen by the user: sequential: Выбор пользователя в панели Workflow Kit: выполнить самому, последовательно"
@@ -68,7 +71,7 @@
         "text": "The /model menu closes with s on the current model instead of Esc; Esc stays only for a cancelled transaction"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "ACCEPTED",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "92b77570-773b-4173-8244-c327d009daa3",
@@ -295,11 +298,11 @@
 ## State
 
 - Scope: m30-claude-feed-quiet (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: ACCEPTED
 - Execution: sequential
 - Current task: none
 - Progress: 6/6
-- Revision: 976
+- Revision: 977
 
 ## Objective
 

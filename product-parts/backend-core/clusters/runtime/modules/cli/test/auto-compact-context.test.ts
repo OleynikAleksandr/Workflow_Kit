@@ -8,7 +8,9 @@ import { createStubProvider } from '#provider-registry';
 import type { ProviderContext } from '#provider-registry';
 import { createApp } from '../src/index.ts';
 
-for (const platform of ['darwin', 'linux', 'win32'] as const) test(`${platform}: the provider context reads the threshold from settings files, never from the service environment`, async () => {
+// A Windows temp folder is no POSIX path: the injected darwin/linux data folder cannot be made there.
+const skipOn = (platform: NodeJS.Platform) => platform !== 'win32' && process.platform === 'win32' ? 'POSIX paths of a Windows temp folder' : false;
+for (const platform of ['darwin', 'linux', 'win32'] as const) test(`${platform}: the provider context reads the threshold from settings files, never from the service environment`, { skip: skipOn(platform) }, async () => {
   const tmp = await mkdtemp(path.join(os.tmpdir(), 'wfk-acw-'));
   let context: ProviderContext | null = null;
   const app = await createApp({

@@ -19,11 +19,17 @@ async function world() {
   return { channel, woken, run, set: (t: ProviderTurnState | null) => { turn = t; }, advance: (ms: number) => { now += ms; }, now: () => now };
 }
 
+/** An interruption 10 ms after the channel's turn start; the test clock starts after it (slow CI). */
+function afterStart(w: Awaited<ReturnType<typeof world>>): number {
+  const at = Date.parse(w.channel.get(KEY)!.turnStartedAt!) + 10;
+  if (w.now() < at) w.advance(at - w.now());
+  return at;
+}
 test('an interruption without a Stop hook ends the turn without a barrier and wakes the queue', async () => {
   const w = await world();
   assert.equal(w.channel.get(KEY)?.state, 'working');
   w.channel.enqueue(KEY, 'queued during the turn', 'panel', 'p');
-  w.set({ state: 'idle', at: w.now() + 10, source: 'interrupt' });
+  w.set({ state: 'idle', at: afterStart(w), source: 'interrupt' });
   await w.run(); assert.equal(w.channel.get(KEY)?.state, 'working', 'not before the settle time');
   w.advance(TURN_SETTLE_MS + 20); await w.run();
   assert.equal(w.channel.get(KEY)?.state, 'waiting');
@@ -37,7 +43,7 @@ test('an older idle, a working state or no provider state keep the turn', async 
   }
 });
 test('a lost Stop hook (hook idle newer than the turn) ends it too; an empty queue wakes nothing', async () => {
-  const w = await world(); w.set({ state: 'idle', at: w.now() + 5, source: 'hook' }); w.advance(TURN_SETTLE_MS + 50); await w.run();
+  const w = await world(); w.set({ state: 'idle', at: afterStart(w), source: 'hook' }); w.advance(TURN_SETTLE_MS + 50); await w.run();
   assert.equal(w.channel.get(KEY)?.state, 'waiting'); assert.deepEqual(w.woken, []);
 });
 test('M28 T010: an unconfirmed Stop (barrier) still ends the interrupted turn; only the user queue is delivered', async () => {
@@ -46,7 +52,7 @@ test('M28 T010: an unconfirmed Stop (barrier) still ends the interrupted turn; o
   const ref = w.channel.interruption(KEY)!.turnRef!;
   w.channel.suspend(KEY, 'p'); w.channel.interruptionPending(KEY, ref, true); w.channel.interruptionPending(KEY, ref, false, 'failed');
   assert.equal(w.channel.interruption(KEY)?.barrier, true);
-  w.set({ state: 'idle', at: w.now() + 10, source: 'interrupt' }); w.advance(TURN_SETTLE_MS + 20); await w.run();
+  w.set({ state: 'idle', at: afterStart(w), source: 'interrupt' }); w.advance(TURN_SETTLE_MS + 20); await w.run();
   assert.equal(w.channel.get(KEY)?.state, 'waiting', 'the barrier no longer keeps working');
   assert.equal(w.channel.interruption(KEY)?.barrier, false, 'the user message released it');
   assert.deepEqual(w.woken, [KEY]);
@@ -56,7 +62,7 @@ test('M28 T010: under a barrier a service message stays held; a Stop still in fl
   w.channel.enqueue(KEY, 'autopilot continue', 'autopilot', 'p');
   const ref = w.channel.interruption(KEY)!.turnRef!;
   w.channel.suspend(KEY, 'p'); w.channel.interruptionPending(KEY, ref, true);
-  w.set({ state: 'idle', at: w.now() + 10, source: 'interrupt' }); w.advance(TURN_SETTLE_MS + 20); await w.run();
+  w.set({ state: 'idle', at: afterStart(w), source: 'interrupt' }); w.advance(TURN_SETTLE_MS + 20); await w.run();
   assert.equal(w.channel.get(KEY)?.state, 'working', 'the Stop in flight decides');
   w.channel.interruptionPending(KEY, ref, false, 'failed'); await w.run();
   assert.equal(w.channel.get(KEY)?.state, 'waiting');

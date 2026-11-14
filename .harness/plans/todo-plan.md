@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 926,
+  "revision": 928,
   "rounds": [
     {
       "digest": {
@@ -961,7 +961,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R3",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Сделать тесты M28 устойчивыми на Windows",
       "why": "CI точного SHA поставки 0.13.2 (afba623): macOS и Linux зелёные, Windows x64 и ARM64 упали только в тестах — POSIX-путь подставленных darwin/linux из временной папки Windows, зависимость теста барьера от миллисекунд, гонка чтения журнала событий Kimi"
     },
@@ -1028,8 +1028,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 16/19
-- Revision: 926
+- Progress: 17/19
+- Revision: 928
 
 ## Objective
 
@@ -1123,7 +1123,7 @@ Digest: Claude: discovery каталога повторяется при сво�
 
 ### R3 — Тесты M28 на Windows (fixes, OPEN)
 
-- [TODO] T016 — Сделать тесты M28 устойчивыми на Windows (work)
+- [DONE] T016 — Сделать тесты M28 устойчивыми на Windows (work)
   - Commit: test: make the M28 and Kimi delivery tests stable on Windows
   - Files: product-parts/backend-core/clusters/runtime/modules/cli/test/auto-compact-context.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/turn-reconcile.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/messages.test.ts
   - Depends on: T015

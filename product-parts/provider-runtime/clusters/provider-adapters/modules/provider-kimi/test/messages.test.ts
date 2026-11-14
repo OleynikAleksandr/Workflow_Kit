@@ -114,6 +114,8 @@ test('sendMessage handles a session of another server (40931) and a session to r
     assert.equal(await provider.sendMessage!(project, 'session_1', 'held', { id: 'd2' }), false);
     assert.equal(seen(prompts).length, 3 + 4);
     assert.match((await note()) ?? '', /^сообщение не доставлено: Kimi: .*код 40931/);
+    // The event log is appended asynchronously; a slow disk (Windows CI) may need a moment.
+    for (let i = 0; i < 50 && !(await events()).includes('kimi.delivery.refused'); i++) await new Promise((r) => setTimeout(r, 20));
     assert.ok((await events()).includes('kimi.delivery.refused'));
 
     api.fail(prompts, 40932, 1);

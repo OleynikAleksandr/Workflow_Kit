@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T002",
   "lastClosed": {
     "closedAt": "2026-11-14T16:26:05.681Z",
     "scopeId": "m30-claude-feed-quiet"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 982,
+  "revision": 984,
   "rounds": [
     {
       "digest": null,
@@ -155,14 +155,16 @@
         "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src",
         "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test",
         "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md",
-        "docs/architecture/OS-MATRIX.md"
+        "docs/architecture/OS-MATRIX.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/review-wiring.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md"
       ],
       "fixes": null,
       "id": "T002",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "Автор предложения: ревью один раз",
       "why": "A new session asks about or starts a second review of an already reviewed proposal"
     },
@@ -382,9 +384,9 @@
 - Scope: m31-plan-in-any-session (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: none
+- Current task: T002
 - Progress: 1/8
-- Revision: 982
+- Revision: 984
 
 ## Objective
 
@@ -405,9 +407,9 @@ An unstarted plan belongs to the project: its mode choice card and ready plan ca
 - [DONE] T001 — Kit 2.2.5: команда scope:owner (work)
   - Commit: feat(kit): move the plan owner with scope:owner
   - Files: product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/src, product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/test, product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-payload.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/test, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/src/bundle-meta.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/test, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md, docs/architecture/workflow-kit/WorkflowKitCommands.md, docs/architecture/OS-MATRIX.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/tests.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/test/workflow-installer-payload.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-cli-execution.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-scope-owner.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/workflow-kit-facade.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-owner.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/src/plan-owner.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/src/workflow-plan-facade.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/PROVENANCE, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/workflow-kit-2.2.4.mjs.gz, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/workflow-kit-2.2.5.mjs.gz
-- [TODO] T002 — Автор предложения: ревью один раз (work)
+- [IN_PROGRESS] T002 — Автор предложения: ревью один раз (work)
   - Commit: fix(review): review a proposal only from its author session
-  - Files: product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, docs/architecture/OS-MATRIX.md
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, docs/architecture/OS-MATRIX.md, product-parts/backend-core/clusters/runtime/modules/cli/src/review-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md
   - Depends on: T001
 - [TODO] T003 — Служба: выбор и старт из любой сессии (work)
   - Commit: fix(autopilot): choose and start the plan from any session of the project

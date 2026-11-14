@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T011",
   "lastClosed": {
     "closedAt": "2026-11-14T07:04:08.120Z",
     "scopeId": "m27-claude-native-controls"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 904,
+  "revision": 906,
   "rounds": [
     {
       "digest": null,
@@ -532,7 +532,7 @@
     },
     {
       "acceptance": [
-        "Живой сценарий на Mac в своём временном проекте Kit, не больше 2 коротких ходов Haiku с очисткой: Stop в диалоге и во время генерации подтверждается, канал выходит из working, очередь уходит сразу после прерывания, сообщение свободному агенту получает sent и начинает ход.",
+        "Живой сценарий на Mac в своём временном проекте Kit, не больше 3 коротких ходов Haiku (всего по M28 не больше 6: T001 — 2, T007 — 1) с очисткой: Stop в диалоге и во время генерации подтверждается, канал выходит из working, очередь уходит сразу после прерывания, сообщение свободному агенту получает sent и начинает ход.",
         "Evidence содержит команды, результаты, израсходованные ходы (всего по M28 не больше 6) и границы: ответ на вопрос о плане и Stop из приложения Claude."
       ],
       "checks": [],
@@ -559,7 +559,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "Повторить живую проверку Stop и доставки на Claude",
       "why": "Живой сценарий T007 не прошёл из-за дефекта; его надо повторить после T010"
     },
@@ -696,9 +696,9 @@
 - Scope: m28-claude-controls-fixes (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: none
+- Current task: T011
 - Progress: 8/12
-- Revision: 904
+- Revision: 906
 
 ## Objective
 
@@ -749,7 +749,7 @@
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/interrupt-control.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/interrupt-worker.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/host.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/win-host.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/interrupt.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/interrupt.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/turn-interruption.ts, product-parts/backend-core/clusters/runtime/modules/cli/test, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/turn-control.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/turn-state.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, docs/architecture/CONTRACTS.md, docs/architecture/OVERVIEW.md, product-parts/backend-core/clusters/runtime/modules/cli/test/turn-interruption.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/turn-reconcile.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/interrupt-control.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/interrupt.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/windows.test.ts
   - Depends on: T007
   - Fixes: T005
-- [TODO] T011 — Повторить живую проверку Stop и доставки на Claude (work)
+- [IN_PROGRESS] T011 — Повторить живую проверку Stop и доставки на Claude (work)
   - Commit: test(claude): repeat the live Stop and delivery check
   - Files: docs/evidence/M28-claude-controls-fixes.md, docs/evidence/M28, docs/design/M28-claude-fixes-facts.md, design-qa.md
   - Depends on: T010

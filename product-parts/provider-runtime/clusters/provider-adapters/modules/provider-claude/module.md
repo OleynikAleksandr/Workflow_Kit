@@ -243,7 +243,7 @@ Capability `interruptTurn` требует доступного pty. Необяз
 без stopSession, kill и автоматического resume. Нужны живой управляемый процесс и свежий
 снимок его экрана; у внешней или старой сессии без протокола — видимая причина отказа.
 Полный контракт, файлы управления, подтверждения и ограничения — [interrupt.md](interrupt.md).
-Кэш доступности и подтверждение по кадру (M28/T010) — interrupt.md.
+Кэш и подтверждение Stop (M28/T010) — interrupt.md.
 Старый полный контракт сессий сохранён в [sessions.md](sessions.md).
 
 | macOS | Linux | Windows x64/ARM64 |
@@ -329,4 +329,4 @@ M28/T004: доставка и `turnState` — sessions.md.
 
 M28/T005: Stop весь ход — interrupt.md.
 
-M28/T010: Stop по кадру, кэш без списка — interrupt.md.
+M28/T010, T012: Stop по кадру, до занятого движка — interrupt.md.

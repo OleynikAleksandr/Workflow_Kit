@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 909,
+  "revision": 911,
   "rounds": [
     {
       "digest": null,
@@ -596,14 +596,15 @@
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/parameters.md",
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md",
         "docs/architecture/CONTRACTS.md",
-        "docs/architecture/OVERVIEW.md"
+        "docs/architecture/OVERVIEW.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/stop-priority.test.ts"
       ],
       "fixes": "T010",
       "id": "T012",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Обрабатывать Stop раньше занятости движка параметров",
       "why": "Живая проверка T011: пока движок параметров занят (discovery, флаг unsafe до 10 с), хост не читает запрос Stop и не пишет состояние экрана; Stop получает 504, Esc уходит после тайм-аута"
     },
@@ -776,8 +777,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 9/14
-- Revision: 909
+- Progress: 10/14
+- Revision: 911
 
 ## Objective
 
@@ -832,9 +833,9 @@
   - Commit: test(claude): repeat the live Stop and delivery check
   - Files: docs/evidence/M28-claude-controls-fixes.md, docs/evidence/M28, docs/design/M28-claude-fixes-facts.md, design-qa.md, docs/evidence/M28/t011-harness.md, docs/evidence/M28/t011-live.json
   - Depends on: T010
-- [TODO] T012 — Обрабатывать Stop раньше занятости движка параметров (work)
+- [DONE] T012 — Обрабатывать Stop раньше занятости движка параметров (work)
   - Commit: fix(claude): handle Stop before a busy parameter engine
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/interrupt-control.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/interrupt-worker.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/host.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-engine.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-files.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/interrupt.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/parameters.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, docs/architecture/CONTRACTS.md, docs/architecture/OVERVIEW.md
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/interrupt-control.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/interrupt-worker.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/host.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-engine.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-files.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/interrupt.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/parameters.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, docs/architecture/CONTRACTS.md, docs/architecture/OVERVIEW.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/stop-priority.test.ts
   - Depends on: T011
   - Fixes: T010
 - [TODO] T013 — Живая проверка Stop и доставки после T012 (work)

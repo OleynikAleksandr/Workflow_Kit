@@ -45,6 +45,15 @@ export function screenState(screen: TerminalScreen): ScreenState {
   return 'unknown';
 }
 
+/**
+ * Whether a host step handles Stop although the parameter engine is busy (M28 T012): a Stop request or
+ * an Esc waiting for its proof goes first, unless a transaction still cleans up (its Esc or clear in
+ * this step) or a user's file takes its 2 s yield.
+ */
+export function stopFirst(stopping: boolean, transacting: boolean, cleanup: boolean, userFile: boolean): boolean {
+  return stopping && !transacting && !cleanup && !userFile;
+}
+
 export class InterruptControl {
   readonly screen = new TerminalScreen();
   private epoch = 0;
@@ -80,6 +89,8 @@ export class InterruptControl {
     if (!this.write('\x1b')) { this.pending = null; return { id: request.id, status: 'unavailable', reason: 'Терминал не принял команду' }; }
     return null;
   }
+  /** An Esc was sent and waits for its proof: every host step must poll it (M28 T012). */
+  get stopping(): boolean { return this.pending !== null; }
   cancel(): HostResult | null {
     const pending = this.pending; this.pending = null;
     return pending ? { id: pending.request.id, status: 'unavailable', reason: 'Экран Claude изменился перед отправкой команды' } : null;

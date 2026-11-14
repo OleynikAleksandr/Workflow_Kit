@@ -4,7 +4,7 @@
 // of expect. Pure logic with injected terminal, files and clock; win-host.ts runs it for real.
 import { ParameterHost } from './parameter-files.ts';
 import { randomUUID } from 'node:crypto';
-import { InterruptControl, REQUEST_SUFFIX, RESULT_SUFFIX, STATE_SUFFIX } from './interrupt-control.ts';
+import { InterruptControl, REQUEST_SUFFIX, RESULT_SUFFIX, STATE_SUFFIX, stopFirst } from './interrupt-control.ts';
 import type { HostRequest } from './interrupt-control.ts';
 import { DIALOG, ENVIRONMENT_ID, NOT_TRUSTED, PANEL_SESSION_ENV, PASTE_END, PASTE_ENTER_MS, PASTE_START, SESSION_URL, TEXT_FILE_SUFFIX, WAKE_FILE_SUFFIX, WAKE_TEXT, dialogKind, notNowKeys, offerQuestion, screenText } from './screen.ts';
 
@@ -166,12 +166,17 @@ export function runHost(mode: HostMode, deps: HostDeps, timings: HostTimings = H
       await deps.sleep(parameters?.busy ? Math.min(100, timings.pollMs) : timings.pollMs);
       if (phase !== 'running') break;
       if (parameters && deps.readFile) {
-        if (await deps.readFile(mode.debug + REQUEST_SUFFIX)) parameters.engine.cancel();
+        const stopRequested = Boolean(await deps.readFile(mode.debug + REQUEST_SUFFIX));
+        if (stopRequested) parameters.engine.cancel();
         const legacy = (await Promise.all(['.text', '.message', '.rename'].map(s => deps.readFile!(mode.debug + s)))).some(v => v !== null);
         if (legacy) parameters.userInput();
         const action = await parameters.poll(!legacy);
         if (action) parameters.write(action, text => term.write(text));
-        if (legacy ? parameters.engine.yieldToUser() : parameters.busy) continue;
+        // Stop goes before a busy engine; the screen state is written either way (M28 T012).
+        if ((legacy ? parameters.engine.yieldToUser() : parameters.busy) && !stopFirst(stopRequested || interrupt.stopping, parameters.engine.transacting, action !== null, legacy)) {
+          if (deps.putFile) await deps.putFile(`${mode.debug}${STATE_SUFFIX}`, interrupt.snapshot()).catch(() => undefined);
+          continue;
+        }
       }
       if (deps.putFile) try {
         interrupt.turnWorking = parameters?.engine.turnWorking ?? false;

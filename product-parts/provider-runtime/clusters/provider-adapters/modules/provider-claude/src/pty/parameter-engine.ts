@@ -98,6 +98,8 @@ export class ParameterEngine {
   get turnWorking(): boolean { return this.turn?.state === 'working'; }
   current(): ParameterFrame { return this.frame; }
   get busy(): boolean { return this.request !== null || this.unsafe; }
+  /** A transaction still owns the input (its own cleanup included); `unsafe` alone does not (M28 T012). */
+  get transacting(): boolean { return this.request !== null; }
   private empty(): boolean { return this.frame.input === '' || this.frame.placeholder; }
   private ready(): boolean {
     return !!this.meta && supportedNativeVersion(this.meta.cliVersion) && this.frame.kind === 'idle' && !this.turnWorking

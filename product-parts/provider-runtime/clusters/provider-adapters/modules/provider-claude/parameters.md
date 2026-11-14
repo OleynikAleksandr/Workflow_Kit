@@ -60,3 +60,6 @@ statusline принимаются и из подпапки папки сесси
 агента. Работа на экране 2.1.325 — строка `WORKING_LINE` над вводом (`· Слово… (…)`),
 строка ввода ищется от последней непустой строки экрана. Фикстуры —
 `test/fixtures/m28/claude-2.1.325-frames.json`. Одинаково на macOS, Linux и Windows.
+
+M28/T012: `ParameterEngine.transacting` — транзакция ещё владеет вводом; `busy` = транзакция
+или `unsafe`. Шаг Stop хоста ждёт только `transacting`, не `unsafe` (interrupt.md).

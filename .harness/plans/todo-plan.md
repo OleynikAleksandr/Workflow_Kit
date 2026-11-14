@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "DOCS-R1",
   "lastClosed": {
     "closedAt": "2026-11-14T16:26:05.681Z",
     "scopeId": "m30-claude-feed-quiet"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 991,
+  "revision": 993,
   "rounds": [
     {
       "digest": null,
@@ -324,14 +324,18 @@
         "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md",
         "product-parts/control-panel/clusters/web-panel/modules/session-view/module.md",
         "design-qa.md",
-        "docs/evidence/M31-plan-in-any-session.md"
+        "docs/evidence/M31-plan-in-any-session.md",
+        "docs/architecture/CONTRACTS.md",
+        "product-parts/backend-core/clusters/projects/cluster.md",
+        "product-parts/backend-core/clusters/projects/modules/project-setup/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/connected-modules.md"
       ],
       "fixes": null,
       "id": "DOCS-R1",
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -404,9 +408,9 @@
 - Scope: m31-plan-in-any-session (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: none
+- Current task: DOCS-R1
 - Progress: 5/8
-- Revision: 991
+- Revision: 993
 
 ## Objective
 
@@ -443,9 +447,9 @@ An unstarted plan belongs to the project: its mode choice card and ready plan ca
   - Commit: test: record the plan owner move with the built Kit
   - Files: docs/evidence/M31-plan-in-any-session.md, docs/evidence/M31
   - Depends on: T004
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [IN_PROGRESS] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
-  - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M31-plan-in-any-session.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md, docs/architecture/workflow-kit/WorkflowKitCommands.md, docs/architecture/OS-MATRIX.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, design-qa.md, docs/evidence/M31-plan-in-any-session.md
+  - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M31-plan-in-any-session.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md, docs/architecture/workflow-kit/WorkflowKitCommands.md, docs/architecture/OS-MATRIX.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, design-qa.md, docs/evidence/M31-plan-in-any-session.md, docs/architecture/CONTRACTS.md, product-parts/backend-core/clusters/projects/cluster.md, product-parts/backend-core/clusters/projects/modules/project-setup/module.md, product-parts/backend-core/clusters/runtime/modules/cli/connected-modules.md
   - Depends on: T001, T002, T003, T004, T005
 - [TODO] T006 — Поставка 0.13.5 и локальная установка (delivery)
   - Commit: chore: release 0.13.5

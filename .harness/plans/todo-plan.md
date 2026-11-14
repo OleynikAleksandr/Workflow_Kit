@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 965,
+  "revision": 967,
   "rounds": [
     {
       "digest": null,
@@ -125,14 +125,15 @@
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/parameter-controls.ts",
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test",
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md",
-        "docs/architecture/OS-MATRIX.md"
+        "docs/architecture/OS-MATRIX.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parameter-controls.test.ts"
       ],
       "fixes": null,
       "id": "T002",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Служба: модель без выбора усилия",
       "why": "A known empty effort list must not wait forever"
     },
@@ -273,8 +274,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 1/6
-- Revision: 965
+- Progress: 2/6
+- Revision: 967
 
 ## Objective
 
@@ -294,9 +295,9 @@ Claude Desktop shows no service /effort or 'Kept model' lines from the Kit host:
 - [DONE] T001 — Хост: усилие и каталог через меню /model (work)
   - Commit: fix: read and change Claude effort in the model menu without /effort
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/native-parameters.md, docs/architecture/OS-MATRIX.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-engine.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-menu.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-screen.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parameter-engine.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parameter-wanted.test.ts
-- [TODO] T002 — Служба: модель без выбора усилия (work)
+- [DONE] T002 — Служба: модель без выбора усилия (work)
   - Commit: fix: explain a Claude model without effort choice
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/parameter-controls.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, docs/architecture/OS-MATRIX.md
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/parameter-controls.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, docs/architecture/OS-MATRIX.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parameter-controls.test.ts
   - Depends on: T001
 - [TODO] T003 — Живая проверка: переписка без /effort и Kept model (work)
   - Commit: test: record a quiet Claude transcript for model and effort changes

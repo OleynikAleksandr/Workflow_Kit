@@ -46,5 +46,5 @@
 | M29: хост применяет желаемые параметры Claude в фоне, каталог на версию CLI | expect-хост | expect-хост, injected linux | ConPTY, `rename` с повтором при `EPERM` |
 | M29: служба отвечает на выбор Claude сразу, кэш каталога в `stateDir` | общий Node-код | то же, injected linux | то же, injected win32 |
 | M29: меню Claude открыто во время ответа, выбор сразу с пометкой, откат при отказе | общий ES-код | то же | то же |
-| M30: усилие Claude читается и меняется в меню `/model`, выход клавишей `s`, без `/effort` | expect-хост | то же, injected linux | ConPTY, те же `NATIVE_KEYS` |
+| M30: усилие Claude читается и меняется в меню `/model`, выход клавишей `s`, без `/effort`; модель без усилия — причина в меню | expect-хост | то же, injected linux | ConPTY, те же `NATIVE_KEYS` |
 | M29: диалог «Switch model?», подтверждение модели строкой Claude, опрос занятого хоста раз в 100 мс | expect-хост, темп в Node-помощнике | то же | ConPTY, `runHost` спит 100 мс |

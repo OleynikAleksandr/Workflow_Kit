@@ -6,7 +6,7 @@ import path from 'node:path';
 import { test } from 'node:test';
 import type { Project, SessionParameters } from '#provider-registry';
 import type { ClaudeRuntime } from '../src/runtime.ts';
-import { CATALOG_PENDING, EFFORTS_PENDING, HOST_REQUIRED, createClaudeControls, nativeClaudeParameters, pendingNote } from '../src/parameter-controls.ts';
+import { CATALOG_PENDING, EFFORTS_PENDING, HOST_REQUIRED, NO_EFFORTS, createClaudeControls, nativeClaudeParameters, pendingNote } from '../src/parameter-controls.ts';
 import { CATALOG_CACHE } from '../src/native-wanted.ts';
 import { FAST_REASON, PARAMETER_CATALOG, PARAMETER_STATE, PARAMETER_WANTED } from '../src/pty/parameter-protocol.ts';
 import type { NativeCatalog, NativeParameterState } from '../src/pty/parameter-protocol.ts';
@@ -49,6 +49,16 @@ test('M28 T014 kept: one reason per menu, never under the options', () => {
   assert.equal(p.items.find(i => i.id === 'model')!.options?.every(o => !o.disabled && !o.reason), true);
   assert.equal(p.items.find(i => i.id === 'effort')!.options?.length, 0);
   assert.equal(nativeClaudeParameters(base, { ...n, models: [] }).reason, CATALOG_PENDING);
+});
+
+test('M30: a model known to have no effort row shows no options and says so', () => {
+  const n = { ...native(), efforts: [] as string[] };
+  const label = n.model!.label;
+  const catalog = { version: 1 as const, cliVersion: n.cliVersion, primaryLast: 5, models: [], efforts: { [label]: { values: [], recommended: null, ultracode: false } } };
+  const p = nativeClaudeParameters(base, n, { catalog });
+  assert.equal(p.reason, NO_EFFORTS); assert.equal(p.items.find(i => i.id === 'effort')!.options?.length, 0);
+  assert.equal(p.items.find(i => i.id === 'ultracode')!.options?.every(o => o.disabled), true, 'no Ultracode without an effort row');
+  assert.equal(nativeClaudeParameters(base, n, { catalog: { ...catalog, efforts: {} } }).reason, EFFORTS_PENDING, 'unknown levels still wait');
 });
 
 async function world(platform: NodeJS.Platform) {

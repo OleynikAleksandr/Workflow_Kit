@@ -17,6 +17,8 @@ export const CLAUDE_MODES = [
 /** The catalog is read once on a free, empty Claude input and then cached (M28 T014, M29). */
 export const CATALOG_PENDING = 'Список моделей Claude появится, когда Claude будет свободен';
 export const EFFORTS_PENDING = 'Варианты усилия появятся, когда Claude будет свободен';
+/** M30: the /model menu shows no effort row for this model (for example Haiku 4.5). */
+export const NO_EFFORTS = 'У этой модели нет выбора усилия';
 /** M29 3.3: a session without a live host that reads the wanted file stays read-only. */
 export const HOST_REQUIRED = 'Управление доступно для сессий, запущенных панелью Workflow Kit 0.13.3 или новее';
 /** How long a failed choice stays in `failures` (M29 3.3). */
@@ -40,7 +42,8 @@ export function nativeClaudeParameters(base: SessionParameters, state: NativePar
   const efforts = state.efforts.length ? state.efforts : known?.values ?? [];
   const recommended = state.efforts.length ? state.effortRecommended : known?.recommended ?? null;
   const ultraAvailable = state.efforts.length ? state.ultracodeAvailable === true : known?.ultracode === true;
-  const reason = !models.length ? CATALOG_PENDING : !efforts.length ? EFFORTS_PENDING : undefined;
+  const noEfforts = !state.efforts.length && known?.values.length === 0;
+  const reason = !models.length ? CATALOG_PENDING : noEfforts ? NO_EFFORTS : !efforts.length ? EFFORTS_PENDING : undefined;
   const note = pendingNote(state);
   const items: ParameterItem[] = [];
   const add = (id: ParameterId, value: string | null, label: string, inRow: boolean, tone: ParameterItem['tone'] = 'primary'): ParameterItem => {

@@ -3,7 +3,8 @@
 import type { AgentClient } from './hook-input.ts';
 import { newTurnState } from './turn-state.ts';
 import type { TurnState } from './turn-state.ts';
-import type { ActivityState, IdleListener, QueuedMessage, SessionActivity, StopContext, StopDecision, TurnEndEvent, TurnOrigin } from './types.ts';
+import { QUEUED_TEXT_MAX, QUEUED_VIEW_MAX, USER_MESSAGE_SOURCE } from './types.ts';
+import type { ActivityState, IdleListener, QueuedMessage, QueuedView, SessionActivity, StopContext, StopDecision, TurnEndEvent, TurnOrigin } from './types.ts';
 
 type Timer = ReturnType<typeof setTimeout>;
 
@@ -69,6 +70,7 @@ export function newSlot(key: string, client: AgentClient, sessionId: string, pro
       holdUntil: null,
       note: null,
       external: false,
+      queued: [],
     },
     queue: [],
     wake: null,
@@ -92,6 +94,19 @@ export function newSlot(key: string, client: AgentClient, sessionId: string, pro
 /** Messages waiting for delivery: the queue and the ones inside an unsent outbox. */
 export function pendingOf(slot: Slot): number {
   return slot.queue.length + (slot.outbox?.messages.length ?? 0);
+}
+
+/** The user's panel messages still waiting (an unsent outbox first: it was queued earlier). */
+export function queuedOf(slot: Slot): QueuedView[] {
+  return [...(slot.outbox?.messages ?? []), ...slot.queue]
+    .filter((message) => message.source === USER_MESSAGE_SOURCE)
+    .slice(0, QUEUED_VIEW_MAX)
+    .map((message) => ({ id: message.id, text: message.text.slice(0, QUEUED_TEXT_MAX), at: message.createdAt }));
+}
+
+/** The public activity of a slot: a copy with its current queue view. */
+export function activityOf(slot: Slot): SessionActivity {
+  return { ...slot.activity, queued: queuedOf(slot) };
 }
 
 /** What the detached path needs from the channel. */

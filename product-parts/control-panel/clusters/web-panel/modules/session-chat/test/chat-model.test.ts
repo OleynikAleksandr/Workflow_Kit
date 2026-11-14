@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { test } from 'node:test';
 import { SESSION_CHAT_ASSETS_DIR, SESSION_CHAT_PREFIX, sessionChatMount } from '../src/index.ts';
-import { SEND_MAX_CHARS, TRUNCATED_TEXT, canSend, errorText, localIdOf, mergePage, messagesUrl, roleLabel, sendOutcome, sendUrl, timeLabel, unsupportedText } from '../src/chat-model.js';
+import { SEND_MAX_CHARS, TRUNCATED_TEXT, canSend, errorText, localIdOf, mergePage, messagesUrl, roleLabel, sendUrl, timeLabel, unsupportedText } from '../src/chat-model.js';
 
 const msg = (id: string, role: 'user' | 'assistant', text: string, at: string | null = null) => ({ id, role, text, at });
 
@@ -53,11 +53,6 @@ test('mergePage: the first page, new messages, no change, changed text and a sli
   const bad = mergePage(null, { messages: [{ id: 1, role: 'user', text: 'x' }, { id: 'a', role: 'system', text: 'x' }, { id: 'b', role: 'assistant', text: 'ok', at: 5 }] });
   assert.deepEqual(bad.messages, [msg('b', 'assistant', 'ok', null)], 'malformed items are dropped, a non-string time is null');
   assert.deepEqual(mergePage([], null).messages, []);
-});
-
-test('sendOutcome: sent or queued', () => {
-  assert.equal(sendOutcome({ sent: true }), 'Отправлено агенту');
-  assert.equal(sendOutcome({ queued: 'q1' }), 'В очереди: агент получит сообщение в конце хода или с вашим следующим сообщением в чате');
 });
 
 test('canSend: text present, within the limit and no send under way', () => {

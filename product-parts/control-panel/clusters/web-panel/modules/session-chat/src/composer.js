@@ -1,5 +1,5 @@
 // @ts-check
-import { canSend, errorText, sendOutcome, sendUrl } from './chat-model.js';
+import { canSend, errorText, sendUrl } from './chat-model.js';
 import { createParameters } from './parameters.js';
 import { DELIVERY_CONFIRM_MS, NOT_DELIVERED_TEXT, composerData, createInputKeys, effectiveTurn, interruptUrl, isStaleTurn, mayClearDraft, undelivered } from './composer-model.js';
 
@@ -41,7 +41,7 @@ export function createComposer({ shell, projectId, key, provider, onSent }) {
     h('span', { title: 'Режим: нет данных', 'aria-label': 'Режим: нет данных' }, ['—']),
     h('span', { class: 'sc-context', role: 'img', title: 'Контекст: нет данных', 'aria-label': 'Контекст: нет данных' }, [icon('circle')]),
   ]);
-  const availability = h('p', { class: 'sc-availability sc-note' });
+  // Only an error after the user's own action is shown under the input (M28 3.5).
   const status = h('p', { class: 'sc-status', role: 'status', 'aria-live': 'polite' });
   status.hidden = true;
   const editor = h('div', {class:'sc-editor'}, [plus, input, action, microphone]);
@@ -53,7 +53,7 @@ export function createComposer({ shell, projectId, key, provider, onSent }) {
   }});
   details.append(parameterView.node);
   const node = h('div', { class: 'sc-compose' }, [
-    editor, details, availability, status,
+    editor, details, status,
   ]);
 
   function turn() { return effectiveTurn(data.turn, confirmedRef); }
@@ -63,15 +63,13 @@ export function createComposer({ shell, projectId, key, provider, onSent }) {
     const pending = busy !== null || current.pending;
     const stopping = busy === 'stop' || current.pending;
     // Stop stays pressable for the whole turn (M28 3.4); a reason is shown only after the press.
-    const title = working ? (stopping ? 'Останавливаю…' : 'Остановить ответ') : 'Отправить сообщение';
+    const title = working ? 'Остановить ответ' : 'Отправить сообщение';
     action.setAttribute('aria-label', title);
     action.title = title;
     action.classList.toggle('sc-stop', working);
     action.firstElementChild?.setAttribute('class', `sc-icon sc-icon-${working ? 'stop' : 'enter'}`);
     action.disabled = working ? pending || !current.turnRef : !canSend(input.value, pending);
-    action.setAttribute('aria-busy', String(stopping));
-    availability.textContent = '';
-    availability.hidden = !availability.textContent;
+    action.setAttribute('aria-busy', String(stopping || busy === 'send'));
     input.title = working ? 'Enter — новая строка; Ctrl+Enter или ⌘+Enter — в очередь' : 'Enter — отправить; Shift+Enter — новая строка';
     queue.hidden = !working || !input.value.trim();
     queue.disabled = !canSend(input.value, pending);
@@ -97,11 +95,10 @@ export function createComposer({ shell, projectId, key, provider, onSent }) {
     const revision = draftRevision;
     busy = 'send';
     refresh();
-    report('Отправляю…', 'muted');
+    report('', 'muted');
     try {
       const response = await shell.api('POST', sendUrl(projectId, key), { text });
       if (mayClearDraft(revision, draftRevision, text, input.value)) input.value = '';
-      report(sendOutcome(response), 'ok');
       if (response && typeof response === 'object' && 'queued' in response && data.turn.state === 'waiting') watchDelivery(text);
       onSent();
       void parameterView.refresh();
@@ -141,7 +138,7 @@ export function createComposer({ shell, projectId, key, provider, onSent }) {
     const target = current.turnRef;
     busy = 'stop';
     refresh();
-    report('Останавливаю…', 'muted');
+    report('', 'muted');
     try {
       const result = await shell.api('POST', interruptUrl(projectId, key), { turnRef: target });
       if (result?.stopped !== true || !['interrupted', 'already-idle'].includes(result.status)) {
@@ -149,17 +146,15 @@ export function createComposer({ shell, projectId, key, provider, onSent }) {
       }
       // A late response cannot stop a newer generation in the UI.
       confirmedRef = target;
-      report(result.status === 'already-idle' ? 'Ответ уже завершён' : 'Ответ остановлен', 'ok');
     } catch (error) {
       if (isStaleTurn(error)) {
-        report('Ход сменился. Обновляю состояние…', 'muted');
+        // The turn changed: the button shows the new one; Stop is pressed again by the user.
         const revision = stateRevision;
         try {
           // shell.api retains error codes but not error.current. Recover through the public state;
           // an intervening shell poll wins over this read. Never retry an interrupt implicitly.
           const state = await shell.api('GET', '/api/state');
           if (stateRevision === revision) update(composerData(state, projectId, key, provider));
-          report('Ход сменился. Для остановки текущего ответа нажмите Stop ещё раз', 'muted');
         } catch (readError) { report(errorText(readError), 'error'); }
       } else report(errorText(error), 'error');
     } finally {

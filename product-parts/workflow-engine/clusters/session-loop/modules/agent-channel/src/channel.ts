@@ -8,7 +8,7 @@ import { createDetached } from './detached.ts';
 import { createTurnControl } from './turn-control.ts';
 import { acceptTurn, beginTurn, ownPrompt, reserveTurn } from './turn-state.ts';
 import { blockAnswer, promptAnswer, sessionKey } from './hook-input.ts';
-import { newSlot, pendingOf } from './slots.ts';
+import { activityOf, newSlot, pendingOf } from './slots.ts';
 import type { ChannelCore, Slot } from './slots.ts';
 import { LAST_MESSAGE_CHARS, STOP_HOLD_MS } from './types.ts';
 import type { ActivityState, AgentChannel, AgentChannelOptions, HookReply, IdleListener, QueuedMessage, SessionActivity, StopContext, StopDecider, StopDecision, StopEvent, StopListener, TurnOrigin } from './types.ts';
@@ -349,9 +349,9 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
     },
     get: (key) => {
       const slot = slots.get(key);
-      return slot && !isOut(slot) ? { ...slot.activity } : undefined;
+      return slot && !isOut(slot) ? activityOf(slot) : undefined;
     },
-    list: () => visible().map((slot) => ({ ...slot.activity })),
+    list: () => visible().map(activityOf),
     queued: (key) => {
       const slot = slots.get(key);
       return slot && !isOut(slot) ? [...slot.queue] : [];
@@ -360,7 +360,7 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
       const slot = slots.get(key);
       return Boolean(slot && !isOut(slot) && (slot.queue.some((m) => m.id === id) || slot.outbox?.messages.some((m) => m.id === id)));
     },
-    section: () => ({ sessions: visible().map((slot) => ({ ...slot.activity })) }),
+    section: () => ({ sessions: visible().map(activityOf) }),
     excluded: (key, projectId) => excludedKey(key, projectId ?? slots.get(key)?.activity.projectId ?? null),
     forget(key) {
       const slot = slots.get(key);

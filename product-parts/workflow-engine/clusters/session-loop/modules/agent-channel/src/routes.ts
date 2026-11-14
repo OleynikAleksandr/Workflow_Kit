@@ -3,7 +3,7 @@
 // session out of the Kit process) and the "channel" section of /api/state.
 import { HttpError, classifyAddress } from '#http-server';
 import type { Router, StateRegistry } from '#http-server';
-import { TURN_END_EVENTS } from './types.ts';
+import { TURN_END_EVENTS, USER_MESSAGE_SOURCE } from './types.ts';
 import type { AgentChannel, HookReply, QueuedMessage, TurnEndEvent } from './types.ts';
 import { parseHookInput } from './hook-input.ts';
 import type { HookDialects } from './hook-input.ts';
@@ -65,7 +65,7 @@ export function queueSessionMessage(
   owned = false,
 ): QueuedMessage {
   const clean = checkSessionMessage(channel, projectId, key, text, owned);
-  return channel.enqueue(key, clean, 'panel', projectId);
+  return channel.enqueue(key, clean, USER_MESSAGE_SOURCE, projectId);
 }
 
 /** True only when the direct path took the message; a thrown error counts as a refusal. */
@@ -147,7 +147,7 @@ export function registerChannelRoutes(options: ChannelRoutesOptions): void {
     channel.resumeDelivery(key); // Only a validated, explicit user message releases the barrier.
     // The direct path gives the text to the agent as a user's message; any refusal queues it.
     if (await sendDirect(options.direct, projectId, key, clean)) return { sent: true };
-    const message = messages.enqueue(key, clean, 'panel', projectId);
+    const message = messages.enqueue(key, clean, USER_MESSAGE_SOURCE, projectId);
     return { queued: message.id };
   });
   if (options.interrupt) router.post('/api/projects/:id/sessions/:sid/interrupt', ({ params, body }) => options.interrupt!(params['id']!, params['sid']!, body));

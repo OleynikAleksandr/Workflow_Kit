@@ -7,6 +7,7 @@ export type {
   HookReply,
   IdleListener,
   QueuedMessage,
+  QueuedView,
   SessionActivity,
   SessionRef,
   StopContext,
@@ -18,7 +19,7 @@ export type {
   TurnEndNotice,
   TurnOrigin,
 } from './types.ts';
-export { STOP_HOLD_MS, TURN_END_EVENTS } from './types.ts';
+export { QUEUED_TEXT_MAX, QUEUED_VIEW_MAX, STOP_HOLD_MS, TURN_END_EVENTS, USER_MESSAGE_SOURCE } from './types.ts';
 export { createAgentChannel } from './channel.ts';
 export type { TurnSnapshot, TurnControl, InterruptView, InterruptionOutcome } from './turn-state.ts';
 export { MAX_SEND_FAILURES, UNDELIVERED_NOTE } from './detached.ts';

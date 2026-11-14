@@ -38,6 +38,15 @@
   background: var(--active);
 }
 
+.sc-msg-queued {
+  border-style: dashed;
+  opacity: .8;
+}
+
+.sc-queued-label {
+  font-style: italic;
+}
+
 .sc-msg-agent {
   align-self: flex-start;
 }

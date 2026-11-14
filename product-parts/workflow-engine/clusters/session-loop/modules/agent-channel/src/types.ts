@@ -34,6 +34,24 @@ export interface SessionActivity {
    * session runs in a process outside the panel. False until the first hook (spec M19 2.2).
    */
   external: boolean;
+  /**
+   * The user's own panel messages still waiting for delivery, oldest first (M28 3.5): no service
+   * messages, at most QUEUED_VIEW_MAX, each text cut to QUEUED_TEXT_MAX characters.
+   */
+  queued: QueuedView[];
+}
+
+/** Source of a message the user typed in the panel's dialog; every other source is a service one. */
+export const USER_MESSAGE_SOURCE = 'user';
+/** Longest list and text of the queued messages shown in the panel. */
+export const QUEUED_VIEW_MAX = 20;
+export const QUEUED_TEXT_MAX = 4000;
+
+/** A queued user message as the panel shows it. */
+export interface QueuedView {
+  id: string;
+  text: string;
+  at: string;
 }
 
 /** A message queued for an agent. */

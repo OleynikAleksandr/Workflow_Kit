@@ -26,10 +26,10 @@ export function createParameters({ shell, projectId, key, provider, fallback, on
   /** @type {HTMLElement | null} */ let anchor = null;
   /** @type {{update: () => void, destroy: () => void, position?: () => void} | null} */ let nativeView = null;
   let popupKind = '';
-  let busy = false, showing = false, menu = false, readError = false;
+  let busy = false, showing = false, menu = false;
   /** @type {{ id: string, option: Option } | null} */ let confirmation = null;
   const url = parametersUrl(projectId, provider, key);
-  const poll = createParameterPoll(() => shell.api('GET', url), apply, error => { readError = true; report(errorText(error), 'error'); });
+  const poll = createParameterPoll(() => shell.api('GET', url), apply, () => {});
   /** @param {HTMLElement} container @param {HTMLElement[]} nodes */
   function reconcile(container, nodes) {
     nodes.forEach((node, index) => { if (container.childNodes[index] !== node) container.insertBefore(node, container.childNodes[index] ?? null); });
@@ -128,7 +128,6 @@ export function createParameters({ shell, projectId, key, provider, fallback, on
   }
   /** @param {any} answer */
   function apply(answer) {
-    if (readError) { readError = false; report('', 'muted'); }
     if (answer?.supported === false) { close(false); data = null; accessNode.hidden = true; onLayout?.(false); host.replaceChildren(fallback); return; }
     if (!answer?.parameters || !Array.isArray(answer.parameters.items)) return;
     const previous = JSON.stringify(data?.items); data = /** @type {Parameters} */ (answer.parameters);

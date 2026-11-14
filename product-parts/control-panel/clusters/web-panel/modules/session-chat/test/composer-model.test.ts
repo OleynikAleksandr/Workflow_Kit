@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { composerData, createInputKeys, effectiveTurn, interruptUrl, isStaleTurn, mayClearDraft, undelivered } from '../src/composer-model.js';
+import { QUEUED_MAX, composerData, createInputKeys, effectiveTurn, interruptUrl, isStaleTurn, mayClearDraft, undelivered } from '../src/composer-model.js';
 
 const event = (at = 10, more = {}) => ({ key: 'Enter', timeStamp: at, ...more });
 const turn = { state: 'working', turnRef: 'old', available: true, pending: false, reason: '' };
@@ -46,7 +46,7 @@ test('state selection uses exact project/session model and public interruptions;
   assert.equal(composerData(state, 'p', 'codex:holding', 'codex').turn.state, 'holding');
   assert.equal(composerData({}, 'p', 'codex:a:b', 'codex').turn.state, 'unknown');
   assert.equal(composerData({}, 'p', 'codex:a:b', 'codex').turn.available, false);
-  assert.deepEqual(Object.keys(selected).sort(), ['model', 'queued', 'turn'], 'no invented effort/mode/context');
+  assert.deepEqual(Object.keys(selected).sort(), ['model', 'queued', 'queuedMessages', 'turn'], 'no invented effort/mode/context');
 });
 
 test('confirmed Stop only overrides its generation; newer drafts survive success', () => {
@@ -68,4 +68,15 @@ test('M28: a message queued for a waiting agent counts as undelivered while the 
   assert.equal(undelivered(composerData({ channel: { sessions: [{ projectId: 'p', key: 'claude:s', state: 'working', pending: 1 }] } }, 'p', 'claude:s', 'claude')), false);
   assert.equal(undelivered(composerData({ channel: { sessions: [{ projectId: 'p', key: 'claude:s', state: 'waiting', pending: 0 }] } }, 'p', 'claude:s', 'claude')), false);
   assert.equal(composerData({}, 'p', 'claude:s', 'claude').queued, 0);
+});
+
+test('M28: queued user messages come from the activity; malformed ones are skipped', () => {
+  const queued = [{ id: 'a', text: 'first', at: '2026-11-14T10:00:00.000Z' }, { id: 'b', text: '  ' }, { text: 'no id' }, null,
+    ...Array.from({ length: QUEUED_MAX + 3 }, (_, i) => ({ id: `m${i}`, text: `m${i}` }))];
+  const data = composerData({ channel: { sessions: [{ projectId: 'p', key: 'claude:s', state: 'working', pending: 2, queued }] } }, 'p', 'claude:s', 'claude');
+  assert.equal(data.queuedMessages.length, QUEUED_MAX);
+  assert.deepEqual(data.queuedMessages[0], { id: 'a', text: 'first', at: '2026-11-14T10:00:00.000Z' });
+  assert.equal(data.queuedMessages[1]!.at, '');
+  assert.deepEqual(composerData({}, 'p', 'claude:s', 'claude').queuedMessages, []);
+  assert.deepEqual(composerData({ channel: { sessions: [{ projectId: 'p', key: 'claude:s', queued: 'x' }] } }, 'p', 'claude:s', 'claude').queuedMessages, []);
 });

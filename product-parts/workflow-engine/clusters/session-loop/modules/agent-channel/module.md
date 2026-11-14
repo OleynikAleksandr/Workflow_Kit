@@ -85,6 +85,11 @@
   `prompt`, `turn-end`) пришёл без метки `panelProcess`: сессию ведёт процесс вне
   панели (M19 2.2). Обновляется каждым хуком; слот без хуков (например, из
   `enqueue`) — `false`. Что из этого следует, решает служба по провайдеру.
+  `queued` (M28/T006) — `QueuedView[]` `{ id, text, at }`: только сообщения пользователя
+  (источник `USER_MESSAGE_SOURCE` = `'user'`, его ставят маршрут сообщения панели и
+  `queueSessionMessage`), сначала неотправленное исходящее, затем очередь; не больше
+  `QUEUED_VIEW_MAX` (20), текст до `QUEUED_TEXT_MAX` (4000) знаков. Служебные источники
+  (`panel` автопилота, ревью) в `queued` не входят, но считаются в `pending`.
 - `registerChannelRoutes({ router, state, channel, dialects? })`:
   `POST /api/hooks/turn-end { client, sessionId, cwd, event, panelProcess? }` → `{ ok }`
   (loopback; не `detached`-клиент, неизвестное событие или пустой

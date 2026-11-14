@@ -1,6 +1,6 @@
 // @ts-check
 // Pure logic of the «Диалог» card (spec M18 2.6): request URLs, merging a polled page into the
-// feed, labels and the outcome of a send. No DOM here; covered by node --test.
+// feed, and labels. No DOM here; covered by node --test.
 
 /**
  * One message of the session conversation as the service returns it.
@@ -101,17 +101,6 @@ export function mergePage(previous, page) {
     || before.length !== messages.length
     || messages.some((m, i) => before[i]?.id !== m.id || before[i]?.text !== m.text || before[i]?.at !== m.at);
   return { messages, added, hasNew: added.length > 0, changed };
-}
-
-/**
- * Text under the input after a successful send.
- * @param {unknown} response `{ sent: true }` or `{ queued: '<id>' }`
- * @returns {string}
- */
-export function sendOutcome(response) {
-  const r = response && typeof response === 'object' ? /** @type {Record<string, unknown>} */ (response) : null;
-  if (r?.['sent'] === true) return 'Отправлено агенту';
-  return 'В очереди: агент получит сообщение в конце хода или с вашим следующим сообщением в чате';
 }
 
 /**

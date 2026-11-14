@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { MESSAGE_MAX_CHARS, createAgentChannel, parseHookInput, queueSessionMessage, sessionKey } from '../src/index.ts';
+import { MESSAGE_MAX_CHARS, QUEUED_TEXT_MAX, QUEUED_VIEW_MAX, USER_MESSAGE_SOURCE, createAgentChannel, parseHookInput, queueSessionMessage, sessionKey } from '../src/index.ts';
 import type { HookDialects, HookInput, StopDecision } from '../src/index.ts';
 
 // Inputs as Claude 2.1.318 and codex-cli 0.166.0 send them (spec section 3).
@@ -165,8 +165,28 @@ test('a panel message is queued only for a known session of the project, non-emp
   assert.throws(() => queueSessionMessage(c, 'p1', key, 'x'.repeat(MESSAGE_MAX_CHARS + 1)), { code: 'message-too-long' });
   const message = queueSessionMessage(c, 'p1', key, '  do the task  ');
   assert.equal(message.text, 'do the task');
-  assert.equal(message.source, 'panel');
+  assert.equal(message.source, USER_MESSAGE_SOURCE);
   assert.deepEqual(c.queued(key).map((m) => m.text), ['do the task']);
+  c.close();
+});
+
+test('M28: the activity shows only the user queue, at most 20, cut texts; delivery empties it', async () => {
+  const c = channel();
+  const key = sessionKey('claude', CLAUDE_STOP.session_id);
+  (await c.stop(input('claude', CLAUDE_STOP))).ack();
+  c.enqueue(key, 'Workflow Kit: service reminder', 'panel', 'p1');
+  const long = queueSessionMessage(c, 'p1', key, 'x'.repeat(QUEUED_TEXT_MAX + 50));
+  for (let i = 0; i < QUEUED_VIEW_MAX; i += 1) queueSessionMessage(c, 'p1', key, `message ${i}`);
+  const shown = c.section().sessions.find((s) => s.key === key)!.queued;
+  assert.equal(shown.length, QUEUED_VIEW_MAX);
+  assert.ok(!shown.some((m) => m.text.includes('service')), 'service messages stay out');
+  assert.equal(shown[0]!.id, long.id);
+  assert.equal(shown[0]!.text.length, QUEUED_TEXT_MAX);
+  assert.equal(shown[0]!.at, long.createdAt);
+  assert.equal(c.get(key)!.pending, QUEUED_VIEW_MAX + 2, 'pending still counts every message');
+  const reply = await c.stop(input('claude', CLAUDE_STOP));
+  reply.ack();
+  assert.deepEqual(c.get(key)!.queued, [], 'a delivered message leaves the view');
   c.close();
 });
 

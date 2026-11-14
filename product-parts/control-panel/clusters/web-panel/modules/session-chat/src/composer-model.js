@@ -4,7 +4,21 @@ import { localIdOf, sendUrl } from './chat-model.js';
 /** @param {unknown} value @returns {Record<string, any>} */
 const object = (value) => value && typeof value === 'object' ? value : {};
 /** @typedef {{ available: boolean, reason: string, turnRef: string | null, state: string, pending: boolean }} Turn */
-/** @typedef {{ turn: Turn, model: string, queued: number }} ComposerData */
+/** @typedef {{ id: string, text: string, at: string }} QueuedMessage */
+/** @typedef {{ turn: Turn, model: string, queued: number, queuedMessages: QueuedMessage[] }} ComposerData */
+
+/** The panel shows at most this many queued messages (agent-channel QUEUED_VIEW_MAX). */
+export const QUEUED_MAX = 20;
+/** Label of a queued bubble in the feed (M28 3.5). */
+export const QUEUED_LABEL = 'в очереди';
+
+/** The user's queued panel messages of the activity; anything malformed is skipped.
+ * @param {unknown} list @returns {QueuedMessage[]} */
+export function queuedMessages(list) {
+  if (!Array.isArray(list)) return [];
+  return list.filter((m) => m && typeof m.id === 'string' && typeof m.text === 'string' && m.text.trim())
+    .slice(0, QUEUED_MAX).map((m) => ({ id: m.id, text: m.text, at: typeof m.at === 'string' ? m.at : '' }));
+}
 
 /** Only public state; a provider title is never a model name.
  * @param {Record<string, unknown>} state @param {string} projectId
@@ -27,7 +41,7 @@ export function composerData(state, projectId, key, provider) {
   const list = object(providers[provider])['sessions'];
   const info = Array.isArray(list) ? list.find((s) => s.localId === localIdOf(key)) : null;
   const queued = typeof activity?.pending === 'number' && Number.isFinite(activity.pending) ? activity.pending : 0;
-  return { turn, model: typeof info?.model === 'string' && info.model.trim() ? info.model : '—', queued };
+  return { turn, model: typeof info?.model === 'string' && info.model.trim() ? info.model : '—', queued, queuedMessages: queuedMessages(activity?.queued) };
 }
 
 /** How long a message queued for a waiting agent may stay undelivered before the panel says so (M28). */

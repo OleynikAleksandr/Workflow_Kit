@@ -6,7 +6,7 @@
 import { EMPTY_TEXT, LOADING_TEXT, POLL_MS, TRUNCATED_TEXT, errorText, mergePage, messagesUrl, roleLabel, timeLabel, unsupportedText } from './chat-model.js';
 
 import { createComposer } from './composer.js';
-import { composerData } from './composer-model.js';
+import { QUEUED_LABEL, composerData } from './composer-model.js';
 
 /**
  * Helpers the panel shell gives to extensions (see panel-shell app.js).
@@ -33,6 +33,8 @@ import { composerData } from './composer-model.js';
  * @property {ReturnType<typeof createComposer>} composer
  * @property {Map<string, HTMLElement>} nodes message nodes by id
  * @property {ChatMessage[] | null} messages null before the first page
+ * @property {import('./composer-model.js').QueuedMessage[]} queued the user's messages waiting for the agent
+ * @property {Map<string, HTMLElement>} queuedNodes bubbles of the queued messages by id
  * @property {boolean} inflight a GET is under way
  * @property {boolean} again poll once more when the GET in flight ends
  * @property {boolean} shown the card was visible at the last check
@@ -86,6 +88,50 @@ export function install(shell) {
   }
 
   /**
+   * A bubble of the user's message that waits in the channel queue (M28 3.5).
+   * @param {ChatEntry} entry
+   * @param {import('./composer-model.js').QueuedMessage} message
+   * @returns {HTMLElement}
+   */
+  function queuedNode(entry, message) {
+    const body = h('div', { class: 'sc-text' });
+    body.textContent = message.text;
+    return h('div', { class: 'sc-msg sc-msg-user sc-msg-queued', 'data-queued': message.id }, [
+      h('div', { class: 'sc-meta' }, [h('b', {}, [roleLabel('user', entry.providerLabel)]), ' ', h('span', { class: 'sc-queued-label' }, [QUEUED_LABEL])]),
+      body,
+    ]);
+  }
+
+  /**
+   * Puts the messages and, after them, the queued bubbles into the feed.
+   * @param {ChatEntry} entry
+   */
+  function layout(entry) {
+    const nodes = [...entry.nodes.values(), ...entry.queuedNodes.values()];
+    if (nodes.length === 0) entry.feed.replaceChildren(h('p', { class: 'sc-empty' }, [EMPTY_TEXT]));
+    else entry.feed.replaceChildren(...nodes);
+  }
+
+  /**
+   * Shows the queue of the channel; a bubble goes once its message is given to the agent.
+   * @param {ChatEntry} entry
+   * @param {import('./composer-model.js').QueuedMessage[]} queued
+   */
+  function applyQueued(entry, queued) {
+    if (JSON.stringify(queued) === JSON.stringify(entry.queued)) return;
+    entry.queued = queued;
+    /** @type {Map<string, HTMLElement>} */
+    const nodes = new Map();
+    for (const message of queued) nodes.set(message.id, entry.queuedNodes.get(message.id) ?? queuedNode(entry, message));
+    const feed = entry.feed;
+    const atBottom = feed.scrollHeight - feed.scrollTop - feed.clientHeight <= BOTTOM_SLACK;
+    entry.queuedNodes = nodes;
+    if (entry.messages === null || feed.hidden) return;
+    layout(entry);
+    if (atBottom) feed.scrollTop = feed.scrollHeight;
+  }
+
+  /**
    * Puts a polled page into the card.
    * @param {ChatEntry} entry
    * @param {unknown} answer
@@ -119,8 +165,7 @@ export function install(shell) {
     }
     entry.nodes = nodes;
     entry.messages = merged.messages;
-    if (nodes.size === 0) feed.replaceChildren(h('p', { class: 'sc-empty' }, [EMPTY_TEXT]));
-    else feed.replaceChildren(...nodes.values());
+    layout(entry);
     if (atBottom && (first || merged.hasNew)) feed.scrollTop = feed.scrollHeight;
     entry.version += 1;
   }
@@ -204,7 +249,7 @@ export function install(shell) {
     /** @type {ChatEntry} */
     const entry = {
       projectId, key, provider, providerLabel, root, feed, note, error, composer,
-      nodes: new Map(), messages: null, inflight: false, again: false, shown: false, lastPoll: 0, version: 0,
+      nodes: new Map(), messages: null, queued: [], queuedNodes: new Map(), inflight: false, again: false, shown: false, lastPoll: 0, version: 0,
     };
     entries.set(id, entry);
     return entry;
@@ -218,6 +263,7 @@ export function install(shell) {
     render(data, _state, session, ctx) {
       const entry = entryOf(session);
       entry.composer.update(data.composer, ctx.requestRefresh);
+      applyQueued(entry, data.composer.queuedMessages);
       // The shell attaches the element after render; poll as soon as it is in the document.
       setTimeout(() => check(entry), 0);
       return entry.root;

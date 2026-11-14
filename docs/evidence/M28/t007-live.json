@@ -1,0 +1,260 @@
+{
+ "date": "2026-11-14",
+ "platform": "darwin",
+ "claude": "2.1.325",
+ "model": "haiku (Haiku 5.5), effort low",
+ "source": "HEAD da37f04 (T006), harness docs/evidence/M28/t007-harness.md",
+ "runs": [
+  {
+   "run": 1,
+   "generatedTurns": 0,
+   "outcome": "harness error: mutating routes refused without Origin (403); no prompt reached Claude",
+   "window": {
+    "usedTokens": 0,
+    "windowTokens": 150000,
+    "usedPercent": 0,
+    "modelWindowTokens": 1000000
+   },
+   "cleanup": {
+    "t": 268.1,
+    "step": "cleanup",
+    "deleted": 1,
+    "trusted": false,
+    "processes": 0,
+    "defaultsUnchanged": true,
+    "baseRemoved": true,
+    "claudeDirRemoved": true
+   }
+  },
+  {
+   "run": 2,
+   "generatedTurns": 0,
+   "outcome": "harness error: a session without a hook is unknown to the message route (404 unknown-session, as in the panel); no prompt reached Claude",
+   "cleanup": {
+    "t": 257.8,
+    "step": "cleanup",
+    "deleted": 1,
+    "trusted": false,
+    "processes": 0,
+    "defaultsUnchanged": true,
+    "baseRemoved": true,
+    "claudeDirRemoved": true
+   }
+  },
+  {
+   "run": 3,
+   "generatedTurns": 1,
+   "outcome": "defect: Stop sent one Esc and Claude showed the interruption, but Kit answered interrupt-timeout and the channel stayed working",
+   "log": [
+    {
+     "t": 1.6,
+     "step": "launched with the first message",
+     "localId": "session_01EyVab7ugSG2gVCpfieyoq7"
+    },
+    {
+     "t": 3.8,
+     "step": "turn 1 started",
+     "key": "claude:7300ecf5-2b98-463d-8263-f4241333fa92",
+     "localKey": "claude:session_01EyVab7ugSG2gVCpfieyoq7",
+     "activity": "working"
+    },
+    {
+     "t": 5.9,
+     "step": "dialog",
+     "seen": true,
+     "interruption": {
+      "available": false,
+      "reason": "Остановите ответ в приложении Claude",
+      "turnRef": "c1d0e324-8bb2-476a-a618-7b8cdc3f2c8b",
+      "state": "working",
+      "pending": false,
+      "barrier": false,
+      "result": null
+     }
+    },
+    {
+     "t": 5.9,
+     "step": "parameter change during the turn",
+     "ok": false,
+     "code": "parameters-busy",
+     "error": "Claude ещё отвечает"
+    },
+    {
+     "t": 5.9,
+     "step": "message during the turn",
+     "status": 200,
+     "body": {
+      "queued": "76eea5d8-504f-490d-87b4-a35a2ad7a3bb"
+     },
+     "pending": 1,
+     "queued": [
+      {
+       "id": "76eea5d8-504f-490d-87b4-a35a2ad7a3bb",
+       "text": "Перечисли числа от 1 до 400 через запятую, без инструментов.",
+       "at": "2026-11-14T09:06:26.809Z"
+      }
+     ]
+    },
+    {
+     "t": 13.9,
+     "step": "Stop in the dialog",
+     "before": {
+      "available": true,
+      "reason": null,
+      "turnRef": "c1d0e324-8bb2-476a-a618-7b8cdc3f2c8b",
+      "state": "working",
+      "pending": false,
+      "barrier": false,
+      "result": null
+     },
+     "status": 504,
+     "body": {
+      "error": {
+       "hint": "Автопродолжение удерживается; проверьте терминал и повторите.",
+       "code": "interrupt-timeout",
+       "message": "Остановка ответа Claude не подтверждена"
+      }
+     }
+    },
+    {
+     "t": 13.9,
+     "step": "file after Esc",
+     "created": false,
+     "screen": [
+      "  ⎿  Interrupted · What should Claude do instead?"
+     ]
+    },
+    {
+     "t": 34,
+     "step": "timeout",
+     "what": "turn 2 from the queue"
+    },
+    {
+     "t": 34,
+     "step": "queue after interruption",
+     "prompts": 1,
+     "prompt": "Выполни в Bash ровно одну команду: touch m28-probe.txt. Больше ничего не делай.",
+     "activity": {
+      "state": "working",
+      "pending": 1,
+      "queued": [
+       {
+        "id": "76eea5d8-504f-490d-87b4-a35a2ad7a3bb",
+        "text": "Перечисли числа от 1 до 400 через запятую, без инструментов.",
+        "at": "2026-11-14T09:06:26.809Z"
+       }
+      ]
+     }
+    },
+    {
+     "t": 64.2,
+     "step": "timeout",
+     "what": "generation on screen"
+    },
+    {
+     "t": 74.4,
+     "step": "timeout",
+     "what": "turn 2 interruption ref"
+    },
+    {
+     "t": 74.4,
+     "step": "Stop while generating",
+     "before": null,
+     "status": 400,
+     "body": {
+      "error": {
+       "code": "invalid-body",
+       "message": "Нужна ссылка на текущий ход turnRef"
+      }
+     },
+     "numbers": 0
+    },
+    {
+     "t": 89.5,
+     "step": "timeout",
+     "what": "channel leaves working"
+    },
+    {
+     "t": 89.5,
+     "step": "after Stop",
+     "waiting": false,
+     "activity": {
+      "state": "working",
+      "pending": 1
+     },
+     "stopHooks": 0
+    },
+    {
+     "t": 92.5,
+     "step": "message to the free agent",
+     "status": 200,
+     "body": {
+      "queued": "56cff8fc-56b4-4391-807a-d033280b7f10"
+     }
+    },
+    {
+     "t": 107.6,
+     "step": "timeout",
+     "what": "turn 3 prompt hook"
+    },
+    {
+     "t": 107.6,
+     "step": "turn 3",
+     "started": false,
+     "prompt": "Выполни в Bash ровно одну команду: touch m28-probe.txt. Больше ничего не делай."
+    },
+    {
+     "t": 167.7,
+     "step": "timeout",
+     "what": "turn 3 Stop hook"
+    },
+    {
+     "t": 167.7,
+     "step": "turn 3 end",
+     "waiting": false,
+     "last": null,
+     "queued": [
+      {
+       "id": "76eea5d8-504f-490d-87b4-a35a2ad7a3bb",
+       "text": "Перечисли числа от 1 до 400 через запятую, без инструментов.",
+       "at": "2026-11-14T09:06:26.809Z"
+      },
+      {
+       "id": "56cff8fc-56b4-4391-807a-d033280b7f10",
+       "text": "Ответь одним словом: готово.",
+       "at": "2026-11-14T09:07:53.439Z"
+      }
+     ]
+    },
+    {
+     "t": 167.7,
+     "step": "context window",
+     "context": {
+      "usedTokens": 57118,
+      "windowTokens": 150000,
+      "usedPercent": 38,
+      "modelWindowTokens": 1000000
+     }
+    },
+    {
+     "t": 169.6,
+     "step": "cleanup",
+     "deleted": 1,
+     "trusted": false,
+     "processes": 0,
+     "defaultsUnchanged": true,
+     "baseRemoved": true,
+     "claudeDirRemoved": true
+    }
+   ],
+   "hooks": [
+    {
+     "at": "2026-11-14T09:06:24.647Z",
+     "hookEvent": "UserPromptSubmit",
+     "prompt": "Выполни в Bash ровно одну команду: touch m28-probe.txt. Больше ничего не делай.",
+     "reply": "{\"answer\":null}"
+    }
+   ]
+  }
+ ]
+}

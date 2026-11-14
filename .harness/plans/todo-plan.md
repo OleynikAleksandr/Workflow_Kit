@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": "T007",
+  "currentTaskId": null,
   "lastClosed": {
     "closedAt": "2026-11-14T07:04:08.120Z",
     "scopeId": "m27-claude-native-controls"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 900,
+  "revision": 901,
   "rounds": [
     {
       "digest": null,
@@ -449,14 +449,24 @@
         "design-qa.md",
         "docs/design/M28-claude-fixes-facts.md",
         "product-parts/control-panel/clusters/web-panel/modules/session-chat/test",
-        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test"
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test",
+        "docs/evidence/M28/composer-claude-dark-1280.png",
+        "docs/evidence/M28/composer-claude-dark-375.png",
+        "docs/evidence/M28/composer-claude-dark-768.png",
+        "docs/evidence/M28/composer-claude-light-1280.png",
+        "docs/evidence/M28/composer-claude-light-375.png",
+        "docs/evidence/M28/composer-claude-light-768.png",
+        "docs/evidence/M28/t007-browser.json",
+        "docs/evidence/M28/t007-harness.md",
+        "docs/evidence/M28/t007-live.json",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/test/m28-composer.browser.js"
       ],
       "fixes": null,
       "id": "T007",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "title": "Проверить исправления на живом Claude и в браузере",
       "why": "Проверить исправления на живом Claude и в браузере"
     },
@@ -589,9 +599,9 @@
 - Scope: m28-claude-controls-fixes (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: T007
-- Progress: 6/10
-- Revision: 900
+- Current task: none
+- Progress: 7/10
+- Revision: 901
 
 ## Objective
 
@@ -633,9 +643,9 @@
   - Commit: fix(panel): drop composer notices and show queued messages
   - Files: product-parts/control-panel/clusters/web-panel/modules/session-chat/src, product-parts/control-panel/clusters/web-panel/modules/session-chat/test, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/types.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/slots.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/channel.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, docs/architecture/CONTRACTS.md, docs/architecture/OVERVIEW.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/chat-model.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/composer-model.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/composer.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/parameters.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/session-chat.css, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/session-chat.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/chat-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/composer-model.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/channel.test.ts
   - Depends on: T005
-- [IN_PROGRESS] T007 — Проверить исправления на живом Claude и в браузере (work)
+- [DONE] T007 — Проверить исправления на живом Claude и в браузере (work)
   - Commit: test(claude): verify controls fixes live and in the browser
-  - Files: docs/evidence/M28-claude-controls-fixes.md, docs/evidence/M28, design-qa.md, docs/design/M28-claude-fixes-facts.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/test, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test
+  - Files: docs/evidence/M28-claude-controls-fixes.md, docs/evidence/M28, design-qa.md, docs/design/M28-claude-fixes-facts.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/test, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test, docs/evidence/M28/composer-claude-dark-1280.png, docs/evidence/M28/composer-claude-dark-375.png, docs/evidence/M28/composer-claude-dark-768.png, docs/evidence/M28/composer-claude-light-1280.png, docs/evidence/M28/composer-claude-light-375.png, docs/evidence/M28/composer-claude-light-768.png, docs/evidence/M28/t007-browser.json, docs/evidence/M28/t007-harness.md, docs/evidence/M28/t007-live.json, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/m28-composer.browser.js
   - Depends on: T006
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1

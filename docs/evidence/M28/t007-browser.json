@@ -1,0 +1,96 @@
+{
+ "date": "2026-11-14",
+ "runner": "Chromium (Playwright 1.66 headless shell 1243), source server :48762",
+ "ok": true,
+ "runs": 10,
+ "checks": 234,
+ "matrix": [
+  {
+   "provider": "claude",
+   "theme": "light",
+   "width": 375,
+   "checks": 25
+  },
+  {
+   "provider": "claude",
+   "theme": "light",
+   "width": 768,
+   "checks": 25
+  },
+  {
+   "provider": "claude",
+   "theme": "light",
+   "width": 1280,
+   "checks": 25
+  },
+  {
+   "provider": "claude",
+   "theme": "dark",
+   "width": 375,
+   "checks": 25
+  },
+  {
+   "provider": "claude",
+   "theme": "dark",
+   "width": 768,
+   "checks": 25
+  },
+  {
+   "provider": "claude",
+   "theme": "dark",
+   "width": 1280,
+   "checks": 25
+  },
+  {
+   "provider": "codex",
+   "theme": "light",
+   "width": 1280,
+   "checks": 21
+  },
+  {
+   "provider": "codex",
+   "theme": "dark",
+   "width": 1280,
+   "checks": 21
+  },
+  {
+   "provider": "kimi",
+   "theme": "light",
+   "width": 1280,
+   "checks": 21
+  },
+  {
+   "provider": "kimi",
+   "theme": "dark",
+   "width": 1280,
+   "checks": 21
+  }
+ ],
+ "checksPerRun": [
+  "waiting: no service line",
+  "waiting: status hidden",
+  "sent draft cleared",
+  "after send: no service line",
+  "after send: status hidden",
+  "Stop enabled while working",
+  "working: no service line",
+  "working: status hidden",
+  "queued bubble with label",
+  "bubble ends the feed",
+  "queued: no service line",
+  "queued: status hidden",
+  "card inside the viewport",
+  "no horizontal page scroll",
+  "poll keeps draft and focus",
+  "poll keeps the bubble node",
+  "Stop enabled without availability",
+  "unavailable before press: no service line",
+  "unavailable before press: status hidden",
+  "no interrupt request without a Kit terminal",
+  "Stop sends the turnRef",
+  "Stop success is quiet",
+  "delivery keeps the draft",
+  "failed send keeps the draft",
+  "no browser/CSP errors: []"
+ ]
+}

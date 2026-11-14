@@ -5,6 +5,7 @@ import type {
   ScopeChoiceResult,
   ScopeInput,
   ScopeProposalResult,
+  ScopeOwnerResult,
   ScopeProposalView,
   WorkflowKitFacade,
 } from "./workflow-kit-facade.js";
@@ -73,6 +74,14 @@ function choiceText(value: unknown): string {
   return `choice: ${result.option} (generation ${result.generation}); scope ${result.scope?.scopeId ?? "NONE"} created at revision ${result.scope?.revision ?? 0}.\n`;
 }
 
+function ownerText(value: unknown): string {
+  const result = value as ScopeOwnerResult;
+  const owner = result.execution.ownerSession ?? "none";
+  return result.changed
+    ? `owner: ${result.previous ?? "none"} → ${owner} (revision ${result.revision})\n`
+    : `owner: ${owner} (unchanged)\n`;
+}
+
 function proposalViewText(value: unknown): string {
   const view = value as ScopeProposalView | null;
   if (!view) {
@@ -88,8 +97,9 @@ function proposalViewText(value: unknown): string {
 }
 
 /**
- * `scope:propose`, `scope:choose` and the read-only `scope:proposal`: the
- * execution mode choice (spec 4.1).
+ * `scope:propose`, `scope:choose`, the read-only `scope:proposal` and
+ * `scope:owner`: the execution mode choice (spec 4.1) and the owner session
+ * of an unstarted plan (spec M31 3.1).
  */
 export const EXECUTION_COMMANDS: Readonly<
   Record<string, ExecutionCommandSpec>
@@ -105,6 +115,15 @@ export const EXECUTION_COMMANDS: Readonly<
     text: choiceText,
     usage:
       'scope:choose --generation <N> --option sequential|orchestrated|refine --session <id> --note "<the user\'s choice>"',
+  },
+  "scope:owner": {
+    run: ({ args, kit, root }) =>
+      kit.moveOwner(root, {
+        note: requiredFlag(args, "note"),
+        session: requiredFlag(args, "session"),
+      }),
+    text: ownerText,
+    usage: 'scope:owner --session <id> --note "<why>"',
   },
   "scope:proposal": {
     run: ({ kit, root }) => kit.proposalView(root),

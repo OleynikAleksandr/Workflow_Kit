@@ -21,6 +21,10 @@ worktrees where noted):
 - `test/workflow-kit-execution-mode.test.mjs` — propose/choose/refine, the
   automatic sequential scope, `NO_PARALLEL_WORK`, `PROPOSAL_CHANGED`,
   `SCOPE_EXISTS`, the card view, `EXECUTION_MODE_REQUIRED`, the CLI.
+- `test/workflow-kit-owner.test.mjs` — `scope:owner` (M31): `NO_SCOPE`,
+  `USAGE`, the same owner unchanged, the move (revision + 1, the decision,
+  no commit, status), the text form, `help`, `OWNER_BUSY` for a started task
+  and for an active assignment.
 - `test/workflow-kit-assignment.test.mjs` — the schedule (dependencies,
   barrier, conflict, capacity, DOCS), create preconditions, the brief,
   idempotent retry, `ASSIGNMENT_EXISTS`, `assignment:cancel`, the CLI.

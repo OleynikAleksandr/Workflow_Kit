@@ -23,6 +23,7 @@ import {
   type WorkflowPlan,
   type WorkflowTask,
 } from "./plan-model.js";
+import { moveOwner, type OwnerMove } from "./plan-owner.js";
 import {
   acceptScope,
   type CarryoverInput,
@@ -48,6 +49,7 @@ import {
 import { validateDigest, validatePlan } from "./plan-validation.js";
 
 export type { ExecutionInput } from "./plan-execution.js";
+export type { OwnerMove } from "./plan-owner.js";
 export type { FieldSpec, InputSchema } from "./plan-input-schema.js";
 export type {
   DeliveryStatus,
@@ -170,6 +172,16 @@ export class WorkflowPlanFacade {
 
   unblock(plan: WorkflowPlan): WorkflowPlan {
     return unblockScope(plan);
+  }
+
+  /** `scope:owner`: moves the owner session before the work starts. */
+  moveOwner(
+    plan: WorkflowPlan,
+    session: string,
+    note: string,
+    now: string
+  ): OwnerMove {
+    return moveOwner(plan, session, note, now);
   }
 
   extend(

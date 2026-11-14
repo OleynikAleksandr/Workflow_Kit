@@ -100,6 +100,16 @@ every change is a Kit commit unless noted:
     `<approval> | Execution mode chosen by the user: <option>: <note>`;
   - `refine` drops the stored plan and keeps `refining: true`.
   Returns `{option, generation, refining, execution, scope}`.
+- `moveOwner(root, {session, note})` — `scope:owner` (`kit-scope-owner.ts`,
+  spec M31 3.1): moves `execution.ownerSession` of the open scope to
+  `session` before its work starts. `NO_SCOPE` without a scope, `USAGE` for
+  an empty session or note, `OWNER_BUSY` while an assignment of the scope is
+  active or a task is `IN_PROGRESS` (details `assignments` or `tasks`). The
+  same owner answers `changed: false` and writes nothing; otherwise the plan
+  gets revision + 1 and the decision `Owner session moved from <old|none>
+  to <session>: <note>`, saved like `task:block` (the next Kit commit
+  records it). Returns `{changed, previous, execution, revision}`; the text
+  form is `owner: <old> → <new> (revision N)` or `owner: <id> (unchanged)`.
 - `readProposal(root)` — the stored proposal record or `null` (for status
   and recovery).
 - `proposalView(root)` — `scope:proposal`, read-only: the card view of the
@@ -356,7 +366,7 @@ it changes in the same commit as the commands. Summary:
   directory.
 - `COMMANDS` of `workflow-kit-cli.ts` spreads the command groups of
   `kit-cli-execution.ts` (`scope:propose`, `scope:choose`,
-  `scope:proposal`), `kit-cli-assignment.ts` (`assignment:*` and the
+  `scope:proposal`, `scope:owner`), `kit-cli-assignment.ts` (`assignment:*` and the
   executor whitelist), `kit-cli-integration.ts` (`integration:*`),
   `kit-cli-identity.ts` (`identity:set`), `kit-cli-pause.ts` (`pause:set`),
   `kit-cli-schema.ts` (`schema`), `kit-cli-context.ts` (`context`) and

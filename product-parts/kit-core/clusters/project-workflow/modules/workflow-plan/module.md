@@ -291,6 +291,15 @@ functions; the facade exposes them as methods.
   `false`. Task status is not considered.
 - **`hasParallelWork(plan)`** is true when at least one pair of tasks of
   the plan is compatible. It accepts any `{tasks}` object.
+- **`moveOwner(plan, session, note, now)`** (`plan-owner.ts`, spec M31 3.1)
+  returns `{changed, plan, previous}`. `NO_SCOPE` without a scope, `USAGE`
+  for an empty session or note; the same owner gives `changed: false` and
+  the plan unchanged; a task `IN_PROGRESS` or a current task gives
+  `OWNER_BUSY` (details `tasks`). Otherwise revision + 1,
+  `execution.ownerSession = session` (a plan without the block gets the
+  sequential defaults) and the decision `Owner session moved from
+  <old|none> to <session>: <note>` at `now`. Active assignments are checked
+  by the caller (`workflow-kit`).
 
 ## Rounds Lifecycle (`plan-rounds.ts`, `plan-scope-completion.ts`)
 

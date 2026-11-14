@@ -76,6 +76,7 @@ import {
   type TaskPatch,
   updateTask,
 } from "./kit-scope.js";
+import { moveScopeOwner, type ScopeOwnerResult } from "./kit-scope-owner.js";
 import {
   commitDocs,
   commitTask,
@@ -117,6 +118,7 @@ export type {
   ScopeProposalResult,
   TaskPatch,
 } from "./kit-scope.js";
+export type { ScopeOwnerResult } from "./kit-scope-owner.js";
 export type { KitStatus, TaskBrief, ValidationReport } from "./kit-status.js";
 export type { TaskCommit, TaskStart } from "./kit-task.js";
 
@@ -174,6 +176,14 @@ export class WorkflowKitFacade extends WorkflowKitBase {
     }
   ): ScopeChoiceResult {
     return chooseScope(this.context(root), choice);
+  }
+
+  /** `scope:owner`: moves the owner session before the work starts. */
+  moveOwner(
+    root: string,
+    request: { note: string; session: string }
+  ): ScopeOwnerResult {
+    return moveScopeOwner(this.context(root), request);
   }
 
   /** The stored scope proposal, or `null`. */

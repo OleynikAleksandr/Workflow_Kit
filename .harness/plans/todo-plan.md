@@ -3,17 +3,37 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": "DOCS-R1",
+  "currentTaskId": null,
   "lastClosed": {
     "closedAt": "2026-11-14T16:26:05.681Z",
     "scopeId": "m30-claude-feed-quiet"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 993,
+  "revision": 994,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "Kit 2.2.5: scope:owner --session <id> --note -> {changed, previous, execution, revision}; NO_SCOPE, USAGE, OWNER_BUSY",
+          "agent-channel: StopContext.turnStartedAt?: start of the ended turn (hook and detached paths)",
+          "cross-review: deps.proposal gives createdAt, optional deps.turnStartedAt(key); isAuthor in src/author.ts",
+          "autopilot: owner.ts moveOwner and wakeHolders; start(projectId, session) moves the owner first",
+          "session-view: plan-cards.js (choiceView, planView, foreignPlanView) and foreign-card.js; sidebar part foreign"
+        ],
+        "decisions": [
+          "The owner of an unstarted plan is the session where the user pressed the choice or start button; Kit records it with scope:owner",
+          "scope:owner refuses with OWNER_BUSY once a task is IN_PROGRESS or an assignment is active; a started plan is not moved",
+          "The proposal author is a session whose turn started no later than the proposal createdAt; unknown times count as author",
+          "On a Kit older than 2.2.5 a start from a non-owner session gives kit-outdated; a plan without an owner starts as before"
+        ],
+        "references": [
+          "docs/planning/M31-plan-in-any-session.md",
+          "docs/evidence/M31-plan-in-any-session.md",
+          "docs/architecture/workflow-kit/WorkflowKitCommands.md"
+        ],
+        "result": "An unstarted plan belongs to the project: the mode choice card and the ready plan card show in every main session; the session where the user presses the button becomes the Kit owner (scope:owner, Kit 2.2.5) and the previous holder is released. Only the proposal author asks about or starts the review. A started plan stays with its owner; other sessions show a short card with Open session."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -335,7 +355,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -408,9 +428,9 @@
 - Scope: m31-plan-in-any-session (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: DOCS-R1
-- Progress: 5/8
-- Revision: 993
+- Current task: none
+- Progress: 6/8
+- Revision: 994
 
 ## Objective
 
@@ -447,7 +467,7 @@ An unstarted plan belongs to the project: its mode choice card and ready plan ca
   - Commit: test: record the plan owner move with the built Kit
   - Files: docs/evidence/M31-plan-in-any-session.md, docs/evidence/M31
   - Depends on: T004
-- [IN_PROGRESS] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M31-plan-in-any-session.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md, docs/architecture/workflow-kit/WorkflowKitCommands.md, docs/architecture/OS-MATRIX.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, design-qa.md, docs/evidence/M31-plan-in-any-session.md, docs/architecture/CONTRACTS.md, product-parts/backend-core/clusters/projects/cluster.md, product-parts/backend-core/clusters/projects/modules/project-setup/module.md, product-parts/backend-core/clusters/runtime/modules/cli/connected-modules.md
   - Depends on: T001, T002, T003, T004, T005
@@ -459,5 +479,7 @@ An unstarted plan belongs to the project: its mode choice card and ready plan ca
   - Commit: docs: record green CI for the plan in any session
   - Files: docs/evidence/M31-plan-in-any-session.md
   - Depends on: T006, DOCS-R1
+
+Digest: An unstarted plan belongs to the project: the mode choice card and the ready plan card show in every main session; the session where the user presses the button becomes the Kit owner (scope:owner, Kit 2.2.5) and the previous holder is released. Only the proposal author asks about or starts the review. A started plan stays with its owner; other sessions show a short card with Open session.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

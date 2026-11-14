@@ -191,3 +191,23 @@ workspace, иначе последняя активная основная се�
 | DOCS | README, CONTRACTS, OVERVIEW, digest | добавляет Kit |
 | T006 | Поставка 0.13.5 и локальная установка | версии, CHANGELOG, evidence |
 | T007 | CI точного SHA T006 на четырёх платформах | evidence |
+
+## 8. Итог реализации (DOCS-R1)
+
+- T001 (`696e95c`): Kit 2.2.5, `scope:owner` — `workflow-plan/src/plan-owner.ts` (`moveOwner`,
+  `OWNER_BUSY` по задаче `IN_PROGRESS`), `workflow-kit/src/kit-scope-owner.ts` (`OWNER_BUSY` по
+  активному назначению, сохранение как `task:block`), бандл пересобран. Тест —
+  `workflow-kit-owner.test.mjs`; в файлы задачи добавлен `workflow-kit/tests.md`.
+- T002 (`6f3dcc7`): `StopContext.turnStartedAt` сделан необязательным (нет поля — начало
+  неизвестно), слот канала хранит `endedTurnStartedAt`. Время предложения (`createdAt`) и
+  начало текущего хода (`turnStartedAt(key)`) ревью получает через `cli/src/review-wiring.ts` —
+  файл и `cli/module.md` добавлены в задачу. Правило автора — `cross-review/src/author.ts`.
+- T003 (`1c72831`): `autopilot/src/owner.ts` (`moveOwner`, `wakeHolders`). Уточнение к 3.3:
+  на Kit без `scope:owner` план без владельца стартует как раньше, `kit-outdated` — только при
+  чужом владельце. После переноса автопилот прежнего владельца выключается.
+- T004 (`158ece7`): модели карточек вынесены в `session-view/src/plan-cards.js`. Отличие от 3.4:
+  чужая карточка — отдельная модель `foreignPlanView` и отдельная часть сайдбара `foreign`
+  (`foreign-card.js`), а не поле `foreign` внутри `planView`. Работающая сессия-не-автор не
+  прячет карточку выбора; короткое окно `DECIDING_MS` после Stop осталось общим.
+- T005 (`7e5925a`): проба на собранном бандле во временном проекте —
+  [доказательства](../evidence/M31-plan-in-any-session.md).

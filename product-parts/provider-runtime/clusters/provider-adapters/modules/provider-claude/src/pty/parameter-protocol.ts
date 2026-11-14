@@ -1,6 +1,5 @@
 export const PARAMETER_NATIVE = '.parameters-native';
 export const PARAMETER_STATE = '.parameters-state';
-export const PARAMETER_REQUEST = '.parameters-request';
 export const PARAMETER_RESULT = '.parameters-result';
 export const PARAMETER_CANCEL = '.parameters-cancel';
 /** Choices of the user the host applies when Claude is free (M29); written only by the service. */
@@ -48,6 +47,8 @@ export interface NativeParameterState {
   effortRecommended?: string | null; fastReason: string | null; ultracodeAvailable?: boolean; pending: NativePending | null;
   /** Wanted fields of the current wanted file and how they went (M29). */
   wanted?: Partial<Record<WantedField, NativeWantedStatus>>;
+  /** The host reads the wanted file (M29); older hosts lack it and stay read-only. */
+  wantedFile?: true;
 }
 export interface NativeParameterRequest {
   version: 1; id: string; hostId: string; sessionId: string; epoch: string; expires: number;

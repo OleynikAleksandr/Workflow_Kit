@@ -187,7 +187,7 @@ export class ParameterEngine {
       mode: f.mode ?? this.effectiveMode, fast: m?.fast ?? null, ultracode: f.ultracode ?? (this.request ? this.effectiveUltra : null), ultracodeAvailable: this.ultraAvailable, models: [...this.models.values()].map(({ key, label, group }) => ({ key, label, group })),
       efforts: this.efforts, effortRecommended: this.recommended, fastReason: this.fastReason, pending: this.request ? { id: this.request.id, sessionId: this.request.sessionId,
         epoch: this.request.epoch, expires: this.request.expires, field: this.request.field, command: this.command } : null,
-      ...(this.wanted.snapshot() ? { wanted: this.wanted.snapshot()! } : {}) };
+      wantedFile: true, ...(this.wanted.snapshot() ? { wanted: this.wanted.snapshot()! } : {}) };
   }
   takeResult(): NativeParameterResult | null { const result = this.result; this.result = null; return result; }
   begin(value: unknown, wanted: { field: WantedField; id: string } | null = null): void {

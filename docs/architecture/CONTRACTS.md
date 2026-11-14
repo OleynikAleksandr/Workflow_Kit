@@ -269,3 +269,9 @@ Claude; M26 effort-card/drag остаётся отдельным предста�
 M27/T006: stable frame200мс; statusline событийный и bound to host; model/effort
 ACK требует новый report. Discovery понимает singular hidden row, setter не портит
 полный каталог, внешняя смена модели инвалидирует связанные опции; no-op без ввода.
+
+M29: выбор Claude не ждёт терминал. POST записывает его в `<debug>.parameters-wanted` (пишет
+только служба) и сразу отвечает: строка параметра получает `pending { value, label, note }`.
+Хост применяет поля по одному на свободном вводе (`model`, `ultracode`, `effort`, `mode`), статусы
+— в снимке `wanted`; три неудачи — `failures`. Каталог читается раз на версию CLI и кэшируется в
+`stateDir`. `provider.parameters.changed` пишется при подтверждении, также на GET.

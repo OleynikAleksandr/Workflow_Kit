@@ -8,7 +8,13 @@ export interface ParameterItem {
   id: ParameterId; value: string | null; label: string;
   tone: 'primary' | 'muted'; icon?: 'zap'; inRow: boolean; title: string;
   options?: ParameterOption[]; reason?: string;
+  /** A choice the provider applies later (M29): the row shows it with the note until confirmed. */
+  pending?: ParameterPending;
 }
+/** M29: a chosen value that waits for the agent; `note` says what it waits for. */
+export interface ParameterPending { value: string; label: string; note: string }
+/** M29: a choice the provider gave up on; shown briefly, the row keeps the confirmed value. */
+export interface ParameterFailure { field: ParameterId; value: string; reason: string; at: string }
 export interface ContextUsage {
   usedTokens: number | null; windowTokens: number | null; usedPercent: number | null;
   /** The model window when the provider counts against a smaller threshold (Claude autoCompactWindow, M28). */
@@ -21,6 +27,7 @@ export interface ParameterStyle { font: string; ring: 'first' | 'last'; accent?:
 export interface SessionParameters {
   items: ParameterItem[]; context: ContextUsage | null; limits: LimitWindow[];
   presentation?: ParameterPresentation; style: ParameterStyle; editable: boolean; reason?: string; notes?: string[]; at: string;
+  failures?: ParameterFailure[];
 }
 export interface ParameterChange {
   model?: string; effort?: string; speed?: string; mode?: string; ultracode?: string;

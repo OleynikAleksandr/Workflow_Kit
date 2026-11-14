@@ -3,7 +3,7 @@ import type { EventLog, KeyedMutex } from '#data-store';
 import type { ChatRouteParts } from './chat-routes.ts';
 import { ProviderError } from './contract.ts';
 import { PARAMETER_CHANGE_IDS } from './parameters.ts';
-import type { ParameterChange } from './parameters.ts';
+import type { ParameterChange, SessionParameters } from './parameters.ts';
 
 function object(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -25,6 +25,16 @@ function changeOf(body: unknown): ParameterChange {
 export function registerParameterRoutes(parts: ChatRouteParts & { mutex: KeyedMutex; events?: EventLog }): void {
   const { router, mutex, events } = parts;
   const route = '/api/projects/:id/providers/:p/sessions/:sid/parameters';
+  // M29: a provider may apply a choice later (pending); its confirmed values are compared with the
+  // last ones the service saw, so the change is recorded when it shows up, also on a GET.
+  const seen = new Map<string, Map<string, string | null>>();
+  const confirmed = async (provider: string, project: string, session: string, parameters: SessionParameters, log: boolean): Promise<void> => {
+    const key = `${provider}\n${project}\n${session}`; const last = seen.get(key);
+    const now = new Map(parameters.items.map(item => [item.id, item.value] as const));
+    seen.set(key, now); if (seen.size > 512) seen.delete(seen.keys().next().value!);
+    if (!log || !last) return;
+    for (const [parameter, value] of now) if (last.has(parameter) && last.get(parameter) !== value) await events?.append('provider.parameters.changed', { provider, project, session, parameter, old: last.get(parameter) ?? null, new: value });
+  };
   for (const method of ['get', 'post'] as const) router[method](route, async ctx => {
     try {
       const provider = parts.providerOf(ctx);
@@ -33,14 +43,18 @@ export function registerParameterRoutes(parts: ChatRouteParts & { mutex: KeyedMu
       const sessions = await provider.listSessions(project);
       const session = sessions.find(s => s.localId === sid) ?? sessions.find(s => s.remoteId === sid);
       if (!session) throw new HttpError(404, 'unknown-session', 'Сессия не найдена');
-      if (method === 'get') return provider.readParameters
-        ? { supported: true, parameters: await provider.readParameters(project, session.localId) }
-        : { supported: false };
+      if (method === 'get') {
+        if (!provider.readParameters) return { supported: false };
+        const parameters = await provider.readParameters(project, session.localId);
+        await confirmed(provider.id, project.id, session.localId, parameters, true);
+        return { supported: true, parameters };
+      }
       const change = changeOf(ctx.body);
       const update = provider.updateParameters?.bind(provider);
       if (!update) throw new HttpError(404, 'parameters-unsupported', 'Изменение параметров не поддерживается');
       return await mutex.run(`parameters:${provider.id}:${session.localId}`, async () => {
         const before = await provider.readParameters?.(project, session.localId);
+        if (before) await confirmed(provider.id, project.id, session.localId, before, true);
         const parameters = await update(project, session.localId, change);
         for (const item of parameters.items) {
           const old = before?.items.find(i => i.id === item.id)?.value ?? null;
@@ -49,6 +63,7 @@ export function registerParameterRoutes(parts: ChatRouteParts & { mutex: KeyedMu
             parameter: item.id, old, new: item.value,
           });
         }
+        await confirmed(provider.id, project.id, session.localId, parameters, false);
         const oldAccess = before?.presentation?.layout === 'effort-card' ? before.presentation.access.value : null;
         const newAccess = parameters.presentation?.layout === 'effort-card' ? parameters.presentation.access.value : null;
         if (oldAccess !== newAccess) await events?.append('provider.parameters.changed', { provider: provider.id, project: project.id, session: session.localId, parameter: 'access', old: oldAccess, new: newAccess, fields: { permissions: { old: before?.items.find(i => i.id === 'permissions')?.value ?? null, new: parameters.items.find(i => i.id === 'permissions')?.value ?? null }, approvalPolicy: { old: before?.notes?.find(n => n.startsWith('Одобрения:'))?.slice(10).trim() ?? null, new: parameters.notes?.find(n => n.startsWith('Одобрения:'))?.slice(10).trim() ?? null }, approvalsReviewer: { old: before?.notes?.find(n => n.startsWith('Проверяющий:'))?.slice(12).trim() ?? null, new: parameters.notes?.find(n => n.startsWith('Проверяющий:'))?.slice(12).trim() ?? null } } });

@@ -1,6 +1,6 @@
 // Bounded atomic control files. No raw terminal frames or prompt content are persisted here.
 import { ParameterEngine } from './parameter-engine.ts';
-import { NATIVE_KEYS, PARAMETER_CANCEL, PARAMETER_CATALOG, PARAMETER_NATIVE, PARAMETER_REQUEST, PARAMETER_RESULT, PARAMETER_STATE, PARAMETER_WANTED, validCatalog, validWanted } from './parameter-protocol.ts';
+import { NATIVE_KEYS, PARAMETER_CANCEL, PARAMETER_CATALOG, PARAMETER_NATIVE, PARAMETER_RESULT, PARAMETER_STATE, PARAMETER_WANTED, validCatalog, validWanted } from './parameter-protocol.ts';
 import type { NativeAction, NativeKey, NativeMetadata } from './parameter-protocol.ts';
 import type { TerminalScreen } from '#pty-host';
 import { screenState } from './interrupt-control.ts';
@@ -50,8 +50,6 @@ export class ParameterHost {
       const cancel = json(await this.files.take(this.debug + PARAMETER_CANCEL));
       if (cancel?.hostId === this.engine.hostId) this.engine.cancel();
       if (await this.files.take(this.debug + '.parameters-input') !== null) this.engine.userInput();
-      const request = json(await this.files.take(this.debug + PARAMETER_REQUEST));
-      if (request) this.engine.begin(request);
       // Wanted choices first; discovery brings the catalog a choice may still need.
       if (allowDiscovery) { this.engine.pursue(); this.engine.discover(); }
       const action = this.engine.propose();

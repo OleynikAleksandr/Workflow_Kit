@@ -15,6 +15,7 @@ import { MESSAGE_WAKE, TEXT_FILE_SUFFIX, WAKE_FILE_SUFFIX } from './pty/screen.t
 import type { SessionRecord } from './records.ts';
 import { PROVIDER_ID } from './runtime.ts';
 import type { ClaudeRuntime } from './runtime.ts';
+import { seedCatalog } from './native-wanted.ts';
 
 /** Hook sessions whose transcripts are inspected per list (newest first). */
 export const HOOK_SESSIONS_INSPECTED = 100;
@@ -105,6 +106,8 @@ async function startSessionProcess(rt: ClaudeRuntime, project: Project, title: s
   const logFile = path.join(rt.logsDir, `${key}.log`);
   const debugFile = path.join(rt.logsDir, `${key}.debug.log`);
   const controlHostId = rt.context.nativeStatuslineCommand ? randomUUID() : undefined;
+  // M29: the host starts with the cached native catalog and opens no menu for the same CLI version.
+  if (controlHostId) await seedCatalog(rt, debugFile).catch(() => undefined);
   const settingsFile = await sessionSettings(rt, project, key, controlHostId ? { file: debugFile + '.parameters-native', hostId: controlHostId } : undefined);
   const run = ptyCommand(launcher, rt.options.scripts, 'session', [project.path, claude, title, debugFile, ...(resume ? [resume] : [])]);
   let record;

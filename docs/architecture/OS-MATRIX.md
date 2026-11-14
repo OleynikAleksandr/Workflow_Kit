@@ -44,3 +44,4 @@
 | Claude M28: окно по `autoCompactWindow`, и для старых host | managed `/Library/Application Support/ClaudeCode`, `/context` сверен | `/etc/claude-code`, injected linux | `C:\Program Files\ClaudeCode`, injected win32 |
 | M29: Stop-хук не держит сессию, которую запустила панель Claude; её будит хост | общий код канала | то же | то же |
 | M29: хост применяет желаемые параметры Claude в фоне, каталог на версию CLI | expect-хост | expect-хост, injected linux | ConPTY, `rename` с повтором при `EPERM` |
+| M29: служба отвечает на выбор Claude сразу, кэш каталога в `stateDir` | общий Node-код | то же, injected linux | то же, injected win32 |

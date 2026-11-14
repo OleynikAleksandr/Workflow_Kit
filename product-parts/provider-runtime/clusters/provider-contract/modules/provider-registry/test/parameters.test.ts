@@ -139,3 +139,14 @@ test('Claude layout audits effective Ultracode/base changes without reading acce
   const events = (await readFile(path.join(tmp, 'events.jsonl'), 'utf8')).trim().split('\n').map(l => JSON.parse(l));
   const event = events.findLast(e => e.parameter === 'ultracode'); assert.equal(event.old, 'off'); assert.equal(event.new, 'on');
 });
+test('M29: a pending choice is journaled once, when the confirmed value shows up on a later GET', async () => {
+  fake.updateParameters = async (_p, _id, change) => ({ ...structuredClone(current), items: current.items.map(i => ({ ...i, pending: { value: change.model!, label: change.model!, note: 'применяется' } })) });
+  const posted = await call('POST', 's2', { change: { model: 'pending-value' } });
+  assert.equal(((posted.body.parameters as SessionParameters).items[0]!.pending)?.value, 'pending-value');
+  const count = async () => (await readFile(path.join(tmp, 'events.jsonl'), 'utf8')).trim().split('\n').map(l => JSON.parse(l))
+    .filter(e => e.type === 'provider.parameters.changed' && e.session === 's2' && e.new === 'pending-value').length;
+  assert.equal(await count(), 0, 'nothing is journaled while the choice waits');
+  current = params('pending-value');
+  await call('GET', 's2'); await call('GET', 's2');
+  assert.equal(await count(), 1);
+});

@@ -7,8 +7,8 @@ import { test } from 'node:test';
 import { createAgentChannel, nativeControlHookReply, parseHookInput } from '#agent-channel';
 import type { Project } from '#provider-registry';
 import type { ClaudeRuntime } from '../src/runtime.ts';
-import { applyNativeParameter, nativeControlHook, nativeParameterState, readNativeJson, writeNativeJson } from '../src/native-parameters.ts';
-import { PARAMETER_CANCEL, PARAMETER_REQUEST, PARAMETER_RESULT, PARAMETER_STATE } from '../src/pty/parameter-protocol.ts';
+import { nativeControlHook, nativeParameterState, readNativeJson, writeNativeJson } from '../src/native-parameters.ts';
+import { PARAMETER_CANCEL, PARAMETER_STATE } from '../src/pty/parameter-protocol.ts';
 import type { NativeParameterState } from '../src/pty/parameter-protocol.ts';
 import { sendDirect } from '../src/direct.ts';
 import { TURN_SUFFIX } from '../src/pty/turn-file.ts';
@@ -27,10 +27,8 @@ for (const platform of ['darwin', 'linux', 'win32'] as const) test(`${platform}:
     await writeNativeJson(debug + PARAMETER_STATE, state);
     assert.equal(await nativeControlHook(rt, { ...input, event: 'prompt' }), false, 'prefix alone grants no privilege');
     ch.enqueue(key, 'sentinel-before');
-    const operation = applyNativeParameter(rt, project, sid, 'mode', 'default');
-    let request: any;
-    for (let i = 0; i < 100 && !request; i++) { request = await readNativeJson(debug + PARAMETER_REQUEST); if (!request) await new Promise(r => setTimeout(r, 2)); }
-    assert.ok(request);
+    // M29: the host applies a wanted mode; its transaction shows as control with a pending id.
+    const request = { id: randomUUID(), epoch: hostId + ':1', expires: Date.now() + 55_000 };
     state = { ...state, at: Date.now(), status: 'control', pending: { id: request.id, sessionId: sid, epoch: request.epoch, expires: request.expires, field: 'mode', command: null } };
     await writeNativeJson(debug + PARAMETER_STATE, state);
     ch.enqueue(key, 'sentinel-during');
@@ -48,13 +46,10 @@ for (const platform of ['darwin', 'linux', 'win32'] as const) test(`${platform}:
     assert.equal(await sendDirect(rt, project, sid, 'ordinary direct text'), false, 'bounded admission returns to the queue during control');
     state = { ...state, at: Date.now(), epoch: hostId + ':2', status: 'idle', mode: 'default', pending: null };
     await writeNativeJson(debug + PARAMETER_STATE, state);
-    await writeNativeJson(debug + PARAMETER_RESULT, { version: 1, id: request.id, hostId, sessionId: sid, status: 'applied', state });
-    assert.equal((await operation).mode, 'default');
     assert.equal((await nativeParameterState(rt, project, sid))?.mode, 'default');
     assert.equal(await nativeControlHook(rt, { ...input, event: 'prompt' }), false);
     const reply = await ch.prompt(input); assert.match(JSON.stringify(reply.answer), /sentinel-before/); assert.match(JSON.stringify(reply.answer), /sentinel-during/); reply.ack();
     assert.equal(ch.queued(key).length, 0); const next = await ch.prompt(input); assert.equal(next.answer, null);
     state.at = 0; await writeNativeJson(debug + PARAMETER_STATE, state); assert.equal(await nativeParameterState(rt, project, sid), null);
-    await assert.rejects(applyNativeParameter(rt, project, sid, 'mode', 'auto'), { status: 409 });
   } finally { ch.close(); await rm(root, { recursive: true, force: true }); }
 });

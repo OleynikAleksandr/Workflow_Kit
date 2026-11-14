@@ -321,3 +321,10 @@ M28/T004: `Provider.turnState?(project, sid)` → `ProviderTurnState | null` (`s
 получил `continue` (удержанный Stop ответил block, ход идёт без prompt-хука).
 
 M28/T014: `ProviderContext.autoCompactWindow?` — порог Claude для снимков старых host (parameters.md).
+
+M29/T003: `ParameterItem.pending?` (`ParameterPending { value, label, note }`) — выбор, который
+провайдер применит позже; строка показывает его с пометкой `note`, `value` остаётся
+подтверждённым. `SessionParameters.failures?` (`ParameterFailure { field, value, reason, at }`)
+— выборы, от которых провайдер отказался. Маршрут параметров запоминает последние
+подтверждённые значения сессии и пишет `provider.parameters.changed`, когда значение
+изменилось, также при GET; POST сверяет состояние до изменения. Одинаково на всех ОС.

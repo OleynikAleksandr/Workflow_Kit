@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 974,
+  "revision": 976,
   "rounds": [
     {
       "digest": {
@@ -33,7 +33,7 @@
       },
       "id": "R1",
       "kind": "implementation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Implementation"
     }
   ],
@@ -68,7 +68,7 @@
         "text": "The /model menu closes with s on the current model instead of Esc; Esc stays only for a cancelled transaction"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "92b77570-773b-4173-8244-c327d009daa3",
@@ -268,7 +268,7 @@
       ],
       "checks": [],
       "commitMessage": "docs: record green CI for the quiet Claude feed",
-      "confirmation": null,
+      "confirmation": "Ну да, открывай новый скоп, создавай план и выполняй его.",
       "context": [],
       "dependencies": [
         "T004",
@@ -283,7 +283,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "CI точного SHA поставки на четырёх платформах",
       "why": "Every change covers macOS, Linux and Windows"
     }
@@ -295,11 +295,11 @@
 ## State
 
 - Scope: m30-claude-feed-quiet (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 5/6
-- Revision: 974
+- Progress: 6/6
+- Revision: 976
 
 ## Objective
 
@@ -314,7 +314,7 @@ Claude Desktop shows no service /effort or 'Kept model' lines from the Kit host:
 
 ## Rounds
 
-### R1 — Implementation (implementation, OPEN)
+### R1 — Implementation (implementation, CLOSED)
 
 - [DONE] T001 — Хост: усилие и каталог через меню /model (work)
   - Commit: fix: read and change Claude effort in the model menu without /effort
@@ -335,7 +335,7 @@ Claude Desktop shows no service /effort or 'Kept model' lines from the Kit host:
   - Commit: chore: release 0.13.4
   - Files: package.json, package-lock.json, README.md, CHANGELOG.md, docs/usage.md, docs/installation.md, docs/setup.md, docs/evidence/M30-claude-feed-quiet.md, docs/evidence/M30, docs/evidence/M30/local-delivery.md
   - Depends on: T003, DOCS-R1
-- [TODO] T005 — CI точного SHA поставки на четырёх платформах (delivery)
+- [DONE] T005 — CI точного SHA поставки на четырёх платформах (delivery)
   - Commit: docs: record green CI for the quiet Claude feed
   - Files: docs/evidence/M30-claude-feed-quiet.md
   - Depends on: T004, DOCS-R1

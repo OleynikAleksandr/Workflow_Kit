@@ -39,3 +39,16 @@ Windows. Linux — CI.
 
 Установлена штатно, doctor в порядке, служба 0.13.4; старые сессии получают тихие контролы
 после возобновления панелью — [local-delivery.md](M30/local-delivery.md).
+
+## T005: CI точного SHA поставки
+
+Ветка `ci/m30-claude-feed-quiet`, коммит поставки `dcf9ca0` (T004), запуск
+[43613502961](https://github.com/OleynikAleksandr/Workflow_Kit/actions/runs/43613502961).
+
+- Попытка 1: macOS ARM64, Linux x64, Windows x64 — success; Windows ARM64 — один провал
+  старого теста M8 `agent-channel/test/detached.test.ts` «an expired watch is picked up by
+  maintain» (`[1, 'working']` вместо `[0, 'working']`): таймер наблюдения 16 мс сработал
+  позже паузы 60 мс на загруженной машине. Ни тест, ни модуль в M30 не менялись.
+- Попытка 2 (перезапуск упавшего задания на том же SHA): все четыре платформы — success.
+
+`main` не публиковался: это после приёмки и закрытия scope.

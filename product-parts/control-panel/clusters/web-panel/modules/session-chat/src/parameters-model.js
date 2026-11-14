@@ -14,6 +14,10 @@ export const percent = value => typeof value === 'number' && Number.isFinite(val
 export const limitTone = value => value >= 95 ? 'error' : value >= 80 ? 'warn' : 'muted';
 /** @param {number | null | undefined} value */
 const count = value => typeof value === 'number' && Number.isFinite(value) ? value.toLocaleString('ru-RU') : '—';
+/** Second hint line when the ring counts against a threshold below the model window (M28).
+ * @param {import('#provider-registry').ContextUsage | null} context */
+export const contextWindowText = context => context && typeof context.modelWindowTokens === 'number' && Number.isFinite(context.modelWindowTokens) && context.modelWindowTokens !== context.windowTokens
+  ? `Окно модели: ${count(context.modelWindowTokens)} · автосжатие: ${count(context.windowTokens)}` : null;
 /** @param {import('#provider-registry').ContextUsage | null} context */
 export const contextText = context => context ? `Контекст: ${count(context.usedTokens)} из ${count(context.windowTokens)} (${count(context.usedPercent === null ? null : Math.round(context.usedPercent))} %)` : 'Контекст: нет данных';
 /** @param {import('#provider-registry').SessionParameters} parameters */

@@ -68,3 +68,7 @@ Claude принимает одно поле плюс confirmed; HTTP 400 paramet
 504 parameters-timeout. Аудит пишет effective items, не желаемые значения.
 GET не открывает меню/программы; старый host — только чтение с причиной. Контракт
 одинаков на macOS/Linux/Windows x64/ARM64; live Windows ждёт проверяющего.
+
+M28: `ContextUsage.modelWindowTokens?: number | null` — окно модели, когда провайдер
+считает `windowTokens`/`usedPercent` от меньшего порога (Claude `autoCompactWindow`).
+Необязательное поле: Codex и Kimi его не заполняют.

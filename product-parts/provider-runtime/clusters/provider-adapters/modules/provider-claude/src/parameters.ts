@@ -1,5 +1,5 @@
 import { createJsonlTail, limitsFile, readSnapshot, snapshotFile } from '#provider-registry';
-import type { ParameterItem, ProviderContext, SessionParameters } from '#provider-registry';
+import type { ContextUsage, ParameterItem, ProviderContext, SessionParameters } from '#provider-registry';
 type Dict = Record<string, unknown>;
 const obj = (v: unknown): Dict => v !== null && typeof v === 'object' && !Array.isArray(v) ? v as Dict : {};
 const str = (v: unknown): string | null => typeof v === 'string' && v ? v : null;
@@ -10,6 +10,14 @@ export const CLAUDE_PARAMETER_FONT = '"Anthropic Sans", ui-sans-serif, system-ui
 export function claudeModelLabel(id: string): string {
   const m = /^claude-([a-z]+)-(\d+(?:-\d+)*)$/.exec(id);
   return m ? `${m[1]![0]!.toUpperCase()}${m[1]!.slice(1)} ${m[2]!.replaceAll('-', '.')}` : id;
+}
+/** Claude counts /context against the auto-compact window (M28 3.1); the model window stays as a second figure. */
+export function contextUsage(window: Dict, percent: number | null): ContextUsage {
+  const used = num(window['total_input_tokens']); const model = num(window['context_window_size']);
+  const threshold = num(window['auto_compact_window']);
+  if (threshold && used !== null && (model === null || threshold < model))
+    return { usedTokens: used, windowTokens: threshold, usedPercent: Math.min(100, Math.round(100 * used / threshold)), ...(model ? { modelWindowTokens: model } : {}) };
+  return { usedTokens: used, windowTokens: model, usedPercent: percent === null ? null : Math.min(100, percent) };
 }
 /** Transcripts are named by the hook; this reader never searches another project's directory. */
 export function createClaudeParameterReader(context: ProviderContext, read: (file: string) => Promise<unknown> = readSnapshot) {
@@ -42,7 +50,7 @@ export function createClaudeParameterReader(context: ProviderContext, read: (fil
         if (used === null || (at && date!.getTime() <= context.now().getTime())) return [];
         return [{ id, label: id === 'five_hour' ? '5 ч' : '7 д', usedPercent: Math.min(100, used), resetsAt: at }];
       });
-      return { items, context: Object.keys(window).length ? { usedTokens: num(window['total_input_tokens']), windowTokens: num(window['context_window_size']), usedPercent: percent === null ? null : Math.min(100, percent) } : null,
+      return { items, context: Object.keys(window).length ? contextUsage(window, percent) : null,
         limits, style: { font: CLAUDE_PARAMETER_FONT, ring: 'last', accent: '#4c8dff' }, editable: false, at: typeof snapshot['at'] === 'string' ? snapshot['at'] : '' };
     },
   };

@@ -28,9 +28,20 @@ test('captures whitelisted metadata/limits, preserves bytes, prunes old snapshot
     assert.equal(code, 0); assert.deepEqual(output, expected);
     const saved = await readSnapshot<Record<string, unknown>>(snapshotFile(f.dirs, 'claude', 'test-session'));
     assert.deepEqual(saved?.model, { id: 'claude-opus-5-5', display_name: 'Opus 5.5' });
+    assert.deepEqual(saved?.context_window, { context_window_size: 200000, used_percentage: 25, total_input_tokens: 50000 });
     assert.ok(!JSON.stringify(saved).includes('Never capture chat')); assert.ok(!JSON.stringify(saved).includes('not stored'));
     assert.deepEqual((await readSnapshot<Record<string, unknown>>(limitsFile(f.dirs, 'claude')))?.rate_limits, { five_hour: { used_percentage: 42, resets_at: '2026-11-13T18:00:00Z' } });
     await assert.rejects(stat(old), { code: 'ENOENT' });
+  } finally { await f.close(); }
+});
+test('the snapshot carries the auto-compact threshold of the session folder', async () => {
+  const f = await fixture();
+  try {
+    await writeFile(path.join(f.cwd, '.claude', 'settings.local.json'), JSON.stringify({ modelSettings: { 'claude-opus-5-5': { autoCompactWindow: 150000 } } }));
+    const code = await runStatusline(['--client', 'claude'], { ...f, homedir: f.home, env: {}, write: () => {}, execute: async () => Buffer.alloc(0) });
+    assert.equal(code, 0);
+    const saved = await readSnapshot<Record<string, unknown>>(snapshotFile(f.dirs, 'claude', 'test-session'));
+    assert.deepEqual(saved?.context_window, { context_window_size: 200000, used_percentage: 25, total_input_tokens: 50000, auto_compact_window: 150000, auto_compact_source: 'project-local' });
   } finally { await f.close(); }
 });
 test('local → project → user and wrapper recursion is skipped', async () => {

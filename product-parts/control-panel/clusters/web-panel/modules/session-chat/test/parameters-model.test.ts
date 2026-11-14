@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { contextText, createParameterPoll, limitTone, menuSections, parametersUrl, percent, safeAccent, safeFont } from '../src/parameters-model.js';
+import { contextText, contextWindowText, createParameterPoll, limitTone, menuSections, parametersUrl, percent, safeAccent, safeFont } from '../src/parameters-model.js';
 import type { SessionParameters } from '#provider-registry';
 
 test('URLs preserve project, provider and canonical id, including colons', () => {
@@ -28,6 +28,11 @@ test('context text distinguishes missing data from measured zero', () => {
   assert.equal(contextText(null), 'Контекст: нет данных');
   assert.match(contextText({ usedTokens: 31024, windowTokens: 475000, usedPercent: 7 }), /7 %/);
   assert.match(contextText({ usedTokens: 0, windowTokens: 475000, usedPercent: 0 }), /0 %/);
+  const threshold = { usedTokens: 78451, windowTokens: 500000, usedPercent: 16, modelWindowTokens: 1000000 };
+  assert.equal(contextText(threshold).replace(/\s/g, ' '), 'Контекст: 78 451 из 500 000 (16 %)');
+  assert.equal(contextWindowText(threshold)?.replace(/\s/g, ' '), 'Окно модели: 1 000 000 · автосжатие: 500 000');
+  assert.equal(contextWindowText({ usedTokens: 1, windowTokens: 475000, usedPercent: 0 }), null);
+  assert.equal(contextWindowText(null), null);
 });
 test('polls only when visible, single flight, stale reads ignored and errors preserve last result', async () => {
   let resolve!: (v: unknown) => void; let reject!: (v: unknown) => void; let calls = 0;

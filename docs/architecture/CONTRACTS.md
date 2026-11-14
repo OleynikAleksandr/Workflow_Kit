@@ -173,6 +173,12 @@ GET/POST `…/sessions/:sid/parameters` сначала находят сесси
 неполная строка ждёт дописывания. Контракт одинаков на macOS, Linux и Windows x64/ARM64;
 программ ОС не вызывает. Подробности — `provider-registry/module.md`.
 
+M28: `ContextUsage.modelWindowTokens?` — окно модели, когда провайдер считает контекст от
+меньшего порога. Claude: `wfk statusline` добавляет в снимок `context_window.auto_compact_window`
+и `auto_compact_source` (`env`, `managed`, `project-local`, `project`, `user`);
+`windowTokens` — порог, `usedPercent = round(total_input_tokens / порог × 100)`. Подсказка
+панели — вторая строка «Окно модели: … · автосжатие: …». Codex поле не заполняет.
+
 ## Данные на диске
 
 Каталоги (`data-store`): macOS `~/Library/Application Support/Workflow Kit`; Linux

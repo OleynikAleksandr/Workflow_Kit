@@ -175,6 +175,15 @@ native-вызова адаптера также становится HTTP 504 `i
 R2/T011: тайм-аут statusline ждёт и close процесса, и окончание завершения дерева;
 раннее возвращение до освобождения cwd исключено на всех трёх ОС (statusline.md).
 
+M28/T002: `auto-compact-window.ts` (`resolveAutoCompactWindow`, `managedSettingsFile`) находит
+порог автосжатия Claude для `model.id`: `CLAUDE_CODE_AUTO_COMPACT_WINDOW` → managed-файл
+(macOS `/Library/Application Support/ClaudeCode`, Linux `/etc/claude-code`, Windows
+`C:\Program Files\ClaudeCode`, `path.win32`) → `.claude/settings.local.json` →
+`.claude/settings.json` → `~/.claude/settings.json`; внутри слоя модель (точный id, затем
+алиас семейства) важнее общего ключа, `"auto"` останавливает поиск, число вне
+100 000–1 000 000 пропускается. Снимок statusline получает `auto_compact_window` и
+`auto_compact_source`; ошибка чтения — порога нет, вывод и код 0 прежние. Только чтение.
+
 M27/T003: `native-statusline.ts` добавляет per-host nonce и bounded native metadata,
 после чего `runStatusline` получает прежние stdin/stdout. Пути внутри base64 data,
 без интерполяции shell. `session-wiring` вызывает provider nativeControlHook перед

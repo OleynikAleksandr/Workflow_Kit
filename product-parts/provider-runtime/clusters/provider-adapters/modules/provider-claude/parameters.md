@@ -7,7 +7,9 @@
 Capability sessionParameters явная; updateParameters недоступна, editable всегда false.
 
 Из снимка — display_name/id модели, effort.level, used_percentage, context_window_size,
-total_input_tokens. Без снимка — message.model и effort последнего assistant;
+total_input_tokens и (M28) auto_compact_window. Есть порог меньше окна модели —
+`windowTokens` = порог, `usedPercent = round(total_input_tokens / порог × 100)`,
+`modelWindowTokens` = окно модели (`contextUsage`); иначе — прежние окно и процент Claude. Без снимка — message.model и effort последнего assistant;
 claude-opus-5-5 отображается как Opus 5.5; неизвестное имя остаётся идентификатором.
 Режим — permission-mode.permissionMode, включая редкую запись глубже мегабайта.
 Порядок: модель, усилие, режим; подписи усилий Low/Medium/High/Extra/Max/Ultracode,

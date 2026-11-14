@@ -3,7 +3,7 @@ import { createClaudeMenu } from './claude-menu.js';
 import { createAccessMenu } from './access-menu.js';
 import { createEffortCard } from './effort-card.js';
 import { errorText } from './chat-model.js';
-import { contextText, createParameterPoll, limitTone, menuSections, parametersUrl, percent, safeAccent, safeFont } from './parameters-model.js';
+import { contextText, contextWindowText, createParameterPoll, limitTone, menuSections, parametersUrl, percent, safeAccent, safeFont } from './parameters-model.js';
 /** @typedef {import('#provider-registry').SessionParameters} Parameters */
 /** @typedef {import('#provider-registry').ParameterOption} Option */
 /** @param {{ shell: import('./session-chat.js').Shell, projectId: string, key: string, provider: string,
@@ -206,7 +206,12 @@ export function createParameters({ shell, projectId, key, provider, fallback, on
     const element = openPopup(trigger, data.editable);
     if (data.editable) renderMenu(); else { element.append(h('p', {}, [data.reason || data.items.map(i => i.title).join(' · ')])); position(); }
   });
-  ring.addEventListener('click', () => { const element = openPopup(ring, false); element.append(h('p', {}, [contextText(data?.context ?? null)])); position(); });
+  ring.addEventListener('click', () => {
+    const element = openPopup(ring, false); const second = contextWindowText(data?.context ?? null);
+    element.append(h('p', {}, [contextText(data?.context ?? null)]));
+    if (second) element.append(h('p', {}, [second]));
+    position();
+  });
   limits.addEventListener('click', () => {
     const element = openPopup(limits, false);
     for (const limit of data?.limits ?? []) {

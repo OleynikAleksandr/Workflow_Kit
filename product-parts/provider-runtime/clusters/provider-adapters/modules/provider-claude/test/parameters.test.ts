@@ -4,7 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
 import type { ProviderContext, Project } from '#provider-registry';
-import { createClaudeParameterReader, claudeModelLabel, sessionSettings, statuslineCommand } from '../src/index.ts';
+import { createClaudeParameterReader, contextUsage, claudeModelLabel, sessionSettings, statuslineCommand } from '../src/index.ts';
 import type { ClaudeRuntime } from '../src/runtime.ts';
 import { parseHostArgs } from '../src/pty/host.ts';
 
@@ -22,6 +22,7 @@ for (const platform of ['darwin', 'linux', 'win32'] as const) test(`${platform}:
     const first = await reader.read('s', file);
     assert.deepEqual(first.items.map(i => i.label), ['Fable 5.2', 'High', 'Auto']);
     assert.equal(first.context?.windowTokens, 200000); assert.equal(first.context.usedPercent, 25);
+    assert.equal(first.context.modelWindowTokens, undefined);
     assert.equal(first.editable, false); assert.equal(first.reason, undefined); assert.equal(first.style.ring, 'last'); assert.equal(first.style.accent, '#4c8dff');
     assert.deepEqual(first.limits.map(l => l.label), ['5 ч']);
     snapshot = null;
@@ -69,4 +70,13 @@ test('ConPTY forwards the unique settings file and leaves folder environments al
     const env = claudeEnv(parsed.mode, { WFK_STATUSLINE_BASH: 'C:/Git/bin/bash.exe', WFK_STATUSLINE_SETTINGS: 'hidden' });
     assert.equal(env['CLAUDE_CODE_GIT_BASH_PATH'], 'C:/Git/bin/bash.exe'); assert.equal(env['WFK_STATUSLINE_SETTINGS'], undefined); assert.equal(env['WFK_STATUSLINE_BASH'], undefined);
   }
+});
+
+test('M28: context counts against the auto-compact window, the model window stays as a second figure', () => {
+  assert.deepEqual(contextUsage({ context_window_size: 1000000, used_percentage: 8, total_input_tokens: 78451, auto_compact_window: 500000 }, 8),
+    { usedTokens: 78451, windowTokens: 500000, usedPercent: 16, modelWindowTokens: 1000000 });
+  assert.deepEqual(contextUsage({ context_window_size: 200000, used_percentage: 25, total_input_tokens: 50000, auto_compact_window: 500000 }, 25),
+    { usedTokens: 50000, windowTokens: 200000, usedPercent: 25 });
+  assert.deepEqual(contextUsage({ context_window_size: 1000000, used_percentage: 8, total_input_tokens: 78451 }, 8), { usedTokens: 78451, windowTokens: 1000000, usedPercent: 8 });
+  assert.equal(contextUsage({ context_window_size: 1000000, total_input_tokens: 999999, auto_compact_window: 500000 }, null).usedPercent, 100);
 });

@@ -320,3 +320,5 @@ More models остаётся в native порядке. UI не интерпре�
 
 M27/T006: стабильный frame200мс, событийный statusline, точные native ACK и no-op;
 частичный viewport не портит каталог. Уточнения — контракт M27, раздел T006.
+
+M28/T002: `contextUsage` — контекст от порога автосжатия (parameters.md).

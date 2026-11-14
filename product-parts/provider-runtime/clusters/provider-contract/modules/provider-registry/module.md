@@ -313,3 +313,5 @@ M27/T003: optional `ProviderContext.nativeStatuslineCommand({file,hostId})`
 
 M27/T004: discriminated presentation `effort-card | claude-controls`, Ultracode,
 opaque option selection и явные HTTP 409/504 — [parameters.md](parameters.md).
+
+M28/T002: `ContextUsage` получил необязательное `modelWindowTokens` (см. parameters.md).

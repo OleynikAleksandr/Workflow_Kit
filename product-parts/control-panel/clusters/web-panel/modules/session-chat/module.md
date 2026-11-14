@@ -204,3 +204,7 @@ Keyed rows сохраняют DOM/focus при polling; POST блокирует 
 M27/T006: QA passed (design-qa.md), density/antialiasing/narrow submenu уточнены
 совместными boards. Keyboard навигация ограничена активным уровнем. Все пять
 размеров/обе темы/200%-эквивалент прошли; Windows/iPad live не объявляются.
+
+M28/T002: подсказка кольца — `contextText` («Контекст: 78 451 из 500 000 (16 %)») и, если
+есть `modelWindowTokens`, вторая строка `contextWindowText` («Окно модели: 1 000 000 ·
+автосжатие: 500 000»). Текст через `textContent`; одинаково на всех ОС.

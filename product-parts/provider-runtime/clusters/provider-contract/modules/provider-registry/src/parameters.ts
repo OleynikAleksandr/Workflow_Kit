@@ -11,6 +11,8 @@ export interface ParameterItem {
 }
 export interface ContextUsage {
   usedTokens: number | null; windowTokens: number | null; usedPercent: number | null;
+  /** The model window when the provider counts against a smaller threshold (Claude autoCompactWindow, M28). */
+  modelWindowTokens?: number | null;
 }
 export interface LimitWindow {
   id: string; label: string; usedPercent: number; resetsAt: string | null;

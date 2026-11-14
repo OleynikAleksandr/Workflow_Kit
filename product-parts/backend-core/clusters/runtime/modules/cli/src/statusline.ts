@@ -6,6 +6,8 @@ import { resolveDataDirs } from '#data-store';
 import type { DataDirs } from '#data-store';
 import { limitsFile, snapshotFile, readSnapshot, writeSnapshot } from '#provider-registry';
 import { runStatuslineCommand } from './statusline-shell.ts';
+import { resolveAutoCompactWindow } from './auto-compact-window.ts';
+import type { AutoCompactDeps } from './auto-compact-window.ts';
 
 export const STATUSLINE_MAX_INPUT = 1024 * 1024;
 const object = (v: unknown): Record<string, unknown> => v !== null && typeof v === 'object' && !Array.isArray(v) ? v as Record<string, unknown> : {};
@@ -54,12 +56,16 @@ async function saveLimits(file: string, value: Record<string, unknown>): Promise
     if (!old || String(old['at']) <= String(value['at'])) await writeSnapshot(file, value);
   } finally { await rm(lock, { recursive: true, force: true }); }
 }
-async function capture(input: Buffer, client: string, dirs: DataDirs, platform: NodeJS.Platform, now: Date): Promise<void> {
+async function capture(input: Buffer, client: string, dirs: DataDirs, platform: NodeJS.Platform, now: Date, where: AutoCompactDeps): Promise<void> {
   const value = object(JSON.parse(input.toString('utf8'))); const sid = value['session_id'];
   if (typeof sid !== 'string') return;
   const file = snapshotFile(dirs, client, sid, platform);
+  const modelId = object(value['model'])['id'];
+  // Claude's own threshold: /context and the app count against it, the statusline input does not carry it.
+  const threshold = client === 'claude' ? await resolveAutoCompactWindow(typeof modelId === 'string' ? modelId : null, where).catch(() => null) : null;
+  const context = { ...pick(value['context_window'], ['context_window_size', 'used_percentage', 'total_input_tokens']), ...(threshold ? { auto_compact_window: threshold.window, auto_compact_source: threshold.source } : {}) };
   const snapshot = { session_id: sid, model: pick(value['model'], ['id', 'display_name']), effort: pick(value['effort'], ['level']),
-    context_window: pick(value['context_window'], ['context_window_size', 'used_percentage', 'total_input_tokens']), fast_mode: value['fast_mode'], version: value['version'], at: now.toISOString() };
+    context_window: context, fast_mode: value['fast_mode'], version: value['version'], at: now.toISOString() };
   await writeSnapshot(file, snapshot);
   if (value['rate_limits']) {
     const limits = object(value['rate_limits']);
@@ -81,7 +87,7 @@ export async function runStatusline(args: readonly string[], deps: StatuslineDep
     const index = args.indexOf('--client'); const client = index >= 0 ? args[index + 1] : undefined;
     if (client && /^[A-Za-z0-9_-]{1,128}$/.test(client)) {
       const dirs = deps.dirs ?? resolveDataDirs({ platform, env, homedir: home });
-      await capture(input, client, dirs, platform, (deps.now ?? (() => new Date()))()).catch(() => undefined);
+      await capture(input, client, dirs, platform, (deps.now ?? (() => new Date()))(), { platform, env, cwd, homedir: home }).catch(() => undefined);
     }
     const command = await userStatusline(cwd, home);
     if (command) {

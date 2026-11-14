@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 886,
+  "revision": 888,
   "rounds": [
     {
       "digest": null,
@@ -169,14 +169,15 @@
         "product-parts/control-panel/clusters/web-panel/modules/session-chat/test/parameters-model.test.ts",
         "product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md",
         "docs/architecture/CONTRACTS.md",
-        "docs/architecture/OVERVIEW.md"
+        "docs/architecture/OVERVIEW.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/index.ts"
       ],
       "fixes": null,
       "id": "T002",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Считать окно контекста Claude от порога автосжатия",
       "why": "Считать окно контекста Claude от порога автосжатия"
     },
@@ -557,8 +558,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 1/10
-- Revision: 886
+- Progress: 2/10
+- Revision: 888
 
 ## Objective
 
@@ -580,9 +581,9 @@
 - [DONE] T001 — Снять кадры Claude 2.1.325 и проверить факты для исправлений (work)
   - Commit: docs: record Claude 2.1.325 facts for controls fixes
   - Files: docs/design/M28-claude-fixes-facts.md, docs/evidence/M28-claude-controls-fixes.md, docs/evidence/M28, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/fixtures/m28, docs/planning/M28-claude-controls-fixes.md, docs/evidence/M28/probe-harness.md, docs/evidence/M28/t001-context-matrix.json, docs/evidence/M28/t001-observations.json, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/fixtures/m28/claude-2.1.325-frames.json
-- [TODO] T002 — Считать окно контекста Claude от порога автосжатия (work)
+- [DONE] T002 — Считать окно контекста Claude от порога автосжатия (work)
   - Commit: fix(claude): measure context against the auto-compact window
-  - Files: product-parts/backend-core/clusters/runtime/modules/cli/src/statusline.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/auto-compact-window.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/statusline.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/auto-compact-window.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/parameters.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parameters.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/parameters.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/parameters.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/parameters.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/parameters-model.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/parameters.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/parameters-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, docs/architecture/CONTRACTS.md, docs/architecture/OVERVIEW.md
+  - Files: product-parts/backend-core/clusters/runtime/modules/cli/src/statusline.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/auto-compact-window.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/statusline.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/auto-compact-window.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/parameters.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parameters.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/parameters.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/parameters.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/parameters.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/parameters-model.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/parameters.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/parameters-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, docs/architecture/CONTRACTS.md, docs/architecture/OVERVIEW.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/index.ts
   - Depends on: T001
 - [TODO] T003 — Определять границы хода Claude по хукам и не терять хуки (work)
   - Commit: fix(claude): track turns by hooks and never swallow real hooks

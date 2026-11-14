@@ -3,7 +3,8 @@ import { WORKING_LINE, promptRow, screenLines, screenState } from './interrupt-c
 import { EFFORTS, nativeModelKey } from './parameter-protocol.ts';
 import type { NativeModelOption } from './parameter-protocol.ts';
 
-export interface ModelRow extends NativeModelOption { index: number; selected: boolean }
+/** `checked`: Claude's ✔ on the session's current model (M30). */
+export interface ModelRow extends NativeModelOption { index: number; selected: boolean; checked?: boolean }
 export interface ParameterFrame {
   kind: 'idle' | 'busy' | 'dialog' | 'unknown' | 'model' | 'effort' | 'fast' | 'switch';
   input: string | null; placeholder: boolean; mode: string | null; ultracode: boolean | null; baseEffort: string | null;
@@ -11,6 +12,8 @@ export interface ParameterFrame {
   hiddenModels: number; efforts: string[]; previewEffort: string | null; ultraAvailable: boolean;
   /** M29: the model of the "Switch model?" confirmation Claude shows after `s` in a cached conversation. */
   switchTo: string | null;
+  /** M30: the effort row of the /model menu («◐ Medium effort (default) ←/→ to adjust»); null without it. */
+  effortLevel: string | null; effortDefault: boolean;
   text: string;
 }
 /** Session-only acknowledgements Claude prints under a command (model, effort, Ultracode). */
@@ -21,12 +24,13 @@ export function sessionAcks(text: string): string[] {
 export function freshAck(baseline: string[], text: string, field: string, value: string): boolean {
   const next = sessionAcks(text); const last = next.at(-1);
   if (!last || (last === baseline.at(-1) && next.length <= baseline.length)) return false;
-  return field === 'model' ? last.includes(`Set model to ${value} for this session only`) : field === 'effort' ? last.includes(`Set effort level to ${value} `) : last.includes(`Ultracode ${value === 'on' ? 'on' : 'off'}`);
+  return field === 'model' ? last.includes(`Set model to ${value} for this session only`)
+    : field === 'effort' ? last.includes(`Set effort level to ${value} `) || last.includes(` for this session only with ${value} effort`) : last.includes(`Ultracode ${value === 'on' ? 'on' : 'off'}`);
 }
 export function parameterFrame(screen: TerminalScreen): ParameterFrame {
   const text = screen.text(); const lines = screenLines(text); const tail = lines.slice(-12).join('\n');
   const frame: ParameterFrame = { kind: 'unknown', input: null, placeholder: false, mode: null, ultracode: null, baseEffort: null,
-    rows: [], selected: null, more: null, hiddenModels: 0, efforts: [], previewEffort: null, ultraAvailable: false, switchTo: null, text };
+    rows: [], selected: null, more: null, hiddenModels: 0, efforts: [], previewEffort: null, ultraAvailable: false, switchTo: null, effortLevel: null, effortDefault: false, text };
   if (!screen.valid) return frame;
   const mode = /(?:⏵⏵|⏸)\s*(auto|manual|accept edits|plan|bypass permissions)\s+(?:mode\s+)?on/i.exec(tail);
   frame.mode = mode ? ({ manual: 'default', 'accept edits': 'acceptEdits', 'bypass permissions': 'bypassPermissions' }[mode[1]!.toLowerCase()] ?? mode[1]!.toLowerCase()) : null;
@@ -47,8 +51,10 @@ export function parameterFrame(screen: TerminalScreen): ParameterFrame {
       if (row) {
         const label = row[3]!.trim(); const index = Number(row[2]);
         if (row[1] === '❯') frame.selected = index;
-        if (!/^Default\b/.test(label)) frame.rows.push({ key: nativeModelKey(label), label, index, selected: row[1] === '❯', group: more ? 'more' : 'primary' });
+        if (!/^Default\b/.test(label)) frame.rows.push({ key: nativeModelKey(label), label, index, selected: row[1] === '❯', checked: /✔/.test(line), group: more ? 'more' : 'primary' });
       }
+      const effort = /^\s*\S?\s*(Low|Medium|High|xHigh|Max) effort( \(default\))?\s+←\/→ to adjust/.exec(line);
+      if (effort) { frame.effortLevel = effort[1]!.toLowerCase(); frame.effortDefault = !!effort[2]; }
     }
     frame.hiddenModels = Number(/…\s*\+(\d+) models?/.exec(text)?.[1] ?? 0);
     return frame;

@@ -14,23 +14,26 @@ const MODES = ['auto', 'manual', 'accept edits', 'plan'];
 const idle = (input: string, mode: string) => `────────────────────────\r\n❯ ${input}\r\n────────────────────────\r\n  ⏵⏵ ${mode} mode on (shift+tab to cycle)`;
 
 /** A Claude terminal: native menus, Shift+Tab, session-only acknowledgements and the statusline. */
-function claude(options: { model?: number; version?: string; switchDialog?: 'same' | string; planModel?: string } = {}) {
+function claude(options: { model?: number; version?: string; switchDialog?: 'same' | string; planModel?: string; noEffort?: string[] } = {}) {
   let now = 1000;
   const screen = new TerminalScreen();
   const engine = new ParameterEngine(hostId, '/project', screen, () => now);
-  const sim = { selection: options.model ?? 3 as number | 'more', expanded: false, menu: '', draft: '', effort: 'high', mode: 0, acks: '', switching: '', shown: '' };
+  const sim = { selection: options.model ?? 3 as number | 'more', expanded: false, menu: '', draft: '', effort: 'high', row: 'high', mode: 0, acks: '', switching: '', shown: '', current: LABELS[options.model ?? 3]!, escapes: 0 };
+  const LEVELS = ['low', 'medium', 'high', 'xhigh', 'max']; const NAMES = ['Low', 'Medium', 'High', 'xHigh', 'Max'];
+  // M30: the /model menu shows the effort row of the selected model; the ✔ marks the session's model.
+  const hasEffort = () => typeof sim.selection === 'number' && !(options.noEffort ?? []).includes(LABELS[sim.selection]!);
+  const effortRow = () => hasEffort() ? `◐ ${NAMES[LEVELS.indexOf(sim.row)]} effort${sim.row === 'medium' ? ' (default)' : ''} ←/→ to adjust\r\n` : '';
   const meta: NativeMetadata = { version: 1, hostId, sessionId, cwd: '/project', cliVersion: options.version ?? '2.1.325',
     model: { id: 'm', label: LABELS[options.model ?? 3]! }, effort: 'high', fast: false, at: now };
   const written: NativeAction[] = [];
-  const modelMenu = () => 'Select model\r\n' + [1, 2, 3, 4, 5].map(i => `${sim.selection === i ? '❯' : ' '} ${i}. ${LABELS[i]}  Description`).join('\r\n')
+  const modelMenu = () => 'Select model\r\n' + [1, 2, 3, 4, 5].map(i => `${sim.selection === i ? '❯' : ' '} ${i}. ${LABELS[i]}${LABELS[i] === sim.current ? ' ✔' : ''}  Description`).join('\r\n')
     + `\r\n${sim.selection === 'more' ? '❯' : ' '} ${sim.expanded ? '▾' : '▸'} More models\r\n`
-    + (sim.expanded ? `${sim.selection === 6 ? '❯' : ' '} 6. Sonnet 5  Older model\r\n` : '')
+    + (sim.expanded ? `${sim.selection === 6 ? '❯' : ' '} 6. Sonnet 5${sim.current === 'Sonnet 5' ? ' ✔' : ''}  Older model\r\n` : '') + effortRow()
     + (sim.selection === 'more' ? `Enter to ${sim.expanded ? 'collapse' : 'expand'} · Esc to cancel` : 'Enter to set as default · s for this session only · Esc to cancel');
-  const effortMenu = () => 'Effort\r\n' + ' '.repeat({ low: 0, medium: 7, high: 15, xhigh: 22, max: 28 }[sim.effort]!) + '▲\r\nlow   medium  high   xhigh  max\r\nUltracode off · Tab to toggle\r\n←/→ to adjust · Enter to confirm · s for this session only · Esc to cancel';
   // Claude 2.1.325 asks before re-reading a cached conversation with another model.
   const switchDialog = () => `Switch model?\r\nYour next response will be slower and use more tokens\r\nThis conversation is cached for the current model. Switching to ${sim.shown} means the full history gets re-read.\r\n❯ 1. Yes, switch to ${sim.shown}\r\n  2. No, go back`;
   const render = () => {
-    const text = sim.menu === 'model' ? modelMenu() : sim.menu === 'effort' ? effortMenu() : sim.menu === 'switch' ? switchDialog() : sim.acks + '\r\n' + idle(sim.draft, MODES[sim.mode]!);
+    const text = sim.menu === 'model' ? modelMenu() : sim.menu === 'switch' ? switchDialog() : sim.acks + '\r\n' + idle(sim.draft, MODES[sim.mode]!);
     screen.feed(`\x1b[2J\x1b[H${'\r\n'.repeat(Math.max(0, 40 - text.split('\r\n').length))}${text}`); engine.observe(meta);
   };
   render();
@@ -40,18 +43,23 @@ function claude(options: { model?: number; version?: string; switchDialog?: 'sam
     assert.equal(engine.sent(a), true); written.push(a);
     if (a.kind === 'text') sim.draft = a.value;
     else if (a.value === 'enter') {
-      if (sim.menu === 'switch') { meta.model = { id: 'm', label: sim.switching }; sim.acks += `\r\n⎿ Set model to ${sim.switching} for this session only`; meta.at = now; sim.menu = ''; }
+      if (sim.menu === 'switch') { meta.model = { id: 'm', label: sim.switching }; sim.current = sim.switching; sim.acks += `\r\n⎿ Set model to ${sim.switching} for this session only`; meta.at = now; sim.menu = ''; }
       else if (sim.menu === 'model') { assert.equal(sim.selection, 'more', 'Enter never saves a model default'); sim.expanded = true; }
-      else { sim.menu = sim.draft.slice(1); sim.draft = ''; if (sim.menu === 'model') sim.selection = LABELS.indexOf(meta.model.label); }
-    } else if (a.value === 'escape') sim.menu = '';
+      else {
+        sim.menu = sim.draft.slice(1); sim.draft = ''; assert.notEqual(sim.menu, 'effort', 'M30: /effort is never opened');
+        if (sim.menu === 'model') { sim.selection = LABELS.indexOf(sim.current); sim.row = sim.effort; }
+      }
+    } else if (a.value === 'escape') { if (sim.menu === 'model') { sim.escapes++; sim.acks += `\r\n⎿ Kept model as ${sim.current}`; } sim.menu = ''; }
     else if (a.value === 'up') sim.selection = sim.selection === 'more' ? 5 : sim.selection === 6 ? 'more' : Math.max(1, (sim.selection as number) - 1);
     else if (a.value === 'down') sim.selection = sim.selection === 5 ? 'more' : sim.selection === 'more' ? (sim.expanded ? 6 : 'more') : Math.min(6, (sim.selection as number) + 1);
-    else if (a.value === 'left' || a.value === 'right') { const l = ['low', 'medium', 'high', 'xhigh', 'max']; sim.effort = l[l.indexOf(sim.effort) + (a.value === 'right' ? 1 : -1)]!; }
+    else if (a.value === 'left' || a.value === 'right') { if (hasEffort()) sim.row = LEVELS[Math.max(0, Math.min(4, LEVELS.indexOf(sim.row) + (a.value === 'right' ? 1 : -1)))]!; }
     else if (a.value === 'mode') sim.mode = (sim.mode + 1) % 4;
     else if (a.value === 'session') {
       if (sim.menu === 'model' && options.switchDialog) { sim.switching = LABELS[sim.selection as number]!; sim.shown = options.switchDialog === 'same' ? sim.switching : options.switchDialog; sim.menu = 'switch'; render(); return; }
-      if (sim.menu === 'model') { const label = LABELS[sim.selection as number]!; meta.model = { id: 'm', label: options.planModel ?? label }; sim.acks += `\r\n⎿ Set model to ${label} for this session only`; }
-      else { meta.effort = sim.effort; sim.acks += `\r\n⎿ Set effort level to ${sim.effort} (this session only)`; }
+      const label = LABELS[sim.selection as number]!; const withEffort = hasEffort() && sim.row !== sim.effort;
+      if (withEffort) { sim.effort = sim.row; meta.effort = sim.row; }
+      meta.model = { id: 'm', label: options.planModel ?? label }; sim.current = label;
+      sim.acks += `\r\n⎿ Set model to ${label} for this session only${withEffort ? ` with ${sim.row} effort` : ''}`;
       meta.at = now; sim.menu = '';
     } else assert.fail(`unexpected key ${a.value}`);
     render();
@@ -103,7 +111,8 @@ test('wanted fields go in order model, effort, mode; an effective value needs no
   assert.deepEqual(Object.fromEntries(Object.entries(wanted).map(([k, v]) => [k, v.status])), { model: 'applied', effort: 'applied', mode: 'applied' });
   assert.equal(w.meta.model.label, 'Haiku 5.5'); assert.equal(w.meta.effort, 'medium'); assert.equal(w.engine.snapshot().mode, 'plan');
   const order = w.written.filter(a => a.kind === 'text' || a.value === 'mode').map(a => a.value);
-  assert.deepEqual(order.slice(0, 2), ['/model', '/effort'], 'the model first, then its efforts');
+  assert.deepEqual(order.slice(0, 2), ['/model', '/model'], 'M30: the model (its levels read on the target row), then the effort in /model');
+  assert.equal(w.sim.escapes, 0, 'no Kept model line');
   assert.equal(order.at(-1), 'mode');
   const again = claude(); again.engine.loadCatalog(catalog); again.want({ mode: 'auto' }); again.run(10);
   assert.equal(again.engine.snapshot().wanted!.mode!.status, 'applied'); assert.deepEqual(again.written, []);
@@ -125,7 +134,8 @@ test('the short path starts at the current row: no walk to the top; More models 
   more.run();
   assert.equal(more.meta.model.label, 'Sonnet 5');
   assert.equal(more.written.filter(a => a.value === 'session').length, 1, 'the efforts of the new model are only previewed');
-  assert.ok(more.written.some(a => a.value === '/effort'), 'Sonnet 5 had no cached efforts');
+  const beforeSession = keys(more.written).slice(0, keys(more.written).indexOf('session'));
+  assert.ok(beforeSession.includes('left') && beforeSession.includes('right'), 'Sonnet 5 had no cached efforts: its row is read before s');
   assert.deepEqual(more.engine.exportCatalog()!.efforts['Sonnet 5']?.values, known.values);
 });
 
@@ -151,6 +161,38 @@ test('M29 T005: in plan mode the statusline keeps the plan model; Claude\'s line
   assert.equal(w.engine.snapshot().wanted!.model!.status, 'applied');
   assert.deepEqual(keys(w.written), ['/model', 'enter', 'down', 'session'], 'no retry and no effort reading');
   assert.equal(w.engine.snapshot().model?.label, 'Sonnet 5.5', 'the panel shows what Claude reports');
+});
+
+test('M30: discovery reads the effort row of the ✔ model and closes /model with s, never Esc or /effort', () => {
+  const w = claude(); w.run();
+  assert.equal(w.sim.escapes, 0); assert.equal(w.sim.menu, '');
+  assert.ok(!w.written.some(a => a.kind === 'text' && a.value !== '/model'), 'only /model is typed');
+  assert.equal(keys(w.written).at(-1), 'session');
+  assert.deepEqual(w.engine.exportCatalog()!.efforts['Sonnet 5.5'], { values: ['low', 'medium', 'high', 'xhigh', 'max'], recommended: 'medium', ultracode: true });
+  assert.equal(w.sim.effort, 'high', 'the level of the session is restored before s');
+  assert.ok(w.sim.acks.endsWith('Set model to Sonnet 5.5 for this session only'), 'no "with … effort": nothing changed');
+});
+
+test('M30: an effort change goes through the /model effort row and s', () => {
+  const first = claude(); first.run(); const catalog = first.engine.exportCatalog()!;
+  const w = claude(); w.engine.loadCatalog(catalog); w.want({ effort: 'low' }); w.run();
+  assert.deepEqual(keys(w.written), ['/model', 'enter', 'left', 'left', 'session']);
+  assert.equal(w.engine.snapshot().wanted!.effort!.status, 'applied'); assert.equal(w.meta.effort, 'low');
+  assert.ok(w.sim.acks.endsWith('Set model to Sonnet 5.5 for this session only with low effort'));
+  assert.equal(w.sim.escapes, 0);
+});
+
+test('M30: a model without an effort row gets no levels; a catalog without the ✔ row falls back to Esc', () => {
+  const first = claude(); first.run(); const catalog = first.engine.exportCatalog()!;
+  const key = (label: string) => catalog.models.find(m => m.label === label)!.key;
+  const w = claude({ noEffort: ['Sonnet 5'] }); w.engine.loadCatalog(catalog); w.want({ model: key('Sonnet 5') }); w.run();
+  assert.equal(w.meta.model.label, 'Sonnet 5'); assert.deepEqual(w.engine.exportCatalog()!.efforts['Sonnet 5'], { values: [], recommended: null, ultracode: false });
+  assert.deepEqual(w.engine.snapshot().efforts, []);
+  w.want({ effort: 'low' }); w.run(10);
+  assert.equal(w.engine.snapshot().wanted!.effort!.status, 'failed', 'no level to choose');
+  const x = claude(); x.sim.current = 'Custom model'; x.render(); x.run();
+  assert.equal(x.sim.escapes, 1, 'the current model is not in the list: the menu closes with Esc');
+  assert.equal(x.engine.snapshot().models.length, 5);
 });
 
 test('a newer choice replaces the older one; an applied id is never applied again', () => {

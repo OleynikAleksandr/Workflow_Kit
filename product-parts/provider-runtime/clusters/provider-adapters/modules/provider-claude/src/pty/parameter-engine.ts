@@ -4,18 +4,18 @@ import { randomUUID } from 'node:crypto';
 import type { TerminalScreen } from '#pty-host';
 import { freshAck, parameterFrame, sessionAcks } from './parameter-screen.ts';
 import type { ParameterFrame, ModelRow } from './parameter-screen.ts';
-import { FAST_REASON, MODES, supportedNativeVersion, validNativeRequest } from './parameter-protocol.ts';
+import { EFFORTS, FAST_REASON, MODES, supportedNativeVersion, validNativeRequest } from './parameter-protocol.ts';
 import type { TurnState } from './turn-file.ts';
 import type { NativeAction, NativeCatalog, NativeEfforts, NativeMetadata, NativeParameterRequest, NativeParameterResult, NativeParameterState, NativeWanted, WantedField } from './parameter-protocol.ts';
 import { WantedChoices } from './parameter-wanted.ts';
+import { CatalogChanged, effortLevels, seekRow } from './parameter-menu.ts';
+import type { Flow, Step } from './parameter-menu.ts';
 
 /** The statusline cwd follows the agent's cd (M28): the session folder or a folder inside it. */
 export function insideFolder(cwd: string, root: string): boolean {
   const a = folderKey(cwd).replace(/\\/g, '/'); const b = folderKey(root).replace(/\\/g, '/').replace(/\/+$/, '');
   return a === b || a.startsWith(b + '/');
 }
-type Step = { command: string } | { key: string; frame: ParameterFrame['kind'] } | { until: (f: ParameterFrame) => boolean };
-type Flow = Generator<Step, void, ParameterFrame>;
 /** Discovery of the native catalog: attempts per model and the pause between them (M28 T014). */
 export const DISCOVERY_TRIES = 3;
 export const DISCOVERY_RETRY_MS = 30_000;
@@ -118,7 +118,7 @@ export class ParameterEngine {
   }
   /** Catalog knowledge a field needs and discovery may still bring. */
   private waitsForCatalog(field: WantedField): boolean {
-    const need = field === 'model' ? !this.catalogDone : field === 'mode' ? false : !this.efforts.length;
+    const need = field === 'model' ? !this.catalogDone : field === 'mode' ? false : !this.effortsKnown();
     return need && this.discoveryTries < DISCOVERY_TRIES;
   }
   /**
@@ -215,7 +215,7 @@ export class ParameterEngine {
     // terminal is not typed into again and again.
     // M29: models once per CLI version, efforts once per model; the catalog file usually has both.
     if (this.busy || !this.ready()) return;
-    const need = !this.catalogDone ? 'catalog' : !this.efforts.length ? 'efforts' : null;
+    const need = !this.catalogDone ? 'catalog' : !this.effortsKnown() ? 'efforts' : null;
     if (!need) return;
     const key = `${need}:${this.meta?.model.label ?? ''}`;
     if (key !== this.discoveryKey) { this.discoveryKey = key; this.discoveryTries = 0; }
@@ -274,7 +274,8 @@ export class ParameterEngine {
     }
     if (this.written) {
       // The next step is proposed at once (M29): no poll is lost between two keys.
-      if (this.revision > this.changed && this.now() - this.changedAt >= 120) { this.command = null; this.advance(); return this.step ? this.propose() : null; }
+      const quiet = 'key' in s && s.quiet !== undefined && this.now() - this.changedAt >= s.quiet;
+      if ((this.revision > this.changed || quiet) && this.now() - this.changedAt >= 120) { this.command = null; this.advance(); return this.step ? this.propose() : null; }
       return null;
     }
     if ('command' in s) {
@@ -327,43 +328,27 @@ export class ParameterEngine {
     }
     throw new Error('Каталог Claude слишком велик или изменился');
   }
-  /**
-   * M29: the menu opens on the current model; move by the cached row number towards the target and
-   * stop on its label. A row with the target's number but another label means a changed catalog.
-   */
   private *seek(target: ModelRow): Flow {
-    for (let i = 0; i < 64; i++) {
-      const f = this.frame; const row = f.rows.find(r => r.selected);
-      if (row?.key === target.key) return;
-      if (f.selected === 'more') {
-        if (target.group === 'more' && f.more === 'closed' && /Enter to expand/.test(f.text)) yield { key: 'enter', frame: 'model' };
-        else yield { key: target.group === 'more' ? 'down' : 'up', frame: 'model' };
-        continue;
-      }
-      const at = typeof f.selected === 'number' ? f.selected : null;
-      if (at !== null && at === target.index && row && row.key !== target.key) { this.catalogDone = false; throw new Error('Каталог Claude изменился'); }
-      yield { key: at === null || (target.group === 'more' && f.more === 'closed') || target.index > at ? 'down' : 'up', frame: 'model' };
-    }
-    throw new Error('Модель не найдена в меню Claude');
+    try { yield* seekRow(() => this.frame, target); } catch (error) { if (error instanceof CatalogChanged) this.catalogDone = false; throw error; }
   }
+  private effortsKnown(): boolean { return !!this.effortsLabel && this.effortsByModel.has(this.effortsLabel); }
   private *catalog(): Flow {
-    // M29: /fast is never opened; speed is shown from the statusline only.
-    yield* this.modelRows(); yield { key: 'escape', frame: 'model' }; yield { until: f => f.kind === 'idle' && this.empty() };
-    yield* this.readEfforts();
+    // M29: /fast is never opened. M30: no /effort and no Esc: levels of the ✔ model, then `s` on it.
+    yield* this.modelRows();
+    const current = [...this.models.values()].find(m => m.checked);
+    if (!current) { yield { key: 'escape', frame: 'model' }; yield { until: f => f.kind === 'idle' && this.empty() }; return; }
+    yield* this.seek(current); yield* this.levels(current.label); yield* this.closeMenu();
   }
-  private *readEfforts(label = this.meta?.model.label ?? null): Flow {
-    yield* this.open('/effort', 'effort');
-    if (!this.frame.efforts.length) throw new Error('Неизвестная форма effort');
-    this.efforts = this.frame.efforts; this.ultraAvailable = this.frame.ultraAvailable;
-    this.recommended = null;
-    // Preview only: inspect native descriptions without saving any effort/default.
-    for (let i = 0; this.frame.previewEffort !== this.efforts[0] && i < 5; i++) yield { key: 'left', frame: 'effort' };
-    for (let i = 0; i < this.efforts.length; i++) {
-      if (/The default effort for this model/.test(this.frame.text)) this.recommended = this.frame.previewEffort;
-      if (i < this.efforts.length - 1) yield { key: 'right', frame: 'effort' };
-    }
-    if (label) { this.effortsByModel.set(label, { values: [...this.efforts], recommended: this.recommended, ultracode: this.ultraAvailable }); this.effortsLabel = label; this.catalogRevision++; }
-    yield { key: 'escape', frame: 'effort' }; yield { until: f => f.kind === 'idle' && this.empty() };
+  private *readEfforts(): Flow {
+    yield* this.open('/model', 'model');
+    const row = this.frame.rows.find(r => r.selected); if (!row) throw new Error('Текущая модель не распознана');
+    yield* this.levels(row.label); yield* this.closeMenu();
+  }
+  private *closeMenu(): Flow { yield { key: 'session', frame: 'model' }; yield { until: f => f.kind === 'idle' && this.empty() }; }
+  private *levels(label: string): Flow {
+    const { values, recommended } = yield* effortLevels(() => this.frame);
+    this.effortsByModel.set(label, { values, recommended, ultracode: values.length > 0 }); this.catalogRevision++;
+    if (label === this.meta?.model.label) this.useModelEfforts();
   }
   private *setter(r: NativeParameterRequest): Flow {
     const before = this.meta!; const submittedAt = this.now();
@@ -374,7 +359,8 @@ export class ParameterEngine {
     }
     const baseline = sessionAcks(this.frame.text); const target = r.field === 'model' ? this.models.get(r.value)! : null;
     if (target) {
-      yield* this.modelRows(target); yield { key: 'session', frame: 'model' };
+      yield* this.modelRows(target);
+      if (!this.effortsByModel.has(target.label)) yield* this.levels(target.label); yield { key: 'session', frame: 'model' };
       // M29: a cached conversation asks "Switch model?"; this transaction confirms its own target only.
       yield { until: f => f.kind === 'switch' || f.kind === 'idle' };
       if (this.frame.kind === 'switch') {
@@ -382,14 +368,15 @@ export class ParameterEngine {
         yield { key: 'enter', frame: 'switch' };
       }
     } else if (r.field === 'effort') {
-      yield* this.open('/effort', 'effort');
-      for (let i = 0; this.frame.previewEffort !== r.value && i < 5; i++) {
-        const from = this.frame.efforts.indexOf(this.frame.previewEffort ?? ''); const to = this.frame.efforts.indexOf(r.value);
-        if (from < 0 || to < 0) throw new Error('Effort preview не распознан');
-        yield { key: from < to ? 'right' : 'left', frame: 'effort' };
+      // M30: the effort row of /model on the current model, applied with `s` (no /effort line in the feed).
+      yield* this.open('/model', 'model');
+      for (let i = 0; this.frame.effortLevel !== r.value && i < 5; i++) {
+        const from = EFFORTS.indexOf(this.frame.effortLevel as never); const to = EFFORTS.indexOf(r.value as never);
+        if (from < 0 || to < 0) throw new Error('Уровень усилия не распознан');
+        yield { key: from < to ? 'right' : 'left', frame: 'model' };
       }
-      if (this.frame.previewEffort !== r.value) throw new Error('Effort не выбран');
-      yield { key: 'session', frame: 'effort' };
+      if (this.frame.effortLevel !== r.value) throw new Error('Effort не выбран');
+      yield { key: 'session', frame: 'model' };
     } else yield { command: r.value === 'on' ? '/effort ultracode' : '/effort ultracode off' };
     // A model is confirmed by Claude's line naming it: in plan mode the statusline shows the plan model.
     yield { until: f => f.kind === 'idle' && this.empty() && freshAck(baseline, f.text, r.field, target?.label ?? r.value) && !!this.meta

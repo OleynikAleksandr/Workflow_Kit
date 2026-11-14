@@ -83,10 +83,14 @@ test('T001 actual effort/model frames parse without mistaking selected rows for 
 
 test('catalogue expands and scrolls without saving defaults; setters use s and require fresh independent values plus ACK', () => {
   const w = world(); let selection: number | 'more' = 3; let expanded = false; let menu = ''; let draft = ''; let effort = 'high'; let ultra = false; let acknowledgements = '';
+  // M30: the /model menu carries the effort row and the ✔ of the session's model.
+  const names = ['', 'Default', 'Opus 5.5', 'Sonnet 5.5', 'Haiku 5.5', 'Fable 5.2', 'Sonnet 5']; let current = 'Sonnet 5.5'; let row = 'high';
+  const LEVELS = ['low', 'medium', 'high', 'xhigh', 'max'];
   const written: NativeAction[] = [];
-  const modelMenu = () => 'Select model\r\n' + [1, 2, 3, 4, 5].map(i => `${selection === i ? '❯' : ' '} ${i}. ${['', 'Default', 'Opus 5.5', 'Sonnet 5.5', 'Haiku 5.5', 'Fable 5.2'][i]}  Description`).join('\r\n')
+  const modelMenu = () => 'Select model\r\n' + [1, 2, 3, 4, 5].map(i => `${selection === i ? '❯' : ' '} ${i}. ${names[i]}${names[i] === current ? ' ✔' : ''}  Description`).join('\r\n')
     + `\r\n${selection === 'more' ? '❯' : ' '} ${expanded ? '▾' : '▸'} More models\r\n`
-    + (expanded ? `${selection === 6 ? '❯' : ' '} 6. Sonnet 5  Older model\r\n` : '')
+    + (expanded ? `${selection === 6 ? '❯' : ' '} 6. Sonnet 5${current === 'Sonnet 5' ? ' ✔' : ''}  Older model\r\n` : '')
+    + (typeof selection === 'number' ? `◐ ${row === 'xhigh' ? 'xHigh' : row[0]!.toUpperCase() + row.slice(1)} effort ←/→ to adjust\r\n` : '')
     + (selection === 'more' ? `Enter to ${expanded ? 'collapse' : 'expand'} · Esc to cancel` : 'Enter to set as default · s for this session only · Esc to cancel');
   const effortMenu = () => 'Effort\r\n' + ' '.repeat({ low: 0, medium: 7, high: 15, xhigh: 22, max: 28 }[effort]!) + '▲\r\nlow   medium  high   xhigh  max\r\nUltracode off · Tab to toggle\r\n←/→ to adjust · Enter to confirm · s for this session only · Esc to cancel';
   const render = () => w.feed(menu === 'model' ? modelMenu() : menu === 'effort' ? effortMenu() : menu === 'fast' ? 'Fast mode requires usage credits\r\nEsc to cancel' : acknowledgements + '\r\n' + idle(draft) + (ultra ? '\r\n ultracode' : ''));
@@ -97,14 +101,18 @@ test('catalogue expands and scrolls without saving defaults; setters use s and r
     else if (a.value === 'enter') {
       if (menu === 'model') { assert.equal(selection, 'more', 'Enter must never save a model default'); expanded = true; }
       else if (draft.startsWith('/effort ultracode')) { ultra = !draft.endsWith(' off'); acknowledgements += ultra ? `\r\n⎿ Ultracode on (this session only): Effort stays ${w.meta.effort}.` : `\r\n⎿ Ultracode off. Effort stays ${w.meta.effort}.`; w.meta.at = w.now(); draft = ''; menu = ''; }
-      else { menu = draft.slice(1); draft = ''; }
+      else { menu = draft.slice(1); draft = ''; if (menu === 'model') { selection = names.indexOf(current); row = effort; } }
     } else if (a.value === 'escape') menu = '';
     else if (a.value === 'up') selection = selection === 'more' ? 5 : Math.max(1, (selection as number) - 1);
     else if (a.value === 'down') selection = selection === 5 ? 'more' : selection === 'more' ? 6 : (selection as number) + 1;
     else if (a.value === 'left' || a.value === 'right') {
-      const levels = ['low', 'medium', 'high', 'xhigh', 'max']; effort = levels[levels.indexOf(effort) + (a.value === 'right' ? 1 : -1)]!;
+      if (menu === 'model') row = LEVELS[Math.max(0, Math.min(4, LEVELS.indexOf(row) + (a.value === 'right' ? 1 : -1)))]!;
+      else effort = LEVELS[LEVELS.indexOf(effort) + (a.value === 'right' ? 1 : -1)]!;
     } else if (a.value === 'session') {
-      if (menu === 'model') { w.meta.model = { id: 'claude-sonnet-5', label: 'Sonnet 5' }; acknowledgements += '\r\n⎿ Set model to Sonnet 5 for this session only'; }
+      if (menu === 'model') {
+        const label = names[selection as number]!; current = label; const changed = row !== effort; if (changed) { effort = row; w.meta.effort = row; }
+        w.meta.model = { id: label === 'Sonnet 5' ? 'claude-sonnet-5' : 'claude-sonnet-5-5', label }; acknowledgements += `\r\n⎿ Set model to ${label} for this session only${changed ? ` with ${row} effort` : ''}`;
+      }
       else { w.meta.effort = effort; acknowledgements += `\r\n⎿ Set effort level to ${effort} (this session only)`; }
       w.meta.at = w.now(); menu = '';
     } else assert.fail(`unexpected key ${a.value}`);
@@ -117,15 +125,15 @@ test('catalogue expands and scrolls without saving defaults; setters use s and r
   assert.equal(w.engine.snapshot().fastReason, FAST_REASON);
   assert.ok(!written.some(a => a.kind === 'text' && a.value === '/fast'), 'M29: /fast is never opened');
   for (const [field, value] of [['model', 'native:Sonnet%205'], ['effort', 'medium'], ['ultracode', 'on'], ['ultracode', 'off']]) {
-    // M29: efforts of the new model are read by discovery after the model transaction.
-    if (field === 'effort') { w.engine.observe(w.meta); w.engine.discover(); for (let i = 0; i < 300 && w.engine.busy; i++) action(); assert.equal(w.engine.takeResult()?.status, 'applied', 'efforts'); }
+    // M30: the efforts of the new model were read on its row inside the model transaction.
     w.meta.at = w.now(); w.engine.observe(w.meta); w.engine.begin(w.request(field, value));
     for (let i = 0; i < 300 && w.engine.busy; i++) action();
     assert.equal(w.engine.takeResult()?.status, 'applied', field);
     assert.equal(w.engine.snapshot().models.length, 5, 'setter navigation cannot replace a complete discovered catalogue with a partial viewport');
   }
   assert.equal(w.engine.snapshot().model?.id, 'claude-sonnet-5'); assert.equal(w.engine.snapshot().effort, 'medium');
-  assert.equal(written.filter(a => a.value === 'session').length, 2);
+  assert.equal(written.filter(a => a.value === 'session').length, 3, 'M30: the catalog closes /model with s on the ✔ model');
+  assert.ok(!written.some(a => a.kind === 'text' && a.value === '/effort'), 'M30: effort goes through /model');
   assert.equal(ultra, false);
 });
 

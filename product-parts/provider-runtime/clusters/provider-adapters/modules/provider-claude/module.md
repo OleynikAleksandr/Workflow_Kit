@@ -294,4 +294,6 @@ M27/T003–T006, M28 и M29 — [native-parameters.md](native-parameters.md). M2
 каталога в `stateDir`, `native-wanted.ts`) — там же. M29/T005: диалог «Switch model?» после `s`
 подтверждается только для своей цели (`sessionAcks`, `freshAck` в `parameter-screen.ts`) — там же.
 M29/T005: модель подтверждает строка Claude с её именем; занятый хост опрашивается раз в 100 мс
-(`PACE_MS` в `interrupt-worker.ts`, Tcl больше не спит сам) — там же.
+(`PACE_MS` в `interrupt-worker.ts`, Tcl больше не спит сам) — там же. M30/T001: усилие читается
+и меняется в строке усилия меню `/model` (`parameter-menu.ts`), меню закрывается `s`; `/effort` —
+только для Ultracode — там же.

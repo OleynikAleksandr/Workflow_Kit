@@ -30,7 +30,7 @@ for (const platform of ['darwin', 'linux'] as const) test(`expect ${platform}: f
   } finally { await h.cleanup(); }
 });
 
-test('expect refuses a dialog appearing after cached availability, sends no Escape, and reports dialog on next poll', { skip }, async () => {
+test('M28: a dialog after cached availability takes one Escape (a denial); Stop stays available', { skip }, async () => {
   const h = await createHarness(() => ({}));
   try {
     const project = await h.project('Dialog');
@@ -42,11 +42,10 @@ test('expect refuses a dialog appearing after cached availability, sends no Esca
     const debug = call.argv[call.argv.indexOf('--debug-file') + 1]!;
     await writeFile(debug + '.fixture-mode', 'dialog');
     await until(async () => JSON.parse(await readFile(debug + STATE_SUFFIX, 'utf8')).state === 'dialog', 'dialog drawn in host');
-    const result = await provider.interruptTurn!(project, session.localId, target);
-    assert.equal(result.status, 'unavailable');
-    assert.equal((await readFile(h.fakeLog + '.input', 'utf8').catch(() => '')).includes('\x1b'), false);
+    await provider.interruptTurn!(project, session.localId, target).catch((error: { code?: string }) => assert.equal(error.code, 'interrupt-timeout'));
+    assert.equal((await readFile(h.fakeLog + '.input', 'utf8').catch(() => '')).split('\x1b').length - 1, 1, 'exactly one Escape');
     await provider.listSessions(project);
-    assert.match(provider.interruptAvailability!(project, session.localId).reason!, /диалоге/);
+    assert.equal(provider.interruptAvailability!(project, session.localId).available, true);
   } finally { await h.cleanup(); }
 });
 

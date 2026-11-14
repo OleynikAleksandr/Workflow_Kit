@@ -19,7 +19,7 @@ for (const scenario of ['confirmed', 'late-dialog', 'no-marker'] as const) test(
   const done = runHost({ kind: 'session', claude: 'C:/claude.exe', title: 'Test', debug, resume: null, first: null }, {
     start: () => ({ pid: 1, onData: (fn) => { emit = fn; }, onExit: (fn) => { exit = fn; }, kill: () => { killed++; }, write: (text) => {
       keys.push(text);
-      if (text === '\x1b') emit(frame(scenario === 'confirmed' ? '[Request interrupted by user]\r\n❯' : '❯'));
+      if (text === '\x1b') emit(frame(scenario === 'confirmed' ? '[Request interrupted by user]\r\n❯' : scenario === 'late-dialog' ? '  ⎿  Interrupted · What should Claude do instead?\r\n❯' : '❯'));
       return true;
     } }),
     print: () => undefined,
@@ -43,8 +43,9 @@ for (const scenario of ['confirmed', 'late-dialog', 'no-marker'] as const) test(
     await until(() => files.has(debug + RESULT_SUFFIX));
     const result = JSON.parse(files.get(debug + RESULT_SUFFIX)!) as HostResult;
     assert.equal(result.id, id);
-    assert.equal(result.status, { confirmed: 'interrupted', 'late-dialog': 'unavailable', 'no-marker': 'timeout' }[scenario]);
-    assert.deepEqual(keys, scenario === 'late-dialog' ? [] : ['\x1b']);
+    // M28: Esc in a permission dialog is a denial and stops the turn (T001); 2.1.325 shows its own notice.
+    assert.equal(result.status, { confirmed: 'interrupted', 'late-dialog': 'interrupted', 'no-marker': 'timeout' }[scenario]);
+    assert.deepEqual(keys, ['\x1b']);
     assert.equal(killed, 0);
     if (scenario === 'confirmed') {
       files.set(debug + '.text', 'next message');

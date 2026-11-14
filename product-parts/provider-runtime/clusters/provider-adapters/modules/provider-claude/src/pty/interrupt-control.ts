@@ -10,7 +10,8 @@ export const STATE_SUFFIX = '.interrupt-state';
 export const REQUEST_SUFFIX = '.interrupt';
 export const RESULT_SUFFIX = '.interrupt-result';
 export const DIALOG_REASON = 'Claude ждёт решения в своём диалоге';
-const MARKER = /\[Request interrupted by user\]/g;
+/** M24 marker and the Claude 2.1.325 notice (M28): the transcript keeps `[Request interrupted by user…]`. */
+const MARKER = /\[Request interrupted by user[^\]\n]{0,40}\]|Interrupted · What should Claude do instead\?/g;
 
 /** Claude 2.1.325 working line: a spinner glyph, a gerund with an ellipsis, optional details (M28). */
 export const WORKING_LINE = /^\s*[·✢✳✶✻✽✺*]\s+[^\s…]+…(?:\s|$)/m;
@@ -46,6 +47,8 @@ export class InterruptControl {
   private tail = '';
   private pending: { request: HostRequest; markers: number; visibleMarkers: number } | null = null;
   private instance: string;
+  /** The hook turn (<debug>.turn) is running: an unrecognized frame still takes the single Esc. */
+  turnWorking = false;
   private now: () => number;
   private write: (text: string) => boolean;
   constructor(instance: string, now: () => number, write: (text: string) => boolean) { this.instance = instance; this.now = now; this.write = write; }
@@ -55,7 +58,7 @@ export class InterruptControl {
     const matches = [...raw.matchAll(MARKER)];
     this.markers += matches.length;
     // Only the unfinished suffix is retained, so an old complete marker is never counted twice.
-    this.tail = raw.slice(matches.at(-1) ? matches.at(-1)!.index! + matches.at(-1)![0].length : 0).slice(-33);
+    this.tail = raw.slice(matches.at(-1) ? matches.at(-1)!.index! + matches.at(-1)![0].length : 0).slice(-60);
     this.snapshot();
   }
   snapshot(): HostSnapshot {
@@ -67,10 +70,12 @@ export class InterruptControl {
   request(request: HostRequest): HostResult | null {
     const current = this.snapshot();
     if (!/^[a-f0-9-]{36}$/.test(request.id) || !Number.isFinite(request.expires) || request.expires <= this.now()) return { id: request.id, status: 'timeout' };
-    if (request.epoch !== current.epoch) return { id: request.id, status: 'stale' };
+    // The cli checked the turn by its turnRef; a newer screen epoch is stale only outside a hook turn.
+    if (request.epoch !== current.epoch && !this.turnWorking) return { id: request.id, status: 'stale' };
     if (this.pending) return { id: request.id, status: 'unavailable', reason: 'Остановка уже выполняется' };
-    if (current.state === 'idle' && this.epoch > 0) return { id: request.id, status: 'already-idle' };
-    if (current.state !== 'working') return { id: request.id, status: 'unavailable', reason: current.state === 'dialog' ? DIALOG_REASON : 'Текущий экран Claude не распознан' };
+    if (current.state === 'idle') return { id: request.id, status: 'already-idle' };
+    // One Esc: work, a permission dialog (a denial, M28 T001) or an unknown frame of a running turn.
+    if (current.state === 'unknown' && !this.turnWorking) return { id: request.id, status: 'unavailable', reason: 'Текущий экран Claude не распознан' };
     this.pending = { request, markers: this.markers, visibleMarkers: [...this.screen.text().matchAll(MARKER)].length };
     if (!this.write('\x1b')) { this.pending = null; return { id: request.id, status: 'unavailable', reason: 'Терминал не принял команду' }; }
     return null;
@@ -85,7 +90,6 @@ export class InterruptControl {
     const current = this.snapshot();
     let result: HostResult | null = null;
     if (this.now() >= pending.request.expires) result = { id: pending.request.id, status: 'timeout' };
-    else if (current.state === 'dialog') result = { id: pending.request.id, status: 'unavailable', reason: DIALOG_REASON };
     else if (current.state === 'idle' && this.markers > pending.markers && [...this.screen.text().matchAll(MARKER)].length > pending.visibleMarkers) result = { id: pending.request.id, status: 'interrupted' };
     if (result) this.pending = null;
     return result;

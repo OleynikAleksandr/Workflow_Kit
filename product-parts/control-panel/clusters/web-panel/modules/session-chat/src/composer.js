@@ -62,14 +62,15 @@ export function createComposer({ shell, projectId, key, provider, onSent }) {
     const working = current.state === 'working';
     const pending = busy !== null || current.pending;
     const stopping = busy === 'stop' || current.pending;
-    const title = working ? (stopping ? 'Останавливаю…' : !current.available ? current.reason : 'Остановить ответ') : 'Отправить сообщение';
+    // Stop stays pressable for the whole turn (M28 3.4); a reason is shown only after the press.
+    const title = working ? (stopping ? 'Останавливаю…' : 'Остановить ответ') : 'Отправить сообщение';
     action.setAttribute('aria-label', title);
     action.title = title;
     action.classList.toggle('sc-stop', working);
     action.firstElementChild?.setAttribute('class', `sc-icon sc-icon-${working ? 'stop' : 'enter'}`);
-    action.disabled = working ? pending || !current.available || !current.turnRef : !canSend(input.value, pending);
+    action.disabled = working ? pending || !current.turnRef : !canSend(input.value, pending);
     action.setAttribute('aria-busy', String(stopping));
-    availability.textContent = current.pending && busy !== 'stop' ? 'Останавливаю…' : working && !current.available ? current.reason : '';
+    availability.textContent = '';
     availability.hidden = !availability.textContent;
     input.title = working ? 'Enter — новая строка; Ctrl+Enter или ⌘+Enter — в очередь' : 'Enter — отправить; Shift+Enter — новая строка';
     queue.hidden = !working || !input.value.trim();
@@ -135,7 +136,8 @@ export function createComposer({ shell, projectId, key, provider, onSent }) {
   }
   async function stop() {
     const current = turn();
-    if (busy || current.pending || current.state !== 'working' || !current.available || !current.turnRef) return;
+    if (busy || current.pending || current.state !== 'working' || !current.turnRef) return;
+    if (!current.available) { report(current.reason, 'error'); return; }
     const target = current.turnRef;
     busy = 'stop';
     refresh();

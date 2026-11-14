@@ -326,3 +326,5 @@ M28/T002: `contextUsage` — контекст от порога автосжат
 M28/T003: границы хода — `<debug>.turn` (interrupt.md, parameters.md).
 
 M28/T004: доставка и `turnState` — sessions.md.
+
+M28/T005: Stop весь ход — interrupt.md.

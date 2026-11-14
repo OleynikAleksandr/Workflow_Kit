@@ -161,7 +161,7 @@ test('a queued Stop keeps its original timeout and cannot write a late native re
   assert.equal(await exists(debug + REQUEST_SUFFIX), false, 'expired admission must not run later');
 });
 
-test('a native epoch that changes while Stop waits is never interrupted as the original target', async () => {
+test('M28: Stop that waited for the host sends the latest native epoch (the cli checked the turn)', async () => {
   const debug = debugFile('Race-linux');
   const rt = createRuntime(context, { interruptWaitMs: 2000, pollMs: 10 });
   await writeFile(debug + STATE_SUFFIX, JSON.stringify({ version: 1, epoch: 'native-host:1', state: 'working', at: Date.now() }));
@@ -174,8 +174,11 @@ test('a native epoch that changes while Stop waits is never interrupted as the o
   await writeFile(debug + STATE_SUFFIX, JSON.stringify({ version: 1, epoch: 'native-host:2', state: 'working', at: Date.now() }));
   await refreshInterruptions(rt, project, await listSessions(rt, project));
   release(); await held;
-  assert.deepEqual(await stop, { status: 'stale', stopped: false });
-  assert.equal(await exists(debug + REQUEST_SUFFIX), false);
+  let request: { id: string; epoch: string } | null = null;
+  for (let i = 0; i < 200 && !request; i++) { request = await readFile(debug + REQUEST_SUFFIX, 'utf8').then(JSON.parse, () => null); if (!request) await new Promise(r => setTimeout(r, 5)); }
+  assert.equal(request?.epoch, 'native-host:2');
+  await writeFile(debug + RESULT_SUFFIX, JSON.stringify({ id: request!.id, status: 'interrupted' }));
+  assert.equal((await stop).status, 'interrupted');
 });
 
 test('the text is cleaned: line breaks to LF, control characters and ESC dropped, TAB kept', () => {

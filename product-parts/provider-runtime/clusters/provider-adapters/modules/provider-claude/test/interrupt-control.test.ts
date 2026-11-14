@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { test } from 'node:test';
-import { InterruptControl } from '../src/pty/interrupt-control.ts';
+import { InterruptControl, screenState } from '../src/pty/interrupt-control.ts';
 
 const frame = (text: string) => `\x1b[2J\x1b[H${text}\r\n`;
 const BUSY = 'Thinking (esc to interrupt)';
@@ -41,15 +41,24 @@ test('marker is counted once across chunks and redraws cannot restore an old idl
   assert.equal(w.control.poll()!.status, 'interrupted');
 });
 
-test('dialog or unknown screen at action time refuses Esc, including a stale availability snapshot', () => {
+test('M28: a dialog at the press takes one Esc (a denial); an unknown screen does only inside a hook turn', () => {
   for (const screen of DIALOGS) {
     const w = world();
     w.control.feed(frame(BUSY));
     const request = w.request();
     w.control.feed(frame(screen));
-    assert.equal(w.control.request(request)!.status, 'unavailable');
-    assert.deepEqual(w.keys, []);
+    const dialog = screenState(w.control.screen) === 'dialog';
+    const result = w.control.request(request);
+    if (dialog) { assert.equal(result, null, screen); assert.deepEqual(w.keys, ['\x1b']); }
+    else { assert.equal(result!.status, 'unavailable', screen); assert.deepEqual(w.keys, []); }
   }
+  const w = world(); w.control.feed(frame(BUSY)); const request = w.request(); w.control.feed(frame('New unknown screen'));
+  w.control.turnWorking = true; assert.equal(w.control.request(request), null); assert.deepEqual(w.keys, ['\x1b']);
+});
+test('M28: the 2.1.325 notice confirms the interruption', () => {
+  const w = world(); w.control.feed(frame(BUSY)); assert.equal(w.control.request(w.request()), null);
+  w.control.feed(frame('  ⎿  Interrupted · What should Claude do instead?\r\n❯'));
+  assert.equal(w.control.poll()?.status, 'interrupted');
 });
 
 test('same completed epoch is already-idle; a successor busy epoch is stale and receives no key', () => {

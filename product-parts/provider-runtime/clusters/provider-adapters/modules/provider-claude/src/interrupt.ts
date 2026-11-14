@@ -31,11 +31,15 @@ export async function refreshInterruptions(rt: ClaudeRuntime, project: Project, 
   }));
 }
 
+/** The only reason Stop is unavailable (M28 3.4): no Kit terminal runs this session. */
+export const STOP_IN_APP_REASON = 'Остановите ответ в приложении Claude';
+/**
+ * Stop is available for the whole turn of a session a Kit terminal runs (M28 3.4): the screen is
+ * checked by the host only at the press; Esc in a permission dialog is a denial, never an approval.
+ */
 export function interruptAvailability(rt: ClaudeRuntime, project: Project, sid: string): InterruptAvailability {
   const row = cache.get(rt)?.get(sid);
-  if (!row || row.projectId !== project.id || Date.now() - row.snapshot.at > 3500) return { available: false, reason: 'Нет свежего состояния управляемого терминала Claude; обновите сессию' };
-  if (row.snapshot.state === 'dialog') return { available: false, reason: DIALOG_REASON };
-  if (!['working', 'idle'].includes(row.snapshot.state) || row.snapshot.epoch.endsWith(':0')) return { available: false, reason: 'Текущий экран Claude не распознан' };
+  if (!row || row.projectId !== project.id) return { available: false, reason: STOP_IN_APP_REASON };
   return { available: true, reason: null };
 }
 
@@ -44,7 +48,7 @@ export async function interruptTurn(rt: ClaudeRuntime, project: Project, sid: st
   if (owned.record?.controlHostId && await rt.isAlive(owned.record.processId)) await cancelNativeParameters(rt, owned.record.debugFile, owned.record.controlHostId);
   const technical = interruptAvailability(rt, project, sid);
   const cached = cache.get(rt)?.get(sid);
-  if (!technical.available || !cached) return { status: 'unavailable', stopped: false, reason: technical.reason ?? 'Терминал недоступен' };
+  if (!technical.available || !cached) return { status: 'unavailable', stopped: false, reason: technical.reason ?? STOP_IN_APP_REASON };
   const { record } = await findSession(rt, project, sid);
   if (!record || record.archived || record.debugFile !== cached.debug || !(await rt.isAlive(record.processId))) return { status: 'unavailable', stopped: false, reason: 'Сессия не управляется действующим терминалом Kit' };
   const timeoutError = (): ProviderError => new ProviderError('interrupt-timeout', 'Остановка ответа Claude не подтверждена', { status: 504, hint: 'Автопродолжение удерживается; проверьте терминал и повторите.' });
@@ -56,13 +60,15 @@ export async function interruptTurn(rt: ClaudeRuntime, project: Project, sid: st
       const fresh = cache.get(rt)?.get(sid);
       const available = interruptAvailability(rt, project, sid);
       if (!fresh || fresh.debug !== cached.debug || !(await rt.isAlive(record.processId))) return { status: 'unavailable', stopped: false, reason: 'Сессия не управляется действующим терминалом Kit' };
-      if (fresh.snapshot.epoch !== cached.snapshot.epoch) return { status: 'stale', stopped: false };
-      if (!available.available) return { status: 'unavailable', stopped: false, reason: available.reason ?? 'Терминал недоступен' };
+      if (!available.available) return { status: 'unavailable', stopped: false, reason: available.reason ?? STOP_IN_APP_REASON };
+      // The cli already checked the turn (turnRef); the host gets its own latest epoch.
+      const live = await readJson(cached.debug + STATE_SUFFIX).catch(() => null) as HostSnapshot | null;
+      const epoch = live?.version === 1 && typeof live.epoch === 'string' ? live.epoch : fresh.snapshot.epoch;
       if (Date.now() >= deadline) throw timeoutError();
       const id = randomUUID();
       const file = cached.debug + REQUEST_SUFFIX;
       const timeout = Math.max(1, deadline - Date.now());
-      const request = { id, epoch: cached.snapshot.epoch, expires: Math.max(Date.now() + 1, deadline - 500) };
+      const request = { id, epoch, expires: Math.max(Date.now() + 1, deadline - 500) };
       try {
         await writeFile(file + '.partial', JSON.stringify(request), { encoding: 'utf8', mode: 0o600 });
         await rename(file + '.partial', file);
@@ -72,7 +78,7 @@ export async function interruptTurn(rt: ClaudeRuntime, project: Project, sid: st
         }, { timeoutMs: timeout, pollMs: Math.min(100, rt.options.pollMs) });
         if (!result || result.status === 'timeout') throw timeoutError();
         if (result.status === 'stale') return { status: 'stale', stopped: false };
-        if (result.status === 'unavailable') return { status: 'unavailable', stopped: false, reason: result.reason ?? 'Экран Claude изменился' };
+        if (result.status === 'unavailable') return { status: 'unavailable', stopped: false, reason: result.reason ?? STOP_IN_APP_REASON };
         if (result.status !== 'interrupted' && result.status !== 'already-idle') throw new ProviderError('interrupt-failed', 'Неизвестный ответ терминала');
         return { status: result.status, stopped: true, proof: result.status === 'interrupted' ? 'pty-marker' : 'provider-state', nativeTurnId: target.nativeTurnId };
       } finally {

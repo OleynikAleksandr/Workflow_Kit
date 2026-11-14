@@ -174,6 +174,7 @@ export function runHost(mode: HostMode, deps: HostDeps, timings: HostTimings = H
         if (legacy ? parameters.engine.yieldToUser() : parameters.busy) continue;
       }
       if (deps.putFile) try {
+        interrupt.turnWorking = parameters?.engine.turnWorking ?? false;
         const raw = await deps.takeFile(`${mode.debug}${REQUEST_SUFFIX}`);
         if (raw) {
           try { const result = interrupt.request(JSON.parse(raw) as HostRequest); if (result) await deps.putFile(`${mode.debug}${RESULT_SUFFIX}`, result); } catch { /* malformed: no keys */ }

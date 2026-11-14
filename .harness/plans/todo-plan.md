@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 931,
+  "revision": 933,
   "rounds": [
     {
       "digest": {
@@ -79,7 +79,7 @@
       },
       "id": "R3",
       "kind": "fixes",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Тесты M28 на Windows"
     }
   ],
@@ -140,7 +140,7 @@
         "text": "Отправка ветки ci/m28-claude-controls-fixes — только по прямой команде пользователя; main публикуется после приёмки и закрытия."
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 1,
       "ownerSession": "92b77570-773b-4173-8244-c327d009daa3",
@@ -1010,7 +1010,7 @@
       ],
       "checks": [],
       "commitMessage": "docs: record green CI for Claude controls fixes",
-      "confirmation": null,
+      "confirmation": "Я имел в виду, заканчивай пункт T009. На SHA поставки.",
       "context": [],
       "dependencies": [
         "T008",
@@ -1025,7 +1025,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R3",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Зафиксировать зелёную CI четырёх платформ на SHA поставки",
       "why": "Зафиксировать зелёную CI четырёх платформ на SHA поставки"
     }
@@ -1037,11 +1037,11 @@
 ## State
 
 - Scope: m28-claude-controls-fixes (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 18/19
-- Revision: 931
+- Progress: 19/19
+- Revision: 933
 
 ## Objective
 
@@ -1133,7 +1133,7 @@ Digest: Claude: контекст от autoCompactWindow, окно модели �
 
 Digest: Claude: discovery каталога повторяется при свободном вводе (до 3 раз, раз в 30 с), меню доступно по своим спискам, причина — одна строка на меню; окно сессий, запущенных до 0.13.1, считается от autoCompactWindow, который служба читает из файлов настроек.
 
-### R3 — Тесты M28 на Windows (fixes, OPEN)
+### R3 — Тесты M28 на Windows (fixes, CLOSED)
 
 - [DONE] T016 — Сделать тесты M28 устойчивыми на Windows (work)
   - Commit: test: make the M28 and Kimi delivery tests stable on Windows
@@ -1143,7 +1143,7 @@ Digest: Claude: discovery каталога повторяется при сво�
   - Commit: docs: reconcile documentation for R3
   - Files: README.md, docs/architecture/OVERVIEW.md
   - Depends on: T016
-- [TODO] T009 — Зафиксировать зелёную CI четырёх платформ на SHA поставки (delivery)
+- [DONE] T009 — Зафиксировать зелёную CI четырёх платформ на SHA поставки (delivery)
   - Commit: docs: record green CI for Claude controls fixes
   - Files: docs/evidence/M28-claude-controls-fixes.md
   - Depends on: T008, DOCS-R3

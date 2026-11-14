@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T003",
   "lastClosed": {
     "closedAt": "2026-11-14T15:25:39.788Z",
     "scopeId": "m29-claude-controls-instant"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 967,
+  "revision": 969,
   "rounds": [
     {
       "digest": null,
@@ -160,14 +160,17 @@
       "files": [
         "docs/evidence/M30-claude-feed-quiet.md",
         "docs/evidence/M30",
-        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test"
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-engine.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/native-parameters.md"
       ],
       "fixes": null,
       "id": "T003",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "Живая проверка: переписка без /effort и Kept model",
       "why": "The behaviour depends on the real Claude terminal and transcript"
     },
@@ -273,9 +276,9 @@
 - Scope: m30-claude-feed-quiet (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: none
+- Current task: T003
 - Progress: 2/6
-- Revision: 967
+- Revision: 969
 
 ## Objective
 
@@ -299,9 +302,9 @@ Claude Desktop shows no service /effort or 'Kept model' lines from the Kit host:
   - Commit: fix: explain a Claude model without effort choice
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/parameter-controls.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, docs/architecture/OS-MATRIX.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parameter-controls.test.ts
   - Depends on: T001
-- [TODO] T003 — Живая проверка: переписка без /effort и Kept model (work)
+- [IN_PROGRESS] T003 — Живая проверка: переписка без /effort и Kept model (work)
   - Commit: test: record a quiet Claude transcript for model and effort changes
-  - Files: docs/evidence/M30-claude-feed-quiet.md, docs/evidence/M30, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test
+  - Files: docs/evidence/M30-claude-feed-quiet.md, docs/evidence/M30, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-engine.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/native-parameters.md
   - Depends on: T001, T002
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1

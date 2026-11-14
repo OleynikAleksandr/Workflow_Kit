@@ -11,8 +11,9 @@ import { applyNativeParameter, nativeControlHook, nativeParameterState, readNati
 import { PARAMETER_CANCEL, PARAMETER_REQUEST, PARAMETER_RESULT, PARAMETER_STATE } from '../src/pty/parameter-protocol.ts';
 import type { NativeParameterState } from '../src/pty/parameter-protocol.ts';
 import { sendDirect } from '../src/direct.ts';
+import { TURN_SUFFIX } from '../src/pty/turn-file.ts';
 
-for (const platform of ['darwin', 'linux', 'win32'] as const) test(`${platform}: trusted pending control quarantines hooks and keeps before/during sentinels for one real delivery`, async () => {
+for (const platform of ['darwin', 'linux', 'win32'] as const) test(`${platform}: a hook during a pending transaction cancels it and still reaches the channel (M28)`, async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'wfk-nparam-')); const sid = randomUUID(); const hostId = randomUUID();
   const project = { id: 'p', path: root } as Project; const debug = path.join(root, 'native');
   const record = { localId: sid, remoteId: 'session_fixture', projectPath: root, projectId: 'p', debugFile: debug, controlHostId: hostId, processId: 'proc', archived: false };
@@ -34,11 +35,13 @@ for (const platform of ['darwin', 'linux', 'win32'] as const) test(`${platform}:
     await writeNativeJson(debug + PARAMETER_STATE, state);
     ch.enqueue(key, 'sentinel-during');
     const before = ch.get(key);
-    assert.equal(await nativeControlHook(rt, { ...input, event: 'prompt' }), true);
+    assert.equal(await nativeControlHook(rt, { ...input, event: 'prompt' }), false, 'a real hook is never swallowed');
     assert.equal((await readNativeJson(debug + PARAMETER_CANCEL)).hostId, hostId);
+    assert.equal((await readNativeJson(debug + TURN_SUFFIX)).state, 'working');
     const quarantined = nativeControlHookReply('prompt'); quarantined.ack(); quarantined.nack();
     assert.equal(quarantined.answer?.decision, 'block'); assert.deepEqual(ch.get(key), before);
-    assert.equal(await nativeControlHook(rt, { ...input, event: 'stop' }), true); nativeControlHookReply('stop').ack();
+    assert.equal(await nativeControlHook(rt, { ...input, event: 'stop' }), false);
+    assert.equal((await readNativeJson(debug + TURN_SUFFIX)).state, 'idle');
     assert.equal(await nativeControlHook(rt, { ...input, sessionId: randomUUID(), event: 'prompt' }), false);
     assert.equal(await nativeControlHook(rt, { ...input, panelProcess: false, event: 'prompt' }), false);
     assert.deepEqual(ch.queued(key).map(m => m.text), ['sentinel-before', 'sentinel-during']);

@@ -1,5 +1,5 @@
 import type { TerminalScreen } from '#pty-host';
-import { screenState } from './interrupt-control.ts';
+import { WORKING_LINE, promptRow, screenLines, screenState } from './interrupt-control.ts';
 import { EFFORTS, nativeModelKey } from './parameter-protocol.ts';
 import type { NativeModelOption } from './parameter-protocol.ts';
 
@@ -12,20 +12,20 @@ export interface ParameterFrame {
   text: string;
 }
 export function parameterFrame(screen: TerminalScreen): ParameterFrame {
-  const text = screen.text(); const lines = text.split('\n'); const tail = lines.slice(-12).join('\n');
+  const text = screen.text(); const lines = screenLines(text); const tail = lines.slice(-12).join('\n');
   const frame: ParameterFrame = { kind: 'unknown', input: null, placeholder: false, mode: null, ultracode: null, baseEffort: null,
     rows: [], selected: null, more: null, hiddenModels: 0, efforts: [], previewEffort: null, ultraAvailable: false, text };
   if (!screen.valid) return frame;
   const mode = /(?:⏵⏵|⏸)\s*(auto|manual|accept edits|plan|bypass permissions)\s+(?:mode\s+)?on/i.exec(tail);
   frame.mode = mode ? ({ manual: 'default', 'accept edits': 'acceptEdits', 'bypass permissions': 'bypassPermissions' }[mode[1]!.toLowerCase()] ?? mode[1]!.toLowerCase()) : null;
-  const root = [...lines.entries()].filter(([i, line]) => i >= lines.length - 10 && /^\s*❯/.test(line)
-    && /^─{8}/.test(lines[i - 1]?.trim() ?? '') && /^─{8}/.test(lines[i + 1]?.trim() ?? '')).at(-1);
+  const row = promptRow(lines); const root: [number, string] | undefined = row >= 0 && row >= lines.length - 10 ? [row, lines[row]!] : undefined;
   if (root) {
     frame.input = root[1].replace(/^\s*❯\s?/, '').trim();
-    frame.placeholder = /^Try ".*"$/.test(frame.input) && screen.cursor().row === root[0] && screen.cursor().col <= 3;
+    // A placeholder (`Try "…"`) or Claude's dim suggestion after a turn: the cursor stays before it.
+    frame.placeholder = frame.input !== '' && screen.cursor().row === root[0] && screen.cursor().col <= 3;
     frame.baseEffort = /\b(low|medium|high|xhigh|max)\b.*\/effort\s*$/i.exec(lines[root[0] - 2] ?? '')?.[1]?.toLowerCase() ?? null;
   }
-  if (/esc to interrupt/i.test(tail)) { frame.kind = 'busy'; return frame; }
+  if (/esc to interrupt/i.test(tail) || WORKING_LINE.test(lines.slice(Math.max(0, (root?.[0] ?? lines.length) - 8), root ? root[0] - 1 : undefined).join('\n'))) { frame.kind = 'busy'; return frame; }
   // The live settings menu replaces the input and ends with its own documented footer.
   if (!root && /Select model/.test(text) && /Enter to (?:set as default|expand|collapse).*Esc to cancel/.test(tail)) {
     frame.kind = 'model'; let more = false;
@@ -59,6 +59,8 @@ export function parameterFrame(screen: TerminalScreen): ParameterFrame {
   if (!root && /Fast mode/.test(text) && /Esc to cancel/.test(tail)) { frame.kind = 'fast'; return frame; }
   const state = screenState(screen);
   frame.kind = state === 'working' ? 'busy' : state;
+  // A draft (text with the cursor after it) is not an empty idle prompt.
+  if (frame.kind === 'idle' && root && frame.input && !frame.placeholder) frame.kind = 'unknown';
   if (root && frame.mode && (frame.input === '' || frame.placeholder)) frame.kind = 'idle';
   if (root && frame.mode) frame.ultracode = /(?:^|[ ·])ultracode(?:\s*─|\s*·|\s*$)/im.test(tail);
   return frame;

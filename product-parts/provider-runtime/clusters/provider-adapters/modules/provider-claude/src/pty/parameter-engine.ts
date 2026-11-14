@@ -5,8 +5,14 @@ import type { TerminalScreen } from '#pty-host';
 import { parameterFrame } from './parameter-screen.ts';
 import type { ParameterFrame, ModelRow } from './parameter-screen.ts';
 import { MODES, supportedNativeVersion, validNativeRequest } from './parameter-protocol.ts';
+import type { TurnState } from './turn-file.ts';
 import type { NativeAction, NativeMetadata, NativeParameterRequest, NativeParameterResult, NativeParameterState, NativeModelOption } from './parameter-protocol.ts';
 
+/** The statusline cwd follows the agent's cd (M28): the session folder or a folder inside it. */
+export function insideFolder(cwd: string, root: string): boolean {
+  const a = folderKey(cwd).replace(/\\/g, '/'); const b = folderKey(root).replace(/\\/g, '/').replace(/\/+$/, '');
+  return a === b || a.startsWith(b + '/');
+}
 type Step = { command: string } | { key: string; frame: ParameterFrame['kind'] } | { until: (f: ParameterFrame) => boolean };
 type Flow = Generator<Step, void, ParameterFrame>;
 export class ParameterEngine {
@@ -38,8 +44,10 @@ export class ParameterEngine {
   private fastReason: string | null = null;
   private ultraAvailable = false;
   private discoveryAttempted = false;
-  private virgin = true;
   private unsafe = false;
+  private unsafeAt = 0;
+  private requestAt = 0;
+  private turn: TurnState | null = null;
   readonly hostId: string;
   readonly cwd: string;
   private screen: TerminalScreen;
@@ -50,12 +58,12 @@ export class ParameterEngine {
   }
   observe(metadata: NativeMetadata | null): void {
     const oldModel = this.meta?.model.id;
-    this.meta = metadata?.hostId === this.hostId && folderKey(metadata.cwd) === folderKey(this.cwd) ? metadata : null;
+    this.meta = metadata?.hostId === this.hostId && insideFolder(metadata.cwd, this.cwd) ? metadata : null;
     if (oldModel && this.meta?.model.id !== oldModel && !this.request) { this.efforts = []; this.recommended = null; this.ultraAvailable = false; this.discoveryAttempted = false; }
     const f = parameterFrame(this.screen);
     const signature = JSON.stringify([f.kind, f.input, f.mode, f.ultracode, f.selected, f.previewEffort, this.meta?.model, this.meta?.effort]);
     if (signature !== this.signature) { this.signature = signature; this.epoch++; }
-    if (f.kind === 'idle' && (f.input === '' || (this.virgin && f.placeholder))) { this.effectiveMode = f.mode; this.effectiveUltra = f.ultracode; }
+    if (f.kind === 'idle' && (f.input === '' || f.placeholder)) { this.effectiveMode = f.mode; this.effectiveUltra = f.ultracode; }
     if (this.menuOwner?.submitted) {
       if (f.kind === this.menuOwner.kind) this.menuOwner.seen = true;
       else if (this.menuOwner.seen && f.kind === 'idle') this.menuOwner = null;
@@ -64,20 +72,29 @@ export class ParameterEngine {
     const rendered = JSON.stringify([f.text, this.screen.cursor()]);
     if (rendered !== this.rendered) { this.rendered = rendered; this.renderedAt = this.now(); this.revision++; }
   }
-  userInput(): void { this.virgin = false; if (this.request) this.cancel(); }
+  userInput(): void { if (this.request) this.cancel(); }
+  /** Hook/interrupt turn boundaries (M28): no transaction during a turn; a turn end releases `unsafe`. */
+  observeTurn(turn: TurnState | null): void {
+    if (turn && this.turn && turn.at < this.turn.at) return;
+    this.turn = turn;
+    if (turn?.state === 'working' && this.request && turn.at >= this.requestAt) this.cancel();
+    if (turn?.state === 'idle' && this.unsafe && turn.at >= this.unsafeAt) this.unsafe = false;
+  }
+  get turnWorking(): boolean { return this.turn?.state === 'working'; }
+  current(): ParameterFrame { return this.frame; }
   get busy(): boolean { return this.request !== null || this.unsafe; }
-  private empty(): boolean { return this.frame.input === '' || (this.virgin && this.frame.placeholder); }
+  private empty(): boolean { return this.frame.input === '' || this.frame.placeholder; }
   private ready(): boolean {
-    return !!this.meta && supportedNativeVersion(this.meta.cliVersion) && this.frame.kind === 'idle'
+    return !!this.meta && supportedNativeVersion(this.meta.cliVersion) && this.frame.kind === 'idle' && !this.turnWorking
       && this.empty() && this.frame.mode !== null && this.now() >= this.meta.at;
   }
   snapshot(): NativeParameterState {
     const f = this.frame; const m = this.meta;
-    const status = this.request ? 'control' : !m || !supportedNativeVersion(m.cliVersion) || this.now() < m.at ? 'unknown'
+    const status = this.request ? 'control' : this.turnWorking ? 'busy' : !m || !supportedNativeVersion(m.cliVersion) || this.now() < m.at ? 'unknown'
       : f.kind === 'idle' && this.empty() ? 'idle' : f.kind === 'busy' ? 'busy' : f.kind === 'unknown' ? 'unknown' : 'dialog';
     return { version: 1, hostId: this.hostId, sessionId: m?.sessionId ?? '', epoch: `${this.hostId}:${this.epoch}`,
       at: this.now(), cliVersion: m?.cliVersion ?? '', status, inputEmpty: this.empty(),
-      reason: status === 'idle' ? null : !m ? 'Нет native statusline этого host' : !this.empty() && f.input !== null ? 'В Claude есть черновик' : 'Терминал Claude занят или не распознан',
+      reason: status === 'idle' ? null : status === 'busy' && this.turnWorking ? 'Claude отвечает' : !m ? 'Нет native statusline этого host' : !this.empty() && f.input !== null ? 'В Claude есть черновик' : 'Терминал Claude занят или не распознан',
       model: m?.model ?? null, effort: m?.effort === 'ultra' ? f.baseEffort : m?.effort ?? null,
       mode: f.mode ?? (this.request ? this.effectiveMode : null), fast: m?.fast ?? null, ultracode: f.ultracode ?? (this.request ? this.effectiveUltra : null), ultracodeAvailable: this.ultraAvailable, models: [...this.models.values()].map(({ key, label, group }) => ({ key, label, group })),
       efforts: this.efforts, effortRecommended: this.recommended, fastReason: this.fastReason, pending: this.request ? { id: this.request.id, sessionId: this.request.sessionId,
@@ -99,7 +116,7 @@ export class ParameterEngine {
       || (r.field === 'ultracode' && (!this.ultraAvailable || !['on', 'off'].includes(r.value)))) {
       reject('unavailable', 'Вариант не подтверждён нативным каталогом'); return;
     }
-    this.request = r; this.menuOwner = null; this.cancelled = false; this.cancelRevision = -1; this.unsafe = false;
+    this.request = r; this.requestAt = this.now(); this.menuOwner = null; this.cancelled = false; this.cancelRevision = -1; this.unsafe = false;
     this.flow = r.field === 'catalog' ? this.catalog() : this.setter(r);
     this.advance();
   }
@@ -125,7 +142,7 @@ export class ParameterEngine {
     } catch (error) { this.cancelled = true; this.fastReason ??= error instanceof Error ? error.message : 'Неизвестное меню'; }
   }
   propose(): NativeAction | null {
-    if (this.unsafe && this.frame.kind === 'idle' && this.empty()) this.unsafe = false;
+    if (this.unsafe && ((this.frame.kind === 'idle' && this.empty()) || this.now() - this.unsafeAt >= 10_000)) this.unsafe = false;
     if (!this.request || !this.step) return null;
     // Ink paints a frame in several writes; do not classify or navigate an intermediate redraw.
     if (this.now() - this.renderedAt < 200) return null;
@@ -135,7 +152,7 @@ export class ParameterEngine {
       if (this.cancelRevision === this.revision) return null;
       if (this.menuOwner?.submitted && this.menuOwner.kind === f.kind) return { kind: 'key', value: 'escape', revision: this.revision };
       if (this.command && f.input === this.command) return { kind: 'key', value: 'clear', revision: this.revision };
-      this.unsafe = !(f.kind === 'idle' && this.empty());
+      this.unsafe = !(f.kind === 'idle' && this.empty()); this.unsafeAt = this.now();
       this.finish(this.now() >= this.request.expires ? 'timeout' : 'cancelled', 'Транзакция отменена без повтора'); return null;
     }
     const s = this.step;

@@ -179,6 +179,12 @@ M28: `ContextUsage.modelWindowTokens?` — окно модели, когда п�
 `windowTokens` — порог, `usedPercent = round(total_input_tokens / порог × 100)`. Подсказка
 панели — вторая строка «Окно модели: … · автосжатие: …». Codex поле не заполняет.
 
+M28/T003: границы хода сессии панели Claude — `<debug>.turn` `{ version: 1, state:
+'working' | 'idle', at, source: 'hook' | 'interrupt' }`; пишут провайдер (prompt- и Stop-хуки)
+и хост (подтверждённое экраном прерывание, Stop-хука после Esc нет), побеждает новейший
+`at`. `Provider.nativeControlHook` больше не возвращает `true`: хук во время транзакции
+параметров отменяет её и доходит до канала.
+
 ## Данные на диске
 
 Каталоги (`data-store`): macOS `~/Library/Application Support/Workflow Kit`; Linux

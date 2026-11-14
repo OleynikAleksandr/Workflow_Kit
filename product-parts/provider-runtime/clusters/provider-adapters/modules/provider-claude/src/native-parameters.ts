@@ -10,6 +10,8 @@ import { withNativeHost } from './native-arbiter.ts';
 import { poll } from './pty.ts';
 import { PARAMETER_CANCEL, PARAMETER_FRESH_MS, PARAMETER_REQUEST, PARAMETER_RESULT, PARAMETER_STATE, supportedNativeVersion } from './pty/parameter-protocol.ts';
 import type { NativeField, NativeParameterRequest, NativeParameterResult, NativeParameterState } from './pty/parameter-protocol.ts';
+import { TURN_SUFFIX } from './pty/turn-file.ts';
+import type { TurnState } from './pty/turn-file.ts';
 
 const pending = new WeakMap<ClaudeRuntime, Map<string, { id: string; hostId: string }>>();
 export async function readNativeJson(file: string): Promise<any> {
@@ -76,24 +78,22 @@ export async function applyNativeParameter(rt: ClaudeRuntime, project: Project, 
     }, admission.signal);
   } finally { clearTimeout(timer); }
 }
-/** Unexpected hooks during our trusted idle transaction are quarantined before channel/autopilot. */
+/**
+ * Turn boundaries of panel sessions (M28 3.2): the prompt hook writes `working`, the Stop hook `idle`
+ * into <debug>.turn. Builtin commands typed by the engine raise no hooks (M27), so a hook during a
+ * transaction is the user's: the transaction is cancelled and the hook always reaches the channel.
+ */
 export async function nativeControlHook(rt: ClaudeRuntime, input: NativeHookEvent): Promise<boolean> {
   if (!input.panelProcess || !input.cwd) return false;
   const records = (await rt.store.read()).sessions;
-  let matched: { record: SessionRecord; state: NativeParameterState } | null = null;
   for (const record of records.filter(r => folderKey(r.projectPath) === folderKey(input.cwd!) && r.controlHostId && !r.archived && (!r.localId || r.localId === input.sessionId))) {
     if (!(await rt.isAlive(record.processId))) continue;
     const state = await readNativeJson(record.debugFile + PARAMETER_STATE) as NativeParameterState | null;
-    if (validState(state, record, Date.now()) && state.sessionId === input.sessionId) { matched = { record, state }; break; }
+    if (!validState(state, record, Date.now()) || state.sessionId !== input.sessionId) continue;
+    await writeNativeJson(record.debugFile + TURN_SUFFIX, { version: 1, state: input.event === 'prompt' ? 'working' : 'idle', at: Date.now(), source: 'hook' } satisfies TurnState);
+    if (state.status === 'control' && state.pending) await cancelNativeParameters(rt, record.debugFile, state.hostId);
+    if (input.event === 'prompt') await writeNativeJson(record.debugFile + '.parameters-input', { hostId: state.hostId });
+    break;
   }
-  if (!matched) return false;
-  const { record, state } = matched;
-  const transaction = state.pending;
-  if (state.status === 'control' && transaction && transaction.sessionId === input.sessionId && transaction.epoch.startsWith(state.hostId + ':')
-    && /^[a-f0-9-]{36}$/i.test(transaction.id) && transaction.expires > Date.now() && transaction.expires <= Date.now() + 60_000) {
-    await cancelNativeParameters(rt, record.debugFile, state.hostId);
-    return true;
-  }
-  if (input.event === 'prompt') await writeNativeJson(record.debugFile + '.parameters-input', { hostId: state.hostId });
   return false;
 }

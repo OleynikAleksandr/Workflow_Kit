@@ -12,13 +12,29 @@ export const RESULT_SUFFIX = '.interrupt-result';
 export const DIALOG_REASON = 'Claude ждёт решения в своём диалоге';
 const MARKER = /\[Request interrupted by user\]/g;
 
+/** Claude 2.1.325 working line: a spinner glyph, a gerund with an ellipsis, optional details (M28). */
+export const WORKING_LINE = /^\s*[·✢✳✶✻✽✺*]\s+[^\s…]+…(?:\s|$)/m;
+/** Screen lines without the empty rows below Claude's footer (a short session does not fill the screen). */
+export function screenLines(text: string): string[] {
+  const lines = text.split('\n'); while (lines.length && !lines.at(-1)!.trim()) lines.pop();
+  return lines;
+}
+/** The input prompt between Claude's two horizontal rules; a dim suggestion may follow ❯. */
+export function promptRow(lines: readonly string[]): number {
+  for (let i = lines.length - 2; i >= 1 && i >= lines.length - 12; i--)
+    if (/^\s*❯/.test(lines[i]!) && /^─{8}/.test(lines[i - 1]!.trim()) && /^─{8}/.test(lines[i + 1]!.trim())) return i;
+  return -1;
+}
 export function screenState(screen: TerminalScreen): ScreenState {
   if (!screen.valid) return 'unknown';
   const text = screen.text();
   // Permission dialogs may use a footer different from startup dialogs.
   if (DIALOG.test(text) || dialogKind(text) !== 'unknown' || /Do you want to (?:proceed|allow)|Allow .*\?|Yes, (?:allow|and don.t ask)|Esc to (?:cancel|deny)|permission (?:required|request)/i.test(text)) return 'dialog';
-  if (/esc to interrupt/i.test(text)) return 'working';
-  if (/(?:^|\n)\s*[❯>]\s*(?:\n|$)/.test(text)) return 'idle';
+  const lines = screenLines(text); const prompt = promptRow(lines);
+  // Only the area just above the input: an old finished line in the history is not work.
+  const above = (prompt >= 0 ? lines.slice(Math.max(0, prompt - 8), prompt - 1) : lines.slice(-12)).join('\n');
+  if (/esc to interrupt/i.test(text) || WORKING_LINE.test(above)) return 'working';
+  if (prompt >= 0 || /(?:^|\n)\s*[❯>]\s*(?:\n|$)/.test(text)) return 'idle';
   return 'unknown';
 }
 

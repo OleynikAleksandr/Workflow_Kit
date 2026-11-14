@@ -322,3 +322,5 @@ M27/T006: стабильный frame200мс, событийный statusline, т
 частичный viewport не портит каталог. Уточнения — контракт M27, раздел T006.
 
 M28/T002: `contextUsage` — контекст от порога автосжатия (parameters.md).
+
+M28/T003: границы хода — `<debug>.turn` (interrupt.md, parameters.md).

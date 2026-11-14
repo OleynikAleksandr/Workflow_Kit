@@ -2,7 +2,7 @@
 import { folderKey } from '../folder-key.ts';
 import { randomUUID } from 'node:crypto';
 import type { TerminalScreen } from '#pty-host';
-import { parameterFrame } from './parameter-screen.ts';
+import { freshAck, parameterFrame, sessionAcks } from './parameter-screen.ts';
 import type { ParameterFrame, ModelRow } from './parameter-screen.ts';
 import { FAST_REASON, MODES, supportedNativeVersion, validNativeRequest } from './parameter-protocol.ts';
 import type { TurnState } from './turn-file.ts';
@@ -130,7 +130,7 @@ export class ParameterEngine {
     if (!this.wanted.active || this.busy || !this.ready()) return;
     for (const { field, status: st } of this.wanted.open()) {
       if (this.effective(field, st.value)) { this.wanted.settle(field, 'applied', null); continue; }
-      if (this.waitsForCatalog(field)) continue;
+      if (this.waitsForCatalog(field)) return; // WANTED_ORDER holds: discovery goes first
       const missing = field === 'model' && !this.models.has(st.value) ? 'Этой модели нет в меню Claude'
         : field === 'effort' && !this.efforts.includes(st.value) ? 'Этого уровня усилия нет у модели'
         : field === 'ultracode' && (!this.ultraAvailable || !['on', 'off'].includes(st.value)) ? 'Ultracode недоступен для этой модели'
@@ -157,7 +157,7 @@ export class ParameterEngine {
    * cancelled and gets at most 2 s to clean up (Esc, clearing its command); then the user's text goes.
    */
   yieldToUser(): boolean {
-    const menu = ['model', 'effort', 'fast'].includes(this.frame.kind);
+    const menu = ['model', 'effort', 'fast', 'switch'].includes(this.frame.kind);
     if (!this.request && !(this.unsafe && menu)) { this.unsafe = false; this.yieldAt = 0; return false; }
     if (this.request) this.cancel('user');
     if (!this.yieldAt) this.yieldAt = this.now();
@@ -258,23 +258,23 @@ export class ParameterEngine {
     if (!this.request || !this.step) return null;
     // Ink paints a frame in several writes; do not classify or navigate an intermediate redraw.
     if (this.now() - this.renderedAt < 200) return null;
-    const f = this.frame;
-    if (this.now() >= this.request.expires) this.cancelled = true;
+    const f = this.frame; if (this.now() >= this.request.expires) this.cancelled = true;
     if (this.cancelled) {
       if (this.cancelRevision === this.revision) return null;
-      if (this.menuOwner?.submitted && this.menuOwner.kind === f.kind) return { kind: 'key', value: 'escape', revision: this.revision };
+      if (f.kind === 'switch' || (this.menuOwner?.submitted && this.menuOwner.kind === f.kind)) return { kind: 'key', value: 'escape', revision: this.revision };
       if (this.command && f.input === this.command) return { kind: 'key', value: 'clear', revision: this.revision };
       this.unsafe = !(f.kind === 'idle' && this.empty()); this.unsafeAt = this.now();
       this.finish(this.now() >= this.request.expires ? 'timeout' : 'cancelled', 'Транзакция отменена без повтора'); return null;
     }
     const s = this.step;
     if ('until' in s) {
-      if (s.until(f)) this.advance();
+      if (s.until(f)) { this.advance(); return this.step ? this.propose() : null; }
       else if (f.kind === 'busy' || f.kind === 'dialog' || f.kind === 'unknown' || (f.input && f.input !== this.command && !f.placeholder)) this.cancel();
       return null;
     }
     if (this.written) {
-      if (this.revision > this.changed && this.now() - this.changedAt >= 120) { this.command = null; this.advance(); }
+      // The next step is proposed at once (M29): no poll is lost between two keys.
+      if (this.revision > this.changed && this.now() - this.changedAt >= 120) { this.command = null; this.advance(); return this.step ? this.propose() : null; }
       return null;
     }
     if ('command' in s) {
@@ -351,11 +351,11 @@ export class ParameterEngine {
     yield* this.modelRows(); yield { key: 'escape', frame: 'model' }; yield { until: f => f.kind === 'idle' && this.empty() };
     yield* this.readEfforts();
   }
-  private *readEfforts(): Flow {
+  private *readEfforts(label = this.meta?.model.label ?? null): Flow {
     yield* this.open('/effort', 'effort');
     if (!this.frame.efforts.length) throw new Error('Неизвестная форма effort');
     this.efforts = this.frame.efforts; this.ultraAvailable = this.frame.ultraAvailable;
-    this.recommended = null; const label = this.meta?.model.label ?? null;
+    this.recommended = null;
     // Preview only: inspect native descriptions without saving any effort/default.
     for (let i = 0; this.frame.previewEffort !== this.efforts[0] && i < 5; i++) yield { key: 'left', frame: 'effort' };
     for (let i = 0; i < this.efforts.length; i++) {
@@ -372,15 +372,15 @@ export class ParameterEngine {
       if (this.frame.mode !== r.value) throw new Error('Native mode не подтверждён');
       return;
     }
-    const acks = (text: string): string[] => text.split('\n').filter(line => /⎿\s+(?:Set model to .* for this session only|(?:Set effort level to|Ultracode on).*\(this session only\)|Ultracode off\. Effort stays )/.test(line));
-    const baseline = acks(this.frame.text);
-    const freshAck = (f: ParameterFrame): boolean => {
-      const next = acks(f.text); const last = next.at(-1);
-      if (!last || (last === baseline.at(-1) && next.length <= baseline.length)) return false;
-      return r.field === 'model' ? last.includes('Set model to ') : r.field === 'effort' ? last.includes(`Set effort level to ${r.value} `) : last.includes(`Ultracode ${r.value === 'on' ? 'on' : 'off'}`);
-    };
-    if (r.field === 'model') {
-      yield* this.modelRows(this.models.get(r.value)!); yield { key: 'session', frame: 'model' };
+    const baseline = sessionAcks(this.frame.text); const target = r.field === 'model' ? this.models.get(r.value)! : null;
+    if (target) {
+      yield* this.modelRows(target); yield { key: 'session', frame: 'model' };
+      // M29: a cached conversation asks "Switch model?"; this transaction confirms its own target only.
+      yield { until: f => f.kind === 'switch' || f.kind === 'idle' };
+      if (this.frame.kind === 'switch') {
+        if (this.frame.switchTo !== target.label || this.frame.selected !== 1) throw new Error('Диалог смены модели не распознан');
+        yield { key: 'enter', frame: 'switch' };
+      }
     } else if (r.field === 'effort') {
       yield* this.open('/effort', 'effort');
       for (let i = 0; this.frame.previewEffort !== r.value && i < 5; i++) {
@@ -391,10 +391,9 @@ export class ParameterEngine {
       if (this.frame.previewEffort !== r.value) throw new Error('Effort не выбран');
       yield { key: 'session', frame: 'effort' };
     } else yield { command: r.value === 'on' ? '/effort ultracode' : '/effort ultracode off' };
-    yield { until: f => f.kind === 'idle' && this.empty() && freshAck(f) && !!this.meta && this.meta.at >= submittedAt
-      && (r.field === 'model' ? this.meta.model.label === this.models.get(r.value)?.label
-        : r.field === 'effort' ? this.meta.effort === r.value : f.ultracode === (r.value === 'on') && this.meta.effort === before.effort) };
-    // Efforts of a model are read once (M29); the catalog file keeps them.
-    if (r.field === 'model' && !this.effortsByModel.has(this.models.get(r.value)!.label)) yield* this.readEfforts();
+    // A model is confirmed by Claude's line naming it: in plan mode the statusline shows the plan model.
+    yield { until: f => f.kind === 'idle' && this.empty() && freshAck(baseline, f.text, r.field, target?.label ?? r.value) && !!this.meta
+      && (target !== null || (this.meta.at >= submittedAt && (r.field === 'effort' ? this.meta.effort === r.value : f.ultracode === (r.value === 'on') && this.meta.effort === before.effort))) };
+    // Unknown efforts of the new model are read once by discovery after this transaction (M29).
   }
 }

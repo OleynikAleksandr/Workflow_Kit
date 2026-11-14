@@ -74,7 +74,8 @@ expect {
   eof {}
   timeout {
     interrupt_tick
-    if {$parameter_busy} { after 100; set timeout 0; exp_continue }
+    # A busy engine polls again at once; the Node helper paces it (Tcl 8.5 on macOS adds ~150 ms to after).
+    if {$parameter_busy} { set timeout 0; exp_continue }
     set timeout 1
     if {[file exists $control]} {
       set name ""

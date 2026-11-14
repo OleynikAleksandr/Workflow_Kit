@@ -1,0 +1,19 @@
+{
+ "composer": {
+  "ok": true,
+  "runs": 10,
+  "checks": 234
+ },
+ "menu": {
+  "ok": true,
+  "runs": 6,
+  "checks": 24,
+  "note": "m28-menu.browser.js with M29 expectations: menus stay enabled while Claude answers"
+ },
+ "pending": {
+  "ok": true,
+  "runs": 6,
+  "checks": 54,
+  "scenario": "session-chat/test/m29-pending.browser.js"
+ }
+}

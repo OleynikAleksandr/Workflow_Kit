@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": "T005",
+  "currentTaskId": null,
   "lastClosed": {
     "closedAt": "2026-11-14T12:47:10.799Z",
     "scopeId": "m28-claude-controls-fixes"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 953,
+  "revision": 954,
   "rounds": [
     {
       "digest": null,
@@ -300,14 +300,25 @@
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/native-parameters.md",
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/session.exp",
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/interrupt-worker.ts",
-        "docs/architecture/OS-MATRIX.md"
+        "docs/architecture/OS-MATRIX.md",
+        "docs/evidence/M29/dark-1280-pending.png",
+        "docs/evidence/M29/dark-375-failed.png",
+        "docs/evidence/M29/light-1280-failed.png",
+        "docs/evidence/M29/light-375-pending.png",
+        "docs/evidence/M29/menu-answering-dark.png",
+        "docs/evidence/M29/menu-answering-light.png",
+        "docs/evidence/M29/t005-browser.json",
+        "docs/evidence/M29/t005-live.json",
+        "docs/evidence/M29/t005-timing.json",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parameter-engine.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parameter-wanted.test.ts"
       ],
       "fixes": null,
       "id": "T005",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "title": "Живая проверка и браузерная регрессия",
       "why": "The behaviour depends on the real Claude terminal"
     },
@@ -430,9 +441,9 @@
 - Scope: m29-claude-controls-instant (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: T005
-- Progress: 4/8
-- Revision: 953
+- Current task: none
+- Progress: 5/8
+- Revision: 954
 
 ## Objective
 
@@ -464,9 +475,9 @@ Claude parameters change instantly from the panel (choice queued in Kit, applied
   - Commit: feat: show pending Claude parameters in the panel without waiting
   - Files: product-parts/control-panel/clusters/web-panel/modules/session-chat/src/claude-menu.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/parameters.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/parameters-model.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/claude-controls.css, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/parameters-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/m29-pending.browser.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, docs/architecture/OS-MATRIX.md
   - Depends on: T003
-- [IN_PROGRESS] T005 — Живая проверка и браузерная регрессия (work)
+- [DONE] T005 — Живая проверка и браузерная регрессия (work)
   - Commit: test: record live and browser checks of instant Claude controls
-  - Files: docs/evidence/M29-claude-controls-instant.md, docs/evidence/M29, design-qa.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/test, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-screen.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-engine.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/native-parameters.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/session.exp, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/interrupt-worker.ts, docs/architecture/OS-MATRIX.md
+  - Files: docs/evidence/M29-claude-controls-instant.md, docs/evidence/M29, design-qa.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/test, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-screen.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-engine.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/native-parameters.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/session.exp, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/interrupt-worker.ts, docs/architecture/OS-MATRIX.md, docs/evidence/M29/dark-1280-pending.png, docs/evidence/M29/dark-375-failed.png, docs/evidence/M29/light-1280-failed.png, docs/evidence/M29/light-375-pending.png, docs/evidence/M29/menu-answering-dark.png, docs/evidence/M29/menu-answering-light.png, docs/evidence/M29/t005-browser.json, docs/evidence/M29/t005-live.json, docs/evidence/M29/t005-timing.json, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parameter-engine.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parameter-wanted.test.ts
   - Depends on: T001, T004
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1

@@ -14,11 +14,11 @@ const MODES = ['auto', 'manual', 'accept edits', 'plan'];
 const idle = (input: string, mode: string) => `────────────────────────\r\n❯ ${input}\r\n────────────────────────\r\n  ⏵⏵ ${mode} mode on (shift+tab to cycle)`;
 
 /** A Claude terminal: native menus, Shift+Tab, session-only acknowledgements and the statusline. */
-function claude(options: { model?: number; version?: string } = {}) {
+function claude(options: { model?: number; version?: string; switchDialog?: 'same' | string; planModel?: string } = {}) {
   let now = 1000;
   const screen = new TerminalScreen();
   const engine = new ParameterEngine(hostId, '/project', screen, () => now);
-  const sim = { selection: options.model ?? 3 as number | 'more', expanded: false, menu: '', draft: '', effort: 'high', mode: 0, acks: '' };
+  const sim = { selection: options.model ?? 3 as number | 'more', expanded: false, menu: '', draft: '', effort: 'high', mode: 0, acks: '', switching: '', shown: '' };
   const meta: NativeMetadata = { version: 1, hostId, sessionId, cwd: '/project', cliVersion: options.version ?? '2.1.325',
     model: { id: 'm', label: LABELS[options.model ?? 3]! }, effort: 'high', fast: false, at: now };
   const written: NativeAction[] = [];
@@ -27,8 +27,10 @@ function claude(options: { model?: number; version?: string } = {}) {
     + (sim.expanded ? `${sim.selection === 6 ? '❯' : ' '} 6. Sonnet 5  Older model\r\n` : '')
     + (sim.selection === 'more' ? `Enter to ${sim.expanded ? 'collapse' : 'expand'} · Esc to cancel` : 'Enter to set as default · s for this session only · Esc to cancel');
   const effortMenu = () => 'Effort\r\n' + ' '.repeat({ low: 0, medium: 7, high: 15, xhigh: 22, max: 28 }[sim.effort]!) + '▲\r\nlow   medium  high   xhigh  max\r\nUltracode off · Tab to toggle\r\n←/→ to adjust · Enter to confirm · s for this session only · Esc to cancel';
+  // Claude 2.1.325 asks before re-reading a cached conversation with another model.
+  const switchDialog = () => `Switch model?\r\nYour next response will be slower and use more tokens\r\nThis conversation is cached for the current model. Switching to ${sim.shown} means the full history gets re-read.\r\n❯ 1. Yes, switch to ${sim.shown}\r\n  2. No, go back`;
   const render = () => {
-    const text = sim.menu === 'model' ? modelMenu() : sim.menu === 'effort' ? effortMenu() : sim.acks + '\r\n' + idle(sim.draft, MODES[sim.mode]!);
+    const text = sim.menu === 'model' ? modelMenu() : sim.menu === 'effort' ? effortMenu() : sim.menu === 'switch' ? switchDialog() : sim.acks + '\r\n' + idle(sim.draft, MODES[sim.mode]!);
     screen.feed(`\x1b[2J\x1b[H${'\r\n'.repeat(Math.max(0, 40 - text.split('\r\n').length))}${text}`); engine.observe(meta);
   };
   render();
@@ -38,7 +40,8 @@ function claude(options: { model?: number; version?: string } = {}) {
     assert.equal(engine.sent(a), true); written.push(a);
     if (a.kind === 'text') sim.draft = a.value;
     else if (a.value === 'enter') {
-      if (sim.menu === 'model') { assert.equal(sim.selection, 'more', 'Enter never saves a model default'); sim.expanded = true; }
+      if (sim.menu === 'switch') { meta.model = { id: 'm', label: sim.switching }; sim.acks += `\r\n⎿ Set model to ${sim.switching} for this session only`; meta.at = now; sim.menu = ''; }
+      else if (sim.menu === 'model') { assert.equal(sim.selection, 'more', 'Enter never saves a model default'); sim.expanded = true; }
       else { sim.menu = sim.draft.slice(1); sim.draft = ''; if (sim.menu === 'model') sim.selection = LABELS.indexOf(meta.model.label); }
     } else if (a.value === 'escape') sim.menu = '';
     else if (a.value === 'up') sim.selection = sim.selection === 'more' ? 5 : sim.selection === 6 ? 'more' : Math.max(1, (sim.selection as number) - 1);
@@ -46,7 +49,8 @@ function claude(options: { model?: number; version?: string } = {}) {
     else if (a.value === 'left' || a.value === 'right') { const l = ['low', 'medium', 'high', 'xhigh', 'max']; sim.effort = l[l.indexOf(sim.effort) + (a.value === 'right' ? 1 : -1)]!; }
     else if (a.value === 'mode') sim.mode = (sim.mode + 1) % 4;
     else if (a.value === 'session') {
-      if (sim.menu === 'model') { const label = LABELS[sim.selection as number]!; meta.model = { id: 'm', label }; sim.acks += `\r\n⎿ Set model to ${label} for this session only`; }
+      if (sim.menu === 'model' && options.switchDialog) { sim.switching = LABELS[sim.selection as number]!; sim.shown = options.switchDialog === 'same' ? sim.switching : options.switchDialog; sim.menu = 'switch'; render(); return; }
+      if (sim.menu === 'model') { const label = LABELS[sim.selection as number]!; meta.model = { id: 'm', label: options.planModel ?? label }; sim.acks += `\r\n⎿ Set model to ${label} for this session only`; }
       else { meta.effort = sim.effort; sim.acks += `\r\n⎿ Set effort level to ${sim.effort} (this session only)`; }
       meta.at = now; sim.menu = '';
     } else assert.fail(`unexpected key ${a.value}`);
@@ -117,10 +121,36 @@ test('the short path starts at the current row: no walk to the top; More models 
   assert.deepEqual(keys(back.written), ['/model', 'enter', 'up', 'up', 'up', 'session']);
   const more = claude({ model: 4 }); more.engine.loadCatalog(catalog); more.want({ model: key('Sonnet 5') }); more.run();
   assert.deepEqual(keys(more.written).slice(0, 5), ['/model', 'enter', 'down', 'down', 'enter']);
+  assert.ok(!more.written.some(a => a.value === '/effort'), 'the model transaction ends with its acknowledgement');
+  more.run();
   assert.equal(more.meta.model.label, 'Sonnet 5');
   assert.equal(more.written.filter(a => a.value === 'session').length, 1, 'the efforts of the new model are only previewed');
   assert.ok(more.written.some(a => a.value === '/effort'), 'Sonnet 5 had no cached efforts');
   assert.deepEqual(more.engine.exportCatalog()!.efforts['Sonnet 5']?.values, known.values);
+});
+
+test('M29 T005: the "Switch model?" dialog of a cached conversation is confirmed for the own target only', () => {
+  const first = claude(); first.run(); const catalog = first.engine.exportCatalog()!;
+  for (const label of ['Opus 5.5', 'Haiku 5.5', 'Fable 5.2']) catalog.efforts[label] = catalog.efforts['Sonnet 5.5']!;
+  const key = (label: string) => catalog.models.find(m => m.label === label)!.key;
+  const w = claude({ switchDialog: 'same' }); w.engine.loadCatalog(catalog); w.want({ model: key('Haiku 5.5') }); w.run();
+  assert.deepEqual(keys(w.written), ['/model', 'enter', 'down', 'session', 'enter']);
+  assert.equal(w.meta.model.label, 'Haiku 5.5'); assert.equal(w.engine.snapshot().wanted!.model!.status, 'applied');
+  // A dialog naming another model is closed with Esc and counts as a failure; nothing is switched.
+  const x = claude({ switchDialog: 'Opus 5.5' }); x.engine.loadCatalog(catalog); x.want({ model: key('Haiku 5.5') }); x.run(60);
+  assert.equal(x.meta.model.label, 'Sonnet 5.5'); assert.equal(x.sim.menu, '', 'the dialog is not left open');
+  assert.deepEqual(keys(x.written).slice(0, 5), ['/model', 'enter', 'down', 'session', 'escape']);
+  assert.ok(x.engine.snapshot().wanted!.model!.attempts >= 1);
+});
+
+test('M29 T005: in plan mode the statusline keeps the plan model; Claude\'s line naming the target confirms it', () => {
+  const first = claude(); first.run(); const catalog = first.engine.exportCatalog()!;
+  for (const label of ['Opus 5.5', 'Haiku 5.5', 'Fable 5.2']) catalog.efforts[label] = catalog.efforts['Sonnet 5.5']!;
+  const key = (label: string) => catalog.models.find(m => m.label === label)!.key;
+  const w = claude({ planModel: 'Sonnet 5.5' }); w.engine.loadCatalog(catalog); w.want({ model: key('Haiku 5.5') }); w.run(40);
+  assert.equal(w.engine.snapshot().wanted!.model!.status, 'applied');
+  assert.deepEqual(keys(w.written), ['/model', 'enter', 'down', 'session'], 'no retry and no effort reading');
+  assert.equal(w.engine.snapshot().model?.label, 'Sonnet 5.5', 'the panel shows what Claude reports');
 });
 
 test('a newer choice replaces the older one; an applied id is never applied again', () => {

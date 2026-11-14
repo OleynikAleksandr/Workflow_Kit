@@ -22,6 +22,9 @@ const parameters = hostId ? new ParameterHost(debug, hostId, process.argv[4]!, c
   async put(file, value) { writeFileSync(file + '.partial', JSON.stringify(value), { encoding: 'utf8', mode: 0o600 }); renameSync(file + '.partial', file); },
 }, Date.now) : null;
 let action: NativeAction | null = null;
+/** M29: a busy engine is polled every PACE_MS; Node timers are exact, Tcl's `after` is not on macOS. */
+export const PACE_MS = 100;
+let busyAt = 0;
 let chain = Promise.resolve();
 process.stdout.on('error', () => process.exit(1));
 createInterface({ input: process.stdin }).on('line', (line) => { chain = chain.then(async () => {
@@ -36,6 +39,7 @@ createInterface({ input: process.stdin }).on('line', (line) => { chain = chain.t
       const result = control.cancel();
       if (result) put(RESULT_SUFFIX, result);
     } else if (line === 'POLL') {
+      const wait = busyAt + PACE_MS - Date.now(); if (wait > 0) await new Promise(resolve => setTimeout(resolve, wait));
       const stopRequested = existsSync(debug + REQUEST_SUFFIX);
       if (parameters && stopRequested) parameters.engine.cancel();
       const legacy = ['.text', '.message', '.rename'].some(suffix => existsSync(debug + suffix));
@@ -46,7 +50,7 @@ createInterface({ input: process.stdin }).on('line', (line) => { chain = chain.t
       // before a busy engine: only a transaction's own cleanup waits, never `unsafe` (M28 T012).
       const held = parameters ? (legacy ? parameters.engine.yieldToUser() : parameters.busy) : false;
       if (held && !(stopFirst(stopRequested || control.stopping, parameters!.engine.transacting, action !== null, legacy))) {
-        put(STATE_SUFFIX, control.snapshot()); process.stdout.write('BUSY\nDONE\n'); return;
+        put(STATE_SUFFIX, control.snapshot()); busyAt = Date.now(); process.stdout.write('BUSY\nDONE\n'); return;
       }
       control.turnWorking = parameters?.engine.turnWorking ?? false;
       let request: HostRequest | null = null;

@@ -1,0 +1,211 @@
+{
+ "result": "ok",
+ "turns": 2,
+ "log": [
+  {
+   "t": 1.3,
+   "step": "launched with the first message",
+   "localId": "session_01EyVab74HaA4rjbQQ9Q55Cm"
+  },
+  {
+   "t": 5.3,
+   "step": "Stop hook of a held decision",
+   "ms": 1,
+   "reply": "{\"answer\":null}",
+   "activity": {
+    "state": "holding",
+    "holdReason": "waiting-for-plan-start"
+   }
+  },
+  {
+   "t": 14.2,
+   "step": "free while held",
+   "screenIdle": true,
+   "catalogMs": 8827,
+   "editable": true,
+   "reason": null,
+   "models": [
+    "Opus 5.5",
+    "Fable 5.2",
+    "Sonnet 5.5",
+    "Haiku 5.5",
+    "Fable 5.1",
+    "Haiku 4.5",
+    "Sonnet 5",
+    "Opus 5",
+    "Fable 5",
+    "Opus 4.8",
+    "Opus 4.7",
+    "Opus 4.6",
+    "Sonnet 4.6"
+   ],
+   "efforts": [
+    "low",
+    "medium",
+    "high",
+    "xhigh",
+    "max"
+   ],
+   "mode": "default",
+   "model": "Haiku 5.5"
+  },
+  {
+   "t": 17.2,
+   "step": "settled",
+   "reason": null
+  },
+  {
+   "t": 19.5,
+   "step": "effort medium",
+   "status": 200,
+   "answerMs": 17,
+   "pending": {
+    "value": "medium",
+    "label": "Medium",
+    "note": "применяется"
+   },
+   "appliedMs": 2357,
+   "value": "medium",
+   "failures": null
+  },
+  {
+   "t": 21.4,
+   "step": "mode plan",
+   "status": 200,
+   "answerMs": 18,
+   "pending": {
+    "value": "plan",
+    "label": "Plan",
+    "note": "применяется"
+   },
+   "appliedMs": 1833,
+   "value": "plan",
+   "failures": null
+  },
+  {
+   "t": 22.4,
+   "step": "mode manual",
+   "status": 200,
+   "answerMs": 3,
+   "pending": {
+    "value": "default",
+    "label": "Manual",
+    "note": "применяется"
+   },
+   "appliedMs": 1035,
+   "value": "default",
+   "failures": null
+  },
+  {
+   "t": 25.5,
+   "step": "model Sonnet 5.5",
+   "status": 200,
+   "answerMs": 4,
+   "pending": {
+    "value": "native:Sonnet%205.5",
+    "label": "Sonnet 5.5",
+    "note": "применяется"
+   },
+   "appliedMs": 3121,
+   "value": "claude-sonnet-5-5",
+   "failures": null
+  },
+  {
+   "t": 28.2,
+   "step": "model Haiku 5.5",
+   "status": 200,
+   "answerMs": 22,
+   "pending": {
+    "value": "native:Haiku%205.5",
+    "label": "Haiku 5.5",
+    "note": "применяется"
+   },
+   "appliedMs": 2616,
+   "value": "claude-haiku-5-5",
+   "failures": null
+  },
+  {
+   "t": 28.2,
+   "step": "message to the held session",
+   "status": 200,
+   "body": {
+    "queued": "7d287f76-d407-448b-b19c-77ffdf48ced3"
+   }
+  },
+  {
+   "t": 30.2,
+   "step": "turn 2",
+   "started": true,
+   "prompt": "Workflow Kit: новое сообщение из панели.",
+   "activity": "working"
+  },
+  {
+   "t": 32,
+   "step": "choice during the turn",
+   "status": 200,
+   "pending": {
+    "value": "low",
+    "label": "Low",
+    "note": "применится, когда Claude закончит ответ"
+   },
+   "value": "medium"
+  },
+  {
+   "t": 37.4,
+   "step": "after turn 2",
+   "stopMs": 1,
+   "appliedAfterStopMs": 3620,
+   "activity": {
+    "state": "holding",
+    "holdReason": "waiting-for-plan-start"
+   }
+  },
+  {
+   "t": 37.4,
+   "step": "feed lines",
+   "serviceLines": [
+    "  ⎿  Cancelled"
+   ]
+  },
+  {
+   "t": 39.9,
+   "step": "cleanup",
+   "deleted": 1,
+   "trusted": false,
+   "processes": 0,
+   "defaultsUnchanged": true,
+   "baseRemoved": true,
+   "claudeDirRemoved": true
+  }
+ ],
+ "hooks": [
+  {
+   "at": "2026-11-14T14:49:41.400Z",
+   "hookEvent": "UserPromptSubmit",
+   "prompt": "Ответь одним словом: готово. Без инструментов.",
+   "reply": "{\"answer\":null}",
+   "ms": 1
+  },
+  {
+   "at": "2026-11-14T14:49:42.963Z",
+   "hookEvent": "Stop",
+   "prompt": null,
+   "reply": "{\"answer\":null}",
+   "ms": 1
+  },
+  {
+   "at": "2026-11-14T14:50:07.599Z",
+   "hookEvent": "UserPromptSubmit",
+   "prompt": "Workflow Kit: новое сообщение из панели.",
+   "reply": "{\"answer\":{\"hookSpecificOutput\":{\"hookEventName\":\"UserPromptSubmit\",\"additionalContext\":\"Перечисли числа от 1 до 250 через запятую, без инструментов.\"}}}",
+   "ms": 1
+  },
+  {
+   "at": "2026-11-14T14:50:11.307Z",
+   "hookEvent": "Stop",
+   "prompt": null,
+   "reply": "{\"answer\":null}",
+   "ms": 1
+  }
+ ]
+}

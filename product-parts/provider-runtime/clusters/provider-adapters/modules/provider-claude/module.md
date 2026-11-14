@@ -245,6 +245,8 @@ Capability `interruptTurn` требует доступного pty. Необяз
 Полный контракт, файлы управления, подтверждения и ограничения — [interrupt.md](interrupt.md).
 Кэш и подтверждение Stop (M28/T010) — interrupt.md.
 Старый полный контракт сессий сохранён в [sessions.md](sessions.md).
+M29/T005: темп занятого хоста на macOS и Linux задаёт Node-помощник (`PACE_MS` = 100 мс): Tcl 8.5
+на macOS добавляет к `after` около 150 мс; на Windows `runHost` и так спит 100 мс.
 
 | macOS | Linux | Windows x64/ARM64 |
 | --- | --- | --- |
@@ -289,4 +291,7 @@ interrupt*/direct assertions и deadlines не ослаблены. Дополн�
 M27/T003–T006, M28 и M29 — [native-parameters.md](native-parameters.md). M29/T002: файл желаемых
 значений, каталог на версию CLI, короткий путь модели, без `/fast`; на Windows замена файлов с
 повтором `rename` — там же. M29/T003: служба отвечает на изменение сразу (`pending`, `failures`, кэш
-каталога в `stateDir`, `native-wanted.ts`) — там же.
+каталога в `stateDir`, `native-wanted.ts`) — там же. M29/T005: диалог «Switch model?» после `s`
+подтверждается только для своей цели (`sessionAcks`, `freshAck` в `parameter-screen.ts`) — там же.
+M29/T005: модель подтверждает строка Claude с её именем; занятый хост опрашивается раз в 100 мс
+(`PACE_MS` в `interrupt-worker.ts`, Tcl больше не спит сам) — там же.

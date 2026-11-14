@@ -117,6 +117,8 @@ test('catalogue expands and scrolls without saving defaults; setters use s and r
   assert.equal(w.engine.snapshot().fastReason, FAST_REASON);
   assert.ok(!written.some(a => a.kind === 'text' && a.value === '/fast'), 'M29: /fast is never opened');
   for (const [field, value] of [['model', 'native:Sonnet%205'], ['effort', 'medium'], ['ultracode', 'on'], ['ultracode', 'off']]) {
+    // M29: efforts of the new model are read by discovery after the model transaction.
+    if (field === 'effort') { w.engine.observe(w.meta); w.engine.discover(); for (let i = 0; i < 300 && w.engine.busy; i++) action(); assert.equal(w.engine.takeResult()?.status, 'applied', 'efforts'); }
     w.meta.at = w.now(); w.engine.observe(w.meta); w.engine.begin(w.request(field, value));
     for (let i = 0; i < 300 && w.engine.busy; i++) action();
     assert.equal(w.engine.takeResult()?.status, 'applied', field);

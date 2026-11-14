@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 917,
+  "revision": 918,
   "rounds": [
     {
       "digest": {
@@ -38,8 +38,15 @@
       },
       "id": "R1",
       "kind": "implementation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Implementation"
+    },
+    {
+      "digest": null,
+      "id": "R2",
+      "kind": "fixes",
+      "status": "OPEN",
+      "title": "Каталог параметров и окно старых сессий Claude"
     }
   ],
   "schema": "harness-workflow-plan/1",
@@ -768,6 +775,135 @@
     },
     {
       "acceptance": [
+        "Discovery каталога, прерванная ходом или отменённая, повторяется при следующем свободном пустом вводе: не чаще раза в 30 с и не больше 3 попыток на модель; успешный каталог не повторяется.",
+        "Выбор модели доступен, когда есть список моделей, даже без вариантов усилия; меню усилия — когда есть варианты. Причина недоступности показывается один раз на меню, не под каждым пунктом, и называет действие.",
+        "Если снимок statusline старого host не содержит auto_compact_window, служба определяет порог сама по файлам настроек (managed, локальный и проектный слой папки сессии, пользовательский) для model.id; без порога — окно модели, как прежде. Переменная окружения сессии в этом случае не видна — ограничение записано.",
+        "Тесты с подставленными darwin, linux и win32 (пути managed); браузерный тест меню; контракты и матрица ОС обновлены."
+      ],
+      "checks": [],
+      "commitMessage": "fix(claude): retry the native catalog and read the compact window for old hosts",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/evidence/M28/local-delivery.md",
+          "required": true
+        },
+        {
+          "path": "docs/planning/M28-claude-controls-fixes.md",
+          "required": true,
+          "heading": "3.1. Окно контекста (`cli`, `provider-claude`, `provider-registry`, `session-chat`)"
+        }
+      ],
+      "dependencies": [
+        "T008"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-engine.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/parameter-controls.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/parameters.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/provider.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/parameters.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/context.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/parameters.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/parameters.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/auto-compact-window.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/claude-menu.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/test",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md",
+        "docs/architecture/CONTRACTS.md",
+        "docs/architecture/OVERVIEW.md"
+      ],
+      "fixes": null,
+      "id": "T014",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Повторять discovery каталога Claude и считать окно старых сессий от порога",
+      "why": "После установки 0.13.1 пользователь увидел меню Claude, где каждый пункт подписан «Нативный каталог Claude ещё не получен» (13 моделей, 0 вариантов усилия), и окно 1 000 000 вместо 500 000 в сессии, запущенной до установки"
+    },
+    {
+      "acceptance": [
+        "Project-wide documents describe the round result",
+        "The round digest records result, decisions, contracts and references"
+      ],
+      "checks": [],
+      "commitMessage": "docs: reconcile documentation for R2",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T014"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/architecture/OVERVIEW.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/parameters.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/parameters.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md",
+        "docs/architecture/CONTRACTS.md"
+      ],
+      "fixes": null,
+      "id": "DOCS-R2",
+      "iteration": 1,
+      "kind": "docs",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Reconcile project documentation and write the round digest",
+      "why": "Keep the project context current for the next agent and close the round."
+    },
+    {
+      "acceptance": [
+        "Версии и CHANGELOG 0.13.2 согласованы; 0.13.2 установлена штатно, doctor installed ok, работающие сессии не перезапущены.",
+        "Через API установленной службы окно старой сессии считается от порога пользователя; меню Claude без причины под каждым пунктом. Живые ходы не тратятся.",
+        "Evidence содержит команды и результаты; задача не делает push."
+      ],
+      "checks": [],
+      "commitMessage": "chore(release): install Workflow Kit 0.13.2 locally",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/evidence/M28/local-delivery.md",
+          "required": true
+        }
+      ],
+      "dependencies": [
+        "T014",
+        "DOCS-R2"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "package.json",
+        "package-lock.json",
+        "README.md",
+        "CHANGELOG.md",
+        "docs/usage.md",
+        "docs/installation.md",
+        "docs/evidence/M28-claude-controls-fixes.md",
+        "docs/evidence/M28"
+      ],
+      "fixes": null,
+      "id": "T015",
+      "iteration": 1,
+      "kind": "delivery",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Собрать и установить локальную поставку 0.13.2",
+      "why": "Исправления T014 нужно установить"
+    },
+    {
+      "acceptance": [
         "До task:start проверены headSha T008 и success на macOS, Linux, Windows x64 и ARM64; ветка ci/m28-claude-controls-fixes отправлена вне задач по прямой команде пользователя.",
         "Записаны SHA, URL и четыре результата CI; без функциональных изменений и push из задачи; приёмка и закрытие — отдельно."
       ],
@@ -777,7 +913,7 @@
       "context": [],
       "dependencies": [
         "T008",
-        "DOCS-R1"
+        "DOCS-R2"
       ],
       "docsWaiver": null,
       "files": [
@@ -787,7 +923,7 @@
       "id": "T009",
       "iteration": 1,
       "kind": "delivery",
-      "roundId": "R1",
+      "roundId": "R2",
       "status": "TODO",
       "title": "Зафиксировать зелёную CI четырёх платформ на SHA поставки",
       "why": "Зафиксировать зелёную CI четырёх платформ на SHA поставки"
@@ -803,8 +939,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 13/14
-- Revision: 917
+- Progress: 13/17
+- Revision: 918
 
 ## Objective
 
@@ -821,7 +957,7 @@
 
 ## Rounds
 
-### R1 — Implementation (implementation, OPEN)
+### R1 — Implementation (implementation, CLOSED)
 
 - [DONE] T001 — Снять кадры Claude 2.1.325 и проверить факты для исправлений (work)
   - Commit: docs: record Claude 2.1.325 facts for controls fixes
@@ -876,11 +1012,26 @@
   - Commit: chore(release): install Workflow Kit 0.13.1 locally
   - Files: package.json, package-lock.json, README.md, CHANGELOG.md, docs/usage.md, docs/installation.md, docs/setup.md, docs/architecture/OVERVIEW.md, docs/evidence/M28-claude-controls-fixes.md, docs/evidence/M28, docs/evidence/M28/local-delivery.md, docs/evidence/M28/t008-installed-browser.json
   - Depends on: T007, DOCS-R1
+
+Digest: Claude: контекст от autoCompactWindow, окно модели второй строкой; Stop активен весь ход, одно Esc, подтверждение по кадру, хост обрабатывает Stop раньше занятого движка параметров; ход завершается без Stop-хука; сообщение свободному агенту уходит сразу; очередь — пузыри «в очереди»; под вводом нет служебных строк. Живая проверка пройдена (T013).
+
+### R2 — Каталог параметров и окно старых сессий Claude (fixes, OPEN)
+
+- [TODO] T014 — Повторять discovery каталога Claude и считать окно старых сессий от порога (work)
+  - Commit: fix(claude): retry the native catalog and read the compact window for old hosts
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-engine.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/parameter-controls.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/parameters.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/parameters.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/context.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/parameters.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/parameters.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/auto-compact-window.ts, product-parts/backend-core/clusters/runtime/modules/cli/test, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/claude-menu.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/test, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, docs/architecture/CONTRACTS.md, docs/architecture/OVERVIEW.md
+  - Depends on: T008
+- [TODO] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
+  - Commit: docs: reconcile documentation for R2
+  - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/parameters.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/parameters.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, docs/architecture/CONTRACTS.md
+  - Depends on: T014
+- [TODO] T015 — Собрать и установить локальную поставку 0.13.2 (delivery)
+  - Commit: chore(release): install Workflow Kit 0.13.2 locally
+  - Files: package.json, package-lock.json, README.md, CHANGELOG.md, docs/usage.md, docs/installation.md, docs/evidence/M28-claude-controls-fixes.md, docs/evidence/M28
+  - Depends on: T014, DOCS-R2
 - [TODO] T009 — Зафиксировать зелёную CI четырёх платформ на SHA поставки (delivery)
   - Commit: docs: record green CI for Claude controls fixes
   - Files: docs/evidence/M28-claude-controls-fixes.md
-  - Depends on: T008, DOCS-R1
-
-Digest: Claude: контекст от autoCompactWindow, окно модели второй строкой; Stop активен весь ход, одно Esc, подтверждение по кадру, хост обрабатывает Stop раньше занятого движка параметров; ход завершается без Stop-хука; сообщение свободному агенту уходит сразу; очередь — пузыри «в очереди»; под вводом нет служебных строк. Живая проверка пройдена (T013).
+  - Depends on: T008, DOCS-R2
 
 State changes only through `scripts/workflow` commands. History lives in Git.

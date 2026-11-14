@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 998,
+  "revision": 999,
   "rounds": [
     {
       "digest": {
@@ -49,7 +49,10 @@
       "A started plan stays with its owner; other sessions show a short card with «Открыть сессию»",
       "CI is green on macOS, Linux, Windows x64 and Windows ARM64 for the delivery commit"
     ],
-    "acceptanceNote": null,
+    "acceptanceNote": {
+      "at": "2026-11-14T17:32:26.579Z",
+      "text": "Пользователь принял план в панели Workflow Kit"
+    },
     "approval": {
       "at": "2026-11-14T16:45:53.104Z",
       "text": "Пользователь, 14.11.2026: «я начинаю совершенно новую сессию провайдером или с другой моделью неважно сессия возникает а плана нет хотя я ее открываю в том же workspace и это неправильно … это недопустимо, это нужно исправить». После разбора причин пользователь выбрал в панели Workflow Kit «спецификация и план без ревью». | Execution mode chosen by the user: sequential: Выбор пользователя в панели Workflow Kit: выполнить самому, последовательно"
@@ -76,7 +79,7 @@
         "text": "Moving a started plan to another session is out of scope; other sessions only see it and open the owner"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "ACCEPTED",
     "execution": {
       "maxWorkers": 1,
       "ownerSession": "c83ecd0b-4b2f-4c45-80c3-1465c615d2aa",
@@ -427,11 +430,11 @@
 ## State
 
 - Scope: m31-plan-in-any-session (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: ACCEPTED
 - Execution: sequential
 - Current task: none
 - Progress: 8/8
-- Revision: 998
+- Revision: 999
 
 ## Objective
 

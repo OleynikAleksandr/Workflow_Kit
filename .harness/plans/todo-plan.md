@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T001",
   "lastClosed": {
     "closedAt": "2026-11-14T16:26:05.681Z",
     "scopeId": "m30-claude-feed-quiet"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 979,
+  "revision": 981,
   "rounds": [
     {
       "digest": null,
@@ -106,14 +106,15 @@
         "product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/test",
         "product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md",
         "docs/architecture/workflow-kit/WorkflowKitCommands.md",
-        "docs/architecture/OS-MATRIX.md"
+        "docs/architecture/OS-MATRIX.md",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/tests.md"
       ],
       "fixes": null,
       "id": "T001",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "Kit 2.2.5: команда scope:owner",
       "why": "Kit has no way to move the owner of a plan to another session"
     },
@@ -371,9 +372,9 @@
 - Scope: m31-plan-in-any-session (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: none
+- Current task: T001
 - Progress: 0/8
-- Revision: 979
+- Revision: 981
 
 ## Objective
 
@@ -391,9 +392,9 @@ An unstarted plan belongs to the project: its mode choice card and ready plan ca
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T001 — Kit 2.2.5: команда scope:owner (work)
+- [IN_PROGRESS] T001 — Kit 2.2.5: команда scope:owner (work)
   - Commit: feat(kit): move the plan owner with scope:owner
-  - Files: product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/src, product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/test, product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-payload.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/test, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/src/bundle-meta.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/test, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md, docs/architecture/workflow-kit/WorkflowKitCommands.md, docs/architecture/OS-MATRIX.md
+  - Files: product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/src, product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/test, product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-payload.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/test, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/src/bundle-meta.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/test, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md, docs/architecture/workflow-kit/WorkflowKitCommands.md, docs/architecture/OS-MATRIX.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/tests.md
 - [TODO] T002 — Автор предложения: ревью один раз (work)
   - Commit: fix(review): review a proposal only from its author session
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, docs/architecture/OS-MATRIX.md

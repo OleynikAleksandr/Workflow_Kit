@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 989,
+  "revision": 991,
   "rounds": [
     {
       "digest": null,
@@ -288,7 +288,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Документ приёмки и проба Kit во временном проекте",
       "why": "The owner move must work with the real built Kit and the user needs the live check steps"
     },
@@ -405,8 +405,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 4/8
-- Revision: 989
+- Progress: 5/8
+- Revision: 991
 
 ## Objective
 
@@ -439,7 +439,7 @@ An unstarted plan belongs to the project: its mode choice card and ready plan ca
   - Commit: fix(session-view): show the unstarted plan in every session of the project
   - Files: product-parts/control-panel/clusters/web-panel/modules/session-view/src, product-parts/control-panel/clusters/web-panel/modules/session-view/test, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, docs/architecture/OS-MATRIX.md, design-qa.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/foreign-card.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/plan-cards.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/sidebar-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/test/plan-cards.test.ts, product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts
   - Depends on: T003
-- [TODO] T005 — Документ приёмки и проба Kit во временном проекте (work)
+- [DONE] T005 — Документ приёмки и проба Kit во временном проекте (work)
   - Commit: test: record the plan owner move with the built Kit
   - Files: docs/evidence/M31-plan-in-any-session.md, docs/evidence/M31
   - Depends on: T004

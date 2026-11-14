@@ -10,10 +10,30 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 954,
+  "revision": 956,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "agent-channel: option release { supports(ref), wake(ref) }; Slot.released; hold answers the hook at once",
+          "provider-claude host: <debug>.parameters-wanted (service writes) and <debug>.parameters-catalog; state.wanted statuses; three failures fail a field",
+          "provider-claude service: update answers at once; ParameterItem.pending { value, label, note }; SessionParameters.failures for 60 s; catalog cache claude-native-catalog.json in stateDir",
+          "session-chat: menus open while Claude answers; pending row polled every 1 s; failure line for 10 s"
+        ],
+        "decisions": [
+          "A hold decision for a session the panel runs and can wake releases the Stop hook at once; the slot shows holding with holdReason",
+          "Model and effort keep the native menu with the session-only key s; /model and /effort with an argument would save defaults",
+          "The host confirms the Switch model? dialog only for its own target and confirms a model by Claude's 'Set model to <label>' line (plan mode shows the plan model)",
+          "A busy host is paced by the Node helper (100 ms); Tcl 8.5 on macOS adds about 150 ms to after"
+        ],
+        "references": [
+          "docs/planning/M29-claude-controls-instant.md",
+          "docs/evidence/M29-claude-controls-instant.md",
+          "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/native-parameters.md",
+          "docs/architecture/CONTRACTS.md"
+        ],
+        "result": "A panel-run Claude session is not held by the Stop hook while the autopilot waits; queued messages wake it. Claude model, effort, mode and Ultracode choices answer at once with a pending state and are applied by the host in the background, session-only; a free session confirms in about 1-3 s on macOS. The catalog is read once per CLI version; /fast is never opened."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -357,7 +377,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -442,8 +462,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 5/8
-- Revision: 954
+- Progress: 6/8
+- Revision: 956
 
 ## Objective
 
@@ -479,7 +499,7 @@ Claude parameters change instantly from the panel (choice queued in Kit, applied
   - Commit: test: record live and browser checks of instant Claude controls
   - Files: docs/evidence/M29-claude-controls-instant.md, docs/evidence/M29, design-qa.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/test, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-screen.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-engine.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/native-parameters.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/session.exp, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/interrupt-worker.ts, docs/architecture/OS-MATRIX.md, docs/evidence/M29/dark-1280-pending.png, docs/evidence/M29/dark-375-failed.png, docs/evidence/M29/light-1280-failed.png, docs/evidence/M29/light-375-pending.png, docs/evidence/M29/menu-answering-dark.png, docs/evidence/M29/menu-answering-light.png, docs/evidence/M29/t005-browser.json, docs/evidence/M29/t005-live.json, docs/evidence/M29/t005-timing.json, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parameter-engine.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parameter-wanted.test.ts
   - Depends on: T001, T004
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M29-claude-controls-instant.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, docs/architecture/CONTRACTS.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, docs/evidence/M29-claude-controls-instant.md, design-qa.md
   - Depends on: T001, T002, T003, T004, T005
@@ -491,5 +511,7 @@ Claude parameters change instantly from the panel (choice queued in Kit, applied
   - Commit: docs: record green CI for instant Claude controls
   - Files: docs/evidence/M29-claude-controls-instant.md
   - Depends on: T006, DOCS-R1
+
+Digest: A panel-run Claude session is not held by the Stop hook while the autopilot waits; queued messages wake it. Claude model, effort, mode and Ultracode choices answer at once with a pending state and are applied by the host in the background, session-only; a free session confirms in about 1-3 s on macOS. The catalog is read once per CLI version; /fast is never opened.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

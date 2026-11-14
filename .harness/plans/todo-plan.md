@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 928,
+  "revision": 930,
   "rounds": [
     {
       "digest": {
@@ -64,7 +64,19 @@
       "title": "Каталог параметров и окно старых сессий Claude"
     },
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "Без изменений контрактов"
+        ],
+        "decisions": [
+          "Причина красной CI afba623 — только тесты; функциональный код совпадает с установленной 0.13.2",
+          "CI повторяется на SHA после исправления тестов"
+        ],
+        "references": [
+          "docs/evidence/M28-claude-controls-fixes.md"
+        ],
+        "result": "Тесты M28 и доставки Kimi устойчивы на Windows: подставленные POSIX-платформы не строят пути из временной папки Windows, сверка ходов считает время от начала хода в канале, тест Kimi ждёт запись журнала. Функциональный код и документы проекта не менялись."
+      },
       "id": "R3",
       "kind": "fixes",
       "status": "OPEN",
@@ -987,7 +999,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R3",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -1028,8 +1040,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 17/19
-- Revision: 928
+- Progress: 18/19
+- Revision: 930
 
 ## Objective
 
@@ -1127,7 +1139,7 @@ Digest: Claude: discovery каталога повторяется при сво�
   - Commit: test: make the M28 and Kimi delivery tests stable on Windows
   - Files: product-parts/backend-core/clusters/runtime/modules/cli/test/auto-compact-context.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/turn-reconcile.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/test/messages.test.ts
   - Depends on: T015
-- [TODO] DOCS-R3 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R3 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R3
   - Files: README.md, docs/architecture/OVERVIEW.md
   - Depends on: T016
@@ -1135,5 +1147,7 @@ Digest: Claude: discovery каталога повторяется при сво�
   - Commit: docs: record green CI for Claude controls fixes
   - Files: docs/evidence/M28-claude-controls-fixes.md
   - Depends on: T008, DOCS-R3
+
+Digest: Тесты M28 и доставки Kimi устойчивы на Windows: подставленные POSIX-платформы не строят пути из временной папки Windows, сверка ходов считает время от начала хода в канале, тест Kimi ждёт запись журнала. Функциональный код и документы проекта не менялись.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

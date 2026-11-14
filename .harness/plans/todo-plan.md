@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 956,
+  "revision": 958,
   "rounds": [
     {
       "digest": {
@@ -388,7 +388,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: release 0.13.3",
-      "confirmation": null,
+      "confirmation": "И дальше выполняй весь план без паузы, вплоть до заливки нового релиза на GitHub.",
       "context": [
         {
           "path": "README.md",
@@ -415,14 +415,15 @@
         "docs/setup.md",
         "docs/architecture/OVERVIEW.md",
         "docs/evidence/M29-claude-controls-instant.md",
-        "docs/evidence/M29"
+        "docs/evidence/M29",
+        "docs/evidence/M29/local-delivery.md"
       ],
       "fixes": null,
       "id": "T006",
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Поставка 0.13.3 и локальная установка",
       "why": "Поставка 0.13.3 и локальная установка"
     },
@@ -462,8 +463,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 6/8
-- Revision: 956
+- Progress: 7/8
+- Revision: 958
 
 ## Objective
 
@@ -503,9 +504,9 @@ Claude parameters change instantly from the panel (choice queued in Kit, applied
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M29-claude-controls-instant.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, docs/architecture/CONTRACTS.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, docs/evidence/M29-claude-controls-instant.md, design-qa.md
   - Depends on: T001, T002, T003, T004, T005
-- [TODO] T006 — Поставка 0.13.3 и локальная установка (delivery)
+- [DONE] T006 — Поставка 0.13.3 и локальная установка (delivery)
   - Commit: chore: release 0.13.3
-  - Files: package.json, package-lock.json, README.md, CHANGELOG.md, docs/usage.md, docs/installation.md, docs/setup.md, docs/architecture/OVERVIEW.md, docs/evidence/M29-claude-controls-instant.md, docs/evidence/M29
+  - Files: package.json, package-lock.json, README.md, CHANGELOG.md, docs/usage.md, docs/installation.md, docs/setup.md, docs/architecture/OVERVIEW.md, docs/evidence/M29-claude-controls-instant.md, docs/evidence/M29, docs/evidence/M29/local-delivery.md
   - Depends on: T005, DOCS-R1
 - [TODO] T007 — CI точного SHA поставки на четырёх платформах (delivery)
   - Commit: docs: record green CI for instant Claude controls

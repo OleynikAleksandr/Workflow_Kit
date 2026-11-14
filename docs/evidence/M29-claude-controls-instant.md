@@ -86,3 +86,10 @@ plan 1,3 с, manual 1,8 с, усилие low 2,4 с; Sonnet 5,5 с — ещё с
 Установлена штатно, doctor в порядке, браузерные сценарии M29 на установленной копии
 пройдены, работавшие сессии не перезапущены; старые сессии получают контролы M29 после
 возобновления панелью — [local-delivery.md](M29/local-delivery.md).
+
+## T007: CI точного SHA поставки
+
+Ветка `ci/m29-claude-controls-instant`, коммит поставки `be49da4` (T006), запуск
+[43608426090](https://github.com/OleynikAleksandr/Workflow_Kit/actions/runs/43608426090):
+macOS ARM64, Linux x64, Windows x64 и Windows ARM64 — success (typecheck, тесты,
+platform-guard). `main` не публиковался: это после приёмки и закрытия scope.

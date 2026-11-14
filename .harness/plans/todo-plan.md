@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 958,
+  "revision": 960,
   "rounds": [
     {
       "digest": {
@@ -36,7 +36,7 @@
       },
       "id": "R1",
       "kind": "implementation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Implementation"
     }
   ],
@@ -80,7 +80,7 @@
         "text": "The panel never waits for the terminal: pending value with a note, rollback with a short error after three failed attempts"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 2,
       "ownerSession": "92b77570-773b-4173-8244-c327d009daa3",
@@ -433,7 +433,7 @@
       ],
       "checks": [],
       "commitMessage": "docs: record green CI for instant Claude controls",
-      "confirmation": null,
+      "confirmation": "И дальше выполняй весь план без паузы, вплоть до заливки нового релиза на GitHub.",
       "context": [],
       "dependencies": [
         "T006",
@@ -448,7 +448,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "CI точного SHA поставки на четырёх платформах",
       "why": "CI точного SHA поставки на четырёх платформах"
     }
@@ -460,11 +460,11 @@
 ## State
 
 - Scope: m29-claude-controls-instant (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 7/8
-- Revision: 958
+- Progress: 8/8
+- Revision: 960
 
 ## Objective
 
@@ -480,7 +480,7 @@ Claude parameters change instantly from the panel (choice queued in Kit, applied
 
 ## Rounds
 
-### R1 — Implementation (implementation, OPEN)
+### R1 — Implementation (implementation, CLOSED)
 
 - [DONE] T001 — Ход без удержания для сессий панели Claude (work, parallel-safe)
   - Commit: feat: release the Stop hook of panel-run sessions waiting for the user
@@ -508,7 +508,7 @@ Claude parameters change instantly from the panel (choice queued in Kit, applied
   - Commit: chore: release 0.13.3
   - Files: package.json, package-lock.json, README.md, CHANGELOG.md, docs/usage.md, docs/installation.md, docs/setup.md, docs/architecture/OVERVIEW.md, docs/evidence/M29-claude-controls-instant.md, docs/evidence/M29, docs/evidence/M29/local-delivery.md
   - Depends on: T005, DOCS-R1
-- [TODO] T007 — CI точного SHA поставки на четырёх платформах (delivery)
+- [DONE] T007 — CI точного SHA поставки на четырёх платформах (delivery)
   - Commit: docs: record green CI for instant Claude controls
   - Files: docs/evidence/M29-claude-controls-instant.md
   - Depends on: T006, DOCS-R1

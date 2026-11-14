@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 972,
+  "revision": 974,
   "rounds": [
     {
       "digest": {
@@ -234,7 +234,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: release 0.13.4",
-      "confirmation": null,
+      "confirmation": "Ну да, открывай новый скоп, создавай план и выполняй его.",
       "context": [],
       "dependencies": [
         "T003",
@@ -250,14 +250,15 @@
         "docs/installation.md",
         "docs/setup.md",
         "docs/evidence/M30-claude-feed-quiet.md",
-        "docs/evidence/M30"
+        "docs/evidence/M30",
+        "docs/evidence/M30/local-delivery.md"
       ],
       "fixes": null,
       "id": "T004",
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Поставка 0.13.4 и локальная установка",
       "why": "The user tests the fix in the installed panel"
     },
@@ -297,8 +298,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 4/6
-- Revision: 972
+- Progress: 5/6
+- Revision: 974
 
 ## Objective
 
@@ -330,9 +331,9 @@ Claude Desktop shows no service /effort or 'Kept model' lines from the Kit host:
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M30-claude-feed-quiet.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/native-parameters.md, docs/architecture/OS-MATRIX.md, docs/evidence/M30-claude-feed-quiet.md
   - Depends on: T001, T002, T003
-- [TODO] T004 — Поставка 0.13.4 и локальная установка (delivery)
+- [DONE] T004 — Поставка 0.13.4 и локальная установка (delivery)
   - Commit: chore: release 0.13.4
-  - Files: package.json, package-lock.json, README.md, CHANGELOG.md, docs/usage.md, docs/installation.md, docs/setup.md, docs/evidence/M30-claude-feed-quiet.md, docs/evidence/M30
+  - Files: package.json, package-lock.json, README.md, CHANGELOG.md, docs/usage.md, docs/installation.md, docs/setup.md, docs/evidence/M30-claude-feed-quiet.md, docs/evidence/M30, docs/evidence/M30/local-delivery.md
   - Depends on: T003, DOCS-R1
 - [TODO] T005 — CI точного SHA поставки на четырёх платформах (delivery)
   - Commit: docs: record green CI for the quiet Claude feed

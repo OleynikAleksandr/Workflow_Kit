@@ -34,3 +34,8 @@ macOS (Apple Silicon), Claude Code 2.1.325.
 
 Лента самого Claude Desktop — проверка пользователя на 0.13.4. Windows — проверяющий на
 Windows. Linux — CI.
+
+## T004: локальная поставка 0.13.4
+
+Установлена штатно, doctor в порядке, служба 0.13.4; старые сессии получают тихие контролы
+после возобновления панелью — [local-delivery.md](M30/local-delivery.md).

@@ -3,6 +3,8 @@
 // UserPromptSubmit hook marks the turn as running and carries messages that missed a Stop.
 // Every message is delivered once: it stays queued until the hook's HTTP answer was sent.
 // A client whose Stop hook cannot be held gets its next message as a prompt (detached.ts).
+// A session the service can wake while idle (release, M29) is never held: the hold shows in the
+// panel, and what comes later is queued and the session woken.
 import { randomUUID } from 'node:crypto';
 import { createDetached } from './detached.ts';
 import { createTurnControl } from './turn-control.ts';
@@ -10,6 +12,7 @@ import { acceptTurn, beginTurn, ownPrompt, reserveTurn } from './turn-state.ts';
 import { blockAnswer, promptAnswer, sessionKey } from './hook-input.ts';
 import { activityOf, newSlot, pendingOf } from './slots.ts';
 import type { ChannelCore, Slot } from './slots.ts';
+import { createRelease } from './release.ts';
 import { LAST_MESSAGE_CHARS, STOP_HOLD_MS } from './types.ts';
 import type { ActivityState, AgentChannel, AgentChannelOptions, HookReply, IdleListener, QueuedMessage, SessionActivity, StopContext, StopDecider, StopDecision, StopEvent, StopListener, TurnOrigin } from './types.ts';
 
@@ -57,6 +60,8 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
   function setState(slot: Slot, state: ActivityState, extra: Partial<SessionActivity> = {}): void {
     if (slot.activity.state !== state) slot.activity.since = iso();
     Object.assign(slot.activity, { state, holdReason: null, holdUntil: null }, extra);
+    // Any other state ends a released hold (a new turn, an interruption, a decision).
+    if (slot.released && state !== 'holding') release.drop(slot);
     slot.activity.pending = pendingOf(slot);
     changed(slot.activity.key);
   }
@@ -176,6 +181,7 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
     if (slots.get(key) !== slot) return;
     slots.delete(key);
     slot.queue.length = 0;
+    release.drop(slot);
     detached?.drop(slot);
     slot.wake?.();
     changed(key);
@@ -193,6 +199,7 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
   const idleListeners = new Set<IdleListener>();
   const core: ChannelCore = { slots, setState, notify, decide: safeDecide, idleListeners, changed, iso, now, holdMs, log, closed: () => closed, excluded: isOut };
   const detached = options.detached ? createDetached(core, options.detached) : null;
+  const release = createRelease(core, options.release, (slot) => Boolean(detached?.supports(slot)));
   const visible = (): Slot[] => [...slots.values()].filter((slot) => !isOut(slot));
 
   const ensure = (key: string, projectId: string): Slot => {
@@ -228,7 +235,7 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
           setState(slot, 'working', { turnStartedAt: iso() });
           return blockReply(slot, reply, String(reply.answer?.['reason'] ?? ''), 'delivery');
         }
-        const decision = await safeDecide({
+        const context: StopContext = {
           key: slot.activity.key,
           client: input.client,
           sessionId: input.sessionId,
@@ -236,7 +243,8 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
           stopHookActive: input.stopHookActive,
           lastAssistantMessage: input.lastAssistantMessage,
           woken,
-        });
+        };
+        const decision = await safeDecide(context);
         if (slot.turn.barrier || slot.generation !== generation) return empty();
         if (slot.queue.length > 0) continue;
         if (decision.kind === 'continue') {
@@ -246,6 +254,10 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
         timeoutAnswer = decision.kind === 'hold' ? decision.timeoutAnswer : undefined;
         if (decision.kind === 'release' || closed) {
           setState(slot, 'waiting');
+          return empty();
+        }
+        if (release.supports(slot)) {
+          release.hold(slot, decision, context);
           return empty();
         }
         const result = now().getTime() >= deadline ? 'timeout' : await hold(slot, decision.reason, deadline, signal);
@@ -314,12 +326,14 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
       slot.activity.pending = pendingOf(slot);
       changed(key);
       if (!slot.turn.barrier) slot.wake?.();
+      release.enqueued(slot);
       if (detached?.supports(slot)) detached.enqueued(slot);
       return message;
     },
     wake(key) {
       const slot = slots.get(key);
       if (!slot?.turn.barrier) slot?.wake?.();
+      if (slot) release.wake(slot);
       if (slot && !slot.turn.barrier && detached?.supports(slot)) detached.wake(slot);
     },
     setDecider(next) {
@@ -369,6 +383,7 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
     close() {
       closed = true;
       detached?.close();
+      for (const slot of slots.values()) release.drop(slot);
       for (const slot of slots.values()) slot.wake?.();
     },
   };

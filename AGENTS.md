@@ -119,7 +119,7 @@ covers all three; a macOS-only change is incomplete. Background:
   what the other two OSes do (or why they need nothing).
 - `npm run check:platforms` (the `platform-guard` commit check) enforces these
   rules; see `tools/platform-guard/README.md`.
-- In the same commit, update the OS matrix in `docs/architecture/OVERVIEW.md`
+- In the same commit, update the OS matrix in `docs/architecture/OS-MATRIX.md`
   and the OS section of the module's `module.md`.
 - The acceptance document lists live checks per OS and who runs them: macOS —
   the user; Windows — a Windows tester; Linux — CI only for now.
@@ -130,6 +130,21 @@ covers all three; a macOS-only change is incomplete. Background:
   until CI is green on every OS for the pushed commit; before acceptance it
   runs on a `ci/<scope>` branch, `main` is pushed only after the scope is
   accepted and closed.
+
+## Document size
+
+The `kit:doc-size` check limits every document to 28 000 bytes so that an agent
+gets it whole with one `scripts/workflow context` call.
+
+- When a document nears the limit, split it by topic into linked documents.
+  Never shorten or merge existing text to fit: compression loses facts.
+- Move whole sections verbatim and leave a short pointer with a link where they
+  were. Examples: the OS matrix lives in `docs/architecture/OS-MATRIX.md`; old
+  versions of `CHANGELOG.md` go to `docs/changelog/`; a module keeps topic
+  documents next to its `module.md` (`parameters.md`, `native-parameters.md`).
+- Do the split as its own documentation commit (`docs:commit`) between tasks,
+  before the task that needs the room (Kit refuses `docs:commit` while a task is
+  in progress), so no task mixes new content with moved text.
 
 <!-- wfk:begin -->
 ## Workflow Kit (managed section, do not edit by hand)

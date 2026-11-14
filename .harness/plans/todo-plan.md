@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": "T001",
+  "currentTaskId": null,
   "lastClosed": {
     "closedAt": "2026-11-14T12:47:10.799Z",
     "scopeId": "m28-claude-controls-fixes"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 938,
+  "revision": 939,
   "rounds": [
     {
       "digest": null,
@@ -103,7 +103,14 @@
         "product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts",
         "product-parts/backend-core/clusters/runtime/modules/cli/test/release-wiring.test.ts",
         "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
-        "docs/architecture/CONTRACTS.md"
+        "docs/architecture/CONTRACTS.md",
+        "AGENTS.md",
+        "CHANGELOG.md",
+        "docs/architecture/OS-MATRIX.md",
+        "docs/architecture/OVERVIEW.md",
+        "docs/changelog/CHANGELOG-0.7-0.9.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/native-parameters.md"
       ],
       "fixes": null,
       "id": "T001",
@@ -111,7 +118,7 @@
       "kind": "work",
       "parallelSafe": true,
       "roundId": "R1",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "title": "Ход без удержания для сессий панели Claude",
       "why": "The held Stop hook keeps Claude busy: Desktop queues messages and the parameter menus lock"
     },
@@ -403,9 +410,9 @@
 - Scope: m29-claude-controls-instant (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: T001
-- Progress: 0/8
-- Revision: 938
+- Current task: none
+- Progress: 1/8
+- Revision: 939
 
 ## Objective
 
@@ -423,9 +430,9 @@ Claude parameters change instantly from the panel (choice queued in Kit, applied
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [IN_PROGRESS] T001 — Ход без удержания для сессий панели Claude (work, parallel-safe)
+- [DONE] T001 — Ход без удержания для сессий панели Claude (work, parallel-safe)
   - Commit: feat: release the Stop hook of panel-run sessions waiting for the user
-  - Files: product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/channel.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/release.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/slots.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/types.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/release.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/release-wiring.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, docs/architecture/CONTRACTS.md
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/channel.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/release.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/slots.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/types.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/release.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/release-wiring.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, docs/architecture/CONTRACTS.md, AGENTS.md, CHANGELOG.md, docs/architecture/OS-MATRIX.md, docs/architecture/OVERVIEW.md, docs/changelog/CHANGELOG-0.7-0.9.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/native-parameters.md
 - [TODO] T002 — Хост: желаемые параметры, каталог и короткий путь (work, parallel-safe)
   - Commit: feat: apply wanted Claude parameters in the background with a cached catalog
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-engine.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-files.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-protocol.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-screen.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/host.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/win-host.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parameter-engine.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parameter-wanted.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/fixtures, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, docs/architecture/OVERVIEW.md

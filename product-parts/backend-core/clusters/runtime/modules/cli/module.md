@@ -203,6 +203,14 @@ M28/T010: барьер Stop больше не держит ход в `working`. 
 Тот же шаг выполняет подтверждённый Stop (опция `wake` у `createTurnInterruption`). Поведение
 одинаково на macOS, Linux и Windows.
 
+M29/T001: `releasable(provider, activity)` (`session-wiring.ts`) — сессию запустила панель
+(`marksPanelProcess`, `external === false`), провайдер умеет `wakeSession` и не имеет
+`sendMessage`. Для неё канал получает опцию `release`: решение `hold` не держит хук Stop,
+сессия свободна для Desktop и терминала. `wakeReleased` будит её через `automaticWake` и
+`wakeSession`, когда в очереди появилось сообщение или решатель ответил `continue`; ход в
+`working` и барьер Stop не будятся. Сессия вне панели держится, как раньше. Поведение
+одинаково на macOS, Linux и Windows.
+
 M28/T014: `app.ts` передаёт провайдерам `autoCompactWindow(modelId, cwd)` —
 `resolveAutoCompactWindow` без окружения службы (детям `CLAUDE*` не передаются); пути managed
 по подставленной платформе. Тест `auto-compact-context.test.ts` для darwin, linux и win32.

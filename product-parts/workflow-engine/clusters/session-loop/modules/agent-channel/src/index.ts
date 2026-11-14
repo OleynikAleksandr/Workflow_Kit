@@ -8,6 +8,7 @@ export type {
   IdleListener,
   QueuedMessage,
   QueuedView,
+  ReleaseDelivery,
   SessionActivity,
   SessionRef,
   StopContext,

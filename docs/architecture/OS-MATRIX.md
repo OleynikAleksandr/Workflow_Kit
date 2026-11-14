@@ -1,0 +1,44 @@
+# Матрица ОС
+
+Что Workflow Kit умеет на macOS, Linux и Windows 11 (x64 и ARM64), по вехам. Каждое изменение
+дополняет эту таблицу в том же коммите (правило «Three operating systems» в `AGENTS.md`).
+Обзор архитектуры — [OVERVIEW.md](OVERVIEW.md), подробности по модулю — раздел ОС его
+`module.md`.
+
+| Возможность | macOS | Linux | Windows |
+| --- | --- | --- | --- |
+| Бэкенд, панель, проекты, структура | да | да | да |
+| Автозапуск | LaunchAgent `ai.workflowkit.backend` | systemd user, без systemd — XDG autostart | `HKCU\…\Run` → `WorkflowKit` |
+| Запускатель (его каталог — в PATH службы, M17) и значок | `~/.local/bin/wfk`, `~/Applications/Workflow Kit.app` | `~/.local/bin/wfk`, `.desktop` | `wfk.cmd`, `wfk`, `wfk.mjs`, PATH, «Пуск» |
+| Claude: доверие (запись `~/.claude.json`) | да | да | да |
+| Claude: сессии, окружение (pty) | да | если есть `expect` | да, ConPTY (`pty-host`) |
+| Codex: демон, доверие, хуки, сессии | да | да | да, Codex 0.160+, через `proxy` |
+| Codex: управление — приложению ChatGPT | да, `ps`; не в режиме общего демона | нет приложения | CIM codex.exe (**П**) |
+| Codex: общий демон (M12/M13, SSH `wfk-local`) | да, Kit настраивает | `unsupported` | Kit + скрипт администратора; нужен UAC (M14) |
+| Kimi: серверы, сессии, исполнители | да | тесты (**П**) | тесты (**П**) |
+| Kimi: хук Kit в `config.toml` | `/bin/sh` | то же, тесты | `cmd.exe`, тесты (**П**) |
+| Kimi: приложение, проект в нём | `open -a`, `--workspace` | `xdg-mime`, `xdg-open` | `reg`, `--workspace` (**П**) |
+| Запуск и остановка процессов сессий | да | да | да (CIM, `taskkill`) |
+| Kit в проекте (`kit-core`, M22): запускатель, режимы файлов | `scripts/workflow` (sh), 0755 | то же | `workflow.cmd` → `workflow.ps1` (`powershell`), `.cmd` через `cmd.exe`, без режимов |
+| Сборка бандла Kit (`npm run build:kit`, M22) | esbuild darwin; проверка через `scripts/workflow` | esbuild linux; то же | esbuild win32 x64/ARM64; проверка — `node` runtime проекта |
+| «Обновить Kit» (M22): `install --update`, одобрение хука Codex | да | да | да, хук Codex по `commandWindows` |
+| Корни папки проектов (M14) | дом, `/Volumes/*` | дом, `/media/<u>/*`, `/run/media/<u>/*`, `/mnt/*` | дом и диски, кроме системного |
+| Диалог (M18): лента; прямая отправка | да; Claude `expect`, ChatGPT при общем доступе | да; Claude `expect`, ChatGPT нет | да, ChatGPT через `proxy`; Claude ConPTY (**П**), ChatGPT при общем доступе |
+| Раскладка панели M24: изменяемый сайдбар с карточками, диалог в viewport | одинаковая, браузер | то же | то же, x64/ARM64 |
+| Ввод M24: Enter/Stop, очередь, IME, фактическая модель и нейтральные параметры | одинаковые ES-модули; изолированный Chromium, живая проверка macOS/iPad ожидается | тот же код; CI после публикации | тот же код, x64/ARM64; живая проверка ожидается |
+| Stop M24 адаптеров: Claude marker, Kimi abort/lock, Codex turn id | expect/HTTP/WebSocket; проверки в evidence M24 | общий код, injected linux; без ChatGPT | ConPTY/proxy/HTTP, injected win32; live ожидается |
+| Прерывание ответа M24: API, поколения, барьер очереди/ревью/автопилота | общий контракт реализован; адаптеры T003–T005 отдельно | то же | то же, x64/ARM64 |
+| Тайм-аут адаптера Stop (T008): HTTP 504 с подсказкой, барьер сохраняется | общий API, локальный HTTP-тест | тот же код | тот же код, x64/ARM64 |
+| Тайм-аут Kimi: типизированный 504, общий deadline; R3 готовит options до запросов | общий HTTP-код, тест гонки | то же, injected linux | то же, injected win32, x64/ARM64 |
+| Параметры M25: контракт, очередь, снимки, JSONL | общий Node-код; снимки сериализованы, busy-retry | то же | то же; пути win32 |
+| ChatGPT M25: чтение | WebSocket + JSONL, живая проба | то же, injected linux | proxy + JSONL, injected win32 |
+| ChatGPT M25: изменение | каталоги и общий доступ, живая проба | то же; общий доступ unsupported | proxy, injected win32 |
+| Claude M25: statusline | sh, байты, группа; ожидание close | то же | Git Bash/PowerShell; taskkill /T /F и close |
+| Claude M25: запуск и чтение | --settings на запуск, снимок/транскрипт/лимиты | то же, expect | ConPTY --settings, снимки |
+| Access M26: preset + policy/reviewer, свежие ограничения | общий RPC, injected darwin | то же, injected linux | proxy, injected win32 |
+| Контролы M26/R2: native drag, тихий success; QA passed | общий ES-код, visualViewport | то же | то же, x64/ARM64 |
+| Строка M25 и меню параметров | браузер; изолированный Chromium и скриншоты | тот же код | тот же код, x64/ARM64 |
+| Живые проверки | есть, `docs/evidence/` | нет, только тесты | установка, общий доступ, путь до запуска плана (M13–M16) |
+| Claude M27: native parameters/API/UI | FIFO, expect; native roundtrip/QA passed; nested menus | тот же engine и ES/CSS | ConPTY; UI тот же; live ожидается |
+| M28: ход Claude по хукам, Stop по кадру и до движка; ввод без строк, «в очереди» | expect, фикстуры | injected linux | ConPTY, injected win32 |
+| Claude M28: окно по `autoCompactWindow`, и для старых host | managed `/Library/Application Support/ClaudeCode`, `/context` сверен | `/etc/claude-code`, injected linux | `C:\Program Files\ClaudeCode`, injected win32 |

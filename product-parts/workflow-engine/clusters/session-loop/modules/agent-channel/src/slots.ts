@@ -50,6 +50,15 @@ export interface Slot {
   confirmTimer?: Timer;
   /** The reminder of a hold with timeoutAnswer: when it goes and with what text. */
   reminder: { at: number; timer: Timer } | null;
+  /** A hold whose Stop hook was not kept (M29): its end, reminder and the context for a new decision. */
+  released: Released | null;
+}
+
+export interface Released {
+  at: number;
+  timer: Timer | null;
+  timeoutAnswer: string | undefined;
+  context: StopContext;
 }
 
 export function newSlot(key: string, client: AgentClient, sessionId: string, projectId: string | null, since: string): Slot {
@@ -88,6 +97,7 @@ export function newSlot(key: string, client: AgentClient, sessionId: string, pro
     lastAnswer: null,
     watch: null,
     reminder: null,
+    released: null,
   };
 }
 

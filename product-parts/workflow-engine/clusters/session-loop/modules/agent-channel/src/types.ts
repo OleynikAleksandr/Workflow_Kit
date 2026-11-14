@@ -165,6 +165,16 @@ export interface DetachedDelivery {
   maintainMs?: number;
 }
 
+/**
+ * Sessions whose provider can wake them while idle (M29 3.1): a hold decision does not keep their
+ * Stop hook. The turn ends at once, the slot shows the hold reason, and what the decider or the
+ * panel has to say later is queued and the session is woken; its prompt hook takes the queue.
+ */
+export interface ReleaseDelivery {
+  supports(ref: SessionRef): boolean;
+  wake(ref: SessionRef): void;
+}
+
 /** Hears that a session became idle, before its last answer is read; awaited. */
 export type IdleListener = (key: string) => void | Promise<void>;
 
@@ -178,6 +188,8 @@ export interface AgentChannelOptions {
   log?: (line: string) => void;
   /** Turn end and delivery of clients whose Stop hook cannot be held. */
   detached?: DetachedDelivery;
+  /** Holds without a held Stop hook for sessions that can be woken (M29). */
+  release?: ReleaseDelivery;
   /**
    * True for a session that left the Kit process: archived or removed from the list in the panel
    * (spec M22 2.8). Its hooks get an empty answer, it gets no message and is in no list.

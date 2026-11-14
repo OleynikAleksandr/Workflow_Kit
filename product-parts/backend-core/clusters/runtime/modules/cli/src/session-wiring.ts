@@ -2,7 +2,7 @@
 // the cross review. Nothing here names a provider: what differs between them is read from the
 // registry (hook dialect, wakeSession, sendMessage, sendDirect, promptTitle, capabilities).
 import { createAgentChannel, registerChannelRoutes, nativeControlHookReply } from '#agent-channel';
-import type { AgentChannel, SessionRef } from '#agent-channel';
+import type { AgentChannel, SessionActivity, SessionRef } from '#agent-channel';
 import { createAutopilot, registerAutopilotRoutes } from '#autopilot';
 import type { Autopilot } from '#autopilot';
 import type { CrossReview } from '#cross-review';
@@ -73,6 +73,14 @@ export interface SessionWiring {
   crossReview: CrossReview;
 }
 
+/**
+ * M29 3.1: the panel runs the session and can wake it while idle, so its Stop hook is never held.
+ * A provider with sendMessage keeps its own detached path.
+ */
+export function releasable(provider: Pick<Provider, 'marksPanelProcess' | 'wakeSession' | 'sendMessage'> | undefined, activity: Pick<SessionActivity, 'external'> | undefined): boolean {
+  return provider?.marksPanelProcess === true && typeof provider.wakeSession === 'function' && !provider.sendMessage && activity?.external === false;
+}
+
 export function wireSessions(options: SessionWiringOptions): SessionWiring {
   const { router, state, mutex, projects, providers, workflow, kit, resolveFolderProject } = options;
   const clientOf = (key: string): string => key.slice(0, key.indexOf(':'));
@@ -87,6 +95,11 @@ export function wireSessions(options: SessionWiringOptions): SessionWiring {
   const channel = createAgentChannel({
     resolveProject: resolveFolderProject,
     log: options.log,
+    // M29 3.1: a session the panel runs and can wake is never held by its Stop hook.
+    release: {
+      supports: (ref) => releasable(providers.get(ref.client), channel.get(ref.key)),
+      wake: (ref) => void wakeReleased(ref.key).catch((error: unknown) => options.log?.(`channel: wake of ${ref.key} failed: ${error instanceof Error ? error.message : String(error)}`)),
+    },
     // A session archived or removed from the list in the panel leaves the Kit process (spec M22 2.8).
     excluded: (ref) => titles.excluded(ref.projectId, ref.key),
     detached: {
@@ -114,6 +127,17 @@ export function wireSessions(options: SessionWiringOptions): SessionWiring {
     if (!project || channel.interruption(key)?.barrier) return;
     const woken = await channel.automaticWake(key, () => provider.wakeSession!(project, activity.sessionId).catch(() => false));
     if (woken) options.log?.(`channel: woke ${key} for queued panel messages`);
+  };
+  // A released hold (M29) shows as holding, but nothing keeps the hook: the session is idle.
+  const wakeReleased = async (key: string): Promise<void> => {
+    const activity = channel.get(key);
+    if (!activity || activity.state === 'working' || !activity.projectId || channel.interruption(key)?.barrier) return;
+    const provider = providers.get(activity.client);
+    if (!releasable(provider, activity)) return;
+    const project = await projects.get(activity.projectId);
+    if (!project || channel.interruption(key)?.barrier) return;
+    const woken = await channel.automaticWake(key, () => provider!.wakeSession!(project, activity.sessionId).catch(() => false));
+    options.log?.(`channel: ${woken ? 'woke' : 'could not wake'} ${key} after a released hold`);
   };
   const wakingChannel: AgentChannel = {
     ...channel,

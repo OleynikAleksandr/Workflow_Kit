@@ -1,0 +1,20 @@
+{
+ "date": "2026-11-14",
+ "cliVersion": "2.1.325",
+ "command": "claude -p \"/context\" in a disposable folder (no generation)",
+ "userLayer": "modelSettings.claude-opus-5-5.autoCompactWindow = 500000",
+ "runs": [
+  { "case": "user layer only", "tokens": "13.9k / 500k" },
+  { "case": "project modelSettings 300000", "tokens": "13.9k / 300k" },
+  { "case": "+ local modelSettings 250000", "tokens": "13.9k / 250k" },
+  { "case": "local general 220000 vs project per-model 300000", "tokens": "13.9k / 220k" },
+  { "case": "env CLAUDE_CODE_AUTO_COMPACT_WINDOW=200000 over layers", "tokens": "13.9k / 200k" },
+  { "case": "--settings autoCompactWindow 180000 over layers", "tokens": "13.9k / 180k" },
+  { "case": "env 200000 and --settings 180000", "tokens": "13.9k / 200k" },
+  { "case": "local per-model \"auto\"", "tokens": "13.9k / 1m" },
+  { "case": "local alias key opus 260000", "tokens": "13.9k / 260k" },
+  { "case": "local general 5000 (out of range)", "tokens": "13.9k / 300k" },
+  { "case": "local general 5000000 (out of range)", "tokens": "13.9k / 300k" }
+ ],
+ "cleanup": "folder and its ~/.claude/projects entry removed"
+}

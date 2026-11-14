@@ -1,0 +1,100 @@
+{
+ "date": "2026-11-14",
+ "cliVersion": "2.1.325",
+ "model": "claude-haiku-5-5",
+ "effort": "low",
+ "host": "production session.exp via disposable source wrapper",
+ "hooks": [
+  {
+   "event": "/api/hooks/prompt",
+   "at": "2026-11-14T08:04:08.075Z",
+   "repliedAt": "2026-11-14T08:04:08.076Z",
+   "reply": "{\"answer\":null}",
+   "prompt": "Выполни через Bash ровно одну команду: sleep 20; echo M28. Больше ничего не делай."
+  },
+  {
+   "event": "/api/hooks/stop",
+   "at": "2026-11-14T08:04:30.755Z",
+   "repliedAt": "2026-11-14T08:04:30.930Z",
+   "reply": "{\"answer\":null}",
+   "prompt": null
+  },
+  {
+   "event": "/api/hooks/prompt",
+   "at": "2026-11-14T08:04:54.086Z",
+   "repliedAt": "2026-11-14T08:04:54.086Z",
+   "reply": "{\"answer\":null}",
+   "prompt": "Выполни через Bash ровно одну команду: touch m28-probe.txt. Больше ничего не делай."
+  }
+ ],
+ "actions": [
+  {
+   "at": "2026-11-14T08:04:06.856Z",
+   "send": "Выполни через Bash ровно одну команду: sleep 20; echo M28. Больше ничего не делай."
+  },
+  {
+   "at": "2026-11-14T08:04:52.683Z",
+   "send": "Выполни через Bash ровно одну команду: touch m28-probe.txt. Больше ничего не делай."
+  },
+  {
+   "at": "2026-11-14T08:05:13.205Z",
+   "key": "esc"
+  },
+  {
+   "at": "2026-11-14T08:06:27.509Z",
+   "param": {
+    "effort": "medium"
+   }
+  }
+ ],
+ "paramResults": [
+  {
+   "at": "2026-11-14T08:06:27.509Z",
+   "done": "2026-11-14T08:06:31.819Z",
+   "ok": true,
+   "items": [
+    "model=claude-haiku-5-5",
+    "effort=medium",
+    "ultracode=off",
+    "mode=default",
+    "speed=standard"
+   ]
+  }
+ ],
+ "interruptState": {
+  "version": 1,
+  "epoch": "7920d2e3-bec1-4ccd-a0f9-1cd52183e924:0",
+  "state": "idle",
+  "at": 1794643704683
+ },
+ "parametersState": {
+  "status": "idle",
+  "reason": null,
+  "epoch": "0c8ef27a-51b5-4f46-8c21-914d275ea3f7:53",
+  "mode": "default",
+  "effort": "medium"
+ },
+ "channelAfterInterrupt": {
+  "state": "working",
+  "since": "2026-11-14T08:04:54.086Z",
+  "pending": 2,
+  "interruptAvailable": false,
+  "reason": "Нет свежего состояния управляемого терминала Claude; обновите сессию"
+ },
+ "panelSendToIdleAgent": {
+  "status": 200,
+  "body": {
+   "queued": "ab5e2b55-3374-40a2-9ceb-72e50bc5d993"
+  }
+ },
+ "generationTurns": 2,
+ "cleanup": {
+  "deleted": [
+   "local-data"
+  ],
+  "trusted": false,
+  "ownProcesses": 0,
+  "defaultsUnchanged": true,
+  "tempFoldersRemoved": true
+ }
+}

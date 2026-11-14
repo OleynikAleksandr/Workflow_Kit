@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 930,
+  "revision": 931,
   "rounds": [
     {
       "digest": {
@@ -1005,8 +1005,8 @@
     },
     {
       "acceptance": [
-        "До task:start проверены headSha последней поставки (T015, 0.13.2) и success на macOS, Linux, Windows x64 и ARM64; ветка ci/m28-claude-controls-fixes отправлена вне задач по прямой команде пользователя.",
-        "Записаны SHA, URL и четыре результата CI; без функциональных изменений и push из задачи; приёмка и закрытие — отдельно."
+        "До task:start проверены headSha ветки ci/m28-claude-controls-fixes — коммит после исправления тестов T016 и DOCS-R3, функционально равный поставке 0.13.2 (afba623), — и success на macOS, Linux, Windows x64 и ARM64; ветка отправлена вне задач по прямой команде пользователя.",
+        "Записаны SHA, URL и четыре результата CI, в том числе красный прогон afba623 и его причина (только тесты); без функциональных изменений и push из задачи; приёмка и закрытие — отдельно."
       ],
       "checks": [],
       "commitMessage": "docs: record green CI for Claude controls fixes",
@@ -1041,7 +1041,7 @@
 - Execution: sequential
 - Current task: none
 - Progress: 18/19
-- Revision: 930
+- Revision: 931
 
 ## Objective
 

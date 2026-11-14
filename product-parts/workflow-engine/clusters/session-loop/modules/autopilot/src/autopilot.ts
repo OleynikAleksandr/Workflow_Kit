@@ -23,6 +23,7 @@ import {
 } from './texts.ts';
 import { createPlanStarts } from './start.ts';
 import { blockedByInterruption, pauseInterruptedOwner } from './interrupt.ts';
+import { moveOwner, wakeHolders } from './owner.ts';
 import type { PlanStart } from './start.ts';
 
 /** Stops that wait for a user decision in the panel: the Stop hook is held. */
@@ -306,6 +307,7 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
         '--note',
         CHOICE_NOTES[request.option],
       ]);
+      wakeHolders(options.channel, projectId, request.session, ['waiting-for-mode-choice']); // M31 3.3: release the other holders
       const entry = state(request.session, projectId);
       if (request.option === 'refine') {
         entry.enabled = false;
@@ -320,6 +322,10 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
 
     async start(projectId, session) {
       const key = await owner(projectId, session);
+      const moved = session ? await moveOwner(options, await root(projectId), projectId, key) : null; // M31 3.3
+      if (moved && !moved.ok) throw new WorkflowActionError(moved.code, moved.message, 409, moved.nextAction);
+      if (moved?.moved) owners.set(projectId, key);
+      for (const previous of moved?.ok ? moved.previousKeys : []) state(previous).enabled = false;
       const entry = state(key, projectId);
       const current = starts.view(key);
       if (current && !current.problem) return { owner: key, already: true };

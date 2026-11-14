@@ -16,3 +16,5 @@ export { START_DELIVERY_MS, START_SLOW_MS, createPlanStarts } from './start.ts';
 export type { AutopilotRoutesOptions } from './routes.ts';
 export { registerAutopilotRoutes } from './routes.ts';
 export { CHOICE_NOTES, CHOSEN_WAIT, EXECUTOR_HOWTO, PREFIX, REFINE_MESSAGE, RESUME_MESSAGE, START_MESSAGES, STOP_LABELS, deliveryMessage, executorHowto, fixesMessage, sequentialOnlyNote, startProblemText } from './texts.ts';
+export { KIT_OUTDATED_NEXT, KIT_OUTDATED_TEXT, OWNER_NOTE, moveOwner, wakeHolders } from './owner.ts';
+export type { OwnerDeps, OwnerMove } from './owner.ts';

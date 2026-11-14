@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 985,
+  "revision": 987,
   "rounds": [
     {
       "digest": null,
@@ -202,14 +202,18 @@
         "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src",
         "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test",
         "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md",
-        "docs/architecture/OS-MATRIX.md"
+        "docs/architecture/OS-MATRIX.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/autopilot.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/index.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/owner.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/owner.test.ts"
       ],
       "fixes": null,
       "id": "T003",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Служба: выбор и старт из любой сессии",
       "why": "The service sends the choice and start only to the session that proposed the plan"
     },
@@ -394,8 +398,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 2/8
-- Revision: 985
+- Progress: 3/8
+- Revision: 987
 
 ## Objective
 
@@ -420,9 +424,9 @@ An unstarted plan belongs to the project: its mode choice card and ready plan ca
   - Commit: fix(review): review a proposal only from its author session
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, docs/architecture/OS-MATRIX.md, product-parts/backend-core/clusters/runtime/modules/cli/src/review-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/channel.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/detached.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/slots.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/types.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/turn-start.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/author.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/contract.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/review.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test/author.test.ts
   - Depends on: T001
-- [TODO] T003 — Служба: выбор и старт из любой сессии (work)
+- [DONE] T003 — Служба: выбор и старт из любой сессии (work)
   - Commit: fix(autopilot): choose and start the plan from any session of the project
-  - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, docs/architecture/OS-MATRIX.md
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, docs/architecture/OS-MATRIX.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/autopilot.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/owner.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/owner.test.ts
   - Depends on: T001, T002
 - [TODO] T004 — Панель: карточки неначатого плана в любой сессии (work)
   - Commit: fix(session-view): show the unstarted plan in every session of the project

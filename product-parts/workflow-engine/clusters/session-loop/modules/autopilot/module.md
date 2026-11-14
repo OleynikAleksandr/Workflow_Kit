@@ -54,6 +54,9 @@
     `orchestration(client)`; иначе `choose` с `orchestrated` и `start`
     оркестрируемого плана — 409 `orchestration-unavailable`, M8, раздел 5); агенту — «режим
     выбран, ждите кнопку запуска» или текст «доработать спецификацию».
+    После успешного `scope:choose` другие сессии проекта, держащие `Stop` с
+    `waiting-for-mode-choice`, будятся (`wakeHolders`, M31 3.3): решатель их отпускает,
+    сообщение о выборе получает только `session`.
     Сессии провайдера без оркестрации (с M10 такого провайдера в Kit нет) к текстам
     последовательного режима в `choose` и `start` добавляется
     `sequentialOnlyNote(client)`: оркестрация отсюда не запускается,
@@ -83,6 +86,14 @@
     второй раз — отсчёт начинается заново и канал отправляет его снова
     (`channel.flush`); иначе ставится новое сообщение. Запуск забывается, когда
     фаза плана уходит из `ready`, при `accept` и `close`.
+  - Владелец неначатого плана (M31 3.3, `src/owner.ts`): `start(projectId, session)` из
+    сессии, которая не `execution.ownerSession`, сначала вызывает `scope:owner --session <id>
+    --note OWNER_NOTE` (Kit 2.2.5), ждёт `workflow.refresh`, запоминает новую сессию
+    владельцем, выключает автопилот прежнего владельца и будит сессии проекта с
+    `waiting-for-plan-start`; затем запуск идёт как обычно. Тот же владелец — без
+    `scope:owner`. Kit без команды (`UNKNOWN_COMMAND`): при чужом владельце — 409
+    `kit-outdated` (`KIT_OUTDATED_TEXT`, `KIT_OUTDATED_NEXT`), без владельца — запуск как
+    раньше. Прочие отказы Kit (`OWNER_BUSY`) — обычная ошибка Kit 409.
   - Отказ Kit — `WorkflowActionError` (`code` Kit, `message`, `nextAction`,
     `status` 409); владелец: сессия из запроса, запомненная при выборе или
     найденная по `execution.ownerSession` среди сессий канала.

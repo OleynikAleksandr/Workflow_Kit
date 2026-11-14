@@ -10,10 +10,32 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 913,
+  "revision": 915,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "ContextUsage.modelWindowTokens? — окно модели при пороге автосжатия",
+          "Provider.turnState? и cli reconcileTurns/deliverAfterInterruption",
+          "SessionActivity.queued: { id, text, at }[] (источник user, до 20, до 4000 знаков)",
+          "interruptAvailability Claude не ждёт списка сессий; причина только для сессии вне терминала Kit",
+          "stopFirst и ParameterEngine.transacting в хостах expect и ConPTY"
+        ],
+        "decisions": [
+          "Границы хода Claude — хуки и подтверждённое прерывание (.turn), экран вторичен",
+          "Stop подтверждается только кадром TerminalScreen: сырой поток 2.1.325 разбит управляющими кодами",
+          "Барьер Stop держит автопродолжение, но не конец хода; сообщение пользователя снимает его",
+          "Stop идёт раньше unsafe и discovery движка параметров; ждёт только очистку своей транзакции",
+          "Бюджет живых ходов M28 исчерпан: 6 из 6; Stop из приложения Claude и выдача очереди после прерывания живьём не проверены"
+        ],
+        "references": [
+          "docs/planning/M28-claude-controls-fixes.md",
+          "docs/design/M28-claude-fixes-facts.md",
+          "docs/evidence/M28-claude-controls-fixes.md",
+          "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/interrupt.md"
+        ],
+        "result": "Claude: контекст от autoCompactWindow, окно модели второй строкой; Stop активен весь ход, одно Esc, подтверждение по кадру, хост обрабатывает Stop раньше занятого движка параметров; ход завершается без Stop-хука; сообщение свободному агенту уходит сразу; очередь — пузыри «в очереди»; под вводом нет служебных строк. Живая проверка пройдена (T013)."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -692,7 +714,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -779,8 +801,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 11/14
-- Revision: 913
+- Progress: 12/14
+- Revision: 915
 
 ## Objective
 
@@ -844,7 +866,7 @@
   - Commit: test(claude): verify Stop and delivery live after the host fix
   - Files: docs/evidence/M28-claude-controls-fixes.md, docs/evidence/M28, docs/design/M28-claude-fixes-facts.md, docs/evidence/M28/t011-harness.md, docs/evidence/M28/t013-live.json
   - Depends on: T012
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M28-claude-controls-fixes.md, docs/design/M28-claude-fixes-facts.md, docs/evidence/M28-claude-controls-fixes.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/parameters.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/parameters.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, docs/architecture/CONTRACTS.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/interrupt.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/sessions.md, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, design-qa.md, docs/evidence/M28/probe-harness.md, docs/evidence/M28/t007-harness.md, docs/evidence/M28/t011-harness.md
   - Depends on: T001, T002, T003, T004, T005, T006, T007, T010, T011, T012, T013
@@ -856,5 +878,7 @@
   - Commit: docs: record green CI for Claude controls fixes
   - Files: docs/evidence/M28-claude-controls-fixes.md
   - Depends on: T008, DOCS-R1
+
+Digest: Claude: контекст от autoCompactWindow, окно модели второй строкой; Stop активен весь ход, одно Esc, подтверждение по кадру, хост обрабатывает Stop раньше занятого движка параметров; ход завершается без Stop-хука; сообщение свободному агенту уходит сразу; очередь — пузыри «в очереди»; под вводом нет служебных строк. Живая проверка пройдена (T013).
 
 State changes only through `scripts/workflow` commands. History lives in Git.

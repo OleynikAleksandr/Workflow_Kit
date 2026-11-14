@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 920,
+  "revision": 922,
   "rounds": [
     {
       "digest": {
@@ -42,7 +42,22 @@
       "title": "Implementation"
     },
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "ProviderContext.autoCompactWindow?(modelId, cwd)",
+          "ParameterEngine: DISCOVERY_TRIES, DISCOVERY_RETRY_MS; меню Claude — editable при свободном Claude, reason одной строкой"
+        ],
+        "decisions": [
+          "Повтор discovery ограничен 3 попытками на модель и паузой 30 с, чтобы не печатать в терминал постоянно",
+          "Порог для старых host читает служба по файлам настроек без окружения: детям CLAUDE* не передаются",
+          "Повтор каталога работает в host: старым сессиям нужно возобновление; окно и меню исправляются сразу"
+        ],
+        "references": [
+          "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/parameters.md",
+          "docs/evidence/M28/local-delivery.md"
+        ],
+        "result": "Claude: discovery каталога повторяется при свободном вводе (до 3 раз, раз в 30 с), меню доступно по своим спискам, причина — одна строка на меню; окно сессий, запущенных до 0.13.1, считается от autoCompactWindow, который служба читает из файлов настроек."
+      },
       "id": "R2",
       "kind": "fixes",
       "status": "OPEN",
@@ -864,7 +879,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -944,8 +959,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 14/17
-- Revision: 920
+- Progress: 15/17
+- Revision: 922
 
 ## Objective
 
@@ -1026,7 +1041,7 @@ Digest: Claude: контекст от autoCompactWindow, окно модели �
   - Commit: fix(claude): retry the native catalog and read the compact window for old hosts
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-engine.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/parameter-controls.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/parameters.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/parameters.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/context.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/parameters.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/parameters.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/auto-compact-window.ts, product-parts/backend-core/clusters/runtime/modules/cli/test, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/claude-menu.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/test, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, docs/architecture/CONTRACTS.md, docs/architecture/OVERVIEW.md, product-parts/backend-core/clusters/runtime/modules/cli/test/auto-compact-context.test.ts, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/m28-menu.browser.js, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parameter-controls.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parameters.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/turns.test.ts
   - Depends on: T008
-- [TODO] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R2
   - Files: README.md, docs/architecture/OVERVIEW.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/parameters.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/parameters.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, docs/architecture/CONTRACTS.md
   - Depends on: T014
@@ -1038,5 +1053,7 @@ Digest: Claude: контекст от autoCompactWindow, окно модели �
   - Commit: docs: record green CI for Claude controls fixes
   - Files: docs/evidence/M28-claude-controls-fixes.md
   - Depends on: T008, DOCS-R2
+
+Digest: Claude: discovery каталога повторяется при свободном вводе (до 3 раз, раз в 30 с), меню доступно по своим спискам, причина — одна строка на меню; окно сессий, запущенных до 0.13.1, считается от autoCompactWindow, который служба читает из файлов настроек.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

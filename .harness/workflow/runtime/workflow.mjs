@@ -1184,6 +1184,13 @@ function choiceText(value) {
   return `choice: ${result2.option} (generation ${result2.generation}); scope ${result2.scope?.scopeId ?? "NONE"} created at revision ${result2.scope?.revision ?? 0}.
 `;
 }
+function ownerText(value) {
+  const result2 = value;
+  const owner = result2.execution.ownerSession ?? "none";
+  return result2.changed ? `owner: ${result2.previous ?? "none"} \u2192 ${owner} (revision ${result2.revision})
+` : `owner: ${owner} (unchanged)
+`;
+}
 function proposalViewText(value) {
   const view = value;
   if (!view) {
@@ -1208,6 +1215,14 @@ var EXECUTION_COMMANDS = {
     }),
     text: choiceText,
     usage: `scope:choose --generation <N> --option sequential|orchestrated|refine --session <id> --note "<the user's choice>"`
+  },
+  "scope:owner": {
+    run: ({ args, kit, root }) => kit.moveOwner(root, {
+      note: requiredFlag(args, "note"),
+      session: requiredFlag(args, "session")
+    }),
+    text: ownerText,
+    usage: 'scope:owner --session <id> --note "<why>"'
   },
   "scope:proposal": {
     run: ({ kit, root }) => kit.proposalView(root),
@@ -3293,6 +3308,37 @@ function integrateTask(plan, taskId, integration2) {
   return validatePlan(next);
 }
 
+// product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/src/plan-owner.ts
+function moveOwner(plan, session, note, now) {
+  const scope = plan.scope;
+  ensure(scope, "NO_SCOPE", "There is no active scope to move.");
+  const owner = typeof session === "string" ? session.trim() : "";
+  const words = typeof note === "string" ? note.trim() : "";
+  ensure(owner !== "", "USAGE", "--session is required.");
+  ensure(words !== "", "USAGE", "--note is required.");
+  const previous = scopeExecution(scope).ownerSession;
+  if (previous === owner) {
+    return { changed: false, plan, previous };
+  }
+  const started = plan.tasks.filter((task2) => task2.status === "IN_PROGRESS");
+  ensure(
+    started.length === 0 && plan.currentTaskId === null,
+    "OWNER_BUSY",
+    "The plan has started work; the owner changes only before it.",
+    { tasks: started.map((task2) => task2.id) },
+    "Continue the plan in its owner session."
+  );
+  const next = nextRevision(plan);
+  if (next.scope) {
+    next.scope.execution = { ...scopeExecution(next.scope), ownerSession: owner };
+    next.scope.decisions.push({
+      at: now,
+      text: `Owner session moved from ${previous ?? "none"} to ${owner}: ${words}`
+    });
+  }
+  return { changed: true, plan: validatePlan(next), previous };
+}
+
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/src/plan-scope-completion.ts
 function acceptScope(plan, note, now) {
   ensure(
@@ -3653,6 +3699,10 @@ var WorkflowPlanFacade = class {
   }
   unblock(plan) {
     return unblockScope(plan);
+  }
+  /** `scope:owner`: moves the owner session before the work starts. */
+  moveOwner(plan, session, note, now) {
+    return moveOwner(plan, session, note, now);
   }
   extend(plan, input, context) {
     return extendPlan(plan, input, context);
@@ -10620,7 +10670,7 @@ in line with the code.
 }
 
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-payload.ts
-var KIT_VERSION = "2.2.4";
+var KIT_VERSION = "2.2.5";
 var MANIFEST_PATH = ".harness/workflow/manifest.json";
 var MANIFEST_SCHEMA = "harness-workflow-manifest/1";
 var OWN_HOOKS_DIR = ".harness/workflow/hooks";
@@ -12616,6 +12666,37 @@ function setBlocked(context, reason) {
   });
 }
 
+// product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-scope-owner.ts
+function moveScopeOwner(context, request) {
+  return locked(context, () => {
+    ensureNoTransaction(context);
+    const current = readPlan(context);
+    const open = current.scope ? activeRecords(current, context.root) : [];
+    ensure(
+      open.length === 0,
+      "OWNER_BUSY",
+      "The plan has started work; the owner changes only before it.",
+      { assignments: open.map((record) => record.id) },
+      "Continue the plan in its owner session."
+    );
+    const move = workflowPlanFacade.moveOwner(
+      current,
+      request.session,
+      request.note,
+      context.now()
+    );
+    if (move.changed) {
+      savePlan(context, move.plan);
+    }
+    return {
+      changed: move.changed,
+      execution: workflowPlanFacade.execution(move.plan),
+      previous: move.previous,
+      revision: move.plan.revision
+    };
+  });
+}
+
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-task.ts
 function briefOf(task2) {
   const { id, kind, roundId, status, title } = task2;
@@ -12851,6 +12932,10 @@ var WorkflowKitFacade = class extends WorkflowKitBase {
   /** `scope:choose`: the user's answer to the proposal of `generation`. */
   chooseScope(root, choice2) {
     return chooseScope(this.context(root), choice2);
+  }
+  /** `scope:owner`: moves the owner session before the work starts. */
+  moveOwner(root, request) {
+    return moveScopeOwner(this.context(root), request);
   }
   /** The stored scope proposal, or `null`. */
   readProposal(root) {

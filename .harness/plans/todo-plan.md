@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 952,
+  "revision": 953,
   "rounds": [
     {
       "digest": null,
@@ -297,7 +297,10 @@
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-screen.ts",
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-engine.ts",
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md",
-        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/native-parameters.md"
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/native-parameters.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/session.exp",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/interrupt-worker.ts",
+        "docs/architecture/OS-MATRIX.md"
       ],
       "fixes": null,
       "id": "T005",
@@ -429,7 +432,7 @@
 - Execution: sequential
 - Current task: T005
 - Progress: 4/8
-- Revision: 952
+- Revision: 953
 
 ## Objective
 
@@ -463,7 +466,7 @@ Claude parameters change instantly from the panel (choice queued in Kit, applied
   - Depends on: T003
 - [IN_PROGRESS] T005 — Живая проверка и браузерная регрессия (work)
   - Commit: test: record live and browser checks of instant Claude controls
-  - Files: docs/evidence/M29-claude-controls-instant.md, docs/evidence/M29, design-qa.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/test, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-screen.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-engine.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/native-parameters.md
+  - Files: docs/evidence/M29-claude-controls-instant.md, docs/evidence/M29, design-qa.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/test, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-screen.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-engine.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/native-parameters.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/session.exp, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/interrupt-worker.ts, docs/architecture/OS-MATRIX.md
   - Depends on: T001, T004
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1

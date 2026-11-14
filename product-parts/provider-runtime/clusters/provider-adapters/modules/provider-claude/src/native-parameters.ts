@@ -2,7 +2,7 @@ import { folderKey } from './folder-key.ts';
 import { randomUUID } from 'node:crypto';
 import { readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { ProviderError } from '#provider-registry';
-import type { Project, NativeHookEvent } from '#provider-registry';
+import type { Project, NativeHookEvent, ProviderTurnState } from '#provider-registry';
 import type { ClaudeRuntime } from './runtime.ts';
 import type { SessionRecord } from './records.ts';
 import { findSession } from './sessions.ts';
@@ -10,7 +10,7 @@ import { withNativeHost } from './native-arbiter.ts';
 import { poll } from './pty.ts';
 import { PARAMETER_CANCEL, PARAMETER_FRESH_MS, PARAMETER_REQUEST, PARAMETER_RESULT, PARAMETER_STATE, supportedNativeVersion } from './pty/parameter-protocol.ts';
 import type { NativeField, NativeParameterRequest, NativeParameterResult, NativeParameterState } from './pty/parameter-protocol.ts';
-import { TURN_SUFFIX } from './pty/turn-file.ts';
+import { TURN_SUFFIX, parseTurn } from './pty/turn-file.ts';
 import type { TurnState } from './pty/turn-file.ts';
 
 const pending = new WeakMap<ClaudeRuntime, Map<string, { id: string; hostId: string }>>();
@@ -78,6 +78,13 @@ export async function applyNativeParameter(rt: ClaudeRuntime, project: Project, 
     }, admission.signal);
   } finally { clearTimeout(timer); }
 }
+/** The latest <debug>.turn of a session the panel runs (M28): the cli ends a turn interrupted without Stop. */
+export async function claudeTurnState(rt: ClaudeRuntime, project: Project, sid: string): Promise<ProviderTurnState | null> {
+  const { record } = await findSession(rt, project, sid);
+  if (!record?.controlHostId || record.archived || !(await rt.isAlive(record.processId))) return null;
+  const turn = parseTurn(await readFile(record.debugFile + TURN_SUFFIX, 'utf8').catch(() => null));
+  return turn ? { state: turn.state, at: turn.at, source: turn.source } : null;
+}
 /**
  * Turn boundaries of panel sessions (M28 3.2): the prompt hook writes `working`, the Stop hook `idle`
  * into <debug>.turn. Builtin commands typed by the engine raise no hooks (M27), so a hook during a
@@ -90,7 +97,8 @@ export async function nativeControlHook(rt: ClaudeRuntime, input: NativeHookEven
     if (!(await rt.isAlive(record.processId))) continue;
     const state = await readNativeJson(record.debugFile + PARAMETER_STATE) as NativeParameterState | null;
     if (!validState(state, record, Date.now()) || state.sessionId !== input.sessionId) continue;
-    await writeNativeJson(record.debugFile + TURN_SUFFIX, { version: 1, state: input.event === 'prompt' ? 'working' : 'idle', at: Date.now(), source: 'hook' } satisfies TurnState);
+    await writeNativeJson(record.debugFile + TURN_SUFFIX, { version: 1, state: input.event === 'stop' ? 'idle' : 'working', at: Date.now(), source: 'hook' } satisfies TurnState);
+    if (input.event === 'continue') break;
     if (state.status === 'control' && state.pending) await cancelNativeParameters(rt, record.debugFile, state.hostId);
     if (input.event === 'prompt') await writeNativeJson(record.debugFile + '.parameters-input', { hostId: state.hostId });
     break;

@@ -249,8 +249,12 @@ export interface RenameResult {
 export type HookDialect = 'claude' | 'kimi';
 
 export interface NativeHookEvent {
-  event: 'prompt' | 'stop'; sessionId: string; cwd: string | null; panelProcess: boolean; prompt: string | null;
+  /** `continue`: a held Stop answered with a block, the agent goes on without a prompt hook (M28). */
+  event: 'prompt' | 'stop' | 'continue'; sessionId: string; cwd: string | null; panelProcess: boolean; prompt: string | null;
 }
+
+/** Turn boundary a provider observed (M28): Claude sends no Stop hook after an interruption. */
+export interface ProviderTurnState { state: 'working' | 'idle'; at: number; source: 'hook' | 'interrupt' }
 
 /** The provider contract. All read methods must be cheap and read-only (D11). */
 export interface Provider {
@@ -272,6 +276,8 @@ export interface Provider {
   readonly marksPanelProcess?: boolean;
   /** True quarantines an unexpected hook of a trusted pending native transaction. */
   nativeControlHook?(input: NativeHookEvent): Promise<boolean>;
+  /** Latest turn boundary of a session the panel runs; null when unknown. Read-only and cheap. */
+  turnState?(project: Project, sessionId: string): Promise<ProviderTurnState | null>;
   capabilities(): Promise<Capabilities>;
   status(): Promise<ProviderStatus>;
   /** Re-reads versions and daemons with external programs (POST /api/refresh, start of the service). */

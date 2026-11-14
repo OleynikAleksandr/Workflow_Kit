@@ -189,3 +189,8 @@ M27/T003: `native-statusline.ts` добавляет per-host nonce и bounded na
 без интерполяции shell. `session-wiring` вызывает provider nativeControlHook перед
 каналом, titles и autopilot; quarantined hook не начинает ход и не получает очередь.
 macOS/Linux/Windows используют один контракт, shell delegation прежний.
+
+M28/T004: `reconcileTurns` (`session-wiring.ts`, каждые `TURN_RECONCILE_MS` = 2 с) завершает
+ход канала в `working`, если `Provider.turnState` дал `idle` позже начала хода и не раньше
+`TURN_SETTLE_MS` = 1,5 с назад: `confirmInterrupted` → `resumeDelivery` без барьера, очередь
+будится сразу. После Stop с ответом block провайдер получает хук `continue`.

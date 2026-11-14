@@ -171,7 +171,7 @@ export function runHost(mode: HostMode, deps: HostDeps, timings: HostTimings = H
         if (legacy) parameters.userInput();
         const action = await parameters.poll(!legacy);
         if (action) parameters.write(action, text => term.write(text));
-        if (parameters.busy) continue;
+        if (legacy ? parameters.engine.yieldToUser() : parameters.busy) continue;
       }
       if (deps.putFile) try {
         const raw = await deps.takeFile(`${mode.debug}${REQUEST_SUFFIX}`);

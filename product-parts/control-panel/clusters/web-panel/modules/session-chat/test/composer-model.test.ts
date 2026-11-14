@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { composerData, createInputKeys, effectiveTurn, interruptUrl, isStaleTurn, mayClearDraft } from '../src/composer-model.js';
+import { composerData, createInputKeys, effectiveTurn, interruptUrl, isStaleTurn, mayClearDraft, undelivered } from '../src/composer-model.js';
 
 const event = (at = 10, more = {}) => ({ key: 'Enter', timeStamp: at, ...more });
 const turn = { state: 'working', turnRef: 'old', available: true, pending: false, reason: '' };
@@ -46,7 +46,7 @@ test('state selection uses exact project/session model and public interruptions;
   assert.equal(composerData(state, 'p', 'codex:holding', 'codex').turn.state, 'holding');
   assert.equal(composerData({}, 'p', 'codex:a:b', 'codex').turn.state, 'unknown');
   assert.equal(composerData({}, 'p', 'codex:a:b', 'codex').turn.available, false);
-  assert.deepEqual(Object.keys(selected).sort(), ['model', 'turn'], 'no invented effort/mode/context');
+  assert.deepEqual(Object.keys(selected).sort(), ['model', 'queued', 'turn'], 'no invented effort/mode/context');
 });
 
 test('confirmed Stop only overrides its generation; newer drafts survive success', () => {
@@ -59,4 +59,13 @@ test('confirmed Stop only overrides its generation; newer drafts survive success
   assert.equal(isStaleTurn({ code: 'stale-turn' }), true);
   assert.equal(isStaleTurn(new Error('failed')), false);
   assert.equal(interruptUrl('p/1', 'codex:a:b'), '/api/projects/p%2F1/sessions/codex%3Aa%3Ab/interrupt');
+});
+
+test('M28: a message queued for a waiting agent counts as undelivered while the queue stays', () => {
+  const state = { channel: { sessions: [{ projectId: 'p', key: 'claude:s', state: 'waiting', pending: 1 }], interruptions: {} } };
+  const waiting = composerData(state, 'p', 'claude:s', 'claude');
+  assert.equal(waiting.queued, 1); assert.equal(undelivered(waiting), true);
+  assert.equal(undelivered(composerData({ channel: { sessions: [{ projectId: 'p', key: 'claude:s', state: 'working', pending: 1 }] } }, 'p', 'claude:s', 'claude')), false);
+  assert.equal(undelivered(composerData({ channel: { sessions: [{ projectId: 'p', key: 'claude:s', state: 'waiting', pending: 0 }] } }, 'p', 'claude:s', 'claude')), false);
+  assert.equal(composerData({}, 'p', 'claude:s', 'claude').queued, 0);
 });

@@ -41,7 +41,8 @@ createInterface({ input: process.stdin }).on('line', (line) => { chain = chain.t
       if (legacy) parameters?.userInput();
       action = await parameters?.poll(!legacy) ?? null;
       if (action) process.stdout.write('PARAM\n');
-      if (parameters?.busy) { process.stdout.write('BUSY\nDONE\n'); return; }
+      // A user's file never waits for a transaction longer than its 2 s cleanup (M28 3.3).
+      if (parameters && (legacy ? parameters.engine.yieldToUser() : parameters.busy)) { process.stdout.write('BUSY\nDONE\n'); return; }
       let request: HostRequest | null = null;
       try { request = JSON.parse(readFileSync(debug + REQUEST_SUFFIX, 'utf8')) as HostRequest; unlinkSync(debug + REQUEST_SUFFIX); } catch { /* absent/malformed: no key */ }
       if (request) { const result = control.request(request); if (result) put(RESULT_SUFFIX, result); }

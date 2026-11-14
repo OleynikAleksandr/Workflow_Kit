@@ -93,3 +93,9 @@
 - Диалог (M18): `readMessages` — лента из транскрипта, `sendDirect` — вставка текста в
   терминал (`<debug>.text`, `MESSAGE_SENT`); правила и ОС — [chat.md](chat.md).
 
+
+M28/T004. `sendDirect` сначала отменяет транзакцию параметров (`cancelNativeParameters`) и
+ждёт хост на 3 с дольше обычного. Хост (`session.exp` через `interrupt-worker.ts`, `host.ts`
+на Windows) берёт `.text`, `.message`, `.rename` при любом состоянии движка: `yieldToUser`
+отменяет транзакцию и даёт ей не больше 2 с на очистку. `turnState` (`claudeTurnState`)
+отдаёт `<debug>.turn` сессии панели; хук `continue` (Stop с ответом block) снова пишет `working`.

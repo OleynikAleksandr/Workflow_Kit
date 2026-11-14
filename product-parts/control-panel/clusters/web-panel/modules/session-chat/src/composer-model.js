@@ -4,7 +4,7 @@ import { localIdOf, sendUrl } from './chat-model.js';
 /** @param {unknown} value @returns {Record<string, any>} */
 const object = (value) => value && typeof value === 'object' ? value : {};
 /** @typedef {{ available: boolean, reason: string, turnRef: string | null, state: string, pending: boolean }} Turn */
-/** @typedef {{ turn: Turn, model: string }} ComposerData */
+/** @typedef {{ turn: Turn, model: string, queued: number }} ComposerData */
 
 /** Only public state; a provider title is never a model name.
  * @param {Record<string, unknown>} state @param {string} projectId
@@ -26,9 +26,16 @@ export function composerData(state, projectId, key, provider) {
   const providers = object(object(object(state['providers'])['projects'])[projectId]);
   const list = object(providers[provider])['sessions'];
   const info = Array.isArray(list) ? list.find((s) => s.localId === localIdOf(key)) : null;
-  return { turn, model: typeof info?.model === 'string' && info.model.trim() ? info.model : '—' };
+  const queued = typeof activity?.pending === 'number' && Number.isFinite(activity.pending) ? activity.pending : 0;
+  return { turn, model: typeof info?.model === 'string' && info.model.trim() ? info.model : '—', queued };
 }
 
+/** How long a message queued for a waiting agent may stay undelivered before the panel says so (M28). */
+export const DELIVERY_CONFIRM_MS = 10_000;
+export const NOT_DELIVERED_TEXT = 'Сообщение не дошло до Claude. Отправьте ещё раз';
+/** A message queued while the agent waits must start a turn; still waiting with a queue means it did not.
+ * @param {ComposerData} data */
+export const undelivered = (data) => data.turn.state === 'waiting' && data.queued > 0;
 /** @param {string} projectId @param {string} key */
 export const interruptUrl = (projectId, key) => sendUrl(projectId, key).replace(/\/message$/, '/interrupt');
 

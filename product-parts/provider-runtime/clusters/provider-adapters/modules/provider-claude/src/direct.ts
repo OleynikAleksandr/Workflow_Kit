@@ -11,6 +11,7 @@ import { TEXT_FILE_SUFFIX } from './pty/screen.ts';
 import type { ClaudeRuntime } from './runtime.ts';
 import { runningPanelRecord } from './sessions.ts';
 import { withNativeHost, withNativeSession } from './native-arbiter.ts';
+import { cancelNativeParameters } from './native-parameters.ts';
 
 /** How often sendDirect looks whether a control file was taken, ms. */
 export const DIRECT_POLL_MS = 200;
@@ -49,8 +50,11 @@ async function deliver(rt: ClaudeRuntime, project: Project, sid: string, text: s
   try {
     const record = await runningPanelRecord(rt, project, sid);
     if (!record) return false;
+    // The user's message outranks a parameter transaction (M28 3.3): it is cancelled, its cleanup takes
+    // up to 2 s, and the message waits for the host that long beyond the usual admission.
+    if (record.controlHostId) await cancelNativeParameters(rt, record.debugFile, record.controlHostId).catch(() => undefined);
     const admission = new AbortController();
-    const timer = setTimeout(() => admission.abort(new Error('Native control admission timeout')), rt.options.directWaitMs);
+    const timer = setTimeout(() => admission.abort(new Error('Native control admission timeout')), rt.options.directWaitMs + (record.controlHostId ? 3000 : 0));
     try { return await withNativeHost(rt, record.debugFile, async () => {
       clearTimeout(timer);
       const file = directTextFile(record.debugFile);

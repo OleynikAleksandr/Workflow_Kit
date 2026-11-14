@@ -10,7 +10,7 @@ import { ENVIRONMENT_START, ENVIRONMENT_STOP, environmentActions, environmentBlo
 import { interruptAvailability, interruptTurn, refreshInterruptions } from './interrupt.ts';
 import { createClaudeControls } from './parameter-controls.ts';
 import { createClaudeParameterReader } from './parameters.ts';
-import { nativeControlHook } from './native-parameters.ts';
+import { claudeTurnState, nativeControlHook } from './native-parameters.ts';
 import { sendDirect } from './direct.ts';
 import { claudeCapabilities, ptyUnavailableReason } from './programs.ts';
 import { purgeProject } from './purge.ts';
@@ -113,6 +113,7 @@ export function createClaudeProvider(context: ProviderContext, options: ClaudePr
   const provider: Provider = {
     id: PROVIDER_ID,
     nativeControlHook: input => nativeControlHook(rt, input),
+    turnState: (project, sid) => claudeTurnState(rt, project, sid),
     title: 'Claude',
     // Claude Code names a session from the prompt hook answer; /rename is typed only outside a turn.
     promptTitle: true,

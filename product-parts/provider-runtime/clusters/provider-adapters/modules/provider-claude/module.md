@@ -324,3 +324,5 @@ M27/T006: стабильный frame200мс, событийный statusline, т
 M28/T002: `contextUsage` — контекст от порога автосжатия (parameters.md).
 
 M28/T003: границы хода — `<debug>.turn` (interrupt.md, parameters.md).
+
+M28/T004: доставка и `turnState` — sessions.md.

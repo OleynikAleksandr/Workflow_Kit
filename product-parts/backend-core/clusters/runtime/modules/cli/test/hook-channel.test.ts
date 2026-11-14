@@ -304,3 +304,20 @@ test('a provider without marksPanelProcess keeps the direct path and the wake wi
   await settle();
   assert.deepEqual([reach.direct, reach.woken], [[key, key], [key]]);
 });
+
+test('a plan answer after the released Stop wakes the waiting session at once (M28)', async () => {
+  const key = sessionKey('plain', 'p-plan');
+  const project = (await app.projects.list())[0]!;
+  await hook('stop', { session_id: 'p-plan', cwd: folder, hook_event_name: 'Stop', stop_hook_active: false }, { WFK_PANEL_SESSION: '1' }, 'plain');
+  assert.equal(app.channel.get(key)?.state, 'waiting');
+  await app.review.ask(project.id, key, 'agent', 'M28: исправления');
+  const before = reach.woken.length;
+  const response = await fetch(`http://127.0.0.1:${env['WFK_PORT']}/api/projects/${project.id}/sessions/${encodeURIComponent(key)}/plan-decision`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', Origin: `http://127.0.0.1:${env['WFK_PORT']}` }, body: JSON.stringify({ choice: 'plan' }),
+  });
+  assert.equal(response.status, 200);
+  for (let i = 0; i < 50 && reach.woken.length === before; i += 1) await settle();
+  assert.deepEqual(reach.woken.slice(before), [key]);
+  assert.match(app.channel.queued(key).map((m) => m.text).join('\n'), /Workflow Kit:/);
+  app.channel.forget(key);
+});

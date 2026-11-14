@@ -21,6 +21,32 @@ import { createTurnInterruption } from './turn-interruption.ts';
 import { createDirectMessage, ledOutside } from './direct-message.ts';
 import { lateReviewDecider, toggleLock, wireCrossReview } from './review-wiring.ts';
 
+/** How often a turn ended without a Stop hook is looked for (M28). */
+export const TURN_RECONCILE_MS = 2000;
+export const TURN_SETTLE_MS = 1500;
+/**
+ * Claude sends no Stop hook after an interruption (M28 3.2): a working turn whose provider turn state
+ * says idle later than the turn started (and not just now, when a Stop hook may be in flight) is
+ * ended without a barrier, and a waiting queue is woken at once.
+ */
+export async function reconcileTurns(deps: { channel: AgentChannel; providers: Pick<ProviderRegistry, 'get'>; projects: Pick<ProjectRegistry, 'get'>; wake: (key: string) => void; log?: (line: string) => void; now?: () => number }): Promise<void> {
+  const { channel } = deps; const now = deps.now ?? Date.now;
+  for (const activity of channel.list()) {
+    if (activity.state !== 'working' || !activity.projectId || !activity.turnStartedAt) continue;
+    const provider = deps.providers.get(activity.client);
+    if (!provider?.turnState) continue;
+    const project = await deps.projects.get(activity.projectId).catch(() => undefined);
+    if (!project) continue;
+    const turn = await provider.turnState(project, activity.sessionId).catch(() => null);
+    const interruption = channel.interruption(activity.key);
+    if (!turn || turn.state !== 'idle' || !(turn.at > Date.parse(activity.turnStartedAt)) || now() - turn.at < TURN_SETTLE_MS) continue;
+    if (!interruption?.turnRef || interruption.barrier || interruption.pending) continue;
+    if (!channel.confirmInterrupted(activity.key, interruption.turnRef, null)) continue;
+    channel.resumeDelivery(activity.key);
+    deps.log?.(`channel: ${activity.key} ended by ${turn.source} without a Stop hook`);
+    if (channel.queued(activity.key).length > 0) deps.wake(activity.key);
+  }
+}
 export interface SessionWiringOptions {
   router: Router;
   state: StateRegistry;
@@ -115,7 +141,10 @@ export function wireSessions(options: SessionWiringOptions): SessionWiring {
     async stop(input, signal) {
       if (await providers.get(input.client)?.nativeControlHook?.({ ...input, event: 'stop' })) return nativeControlHookReply('stop');
       void titles.onStop(`${input.client}:${input.sessionId}`);
-      return channel.stop(input, signal);
+      const reply = await channel.stop(input, signal);
+      // A block answer continues the turn without a prompt hook: the provider marks it working again.
+      if (reply.answer?.['decision'] === 'block') await providers.get(input.client)?.nativeControlHook?.({ ...input, event: 'continue' }).catch(() => false);
+      return reply;
     },
     async prompt(input) {
       if (await providers.get(input.client)?.nativeControlHook?.({ ...input, event: 'prompt' })) return nativeControlHookReply('prompt');
@@ -204,6 +233,16 @@ export function wireSessions(options: SessionWiringOptions): SessionWiring {
       options.log?.(`review: ${running.mainKey} could not be cancelled: ${error instanceof Error ? error.message : String(error)}`);
     });
   }
+  // Claude sends no Stop hook after an interruption (M28 3.2): a turn the provider saw end later than
+  // it started is ended here, and what waited for it goes at once.
+  const reconcile = (): Promise<void> => reconcileTurns({ channel, providers, projects, wake: (key) => { void wakeIdle(key); }, log: options.log });
+  let reconciling = false;
+  const reconciler = setInterval(() => {
+    if (reconciling) return;
+    reconciling = true;
+    reconcile().catch(() => undefined).finally(() => { reconciling = false; });
+  }, TURN_RECONCILE_MS);
+  reconciler.unref?.();
   const interruptions = createTurnInterruption({ channel, providers, projects, autopilot, reviews: crossReview });
   registerChannelRoutes({ router, state, channel: observedChannel, messages: wakingChannel, owns: ownsSession, dialects, direct, interrupt: interruptions.interrupt, interruptions: interruptions.section });
   return { channel, autopilot, review, titles, crossReview };

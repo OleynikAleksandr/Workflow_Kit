@@ -1,7 +1,7 @@
 // @ts-check
 import { canSend, errorText, sendOutcome, sendUrl } from './chat-model.js';
 import { createParameters } from './parameters.js';
-import { composerData, createInputKeys, effectiveTurn, interruptUrl, isStaleTurn, mayClearDraft } from './composer-model.js';
+import { DELIVERY_CONFIRM_MS, NOT_DELIVERED_TEXT, composerData, createInputKeys, effectiveTurn, interruptUrl, isStaleTurn, mayClearDraft, undelivered } from './composer-model.js';
 
 /** Compact composer. Its DOM, draft and request lock belong to one project/session.
  * @param {{ shell: import('./session-chat.js').Shell, projectId: string, key: string, provider: string,
@@ -101,6 +101,7 @@ export function createComposer({ shell, projectId, key, provider, onSent }) {
       const response = await shell.api('POST', sendUrl(projectId, key), { text });
       if (mayClearDraft(revision, draftRevision, text, input.value)) input.value = '';
       report(sendOutcome(response), 'ok');
+      if (response && typeof response === 'object' && 'queued' in response && data.turn.state === 'waiting') watchDelivery(text);
       onSent();
       void parameterView.refresh();
       requestRefresh();
@@ -111,6 +112,19 @@ export function createComposer({ shell, projectId, key, provider, onSent }) {
       fit();
       refresh();
     }
+  }
+  /** @type {ReturnType<typeof setTimeout> | null} */
+  let deliveryTimer = null;
+  /** A queued message for a waiting agent must start its turn (M28 3.3); otherwise the text comes back.
+   * @param {string} text */
+  function watchDelivery(text) {
+    if (deliveryTimer) clearTimeout(deliveryTimer);
+    deliveryTimer = setTimeout(() => {
+      deliveryTimer = null;
+      if (!node.isConnected || !undelivered(data)) return;
+      if (input.value.trim() === '') { input.value = text; fit(); }
+      report(NOT_DELIVERED_TEXT, 'error');
+    }, DELIVERY_CONFIRM_MS);
   }
   /** @param {import('./composer-model.js').ComposerData} next */
   function update(next) {

@@ -97,3 +97,13 @@ for (const platform of ['darwin', 'linux', 'win32'] as const) test(`${platform}:
   now += 500; paint(screen, 'idle-empty'); now += 4000; await host.poll(false);
   assert.equal(parseTurn(files.get(debug + TURN_SUFFIX)!)?.state, 'working');
 });
+test('a user file outranks a transaction: cancelled, at most 2 s of cleanup, then the text goes', () => {
+  const w = engineWorld(); const epoch = w.engine.snapshot().epoch;
+  assert.equal(w.engine.yieldToUser(), false, 'nothing to wait for');
+  w.engine.begin({ version: 1, hostId, sessionId, id: randomUUID(), epoch, expires: w.now() + 25_000, field: 'mode', value: 'acceptEdits' });
+  assert.equal(w.engine.busy, true);
+  assert.equal(w.engine.yieldToUser(), true, 'the cleanup may run');
+  w.advance(1500); assert.equal(w.engine.yieldToUser(), true);
+  w.advance(600); assert.equal(w.engine.yieldToUser(), false, 'never longer than 2 s');
+  assert.equal(w.engine.busy, false); assert.equal(w.engine.takeResult()?.status, 'cancelled');
+});

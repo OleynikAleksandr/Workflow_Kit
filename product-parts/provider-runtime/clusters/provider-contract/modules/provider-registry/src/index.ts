@@ -59,4 +59,4 @@ export { createJsonlTail, JSONL_BLOCK_BYTES, JSONL_MAX_BYTES } from './jsonl-tai
 export type { JsonlSelectors } from './jsonl-tail.ts';
 export type { SnapshotWriteOptions } from './parameter-snapshots.ts';
 
-export type { NativeHookEvent } from './contract.ts';
+export type { NativeHookEvent, ProviderTurnState } from './contract.ts';

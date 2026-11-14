@@ -315,3 +315,7 @@ M27/T004: discriminated presentation `effort-card | claude-controls`, Ultracode,
 opaque option selection и явные HTTP 409/504 — [parameters.md](parameters.md).
 
 M28/T002: `ContextUsage` получил необязательное `modelWindowTokens` (см. parameters.md).
+
+M28/T004: `Provider.turnState?(project, sid)` → `ProviderTurnState | null` (`state`, `at`,
+`source: 'hook' | 'interrupt'`) — граница хода, увиденная провайдером; `NativeHookEvent.event`
+получил `continue` (удержанный Stop ответил block, ход идёт без prompt-хука).

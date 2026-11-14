@@ -80,6 +80,21 @@ export class ParameterEngine {
     if (turn?.state === 'working' && this.request && turn.at >= this.requestAt) this.cancel();
     if (turn?.state === 'idle' && this.unsafe && turn.at >= this.unsafeAt) this.unsafe = false;
   }
+  private yieldAt = 0;
+  /**
+   * A user's file (.text, .message, .rename) waits for this host (M28 3.3): the transaction is
+   * cancelled and gets at most 2 s to clean up (Esc, clearing its command); then the user's text goes.
+   */
+  yieldToUser(): boolean {
+    const menu = ['model', 'effort', 'fast'].includes(this.frame.kind);
+    if (!this.request && !(this.unsafe && menu)) { this.unsafe = false; this.yieldAt = 0; return false; }
+    if (this.request) this.cancel();
+    if (!this.yieldAt) this.yieldAt = this.now();
+    if (this.now() - this.yieldAt < 2000) return true;
+    if (this.request) this.finish('cancelled', 'Транзакция отменена сообщением пользователя');
+    this.unsafe = false; this.yieldAt = 0;
+    return false;
+  }
   get turnWorking(): boolean { return this.turn?.state === 'working'; }
   current(): ParameterFrame { return this.frame; }
   get busy(): boolean { return this.request !== null || this.unsafe; }

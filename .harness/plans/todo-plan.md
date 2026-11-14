@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 881,
+  "revision": 882,
   "rounds": [
     {
       "digest": {
@@ -54,7 +54,10 @@
       "ChatGPT/Kimi и Stop/send/очередь/statusline/лимиты не регрессировали; контракты и матрица трёх ОС согласованы.",
       "0.13.0 установлена и проверена, CI точного SHA зелёная на macOS/Linux/Windows x64/ARM64; пользовательская приёмка отдельно."
     ],
-    "acceptanceNote": null,
+    "acceptanceNote": {
+      "at": "2026-11-14T07:03:47.684Z",
+      "text": "Пользователь принял план в панели Workflow Kit"
+    },
     "approval": {
       "at": "2026-11-13T17:33:21.666Z",
       "text": "Пользователь: «А теперь давай разберемся и сделаем то же самое для Claude!»; в панели выбраны спецификация и план с ревью. | Execution mode chosen by the user: sequential: Выбор пользователя в панели Workflow Kit: выполнить самому, последовательно"
@@ -119,7 +122,7 @@
         "text": "Все work parallelSafe:false, sequential/maxWorkers1; local delivery, CI exact SHA, приёмка/закрытие и main publication разделены."
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "ACCEPTED",
     "execution": {
       "maxWorkers": 1,
       "ownerSession": "01a1d50b-6999-7022-81c9-9f604ceea169",
@@ -724,11 +727,11 @@
 ## State
 
 - Scope: m27-claude-native-controls (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: ACCEPTED
 - Execution: sequential
 - Current task: none
 - Progress: 9/9
-- Revision: 881
+- Revision: 882
 
 ## Objective
 

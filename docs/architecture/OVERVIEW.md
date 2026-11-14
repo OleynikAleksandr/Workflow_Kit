@@ -15,6 +15,9 @@ M29: Stop не держит сессию Claude, которую запустил
 выбор параметров Claude ставится в очередь Kit и применяется хостом в фоне —
 [доказательства M29](../evidence/M29-claude-controls-instant.md).
 
+M30: усилие Claude читается и меняется в меню `/model`, меню закрывается `s`; в ленте Claude
+Desktop нет служебных `/effort` и «Kept model as» — [доказательства M30](../evidence/M30-claude-feed-quiet.md).
+
 ## Что это
 
 Бэкенд-служба пользователя (Node 24, TypeScript без сборки, без

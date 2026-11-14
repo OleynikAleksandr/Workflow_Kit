@@ -10,10 +10,27 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 970,
+  "revision": 972,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "provider-claude screen: model frame effortLevel, effortDefault; ModelRow.checked; freshAck accepts 'with <level> effort'",
+          "provider-claude parameter-menu.ts: seekRow, effortLevels, Step.quiet; catalog efforts values [] for a model without an effort row",
+          "provider-claude service: NO_EFFORTS reason for a model known to have no effort choice"
+        ],
+        "decisions": [
+          "Effort is read and changed in the /model effort row and applied with s; /effort only for Ultracode",
+          "The /model menu closes with s on the checked current model; Esc only without a checked row or on cancel",
+          "Unknown levels of a new model are read by discovery right after the model change to keep it within 3 s"
+        ],
+        "references": [
+          "docs/planning/M30-claude-feed-quiet.md",
+          "docs/evidence/M30-claude-feed-quiet.md",
+          "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/native-parameters.md"
+        ],
+        "result": "Claude Desktop no longer shows /effort, Cancelled or 'Kept model as' lines from the Kit host: effort levels are read and changed in the /model effort row, the menu closes with the session-only key s, and /effort opens only for an explicit Ultracode toggle. Changes still confirm in 1-3 s; a model without an effort row says so."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -206,7 +223,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -280,8 +297,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 3/6
-- Revision: 970
+- Progress: 4/6
+- Revision: 972
 
 ## Objective
 
@@ -309,7 +326,7 @@ Claude Desktop shows no service /effort or 'Kept model' lines from the Kit host:
   - Commit: test: record a quiet Claude transcript for model and effort changes
   - Files: docs/evidence/M30-claude-feed-quiet.md, docs/evidence/M30, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-engine.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/native-parameters.md, docs/evidence/M30/t003-live.json, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parameter-engine.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parameter-wanted.test.ts
   - Depends on: T001, T002
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M30-claude-feed-quiet.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/native-parameters.md, docs/architecture/OS-MATRIX.md, docs/evidence/M30-claude-feed-quiet.md
   - Depends on: T001, T002, T003
@@ -321,5 +338,7 @@ Claude Desktop shows no service /effort or 'Kept model' lines from the Kit host:
   - Commit: docs: record green CI for the quiet Claude feed
   - Files: docs/evidence/M30-claude-feed-quiet.md
   - Depends on: T004, DOCS-R1
+
+Digest: Claude Desktop no longer shows /effort, Cancelled or 'Kept model as' lines from the Kit host: effort levels are read and changed in the /model effort row, the menu closes with the session-only key s, and /effort opens only for an explicit Ultracode toggle. Changes still confirm in 1-3 s; a model without an effort row says so.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

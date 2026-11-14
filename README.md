@@ -146,6 +146,13 @@ Claude, `/fast` больше не открывается. Нужна сесси�
 после установки 0.13.3 — [результаты M29](docs/evidence/M29-claude-controls-instant.md). Локальная
 0.13.3 установлена; CI точного SHA и пользовательская приёмка учитываются отдельно.
 
+**Без служебных строк в Claude Desktop (M30).** Смены модели и усилия из панели больше не
+оставляют в ленте беседы в Claude Desktop строк `/effort`, `Cancelled` и «Kept model as»:
+Kit читает и меняет усилие в меню `/model` Claude и закрывает его клавишей «только для этой
+сессии». Видимая строка `/effort ultracode` остаётся только при явном переключении Ultracode.
+У модели без выбора усилия меню говорит об этом прямо —
+[результаты M30](docs/evidence/M30-claude-feed-quiet.md).
+
 ## Запуск из исходников и разработка
 
 `node bin/wfk.mjs serve` запускает сервер из репозитория без установки; `npm ci`,
@@ -169,4 +176,5 @@ Claude, `/fast` больше не открывается. Нужна сесси�
   [M26](docs/planning/M26-native-session-controls.md),
   [M27](docs/planning/M27-claude-native-controls.md),
   [M28](docs/planning/M28-claude-controls-fixes.md),
-  [M29](docs/planning/M29-claude-controls-instant.md) и [Design QA](design-qa.md).
+  [M29](docs/planning/M29-claude-controls-instant.md),
+  [M30](docs/planning/M30-claude-feed-quiet.md) и [Design QA](design-qa.md).

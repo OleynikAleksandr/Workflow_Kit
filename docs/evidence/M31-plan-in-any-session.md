@@ -34,6 +34,14 @@
 Установлена штатно, doctor в порядке, служба 0.13.5; проект с Kit 2.2.4 получает «Обновить
 Kit» до 2.2.5 — [local-delivery.md](M31/local-delivery.md).
 
+## T007: CI точного SHA поставки
+
+Ветка `ci/m31-plan-in-any-session`, коммит поставки `8c7f4cc` (T006), запуск
+[43620803744](https://github.com/OleynikAleksandr/Workflow_Kit/actions/runs/43620803744):
+macOS ARM64, Linux x64, Windows x64 и Windows ARM64 — success с первой попытки.
+
+`main` не публиковался: это после приёмки и закрытия scope.
+
 ## Живая проверка по ОС
 
 Сценарий одинаков на всех ОС (поведение без платформенных веток, спецификация, раздел 4).
@@ -57,4 +65,4 @@ Kit» до 2.2.5 — [local-delivery.md](M31/local-delivery.md).
 | --- | --- | --- |
 | macOS | пользователь, после поставки 0.13.5 | ожидается |
 | Windows 11 x64 и ARM64 | проверяющий на Windows | ожидается |
-| Linux | только CI | CI задачи T007 |
+| Linux | только CI | CI зелёный (T007) |

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 996,
+  "revision": 998,
   "rounds": [
     {
       "digest": {
@@ -36,7 +36,7 @@
       },
       "id": "R1",
       "kind": "implementation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Implementation"
     }
   ],
@@ -76,7 +76,7 @@
         "text": "Moving a started plan to another session is out of scope; other sessions only see it and open the owner"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 1,
       "ownerSession": "c83ecd0b-4b2f-4c45-80c3-1465c615d2aa",
@@ -400,7 +400,7 @@
       ],
       "checks": [],
       "commitMessage": "docs: record green CI for the plan in any session",
-      "confirmation": null,
+      "confirmation": "Заканчивай.",
       "context": [],
       "dependencies": [
         "T006",
@@ -415,7 +415,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "CI точного SHA поставки на четырёх платформах",
       "why": "Every change covers macOS, Linux and Windows"
     }
@@ -427,11 +427,11 @@
 ## State
 
 - Scope: m31-plan-in-any-session (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 7/8
-- Revision: 996
+- Progress: 8/8
+- Revision: 998
 
 ## Objective
 
@@ -447,7 +447,7 @@ An unstarted plan belongs to the project: its mode choice card and ready plan ca
 
 ## Rounds
 
-### R1 — Implementation (implementation, OPEN)
+### R1 — Implementation (implementation, CLOSED)
 
 - [DONE] T001 — Kit 2.2.5: команда scope:owner (work)
   - Commit: feat(kit): move the plan owner with scope:owner
@@ -476,7 +476,7 @@ An unstarted plan belongs to the project: its mode choice card and ready plan ca
   - Commit: chore: release 0.13.5
   - Files: package.json, package-lock.json, README.md, CHANGELOG.md, docs/usage.md, docs/installation.md, docs/setup.md, docs/evidence/M31-plan-in-any-session.md, docs/evidence/M31, docs/evidence/M31/local-delivery.md
   - Depends on: T005, DOCS-R1
-- [TODO] T007 — CI точного SHA поставки на четырёх платформах (delivery)
+- [DONE] T007 — CI точного SHA поставки на четырёх платформах (delivery)
   - Commit: docs: record green CI for the plan in any session
   - Files: docs/evidence/M31-plan-in-any-session.md
   - Depends on: T006, DOCS-R1

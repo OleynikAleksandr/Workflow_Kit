@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 import { TerminalScreen } from '#pty-host';
 import { ParameterEngine } from '../src/pty/parameter-engine.ts';
 import { parameterFrame } from '../src/pty/parameter-screen.ts';
-import { supportedNativeVersion } from '../src/pty/parameter-protocol.ts';
+import { FAST_REASON, supportedNativeVersion } from '../src/pty/parameter-protocol.ts';
 import type { NativeMetadata, NativeAction } from '../src/pty/parameter-protocol.ts';
 
 const hostId = randomUUID(); const sessionId = randomUUID();
@@ -114,7 +114,8 @@ test('catalogue expands and scrolls without saving defaults; setters use s and r
   for (let i = 0; i < 300 && w.engine.busy; i++) action();
   assert.equal(w.engine.takeResult()?.status, 'applied');
   assert.equal(w.engine.snapshot().models.length, 5); assert.deepEqual(w.engine.snapshot().efforts, ['low', 'medium', 'high', 'xhigh', 'max']);
-  assert.equal(w.engine.snapshot().fastReason, 'Fast mode requires usage credits');
+  assert.equal(w.engine.snapshot().fastReason, FAST_REASON);
+  assert.ok(!written.some(a => a.kind === 'text' && a.value === '/fast'), 'M29: /fast is never opened');
   for (const [field, value] of [['model', 'native:Sonnet%205'], ['effort', 'medium'], ['ultracode', 'on'], ['ultracode', 'off']]) {
     w.meta.at = w.now(); w.engine.observe(w.meta); w.engine.begin(w.request(field, value));
     for (let i = 0; i < 300 && w.engine.busy; i++) action();

@@ -3,6 +3,7 @@
 import { readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { loadNodePty, startTerminal } from '#pty-host';
 import { HOST_TIMINGS, claudeEnv, parseHostArgs, runHost } from './host.ts';
+import { replaceFile } from './parameter-files.ts';
 
 const parsed = parseHostArgs(process.argv.slice(2), process.env);
 if (!parsed) {
@@ -37,8 +38,11 @@ await runHost(parsed.mode, {
     return text;
   },
   async putFile(file, value) {
-    await writeFile(file + '.partial', JSON.stringify(value), { encoding: 'utf8', mode: 0o600 });
-    await rename(file + '.partial', file);
+    // A reader may hold the target for a moment on Windows: the rename is retried (M29).
+    await replaceFile(file, JSON.stringify(value), {
+      write: (path, text) => writeFile(path, text, { encoding: 'utf8', mode: 0o600 }),
+      rename, sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
+    });
   },
   sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
   now: () => Date.now(),

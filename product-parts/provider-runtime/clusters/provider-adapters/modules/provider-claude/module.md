@@ -286,4 +286,6 @@ interrupt*/direct assertions и deadlines не ослаблены. Дополн�
 ## Native parameters (M27–M29)
 
 Собственный host панели, движок нативных меню, `parameter-controls.ts` и все уточнения
-M27/T003–T006 и M28 — [native-parameters.md](native-parameters.md).
+M27/T003–T006, M28 и M29 — [native-parameters.md](native-parameters.md). M29/T002: файл желаемых
+значений, каталог на версию CLI, короткий путь модели, без `/fast`; на Windows замена файлов с
+повтором `rename` — там же.

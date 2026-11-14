@@ -3,6 +3,17 @@ export const PARAMETER_STATE = '.parameters-state';
 export const PARAMETER_REQUEST = '.parameters-request';
 export const PARAMETER_RESULT = '.parameters-result';
 export const PARAMETER_CANCEL = '.parameters-cancel';
+/** Choices of the user the host applies when Claude is free (M29); written only by the service. */
+export const PARAMETER_WANTED = '.parameters-wanted';
+/** The native catalog of one Claude CLI version (M29): read once, then reused. */
+export const PARAMETER_CATALOG = '.parameters-catalog';
+/** Order in which wanted fields are applied: efforts depend on the model. */
+export const WANTED_ORDER = ['model', 'ultracode', 'effort', 'mode'] as const;
+export type WantedField = typeof WANTED_ORDER[number];
+/** Counted failures after which a wanted field ends as failed (M29 3.2). */
+export const WANTED_ATTEMPTS = 3;
+/** Shown for speed: the host never opens /fast (M29). */
+export const FAST_REASON = 'Скорость Claude меняется только в его приложении';
 export const PARAMETER_FRESH_MS = 3500;
 export const NATIVE_PARAMETER_FLOOR = '2.1.323';
 export const EFFORTS = ['low', 'medium', 'high', 'xhigh', 'max'] as const;
@@ -13,6 +24,19 @@ export interface NativeMetadata {
   model: { id: string; label: string }; effort: string | null; fast: boolean | null; at: number;
 }
 export interface NativeModelOption { key: string; label: string; group: 'primary' | 'more' }
+export interface NativeWanted {
+  version: 1; hostId: string; sessionId: string;
+  changes: Partial<Record<WantedField, string>>; ids: Partial<Record<WantedField, string>>;
+}
+export interface NativeWantedStatus {
+  id: string; value: string; status: 'pending' | 'applying' | 'applied' | 'failed'; reason: string | null; attempts: number;
+}
+export interface NativeEfforts { values: string[]; recommended: string | null; ultracode: boolean }
+export interface NativeCatalog {
+  version: 1; cliVersion: string; primaryLast: number;
+  models: (NativeModelOption & { index: number })[];
+  efforts: Record<string, NativeEfforts>;
+}
 export interface NativePending {
   id: string; sessionId: string; epoch: string; expires: number; field: NativeField; command: string | null;
 }
@@ -22,6 +46,8 @@ export interface NativeParameterState {
   model: { id: string; label: string } | null; effort: string | null; mode: string | null;
   fast: boolean | null; ultracode: boolean | null; models: NativeModelOption[]; efforts: string[];
   effortRecommended?: string | null; fastReason: string | null; ultracodeAvailable?: boolean; pending: NativePending | null;
+  /** Wanted fields of the current wanted file and how they went (M29). */
+  wanted?: Partial<Record<WantedField, NativeWantedStatus>>;
 }
 export interface NativeParameterRequest {
   version: 1; id: string; hostId: string; sessionId: string; epoch: string; expires: number;
@@ -50,4 +76,19 @@ export function validNativeRequest(value: unknown, now: number): value is Native
     && /^[a-f0-9-]{36}$/i.test(r.sessionId) && typeof r.epoch === 'string' && r.epoch.length < 100
     && ['catalog', 'model', 'effort', 'mode', 'ultracode'].includes(r.field)
     && typeof r.value === 'string' && r.value.length <= 300 && Number.isFinite(r.expires) && r.expires > now && r.expires <= now + 60_000;
+}
+const UUID = /^[a-f0-9-]{36}$/i;
+export function validWanted(value: unknown): value is NativeWanted {
+  if (!value || typeof value !== 'object') return false;
+  const w = value as NativeWanted;
+  if (w.version !== 1 || !UUID.test(String(w.hostId)) || !UUID.test(String(w.sessionId)) || !w.changes || typeof w.changes !== 'object' || !w.ids || typeof w.ids !== 'object') return false;
+  return Object.entries(w.changes).every(([field, v]) => (WANTED_ORDER as readonly string[]).includes(field) && typeof v === 'string' && v.length > 0 && v.length <= 300
+    && UUID.test(String(w.ids[field as WantedField])));
+}
+export function validCatalog(value: unknown): value is NativeCatalog {
+  if (!value || typeof value !== 'object') return false;
+  const c = value as NativeCatalog;
+  return c.version === 1 && supportedNativeVersion(c.cliVersion) && Number.isInteger(c.primaryLast) && Array.isArray(c.models) && c.models.length <= 64
+    && c.models.every(m => typeof m.key === 'string' && typeof m.label === 'string' && Number.isInteger(m.index) && (m.group === 'primary' || m.group === 'more'))
+    && !!c.efforts && typeof c.efforts === 'object' && Object.values(c.efforts).every(e => Array.isArray(e.values) && e.values.every(v => (EFFORTS as readonly string[]).includes(v)));
 }

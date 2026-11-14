@@ -51,3 +51,35 @@ M28/T004: доставка и `turnState` — sessions.md.
 M28/T005: Stop весь ход — interrupt.md.
 
 M28/T010, T012 — interrupt.md; T014 — parameters.md.
+
+## Желаемые значения и каталог (M29/T002)
+
+- **Файл желаемых значений** `<debug>.parameters-wanted` (`PARAMETER_WANTED`, пишет только
+  служба): `{ version: 1, hostId, sessionId, changes, ids }`, на поле — последнее значение
+  пользователя и UUID выбора (`validWanted`). Хост читает его при каждом опросе
+  (`ParameterEngine.want`) и применяет по одному полю в порядке `WANTED_ORDER`: `model`,
+  `ultracode`, `effort`, `mode` (`pursue`), только на свободном пустом вводе. Значение, которое
+  уже действует, отмечается `applied` без клавиш. Учёт — `WantedChoices` (`parameter-wanted.ts`).
+- **Статусы** — в снимке состояния: `wanted[field] = { id, value, status, reason, attempts }`,
+  `status` — `pending`, `applying`, `applied`, `failed`. Хост не правит файл; применённый или
+  отклонённый `id` повторно не применяется. Отмена вводом пользователя, Stop или началом хода
+  — снова `pending` без счёта; иные неудачи считаются, после `WANTED_ATTEMPTS` (3) — `failed`
+  с причиной. Значение вне каталога — сразу `failed`. Срок ожидания не ограничен, пока жив хост.
+- **Каталог** `<debug>.parameters-catalog` (`PARAMETER_CATALOG`, `validCatalog`):
+  `{ version: 1, cliVersion, primaryLast, models[{ key, label, group, index }], efforts{ label:
+  { values, recommended, ultracode } } }`. Хост читает его один раз на версию CLI
+  (`loadCatalog`); совпала версия — меню не открываются. Иначе модели читаются один раз, а
+  усилия — один раз на модель (`discover`: `catalog`, затем `efforts`). Изменение знаний
+  (`catalogRevision`) хост записывает в тот же файл (`exportCatalog`).
+- **Короткий путь модели** (`seek`): меню `/model` открыто на текущей модели, хост жмёт стрелку к
+  номеру строки цели из каталога и проверяет подпись перед `s`; «More models» раскрывается
+  Enter на своей строке только для её моделей. Строка с номером цели, но другой подписью —
+  «Каталог Claude изменился»: каталог перечитывается. После смены модели `/effort` открывается,
+  только если её усилия неизвестны.
+- `/fast` не открывается: `fastReason` постоянный (`FAST_REASON`). Последний подтверждённый
+  режим остаётся в снимке, пока кадр без строки режима (меню, перерисовка); для клавиш
+  `ready()` по-прежнему требует строку режима как признак корня ввода.
+- `.parameters-request` прежней синхронной транзакции ещё принимается (его уберёт T003).
+- **ОС.** Логика общая для expect-хоста (macOS, Linux) и ConPTY (Windows). Windows-хост
+  заменяет файлы через `replaceFile`: запись `<file>.partial` и `rename` с повтором при
+  `EPERM`, `EBUSY`, `EACCES` (до пяти попыток).

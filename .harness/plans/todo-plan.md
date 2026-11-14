@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 941,
+  "revision": 942,
   "rounds": [
     {
       "digest": null,
@@ -245,7 +245,7 @@
         "product-parts/control-panel/clusters/web-panel/modules/session-chat/test/parameters-model.test.ts",
         "product-parts/control-panel/clusters/web-panel/modules/session-chat/test/m29-pending.browser.js",
         "product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md",
-        "docs/architecture/OVERVIEW.md"
+        "docs/architecture/OS-MATRIX.md"
       ],
       "fixes": null,
       "id": "T004",
@@ -415,7 +415,7 @@
 - Execution: sequential
 - Current task: none
 - Progress: 1/8
-- Revision: 941
+- Revision: 942
 
 ## Objective
 
@@ -445,7 +445,7 @@ Claude parameters change instantly from the panel (choice queued in Kit, applied
   - Depends on: T002
 - [TODO] T004 — Панель: меню всегда открыто, пометка и откат (work)
   - Commit: feat: show pending Claude parameters in the panel without waiting
-  - Files: product-parts/control-panel/clusters/web-panel/modules/session-chat/src/claude-menu.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/parameters.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/parameters-model.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/claude-controls.css, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/parameters-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/m29-pending.browser.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, docs/architecture/OVERVIEW.md
+  - Files: product-parts/control-panel/clusters/web-panel/modules/session-chat/src/claude-menu.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/parameters.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/parameters-model.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/claude-controls.css, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/parameters-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/m29-pending.browser.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, docs/architecture/OS-MATRIX.md
   - Depends on: T003
 - [TODO] T005 — Живая проверка и браузерная регрессия (work)
   - Commit: test: record live and browser checks of instant Claude controls

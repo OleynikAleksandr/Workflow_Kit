@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 987,
+  "revision": 989,
   "rounds": [
     {
       "digest": null,
@@ -242,14 +242,21 @@
         "product-parts/control-panel/clusters/web-panel/modules/session-view/test",
         "product-parts/control-panel/clusters/web-panel/modules/session-view/module.md",
         "docs/architecture/OS-MATRIX.md",
-        "design-qa.md"
+        "design-qa.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/foreign-card.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/plan-cards.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/sidebar-view.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/test/plan-cards.test.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts"
       ],
       "fixes": null,
       "id": "T004",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Панель: карточки неначатого плана в любой сессии",
       "why": "The sidebar shows the choice and plan cards only in the owner session"
     },
@@ -398,8 +405,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 3/8
-- Revision: 987
+- Progress: 4/8
+- Revision: 989
 
 ## Objective
 
@@ -428,9 +435,9 @@ An unstarted plan belongs to the project: its mode choice card and ready plan ca
   - Commit: fix(autopilot): choose and start the plan from any session of the project
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, docs/architecture/OS-MATRIX.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/autopilot.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/owner.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/owner.test.ts
   - Depends on: T001, T002
-- [TODO] T004 — Панель: карточки неначатого плана в любой сессии (work)
+- [DONE] T004 — Панель: карточки неначатого плана в любой сессии (work)
   - Commit: fix(session-view): show the unstarted plan in every session of the project
-  - Files: product-parts/control-panel/clusters/web-panel/modules/session-view/src, product-parts/control-panel/clusters/web-panel/modules/session-view/test, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, docs/architecture/OS-MATRIX.md, design-qa.md
+  - Files: product-parts/control-panel/clusters/web-panel/modules/session-view/src, product-parts/control-panel/clusters/web-panel/modules/session-view/test, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, docs/architecture/OS-MATRIX.md, design-qa.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/foreign-card.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/plan-cards.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/sidebar-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/test/plan-cards.test.ts, product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts
   - Depends on: T003
 - [TODO] T005 — Документ приёмки и проба Kit во временном проекте (work)
   - Commit: test: record the plan owner move with the built Kit

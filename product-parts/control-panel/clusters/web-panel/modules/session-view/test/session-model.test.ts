@@ -81,7 +81,7 @@ test('activity: working with the turn timer, holding with the reason, unknown se
   assert.equal(timer(null, 0), '');
 });
 
-test('the choice card goes to the holding session; Codex sessions get orchestration too', () => {
+test('the choice card goes to every session of the project (M31); Codex sessions get orchestration too', () => {
   // claude:s1 works without the plan review: nothing is ahead of the choice.
   const noReview = { review: { projects: { p: { visible: true, sessions: { 'claude:s1': false } } } } };
   assert.equal(choiceView(state(), 'p', 'codex:t1'), null, 'the review of the working claude:s1 is ahead (M7 remark 3)');
@@ -89,7 +89,7 @@ test('the choice card goes to the holding session; Codex sessions get orchestrat
   assert.ok(choice);
   assert.equal(choice.generation, 2);
   assert.deepEqual(choice.options.map((o) => o.option), ['orchestrated', 'sequential', 'refine']);
-  assert.equal(choiceView(state(noReview), 'p', 'claude:s1'), null, 'another session holds the choice');
+  assert.equal(choiceView(state(noReview), 'p', 'claude:s1')?.generation, 2, 'M31 3.4: not only the session holding the choice');
   const free = state({ channel: { sessions: [] } });
   assert.deepEqual(choiceView(free, 'p', 'claude:s1')?.options.map((o) => o.option), ['orchestrated', 'sequential', 'refine']);
 });

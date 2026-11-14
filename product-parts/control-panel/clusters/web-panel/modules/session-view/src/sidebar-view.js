@@ -1,5 +1,5 @@
 // @ts-check
-import { activityView, choiceView, crossReviewView, planQuestionView, planView } from './session-model.js';
+import { activityView, choiceView, crossReviewView, foreignPlanView, planQuestionView, planView } from './session-model.js';
 
 /** @typedef {import('../../panel-shell/src/slots.js').SessionContext} SessionContext */
 /** @typedef {import('../../panel-shell/src/slots.js').SlotContext} SlotContext */
@@ -17,7 +17,7 @@ export function installSidebarSlot(shell, renderers, version = () => 0) {
     select(state, session) {
       const { id } = session.project;
       const { key } = session.session;
-      return { version: version(session), activity: activityView(state, id, key), question: planQuestionView(state, id, key), choice: choiceView(state, id, key), plan: planView(state, id, key), review: crossReviewView(state, id, key), name: session.session.name };
+      return { version: version(session), activity: activityView(state, id, key), question: planQuestionView(state, id, key), choice: choiceView(state, id, key), plan: planView(state, id, key), foreign: foreignPlanView(state, id, key), review: crossReviewView(state, id, key), name: session.session.name };
     },
     render(data, _state, session, ctx) {
       const id = `${session.project.id}\n${session.session.key}`;
@@ -32,7 +32,8 @@ export function installSidebarSlot(shell, renderers, version = () => 0) {
         ['delivery', data.plan?.delivery ? true : null],
         ['choice', data.choice],
         ['plan', data.plan ? { ...data.plan, name: data.name, version: data.version } : null],
-        ['empty', !data.plan && !data.question && !data.choice && !data.review ? true : null],
+        ['foreign', data.foreign],
+        ['empty', !data.plan && !data.foreign && !data.question && !data.choice && !data.review ? true : null],
         ['activity', data.activity],
       ];
       const keep = new Set();

@@ -2,6 +2,7 @@
 // The sidebar workflow cards (activity, path choice, plan, delivery confirmation) and
 // «Ревью плана» in the sidebar. Panel extension: install(shell) fills the "sessionSidebar" and
 // "sessionReview" slots of panel-shell. Typed text lives in inputs kept per session.
+import { foreignPlanCard } from './foreign-card.js';
 import { installSidebarSlot } from './sidebar-view.js';
 import { START_SLOW_TEXT, START_STEPS, activityView, choiceView, crossReviewView, planQuestionView, planView, reviewView, timer } from './session-model.js';
 
@@ -365,6 +366,7 @@ export function install(shell) {
     delivery: (_data, session, ctx) => deliveryCard(session, ctx),
     choice: choiceCard,
     plan: planCard,
+    foreign: (data, session, ctx) => foreignPlanCard(h, data, (key) => (ctx.openSession ? ctx.openSession(session.project.id, key) : ctx.navigate({ screen: 'session', projectId: session.project.id, key }))),
     activity: activityBlock,
     empty: () => h('p', { class: 'sv-empty sv-muted' }, ['План появится, когда агент его предложит.']),
   }, (session) => inputsOf(`${session.project.id}\n${session.session.key}`).version);

@@ -1,0 +1,340 @@
+{
+ "date": "2026-11-14",
+ "cliVersion": "2.1.325",
+ "model": "claude-haiku-5-5",
+ "effort": "low",
+ "source": "Kit sources at 9fed58a (T010)",
+ "runs": [
+  {
+   "run": "live",
+   "generatedTurns": 1,
+   "result": "ok",
+   "outcome": "defect: Stop still interrupt-timeout after 8 s; Esc reached Claude after the deadline; the channel stayed working",
+   "log": [
+    {
+     "t": 2.6,
+     "step": "launched with the first message",
+     "localId": "session_01EyVab9XxmfHM5qJmLcohMi"
+    },
+    {
+     "t": 5.1,
+     "step": "turn 1 started",
+     "key": "claude:d941e902-9d91-4414-b455-39cddc2c33ba",
+     "localKey": "claude:session_01EyVab9XxmfHM5qJmLcohMi",
+     "activity": "working"
+    },
+    {
+     "t": 7.4,
+     "step": "dialog",
+     "seen": true,
+     "interruption": {
+      "available": true,
+      "reason": null,
+      "turnRef": "59dd558b-5c2f-423c-b9a5-dc4c69984c9f",
+      "state": "working",
+      "pending": false,
+      "barrier": false,
+      "result": null
+     }
+    },
+    {
+     "t": 7.4,
+     "step": "parameter change during the turn",
+     "ok": false,
+     "code": "parameters-busy",
+     "error": "Claude ещё отвечает"
+    },
+    {
+     "t": 7.4,
+     "step": "message during the turn",
+     "status": 200,
+     "body": {
+      "queued": "fa745536-f84a-49d6-87e1-5ea4fb1cbae2"
+     },
+     "pending": 1,
+     "queued": [
+      {
+       "id": "fa745536-f84a-49d6-87e1-5ea4fb1cbae2",
+       "text": "Перечисли числа от 1 до 400 через запятую, без инструментов.",
+       "at": "2026-11-14T11:30:00.500Z"
+      }
+     ]
+    },
+    {
+     "t": 15.5,
+     "step": "Stop in the dialog",
+     "before": {
+      "available": true,
+      "reason": null,
+      "turnRef": "59dd558b-5c2f-423c-b9a5-dc4c69984c9f",
+      "state": "working",
+      "pending": false,
+      "barrier": false,
+      "result": null
+     },
+     "status": 504,
+     "body": {
+      "error": {
+       "hint": "Автопродолжение удерживается; проверьте терминал и повторите.",
+       "code": "interrupt-timeout",
+       "message": "Остановка ответа Claude не подтверждена"
+      }
+     },
+     "ms": 8078,
+     "activity": {
+      "state": "working",
+      "pending": 1,
+      "queued": 1
+     }
+    },
+    {
+     "t": 15.5,
+     "step": "file after Esc",
+     "created": false,
+     "screen": [
+      "  ⎿  Interrupted · What should Claude do instead?"
+     ]
+    },
+    {
+     "t": 35.7,
+     "step": "timeout",
+     "what": "turn 2 from the queue"
+    },
+    {
+     "t": 35.7,
+     "step": "queue after interruption",
+     "msAfterStop": 28261,
+     "prompts": 1,
+     "prompt": "Выполни в Bash ровно одну команду: touch m28-probe.txt. Больше ничего не делай.",
+     "activity": {
+      "state": "working",
+      "pending": 1,
+      "queued": [
+       {
+        "id": "fa745536-f84a-49d6-87e1-5ea4fb1cbae2",
+        "text": "Перечисли числа от 1 до 400 через запятую, без инструментов.",
+        "at": "2026-11-14T11:30:00.500Z"
+       }
+      ]
+     }
+    },
+    {
+     "t": 65.8,
+     "step": "timeout",
+     "what": "generation on screen"
+    },
+    {
+     "t": 76,
+     "step": "timeout",
+     "what": "turn 2 interruption ref"
+    },
+    {
+     "t": 76,
+     "step": "Stop 2 timing",
+     "ms": 4
+    },
+    {
+     "t": 76,
+     "step": "Stop while generating",
+     "before": null,
+     "status": 400,
+     "body": {
+      "error": {
+       "code": "invalid-body",
+       "message": "Нужна ссылка на текущий ход turnRef"
+      }
+     },
+     "numbers": 0
+    },
+    {
+     "t": 91.2,
+     "step": "timeout",
+     "what": "channel leaves working"
+    },
+    {
+     "t": 91.2,
+     "step": "after Stop",
+     "waiting": false,
+     "activity": {
+      "state": "working",
+      "pending": 1
+     },
+     "stopHooks": 0
+    },
+    {
+     "t": 94.2,
+     "step": "message to the free agent",
+     "status": 200,
+     "body": {
+      "queued": "fc857072-1e5c-4aaa-a9c4-60fbd731b00b"
+     }
+    },
+    {
+     "t": 109.3,
+     "step": "timeout",
+     "what": "turn 3 prompt hook"
+    },
+    {
+     "t": 109.3,
+     "step": "turn 3",
+     "started": false,
+     "prompt": "Выполни в Bash ровно одну команду: touch m28-probe.txt. Больше ничего не делай."
+    },
+    {
+     "t": 169.4,
+     "step": "timeout",
+     "what": "turn 3 Stop hook"
+    },
+    {
+     "t": 169.5,
+     "step": "turn 3 end",
+     "waiting": false,
+     "last": null,
+     "queued": [
+      {
+       "id": "fa745536-f84a-49d6-87e1-5ea4fb1cbae2",
+       "text": "Перечисли числа от 1 до 400 через запятую, без инструментов.",
+       "at": "2026-11-14T11:30:00.500Z"
+      },
+      {
+       "id": "fc857072-1e5c-4aaa-a9c4-60fbd731b00b",
+       "text": "Ответь одним словом: готово.",
+       "at": "2026-11-14T11:31:27.332Z"
+      }
+     ]
+    },
+    {
+     "t": 169.5,
+     "step": "context window",
+     "context": {
+      "usedTokens": 57125,
+      "windowTokens": 150000,
+      "usedPercent": 38,
+      "modelWindowTokens": 1000000
+     }
+    },
+    {
+     "t": 171.6,
+     "step": "cleanup",
+     "deleted": 1,
+     "trusted": false,
+     "processes": 0,
+     "defaultsUnchanged": true,
+     "baseRemoved": true,
+     "claudeDirRemoved": true
+    }
+   ],
+   "hooks": [
+    {
+     "at": "2026-11-14T11:29:58.118Z",
+     "hookEvent": "UserPromptSubmit",
+     "prompt": "Выполни в Bash ровно одну команду: touch m28-probe.txt. Больше ничего не делай.",
+     "reply": "{\"answer\":null}"
+    }
+   ]
+  },
+  {
+   "run": "diagnostic",
+   "generatedTurns": 0,
+   "result": "ok",
+   "outcome": "no generation: the host wrote no .interrupt-state for 10 s while the parameter engine ran its startup discovery (status control)",
+   "log": [
+    {
+     "t": 1.3,
+     "step": "launched without a message",
+     "localId": "session_01EyVab8ypW9dQhoJA48cGq4"
+    },
+    {
+     "t": 10.3,
+     "step": "idle",
+     "files": {
+      ".interrupt-state": null,
+      ".interrupt-result": null,
+      ".turn": null,
+      ".parameters-state": {
+       "status": "control",
+       "reason": "Терминал Claude занят или не распознан",
+       "inputEmpty": false
+      }
+     }
+    },
+    {
+     "t": 14.3,
+     "step": "model menu",
+     "files": {
+      ".interrupt-state": {
+       "version": 1,
+       "epoch": "fa52ff4e-6d64-4296-8b78-ab5e1af76b6b:0",
+       "state": "dialog",
+       "at": 1794656202890
+      },
+      ".interrupt-result": null,
+      ".turn": null,
+      ".parameters-state": {
+       "status": "dialog",
+       "reason": "Терминал Claude занят или не распознан",
+       "inputEmpty": false
+      }
+     },
+     "screen": []
+    },
+    {
+     "t": 22.4,
+     "step": "Stop in the menu",
+     "r": {
+      "error": "interrupt-timeout",
+      "message": "Остановка ответа Claude не подтверждена"
+     },
+     "files": {
+      ".interrupt-state": {
+       "version": 1,
+       "epoch": "fa52ff4e-6d64-4296-8b78-ab5e1af76b6b:0",
+       "state": "idle",
+       "at": 1794656211059
+      },
+      ".interrupt-result": null,
+      ".turn": null,
+      ".parameters-state": {
+       "status": "idle",
+       "reason": null,
+       "inputEmpty": true
+      }
+     }
+    },
+    {
+     "t": 24.9,
+     "step": "after",
+     "files": {
+      ".interrupt-state": {
+       "version": 1,
+       "epoch": "fa52ff4e-6d64-4296-8b78-ab5e1af76b6b:0",
+       "state": "idle",
+       "at": 1794656214140
+      },
+      ".interrupt-result": {
+       "id": "d347bb08-360b-43ce-b30a-9b0082b41ae0",
+       "status": "timeout"
+      },
+      ".turn": null,
+      ".parameters-state": {
+       "status": "idle",
+       "reason": null,
+       "inputEmpty": true
+      }
+     },
+     "screen": []
+    },
+    {
+     "t": 27,
+     "step": "cleanup",
+     "deleted": 1,
+     "trusted": false,
+     "processes": 0,
+     "defaultsUnchanged": true,
+     "baseRemoved": true,
+     "claudeDirRemoved": true
+    }
+   ]
+  }
+ ]
+}

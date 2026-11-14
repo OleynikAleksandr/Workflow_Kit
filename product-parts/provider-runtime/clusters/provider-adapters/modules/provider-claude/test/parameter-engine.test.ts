@@ -125,14 +125,15 @@ test('catalogue expands and scrolls without saving defaults; setters use s and r
   assert.equal(w.engine.snapshot().fastReason, FAST_REASON);
   assert.ok(!written.some(a => a.kind === 'text' && a.value === '/fast'), 'M29: /fast is never opened');
   for (const [field, value] of [['model', 'native:Sonnet%205'], ['effort', 'medium'], ['ultracode', 'on'], ['ultracode', 'off']]) {
-    // M30: the efforts of the new model were read on its row inside the model transaction.
+    // Efforts of the new model are read by discovery after the model transaction (/model, levels, s).
+    if (field === 'effort') { w.engine.observe(w.meta); w.engine.discover(); for (let i = 0; i < 300 && w.engine.busy; i++) action(); assert.equal(w.engine.takeResult()?.status, 'applied', 'efforts'); }
     w.meta.at = w.now(); w.engine.observe(w.meta); w.engine.begin(w.request(field, value));
     for (let i = 0; i < 300 && w.engine.busy; i++) action();
     assert.equal(w.engine.takeResult()?.status, 'applied', field);
     assert.equal(w.engine.snapshot().models.length, 5, 'setter navigation cannot replace a complete discovered catalogue with a partial viewport');
   }
   assert.equal(w.engine.snapshot().model?.id, 'claude-sonnet-5'); assert.equal(w.engine.snapshot().effort, 'medium');
-  assert.equal(written.filter(a => a.value === 'session').length, 3, 'M30: the catalog closes /model with s on the ✔ model');
+  assert.equal(written.filter(a => a.value === 'session').length, 4, 'M30: the catalog and the efforts discovery close /model with s');
   assert.ok(!written.some(a => a.kind === 'text' && a.value === '/effort'), 'M30: effort goes through /model');
   assert.equal(ultra, false);
 });

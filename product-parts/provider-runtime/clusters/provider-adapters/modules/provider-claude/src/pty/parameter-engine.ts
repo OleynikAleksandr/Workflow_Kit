@@ -359,8 +359,8 @@ export class ParameterEngine {
     }
     const baseline = sessionAcks(this.frame.text); const target = r.field === 'model' ? this.models.get(r.value)! : null;
     if (target) {
-      yield* this.modelRows(target);
-      if (!this.effortsByModel.has(target.label)) yield* this.levels(target.label); yield { key: 'session', frame: 'model' };
+      // Unknown levels of the new model are read by discovery (/model, levels, s) after this transaction.
+      yield* this.modelRows(target); yield { key: 'session', frame: 'model' };
       // M29: a cached conversation asks "Switch model?"; this transaction confirms its own target only.
       yield { until: f => f.kind === 'switch' || f.kind === 'idle' };
       if (this.frame.kind === 'switch') {

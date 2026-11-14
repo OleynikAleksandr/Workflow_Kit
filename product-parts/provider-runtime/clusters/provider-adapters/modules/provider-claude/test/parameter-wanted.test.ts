@@ -111,7 +111,7 @@ test('wanted fields go in order model, effort, mode; an effective value needs no
   assert.deepEqual(Object.fromEntries(Object.entries(wanted).map(([k, v]) => [k, v.status])), { model: 'applied', effort: 'applied', mode: 'applied' });
   assert.equal(w.meta.model.label, 'Haiku 5.5'); assert.equal(w.meta.effort, 'medium'); assert.equal(w.engine.snapshot().mode, 'plan');
   const order = w.written.filter(a => a.kind === 'text' || a.value === 'mode').map(a => a.value);
-  assert.deepEqual(order.slice(0, 2), ['/model', '/model'], 'M30: the model (its levels read on the target row), then the effort in /model');
+  assert.deepEqual(order.slice(0, 3), ['/model', '/model', '/model'], 'M30: the model, the levels of the new model, then the effort, all in /model');
   assert.equal(w.sim.escapes, 0, 'no Kept model line');
   assert.equal(order.at(-1), 'mode');
   const again = claude(); again.engine.loadCatalog(catalog); again.want({ mode: 'auto' }); again.run(10);
@@ -133,9 +133,8 @@ test('the short path starts at the current row: no walk to the top; More models 
   assert.ok(!more.written.some(a => a.value === '/effort'), 'the model transaction ends with its acknowledgement');
   more.run();
   assert.equal(more.meta.model.label, 'Sonnet 5');
-  assert.equal(more.written.filter(a => a.value === 'session').length, 1, 'the efforts of the new model are only previewed');
-  const beforeSession = keys(more.written).slice(0, keys(more.written).indexOf('session'));
-  assert.ok(beforeSession.includes('left') && beforeSession.includes('right'), 'Sonnet 5 had no cached efforts: its row is read before s');
+  assert.equal(more.written.filter(a => a.value === 'session').length, 2, 'the model, then the discovery closing /model; levels are only previewed');
+  assert.equal(keys(more.written).filter(k => k === '/model').length, 2, 'Sonnet 5 had no cached efforts: discovery reads its row in /model');
   assert.deepEqual(more.engine.exportCatalog()!.efforts['Sonnet 5']?.values, known.values);
 });
 
@@ -185,7 +184,7 @@ test('M30: an effort change goes through the /model effort row and s', () => {
 test('M30: a model without an effort row gets no levels; a catalog without the ✔ row falls back to Esc', () => {
   const first = claude(); first.run(); const catalog = first.engine.exportCatalog()!;
   const key = (label: string) => catalog.models.find(m => m.label === label)!.key;
-  const w = claude({ noEffort: ['Sonnet 5'] }); w.engine.loadCatalog(catalog); w.want({ model: key('Sonnet 5') }); w.run();
+  const w = claude({ noEffort: ['Sonnet 5'] }); w.engine.loadCatalog(catalog); w.want({ model: key('Sonnet 5') }); w.run(); w.run();
   assert.equal(w.meta.model.label, 'Sonnet 5'); assert.deepEqual(w.engine.exportCatalog()!.efforts['Sonnet 5'], { values: [], recommended: null, ultracode: false });
   assert.deepEqual(w.engine.snapshot().efforts, []);
   w.want({ effort: 'low' }); w.run(10);

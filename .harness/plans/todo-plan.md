@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 933,
+  "revision": 934,
   "rounds": [
     {
       "digest": {
@@ -93,7 +93,10 @@
       "Движок параметров не печатает в терминал во время хода и не теряет хуки; гарантии M24–M27, ChatGPT и Kimi не регрессировали; контракты и матрица трёх ОС согласованы.",
       "0.13.1 установлена и проверена, CI точного SHA зелёная на macOS, Linux, Windows x64 и ARM64; пользовательская приёмка отдельно."
     ],
-    "acceptanceNote": null,
+    "acceptanceNote": {
+      "at": "2026-11-14T12:47:02.957Z",
+      "text": "Пользователь принял план в панели Workflow Kit"
+    },
     "approval": {
       "at": "2026-11-14T07:55:41.752Z",
       "text": "Пользователь 14.11.2026: «Да, согласен. Теперь можешь сделать скоп и план для найденных проблем и исправить их. Не забудь по поводу контекстного окна.» В панели выбраны спецификация и план без ревью. | Execution mode chosen by the user: sequential: Выбор пользователя в панели Workflow Kit: выполнить самому, последовательно"
@@ -140,7 +143,7 @@
         "text": "Отправка ветки ci/m28-claude-controls-fixes — только по прямой команде пользователя; main публикуется после приёмки и закрытия."
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "ACCEPTED",
     "execution": {
       "maxWorkers": 1,
       "ownerSession": "92b77570-773b-4173-8244-c327d009daa3",
@@ -1037,11 +1040,11 @@
 ## State
 
 - Scope: m28-claude-controls-fixes (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: ACCEPTED
 - Execution: sequential
 - Current task: none
 - Progress: 19/19
-- Revision: 933
+- Revision: 934
 
 ## Objective
 

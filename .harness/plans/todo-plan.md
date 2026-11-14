@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 915,
+  "revision": 917,
   "rounds": [
     {
       "digest": {
@@ -726,7 +726,7 @@
       ],
       "checks": [],
       "commitMessage": "chore(release): install Workflow Kit 0.13.1 locally",
-      "confirmation": null,
+      "confirmation": "Продолжая вплоть до сборки нового релиза.",
       "context": [
         {
           "path": "README.md",
@@ -753,14 +753,16 @@
         "docs/setup.md",
         "docs/architecture/OVERVIEW.md",
         "docs/evidence/M28-claude-controls-fixes.md",
-        "docs/evidence/M28"
+        "docs/evidence/M28",
+        "docs/evidence/M28/local-delivery.md",
+        "docs/evidence/M28/t008-installed-browser.json"
       ],
       "fixes": null,
       "id": "T008",
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Собрать и установить локальную поставку 0.13.1",
       "why": "Собрать и установить локальную поставку 0.13.1"
     },
@@ -801,8 +803,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 12/14
-- Revision: 915
+- Progress: 13/14
+- Revision: 917
 
 ## Objective
 
@@ -870,9 +872,9 @@
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M28-claude-controls-fixes.md, docs/design/M28-claude-fixes-facts.md, docs/evidence/M28-claude-controls-fixes.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/parameters.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/parameters.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, docs/architecture/CONTRACTS.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/interrupt.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/sessions.md, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, design-qa.md, docs/evidence/M28/probe-harness.md, docs/evidence/M28/t007-harness.md, docs/evidence/M28/t011-harness.md
   - Depends on: T001, T002, T003, T004, T005, T006, T007, T010, T011, T012, T013
-- [TODO] T008 — Собрать и установить локальную поставку 0.13.1 (delivery)
+- [DONE] T008 — Собрать и установить локальную поставку 0.13.1 (delivery)
   - Commit: chore(release): install Workflow Kit 0.13.1 locally
-  - Files: package.json, package-lock.json, README.md, CHANGELOG.md, docs/usage.md, docs/installation.md, docs/setup.md, docs/architecture/OVERVIEW.md, docs/evidence/M28-claude-controls-fixes.md, docs/evidence/M28
+  - Files: package.json, package-lock.json, README.md, CHANGELOG.md, docs/usage.md, docs/installation.md, docs/setup.md, docs/architecture/OVERVIEW.md, docs/evidence/M28-claude-controls-fixes.md, docs/evidence/M28, docs/evidence/M28/local-delivery.md, docs/evidence/M28/t008-installed-browser.json
   - Depends on: T007, DOCS-R1
 - [TODO] T009 — Зафиксировать зелёную CI четырёх платформ на SHA поставки (delivery)
   - Commit: docs: record green CI for Claude controls fixes

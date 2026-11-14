@@ -26,6 +26,12 @@ export function promptRow(lines: readonly string[]): number {
     if (/^\s*❯/.test(lines[i]!) && /^─{8}/.test(lines[i - 1]!.trim()) && /^─{8}/.test(lines[i + 1]!.trim())) return i;
   return -1;
 }
+/** Interruption markers in the frame; the rows just above the input count as a new one (M28 T010). */
+export function frameMarkers(screen: TerminalScreen): { count: number; recent: boolean } {
+  const lines = screenLines(screen.text()); const prompt = promptRow(lines);
+  const near = (prompt >= 0 ? lines.slice(Math.max(0, prompt - 10), prompt) : lines.slice(-12)).join('\n');
+  return { count: [...lines.join('\n').matchAll(MARKER)].length, recent: new RegExp(MARKER.source).test(near) };
+}
 export function screenState(screen: TerminalScreen): ScreenState {
   if (!screen.valid) return 'unknown';
   const text = screen.text();
@@ -43,9 +49,7 @@ export class InterruptControl {
   readonly screen = new TerminalScreen();
   private epoch = 0;
   private previous: ScreenState = 'unknown';
-  private markers = 0;
-  private tail = '';
-  private pending: { request: HostRequest; markers: number; visibleMarkers: number } | null = null;
+  private pending: { request: HostRequest; visibleMarkers: number; recent: boolean } | null = null;
   private instance: string;
   /** The hook turn (<debug>.turn) is running: an unrecognized frame still takes the single Esc. */
   turnWorking = false;
@@ -54,11 +58,6 @@ export class InterruptControl {
   constructor(instance: string, now: () => number, write: (text: string) => boolean) { this.instance = instance; this.now = now; this.write = write; }
   feed(text: string): void {
     this.screen.feed(text);
-    const raw = this.tail + text;
-    const matches = [...raw.matchAll(MARKER)];
-    this.markers += matches.length;
-    // Only the unfinished suffix is retained, so an old complete marker is never counted twice.
-    this.tail = raw.slice(matches.at(-1) ? matches.at(-1)!.index! + matches.at(-1)![0].length : 0).slice(-60);
     this.snapshot();
   }
   snapshot(): HostSnapshot {
@@ -76,7 +75,8 @@ export class InterruptControl {
     if (current.state === 'idle') return { id: request.id, status: 'already-idle' };
     // One Esc: work, a permission dialog (a denial, M28 T001) or an unknown frame of a running turn.
     if (current.state === 'unknown' && !this.turnWorking) return { id: request.id, status: 'unavailable', reason: 'Текущий экран Claude не распознан' };
-    this.pending = { request, markers: this.markers, visibleMarkers: [...this.screen.text().matchAll(MARKER)].length };
+    const frame = frameMarkers(this.screen);
+    this.pending = { request, visibleMarkers: frame.count, recent: frame.recent };
     if (!this.write('\x1b')) { this.pending = null; return { id: request.id, status: 'unavailable', reason: 'Терминал не принял команду' }; }
     return null;
   }
@@ -84,13 +84,22 @@ export class InterruptControl {
     const pending = this.pending; this.pending = null;
     return pending ? { id: pending.request.id, status: 'unavailable', reason: 'Экран Claude изменился перед отправкой команды' } : null;
   }
+  /**
+   * The frame is the only proof (M28 T010): Claude 2.1.325 splits the notice by control codes in the
+   * raw stream, and a redraw repeats old text there. A proof is a marker the frame did not have at the
+   * press: more markers, or one just above the input where the turn's work was.
+   */
+  private confirmed(pending: { visibleMarkers: number; recent: boolean }): boolean {
+    const frame = frameMarkers(this.screen);
+    return frame.count > pending.visibleMarkers || (!pending.recent && frame.recent);
+  }
   poll(): HostResult | null {
     const pending = this.pending;
     if (!pending) return null;
     const current = this.snapshot();
     let result: HostResult | null = null;
     if (this.now() >= pending.request.expires) result = { id: pending.request.id, status: 'timeout' };
-    else if (current.state === 'idle' && this.markers > pending.markers && [...this.screen.text().matchAll(MARKER)].length > pending.visibleMarkers) result = { id: pending.request.id, status: 'interrupted' };
+    else if (current.state === 'idle' && this.confirmed(pending)) result = { id: pending.request.id, status: 'interrupted' };
     if (result) this.pending = null;
     return result;
   }

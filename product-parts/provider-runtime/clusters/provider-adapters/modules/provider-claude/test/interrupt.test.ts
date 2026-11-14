@@ -41,7 +41,7 @@ test('M28: a dialog after cached availability takes one Escape (a denial); Stop 
     const call = (await h.fakeCalls()).find((c) => c.argv.includes('--debug-file'))!;
     const debug = call.argv[call.argv.indexOf('--debug-file') + 1]!;
     await writeFile(debug + '.fixture-mode', 'dialog');
-    await until(async () => JSON.parse(await readFile(debug + STATE_SUFFIX, 'utf8')).state === 'dialog', 'dialog drawn in host');
+    await until(async () => JSON.parse(await readFile(debug + STATE_SUFFIX, 'utf8').catch(() => '{}')).state === 'dialog', 'dialog drawn in host');
     await provider.interruptTurn!(project, session.localId, target).catch((error: { code?: string }) => assert.equal(error.code, 'interrupt-timeout'));
     assert.equal((await readFile(h.fakeLog + '.input', 'utf8').catch(() => '')).split('\x1b').length - 1, 1, 'exactly one Escape');
     await provider.listSessions(project);
@@ -73,10 +73,25 @@ test('expect confirms an already completed observed epoch without Escape or proc
     const call = (await h.fakeCalls()).find((c) => c.argv.includes('--debug-file'))!;
     const debug = call.argv[call.argv.indexOf('--debug-file') + 1]!;
     await writeFile(debug + '.fixture-mode', 'idle');
-    await until(async () => JSON.parse(await readFile(debug + STATE_SUFFIX, 'utf8')).state === 'idle', 'completed epoch');
+    await until(async () => JSON.parse(await readFile(debug + STATE_SUFFIX, 'utf8').catch(() => '{}')).state === 'idle', 'completed epoch');
     await provider.listSessions(project);
     assert.equal((await provider.interruptTurn!(project, session.localId, target)).status, 'already-idle');
     assert.equal((await readFile(h.fakeLog + '.input', 'utf8').catch(() => '')).includes('\x1b'), false);
     assert.equal((await provider.listSessions(project))[0]!.state, 'running');
+  } finally { await h.cleanup(); }
+});
+
+for (const platform of ['darwin', 'linux'] as const) test(`M28 T010 ${platform}: Stop of a Kit terminal is available before any listing; a session without one gets the in-app reason`, { skip }, async () => {
+  const h = await createHarness(() => ({}));
+  try {
+    const project = await h.project('Fresh');
+    await writeFile(h.configFile, JSON.stringify({ projects: { [project.path]: { hasTrustDialogAccepted: true } } }));
+    const provider = createClaudeProvider({ ...h.context, platform, env: { ...h.context.env, FAKE_CLAUDE_MODE: 'interrupt-working' } }, { pollMs: 50, interruptWaitMs: 4500 });
+    const session = await provider.createSession(project, { title: 'Test' });
+    assert.deepEqual(provider.interruptAvailability!(project, session.localId), { available: true, reason: null }, 'no listing yet');
+    assert.equal((await provider.interruptTurn!(project, session.localId, target)).status, 'interrupted', 'the press reads the host itself');
+    await provider.stopSession!(project, session.localId);
+    await provider.listSessions(project);
+    assert.deepEqual(provider.interruptAvailability!(project, session.localId), { available: false, reason: 'Остановите ответ в приложении Claude' });
   } finally { await h.cleanup(); }
 });

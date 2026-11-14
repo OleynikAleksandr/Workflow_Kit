@@ -61,6 +61,39 @@ test('M28: the 2.1.325 notice confirms the interruption', () => {
   assert.equal(w.control.poll()?.status, 'interrupted');
 });
 
+const RULE = '─'.repeat(40);
+const input = (above: string, prompt = '❯ ') => frame(`${above}\r\n${RULE}\r\n${prompt}\r\n${RULE}\r\n  ? for shortcuts`);
+// Claude 2.1.325 moves the cursor instead of printing spaces and colours each word (T007 live run).
+const SPLIT_NOTICE = '  ⎿  \x1b[38;5;246mInterrupted\x1b[39m\x1b[1C·\x1b[1C\x1b[2mWhat\x1b[1Cshould\x1b[1CClaude\x1b[1Cdo\x1b[1Cinstead?\x1b[22m';
+test('M28 T010: the frame confirms Stop when control codes split the notice in the raw stream', () => {
+  const w = world();
+  w.control.feed(input('● Write(note.txt)\r\n Do you want to proceed?\r\n ❯ 1. Yes\r\n   2. No'));
+  assert.equal(w.control.snapshot().state, 'dialog');
+  assert.equal(w.control.request(w.request()), null);
+  assert.deepEqual(w.keys, ['\x1b']);
+  w.control.feed(input(`● Write(note.txt)\r\n${SPLIT_NOTICE}`));
+  assert.equal(w.control.snapshot().state, 'idle');
+  assert.equal(w.control.poll()?.status, 'interrupted');
+});
+test('M28 T010: a new notice above the input confirms Stop even when an old one scrolled away', () => {
+  const w = world();
+  const history = Array.from({ length: 30 }, (_, i) => `line ${i}`);
+  w.control.feed(input(['  ⎿  Interrupted · What should Claude do instead?', ...history, '✻ Schlepping… (16s · ↓ 206 tokens)'].join('\r\n')));
+  assert.equal(w.control.snapshot().state, 'working');
+  assert.equal(w.control.request(w.request()), null);
+  w.control.feed(input([...history.slice(1), '  ⎿  Interrupted · What should Claude do instead?'].join('\r\n')));
+  assert.equal(w.control.poll()?.status, 'interrupted');
+});
+test('M28 T010: an old notice right above the input does not confirm a new press', () => {
+  const w = world();
+  w.control.feed(input('  ⎿  Interrupted · What should Claude do instead?\r\n✻ Schlepping… (3s)'));
+  assert.equal(w.control.request(w.request()), null);
+  w.control.feed(input('  ⎿  Interrupted · What should Claude do instead?'));
+  assert.equal(w.control.poll(), null, 'the same notice redrawn');
+  w.control.feed(input('  ⎿  Interrupted · What should Claude do instead?\r\n  ⎿  Interrupted · What should Claude do instead?'));
+  assert.equal(w.control.poll()?.status, 'interrupted');
+});
+
 test('same completed epoch is already-idle; a successor busy epoch is stale and receives no key', () => {
   const w = world();
   w.control.feed(frame(BUSY));

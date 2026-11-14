@@ -1,4 +1,5 @@
 // M24: orchestration of one confirmed turn interruption, independent of provider/OS.
+import { USER_MESSAGE_SOURCE } from '#agent-channel';
 import type { AgentChannel, InterruptView } from '#agent-channel';
 import type { Autopilot } from '#autopilot';
 import type { CrossReview } from '#cross-review';
@@ -14,6 +15,8 @@ export interface TurnInterruptionOptions {
   autopilot: Pick<Autopilot, 'interrupt'>;
   reviews: Pick<CrossReview, 'interrupted'>;
   timeoutMs?: number;
+  /** Wakes an idle session for its queue: user messages queued during the stopped turn go at once (M28 T010). */
+  wake?: (key: string) => void;
 }
 type Success = Extract<InterruptResult, { stopped: true }>;
 
@@ -22,6 +25,20 @@ function deadline<T>(work: Promise<T>, ms: number): Promise<T> {
   return Promise.race([work, new Promise<never>((_, reject) => {
     timer = setTimeout(() => reject(new HttpError(504, 'interrupt-timeout', 'Остановка ответа не подтверждена вовремя', { hint: 'Повторите проверку; автоматическое продолжение удерживается.' })), ms);
   })]).finally(() => clearTimeout(timer));
+}
+
+/**
+ * After an ended turn the queue goes at once (M28 3.3). Under a Stop barrier only the user's own panel
+ * messages release it, as a new user message would; automatic continuation stays held.
+ */
+export function deliverAfterInterruption(channel: AgentChannel, key: string, wake: (key: string) => void): void {
+  const queued = channel.queued(key);
+  if (queued.length === 0) return;
+  if (channel.interruption(key)?.barrier) {
+    if (!queued.some((message) => message.source === USER_MESSAGE_SOURCE)) return;
+    channel.resumeDelivery(key);
+  }
+  wake(key);
 }
 
 export function createTurnInterruption(options: TurnInterruptionOptions) {
@@ -134,6 +151,7 @@ export function createTurnInterruption(options: TurnInterruptionOptions) {
         if (!channel.confirmInterrupted(key, ref, result.nativeTurnId)) throw stale();
         await bounded(barriers);
         channel.interruptionPending(key, ref, false, result.status);
+        if (options.wake) deliverAfterInterruption(channel, key, options.wake);
         return result;
       } catch (error) {
         const status = error instanceof HttpError && error.code === 'stale-turn' ? 'stale' : 'failed';

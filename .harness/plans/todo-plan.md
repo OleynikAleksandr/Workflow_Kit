@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 902,
+  "revision": 904,
   "rounds": [
     {
       "digest": null,
@@ -514,14 +514,19 @@
         "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test",
         "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md",
         "docs/architecture/CONTRACTS.md",
-        "docs/architecture/OVERVIEW.md"
+        "docs/architecture/OVERVIEW.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/turn-interruption.test.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/turn-reconcile.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/interrupt-control.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/interrupt.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/windows.test.ts"
       ],
       "fixes": "T005",
       "id": "T010",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Подтверждать Stop по кадру Claude и завершать ход после прерывания",
       "why": "Живая проверка T007: одно Esc остановило Claude, но Kit ответил interrupt-timeout, канал остался в working, очередь и сообщения свободному агенту не уходили"
     },
@@ -692,8 +697,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 7/12
-- Revision: 902
+- Progress: 8/12
+- Revision: 904
 
 ## Objective
 
@@ -739,9 +744,9 @@
   - Commit: test(claude): verify controls fixes live and in the browser
   - Files: docs/evidence/M28-claude-controls-fixes.md, docs/evidence/M28, design-qa.md, docs/design/M28-claude-fixes-facts.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/test, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test, docs/evidence/M28/composer-claude-dark-1280.png, docs/evidence/M28/composer-claude-dark-375.png, docs/evidence/M28/composer-claude-dark-768.png, docs/evidence/M28/composer-claude-light-1280.png, docs/evidence/M28/composer-claude-light-375.png, docs/evidence/M28/composer-claude-light-768.png, docs/evidence/M28/t007-browser.json, docs/evidence/M28/t007-harness.md, docs/evidence/M28/t007-live.json, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/m28-composer.browser.js
   - Depends on: T006
-- [TODO] T010 — Подтверждать Stop по кадру Claude и завершать ход после прерывания (work)
+- [DONE] T010 — Подтверждать Stop по кадру Claude и завершать ход после прерывания (work)
   - Commit: fix(claude): confirm Stop by the screen and end the interrupted turn
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/interrupt-control.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/interrupt-worker.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/host.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/win-host.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/interrupt.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/interrupt.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/turn-interruption.ts, product-parts/backend-core/clusters/runtime/modules/cli/test, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/turn-control.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/turn-state.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, docs/architecture/CONTRACTS.md, docs/architecture/OVERVIEW.md
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/interrupt-control.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/interrupt-worker.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/host.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/win-host.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/interrupt.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/interrupt.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/turn-interruption.ts, product-parts/backend-core/clusters/runtime/modules/cli/test, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/turn-control.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/turn-state.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, docs/architecture/CONTRACTS.md, docs/architecture/OVERVIEW.md, product-parts/backend-core/clusters/runtime/modules/cli/test/turn-interruption.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/turn-reconcile.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/interrupt-control.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/interrupt.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/windows.test.ts
   - Depends on: T007
   - Fixes: T005
 - [TODO] T011 — Повторить живую проверку Stop и доставки на Claude (work)

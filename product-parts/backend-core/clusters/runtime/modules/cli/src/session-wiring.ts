@@ -17,7 +17,7 @@ import { providerCapability, providerLabel } from '#provider-registry';
 import type { HookDialect, Provider, ProviderRegistry, SessionInfo } from '#provider-registry';
 import { createSessionTitles, registerTitleRoutes } from '#session-titles';
 import type { SessionTitles, SessionTitlesOptions } from '#session-titles';
-import { createTurnInterruption } from './turn-interruption.ts';
+import { createTurnInterruption, deliverAfterInterruption } from './turn-interruption.ts';
 import { createDirectMessage, ledOutside } from './direct-message.ts';
 import { lateReviewDecider, toggleLock, wireCrossReview } from './review-wiring.ts';
 
@@ -27,7 +27,8 @@ export const TURN_SETTLE_MS = 1500;
 /**
  * Claude sends no Stop hook after an interruption (M28 3.2): a working turn whose provider turn state
  * says idle later than the turn started (and not just now, when a Stop hook may be in flight) is
- * ended without a barrier, and a waiting queue is woken at once.
+ * ended, and a waiting queue is woken at once. A Stop barrier (an unconfirmed Stop) stays: it holds
+ * automatic continuation, never the end of the turn (M28 T010).
  */
 export async function reconcileTurns(deps: { channel: AgentChannel; providers: Pick<ProviderRegistry, 'get'>; projects: Pick<ProjectRegistry, 'get'>; wake: (key: string) => void; log?: (line: string) => void; now?: () => number }): Promise<void> {
   const { channel } = deps; const now = deps.now ?? Date.now;
@@ -40,11 +41,13 @@ export async function reconcileTurns(deps: { channel: AgentChannel; providers: P
     const turn = await provider.turnState(project, activity.sessionId).catch(() => null);
     const interruption = channel.interruption(activity.key);
     if (!turn || turn.state !== 'idle' || !(turn.at > Date.parse(activity.turnStartedAt)) || now() - turn.at < TURN_SETTLE_MS) continue;
-    if (!interruption?.turnRef || interruption.barrier || interruption.pending) continue;
+    // A barrier (an unconfirmed Stop, M28 T010) no longer keeps the turn working; only a Stop in flight does.
+    if (!interruption?.turnRef || interruption.pending) continue;
+    const held = interruption.barrier;
     if (!channel.confirmInterrupted(activity.key, interruption.turnRef, null)) continue;
-    channel.resumeDelivery(activity.key);
-    deps.log?.(`channel: ${activity.key} ended by ${turn.source} without a Stop hook`);
-    if (channel.queued(activity.key).length > 0) deps.wake(activity.key);
+    deps.log?.(`channel: ${activity.key} ended by ${turn.source} without a Stop hook${held ? ' (Stop barrier kept)' : ''}`);
+    if (!held) channel.resumeDelivery(activity.key);
+    deliverAfterInterruption(channel, activity.key, deps.wake);
   }
 }
 export interface SessionWiringOptions {
@@ -243,7 +246,7 @@ export function wireSessions(options: SessionWiringOptions): SessionWiring {
     reconcile().catch(() => undefined).finally(() => { reconciling = false; });
   }, TURN_RECONCILE_MS);
   reconciler.unref?.();
-  const interruptions = createTurnInterruption({ channel, providers, projects, autopilot, reviews: crossReview });
+  const interruptions = createTurnInterruption({ channel, providers, projects, autopilot, reviews: crossReview, wake: (key) => { void wakeIdle(key); } });
   registerChannelRoutes({ router, state, channel: observedChannel, messages: wakingChannel, owns: ownsSession, dialects, direct, interrupt: interruptions.interrupt, interruptions: interruptions.section });
   return { channel, autopilot, review, titles, crossReview };
 }

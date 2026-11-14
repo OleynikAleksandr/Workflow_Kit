@@ -194,3 +194,11 @@ M28/T004: `reconcileTurns` (`session-wiring.ts`, каждые `TURN_RECONCILE_MS
 ход канала в `working`, если `Provider.turnState` дал `idle` позже начала хода и не раньше
 `TURN_SETTLE_MS` = 1,5 с назад: `confirmInterrupted` → `resumeDelivery` без барьера, очередь
 будится сразу. После Stop с ответом block провайдер получает хук `continue`.
+
+M28/T010: барьер Stop больше не держит ход в `working`. `reconcileTurns` завершает ход и после
+неподтверждённого Stop (`interrupt-timeout`); пропускается только Stop в процессе (`pending`).
+Барьер остаётся: автоматическое продолжение не запускается. `deliverAfterInterruption`
+(`turn-interruption.ts`) после конца хода будит очередь; под барьером — только если в ней есть
+сообщение пользователя (`USER_MESSAGE_SOURCE`), которое снимает барьер, как новое сообщение.
+Тот же шаг выполняет подтверждённый Stop (опция `wake` у `createTurnInterruption`). Поведение
+одинаково на macOS, Linux и Windows.

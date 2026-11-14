@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { createAgentChannel, parseHookInput } from '#agent-channel';
+import { createAgentChannel, parseHookInput, USER_MESSAGE_SOURCE } from '#agent-channel';
 import { createHttpServer, createRouter, createStateRegistry } from '#http-server';
 import { registerChannelRoutes } from '#agent-channel';
 import { createProviderRegistry, createStubProvider, providerCapability, ProviderError } from '#provider-registry';
@@ -15,7 +15,7 @@ const stop = (native = 'n1') => ({ ...prompt(native), lastAssistantMessage: 'don
 function gate<T>() { let open!: (value: T) => void; const promise = new Promise<T>((resolve) => { open = resolve; }); return { promise, open }; }
 const tick = () => new Promise((resolve) => setImmediate(resolve));
 
-async function world(started = true, timeoutMs = 1000) {
+async function world(started = true, timeoutMs = 1000, wake?: (key: string) => void) {
   const w = { calls: 0, pauses: 0, reviews: 0, lists: 0, available: true, capability: true, archived: false, result: confirmed(), run: null as null | (() => Promise<InterruptResult>) };
   const provider: Provider = {
     ...createStubProvider({ id: 'alpha', title: 'Alpha', task: 'T002' }),
@@ -29,7 +29,7 @@ async function world(started = true, timeoutMs = 1000) {
   const channel = createAgentChannel({ resolveProject: async () => ({ id: 'p' }), excluded: () => w.archived });
   if (started) await channel.prompt(prompt());
   await providers.section([PROJECT]);
-  const control = createTurnInterruption({ channel, providers, projects: { get: async (id) => id === 'p' ? PROJECT : undefined }, autopilot: { interrupt: async () => { w.pauses += 1; } }, reviews: { interrupted: async () => { w.reviews += 1; } }, timeoutMs });
+  const control = createTurnInterruption({ channel, providers, projects: { get: async (id) => id === 'p' ? PROJECT : undefined }, autopilot: { interrupt: async () => { w.pauses += 1; } }, reviews: { interrupted: async () => { w.reviews += 1; } }, timeoutMs, ...(wake ? { wake } : {}) });
   return { w, provider, providers, channel, control, ref: () => channel.interruption(KEY)!.turnRef! };
 }
 
@@ -278,4 +278,22 @@ test('HTTP interruption errors preserve adapter timeout and hint while retaining
       }
     } finally { await server.close(); channel.close(); }
   }
+});
+
+test('M28 T010: after a confirmed Stop the user messages queued during the turn go at once; a service queue stays held', async () => {
+  const woken: string[] = [];
+  const user = await world(true, 1000, (key) => woken.push(key));
+  try {
+    user.channel.enqueue(KEY, 'sent during the turn', USER_MESSAGE_SOURCE, 'p');
+    await user.control.interrupt('p', KEY, { turnRef: user.ref() });
+    assert.deepEqual(woken, [KEY]);
+    assert.equal(user.channel.interruption(KEY)!.barrier, false, 'the user message released the barrier');
+  } finally { user.channel.close(); }
+  const service = await world(true, 1000, (key) => woken.push(key));
+  try {
+    service.channel.enqueue(KEY, 'autopilot continue', 'autopilot', 'p');
+    await service.control.interrupt('p', KEY, { turnRef: service.ref() });
+    assert.deepEqual(woken, [KEY], 'nothing new is woken');
+    assert.equal(service.channel.interruption(KEY)!.barrier, true);
+  } finally { service.channel.close(); }
 });

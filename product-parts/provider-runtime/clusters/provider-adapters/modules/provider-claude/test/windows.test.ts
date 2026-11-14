@@ -327,3 +327,25 @@ test('Windows folder keys of ~/.claude.json: any slashes and drive case; new key
   assert.deepEqual(trustFromSnapshot(snapshot, 'D:\\Work\\New'), { trusted: true });
   await assert.rejects(renameRetrying(path.join(tmp, 'missing'), path.join(tmp, 'x')), { code: 'ENOENT' });
 });
+
+test('M28 T010: the ConPTY host confirms Stop in a permission dialog by the frame, the raw notice split by control codes', async () => {
+  const host = fakeHost();
+  const put = { putFile: async (file: string, value: unknown) => void host.files.set(file, JSON.stringify(value)) };
+  const done = runHost(session(), { ...host.deps, ...put }, TIMINGS);
+  host.emit('claude.ai/code/session_Stop1\r\n');
+  await until(() => host.out().includes('SESSION_URL'));
+  const rule = '─'.repeat(40);
+  const input = (above: string) => `\u001b[2J\u001b[H${above}\r\n${rule}\r\n❯ \r\n${rule}\r\n  ? for shortcuts\r\n`;
+  host.emit(input('● Write(note.txt)\r\n Do you want to proceed?\r\n ❯ 1. Yes\r\n   2. No'));
+  await until(() => JSON.parse(host.files.get(`${DEBUG}.interrupt-state`) ?? '{}').state === 'dialog');
+  const epoch = JSON.parse(host.files.get(`${DEBUG}.interrupt-state`)!).epoch as string;
+  const id = '0f0e0d0c-0b0a-4908-8706-050403020100';
+  host.files.set(`${DEBUG}.interrupt`, JSON.stringify({ id, epoch, expires: Number.MAX_SAFE_INTEGER }));
+  await until(() => host.written.includes('\u001b'));
+  host.emit(input('● Write(note.txt)\r\n  ⎿  \u001b[38;5;246mInterrupted\u001b[39m\u001b[1C·\u001b[1CWhat\u001b[1Cshould\u001b[1CClaude\u001b[1Cdo\u001b[1Cinstead?'));
+  await until(() => JSON.parse(host.files.get(`${DEBUG}.interrupt-result`) ?? '{}').id === id);
+  assert.equal(JSON.parse(host.files.get(`${DEBUG}.interrupt-result`)!).status, 'interrupted');
+  assert.equal(host.written.filter((text) => text === '\u001b').length, 1, 'exactly one Escape');
+  host.exit(0);
+  await done;
+});

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1026,
+  "revision": 1027,
   "rounds": [
     {
       "digest": null,
@@ -79,6 +79,38 @@
   "tasks": [
     {
       "acceptance": [
+        "Байты, пришедшие в куске рукопожатия и в следующих кусках до первого обработанного кадра, декодируются строго в порядке поступления; обработчик сообщений подключается до первого сообщения, как прежде.",
+        "Детерминированный тест на memory peer: рукопожатие с началом кадра в одном куске и остаток кадра синхронно следом дают одно целое сообщение без protocol-error; тест падает на прежнем коде.",
+        "Тест реального WebSocket 16 МиБ проходит локально; module.md (OS-раздел или транспорт) и OS-MATRIX описывают исправление для macOS, Linux и Windows; поведение одинаково на всех ОС."
+      ],
+      "checks": [],
+      "commitMessage": "fix: keep WebSocket bytes in order after the Codex handshake",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M32-codex-validation.md",
+          "required": true
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/ws.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/ws-rpc.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md",
+        "docs/architecture/OS-MATRIX.md"
+      ],
+      "fixes": null,
+      "id": "F001",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R1",
+      "status": "TODO",
+      "title": "Сохранить порядок байтов после рукопожатия WebSocket Codex",
+      "why": "CI Linux x64 run 43708900530 на SHA 0d04a7db: начало кадра в куске рукопожатия обрабатывается через setImmediate, следующий кусок сокета успевает раньше — protocol-error «continuation without a message» (дефект T002a/db08ada прежнего scope M32-codex-history-recovery-retry1)"
+    },
+    {
+      "acceptance": [
         "Project-wide documents describe the round result",
         "The round digest records result, decisions, contracts and references"
       ],
@@ -86,12 +118,16 @@
       "commitMessage": "docs: reconcile documentation for R1",
       "confirmation": null,
       "context": [],
-      "dependencies": [],
+      "dependencies": [
+        "F001"
+      ],
       "docsWaiver": null,
       "files": [
         "README.md",
         "docs/architecture/OVERVIEW.md",
-        "docs/planning/M32-codex-history-recovery.md"
+        "docs/planning/M32-codex-history-recovery.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md",
+        "docs/architecture/OS-MATRIX.md"
       ],
       "fixes": null,
       "id": "DOCS-R1",
@@ -127,6 +163,45 @@
       "status": "TODO",
       "title": "Проверить поставляемый SHA в CI на четырёх платформах",
       "why": "Проверить поставляемый SHA в CI на четырёх платформах"
+    },
+    {
+      "acceptance": [
+        "Patch-версия поднята 0.13.6→0.13.7 синхронно в package.json, package-lock.json, CHANGELOG.md, README.md, docs/installation.md и docs/usage.md.",
+        "Сборка установлена штатно, wfk doctor --installed без ошибок, служба 0.13.7; smoke ленты Codex без прерывания хода пользователя; результат в docs/evidence/M32/local-delivery.md.",
+        "Main не публикуется; живые проверки macOS/iPad/Windows остаются pending, если не проведены."
+      ],
+      "checks": [],
+      "commitMessage": "chore: deliver Codex WebSocket ordering fix",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M32-codex-validation.md",
+          "required": true
+        }
+      ],
+      "dependencies": [
+        "F001",
+        "DOCS-R1"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "package.json",
+        "package-lock.json",
+        "CHANGELOG.md",
+        "README.md",
+        "docs/installation.md",
+        "docs/usage.md",
+        "docs/evidence/M32/local-delivery.md",
+        "docs/evidence/M32-codex-history-recovery.md"
+      ],
+      "fixes": null,
+      "id": "F002",
+      "iteration": 1,
+      "kind": "delivery",
+      "roundId": "R1",
+      "status": "TODO",
+      "title": "Собрать и установить 0.13.7 с исправлением транспорта",
+      "why": "Повторная поставка после F001: T006 прежнего scope поставил 0.13.6 с дефектом ws.ts"
     }
   ]
 }
@@ -139,8 +214,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 0/2
-- Revision: 1026
+- Progress: 0/4
+- Revision: 1027
 
 ## Objective
 
@@ -159,12 +234,20 @@
 
 ### R1 — Carried over (implementation, OPEN)
 
+- [TODO] F001 — Сохранить порядок байтов после рукопожатия WebSocket Codex (work)
+  - Commit: fix: keep WebSocket bytes in order after the Codex handshake
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/ws.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/ws-rpc.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, docs/architecture/OS-MATRIX.md
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
-  - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M32-codex-history-recovery.md
+  - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M32-codex-history-recovery.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, docs/architecture/OS-MATRIX.md
+  - Depends on: F001
 - [TODO] T007 — Проверить поставляемый SHA в CI на четырёх платформах (delivery)
   - Commit: docs: record Codex history recovery cross-platform CI
   - Files: docs/evidence/M32-codex-history-recovery.md
   - Depends on: DOCS-R1
+- [TODO] F002 — Собрать и установить 0.13.7 с исправлением транспорта (delivery)
+  - Commit: chore: deliver Codex WebSocket ordering fix
+  - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/installation.md, docs/usage.md, docs/evidence/M32/local-delivery.md, docs/evidence/M32-codex-history-recovery.md
+  - Depends on: F001, DOCS-R1
 
 State changes only through `scripts/workflow` commands. History lives in Git.

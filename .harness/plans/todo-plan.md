@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1068,
+  "revision": 1070,
   "rounds": [
     {
       "digest": null,
@@ -716,14 +716,24 @@
         "docs/evidence/M33-acceptance.md",
         "docs/evidence/M33",
         "docs/design/M33-claude-question-facts.md",
-        "docs/design/M33-codex-question-facts.md"
+        "docs/design/M33-codex-question-facts.md",
+        "docs/evidence/M33/T014-claude-cancelled.png",
+        "docs/evidence/M33/T014-claude-nochannel.png",
+        "docs/evidence/M33/T014-claude-q1-answered.png",
+        "docs/evidence/M33/T014-claude-q1-pending.png",
+        "docs/evidence/M33/T014-codex-q1-answered.png",
+        "docs/evidence/M33/T014-codex-q1-pending.png",
+        "docs/evidence/M33/T014-codex-q2-app.png",
+        "docs/evidence/M33/T014-sol-q1-answered.png",
+        "docs/evidence/M33/T014-sol-q1-pending.png",
+        "docs/evidence/M33/T014-sol-q2-app.png"
       ],
       "fixes": null,
       "id": "T014",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Полная живая проверка вопросов на macOS",
       "why": "После исправлений нужен сквозной путь через родные приложения"
     },
@@ -870,8 +880,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 11/15
-- Revision: 1068
+- Progress: 12/15
+- Revision: 1070
 
 ## Objective
 
@@ -932,9 +942,9 @@
   - Commit: feat(panel): answer an asynchronous question with a message
   - Files: product-parts/control-panel/clusters/web-panel/modules/session-chat, design-qa.md, docs/evidence/M33, docs/evidence/M33/T013-async-dark-answered.png, docs/evidence/M33/T013-async-dark-pending.png, docs/evidence/M33/T013-async-light-390-answered.png, docs/evidence/M33/T013-async-light-390-pending.png, docs/evidence/M33/design-qa.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/questions.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/question-card.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/question-model.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/session-chat.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/m33-async-question.browser.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/question-model.test.ts
   - Depends on: T012
-- [TODO] T014 — Полная живая проверка вопросов на macOS (work)
+- [DONE] T014 — Полная живая проверка вопросов на macOS (work)
   - Commit: docs: record the full live verification of agent questions
-  - Files: docs/evidence/M33-acceptance.md, docs/evidence/M33, docs/design/M33-claude-question-facts.md, docs/design/M33-codex-question-facts.md
+  - Files: docs/evidence/M33-acceptance.md, docs/evidence/M33, docs/design/M33-claude-question-facts.md, docs/design/M33-codex-question-facts.md, docs/evidence/M33/T014-claude-cancelled.png, docs/evidence/M33/T014-claude-nochannel.png, docs/evidence/M33/T014-claude-q1-answered.png, docs/evidence/M33/T014-claude-q1-pending.png, docs/evidence/M33/T014-codex-q1-answered.png, docs/evidence/M33/T014-codex-q1-pending.png, docs/evidence/M33/T014-codex-q2-app.png, docs/evidence/M33/T014-sol-q1-answered.png, docs/evidence/M33/T014-sol-q1-pending.png, docs/evidence/M33/T014-sol-q2-app.png
   - Depends on: T013
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1

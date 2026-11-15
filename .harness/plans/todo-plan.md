@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1076,
+  "revision": 1077,
   "rounds": [
     {
       "digest": {
@@ -49,7 +49,10 @@
       "Лента, ввод, очередь, Stop, параметры, автопилот и провайдеры ChatGPT и Kimi не регрессировали; контракты модулей и матрица трёх ОС согласованы.",
       "0.14.0 установлена и проверена, CI точного SHA зелёная на macOS, Linux, Windows x64 и ARM64; пользовательская приёмка отдельно."
     ],
-    "acceptanceNote": null,
+    "acceptanceNote": {
+      "at": "2026-11-15T17:31:54.245Z",
+      "text": "Ладно, я понял. Закончим этот план и закроем его."
+    },
     "approval": {
       "at": "2026-11-15T13:15:13.651Z",
       "text": "Пользователь, 15.11.2026: «Что мы можем сделать, чтобы подобный интерактивный вопрос возникал и в Workflow Kit диалоге? Ну или похожий хотя бы, чтобы не писать в поле ввода пользователя «подтверждаю» или вариант, который предложен, а нажать, выбрать ответ и нажать «Submit».» В панели выбраны спецификация и план с ревью. | Execution mode chosen by the user: sequential: Выбор пользователя в панели Workflow Kit: выполнить самому, последовательно"
@@ -116,7 +119,7 @@
         "text": "Рекомендован sequential: пробы требуют участия пользователя, задачи реализации меняют общий контракт и общие документы по цепочке; поставка, CI точного SHA, приёмка, закрытие и публикация main разделены."
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "ACCEPTED",
     "execution": {
       "maxWorkers": 2,
       "ownerSession": "4f9ed632-4ce4-4d1f-8c95-dbc1b23b1186",
@@ -898,11 +901,11 @@
 ## State
 
 - Scope: M33-agent-questions (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: ACCEPTED
 - Execution: sequential
 - Current task: none
 - Progress: 15/15
-- Revision: 1076
+- Revision: 1077
 
 ## Objective
 

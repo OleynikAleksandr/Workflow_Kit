@@ -81,6 +81,19 @@ macOS, 15.11.2026, codex-cli 0.169.0, ChatGPT Desktop, `gpt-6.1-sol`. Проек
 | --- | --- | --- | --- |
 | macOS | агент и пользователь | установка 0.14.1, doctor, живая проверка выше | пройдено |
 | Windows x64 и ARM64 | проверяющий на Windows | установка 0.14.1; асинхронный вопрос ChatGPT: ответ из карточки панели при идущем ходе (`codex app-server proxy`), лента и закрытая карточка | pending |
-| Linux | CI | typecheck, тесты, platform-guard для точного SHA поставки | T005 |
+| Linux | CI | typecheck, тесты, platform-guard для точного SHA поставки | пройдено (CI ниже) |
 
-CI для точного SHA поставки на macOS, Linux, Windows x64 и ARM64 — задача T005.
+## CI точного SHA поставки (T005)
+
+SHA задачи T004 `a6cbb68a9e945e414955cc1f58e031e08152da32` отправлен в ветку
+`ci/M34-codex-async-answer`; `main` не публиковался (публикация — после приёмки и закрытия
+scope по команде пользователя). Прогон
+[43760429944](https://github.com/OleynikAleksandr/Workflow_Kit/actions/runs/43760429944):
+итог `success`.
+
+| Задание | Итог |
+| --- | --- |
+| macOS ARM64 | success |
+| Linux x64 | success |
+| Windows x64 | success |
+| Windows ARM64 | success |

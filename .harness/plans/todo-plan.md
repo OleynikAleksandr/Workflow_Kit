@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1089,
+  "revision": 1091,
   "rounds": [
     {
       "digest": {
@@ -36,7 +36,7 @@
       },
       "id": "R1",
       "kind": "implementation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Implementation"
     }
   ],
@@ -101,7 +101,7 @@
         "text": "Рекомендован sequential: T001 и T002 меняют один модуль provider-codex и общий файл обёртки, живая проверка требует участия пользователя; T003 помечена parallelSafe и может идти параллельно при выборе orchestrated."
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 2,
       "ownerSession": "042d4520-34f1-40ea-8271-d3c682bd5c32",
@@ -345,7 +345,7 @@
       ],
       "checks": [],
       "commitMessage": "docs: record asynchronous question answer cross-platform CI",
-      "confirmation": null,
+      "confirmation": "Поэтому можешь заканчивать T004 и приступать к выполнению T005.",
       "context": [
         {
           "path": "docs/planning/M34-codex-async-answer.md",
@@ -366,7 +366,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "CI точного SHA поставки на четырёх платформах",
       "why": "Поставка не готова, пока CI не зелёная на всех ОС"
     }
@@ -378,11 +378,11 @@
 ## State
 
 - Scope: M34-codex-async-answer (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 5/6
-- Revision: 1089
+- Progress: 6/6
+- Revision: 1091
 
 ## Objective
 
@@ -398,7 +398,7 @@
 
 ## Rounds
 
-### R1 — Implementation (implementation, OPEN)
+### R1 — Implementation (implementation, CLOSED)
 
 - [DONE] T001 — Codex: ответ на асинхронный вопрос в идущий ход (work)
   - Commit: fix(codex): steer the answer of an asynchronous question into the running turn
@@ -418,7 +418,7 @@
   - Commit: chore: deliver the asynchronous question answer fix
   - Files: package.json, package-lock.json, CHANGELOG.md, docs/evidence/M34-acceptance.md
   - Depends on: T001, T002, T003, DOCS-R1
-- [TODO] T005 — CI точного SHA поставки на четырёх платформах (delivery)
+- [DONE] T005 — CI точного SHA поставки на четырёх платформах (delivery)
   - Commit: docs: record asynchronous question answer cross-platform CI
   - Files: docs/evidence/M34-acceptance.md
   - Depends on: T004, DOCS-R1

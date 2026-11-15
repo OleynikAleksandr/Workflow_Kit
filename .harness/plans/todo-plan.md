@@ -10,10 +10,30 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1085,
+  "revision": 1087,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "provider-registry: ChatQuestion.reply 'message' отвечается маршрутом ответа, сохраняет delivery и answers; QUESTION_BY_MESSAGE_REASON удалён",
+          "provider-codex: question-reply.ts (replyText, parseReply, replyReadable, replyAnswers)",
+          "provider-codex: async-answer.ts (createAsyncAnswer, answerTarget), steerTurn в thread-ops.ts; wakeThread возвращает id хода",
+          "session-chat: карточка reply 'message' шлёт { attemptId, answers } маршрутом ответа; фаза messaged удалена"
+        ],
+        "decisions": [
+          "Ответ на асинхронный вопрос — маршрутом ответа с attemptId и журналом попыток",
+          "Codex: turn/steer с expectedTurnId идущего хода, без хода — turn/start; отказ turn/steer — одно новое чтение и одна передача",
+          "Обёртка ответа — байт в байт как у ChatGPT (проект 003); разбирается только целая обёртка, пустой ответ оставляет исходный текст",
+          "Поле ввода панели и agent-channel не меняются: turn/steer только для ответа на вопрос",
+          "Хук UserPromptSubmit влитого ответа канал обрабатывает как сообщение пользователя из ChatGPT"
+        ],
+        "references": [
+          "docs/planning/M34-codex-async-answer.md",
+          "docs/design/M33-codex-question-facts.md",
+          "docs/evidence/M34/design-qa.md"
+        ],
+        "result": "Ответ на асинхронный вопрос ChatGPT/Codex из карточки панели идёт маршрутом ответа с попыткой и входит в идущий ход (turn/steer) обёрткой <send_user_message_question_reply>, как ответ ChatGPT; без хода начинает ход. Лента показывает обёртку читаемым текстом и даёт закрытому вопросу answers; карточка показывает выбранный ответ."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -273,7 +293,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -361,8 +381,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 3/6
-- Revision: 1085
+- Progress: 4/6
+- Revision: 1087
 
 ## Objective
 
@@ -390,7 +410,7 @@
 - [DONE] T003 — Панель: карточка асинхронного вопроса отвечает маршрутом ответа (work, parallel-safe)
   - Commit: fix(panel): answer an asynchronous question through the answer route
   - Files: product-parts/control-panel/clusters/web-panel/modules/session-chat/src/question-card.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/question-model.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/session-chat.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/question-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/m33-async-question.browser.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/m34-async-answer.browser.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/questions.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, design-qa.md, docs/evidence/M34/design-qa.md, docs/evidence/M34/T003-async-dark-answered.png, docs/evidence/M34/T003-async-light-390-answered.png
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M34-codex-async-answer.md, docs/architecture/CONTRACTS.md, docs/architecture/OS-MATRIX.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/questions.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, design-qa.md, docs/evidence/M34/design-qa.md
   - Depends on: T001, T002, T003
@@ -402,5 +422,7 @@
   - Commit: docs: record asynchronous question answer cross-platform CI
   - Files: docs/evidence/M34-acceptance.md
   - Depends on: T004, DOCS-R1
+
+Digest: Ответ на асинхронный вопрос ChatGPT/Codex из карточки панели идёт маршрутом ответа с попыткой и входит в идущий ход (turn/steer) обёрткой <send_user_message_question_reply>, как ответ ChatGPT; без хода начинает ход. Лента показывает обёртку читаемым текстом и даёт закрытому вопросу answers; карточка показывает выбранный ответ.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

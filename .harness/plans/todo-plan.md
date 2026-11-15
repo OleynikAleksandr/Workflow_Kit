@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1098,
+  "revision": 1100,
   "rounds": [
     {
       "digest": {
@@ -156,7 +156,7 @@
         "installed-service"
       ],
       "commitMessage": "chore: deliver the test stray folders fix",
-      "confirmation": null,
+      "confirmation": "Пользователь, 15.11.2026: «выполняй вплоть до сборки нового релиза и публикации его на GitHub»; 16.11.2026: «Дальше»",
       "context": [
         {
           "path": "docs/planning/M35-test-stray-folders.md",
@@ -180,7 +180,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Поставка 0.14.2: версия, CHANGELOG, сборка Kit, установка и doctor",
       "why": "Пользователь просил довести исправление до нового релиза"
     },
@@ -227,8 +227,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 2/4
-- Revision: 1098
+- Progress: 3/4
+- Revision: 1100
 
 ## Objective
 
@@ -252,7 +252,7 @@
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M35-test-stray-folders.md
   - Depends on: T001
-- [TODO] T002 — Поставка 0.14.2: версия, CHANGELOG, сборка Kit, установка и doctor (delivery)
+- [DONE] T002 — Поставка 0.14.2: версия, CHANGELOG, сборка Kit, установка и doctor (delivery)
   - Commit: chore: deliver the test stray folders fix
   - Files: package.json, package-lock.json, CHANGELOG.md, docs/evidence/M35-acceptance.md
   - Depends on: T001, DOCS-R1

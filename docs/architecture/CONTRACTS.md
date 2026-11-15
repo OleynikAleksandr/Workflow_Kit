@@ -95,7 +95,9 @@ Kit 2.2.5 ставится в проект бандлом (`install --host harne
 карточек плана и выбора пути (`plan-view`). Хук вопроса Claude `wfk hook question`
 (`PermissionRequest` вопроса `AskUserQuestion`, структура v4, M33) держит
 `POST /api/hooks/question` по `waiterId`, пока пользователь не ответит в панели или в приложении:
-маршрут `agent-channel`, провайдер — `questionHook`. Хуки `wfk hook stop|prompt|turn-end` идут в
+маршрут `agent-channel`, провайдер — `questionHook`. Вопрос Codex `request_user_input` приходит слушателю
+`provider-codex` (долгое соединение с демоном); ни одно соединение Kit не отвечает на запросы
+сервера, кроме ответа слушателя на вопрос по нажатию в панели (M33). Хуки `wfk hook stop|prompt|turn-end` идут в
 `agent-channel` (`POST /api/hooks/…`, только loopback): `Stop` держится до 9 минут, пока
 пользователь решает (сессию, которую запустила панель и умеет будить, — нет: M29, `release`,
 она свободна и будится, когда есть что сказать); провайдеру без удержания `Stop` (`turn-end`) сообщение уходит промптом,

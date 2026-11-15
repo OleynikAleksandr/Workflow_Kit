@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1053,
+  "revision": 1055,
   "rounds": [
     {
       "digest": null,
@@ -418,14 +418,28 @@
       "files": [
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex",
         "docs/architecture/CONTRACTS.md",
-        "docs/architecture/OS-MATRIX.md"
+        "docs/architecture/OS-MATRIX.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/questions.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/chat.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/question-listener.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/question-parts.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/questions.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/rpc.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/runtime.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/chat.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/questions.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/shared-sessions.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/ws-rpc.test.ts"
       ],
       "fixes": null,
       "id": "T006",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Codex: флаг ожидания, слушатель вопросов и ответ",
       "why": "Вопрос Codex приходит запросом сервера, который Kit сейчас отклоняет, а отказ любого подписчика отменяет вопрос и одобрение для всех клиентов"
     },
@@ -623,8 +637,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 5/11
-- Revision: 1053
+- Progress: 6/11
+- Revision: 1055
 
 ## Objective
 
@@ -660,9 +674,9 @@
   - Commit: feat(claude): answer AskUserQuestion from the panel
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/backend-core/clusters/projects/modules/kit-structure, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel, tools/platform-guard/allowlist.json, docs/architecture/CONTRACTS.md, docs/architecture/OS-MATRIX.md, product-parts/backend-core/clusters/projects/modules/kit-structure/module.md, product-parts/backend-core/clusters/projects/modules/kit-structure/src/hook-config.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/src/index.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/src/templates.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/test/question-hook.test.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/test/structure.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/connected-modules.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/commands.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/hook.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/question-hook.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/question-hook.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/questions.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/programs.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/question-waiters.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/questions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/question-waiters.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/questions.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/questions.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/question-route.test.ts
   - Depends on: T004
-- [TODO] T006 — Codex: флаг ожидания, слушатель вопросов и ответ (work)
+- [DONE] T006 — Codex: флаг ожидания, слушатель вопросов и ответ (work)
   - Commit: feat(codex): show and answer user input requests
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, docs/architecture/CONTRACTS.md, docs/architecture/OS-MATRIX.md
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, docs/architecture/CONTRACTS.md, docs/architecture/OS-MATRIX.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/questions.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/chat.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/question-listener.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/question-parts.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/questions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/rpc.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/runtime.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/chat.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/questions.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/shared-sessions.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/ws-rpc.test.ts
   - Depends on: T003
 - [TODO] T007 — Панель: карточка вопроса в диалоге (work)
   - Commit: feat(panel): add the agent question card to the session chat

@@ -267,5 +267,5 @@ test('no code of the adapter reads the whole history: no includeTurns true, ever
       assert.match(call[0], /excludeTurns: true/, `${name}: ${call[0]}`);
     }
   }
-  assert.equal(resumes, 2, 'thread-ops.ts and parameter-update.ts');
+  assert.equal(resumes, 3, 'thread-ops.ts, parameter-update.ts and question-listener.ts');
 });

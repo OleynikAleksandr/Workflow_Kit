@@ -68,7 +68,7 @@ test('a refused handshake or a missing socket rejects with a readable error', as
   await assert.rejects(connectUnixWebSocket(path.join(tmp, 'missing.sock'), { timeoutMs: 1000 }), /ENOENT|closed/);
 });
 
-test('server requests are refused, requests time out, a closed transport fails pending calls', async () => {
+test('server requests get no answer at all (spec M33), requests time out, a closed transport fails pending calls', async () => {
   const sent: unknown[] = [];
   let deliver: (message: unknown) => void = () => undefined;
   let closeIt: (error?: Error) => void = () => undefined;
@@ -80,7 +80,9 @@ test('server requests are refused, requests time out, a closed transport fails p
   };
   const session = createRpcSession(transport, { timeoutMs: 50 });
   deliver({ jsonrpc: '2.0', id: 'srv-1', method: 'item/commandExecution/requestApproval', params: {} });
-  assert.deepEqual(sent[0], { jsonrpc: '2.0', id: 'srv-1', error: { code: -32601, message: 'Workflow Kit does not handle server requests' } });
+  deliver({ jsonrpc: '2.0', id: 7, method: 'item/tool/requestUserInput', params: {} });
+  // Neither a result nor an error: an error of any subscriber cancels the request for all (T002 Q6).
+  assert.deepEqual(sent, []);
   await assert.rejects(session.request('slow'), /no answer in time/);
   const pending = session.request('x', undefined, 5000);
   closeIt(new Error('gone'));

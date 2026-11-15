@@ -70,6 +70,8 @@ export interface ChatDeps {
   serverPid?(): number | null;
   /** Monotonic clock of the feed poll (tests inject it). */
   now?(): number;
+  /** Before a direct turn: the question listener subscribes to the thread (spec M33). */
+  prepareTurn?(threadId: string): Promise<void>;
 }
 
 /** readMessages and sendDirect of the Codex provider; the session id is the thread id. */
@@ -98,6 +100,7 @@ export function createChatParts(deps: ChatDeps): ChatParts {
       if (!THREAD_ID.test(threadId) || text.trim() === '') return false;
       try {
         if (!(await deps.shared())) return false;
+        await deps.prepareTurn?.(threadId);
         return await deps.withDaemon(async (session) => {
           const status = await threadStatus(session, threadId);
           if (status === null || !DIRECT_STATUSES.includes(status)) {

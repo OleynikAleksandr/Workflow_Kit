@@ -9,7 +9,7 @@ import type { ProviderContext, TokenStore } from '#provider-registry';
 import { cachedText, heldByApp, codexPaths, lastRemoteWarning, pidAlive, readDaemonPid, readTail, tokenErrorLine } from './codex-files.ts';
 import type { CodexPaths } from './codex-files.ts';
 import { createRpcSession, initializeSession } from './rpc.ts';
-import type { InitializeResult, RpcSession, RpcTransport } from './rpc.ts';
+import type { InitializeResult, RpcSession, RpcSessionOptions, RpcTransport } from './rpc.ts';
 import { spawnAppServer } from './stdio.ts';
 import type { SharedAccessDeps } from './shared-access.ts';
 import type { AppServerOpener } from './stdio.ts';
@@ -47,6 +47,8 @@ export interface CodexDeps {
   /** Monotonic clock and random source of the connection backoff (spec M32 section 2.5). */
   monotonic?: () => number;
   random?: () => number;
+  /** Timing of the question listener (spec M33; tests make it short). */
+  questionTiming?: Partial<import('./question-listener.ts').ListenerTiming>;
 }
 
 /** What the last daemon probe found. */
@@ -188,6 +190,8 @@ export interface CodexRuntime {
    * refused at once with CodexOffline during the backoff, one due read makes the recovery attempt.
    */
   readDaemon<T>(fn: (session: RpcSession, init: InitializeResult) => Promise<T>, timeoutMs: number, experimentalApi?: boolean): Promise<T>;
+  /** A long connection with experimentalApi for the question listener (spec M33); the caller closes it. */
+  listen(options: RpcSessionOptions): Promise<RpcSession>;
   /** Epoch, server identity and backoff of the daemon connection. */
   connection: ConnectionCoordinator;
   /** Monotonic milliseconds (deps.monotonic, else performance.now). */
@@ -343,6 +347,17 @@ export function createCodexRuntime(context: ProviderContext, deps: CodexDeps = {
       } finally {
         session.close();
       }
+    },
+    async listen(options) {
+      const transport = await openDaemon(await socketPath(), { timeoutMs: 5000 });
+      const session = createRpcSession(transport, options);
+      try {
+        await initializeSession(session, 5000, true);
+      } catch (error) {
+        session.close();
+        throw error;
+      }
+      return session;
     },
     async readDaemon(fn, timeoutMs, experimentalApi = false) {
       const deadline = monotonic() + timeoutMs;

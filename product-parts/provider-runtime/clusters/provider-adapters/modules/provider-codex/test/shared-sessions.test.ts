@@ -84,7 +84,9 @@ test('in the mode: no unload, hostId links, wake resumes the chat, remote contro
 
   daemon.calls.length = 0;
   assert.equal(await provider.wakeSession!(project, 'thread-shared'), true);
-  assert.deepEqual(methods(), ['thread/loaded/list', 'thread/resume', 'turn/start', 'thread/unsubscribe']);
+  // Spec M33: the question listener subscribes before the turn Kit starts (its resume loads the
+  // chat, so the wake finds it loaded and starts the turn without a resume of its own).
+  assert.deepEqual(methods(), ['thread/resume', 'thread/loaded/list', 'turn/start', 'thread/unsubscribe']);
 
   world.calls.length = 0;
   await provider.maintain!();

@@ -11,6 +11,7 @@ import { createInterruptParts, interruptProgramReason } from './interrupt.ts';
 import { createParameterUpdater } from './parameter-update.ts';
 import { createParameterParts } from './parameters.ts';
 import { createChatParts } from './chat.ts';
+import { createQuestionParts } from './question-parts.ts';
 import { createCodexRuntime } from './runtime.ts';
 import type { CodexDeps, CodexRuntime, DaemonState } from './runtime.ts';
 import { createSessionParts } from './sessions.ts';
@@ -116,6 +117,7 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
   const handover = createHandover(rt, { ...deps.handover, busy: () => creating > 0, shared: () => sharedMode.active() });
   const trustParts = createTrustParts(rt);
   const interruptions = createInterruptParts(rt, deps, () => handover.active ? HANDOVER_REASON : null);
+  const questions = createQuestionParts(rt, deps.questionTiming);
   const chatParts = createChatParts({
     withDaemon: (fn, timeoutMs) => rt.withDaemon(fn, timeoutMs),
     readDaemon: (fn, timeoutMs) => rt.readDaemon(fn, timeoutMs),
@@ -123,7 +125,12 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
     serverIdentity: () => rt.connection.identity(),
     shared: () => sharedMode.refresh(),
     log: context.log,
-    onThreadRead: interruptions.observe,
+    onThreadRead: (threadId, answer) => {
+      interruptions.observe(threadId, answer);
+      questions.observe(threadId, answer);
+    },
+    // Spec M33: a turn Kit starts is listened to from its start (subscription before turn/start).
+    prepareTurn: (threadId) => questions.prepare(threadId),
     home: rt.paths.home,
     serverPid: () => rt.cachedDaemon()?.pid ?? null,
   });
@@ -152,7 +159,7 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
     else if (!create && daemon.error) create = `демон Codex не отвечает: ${daemon.error}`;
     else if (!create && !linked(daemon)) create = 'демон Codex не подключён к ChatGPT — «Подключить к ChatGPT»';
     const cap = (reason: string | null) => (reason ? { available: false, reason } : { available: true });
-    return { trust: cap(missing), hooks: cap(missing), sessions: { available: true }, createSession: cap(create), daemon: cap(missing), interruptTurn: cap(interruptProgramReason(rt)), sessionParameters: cap(missing), updateParameters: cap(missing) };
+    return { trust: cap(missing), hooks: cap(missing), sessions: { available: true }, createSession: cap(create), daemon: cap(missing), interruptTurn: cap(interruptProgramReason(rt)), sessionParameters: cap(missing), updateParameters: cap(missing), answerQuestion: cap(missing) };
   };
 
   const actions = async (project: Project | null): Promise<ProviderAction[]> => {
@@ -289,6 +296,7 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
     // Shared daemon mode only (spec M12 section 2.3): a short turn, the prompt hook hands over the queue.
     async wakeSession(_project, sessionId) {
       if (!(await sharedMode.refresh()) || !/^[A-Za-z0-9_-]{1,128}$/.test(sessionId)) return false;
+      await questions.prepare(sessionId);
       await rt.withDaemon((session) => wakeThread(session, sessionId), 30_000);
       context.log(`codex: thread ${sessionId} woken in the shared daemon`);
       return true;
@@ -296,7 +304,8 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
     // Conversation (spec M18 section 2.3): thread/read with turns; a direct turn in the shared mode.
     updateParameters: (project, sessionId, change) => updateParameters(sessionId, change, project.path),
     readParameters: (project, sessionId) => parameters.readParameters(sessionId, project.path),
-    readMessages: (project, sessionId, opts) => chatParts.readMessages(sessionId, opts.limit, project.id),
+    readMessages: async (project, sessionId, opts) => questions.decorate(sessionId, await chatParts.readMessages(sessionId, opts.limit, project.id)),
+    answerQuestion: (project, sessionId, questionId, attempt, commit) => questions.answer(project, sessionId, questionId, attempt, commit),
     sendDirect: (_project, sessionId, text) => chatParts.sendDirect(sessionId, text),
     async renameSession(project, sessionId, name) {
       requireCodex(rt);

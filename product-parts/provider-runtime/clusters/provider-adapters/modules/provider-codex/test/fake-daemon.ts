@@ -47,6 +47,8 @@ export interface FakeDaemonOptions {
   dropOn?: string;
   /** thread/items/list answers with a JSON-RPC error with this message (M32). */
   itemsError?: string;
+  /** An answer of a client does not close the request (no serverRequest/resolved, spec M33). */
+  silentResolve?: boolean;
   /** Confirm interrupt by a matching completion, state only, or an empty RPC without proof. */
   interruptMode?: 'event' | 'state' | 'empty';
 }
@@ -59,6 +61,16 @@ export interface FakeThread {
   status: string;
   turns: unknown[];
   historyMode?: string;
+  /** activeFlags of the status (spec M33: waitingOnUserInput, waitingOnApproval). */
+  activeFlags?: string[];
+}
+
+/** A request the fake sent to the subscribers of a thread (spec M33, T002). */
+export interface FakeServerRequest {
+  id: number;
+  threadId: string;
+  method: string;
+  params: unknown;
 }
 
 type FakeItem = Record<string, unknown> & { id?: string; type?: string };
@@ -128,6 +140,21 @@ export interface FakeDaemon {
   threads: Map<string, FakeThread>;
   /** Payload bytes of every answer sent (M32 budgets). */
   sentBytes: number;
+  /** Answers of clients to requests of the server, in order (spec M33). */
+  responses: Array<{ id: unknown; result?: unknown; error?: unknown }>;
+  /**
+   * Sends a request of the server to the subscribers of a thread and keeps it until the first
+   * answer (or resolve); a new subscriber gets it again (like the real daemon, T002 Q3).
+   */
+  ask(threadId: string, method: string, params: unknown): number;
+  /** The request was answered elsewhere (in ChatGPT): serverRequest/resolved to the subscribers. */
+  resolve(id: number): void;
+  /** A notification to the subscribers of a thread. */
+  emit(threadId: string, method: string, params: unknown): void;
+  /** Requests still waiting for an answer. */
+  pendingRequests: Map<number, FakeServerRequest>;
+  /** Drops every connection (the server keeps listening). */
+  drop(): void;
   close(): Promise<void>;
 }
 
@@ -165,7 +192,30 @@ export async function startFakeDaemon(requested: string, options: FakeDaemonOpti
   const idle = new Map<string, number>();
   const archived = new Set<string>();
   const threads = new Map<string, FakeThread>();
-  const daemon: FakeDaemon = { socketPath, calls, pongs: 0, loaded, archived, threads, sentBytes: 0, close: async () => undefined };
+  const pendingRequests = new Map<number, FakeServerRequest>();
+  let nextRequestId = 100;
+  const broadcast = (threadId: string, message: unknown): void => {
+    for (const socket of subscribers.get(threadId) ?? []) if (!socket.destroyed) sendJson(socket, message, false);
+  };
+  const resolveRequest = (id: number): void => {
+    const request = pendingRequests.get(id);
+    if (!request) return;
+    pendingRequests.delete(id);
+    broadcast(request.threadId, { method: 'serverRequest/resolved', params: { threadId: request.threadId, requestId: id } });
+  };
+  const daemon: FakeDaemon = {
+    socketPath, calls, pongs: 0, loaded, archived, threads, sentBytes: 0, responses: [], pendingRequests,
+    ask(threadId, method, params) {
+      const id = nextRequestId++;
+      pendingRequests.set(id, { id, threadId, method, params });
+      broadcast(threadId, { jsonrpc: '2.0', id, method, params });
+      return id;
+    },
+    resolve: resolveRequest,
+    emit: (threadId, method, params) => broadcast(threadId, { method, params }),
+    drop: () => { for (const socket of sockets) socket.destroy(); },
+    close: async () => undefined,
+  };
   const release = (threadId: string, socket: Socket): 'unsubscribed' | 'notSubscribed' | 'notLoaded' => {
     if (!loaded.has(threadId)) return 'notLoaded';
     const set = subscribers.get(threadId);
@@ -215,7 +265,13 @@ export async function startFakeDaemon(requested: string, options: FakeDaemonOpti
         if (frame.opcode === OPCODE.pong) daemon.pongs += 1;
         if (frame.opcode === OPCODE.close) socket.end();
         if (frame.opcode !== OPCODE.text) continue;
-        const message = JSON.parse(frame.payload.toString()) as { id?: unknown; method: string; params?: unknown };
+        const message = JSON.parse(frame.payload.toString()) as { id?: unknown; method: string; params?: unknown; result?: unknown; error?: unknown };
+        if (message.method === undefined) {
+          // An answer of the client to a request of the server: the first one closes it for all.
+          daemon.responses.push({ id: message.id, ...('result' in message ? { result: message.result } : {}), ...('error' in message ? { error: message.error } : {}) });
+          if (typeof message.id === 'number' && !options.silentResolve) resolveRequest(message.id);
+          continue;
+        }
         calls.push({ method: message.method, params: message.params });
         if (message.method === options.dropOn) {
           socket.destroy();
@@ -236,6 +292,9 @@ export async function startFakeDaemon(requested: string, options: FakeDaemonOpti
           loaded.add(id);
           subscribers.set(id, new Set([...(subscribers.get(id) ?? []), socket]));
           answer(message.id, { thread: { id } });
+          for (const request of pendingRequests.values()) {
+            if (request.threadId === id) sendJson(socket, { jsonrpc: '2.0', id: request.id, method: request.method, params: request.params }, tricky);
+          }
         } else if (message.method === 'thread/name/set' && options.nameError) {
           sendJson(socket, { jsonrpc: '2.0', id: message.id, error: { code: -32000, message: options.nameError } }, tricky);
         } else if (message.method === 'thread/name/set') {
@@ -291,7 +350,7 @@ export async function startFakeDaemon(requested: string, options: FakeDaemonOpti
           const id = String(params.threadId ?? '');
           const known = threads.get(id);
           const status = known?.status ?? (loaded.has(id) ? 'idle' : 'notLoaded');
-          answer(message.id, { thread: { id, status: { type: status }, historyMode: known?.historyMode ?? 'paginated', turns: params.includeTurns === true ? (known?.turns ?? []) : [] } });
+          answer(message.id, { thread: { id, status: { type: status, ...(known?.activeFlags ? { activeFlags: known.activeFlags } : {}) }, historyMode: known?.historyMode ?? 'paginated', turns: params.includeTurns === true ? (known?.turns ?? []) : [] } });
         } else if (message.method === 'thread/items/list' && options.itemsError) {
           sendJson(socket, { jsonrpc: '2.0', id: message.id, error: { code: -32000, message: options.itemsError } }, tricky);
         } else if (message.method === 'thread/turns/list' || message.method === 'thread/items/list') {

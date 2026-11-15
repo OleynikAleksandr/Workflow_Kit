@@ -77,6 +77,26 @@ export interface RpcNotification {
   params: unknown;
 }
 
+/** A request of the server (a question, an approval, …): it has an id and waits for an answer. */
+export interface RpcServerRequest {
+  id: string | number;
+  method: string;
+  params: unknown;
+}
+
+/** Options of a session; the question listener (spec M33) uses the handlers. */
+export interface RpcSessionOptions {
+  timeoutMs?: number;
+  /** Gets every request of the server; nothing answers it unless the caller calls respond. */
+  onRequest?: (request: RpcServerRequest) => void;
+  /** Gets every notification. */
+  onNotification?: (note: RpcNotification) => void;
+  /** false: notifications are not kept (a long connection must not pile them up); default true. */
+  keepNotifications?: boolean;
+  /** Called once after the transport closed and the pending calls failed. */
+  onClose?: (error?: Error) => void;
+}
+
 /** One JSON-RPC conversation over a transport. */
 export interface RpcSession {
   request<T = unknown>(method: string, params?: unknown, timeoutMs?: number): Promise<T>;
@@ -92,6 +112,8 @@ export interface RpcSession {
    * pending and later call fails with RpcError code "budget-exhausted" (spec M32 section 2.2).
    */
   limitReceived(maxBytes: number): void;
+  /** Answers a request of the server with a result (only the question listener does, spec M33). */
+  respond(id: string | number, result: unknown): void;
   close(): void;
 }
 
@@ -108,10 +130,12 @@ function isObject(value: unknown): value is Record<string, unknown> {
 }
 
 /**
- * Creates a session over transport. Requests from the server (approvals and the like) are
- * answered with "method not found": Workflow Kit never approves anything on the user's behalf.
+ * Creates a session over transport. Requests from the server (approvals, questions and the like)
+ * are never answered, neither with a result nor with an error: an error of any subscriber cancels
+ * the question or rejects the approval for every client (spec M33, facts T002 Q6), and without an
+ * answer the request stays with ChatGPT. Only the question listener answers, through respond.
  */
-export function createRpcSession(transport: RpcTransport, options: { timeoutMs?: number } = {}): RpcSession {
+export function createRpcSession(transport: RpcTransport, options: RpcSessionOptions = {}): RpcSession {
   const pending = new Map<number, Pending>();
   const notifications: RpcNotification[] = [];
   const waiters: { method: string; resolve: (params: unknown) => void }[] = [];
@@ -154,12 +178,13 @@ export function createRpcSession(transport: RpcTransport, options: { timeoutMs?:
     const id = message['id'];
     const method = message['method'];
     if (typeof method === 'string' && id !== undefined && id !== null) {
-      transport.send({ jsonrpc: '2.0', id, error: { code: -32601, message: 'Workflow Kit does not handle server requests' } });
+      if (typeof id === 'string' || typeof id === 'number') options.onRequest?.({ id, method, params: message['params'] });
       return;
     }
     if (typeof method === 'string') {
       const note = { method, params: message['params'] };
-      notifications.push(note);
+      if (options.keepNotifications !== false) notifications.push(note);
+      options.onNotification?.(note);
       for (const waiter of waiters.filter((w) => w.method === method)) {
         waiters.splice(waiters.indexOf(waiter), 1);
         waiter.resolve(note.params);
@@ -182,6 +207,7 @@ export function createRpcSession(transport: RpcTransport, options: { timeoutMs?:
   transport.onClose((error) => {
     if (!overBudget) closed = error ?? new Error('connection closed');
     failAll(closedError('connection'));
+    options.onClose?.(error);
   });
 
   return {
@@ -207,6 +233,9 @@ export function createRpcSession(transport: RpcTransport, options: { timeoutMs?:
     },
     notify(method, params) {
       if (!closed) transport.send(params === undefined ? { jsonrpc: '2.0', method } : { jsonrpc: '2.0', method, params });
+    },
+    respond(id, result) {
+      if (!closed) transport.send({ jsonrpc: '2.0', id, result });
     },
     waitForNotification(method, timeoutMs) {
       const seen = notifications.find((n) => n.method === method);

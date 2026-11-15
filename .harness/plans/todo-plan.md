@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1087,
+  "revision": 1089,
   "rounds": [
     {
       "digest": {
@@ -308,7 +308,7 @@
         "installed-service"
       ],
       "commitMessage": "chore: deliver the asynchronous question answer fix",
-      "confirmation": null,
+      "confirmation": "Подтверждаю.",
       "context": [
         {
           "path": "docs/planning/M34-codex-async-answer.md",
@@ -334,7 +334,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Поставка 0.14.1, установка и живая проверка установленной версии",
       "why": "Исправление проверяется на настоящей панели, ChatGPT и одобренных хуках, где M33 его пропустила"
     },
@@ -381,8 +381,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 4/6
-- Revision: 1087
+- Progress: 5/6
+- Revision: 1089
 
 ## Objective
 
@@ -414,7 +414,7 @@
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M34-codex-async-answer.md, docs/architecture/CONTRACTS.md, docs/architecture/OS-MATRIX.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/questions.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, design-qa.md, docs/evidence/M34/design-qa.md
   - Depends on: T001, T002, T003
-- [TODO] T004 — Поставка 0.14.1, установка и живая проверка установленной версии (delivery)
+- [DONE] T004 — Поставка 0.14.1, установка и живая проверка установленной версии (delivery)
   - Commit: chore: deliver the asynchronous question answer fix
   - Files: package.json, package-lock.json, CHANGELOG.md, docs/evidence/M34-acceptance.md
   - Depends on: T001, T002, T003, DOCS-R1

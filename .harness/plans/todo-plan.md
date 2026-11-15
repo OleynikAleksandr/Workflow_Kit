@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1055,
+  "revision": 1057,
   "rounds": [
     {
       "digest": null,
@@ -467,14 +467,28 @@
       "files": [
         "product-parts/control-panel/clusters/web-panel/modules/session-chat",
         "docs/evidence/M33/design-qa.md",
-        "design-qa.md"
+        "design-qa.md",
+        "docs/evidence/M33/T007-dark-wide-answered.png",
+        "docs/evidence/M33/T007-dark-wide-locked.png",
+        "docs/evidence/M33/T007-dark-wide-pending.png",
+        "docs/evidence/M33/T007-light-narrow-answered.png",
+        "docs/evidence/M33/T007-light-narrow-locked.png",
+        "docs/evidence/M33/T007-light-narrow-pending.png",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/questions.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/question-card.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/question-model.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/session-chat.css",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/session-chat.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/test/m33-question.browser.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/test/question-model.test.ts"
       ],
       "fixes": null,
       "id": "T007",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Панель: карточка вопроса в диалоге",
       "why": "Пользователь выбирает ответ и нажимает «Отправить», как в родном приложении"
     },
@@ -637,8 +651,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 6/11
-- Revision: 1055
+- Progress: 7/11
+- Revision: 1057
 
 ## Objective
 
@@ -678,9 +692,9 @@
   - Commit: feat(codex): show and answer user input requests
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, docs/architecture/CONTRACTS.md, docs/architecture/OS-MATRIX.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/questions.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/chat.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/question-listener.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/question-parts.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/questions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/rpc.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/runtime.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/chat.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/questions.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/shared-sessions.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/ws-rpc.test.ts
   - Depends on: T003
-- [TODO] T007 — Панель: карточка вопроса в диалоге (work)
+- [DONE] T007 — Панель: карточка вопроса в диалоге (work)
   - Commit: feat(panel): add the agent question card to the session chat
-  - Files: product-parts/control-panel/clusters/web-panel/modules/session-chat, docs/evidence/M33/design-qa.md, design-qa.md
+  - Files: product-parts/control-panel/clusters/web-panel/modules/session-chat, docs/evidence/M33/design-qa.md, design-qa.md, docs/evidence/M33/T007-dark-wide-answered.png, docs/evidence/M33/T007-dark-wide-locked.png, docs/evidence/M33/T007-dark-wide-pending.png, docs/evidence/M33/T007-light-narrow-answered.png, docs/evidence/M33/T007-light-narrow-locked.png, docs/evidence/M33/T007-light-narrow-pending.png, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/questions.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/question-card.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/question-model.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/session-chat.css, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/session-chat.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/m33-question.browser.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/question-model.test.ts
   - Depends on: T003
 - [TODO] T008 — Живая проверка вопросов Claude и Codex на macOS (work)
   - Commit: docs: record live verification of agent questions

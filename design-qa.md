@@ -267,3 +267,9 @@ docs/evidence/M29/{light-375,dark-1280}-pending.png, docs/evidence/M29/{light-12
 - Проверено модельными тестами (`session-view/test/plan-cards.test.ts`); браузерная проверка
   вида и живая приёмка macOS — пользователь после поставки 0.13.5, Windows — проверяющий,
   Linux — CI.
+
+## M33 — карточка вопроса агента в диалоге
+
+Поверхность — карточка «Диалог» (`session-chat`): `question-card.js`, стили `.sc-question*` в
+`session-chat.css`. Сверка с эталоном Claude Desktop, браузерный прогон в обеих темах и узкой
+раскладке и снимки — [docs/evidence/M33/design-qa.md](docs/evidence/M33/design-qa.md).

@@ -173,3 +173,55 @@
   .sc-parameter-trigger, .sc-context-button, .sc-parameter-limits, .sc-parameter-choice { min-height: 44px; }
   .sc-context-button { min-width: 44px; }
 }
+
+/* M33 2.5: the card of an agent's question (reference: the Claude Desktop card, panel tokens). */
+.sc-question {
+  flex-shrink: 0; align-self: stretch; box-sizing: border-box; min-width: 0;
+  display: flex; flex-direction: column; gap: 10px;
+  padding: 12px; border: 1px solid var(--active-line); border-radius: 12px;
+  background: var(--card); color: var(--text);
+}
+.sc-q-part { margin: 0; padding: 0; border: 0; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.sc-q-part legend { padding: 0; margin-bottom: 4px; display: flex; flex-direction: column; gap: 2px; }
+.sc-q-header {
+  align-self: flex-start; padding: 1px 8px; border-radius: 999px;
+  background: var(--active); color: var(--muted); font-size: 12px;
+}
+.sc-q-question { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.45; font-weight: 600; }
+.sc-q-option {
+  display: flex; align-items: flex-start; gap: 10px; min-height: 44px; box-sizing: border-box;
+  padding: 8px 10px; border: 1px solid var(--card-line); border-radius: 10px;
+  cursor: pointer; touch-action: manipulation;
+}
+.sc-q-option:has(input:checked) { border-color: var(--teal); background: var(--active); }
+.sc-q-option:has(input:disabled) { cursor: default; opacity: .7; }
+.sc-q-option input { flex-shrink: 0; width: 18px; height: 18px; margin: 2px 0 0; accent-color: var(--teal); }
+.sc-q-option input:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+.sc-q-label { display: flex; flex-direction: column; gap: 2px; min-width: 0; overflow-wrap: anywhere; }
+.sc-q-label b { font-weight: 500; }
+.sc-q-label small { color: var(--muted); font-size: 12px; line-height: 1.4; }
+.sc-q-other-text {
+  box-sizing: border-box; width: 100%; min-height: 44px; max-height: 160px; resize: vertical;
+  padding: 10px; border: 1px solid var(--card-line); border-radius: 10px;
+  background: var(--input); color: var(--text); font: inherit; line-height: 22px;
+}
+.sc-q-other-text:focus { outline: none; border-color: var(--teal); }
+.sc-q-foot { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
+.panel p.sc-q-status { flex: 1 1 200px; margin: 0; color: var(--muted); overflow-wrap: anywhere; }
+.panel p.sc-q-status[data-tone='error'] { color: var(--error); }
+.sc-q-send, .sc-q-open {
+  min-height: 44px; min-width: 44px; padding: 0 16px; border-radius: 10px; font: inherit;
+  cursor: pointer; touch-action: manipulation;
+}
+.sc-q-send { border: 1px solid var(--teal); background: var(--teal); color: var(--bg, #fff); font-weight: 600; }
+.sc-q-send:disabled { cursor: default; opacity: .45; }
+.sc-q-open { border: 1px solid var(--card-line); background: transparent; color: var(--text); }
+.sc-q-send:focus-visible, .sc-q-open:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+.sc-q-send[hidden], .sc-q-open[hidden], .sc-q-other-text[hidden], .sc-q-status[hidden] { display: none; }
+.sc-question-closed { gap: 4px; border-color: var(--card-line); padding: 8px 11px; max-width: 88%; align-self: flex-start; }
+.sc-q-closed-part { display: flex; flex-direction: column; gap: 2px; }
+.sc-q-closed-part .sc-q-question { font-weight: 400; color: var(--muted); }
+.sc-q-answer { font-weight: 600; overflow-wrap: anywhere; }
+.panel p.sc-q-note { margin: 0; color: var(--muted); font-size: 12px; }
+@media (pointer: coarse) { .sc-q-other-text { font-size: 16px; } }
+@media (max-width: 600px) { .sc-question-closed { max-width: 100%; } .sc-q-send { flex: 1 1 auto; } }

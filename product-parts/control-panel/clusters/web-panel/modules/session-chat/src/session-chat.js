@@ -7,6 +7,8 @@ import { EMPTY_TEXT, LOADING_TEXT, POLL_MS, TRUNCATED_TEXT, errorText, mergePage
 
 import { createComposer } from './composer.js';
 import { QUEUED_LABEL, composerData } from './composer-model.js';
+import { createQuestionCards } from './question-card.js';
+import { WAITING_STATUS, closedPlaces, pendingQuestion, questionsOf } from './question-model.js';
 
 /**
  * Helpers the panel shell gives to extensions (see panel-shell app.js).
@@ -42,6 +44,9 @@ import { QUEUED_LABEL, composerData } from './composer-model.js';
  * @property {boolean} shown the card was visible at the last check
  * @property {number} lastPoll
  * @property {number} version grows on every change of the card
+ * @property {import('./question-model.js').Question[] | undefined} questions questions of the agent (M33)
+ * @property {ReturnType<typeof createQuestionCards>} cards
+ * @property {string | null} link the chat link for this device
  */
 
 /** Distance from the bottom (px) that still counts as "at the bottom". */
@@ -109,9 +114,25 @@ export function install(shell) {
    * @param {ChatEntry} entry
    */
   function layout(entry) {
-    const nodes = [...entry.nodes.values(), ...entry.queuedNodes.values()];
+    // M33 2.5: a closed question after its message, the pending one at the end above the input.
+    const places = closedPlaces(entry.questions, new Set(entry.nodes.keys()));
+    const pending = pendingQuestion(entry.questions);
+    entry.cards.keep(new Set((entry.questions ?? []).map((q) => q.id)));
+    const nodes = [
+      ...(places.get('') ?? []).map((q) => entry.cards.closed(q)),
+      ...[...entry.nodes.entries()].flatMap(([id, node]) => [node, ...(places.get(id) ?? []).map((q) => entry.cards.closed(q))]),
+      ...entry.queuedNodes.values(),
+      ...(pending ? [entry.cards.pending(pending)] : []),
+    ];
+    // The focus (and the caret of own text) inside a question card survives the redraw.
+    const active = document.activeElement;
+    const caret = active instanceof HTMLTextAreaElement ? [active.selectionStart, active.selectionEnd] : null;
     if (nodes.length === 0) entry.feed.replaceChildren(h('p', { class: 'sc-empty' }, [EMPTY_TEXT]));
     else entry.feed.replaceChildren(...nodes);
+    if (active instanceof HTMLElement && active !== document.activeElement && entry.feed.contains(active)) {
+      active.focus({ preventScroll: true });
+      if (caret && active instanceof HTMLTextAreaElement) active.setSelectionRange(caret[0] ?? null, caret[1] ?? null);
+    }
   }
 
   /**
@@ -143,7 +164,9 @@ export function install(shell) {
     const view = syncView(page['sync'], entry.hadFull);
     const lines = `${entry.state.textContent}\n${entry.error.textContent}`;
     line(entry.error, view.error, 'error');
-    line(entry.state, page['supported'] === false ? '' : view.state, 'muted');
+    const questions = questionsOf(page);
+    const waiting = pendingQuestion(questions) !== null;
+    line(entry.state, page['supported'] === false ? '' : view.state || (waiting ? WAITING_STATUS : ''), 'muted');
     if (lines !== `${entry.state.textContent}\n${entry.error.textContent}`) entry.version += 1;
     // A pass in progress never replaces a full snapshot with a part of the history (M32 2.7).
     if (page['supported'] !== false && !view.replace) return;
@@ -163,7 +186,15 @@ export function install(shell) {
     const merged = mergePage(entry.messages, /** @type {{ messages?: unknown }} */ (page));
     line(entry.note, page['truncated'] === true ? TRUNCATED_TEXT : '', 'muted');
     feed.hidden = false;
-    if (!merged.changed) return;
+    const questionsChanged = JSON.stringify(questions) !== JSON.stringify(entry.questions);
+    entry.questions = questions;
+    if (!merged.changed && !questionsChanged) return;
+    if (!merged.changed) {
+      layout(entry);
+      if (atBottom) feed.scrollTop = feed.scrollHeight;
+      entry.version += 1;
+      return;
+    }
     const previous = new Map((entry.messages ?? []).map((m) => [m.id, m]));
     /** @type {Map<string, HTMLElement>} */
     const nodes = new Map();
@@ -242,6 +273,7 @@ export function install(shell) {
     const existing = entries.get(id);
     if (existing) {
       existing.providerLabel = providerLabel;
+      existing.link = session.link;
       return existing;
     }
     const feed = h('div', { class: 'sc-feed', role: 'log', 'aria-live': 'polite' }, [h('p', { class: 'sc-empty' }, [LOADING_TEXT])]);
@@ -260,10 +292,18 @@ export function install(shell) {
       error,
       composer.node,
     ]);
+    const cards = createQuestionCards({
+      h, api: shell.api,
+      messagesUrl: () => messagesUrl(projectId, { key, provider }),
+      link: () => entry.link,
+      changed: () => void (entry.version += 1),
+      repoll: () => void poll(entry),
+    });
     /** @type {ChatEntry} */
     const entry = {
       projectId, key, provider, providerLabel, root, feed, note, state, error, composer, hadFull: false,
       nodes: new Map(), messages: null, queued: [], queuedNodes: new Map(), inflight: false, again: false, shown: false, lastPoll: 0, version: 0,
+      questions: undefined, cards, link: session.link,
     };
     entries.set(id, entry);
     return entry;

@@ -57,6 +57,8 @@
 | `src/session-chat.css` | `.sc-card`, `.sc-feed`, `.sc-msg`, `.sc-msg-user`, `.sc-msg-agent`, `.sc-meta`, `.sc-input`, `.sc-status` на переменных темы панели (светлая и тёмная) |
 | `test/chat-model.test.ts` | адреса, `mergePage`, `sendOutcome`, `canSend`, подписи, монтирование, `syncView` (M32) |
 | `test/m32-recovery.browser.js`, `test/run-browser.mjs` | сценарий восстановления ленты и запуск браузерных сценариев ([sync.md](sync.md)) |
+| `src/question-model.js`, `src/question-card.js` | карточка вопроса агента (M33): модель выбора и попытки, DOM карточки — [questions.md](questions.md) |
+| `test/question-model.test.ts`, `test/m33-question.browser.js` | модель карточки и браузерный сценарий M33 ([questions.md](questions.md)) |
 
 ## Поведение карточки
 

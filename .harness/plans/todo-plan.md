@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1020,
+  "revision": 1022,
   "rounds": [
     {
       "digest": {
@@ -578,7 +578,7 @@
         "installed-service"
       ],
       "commitMessage": "chore: deliver Codex history recovery update",
-      "confirmation": null,
+      "confirmation": "Подтверждаю.",
       "context": [],
       "dependencies": [
         "T005",
@@ -600,7 +600,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Собрать и установить исправление для живой приёмки",
       "why": "Собрать и установить исправление для живой приёмки"
     },
@@ -642,8 +642,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 9/11
-- Revision: 1020
+- Progress: 10/11
+- Revision: 1022
 
 ## Objective
 
@@ -697,7 +697,7 @@
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M32-codex-history-recovery.md, docs/planning/M32-codex-validation.md, docs/evidence/M32-codex-protocol.md, docs/planning/M32-codex-protocol-plan.md, docs/planning/M32-codex-connection.md, docs/planning/M32-document-split.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, docs/architecture/OS-MATRIX.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, docs/evidence/M32-codex-history-recovery.md, docs/architecture/CONTRACTS.md
   - Depends on: T001, T002a, T002b1, T002b2, T002c, T003, T004, T005
-- [TODO] T006 — Собрать и установить исправление для живой приёмки (delivery)
+- [DONE] T006 — Собрать и установить исправление для живой приёмки (delivery)
   - Commit: chore: deliver Codex history recovery update
   - Files: package.json, package-lock.json, CHANGELOG.md, docs/evidence/M32-codex-history-recovery.md, README.md, docs/installation.md, docs/usage.md, docs/evidence/M32/local-delivery.md
   - Depends on: T005, DOCS-R1

@@ -10,10 +10,25 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1031,
+  "revision": 1033,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "provider-codex module.md: порядок байтов после рукопожатия (M32 F001), одинаково на всех ОС.",
+          "OS-MATRIX: строка M32 F001."
+        ],
+        "decisions": [
+          "Пользователь выбрал «carryover M32, Kit потом»: T007 перенесена в новый scope как TODO; исправление Kit (fixes round при начатой delivery-задаче) — отдельным планом.",
+          "Kit ставит T007 раньше F002, поэтому T007 — сборка 0.13.7, F002 — CI её SHA на ci/M32-codex-history-recovery без force."
+        ],
+        "references": [
+          "docs/planning/M32-codex-history-recovery.md",
+          "docs/evidence/M32-codex-history-recovery.md",
+          "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md"
+        ],
+        "result": "F001: WebSocket-клиент Codex декодирует байты из ответа рукопожатия и следующие куски сокета строго по порядку прихода; дефект найден CI run 43708900530 (Linux x64) на 0d04a7db, закрыт детерминированным тестом. Документы проекта согласованы; поставка 0.13.7 и CI — T007 и F002."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -134,7 +149,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -219,8 +234,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 1/4
-- Revision: 1031
+- Progress: 2/4
+- Revision: 1033
 
 ## Objective
 
@@ -242,7 +257,7 @@
 - [DONE] F001 — Сохранить порядок байтов после рукопожатия WebSocket Codex (work)
   - Commit: fix: keep WebSocket bytes in order after the Codex handshake
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/ws.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/ws-rpc.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, docs/architecture/OS-MATRIX.md
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M32-codex-history-recovery.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, docs/architecture/OS-MATRIX.md
   - Depends on: F001
@@ -254,5 +269,7 @@
   - Commit: docs: record Codex history recovery cross-platform CI
   - Files: docs/evidence/M32-codex-history-recovery.md
   - Depends on: DOCS-R1, T007
+
+Digest: F001: WebSocket-клиент Codex декодирует байты из ответа рукопожатия и следующие куски сокета строго по порядку прихода; дефект найден CI run 43708900530 (Linux x64) на 0d04a7db, закрыт детерминированным тестом. Документы проекта согласованы; поставка 0.13.7 и CI — T007 и F002.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

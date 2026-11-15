@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1047,
+  "revision": 1049,
   "rounds": [
     {
       "digest": null,
@@ -222,14 +222,28 @@
       "files": [
         "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry",
         "docs/architecture/CONTRACTS.md",
-        "docs/architecture/OS-MATRIX.md"
+        "docs/architecture/OS-MATRIX.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/connected-modules.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/questions.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/chat-routes.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/chat.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/question-attempts.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/question-routes.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/questions.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/routes.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/questions.test.ts"
       ],
       "fixes": null,
       "id": "T003",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Общий контракт вопроса и маршрут ответа",
       "why": "Провайдеры и панель должны говорить об одном вопросе одним языком"
     },
@@ -571,8 +585,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 2/11
-- Revision: 1047
+- Progress: 3/11
+- Revision: 1049
 
 ## Objective
 
@@ -596,9 +610,9 @@
 - [DONE] T002 — Проба Codex: доставка вопроса подписчику и ответ (work, parallel-safe)
   - Commit: docs: verify Codex user input request delivery and answer
   - Files: docs/design/M33-codex-question-facts.md, docs/evidence/M33-codex-question-probe.md
-- [TODO] T003 — Общий контракт вопроса и маршрут ответа (work)
+- [DONE] T003 — Общий контракт вопроса и маршрут ответа (work)
   - Commit: feat: add the agent question contract and answer route
-  - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, docs/architecture/CONTRACTS.md, docs/architecture/OS-MATRIX.md
+  - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, docs/architecture/CONTRACTS.md, docs/architecture/OS-MATRIX.md, product-parts/backend-core/clusters/runtime/modules/cli/connected-modules.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/questions.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/chat-routes.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/chat.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/question-attempts.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/question-routes.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/questions.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/routes.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/questions.test.ts
   - Depends on: T001, T002
 - [TODO] T004 — Claude: вопрос в ленте и запрет вставки в открытый диалог (work)
   - Commit: feat(claude): show AskUserQuestion in the session feed

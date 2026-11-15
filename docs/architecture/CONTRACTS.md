@@ -33,14 +33,15 @@
 
 Интерфейс `Provider` (`status`, `capabilities`, `trust`, `previewTrust`,
 `grantTrust`, `hooks`, `approveHooks?`, `listSessions`, `createSession`,
-`resumeSession?`, `stopSession?`, `interruptAvailability?`, `interruptTurn?`, `readMessages?`, `sendDirect?`, `readParameters?`, `updateParameters?`, `marksPanelProcess?`, `actions`, `runAction`,
+`resumeSession?`, `stopSession?`, `interruptAvailability?`, `interruptTurn?`, `readMessages?`, `answerQuestion?`, `sendDirect?`, `readParameters?`, `updateParameters?`, `marksPanelProcess?`, `actions`, `runAction`,
 `refresh?`, `removeBlockers?` и другие) и фабрика `createProvider(context)` из `src/index.ts`
 модуля провайдера. Чтение дёшево и ничего не меняет (D11); запись в чужие конфиги — по
 одноразовому токену предпросмотра с отпечатком показанного (D7). `TrustPreview.choices` —
 решения до «Доверять», ответы — в `grantTrust(project, token, choices)`; `inherited` — доверена
 только родительская папка (в предпросмотре и в состоянии). Модуль даёт маршруты провайдеров,
 раздел `providers` и чтение журнала хука `.workflow-kit/local/sessions.jsonl`; сервер и панель
-провайдеров не называют. Контракт —
+провайдеров не называют. Вопросы агента (M33): `ChatPage.questions`, `POST …/questions/:qid/answer`
+с `attemptId` и журнал попыток — [questions.md](../../product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/questions.md). Контракт —
 [provider-registry/module.md](../../product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md).
 
 Диалог сессии (M18): лента — `GET /api/projects/:id/providers/:p/sessions/:sid/messages` → `{ supported, messages,
@@ -151,7 +152,8 @@ Stop использует channel.interruptions, не угадывает раб�
 `%LOCALAPPDATA%\Workflow Kit`; `WFK_DATA_DIR` — всё (экземпляр разработки). Файлы: `config.json` (порт 4747,
 корень проектов, `programs`, `loginPath`), `projects.json`, `events.jsonl`
 (ротация 5 МиБ), `processes.json`, `sessions/claude.json`,
-`sessions/codex.json`, `logs/`, `backups/` (последние 10 копий на файл),
+`sessions/codex.json`, `question-attempts.json` (журнал попыток ответа на вопросы агента, M33: id
+и состояния без текстов), `logs/`, `backups/` (последние 10 копий на файл),
 `app/<версия>/` и `app/current.json`. Права каталогов 0700, файлов 0600.
 В папке проекта (веха 2): `.workflow-kit/local/sessions/<клиент>.<id>.json`
 (имя, тема, архив, ревью сессии), журнал хука

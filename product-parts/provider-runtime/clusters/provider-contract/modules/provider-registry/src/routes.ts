@@ -12,6 +12,9 @@ import type { Project, Provider, ProviderStatus, SessionInfo, TrustChoices } fro
 import { registerSharedAccessRoutes } from './shared-access-routes.ts';
 import { registerParameterRoutes } from './parameter-routes.ts';
 import { registerChatRoutes } from './chat-routes.ts';
+import { createQuestionCoordinator, registerQuestionRoutes } from './question-routes.ts';
+import { createQuestionAttempts } from './question-attempts.ts';
+import type { QuestionAttempts } from './question-attempts.ts';
 import { clearHookSessionsCache } from './hook-sessions.ts';
 import type { ProviderRegistry } from './registry.ts';
 import { errorInfo } from './registry.ts';
@@ -29,6 +32,8 @@ export interface ProviderRoutesOptions {
   now?: () => Date;
   /** Extra work of POST /api/refresh, e.g. reconciling process records. */
   onRefresh?: () => Promise<void>;
+  /** Journal of answer attempts (spec M33); absent keeps it in memory. */
+  questionAttempts?: QuestionAttempts;
 }
 
 /** Handle returned by registerProviderRoutes. */
@@ -325,7 +330,10 @@ export function registerProviderRoutes(options: ProviderRoutesOptions): Provider
   });
 
   registerSharedAccessRoutes({ router, providerOf, startOperation, toHttpError, bodyObject, requiredText });
-  registerChatRoutes({ router, providerOf, projectOf, sessionIdOf, toHttpError });
+  const attempts = options.questionAttempts ?? createQuestionAttempts({ file: null });
+  const coordinator = createQuestionCoordinator(attempts);
+  registerChatRoutes({ router, providerOf, projectOf, sessionIdOf, toHttpError, coordinator });
+  registerQuestionRoutes({ router, providerOf, projectOf, sessionIdOf, toHttpError, attempts, coordinator, ...(events ? { events } : {}) });
   registerParameterRoutes({ router, providerOf, projectOf, sessionIdOf, toHttpError, mutex, ...(events ? { events } : {}) });
 
   function refresh(): StartedOperation {

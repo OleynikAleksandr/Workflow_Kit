@@ -109,7 +109,8 @@ stripping).
 ## Подключённые модули
 
 Что `createApp` подключает и с какими опциями (реестры, Kit, сессии, публикация, обновление
-Kit, ссылки и остановка службы) — в [connected-modules.md](connected-modules.md).
+Kit, ссылки и остановка службы, журнал попыток ответа на вопросы агента M33) — в
+[connected-modules.md](connected-modules.md).
 
 ## Инварианты
 

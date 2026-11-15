@@ -26,7 +26,7 @@ import { sessionViewMount } from '#session-view';
 import { sessionChatMount } from '#session-chat';
 import { createProcessSupervisor, processesFile, runCommand } from '#process-supervisor';
 import type { CommandRunner, ProcessSupervisor } from '#process-supervisor';
-import { createProviderRegistry, registerProviderRoutes } from '#provider-registry';
+import { createProviderRegistry, createQuestionAttempts, questionAttemptsFile, registerProviderRoutes } from '#provider-registry';
 import type { ProviderContext, ProviderFactory, ProviderRegistry } from '#provider-registry';
 import { createProjectRegistry, isInside, projectsFile, registerProjectRoutes } from '#project-registry';
 import type { ProjectRegistry } from '#project-registry';
@@ -212,6 +212,7 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
     mutex,
     events,
     platform,
+    questionAttempts: createQuestionAttempts({ file: questionAttemptsFile(dirs, platform), platform }),
     onRefresh: async () => {
       await supervisor.reconcile();
     },

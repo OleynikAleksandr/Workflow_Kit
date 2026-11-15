@@ -1,5 +1,7 @@
 // Conversation of a session (spec M18 section 2.1): the shapes Provider.readMessages returns and
 // the limits the messages route applies. Details: chat.md of this module.
+import { questionsOut } from './questions.ts';
+import type { ChatQuestion } from './questions.ts';
 
 /** One message of a session's conversation, as the provider recorded it. */
 export interface ChatMessage {
@@ -46,6 +48,8 @@ export interface ChatPage {
   truncated: boolean;
   /** Optional reading state; providers without it keep the M18 contract. */
   sync?: ChatSync;
+  /** Questions of the agent (spec M33), oldest first; absent: the provider gives none. */
+  questions?: ChatQuestion[];
 }
 
 /** Messages per page: the limit the route passes to readMessages. */
@@ -143,9 +147,11 @@ export function chatPageOut(page: ChatPage, limit = CHAT_PAGE_LIMIT): ChatPage {
   const all = Array.isArray(page.messages) ? page.messages : [];
   const kept = all.length > limit ? all.slice(all.length - limit) : all;
   const sync = chatSyncOut(page.sync);
+  const questions = questionsOut(page.questions);
   return {
     messages: kept.map((m) => ({ id: m.id, role: m.role, text: cutChatText(m.text), at: m.at ?? null })),
     truncated: page.truncated === true || kept.length < all.length,
     ...(sync ? { sync } : {}),
+    ...(questions ? { questions } : {}),
   };
 }

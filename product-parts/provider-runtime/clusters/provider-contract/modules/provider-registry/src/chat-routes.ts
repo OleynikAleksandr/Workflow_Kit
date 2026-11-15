@@ -6,6 +6,8 @@ import { CHAT_PAGE_LIMIT, CHAT_SYNC_RETRY_MAX_MS, chatPageOut, chatSyncOut } fro
 import type { ChatMessage, ChatSync } from './chat.ts';
 import { ProviderError } from './contract.ts';
 import type { Project, Provider } from './contract.ts';
+import type { ChatQuestion } from './questions.ts';
+import type { QuestionCoordinator } from './question-routes.ts';
 
 /** Helpers of routes.ts the chat route reuses. */
 export interface ChatRouteParts {
@@ -14,6 +16,8 @@ export interface ChatRouteParts {
   projectOf(ctx: RouteContext): Promise<Project>;
   sessionIdOf(ctx: RouteContext): string;
   toHttpError(error: unknown): unknown;
+  /** Journal view of the questions of a page (spec M33); absent in tests of the old contract. */
+  coordinator?: QuestionCoordinator;
 }
 
 /** Answer of GET /api/projects/:id/providers/:p/sessions/:sid/messages. */
@@ -22,6 +26,7 @@ export interface ChatMessagesAnswer {
   messages: ChatMessage[];
   truncated: boolean;
   sync?: ChatSync;
+  questions?: ChatQuestion[];
 }
 
 /** Temporary failures of reading (spec M32 section 2.7): 503, the panel keeps its feed and retries. */
@@ -57,7 +62,9 @@ export function registerChatRoutes(parts: ChatRouteParts): void {
     const session = sessions.find((s) => s.localId === sid) ?? sessions.find((s) => s.remoteId === sid);
     if (!session) throw new HttpError(404, 'unknown-session', 'Сессия не найдена');
     try {
-      return { supported: true, ...chatPageOut(await read(project, session.localId, { limit: CHAT_PAGE_LIMIT })) };
+      const page = chatPageOut(await read(project, session.localId, { limit: CHAT_PAGE_LIMIT }));
+      if (page.questions && parts.coordinator) page.questions = await parts.coordinator.apply(provider.id, project.id, session.localId, page.questions);
+      return { supported: true, ...page };
     } catch (error) {
       throw readError(error);
     }

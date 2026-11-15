@@ -28,6 +28,14 @@ export type {
   TrustWrite,
 } from './contract.ts';
 export type { ChatGap, ChatMessage, ChatPage, ChatSync, ChatSyncState } from './chat.ts';
+export type { ChatQuestion, ChatQuestionAnswer, ChatQuestionOption, ChatQuestionPart, ChatQuestionPartAnswer, ChatQuestionState, QuestionAttempt, QuestionOutcome } from './questions.ts';
+export {
+  QUESTIONS_PAGE_MAX, QUESTION_DESCRIPTION_MAX, QUESTION_HEADER_MAX, QUESTION_LABEL_MAX, QUESTION_OPTIONS_MAX, QUESTION_OTHER_MAX, QUESTION_PARTS_MAX, QUESTION_TEXT_MAX,
+  QUESTION_SENT_BEFORE_RESTART_REASON, QUESTION_SENT_REASON, QUESTION_TOO_LARGE_REASON, QUESTION_UNAVAILABLE_REASON,
+  checkQuestionAnswer, cleanAnswerText, questionOut, questionsOut,
+} from './questions.ts';
+export type { AttemptOutcome, AttemptRecord, AttemptState, QuestionAttempts, QuestionAttemptsOptions } from './question-attempts.ts';
+export { ATTEMPTS_DONE_TTL_MS, ATTEMPTS_MAX, QUESTION_JOURNAL_FULL_REASON, createQuestionAttempts, questionAttemptsFile, questionKey, readQuestionAttempts } from './question-attempts.ts';
 export type { InterruptTarget, InterruptResult, InterruptAvailability } from './interrupt.ts';
 export { INTERRUPT_TIMEOUT_MS } from './interrupt.ts';
 export { CHAT_PAGE_LIMIT, CHAT_SYNC_GAPS_MAX, CHAT_SYNC_PARTIAL_REASON, CHAT_SYNC_REASON_MAX_CHARS, CHAT_SYNC_RETRY_MAX_MS, CHAT_TEXT_CUT_NOTE, CHAT_TEXT_MAX_CHARS, chatSyncOut, cutChatText } from './chat.ts';

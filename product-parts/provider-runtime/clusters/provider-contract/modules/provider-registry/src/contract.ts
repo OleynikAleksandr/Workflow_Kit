@@ -66,7 +66,7 @@ export function providerMark(provider: Pick<Provider, 'title' | 'label' | 'mark'
 export async function providerCapability(provider: Pick<Provider, 'capabilities'> | undefined, name: string): Promise<Capability> {
   if (!provider) return { available: false, reason: 'провайдер не подключён' };
   const found = (await provider.capabilities().catch(() => ({}) as Capabilities))[name];
-  return found ?? { available: !['interruptTurn', 'sessionParameters', 'updateParameters'].includes(name) };
+  return found ?? { available: !['interruptTurn', 'sessionParameters', 'updateParameters', 'answerQuestion'].includes(name) };
 }
 
 /** Overall state of a provider for the panel. */
@@ -335,6 +335,7 @@ export interface Provider {
   readMessages?(project: Project, sessionId: string, opts: { limit: number }): Promise<ChatPage>;
   readParameters?(project: Project, sessionId: string): Promise<import('./parameters.ts').SessionParameters>;
   updateParameters?(project: Project, sessionId: string, change: import('./parameters.ts').ParameterChange): Promise<import('./parameters.ts').SessionParameters>;
+  answerQuestion?(project: Project, sessionId: string, questionId: string, attempt: import('./questions.ts').QuestionAttempt, commit: () => Promise<void>): Promise<import('./questions.ts').QuestionOutcome>;
   /** Hands text to the agent as a user turn now; false when it cannot now (the caller queues it). */
   sendDirect?(project: Project, sessionId: string, text: string): Promise<boolean>;
   /** Name of the setting that turns session locks off; without locks the turn end cannot be told. */

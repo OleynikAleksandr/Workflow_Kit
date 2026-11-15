@@ -18,7 +18,8 @@
   регистрируются из фабрик (`ProviderContext`: `platform`, `env`,
   `homedir`, `dirs`, `config`, `events`, `supervisor`, `runCommand`, `now`,
   `log`); охранник удаления проекта `projects.addRemoveGuard` — живые сессии
-  и `removeBlockers?` провайдеров.
+  и `removeBlockers?` провайдеров; журнал попыток ответа на вопросы агента
+  `createQuestionAttempts({ file: questionAttemptsFile(dirs, platform) })` (M33).
 - `data-store` (T004): раздел `operations` (`operations.section()`).
 - `project-wizard`, `session-view` (веха 2, T008), `session-chat` (M18): статика мастера, экрана
   сессии и диалога (`projectWizardMount()`, `sessionViewMount()`, `sessionChatMount()`).

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1094,
+  "revision": 1096,
   "rounds": [
     {
       "digest": null,
@@ -102,7 +102,7 @@
       "kind": "work",
       "parallelSafe": true,
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Тест auto-compact-context: варианты на своём семействе ОС и проверка чистоты текущей папки",
       "why": "Вариант win32 на macOS и Linux создаёт папки \\var\\folders\\… в корне репозитория при каждом npm test"
     },
@@ -215,8 +215,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 0/4
-- Revision: 1094
+- Progress: 1/4
+- Revision: 1096
 
 ## Objective
 
@@ -233,7 +233,7 @@
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T001 — Тест auto-compact-context: варианты на своём семействе ОС и проверка чистоты текущей папки (work, parallel-safe)
+- [DONE] T001 — Тест auto-compact-context: варианты на своём семействе ОС и проверка чистоты текущей папки (work, parallel-safe)
   - Commit: test(cli): keep the win32 auto-compact variant from creating folders off Windows
   - Files: product-parts/backend-core/clusters/runtime/modules/cli/test/auto-compact-context.test.ts
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)

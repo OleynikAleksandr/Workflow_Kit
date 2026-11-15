@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1074,
+  "revision": 1076,
   "rounds": [
     {
       "digest": {
@@ -36,7 +36,7 @@
       },
       "id": "R1",
       "kind": "implementation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Implementation"
     }
   ],
@@ -116,7 +116,7 @@
         "text": "Рекомендован sequential: пробы требуют участия пользователя, задачи реализации меняют общий контракт и общие документы по цепочке; поставка, CI точного SHA, приёмка, закрытие и публикация main разделены."
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 2,
       "ownerSession": "4f9ed632-4ce4-4d1f-8c95-dbc1b23b1186",
@@ -865,7 +865,7 @@
       ],
       "checks": [],
       "commitMessage": "docs: record agent questions cross-platform CI",
-      "confirmation": null,
+      "confirmation": "И в принципе останавливайся только если я нужен тебе. А так я тебе даю разрешение выполнить весь план до самого конца, не останавливаясь, без пауз.",
       "context": [
         {
           "path": "docs/planning/M33-agent-questions.md",
@@ -886,7 +886,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "CI точного SHA поставки на четырёх платформах",
       "why": "Поставка не завершена, пока CI не зелёная на каждой ОС"
     }
@@ -898,11 +898,11 @@
 ## State
 
 - Scope: M33-agent-questions (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 14/15
-- Revision: 1074
+- Progress: 15/15
+- Revision: 1076
 
 ## Objective
 
@@ -918,7 +918,7 @@
 
 ## Rounds
 
-### R1 — Implementation (implementation, OPEN)
+### R1 — Implementation (implementation, CLOSED)
 
 - [DONE] T001 — Проба Claude: показ вопроса и канал ответа (work, parallel-safe)
   - Commit: docs: verify Claude question display and answer channel
@@ -975,7 +975,7 @@
   - Commit: chore: deliver agent questions in the session chat
   - Files: package.json, CHANGELOG.md, docs/evidence/M33/local-delivery.md, docs/evidence/M33-acceptance.md, package-lock.json
   - Depends on: T008, DOCS-R1
-- [TODO] T010 — CI точного SHA поставки на четырёх платформах (delivery)
+- [DONE] T010 — CI точного SHA поставки на четырёх платформах (delivery)
   - Commit: docs: record agent questions cross-platform CI
   - Files: docs/evidence/M33-acceptance.md
   - Depends on: T009, DOCS-R1

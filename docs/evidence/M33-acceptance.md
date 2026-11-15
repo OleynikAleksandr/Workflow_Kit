@@ -132,6 +132,22 @@ macOS, 15.11.2026; время ниже — UTC (панель показывае�
 [локальная поставка](M33/local-delivery.md). Хук SessionStart одобренного проекта сработал и
 для треда, начатого через RPC.
 
+## CI точного SHA (T010)
+
+Ветка `ci/M33-agent-questions`, SHA поставки T009 `ee0bcf215704bb16aafefd77649c7a386b3e1bd3`,
+прогон «CI» [43740777192](https://github.com/OleynikAleksandr/Workflow_Kit/actions/runs/43740777192)
+(15.11.2026, typecheck, тесты и `platform-guard`): итог `success`.
+
+| Платформа | Итог | Завершено (UTC) |
+| --- | --- | --- |
+| macOS ARM64 | success | 17:26:34 |
+| Linux x64 | success | 17:24:47 |
+| Windows x64 | success | 17:29:46 |
+| Windows ARM64 | success | 17:31:23 |
+
+Ветка `main` не публиковалась: публикация — после приёмки и закрытия scope по команде
+пользователя.
+
 ## Снимки
 
 Настоящая панель стенда, тёмная тема, 1280 px:

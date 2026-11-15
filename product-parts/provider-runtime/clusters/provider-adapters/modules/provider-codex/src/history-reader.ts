@@ -9,6 +9,8 @@ import type { InitializeResult, RpcSession } from './rpc.ts';
 import { isObject, listedItems, listedTurns } from './history-items.ts';
 import type { ListedTurn } from './history-items.ts';
 import { readLegacy } from './history-legacy.ts';
+import { CodexOffline, RECOVERY_REASON, isNetworkFailure } from './connection.ts';
+import type { OfflineState } from './connection.ts';
 import { HISTORY_CACHE_BYTES, HISTORY_CACHE_THREADS, HISTORY_GAP_REASON, HISTORY_GAP_RECHECK_MS, HISTORY_PAGE_SIZE, HISTORY_STATUS_AGE_MS, HISTORY_STATUS_RESERVE_MS, HISTORY_UNSUPPORTED_REASON, OutOfBudget, Oversize, Poll, Unsupported, badAnchor, notSupported, shrink } from './history-poll.ts';
 import { append, assemble, cycle, entryOf, lastId, measure, merge, messageCount, newTurn, openAtEnd, prune, resetTurn, window } from './history-state.ts';
 import type { Gap, Snapshot, ThreadState, TurnState } from './history-state.ts';
@@ -22,6 +24,10 @@ export interface HistoryDeps {
   onThreadRead?(threadId: string, answer: unknown): void;
   /** The daemon pid last observed (part of the server identity of gaps); null when unknown. */
   serverPid?(): number | null;
+  /** The server identity of the connection coordinator (M32 T003); replaces userAgent + pid. */
+  serverIdentity?(): string | null;
+  /** The coordinator's offline state after a network failure (reconnecting, unavailable). */
+  offline?(): OfflineState | null;
   /** Monotonic clock of the poll deadline and gap checks (tests inject it). */
   now?(): number;
   /** UTF-8 bytes of texts all cached threads keep (default HISTORY_CACHE_BYTES; tests lower it). */
@@ -33,6 +39,25 @@ export interface HistoryReader {
   read(key: string, threadId: string, limit: number): Promise<ChatPage>;
   /** Cached threads and UTF-8 bytes of their texts. */
   usage(): { threads: number; bytes: number };
+}
+
+/** A poll ended by a network failure: answered from the last snapshot or with 503 (M32 2.7). */
+class NetworkDown extends Error {
+  readonly failure: unknown;
+  constructor(failure: unknown) {
+    super(failure instanceof Error ? failure.message : String(failure));
+    this.failure = failure;
+  }
+}
+
+function outOf(shot: Snapshot, sync: ChatSync, limit: number): ChatPage {
+  const messages = shot.messages.length > limit ? shot.messages.slice(shot.messages.length - limit) : shot.messages;
+  if (shot.gaps.length > 0) {
+    sync.gaps = shot.gaps;
+    sync.gapCount = shot.gaps.length;
+    sync.reason ??= HISTORY_GAP_REASON;
+  }
+  return { messages, truncated: shot.truncated || shot.messages.length > limit, sync };
 }
 
 export function createHistoryReader(deps: HistoryDeps): HistoryReader {
@@ -199,8 +224,9 @@ export function createHistoryReader(deps: HistoryDeps): HistoryReader {
     }
   }
 
-  function failure(error: unknown): ProviderError {
+  function failure(error: unknown): Error {
     if (error instanceof ProviderError) return error;
+    if (isNetworkFailure(error)) return new NetworkDown(error);
     if (error instanceof Unsupported) {
       return new ProviderError('codex-history-unsupported', `Codex не отдал переписку: ${HISTORY_UNSUPPORTED_REASON}`, { status: 502, details: { sync: { state: 'unavailable', reason: HISTORY_UNSUPPORTED_REASON } } });
     }
@@ -255,21 +281,21 @@ export function createHistoryReader(deps: HistoryDeps): HistoryReader {
         }
       }
     } finally {
-      run.drop();
+      await run.drop();
     }
+  }
+
+  /** After a network failure: the full last snapshot with the offline state, else 503. */
+  function offlinePage(state: ThreadState, limit: number, down: NetworkDown): ChatPage {
+    const offline = deps.offline?.() ?? (down.failure instanceof CodexOffline ? down.failure.offline : { state: 'reconnecting', reason: RECOVERY_REASON, retryAfterMs: 0 });
+    const sync: ChatSync = { state: offline.state, reason: offline.reason, retryAfterMs: offline.retryAfterMs };
+    if (state.published) return outOf(state.published, sync, limit);
+    throw new ProviderError(offline.state === 'reconnecting' ? 'codex-reconnecting' : 'codex-unavailable', offline.reason, { status: 503, details: { sync, retryAfterMs: offline.retryAfterMs } });
   }
 
   function pageOf(state: ThreadState, limit: number): ChatPage {
     const snapshot = state.mode === 'legacy' ? state.legacy ?? window([], [], limit, false, true) : assemble(state, limit);
-    const out = (shot: Snapshot, sync: ChatSync): ChatPage => {
-      const messages = shot.messages.length > limit ? shot.messages.slice(shot.messages.length - limit) : shot.messages;
-      if (shot.gaps.length > 0) {
-        sync.gaps = shot.gaps;
-        sync.gapCount = shot.gaps.length;
-        sync.reason ??= HISTORY_GAP_REASON;
-      }
-      return { messages, truncated: shot.truncated || shot.messages.length > limit, sync };
-    };
+    const out = (shot: Snapshot, sync: ChatSync): ChatPage => outOf(shot, sync, limit);
     if (!snapshot.pending) {
       state.published = snapshot;
       state.resetting = false;
@@ -291,7 +317,12 @@ export function createHistoryReader(deps: HistoryDeps): HistoryReader {
         current.inflight = null;
         evict(current);
       });
-      await current.inflight;
+      try {
+        await current.inflight;
+      } catch (error) {
+        if (error instanceof NetworkDown) return offlinePage(current, want, error);
+        throw error;
+      }
       return pageOf(current, want);
     },
     usage() {

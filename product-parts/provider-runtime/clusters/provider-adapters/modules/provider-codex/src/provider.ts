@@ -118,6 +118,9 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
   const interruptions = createInterruptParts(rt, deps, () => handover.active ? HANDOVER_REASON : null);
   const chatParts = createChatParts({
     withDaemon: (fn, timeoutMs) => rt.withDaemon(fn, timeoutMs),
+    readDaemon: (fn, timeoutMs) => rt.readDaemon(fn, timeoutMs),
+    offline: () => rt.connection.offline(),
+    serverIdentity: () => rt.connection.identity(),
     shared: () => sharedMode.refresh(),
     log: context.log,
     onThreadRead: interruptions.observe,

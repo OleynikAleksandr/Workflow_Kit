@@ -10,6 +10,12 @@
 
 Соединение параметров использует `experimentalApi: true`; отказ initialize даёт повтор
 без флага: показ работает, варианты изменения отключены. Остальные соединения не меняются.
+
+Фоновое чтение (M32 T003) идёт через `rt.readDaemon` и укладывается в `PARAMETERS_READ_MS`
+(5 с) вместе с подключением и повтором без флага. В cooldown координатора оно сразу отвечает
+прежним `parameters-unavailable` (503) без подключения; следующий штатный опрос после возврата
+демона обновляет значения ([connection.md](connection.md)). Изменение (`updateParameters`)
+идёт через `withDaemon` и координатором не повторяется.
 `initializeSession` и `CodexRuntime.withDaemon` получили необязательный флаг experimentalApi.
 
 `model/list`, `collaborationMode/list`, `permissionProfile/list` кэшируются на 10 минут;

@@ -87,6 +87,11 @@ app-server на весь Mac, доверие к папке, одобрение �
   `TransportError` и `transport` = `{ code, size?, limit?, errno? }`; при
   штатном закрытии — `code: 'closed'`, `transport: null`. По этим полям
   читатель отличает oversized от сетевого сбоя, не разбирая строку.
+- Восстановление подключения (M32 T003) — `connection.ts`, координатор в `runtime.ts`
+  (`connection`, `readDaemon`, `monotonic`; `CodexDeps.monotonic`, `CodexDeps.random`):
+  realpath и handshake на каждую попытку, backoff 250 мс…10 с, одна проба для безопасных
+  чтений, epoch только при сетевом сбое, сброс снимков Stop при новом сервере —
+  [connection.md](connection.md).
 - `stdio.ts` — короткоживущий `codex app-server` по stdio (строка = JSON).
   Запускается своим `spawn`, а не `runCommand`: процесс выходит по EOF
   stdin, не ответив на запросы (проверено), поэтому stdin держится
@@ -206,6 +211,9 @@ M27/T004: access — только effort-card. Неизвестный ключ (
 Пределы и типизированные ошибки транспорта (M32 T002a) одинаковы на всех ОС: macOS и Linux —
 Unix-сокет, Windows — stdio `codex app-server proxy` (тот же `connectWebSocket`); тесты на
 настоящем WebSocket идут через тестовый сокет, на Windows — именованный канал.
+Восстановление подключения (M32 T003) одинаково на всех ОС: Unix-сокет с новым realpath на
+macOS и Linux, новый `codex app-server proxy` на Windows с кодом выхода и безопасной строкой
+stderr при раннем выходе; тесты с подставной платформой `darwin`/`linux`/`win32`.
 Stop (M32 T002c) читает собственными свежими RPC `thread/read` без ходов и 10 новейших ходов
 `thread/turns/list`, противоречия отстающего списка перечитывает до deadline 8 с; каждый
 `thread/resume` (`thread-ops.ts`, `parameter-update.ts`) передаёт `excludeTurns: true`, и ни один

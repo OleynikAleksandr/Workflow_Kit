@@ -7,6 +7,7 @@ import type { InitializeResult, RpcSession } from './rpc.ts';
 import { threadStatus, wakeThread } from './thread-ops.ts';
 import { isObject, isoTime, itemMessage } from './history-items.ts';
 import { createHistoryReader } from './history-reader.ts';
+import type { OfflineState } from './connection.ts';
 
 /** Timeout of the connection that sends a direct message (a feed poll has its own 5 s budget). */
 export const CHAT_TIMEOUT_MS = 30_000;
@@ -51,8 +52,13 @@ function reason(error: unknown): string {
 
 /** What the chat parts need from the provider. */
 export interface ChatDeps {
-  /** Opens a connection to the daemon (CodexRuntime.withDaemon). */
+  /** Opens a connection to the daemon (CodexRuntime.withDaemon): direct messages. */
   withDaemon<T>(fn: (session: RpcSession, init: InitializeResult) => Promise<T>, timeoutMs?: number): Promise<T>;
+  /** A safe read through the connection coordinator (CodexRuntime.readDaemon): the feed; default withDaemon. */
+  readDaemon?<T>(fn: (session: RpcSession, init: InitializeResult) => Promise<T>, timeoutMs: number): Promise<T>;
+  /** Offline state and server identity of the coordinator (M32 T003). */
+  offline?(): OfflineState | null;
+  serverIdentity?(): string | null;
   /** The shared daemon mode is on (SharedMode.refresh). */
   shared(): Promise<boolean>;
   log(line: string): void;
@@ -76,8 +82,10 @@ export interface ChatParts {
 /** Creates the chat parts over the daemon connection of the provider. */
 export function createChatParts(deps: ChatDeps): ChatParts {
   const history = createHistoryReader({
-    withDaemon: (fn, timeoutMs) => deps.withDaemon(fn, timeoutMs),
+    withDaemon: (fn, timeoutMs) => (deps.readDaemon ? deps.readDaemon(fn, timeoutMs ?? CHAT_TIMEOUT_MS) : deps.withDaemon(fn, timeoutMs)),
     ...(deps.onThreadRead ? { onThreadRead: deps.onThreadRead } : {}),
+    ...(deps.offline ? { offline: deps.offline } : {}),
+    ...(deps.serverIdentity ? { serverIdentity: deps.serverIdentity } : {}),
     ...(deps.serverPid ? { serverPid: deps.serverPid } : {}),
     ...(deps.now ? { now: deps.now } : {}),
   });

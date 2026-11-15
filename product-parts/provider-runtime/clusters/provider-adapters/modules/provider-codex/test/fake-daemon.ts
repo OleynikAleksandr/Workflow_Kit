@@ -43,6 +43,8 @@ export interface FakeDaemonOptions {
   deleteGone?: string;
   /** thread/read answers with a JSON-RPC error with this message. */
   readError?: string;
+  /** On this method the request is recorded and the connection dropped without an answer (M32 T003). */
+  dropOn?: string;
   /** thread/items/list answers with a JSON-RPC error with this message (M32). */
   itemsError?: string;
   /** Confirm interrupt by a matching completion, state only, or an empty RPC without proof. */
@@ -215,6 +217,10 @@ export async function startFakeDaemon(requested: string, options: FakeDaemonOpti
         if (frame.opcode !== OPCODE.text) continue;
         const message = JSON.parse(frame.payload.toString()) as { id?: unknown; method: string; params?: unknown };
         calls.push({ method: message.method, params: message.params });
+        if (message.method === options.dropOn) {
+          socket.destroy();
+          return;
+        }
         if (message.id === undefined) continue;
         const threadId = options.threadId ?? '019a0000-0000-7000-8000-000000000001';
         if (message.method === 'initialize') {

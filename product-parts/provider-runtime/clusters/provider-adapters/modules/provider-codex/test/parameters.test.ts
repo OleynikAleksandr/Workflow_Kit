@@ -46,6 +46,8 @@ async function fixture(platform: NodeJS.Platform) {
       return fn(session);
     },
   } as unknown as CodexRuntime;
+  // M32: safe reads go through readDaemon (no coordinator in these fakes).
+  Object.assign(rt, { monotonic: () => 0, readDaemon: (fn: Parameters<CodexRuntime['readDaemon']>[0], ms: number, experimental?: boolean) => rt.withDaemon(fn, ms, experimental) });
   const shared = { cached: () => sharedState === 'missing' ? null : ({ state: sharedState, checkedAt: '2000-01-01T00:00:00Z' }), state: () => { throw new Error('read refreshed shared state'); } } as unknown as SharedAccess;
   return { tmp, file, calls, flags, fails, thread, settings, parts: createParameterParts(rt, shared),
     advance(ms: number) { now += ms; }, state(s: string) { sharedState = s; }, rejectExperimental() { rejectExperimental = true; }, close: () => rm(tmp, { recursive: true, force: true }) };

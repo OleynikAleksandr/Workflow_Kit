@@ -46,7 +46,10 @@ readMessages: ChatDeps.onThreadRead не делает второй RPC. С M32 (
 метаданные `thread/read` без ходов и новейшую страницу `thread/turns/list` с
 `itemsView: 'notLoaded'` как `{ thread: { ...метаданные, turns } }` ([chat.md](chat.md)); turnSnapshot
 считает отсутствующие `thread.turns` пустым списком, другая форма по-прежнему отказ. Ошибка
-items снимок не трогает; ошибка/неизвестный ответ статуса инвалидирует положительный снимок. CodexRuntime.cachedDaemon читает последнюю наблюдённую
+items снимок не трогает; ошибка/неизвестный ответ статуса инвалидирует положительный снимок.
+Новый reconnect epoch (сетевой сбой) или другая идентичность сервера очищают все снимки
+(`rt.connection.onReset`, [connection.md](connection.md)); oversized и штатное закрытие — нет.
+Stop не ждёт backoff ленты: его соединение — обычный `withDaemon` со своим deadline 8 с. CodexRuntime.cachedDaemon читает последнюю наблюдённую
 запись без IO; forgetDaemon сбрасывает и её.
 
 notLoaded, ошибка треда, отсутствие native id, противоречие idle/inProgress, отсутствие

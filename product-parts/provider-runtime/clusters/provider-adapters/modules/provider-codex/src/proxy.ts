@@ -14,6 +14,14 @@ export interface ProxySpec {
   socketPath: string;
 }
 
+/** At most 300 characters of the last stderr line, one line, likely tokens and keys masked. */
+export function safeStderr(text: string): string {
+  const line = text.split(/\r?\n/).map((part) => part.trim()).filter(Boolean).at(-1) ?? '';
+  // eslint-disable-next-line no-control-regex
+  const safe = line.replace(/[\u0000-\u001f\u007f]+/g, ' ').replace(/(bearer|token|key|secret|authorization)\S*\s*[:=]?\s*\S+/gi, '$1 …').replace(/[A-Za-z0-9_\-.]{32,}/g, '…');
+  return safe ? `: ${safe.slice(0, 300)}` : '';
+}
+
 /** The proxy process as a ByteStream: writes go to its stdin, data comes from its stdout. */
 export function proxyStream(spec: ProxySpec, spawnProcess: typeof spawn = spawn): ByteStream {
   const child = spawnProcess(spec.command, ['app-server', 'proxy', '--sock', spec.socketPath], {
@@ -23,6 +31,8 @@ export function proxyStream(spec: ProxySpec, spawnProcess: typeof spawn = spawn)
   });
   let destroyed = false;
   let stderr = '';
+  let exit: string | null = null;
+  child.on('exit', (code, signal) => { exit = code !== null ? `exit code ${code}` : `signal ${signal ?? 'unknown'}`; });
   child.stderr?.setEncoding('utf8');
   child.stderr?.on('data', (chunk: string) => {
     if (stderr.length < 16 * 1024) stderr += chunk;
@@ -53,6 +63,7 @@ export function proxyStream(spec: ProxySpec, spawnProcess: typeof spawn = spawn)
         destroyed = true;
         listener();
       }),
+    describeClose: () => (exit ? `codex app-server proxy ended (${exit})${safeStderr(stderr)}` : null),
   };
   return stream;
 }

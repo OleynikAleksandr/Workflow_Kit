@@ -43,6 +43,7 @@
 | M28: ход Claude по хукам, Stop по кадру и до движка; ввод без строк, «в очереди» | expect, фикстуры | injected linux | ConPTY, injected win32 |
 | Claude M28: окно по `autoCompactWindow`, и для старых host | managed `/Library/Application Support/ClaudeCode`, `/context` сверен | `/etc/claude-code`, injected linux | `C:\Program Files\ClaudeCode`, injected win32 |
 | M29: Stop-хук не держит сессию, которую запустила панель Claude; её будит хост | общий код канала | то же | то же |
+| M32 T003: восстановление подключения к демону Codex — backoff 250 мс…10 с, одна проба, epoch и идентичность сервера, 200/503 ленты | Unix-сокет, realpath на каждую попытку | то же, CI | новый `codex app-server proxy`, код выхода и безопасный stderr; injected win32, CI x64/ARM64 |
 | M32 T002c: Stop — свои свежие `thread/read` и `turns/list` без истории, противоречия до deadline; все `thread/resume` с `excludeTurns` | Unix-сокет демона; тесты | тот же код, CI | proxy stdio, тот же код; injected win32 и CI x64/ARM64 |
 | M32 T002b2: лента Codex порциями (`turns/list`, `items/list`), бюджет опроса, ограниченные gaps, LRU-кэш, снимок Stop из метаданных | Unix-сокет демона; тесты на настоящем WebSocket | тот же код, CI | proxy stdio, тот же код; именованный канал в тестах, CI x64/ARM64 |
 | M32 T002b1: контракт ленты `sync`, 503 для временных кодов, идемпотентная обрезка | общий код маршрута | то же | то же, x64/ARM64 |

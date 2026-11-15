@@ -24,6 +24,8 @@ export function createInterruptParts(rt: CodexRuntime, deps: InterruptDeps = {},
   const bindings = new Map<string, string>();
   const timeoutMs = deps.interruptWaitMs ?? 8000;
   const pollMs = deps.interruptPollMs ?? 200;
+  // A network failure (new epoch) or another server identity: no positive snapshot survives (M32).
+  rt.connection?.onReset(() => cache.clear());
   function observe(threadId: string, answer: unknown): void {
     let snapshot: TurnSnapshot | null = null;
     try { snapshot = turnSnapshot(answer, threadId); } catch { /* invalid reads must not retain positive availability */ }

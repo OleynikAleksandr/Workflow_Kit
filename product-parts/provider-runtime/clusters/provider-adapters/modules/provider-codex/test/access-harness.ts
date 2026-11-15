@@ -44,6 +44,8 @@ export async function accessHarness(platform: NodeJS.Platform) {
     throw new Error('Unexpected method ' + method);
   } } as unknown as RpcSession;
   const rt = { context: { platform, now: () => new Date(), log() {} }, withDaemon: async (fn: (s: RpcSession) => Promise<unknown>) => fn(session) } as unknown as CodexRuntime;
+  // M32: safe reads go through readDaemon (no coordinator in these fakes).
+  Object.assign(rt, { monotonic: () => 0, readDaemon: (fn: Parameters<CodexRuntime['readDaemon']>[0], ms: number, experimental?: boolean) => rt.withDaemon(fn, ms, experimental) });
   const parts = createParameterParts(rt, { cached: () => ({ state: 'active' }) } as unknown as SharedAccess);
   const update = createParameterUpdater(rt, parts, { active: () => true, refresh: async () => true });
   return { tmp, file, cwd, settings, thread, state, parts, update, calls, persist, updates: () => calls.filter(c => c.method === 'thread/settings/update'), close: () => rm(tmp, { recursive: true, force: true }) };

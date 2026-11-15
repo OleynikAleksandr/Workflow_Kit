@@ -15,10 +15,12 @@
 - `threadStatus(session, threadId) → Promise<string | null>` — `thread.status.type` ответа
   `thread/read { threadId }` без ходов (`idle`, `active`, `notLoaded`); отказ демона или нет поля —
   `null`. Чтение тред не загружает.
-- `createChatParts({ withDaemon, shared, log, onThreadRead?, home?, serverPid?, now? })` →
+- `createChatParts({ withDaemon, readDaemon?, offline?, serverIdentity?, shared, log,
+  onThreadRead?, home?, serverPid?, now? })` →
   `{ readMessages(threadId, limit, scope?), sendDirect(threadId, text) }`; `scope` — id проекта
   (провайдер передаёт `project.id`); типы `ChatDeps`, `ChatParts`.
-- `createHistoryReader({ withDaemon, onThreadRead?, serverPid?, now?, cacheBytes? })` →
+- `createHistoryReader({ withDaemon, onThreadRead?, serverPid?, serverIdentity?, offline?, now?,
+  cacheBytes? })` →
   `{ read(key, threadId, limit), usage() }`; типы `HistoryDeps`, `HistoryReader`. Константы
   `HISTORY_POLL_PAGES` (8), `HISTORY_POLL_BYTES` (32 МиБ), `HISTORY_POLL_MS` (5 с),
   `HISTORY_PAGE_SIZE` (50), `HISTORY_GAP_RECHECK_MS` (30 с), `HISTORY_CACHE_THREADS` (64),
@@ -87,12 +89,22 @@ legacy (`historyMode` нет или `legacy`; `items/list` там всегда `
   сообщениями.
 - `sync`: `loading` — первичная загрузка или новый проход ещё идут; `ready`; `partial` с `gaps`,
   `gapCount` и `reason` = `HISTORY_GAP_REASON` («Часть диалога Codex недоступна: слишком большой
-  элемент. Полный текст доступен в чате провайдера»). `retryAfterMs` до T003 не выдаётся.
-  `truncated` — есть непрочитанные или не вошедшие старые сообщения.
-- Демон не запущен, не ответил, отказал, обрыв, malformed JSON, ошибка протокола, неверный id —
+  элемент. Полный текст доступен в чате провайдера»). `truncated` — есть непрочитанные или не
+  вошедшие старые сообщения.
+- Сетевой сбой (M32 T003, [connection.md](connection.md)): сокета нет, отказ, сброс, обрыв
+  незавершённого вызова, ранний выход proxy или cooldown координатора. Есть опубликованный
+  снимок — 200 с ним целиком и `sync { state: 'reconnecting' | 'unavailable', reason,
+  retryAfterMs }`; нет — `ProviderError('codex-reconnecting' | 'codex-unavailable', reason,
+  { status: 503, details: { sync, retryAfterMs } })`. `reconnecting` — меньше 30 с от первого
+  сбоя («Восстанавливаем подключение к Codex…»), потом `unavailable` («Нет подключения к Codex.
+  Проверьте демон в настройках провайдера»); `retryAfterMs` — остаток до следующей попытки,
+  не больше 11 с. Пустая страница вместо существующего снимка не отдаётся.
+- Остальное — отказ handshake, malformed JSON, ошибка протокола или RPC, неверный id —
   `ProviderError('chat-unavailable', 'Codex не отдал переписку: <причина>')`, HTTP 502, даже
-  если кэш есть (до T003 устаревший снимок не выдаётся за свежий). Ошибка items снимок Stop
-  не инвалидирует.
+  если кэш есть; сетевой backoff это не запускает. Ошибка items снимок Stop не инвалидирует.
+- Лента идёт через `rt.readDaemon` (`ChatDeps.readDaemon`): в cooldown опрос отвечает сразу;
+  прямой ход (`sendDirect`) — через `rt.withDaemon` и не повторяется. Идентичность gaps —
+  идентичность сервера координатора (`ChatDeps.serverIdentity`).
 
 ## Прямой ход — `sendDirect`
 

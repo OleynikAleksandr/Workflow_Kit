@@ -15,6 +15,8 @@ import type { SharedAccessDeps } from './shared-access.ts';
 import type { AppServerOpener } from './stdio.ts';
 import { connectProxyWebSocket } from './proxy.ts';
 import { connectUnixWebSocket } from './ws.ts';
+import { createConnectionCoordinator } from './connection.ts';
+import type { ConnectionCoordinator } from './connection.ts';
 
 /** Opens a transport to the daemon's control socket. */
 export type DaemonOpener = (socketPath: string, options: { timeoutMs: number }) => Promise<RpcTransport>;
@@ -42,6 +44,9 @@ export interface CodexDeps {
   /** One confirmed interruption and native state polling. */
   interruptWaitMs?: number;
   interruptPollMs?: number;
+  /** Monotonic clock and random source of the connection backoff (spec M32 section 2.5). */
+  monotonic?: () => number;
+  random?: () => number;
 }
 
 /** What the last daemon probe found. */
@@ -173,8 +178,20 @@ export interface CodexRuntime {
   cachedDaemon(): DaemonState | null;
   /** Runs fn on a fresh, initialized `codex app-server` session in cwd and closes it. */
   withAppServer<T>(cwd: string, fn: (session: RpcSession) => Promise<T>): Promise<T>;
-  /** Runs fn on an initialized connection to the daemon and closes it. */
+  /**
+   * Runs fn on an initialized connection to the daemon and closes it. Never repeats fn; network
+   * failures and successes are reported to the connection coordinator.
+   */
   withDaemon<T>(fn: (session: RpcSession, init: InitializeResult) => Promise<T>, timeoutMs?: number, experimentalApi?: boolean): Promise<T>;
+  /**
+   * withDaemon for a safe read (feed, parameters, status) within timeoutMs counted from the call:
+   * refused at once with CodexOffline during the backoff, one due read makes the recovery attempt.
+   */
+  readDaemon<T>(fn: (session: RpcSession, init: InitializeResult) => Promise<T>, timeoutMs: number, experimentalApi?: boolean): Promise<T>;
+  /** Epoch, server identity and backoff of the daemon connection. */
+  connection: ConnectionCoordinator;
+  /** Monotonic milliseconds (deps.monotonic, else performance.now). */
+  monotonic(): number;
 }
 
 /** Creates the runtime. */
@@ -194,6 +211,8 @@ export function createCodexRuntime(context: ProviderContext, deps: CodexDeps = {
   let inflight: Promise<DaemonState> | null = null;
   let observed: DaemonState | null = null;
   const remember = (state: DaemonState): DaemonState => { observed = state; return state; };
+  const monotonic = deps.monotonic ?? (() => performance.now());
+  const connection = createConnectionCoordinator({ now: monotonic, random: deps.random ?? Math.random });
 
   const socketPath = async (): Promise<string> => {
     // The socket is a symlink into a short /tmp path; connecting through the real path avoids the
@@ -208,6 +227,8 @@ export function createCodexRuntime(context: ProviderContext, deps: CodexDeps = {
   const runtime: CodexRuntime = {
     context,
     paths,
+    connection,
+    monotonic,
     tokens: deps.tokens ?? createTokenStore({ now: context.now }),
     readText: cachedText(),
     program: { path: null, version: null, installed: null, error: null, unsupported: null, checkedAt: null },
@@ -298,13 +319,38 @@ export function createCodexRuntime(context: ProviderContext, deps: CodexDeps = {
       }
     },
     async withDaemon(fn, timeoutMs, experimentalApi = false) {
-      const transport = await openDaemon(await socketPath(), { timeoutMs: timeoutMs ?? 5000 });
+      // Every attempt resolves the socket link again: a replaced or removed target is seen (M32).
+      const target = await socketPath();
+      let transport: RpcTransport;
+      try {
+        transport = await openDaemon(target, { timeoutMs: timeoutMs ?? 5000 });
+      } catch (error) {
+        connection.failed(error);
+        throw error;
+      }
       const session = createRpcSession(transport, timeoutMs ? { timeoutMs } : {});
       try {
         const init = await initializeSession(session, undefined, experimentalApi);
-        return await fn(session, init);
+        const pidFile = await readDaemonPid(paths.daemonPid);
+        // Server identity (M32 T001): pid and start of daemon.pid, socket target, userAgent.
+        connection.observed(`${pidFile?.pid ?? '?'}:${pidFile?.startMs ?? '?'}\n${target}\n${typeof init.userAgent === 'string' ? init.userAgent : '?'}`);
+        const result = await fn(session, init);
+        connection.succeeded();
+        return result;
+      } catch (error) {
+        if (!connection.failed(error)) connection.succeeded();
+        throw error;
       } finally {
         session.close();
+      }
+    },
+    async readDaemon(fn, timeoutMs, experimentalApi = false) {
+      const deadline = monotonic() + timeoutMs;
+      const done = await connection.admit(deadline);
+      try {
+        return await runtime.withDaemon(fn, Math.max(1, Math.round(deadline - monotonic())), experimentalApi);
+      } finally {
+        done();
       }
     },
   };

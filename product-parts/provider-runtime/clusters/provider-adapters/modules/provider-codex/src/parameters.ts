@@ -7,6 +7,8 @@ import { createAccessReader, accessPresentation, speedHint } from './parameter-a
 import { obj, str, finite, list, valueLabel, permissionId, LABELS } from './parameter-values.ts';
 import type { Dict } from './parameter-values.ts';
 
+/** The whole background read of parameters, connect included (spec M32 section 2.5). */
+export const PARAMETERS_READ_MS = 5000;
 export const PARAMETER_FONT = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif';
 export const FULL_ACCESS_CONFIRM = 'Агент получит полный доступ к диску и сети этого компьютера. Продолжить?';
 export const UPDATE_UNSUPPORTED = 'Эта версия Codex не поддерживает изменение параметров';
@@ -50,10 +52,18 @@ export function createParameterParts(rt: CodexRuntime, shared: Pick<SharedAccess
     const value = await session.request(method, params).then(obj).catch(() => null);
     caches.set(key, { at: now, value }); return value;
   }
-  async function connect<T>(fn: (session: RpcSession, experimental: boolean) => Promise<T>): Promise<T> {
-    try { return await rt.withDaemon(s => fn(s, true), undefined, true); }
+  /**
+   * A connection with experimentalApi, else without it. read (the background GET, M32 T003) goes
+   * through the connection coordinator within PARAMETERS_READ_MS in total; changes never do.
+   */
+  async function connect<T>(fn: (session: RpcSession, experimental: boolean) => Promise<T>, read = false): Promise<T> {
+    const deadline = rt.monotonic() + PARAMETERS_READ_MS;
+    const open = (experimental: boolean): Promise<T> => read
+      ? rt.readDaemon(s => fn(s, experimental), Math.max(1, deadline - rt.monotonic()), experimental)
+      : rt.withDaemon(s => fn(s, experimental), undefined, experimental);
+    try { return await open(true); }
     catch (error) {
-      if (error instanceof RpcError && error.method === 'initialize') return rt.withDaemon(s => fn(s, false));
+      if (error instanceof RpcError && error.method === 'initialize') return open(false);
       throw error;
     }
   }
@@ -137,7 +147,7 @@ export function createParameterParts(rt: CodexRuntime, shared: Pick<SharedAccess
     clearFile(file: string) { tail.clear(file); },
     markUnsupported() { unsupported = true; },
     async readParameters(id: string, cwd?: string): Promise<SessionParameters> {
-      try { return await connect(async (s, experimental) => (await readState(s, id, experimental, cwd)).parameters); }
+      try { return await connect(async (s, experimental) => (await readState(s, id, experimental, cwd)).parameters, true); }
       catch (error) { throw unavailable(error); }
     },
   };

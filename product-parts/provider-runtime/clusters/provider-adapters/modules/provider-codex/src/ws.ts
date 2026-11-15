@@ -170,6 +170,8 @@ export interface ByteStream {
   onData(listener: (chunk: Buffer) => void): void;
   onError(listener: (error: Error) => void): void;
   onClose(listener: () => void): void;
+  /** Why the stream ended, without secrets (the Windows proxy: exit code and stderr); null when unknown. */
+  describeClose?(): string | null;
 }
 
 /** A unix socket as a ByteStream. */
@@ -247,7 +249,7 @@ export function connectWebSocket(socket: ByteStream, options: WebSocketOptions =
       if (fin) [headerKind, headerBytes] = [null, 0];
     };
     const decode = createFrameDecoder(options.maxFrameBytes ?? MAX_FRAME_BYTES, checkHeader);
-    const timer = setTimeout(() => fail(new Error('the Codex daemon did not answer the WebSocket handshake in time')), options.timeoutMs ?? 5000);
+    const timer = setTimeout(() => fail(new TransportError('connection-lost', 'the Codex daemon did not answer the WebSocket handshake in time', { errno: 'ETIMEDOUT' })), options.timeoutMs ?? 5000);
 
     const release = (): void => {
       fragments = [];
@@ -369,7 +371,8 @@ export function connectWebSocket(socket: ByteStream, options: WebSocketOptions =
       clearTimeout(timer);
       if (dead) return;
       dead = true;
-      if (!open) reject(new TransportError('connection-lost', 'the Codex daemon closed the connection'));
+      const why = socket.describeClose?.();
+      if (!open) reject(new TransportError('connection-lost', `the Codex daemon closed the connection${why ? `: ${why}` : ''}`));
       else finishClose(closing ? undefined : new TransportError('connection-lost', 'the Codex daemon closed the connection unexpectedly'));
     });
   });

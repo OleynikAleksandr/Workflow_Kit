@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1012,
+  "revision": 1014,
   "rounds": [
     {
       "digest": null,
@@ -377,14 +377,35 @@
       "docsWaiver": null,
       "files": [
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex",
-        "docs/architecture/OS-MATRIX.md"
+        "docs/architecture/OS-MATRIX.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/chat.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/connection.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/interrupt.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/parameters.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/chat.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/connection.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/history-poll.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/history-reader.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/interrupt.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/parameters.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/proxy.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/runtime.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/ws.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/access-harness.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/connection.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/history.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/parameter-update.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/parameters.test.ts"
       ],
       "fixes": null,
       "id": "T003",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Восстанавливать соединение и повторять только безопасные чтения",
       "why": "Восстанавливать соединение и повторять только безопасные чтения"
     },
@@ -586,8 +607,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 5/11
-- Revision: 1012
+- Progress: 6/11
+- Revision: 1014
 
 ## Objective
 
@@ -625,9 +646,9 @@
   - Commit: fix: read fresh Codex turn state and exclude resume history
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, docs/architecture/OS-MATRIX.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/chat.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/interrupt.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/parameters.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/shared-access.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/interrupt.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/parameter-update.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/thread-ops.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/chat.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/interrupt.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/parameter-update.test.ts
   - Depends on: T002b2
-- [TODO] T003 — Восстанавливать соединение и повторять только безопасные чтения (work)
+- [DONE] T003 — Восстанавливать соединение и повторять только безопасные чтения (work)
   - Commit: fix: recover Codex socket reads with bounded retry
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, docs/architecture/OS-MATRIX.md
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, docs/architecture/OS-MATRIX.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/chat.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/connection.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/interrupt.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/parameters.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/chat.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/connection.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/history-poll.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/history-reader.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/interrupt.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/parameters.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/proxy.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/runtime.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/ws.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/access-harness.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/connection.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/history.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/parameter-update.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/parameters.test.ts
   - Depends on: T002c
 - [TODO] T004 — Показать восстановление ленты с сохранением ввода и прокрутки (work)
   - Commit: fix: preserve session chat while Codex reconnects

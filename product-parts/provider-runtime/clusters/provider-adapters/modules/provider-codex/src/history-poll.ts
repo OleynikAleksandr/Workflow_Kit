@@ -3,6 +3,7 @@
 import { RpcError } from './rpc.ts';
 import type { InitializeResult, RpcSession } from './rpc.ts';
 import { MAX_MESSAGE_BYTES } from './ws.ts';
+import { isNetworkFailure } from './connection.ts';
 
 /** Per poll: list pages (turns and items), payload bytes received and milliseconds, connect included. */
 export const HISTORY_POLL_PAGES = 8;
@@ -29,6 +30,8 @@ const OVERSIZE = ['frame-too-large', 'message-too-large'];
 export interface LinkDeps {
   withDaemon<T>(fn: (session: RpcSession, init: InitializeResult) => Promise<T>, timeoutMs?: number): Promise<T>;
   serverPid?(): number | null;
+  /** The server identity the coordinator observed for this connection (M32 T003). */
+  serverIdentity?(): string | null;
 }
 
 export class Oversize extends Error {}
@@ -39,20 +42,27 @@ export const shrink = (size: number): number => Math.max(1, Math.floor(size / 2)
 export const notSupported = (error: unknown): boolean => error instanceof RpcError && error.code === -32601;
 export const badAnchor = (error: unknown): boolean => error instanceof RpcError && (error.code === -32602 || error.code === -32600);
 
-/** One daemon connection kept open until release (withDaemon closes it then). */
-export interface Link { session: RpcSession; identity: string | null; release(): void }
+/**
+ * One daemon connection kept open until release (withDaemon closes it then). release(error) ends
+ * the withDaemon callback with that error, so a network failure of the poll reaches the
+ * connection coordinator; finished settles once withDaemon has.
+ */
+export interface Link { session: RpcSession; identity: string | null; release(error?: unknown): void; finished: Promise<void> }
 
 export function openLink(deps: LinkDeps, timeoutMs: number): Promise<Link> {
   return new Promise((resolve, reject) => {
-    let release!: () => void;
-    const hold = new Promise<void>((done) => { release = done; });
+    let release!: (error?: unknown) => void;
+    const hold = new Promise<unknown>((done) => { release = done; });
     let opened = false;
-    deps.withDaemon(async (session, init) => {
+    const finished = deps.withDaemon(async (session, init) => {
       opened = true;
       const agent = typeof init.userAgent === 'string' && init.userAgent ? init.userAgent : null;
-      resolve({ session, identity: agent ? `${agent}\n${deps.serverPid?.() ?? '?'}` : null, release });
-      await hold;
-    }, timeoutMs).catch((error: unknown) => { if (!opened) reject(error); });
+      const identity = deps.serverIdentity?.() ?? (agent ? `${agent}\n${deps.serverPid?.() ?? '?'}` : null);
+      resolve({ session, identity, release, finished: finished.then(() => undefined, () => undefined) });
+      const error = await hold;
+      if (error !== undefined) throw error;
+    }, timeoutMs);
+    finished.catch((error: unknown) => { if (!opened) reject(error); });
   });
 }
 
@@ -88,20 +98,24 @@ export class Poll {
       return await this.link.session.request(method, params, Math.max(1, this.remaining()));
     } catch (error) {
       if (error instanceof RpcError && OVERSIZE.includes(String(error.code))) {
-        this.drop();
+        await this.drop();
         throw new Oversize(String(error.code));
       }
       if (error instanceof RpcError && (error.code === 'budget-exhausted' || error.code === 'timeout')) {
-        this.drop();
+        await this.drop();
         throw new OutOfBudget(String(error.code));
       }
+      if (isNetworkFailure(error)) await this.drop(error);
       throw error;
     }
   }
-  drop(): void {
-    if (!this.link) return;
-    this.spent += this.link.session.receivedBytes;
-    this.link.release();
+  /** Closes the connection; error (a network failure) is reported through its withDaemon. */
+  async drop(error?: unknown): Promise<void> {
+    const link = this.link;
+    if (!link) return;
+    this.spent += link.session.receivedBytes;
     this.link = null;
+    link.release(error);
+    await link.finished;
   }
 }

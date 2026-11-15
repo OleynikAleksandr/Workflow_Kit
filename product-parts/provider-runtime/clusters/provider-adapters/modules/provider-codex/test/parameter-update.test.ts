@@ -44,6 +44,8 @@ async function fixture(platform: NodeJS.Platform) {
     throw new Error('Unexpected method ' + method);
   } } as unknown as RpcSession;
   const rt = { context: { platform, now: () => new Date('2026-11-13T10:00:00Z'), log: () => {} }, withDaemon: async (fn: (s: RpcSession) => Promise<unknown>) => fn(session) } as unknown as CodexRuntime;
+  // M32: safe reads go through readDaemon (no coordinator in these fakes).
+  Object.assign(rt, { monotonic: () => 0, readDaemon: (fn: Parameters<CodexRuntime['readDaemon']>[0], ms: number, experimental?: boolean) => rt.withDaemon(fn, ms, experimental) });
   const parts = createParameterParts(rt, { cached: () => ({ state: sharedState }) } as unknown as SharedAccess);
   const update = createParameterUpdater(rt, parts, { active: () => sharedState === 'active', refresh: async () => { refreshes++; return sharedState === 'active'; } });
   return { parts, update, thread, settings, models, calls, updates: () => calls.filter(c => c.method === 'thread/settings/update').map(c => c.params),

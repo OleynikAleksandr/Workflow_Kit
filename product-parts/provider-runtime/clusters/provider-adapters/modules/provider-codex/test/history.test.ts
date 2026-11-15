@@ -186,15 +186,29 @@ test('an unknown history mode is codex-history-unsupported 502 with sync unavail
   assert.deepEqual(observed, [null]);
 });
 
-test('a transport failure after a good poll is the old 502 chat-unavailable, not the cached page', async () => {
+test('a network failure answers the full last snapshot with reconnecting, without one 503', async () => {
   daemon.threads.set('t-gone', { status: 'idle', turns: [{ id: 'turn-1', status: 'completed', items: [user('u1')] }] });
   let down = false;
   const open = withDaemonOf(daemon);
-  const { read, observed } = reader({ withDaemon: (fn, ms) => (down ? Promise.reject(new Error('connect ENOENT')) : open(fn, ms)) });
+  const gone = () => Promise.reject(Object.assign(new Error('connect ENOENT'), { code: 'ENOENT' }));
+  const { read, observed } = reader({ withDaemon: (fn, ms) => (down ? gone() : open(fn, ms)), offline: () => (down ? { state: 'reconnecting', reason: 'Восстанавливаем подключение к Codex…', retryAfterMs: 900 } : null) });
   assert.equal((await read('t-gone')).messages.length, 1);
   down = true;
-  await assert.rejects(read('t-gone'), (error: unknown) => error instanceof ProviderError && error.code === 'chat-unavailable' && error.status === 502 && /ENOENT/.test(error.message));
+  assert.deepEqual(await read('t-gone'), { messages: [{ id: 'u1', role: 'user', text: 'вопрос u1', at: null }], truncated: false, sync: { state: 'reconnecting', reason: 'Восстанавливаем подключение к Codex…', retryAfterMs: 900 } });
   assert.equal(observed.at(-1), null);
+  await assert.rejects(read('t-never'), (error: unknown) => {
+    assert.ok(error instanceof ProviderError);
+    assert.equal(error.code, 'codex-reconnecting');
+    assert.equal(error.status, 503);
+    assert.deepEqual(error.details, { sync: { state: 'reconnecting', reason: 'Восстанавливаем подключение к Codex…', retryAfterMs: 900 }, retryAfterMs: 900 });
+    return true;
+  });
+  // Not a network failure: the old 502, never the cached page.
+  const { read: other } = reader({ withDaemon: (fn, ms) => (down ? Promise.reject(new Error('refused the WebSocket connection')) : open(fn, ms)) });
+  down = false;
+  await other('t-gone');
+  down = true;
+  await assert.rejects(other('t-gone'), (error: unknown) => error instanceof ProviderError && error.code === 'chat-unavailable' && error.status === 502);
 });
 
 test('a failed items read is a 502 but keeps the status the poll observed for Stop', async () => {

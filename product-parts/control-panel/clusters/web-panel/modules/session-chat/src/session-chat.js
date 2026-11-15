@@ -3,7 +3,7 @@
 // a field to write to its agent. Panel extension: install(shell) fills the "sessionChat" slot of
 // panel-shell. One element per session lives in a Map and is updated in place by its own polling,
 // so the typed text and the scroll position survive polls and leaving the screen.
-import { EMPTY_TEXT, LOADING_TEXT, POLL_MS, TRUNCATED_TEXT, errorText, mergePage, messagesUrl, roleLabel, sendUrl, syncView, timeLabel, unsupportedText } from './chat-model.js';
+import { EMPTY_TEXT, LOADING_TEXT, POLL_MS, TRUNCATED_TEXT, errorText, mergePage, messagesUrl, roleLabel, syncView, timeLabel, unsupportedText } from './chat-model.js';
 
 import { createComposer } from './composer.js';
 import { QUEUED_LABEL, composerData } from './composer-model.js';
@@ -298,8 +298,6 @@ export function install(shell) {
     const cards = createQuestionCards({
       h, api: shell.api,
       messagesUrl: () => messagesUrl(projectId, { key, provider }),
-      sendUrl: () => sendUrl(projectId, key),
-      sent: () => { entry.refresh?.(); void poll(entry); },
       link: () => entry.link,
       changed: () => void (entry.version += 1),
       repoll: () => void poll(entry),

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1083,
+  "revision": 1085,
   "rounds": [
     {
       "digest": null,
@@ -238,7 +238,7 @@
       "kind": "work",
       "parallelSafe": true,
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Панель: карточка асинхронного вопроса отвечает маршрутом ответа",
       "why": "Карточка отправляет ответ маршрутом сообщения, который при идущем ходе ставит его в очередь"
     },
@@ -361,8 +361,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 2/6
-- Revision: 1083
+- Progress: 3/6
+- Revision: 1085
 
 ## Objective
 
@@ -387,7 +387,7 @@
   - Commit: fix(codex): show question replies as text and record their answers
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/chat.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/questions.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/history-items.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/history-state.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/question-reply.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/questions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/reply-feed.test.ts
   - Depends on: T001
-- [TODO] T003 — Панель: карточка асинхронного вопроса отвечает маршрутом ответа (work, parallel-safe)
+- [DONE] T003 — Панель: карточка асинхронного вопроса отвечает маршрутом ответа (work, parallel-safe)
   - Commit: fix(panel): answer an asynchronous question through the answer route
   - Files: product-parts/control-panel/clusters/web-panel/modules/session-chat/src/question-card.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/question-model.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/session-chat.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/question-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/m33-async-question.browser.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/m34-async-answer.browser.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/questions.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, design-qa.md, docs/evidence/M34/design-qa.md, docs/evidence/M34/T003-async-dark-answered.png, docs/evidence/M34/T003-async-light-390-answered.png
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)

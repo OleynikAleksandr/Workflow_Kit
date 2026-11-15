@@ -4,8 +4,8 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
-  ANSWERED_BY_MESSAGE_TEXT, ANSWERED_IN_APP_TEXT, CANCELLED_TEXT, MESSAGE_SENT_TEXT, SENDING_TEXT, SENT_WAITING_TEXT, UNKNOWN_OUTCOME_TEXT,
-  afterError, answerOf, answerUrl, byMessage, cardView, closedPlaces, closedView, emptyChoice, messageText, newAttemptId, pendingQuestion, pick, questionsOf, toggleOther, writeOther,
+  ANSWERED_BY_MESSAGE_TEXT, ANSWERED_IN_APP_TEXT, CANCELLED_TEXT, SENDING_TEXT, SENT_WAITING_TEXT, UNKNOWN_OUTCOME_TEXT,
+  afterError, answerOf, answerUrl, byMessage, cardView, closedPlaces, closedView, emptyChoice, newAttemptId, pendingQuestion, pick, questionsOf, toggleOther, writeOther,
 } from '../src/question-model.js';
 import type { Question } from '../src/question-model.js';
 
@@ -85,19 +85,20 @@ test('the answer URL and the attempt id', () => {
   assert.notEqual(newAttemptId(), newAttemptId());
 });
 
-test('a question answered by a message: placed after its message, never the waiting one, its text and lines', () => {
+test('a question answered by a message: placed after its message, never the waiting one, the answer route and lines (M34)', () => {
   const asked = q({ id: 'async:a1', afterMessageId: 'm1', parts: [{ ...COLOR, header: '' }], reply: 'message' });
   assert.equal(byMessage(asked), true);
   assert.equal(pendingQuestion([asked]), null, 'it does not make the agent wait');
   assert.equal(pendingQuestion([q({ id: 'b' }), asked])?.id, 'b', 'a blocking one still stands at the end');
   const places = closedPlaces([asked, q({ id: 'c', state: 'answered', afterMessageId: 'm2' })], new Set(['m1', 'm2']));
   assert.deepEqual([...places.entries()].map(([k, v]) => [k, v.map((x) => x.id)]), [['m1', ['async:a1']], ['m2', ['c']]]);
-  assert.equal(messageText(asked, { q1: { selected: ['Blue'] } }), 'Blue');
-  assert.equal(messageText(asked, { q1: { selected: [], other: 'Зелёный' } }), 'Зелёный');
-  const two = q({ reply: 'message' });
-  assert.equal(messageText(two, { q1: { selected: ['Red'] }, q2: { selected: ['Apple', 'Plum'] } }), 'Which color? — Red\nWhich fruits? — Apple, Plum');
-  assert.deepEqual(cardView(asked, emptyChoice(asked), { phase: 'messaged' }), { text: MESSAGE_SENT_TEXT, tone: 'muted', choosable: false, button: false, active: false, openApp: false });
+  // The same attempt phases as a blocking question.
   assert.equal(cardView(asked, pick(emptyChoice(asked), asked.parts[0]!, 'Blue'), { phase: 'idle' }).active, true);
-  assert.deepEqual(closedView({ ...asked, state: 'answered', answerable: false }, { phase: 'messaged' }), { answers: [], note: ANSWERED_BY_MESSAGE_TEXT });
+  assert.equal(cardView(asked, emptyChoice(asked), { phase: 'sending', attemptId: 'x' }).text, SENDING_TEXT);
+  assert.equal(cardView({ ...asked, delivery: 'sent', answerable: false }, emptyChoice(asked), { phase: 'idle' }).text, SENT_WAITING_TEXT);
+  const header = COLOR.question;
+  assert.deepEqual(closedView({ ...asked, state: 'answered', answerable: false, answers: { q1: { selected: ['Blue'] } } }, { phase: 'done', outcome: 'accepted' }), { answers: [{ header, text: 'Blue' }], note: '' });
+  assert.deepEqual(closedView({ ...asked, state: 'answered', answerable: false, answers: { q1: { selected: [], other: 'Зелёный' } } }), { answers: [{ header, text: 'Зелёный' }], note: '' });
   assert.deepEqual(closedView({ ...asked, state: 'answered', answerable: false }), { answers: [], note: ANSWERED_BY_MESSAGE_TEXT });
+  assert.deepEqual(closedView({ ...asked, state: 'answered', answerable: false }, { phase: 'done', outcome: 'accepted' }), { answers: [], note: ANSWERED_BY_MESSAGE_TEXT });
 });

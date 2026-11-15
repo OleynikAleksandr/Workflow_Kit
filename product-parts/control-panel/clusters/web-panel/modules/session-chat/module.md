@@ -58,7 +58,7 @@
 | `test/chat-model.test.ts` | адреса, `mergePage`, `sendOutcome`, `canSend`, подписи, монтирование, `syncView` (M32) |
 | `test/m32-recovery.browser.js`, `test/run-browser.mjs` | сценарий восстановления ленты и запуск браузерных сценариев ([sync.md](sync.md)) |
 | `src/question-model.js`, `src/question-card.js` | карточка вопроса агента (M33): модель выбора и попытки, DOM карточки — [questions.md](questions.md) |
-| `test/question-model.test.ts`, `test/m33-question.browser.js`, `test/m33-async-question.browser.js` | модель карточки и браузерные сценарии M33, в том числе вопрос с ответом сообщением (T013) ([questions.md](questions.md)) |
+| `test/question-model.test.ts`, `test/m33-question.browser.js`, `test/m34-async-answer.browser.js` | модель карточки и браузерные сценарии M33 и M34, в том числе вопрос с ответом сообщением, который отвечается маршрутом ответа (M34) ([questions.md](questions.md)) |
 
 ## Поведение карточки
 

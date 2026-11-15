@@ -188,6 +188,7 @@ RPC на соединении Stop; без кэша и объединения с
 
 Полные сценарии, владельцы живых проверок, CI и граница поставки —
 [M32-codex-validation.md](M32-codex-validation.md). Документ обязателен для всех задач.
+Результаты R1 — [M32-codex-history-recovery.md](../evidence/M32-codex-history-recovery.md).
 
 ## 5. Границы
 

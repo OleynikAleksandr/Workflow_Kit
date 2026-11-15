@@ -44,7 +44,10 @@
 [provider-registry/module.md](../../product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md).
 
 Диалог сессии (M18): лента — `GET /api/projects/:id/providers/:p/sessions/:sid/messages` → `{ supported, messages,
-truncated }` (`readMessages?`); отправка — `POST …/sessions/:sid/message` → `{ sent: true }`
+truncated, sync? }` (`readMessages?`). M32: необязательный `ChatPage.sync = { state: loading | ready | partial |
+reconnecting | unavailable, reason?, retryAfterMs?, gaps?, gapCount? }` (нет — прежний контракт Claude/Kimi);
+`codex-reconnecting` и `codex-unavailable` — HTTP 503 с `details.sync` и `details.retryAfterMs`, прочие отказы
+ленты — 502 (`chat.md` provider-registry, [M32-codex-connection.md](../planning/M32-codex-connection.md)); отправка — `POST …/sessions/:sid/message` → `{ sent: true }`
 (`cli` отдал текст `sendDirect`) или `{ queued }`. Claude (M19): текст — в
 `<debug>.text`; сессия, чей последний хук без `panelProcess` (`SessionActivity.external`),
 получает их только очередью и не будится. Подробно — `chat.md`

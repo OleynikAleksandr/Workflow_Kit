@@ -10,10 +10,36 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1018,
+  "revision": 1020,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "provider-registry: ChatPage.sync, ChatGap, chatSyncOut; 503 для codex-reconnecting/codex-unavailable; идемпотентная cutChatText",
+          "provider-codex: createHistoryReader, HISTORY_* (chat.md); RpcSession.receivedBytes/limitReceived; TransportError коды",
+          "provider-codex: CodexRuntime.connection/readDaemon/monotonic, createConnectionCoordinator (connection.md)",
+          "provider-codex: thread/resume всегда с excludeTurns; Stop без includeTurns (interrupt.md, parameters.md)",
+          "session-chat: syncView, TRANSIENT_CODES, строка состояния .sc-state (sync.md)"
+        ],
+        "decisions": [
+          "paginated: thread/read без ходов, turns/list notLoaded, items/list по turnId от якоря; legacy: turns/list full; иное — 502 codex-history-unsupported",
+          "Отказ по размеру: страница 50→1, затем чтение хода с конца; gap ключуется идентичностью сервера и статусом хода",
+          "Stop читает сам: thread/read без ходов и 10 новейших ходов; противоречия отстающего turns/list перечитываются до deadline 8 с",
+          "Только сетевой сбой меняет epoch и запускает backoff 250 мс…10 с; изменяющие RPC не повторяются",
+          "Сетевой сбой ленты: 200 с последним полным снимком (reconnecting/unavailable через 30 с) или 503 без снимка",
+          "Панель: loading не заменяет показанный полный снимок; строк под вводом нет"
+        ],
+        "references": [
+          "docs/planning/M32-codex-history-recovery.md",
+          "docs/planning/M32-codex-connection.md",
+          "docs/planning/M32-codex-protocol-plan.md",
+          "docs/evidence/M32-codex-history-recovery.md",
+          "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/chat.md",
+          "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/connection.md",
+          "product-parts/control-panel/clusters/web-panel/modules/session-chat/sync.md"
+        ],
+        "result": "Лента Codex читается порциями (turns/list, items/list) в бюджете 8 страниц/32 МиБ/5 с, большой элемент — ограниченный gap; соединение с демоном восстанавливается само (backoff, одна проба, 200/503); панель показывает sync и сохраняет ввод; Stop и resume без истории."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -529,14 +555,15 @@
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md",
         "docs/architecture/OS-MATRIX.md",
         "product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md",
-        "docs/evidence/M32-codex-history-recovery.md"
+        "docs/evidence/M32-codex-history-recovery.md",
+        "docs/architecture/CONTRACTS.md"
       ],
       "fixes": null,
       "id": "DOCS-R1",
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -615,8 +642,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 8/11
-- Revision: 1018
+- Progress: 9/11
+- Revision: 1020
 
 ## Objective
 
@@ -666,9 +693,9 @@
   - Commit: test: cover Codex long history and socket recovery
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/test, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, docs/evidence/M32-codex-history-recovery.md, docs/architecture/OS-MATRIX.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/m32-e2e.test.ts
   - Depends on: T004
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
-  - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M32-codex-history-recovery.md, docs/planning/M32-codex-validation.md, docs/evidence/M32-codex-protocol.md, docs/planning/M32-codex-protocol-plan.md, docs/planning/M32-codex-connection.md, docs/planning/M32-document-split.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, docs/architecture/OS-MATRIX.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, docs/evidence/M32-codex-history-recovery.md
+  - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M32-codex-history-recovery.md, docs/planning/M32-codex-validation.md, docs/evidence/M32-codex-protocol.md, docs/planning/M32-codex-protocol-plan.md, docs/planning/M32-codex-connection.md, docs/planning/M32-document-split.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, docs/architecture/OS-MATRIX.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, docs/evidence/M32-codex-history-recovery.md, docs/architecture/CONTRACTS.md
   - Depends on: T001, T002a, T002b1, T002b2, T002c, T003, T004, T005
 - [TODO] T006 — Собрать и установить исправление для живой приёмки (delivery)
   - Commit: chore: deliver Codex history recovery update
@@ -678,5 +705,7 @@
   - Commit: docs: record Codex history recovery cross-platform CI
   - Files: docs/evidence/M32-codex-history-recovery.md
   - Depends on: T006, DOCS-R1
+
+Digest: Лента Codex читается порциями (turns/list, items/list) в бюджете 8 страниц/32 МиБ/5 с, большой элемент — ограниченный gap; соединение с демоном восстанавливается само (backoff, одна проба, 200/503); панель показывает sync и сохраняет ввод; Stop и resume без истории.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

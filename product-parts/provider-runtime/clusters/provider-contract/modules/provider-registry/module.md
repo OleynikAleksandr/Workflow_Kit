@@ -48,8 +48,9 @@
   `readMessages?(project, sid, { limit }) → ChatPage` и
   `sendDirect?(project, sid, text) → boolean` — диалог сессии (M18): последние
   сообщения и реплика агенту прямо сейчас (`false` — в очередь); типы `ChatMessage`,
-  `ChatPage`, константы `CHAT_PAGE_LIMIT`, `CHAT_TEXT_MAX_CHARS` — в `chat.ts`,
-  подробности — [chat.md](chat.md),
+  `ChatPage` (необязательный `sync` M32: `ChatSync`, `ChatGap`, `chatSyncOut`), константы
+  `CHAT_PAGE_LIMIT`, `CHAT_TEXT_MAX_CHARS`, идемпотентная `cutChatText` — в `chat.ts`,
+  503 `CHAT_TRANSIENT_CODES` — в `chat-routes.ts`, подробности — [chat.md](chat.md),
   `actions(project | null)`, `runAction(id, project | null)`,
   `removeBlockers?(project)`.
   Расширения раздела 1: `trust(project)` — текущее доверие для панели
@@ -239,7 +240,8 @@ T006 и T007 заменяют заглушки `provider-claude` и `provider-co
 
 ## Поведение на ОС
 
-Контракт прерывания и кэш реестра одинаковы на macOS, Linux и Windows x64/ARM64.
+Контракт прерывания, кэш реестра и контракт ленты (`sync`, 503, обрезка M32) одинаковы на
+macOS, Linux и Windows x64/ARM64.
 Фактическое управление ходом и ограничения ОС принадлежат адаптерам провайдеров;
 общий контракт не запускает программы ОС и не объявляет возможности за адаптер.
 

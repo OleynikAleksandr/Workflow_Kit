@@ -25,7 +25,7 @@ mutex, events?, platform, now?, onRefresh? }) → { refresh() }` регистр�
 | `POST /api/providers/:p/shared-access/apply` `{token}` | 202, `provider.shared-access.apply` → `apply(token)` |
 | `POST /api/providers/:p/shared-access/remove` | 202, `provider.shared-access.remove` → `remove()` |
 | `POST /api/providers/:p/shared-access/open` `{target}` | `{ opened }`; `target` — `remote-login` или `connections`, иначе 400 |
-| `GET …/providers/:p/sessions/:sid/messages` | `{ supported, messages, truncated }` (`chat-routes.ts`, M18): без `readMessages` — `supported: false`; чужая сессия — 404 `unknown-session`; `ProviderError` — 502; см. [chat.md](chat.md) |
+| `GET …/providers/:p/sessions/:sid/messages` | `{ supported, messages, truncated, sync? }` (`chat-routes.ts`, M18, M32): без `readMessages` — `supported: false`; чужая сессия — 404 `unknown-session`; `ProviderError` — 502, `codex-reconnecting`/`codex-unavailable` — 503; см. [chat.md](chat.md) |
 | `POST /api/refresh` | 202, `providers.refresh`: сброс кэша журнала, `onRefresh` (сверка процессов), `refresh?()` каждого провайдера |
 
 Долгий POST отвечает 202 `{ operationId, operation, existing }`; ход и

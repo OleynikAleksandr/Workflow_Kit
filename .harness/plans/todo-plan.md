@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1006,
+  "revision": 1008,
   "rounds": [
     {
       "digest": null,
@@ -219,14 +219,21 @@
       "docsWaiver": null,
       "files": [
         "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry",
-        "docs/architecture/OS-MATRIX.md"
+        "docs/architecture/OS-MATRIX.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/chat.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/routes.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/chat-routes.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/chat.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/chat-routes.test.ts"
       ],
       "fixes": null,
       "id": "T002b1",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Расширить контракт ленты и исправить повторную обрезку текста",
       "why": "Расширить контракт ленты и исправить повторную обрезку текста"
     },
@@ -549,8 +556,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 2/11
-- Revision: 1006
+- Progress: 3/11
+- Revision: 1008
 
 ## Objective
 
@@ -576,9 +583,9 @@
   - Commit: fix: bound Codex websocket messages and preserve transport errors
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/ws.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/rpc.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/ws-rpc.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, docs/architecture/OS-MATRIX.md
   - Depends on: T001
-- [TODO] T002b1 — Расширить контракт ленты и исправить повторную обрезку текста (work)
+- [DONE] T002b1 — Расширить контракт ленты и исправить повторную обрезку текста (work)
   - Commit: fix: add chat sync contract and idempotent text normalization
-  - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, docs/architecture/OS-MATRIX.md
+  - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, docs/architecture/OS-MATRIX.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/chat.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/routes.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/chat-routes.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/chat.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/chat-routes.test.ts
   - Depends on: T002a
 - [TODO] T002b2 — Читать Codex порциями с ограниченными gaps и совместимым снимком Stop (work)
   - Commit: fix: paginate Codex history and preserve turn snapshots

@@ -11,14 +11,18 @@ import { createProjectRegistry } from '#project-registry';
 import type { Project } from '#project-registry';
 import {
   CHAT_PAGE_LIMIT,
+  CHAT_SYNC_GAPS_MAX,
+  CHAT_SYNC_PARTIAL_REASON,
+  CHAT_SYNC_RETRY_MAX_MS,
   CHAT_TEXT_CUT_NOTE,
   CHAT_TEXT_MAX_CHARS,
   ProviderError,
   createProviderRegistry,
+  chatSyncOut,
   cutChatText,
   registerProviderRoutes,
 } from '../src/index.ts';
-import type { ChatMessage } from '../src/index.ts';
+import type { ChatMessage, ChatPage } from '../src/index.ts';
 import { createFakeProvider } from './fake-provider.ts';
 import type { FakeProvider } from './fake-provider.ts';
 
@@ -148,4 +152,92 @@ test('the fake provider has sendDirect', async () => {
   assert.equal(await fake.sendDirect!(alpha, 's1', 'текст'), true);
   assert.deepEqual(fake.direct, ['s1:текст']);
   assert.equal(bare.sendDirect, undefined);
+});
+
+test('cutChatText is idempotent: 19 999 letters, an emoji on the boundary and a tail', () => {
+  const text = 'я'.repeat(CHAT_TEXT_MAX_CHARS - 1) + '😀' + 'хвост';
+  const once = cutChatText(text);
+  assert.equal(once, 'я'.repeat(CHAT_TEXT_MAX_CHARS - 1) + CHAT_TEXT_CUT_NOTE);
+  assert.equal(cutChatText(once), once);
+  assert.equal(cutChatText(cutChatText(once)), once);
+  assert.equal(once.split(CHAT_TEXT_CUT_NOTE).length, 2);
+  // No lone surrogate is left at the cut.
+  assert.equal(/[\ud800-\udbff](?![\udc00-\udfff])|(?<![\ud800-\udbff])[\udc00-\udfff]/.test(once), false);
+  // The emoji fits whole when the boundary allows it.
+  const fits = 'я'.repeat(CHAT_TEXT_MAX_CHARS - 2) + '😀' + 'хвост';
+  assert.equal(cutChatText(fits), 'я'.repeat(CHAT_TEXT_MAX_CHARS - 2) + '😀' + CHAT_TEXT_CUT_NOTE);
+  assert.equal(cutChatText(cutChatText(fits)), cutChatText(fits));
+});
+
+test('a provider may cut before caching: the route does not mark the text twice', async () => {
+  const cached = cutChatText('ж'.repeat(CHAT_TEXT_MAX_CHARS + 50));
+  fake.chat = { messages: [message('m1', cached)], truncated: false };
+  const messages = (await get(url('fake', 's1'))).body['messages'] as ChatMessage[];
+  assert.equal(messages[0]!.text, cached);
+});
+
+test('sync passes with only the contract fields; an answer without sync keeps the M18 shape', async () => {
+  fake.chat = {
+    messages: [message('m1', 'привет')],
+    truncated: false,
+    sync: { state: 'partial', reason: 'Часть диалога Codex недоступна', gaps: [{ turnId: 't1', reason: 'codex-history-item-too-large', itemId: 'i1', extra: 'x' } as never, { turnId: 't2', reason: 'диапазон', beforeItemId: 'a', afterItemId: 'b' }], gapCount: 5, secret: '/Users/x' } as never,
+  };
+  const answer = await get(url('fake', 's1'));
+  assert.deepEqual(answer.body['sync'], {
+    state: 'partial',
+    reason: 'Часть диалога Codex недоступна',
+    gaps: [{ turnId: 't1', reason: 'codex-history-item-too-large', itemId: 'i1' }, { turnId: 't2', reason: 'диапазон', beforeItemId: 'a', afterItemId: 'b' }],
+    gapCount: 5,
+  });
+  fake.chat = { messages: [], truncated: false };
+  assert.equal('sync' in (await get(url('fake', 's1'))).body, false);
+});
+
+test('sync normalization: unknown state, gaps bound, gapCount, retryAfterMs, partial reason, text safety', () => {
+  assert.equal(chatSyncOut({ state: 'fresh' }), undefined);
+  assert.equal(chatSyncOut('ready'), undefined);
+  assert.deepEqual(chatSyncOut({ state: 'loading' }), { state: 'loading' });
+  const gaps = Array.from({ length: CHAT_SYNC_GAPS_MAX + 6 }, (_, i) => ({ turnId: `t${i}`, reason: 'r' }));
+  const many = chatSyncOut({ state: 'partial', reason: 'x', gaps: [...gaps, { turnId: '', reason: 'r' }, { turnId: 't', reason: 7 }] })!;
+  assert.equal(many.gaps!.length, CHAT_SYNC_GAPS_MAX);
+  assert.equal(many.gaps![0]!.turnId, 't6');
+  assert.equal(many.gapCount, CHAT_SYNC_GAPS_MAX + 6);
+  assert.deepEqual(chatSyncOut({ state: 'ready', gaps: [{ turnId: 't', reason: 'r' }] }), { state: 'partial', reason: CHAT_SYNC_PARTIAL_REASON, gaps: [{ turnId: 't', reason: 'r' }], gapCount: 1 });
+  assert.deepEqual(chatSyncOut({ state: 'partial' }), { state: 'partial', reason: CHAT_SYNC_PARTIAL_REASON });
+  assert.equal(chatSyncOut({ state: 'reconnecting', retryAfterMs: 999_999 })!.retryAfterMs, CHAT_SYNC_RETRY_MAX_MS);
+  assert.equal(chatSyncOut({ state: 'reconnecting', retryAfterMs: 1234.6 })!.retryAfterMs, 1235);
+  assert.equal('retryAfterMs' in chatSyncOut({ state: 'reconnecting', retryAfterMs: -1 })!, false);
+  assert.equal('retryAfterMs' in chatSyncOut({ state: 'reconnecting', retryAfterMs: Number.NaN })!, false);
+  const reason = chatSyncOut({ state: 'unavailable', reason: 'строка\nвторая\u0007' + 'ё'.repeat(400) })!.reason!;
+  assert.equal(reason.includes('\n'), false);
+  assert.equal(reason.includes('\u0007'), false);
+  assert.ok(reason.length <= 301 && reason.endsWith('…'));
+  assert.equal(chatSyncOut({ state: 'partial', gaps: [{ turnId: 'x'.repeat(201), reason: 'r' }] })!.gaps, undefined);
+});
+
+test('codex-reconnecting and codex-unavailable are 503 with normalized sync and retryAfterMs; other codes stay 502', async () => {
+  fake.chatError = new ProviderError('codex-reconnecting', 'Восстанавливаем подключение к Codex…', { details: { sync: { state: 'reconnecting', retryAfterMs: 2500, junk: 1 }, retryAfterMs: 2500 } });
+  let answer = await get(url('fake', 's1'));
+  assert.equal(answer.status, 503);
+  assert.deepEqual(answer.body['error'], { code: 'codex-reconnecting', message: 'Восстанавливаем подключение к Codex…', sync: { state: 'reconnecting', retryAfterMs: 2500 }, retryAfterMs: 2500 });
+
+  fake.chatError = new ProviderError('codex-unavailable', 'Нет подключения к Codex. Проверьте демон в настройках провайдера', { details: { sync: { state: 'unavailable', retryAfterMs: 50_000 }, retryAfterMs: 50_000 } });
+  answer = await get(url('fake', 's1'));
+  assert.equal(answer.status, 503);
+  assert.deepEqual(answer.body['error'], { code: 'codex-unavailable', message: 'Нет подключения к Codex. Проверьте демон в настройках провайдера', sync: { state: 'unavailable', retryAfterMs: CHAT_SYNC_RETRY_MAX_MS }, retryAfterMs: CHAT_SYNC_RETRY_MAX_MS });
+
+  fake.chatError = new ProviderError('codex-history-unsupported', 'Codex не поддерживает чтение истории', { details: { sync: { state: 'unavailable', reason: 'совместимость' } } });
+  answer = await get(url('fake', 's1'));
+  assert.equal(answer.status, 502);
+  assert.deepEqual(answer.body['error'], { code: 'codex-history-unsupported', message: 'Codex не поддерживает чтение истории', sync: { state: 'unavailable', reason: 'совместимость' } });
+
+  fake.chatError = new ProviderError('chat-unavailable', 'нет', { details: { sync: { state: 'bogus' }, retryAfterMs: 'soon', files: 1 } });
+  answer = await get(url('fake', 's1'));
+  assert.equal(answer.status, 502);
+  assert.deepEqual(answer.body['error'], { code: 'chat-unavailable', message: 'нет', files: 1 });
+});
+
+test('ChatPage stays assignable without sync (Claude and Kimi pages)', () => {
+  const page: ChatPage = { messages: [], truncated: false };
+  assert.equal(page.sync, undefined);
 });

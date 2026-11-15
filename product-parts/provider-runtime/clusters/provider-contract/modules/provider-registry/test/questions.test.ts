@@ -11,7 +11,7 @@ import type { Router } from '#http-server';
 import { createProjectRegistry } from '#project-registry';
 import type { Project, ProjectRegistry } from '#project-registry';
 import {
-  ATTEMPTS_DONE_TTL_MS, ATTEMPTS_MAX, QUESTIONS_PAGE_MAX, QUESTION_JOURNAL_FULL_REASON, QUESTION_SENT_BEFORE_RESTART_REASON, QUESTION_TOO_LARGE_REASON,
+  ATTEMPTS_DONE_TTL_MS, ATTEMPTS_MAX, QUESTIONS_PAGE_MAX, QUESTION_BY_MESSAGE_REASON, QUESTION_JOURNAL_FULL_REASON, QUESTION_SENT_BEFORE_RESTART_REASON, QUESTION_TOO_LARGE_REASON,
   ProviderError, checkQuestionAnswer, createProviderRegistry, createQuestionAttempts, questionAttemptsFile, questionKey, questionOut, questionsOut, registerProviderRoutes,
 } from '../src/index.ts';
 import type { ChatQuestion, ChatQuestionAnswer, QuestionAttempts, QuestionOutcome } from '../src/index.ts';
@@ -295,4 +295,17 @@ test('the journal file lives in stateDir on every OS', () => {
   assert.equal(questionAttemptsFile({ stateDir: 'C:\\Users\\u\\AppData\\Local\\Workflow Kit' }, 'win32'), 'C:\\Users\\u\\AppData\\Local\\Workflow Kit\\question-attempts.json');
   assert.equal(questionAttemptsFile({ stateDir: '/home/u/.local/state/workflow-kit' }, 'linux'), '/home/u/.local/state/workflow-kit/question-attempts.json');
   assert.equal(questionAttemptsFile({ stateDir: '/Users/u/Library/Application Support/Workflow Kit' }, 'darwin'), '/Users/u/Library/Application Support/Workflow Kit/question-attempts.json');
+});
+
+test('a question answered by a message: reply kept, no delivery or answers, never answered by the route check', () => {
+  const asked = questionOut({ ...pending('async:a1'), parts: [{ ...part('q1'), header: '' }], reply: 'message', delivery: 'sent' });
+  assert.equal(asked?.reply, 'message');
+  assert.equal(asked?.delivery, undefined, 'no delivery for a message answer');
+  assert.equal(asked?.answerable, true);
+  assert.equal(asked?.parts[0]?.header, '');
+  const closed = questionOut({ ...pending('async:a1'), state: 'answered', answerable: false, reply: 'message', answers: { q1: { selected: ['Red'] } } });
+  assert.equal(closed?.answers, undefined, 'the answer is the message, not a proven outcome');
+  assert.equal(questionOut({ ...pending('q'), reply: 'other' })?.reply, undefined);
+  assert.throws(() => checkQuestionAnswer({ ...pending('async:a1'), reply: 'message' }, { q1: { selected: ['Red'] } }),
+    (error: unknown) => error instanceof ProviderError && error.code === 'question-unavailable' && error.message === QUESTION_BY_MESSAGE_REASON);
 });

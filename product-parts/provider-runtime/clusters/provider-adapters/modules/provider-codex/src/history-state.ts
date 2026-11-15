@@ -1,13 +1,19 @@
 // Cached state of a Codex thread history (spec M32 sections 2.2-2.3; chat.md of this module):
 // turns as runs of items with gaps between them, the joining of a new page of turns, the page
-// built from the cache and the limits of what the cache keeps.
+// built from the cache and the limits of what the cache keeps; asynchronous questions of the agent
+// (spec M33 section 2.7) ride on their items.
 import { CHAT_PAGE_LIMIT, ProviderError } from '#provider-registry';
-import type { ChatGap, ChatMessage } from '#provider-registry';
-import { feedMessage } from './history-items.ts';
+import type { ChatGap, ChatMessage, ChatQuestion } from '#provider-registry';
+import { feedMessage, isoTime } from './history-items.ts';
 import type { ListedItem, ListedTurn } from './history-items.ts';
 import { HISTORY_GAP_REASON, HISTORY_PAGE_SIZE, HISTORY_TURNS_MAX } from './history-poll.ts';
+import { asyncAsks, asyncQuestion } from './questions.ts';
+import type { AsyncAsk } from './questions.ts';
 
-export interface Entry { id: string; message: ChatMessage | null }
+/** An item of the cache: its feed message and the asynchronous questions it carries (with their time). */
+export interface Entry { id: string; message: ChatMessage | null; asks?: AsyncAsk[]; at?: string | null }
+/** An asynchronous question met while the messages were collected: position — messages before it and its own. */
+export interface Asked { id: string; asks: AsyncAsk[]; at: string | null; after: string | null; position: number }
 /** An unread range after item `after` and before item `before` (null: the edge of the turn). */
 export interface Gap { after: string | null; before: string | null; identity: string | null; status: string; checkedAt: number }
 export interface TurnState {
@@ -25,7 +31,7 @@ export interface TurnState {
   /** Read once, then left out of the cache: older than the kept messages. */
   dropped: boolean;
 }
-export interface Snapshot { messages: ChatMessage[]; truncated: boolean; gaps: ChatGap[]; pending: boolean }
+export interface Snapshot { messages: ChatMessage[]; truncated: boolean; gaps: ChatGap[]; pending: boolean; questions?: ChatQuestion[] }
 export interface ThreadState {
   threadId: string;
   mode: string | null;
@@ -45,6 +51,12 @@ export const textBytes = (messages: Iterable<ChatMessage | null>): number => {
   for (const message of messages) if (message) total += Buffer.byteLength(message.text, 'utf8');
   return total;
 };
+/** UTF-8 bytes of the asynchronous questions of entries (titles and options). */
+const askBytes = (entries: readonly Entry[]): number => {
+  let total = 0;
+  for (const entry of entries) for (const ask of entry.asks ?? []) total += Buffer.byteLength(ask.title + ask.options.join(''), 'utf8');
+  return total;
+};
 
 export function newTurn(turn: ListedTurn): TurnState {
   return { id: turn.id, status: turn.status, startedAt: turn.startedAt, segments: [[]], gaps: [], ids: new Set(), synced: null, size: HISTORY_PAGE_SIZE, dropped: false };
@@ -56,8 +68,20 @@ export function resetTurn(turn: TurnState): void {
   turn.synced = null;
   turn.dropped = false;
 }
+/** The entry of an item; startedAtMs — the time of the entry, turnAt — of its turn. */
+export function itemEntry(item: Record<string, unknown>, id: string, startedAtMs: unknown, turnAt: unknown): Entry {
+  const message = feedMessage(item, id, startedAtMs, turnAt);
+  const asks = asyncAsks(item);
+  if (!asks) return { id, message };
+  return { id, message, asks, at: message?.at ?? isoTime(startedAtMs) ?? isoTime(item['startedAtMs']) ?? isoTime(turnAt) };
+}
 export function entryOf(turn: TurnState, listed: ListedItem): Entry {
-  return { id: listed.id, message: feedMessage(listed.item, listed.id, listed.startedAtMs, turn.startedAt) };
+  return itemEntry(listed.item, listed.id, listed.startedAtMs, turn.startedAt);
+}
+/** Adds the message of an entry to the feed and notes its asynchronous questions. */
+export function pushEntry(messages: ChatMessage[], asked: Asked[], entry: Entry): void {
+  if (entry.message) messages.push(entry.message);
+  if (entry.asks) asked.push({ id: entry.id, asks: entry.asks, at: entry.at ?? null, after: messages.at(-1)?.id ?? null, position: messages.length });
 }
 export function append(turn: TurnState, segment: number, items: ListedItem[]): void {
   for (const item of items) {
@@ -116,18 +140,23 @@ export const gapOut = (turnId: string, gap: Gap): ChatGap => ({
   ...(gap.before ? { beforeItemId: gap.before } : {}),
 });
 
-/** The newest limit messages and the gaps among or right before them. */
-export function window(messages: ChatMessage[], gaps: { gap: ChatGap; at: number }[], limit: number, older: boolean, pending: boolean): Snapshot {
+/**
+ * The newest limit messages, the gaps among or right before them and the asynchronous questions
+ * among them: answered (without answers) once a user message follows the question.
+ */
+export function window(messages: ChatMessage[], gaps: { gap: ChatGap; at: number }[], limit: number, older: boolean, pending: boolean, asked: Asked[] = []): Snapshot {
   const from = Math.max(0, messages.length - limit);
-  return { messages: messages.slice(from), truncated: older || messages.length > limit, gaps: gaps.filter((gap) => gap.at >= from).map((gap) => gap.gap), pending };
+  const questions = asked.filter((a) => a.position >= from).map((a) => asyncQuestion(a.id, a.asks, a.at, a.after, messages.slice(a.position).some((m) => m.role === 'user')));
+  return { messages: messages.slice(from), truncated: older || messages.length > limit, gaps: gaps.filter((gap) => gap.at >= from).map((gap) => gap.gap), pending, ...(questions.length > 0 ? { questions } : {}) };
 }
 
 export function assemble(state: ThreadState, limit: number): Snapshot {
   const messages: ChatMessage[] = [];
   const gaps: { gap: ChatGap; at: number }[] = [];
+  const asked: Asked[] = [];
   for (const turn of state.turns) {
     turn.segments.forEach((run, index) => {
-      for (const entry of run) if (entry.message) messages.push(entry.message);
+      for (const entry of run) pushEntry(messages, asked, entry);
       const gap = turn.gaps[index];
       if (gap) gaps.push({ gap: gapOut(turn.id, gap), at: messages.length });
     });
@@ -141,7 +170,7 @@ export function assemble(state: ThreadState, limit: number): Snapshot {
   }
   if (count < limit && state.older !== null) pending = true;
   const older = state.older !== null || state.cutOff || state.turns.some((turn) => turn.dropped || turn.synced === null);
-  return window(messages, gaps, limit, older, pending);
+  return window(messages, gaps, limit, older, pending, asked);
 }
 
 /** Drops the texts of turns older than the kept messages and caps the number of turns. */
@@ -166,7 +195,7 @@ export function prune(state: ThreadState, limit: number): void {
 
 export function measure(state: ThreadState): void {
   let bytes = state.legacy ? textBytes(state.legacy.messages) : 0;
-  for (const turn of state.turns) for (const run of turn.segments) bytes += textBytes(run.map((entry) => entry.message));
+  for (const turn of state.turns) for (const run of turn.segments) bytes += textBytes(run.map((entry) => entry.message)) + askBytes(run);
   if (state.resetting && state.published) bytes += textBytes(state.published.messages);
   state.bytes = bytes;
 }

@@ -53,8 +53,8 @@
   503 `CHAT_TRANSIENT_CODES` — в `chat-routes.ts`, подробности — [chat.md](chat.md),
   `answerQuestion?(project, sid, qid, attempt, commit)`, `questionHook?(project, request, signal)`
   (`ProviderQuestions`, хук вопроса `QuestionHookRequest` → `QuestionHookReply`) и
-  `ChatPage.questions?` — вопросы агента, маршрут ответа и журнал попыток (M33) —
-  [questions.md](questions.md),
+  `ChatPage.questions?` — вопросы агента, маршрут ответа и журнал попыток (M33; вопрос с
+  `reply: 'message'` отвечается сообщением, T012) — [questions.md](questions.md),
   `actions(project | null)`, `runAction(id, project | null)`,
   `removeBlockers?(project)`.
   Расширения раздела 1: `trust(project)` — текущее доверие для панели

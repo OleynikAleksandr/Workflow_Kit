@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1064,
+  "revision": 1066,
   "rounds": [
     {
       "digest": null,
@@ -615,14 +615,27 @@
         "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry",
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex",
         "docs/architecture/OS-MATRIX.md",
-        "docs/architecture/CONTRACTS.md"
+        "docs/architecture/CONTRACTS.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/questions.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/history-legacy.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/history-reader.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/history-state.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/question-parts.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/questions.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/async-questions.test.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/questions.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/questions.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/questions.test.ts"
       ],
       "fixes": null,
       "id": "T012",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Codex: асинхронный вопрос в ленте",
       "why": "Решение пользователя после T008: вопросы request_user_input_async обычного режима Codex входят в M33"
     },
@@ -845,8 +858,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 9/15
-- Revision: 1064
+- Progress: 10/15
+- Revision: 1066
 
 ## Objective
 
@@ -899,9 +912,9 @@
   - Files: product-parts/backend-core/clusters/projects/modules/kit-structure, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, docs/architecture/OS-MATRIX.md, docs/architecture/CONTRACTS.md, product-parts/backend-core/clusters/projects/modules/kit-structure/module.md, product-parts/backend-core/clusters/projects/modules/kit-structure/src/hook-config.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/src/index.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/src/templates.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/test/question-hook.test.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/test/structure.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/question-hook.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/question-hook.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/questions.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/question-waiters.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/question-waiters.test.ts
   - Depends on: T008
   - Fixes: T005
-- [TODO] T012 — Codex: асинхронный вопрос в ленте (work)
+- [DONE] T012 — Codex: асинхронный вопрос в ленте (work)
   - Commit: feat(codex): show asynchronous questions of the agent in the feed
-  - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, docs/architecture/OS-MATRIX.md, docs/architecture/CONTRACTS.md
+  - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, docs/architecture/OS-MATRIX.md, docs/architecture/CONTRACTS.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/questions.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/history-legacy.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/history-reader.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/history-state.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/question-parts.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/questions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/async-questions.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/questions.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/questions.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/questions.test.ts
   - Depends on: T011
 - [TODO] T013 — Панель: карточка асинхронного вопроса (work)
   - Commit: feat(panel): answer an asynchronous question with a message

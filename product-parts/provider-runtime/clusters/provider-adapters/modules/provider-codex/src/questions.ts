@@ -1,6 +1,8 @@
 // Questions of a Codex agent (request_user_input, spec M33 section 2.4, facts T002): the request
 // item/tool/requestUserInput as a question of the feed, the answer as the result of that request,
-// the flag waitingOnUserInput of the thread status and the stub question C0. Details: questions.md.
+// the flag waitingOnUserInput of the thread status and the stub question C0; the asynchronous question
+// of request_user_input_async in an agentMessage of the history (spec M33 section 2.7). Details:
+// questions.md.
 import type { ChatQuestion, ChatQuestionAnswer, ChatQuestionPart } from '#provider-registry';
 
 /** The server request of a question. */
@@ -12,6 +14,14 @@ export const CODEX_SECRET_REASON = 'Секретный ответ вводитс
 export const CODEX_LOST_REASON = 'Связь Workflow Kit с ChatGPT прервалась. Ответьте в приложении ChatGPT или подождите, пока вопрос придёт снова';
 /** Id prefix of the stub question C0 (the flag without the content). */
 export const STUB_PREFIX = 'waiting-';
+/** Id prefix of an asynchronous question (spec M33 section 2.7): async:<item id>. */
+export const ASYNC_PREFIX = 'async:';
+
+/** One question of request_user_input_async as the history item carries it. */
+export interface AsyncAsk {
+  title: string;
+  options: string[];
+}
 
 type Row = Record<string, unknown>;
 const isObject = (value: unknown): value is Row => typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -56,4 +66,25 @@ export function answerResult(parts: readonly ChatQuestionPart[], answers: ChatQu
 /** The stub C0: the agent waits, Kit does not know the question. */
 export function waitingStub(threadId: string, at: string, afterMessageId: string | null): ChatQuestion {
   return { id: `${STUB_PREFIX}${threadId}`, at, afterMessageId, state: 'pending', parts: [], answerable: false, reason: CODEX_WAITING_REASON };
+}
+
+/** The questions of an agentMessage item (request_user_input_async); null for other items or none. */
+export function asyncAsks(item: Row): AsyncAsk[] | null {
+  if (item['type'] !== 'agentMessage' || !Array.isArray(item['questions'])) return null;
+  const asks = item['questions'].filter(isObject).map((q) => ({
+    title: text(q['title']),
+    options: Array.isArray(q['options']) ? q['options'].filter((o): o is string => typeof o === 'string') : [],
+  })).filter((q) => q.title !== '' || q.options.length > 0);
+  return asks.length > 0 ? asks : null;
+}
+
+/**
+ * The feed question of an asynchronous ask (spec M33 section 2.7): no header, own text always allowed,
+ * the answer is an ordinary message; answered (without answers) once a user message follows it.
+ */
+export function asyncQuestion(itemId: string, asks: readonly AsyncAsk[], at: string | null, afterMessageId: string | null, answered: boolean): ChatQuestion {
+  const parts = asks.map((ask, i): ChatQuestionPart => ({
+    id: `q${i + 1}`, header: '', question: ask.title, options: ask.options.map((label) => ({ label, description: '' })), multiSelect: false, allowOther: true,
+  }));
+  return { id: `${ASYNC_PREFIX}${itemId}`, at, afterMessageId, state: answered ? 'answered' : 'pending', parts, answerable: !answered, reply: 'message' };
 }

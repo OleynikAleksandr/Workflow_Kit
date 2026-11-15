@@ -57,7 +57,11 @@ function outOf(shot: Snapshot, sync: ChatSync, limit: number): ChatPage {
     sync.gapCount = shot.gaps.length;
     sync.reason ??= HISTORY_GAP_REASON;
   }
-  return { messages, truncated: shot.truncated || shot.messages.length > limit, sync };
+  // Asynchronous questions of the messages left out stay out too (spec M33 section 2.7).
+  const kept = new Set(messages.map((m) => m.id));
+  const from = shot.messages.length - messages.length;
+  const questions = (shot.questions ?? []).filter((q) => q.afterMessageId === null ? from === 0 : kept.has(q.afterMessageId));
+  return { messages, truncated: shot.truncated || shot.messages.length > limit, sync, ...(questions.length > 0 ? { questions } : {}) };
 }
 
 export function createHistoryReader(deps: HistoryDeps): HistoryReader {

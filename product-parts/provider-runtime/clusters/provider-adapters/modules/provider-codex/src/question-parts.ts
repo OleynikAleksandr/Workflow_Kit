@@ -1,11 +1,12 @@
 // Questions of the Codex provider (spec M33 section 2.4): the flag of the thread status from the
 // feed poll (C0), the listener (C1, L1) subscribed by the flag and before a turn Kit starts, the
-// questions of the page and the answer. Details: questions.md.
-import { ProviderError, questionAttemptsFile, questionKey, readQuestionAttempts } from '#provider-registry';
+// questions of the page (with the asynchronous ones of the history, spec 2.7) and the answer.
+// Details: questions.md.
+import { ProviderError, QUESTION_BY_MESSAGE_REASON, questionAttemptsFile, questionKey, readQuestionAttempts } from '#provider-registry';
 import type { ChatPage, ChatQuestion, Project, QuestionAttempt, QuestionOutcome } from '#provider-registry';
 import { createQuestionListener } from './question-listener.ts';
 import type { ListenerTiming, QuestionListener } from './question-listener.ts';
-import { CODEX_WAITING_REASON, STUB_PREFIX, WAITING_FLAG, threadFlags, waitingStub } from './questions.ts';
+import { ASYNC_PREFIX, CODEX_WAITING_REASON, STUB_PREFIX, WAITING_FLAG, threadFlags, waitingStub } from './questions.ts';
 import type { CodexRuntime } from './runtime.ts';
 
 /** How long a turn Kit starts waits for the listener's subscription (spec 2.4). */
@@ -51,12 +52,15 @@ export function createQuestionParts(rt: CodexRuntime, timing?: Partial<ListenerT
       if (waiting) await within(listener.ensure(threadId, POLL_SUBSCRIBE_MS), POLL_SUBSCRIBE_MS, false);
       else listener.touch(threadId);
       const last = page.messages.at(-1)?.id ?? null;
-      const questions: ChatQuestion[] = listener.questions(threadId).map((q) => {
+      const blocking: ChatQuestion[] = listener.questions(threadId).map((q) => {
         if (!places.has(q.id)) places.set(q.id, last);
         return { ...q, afterMessageId: places.get(q.id) ?? null };
       });
       while (places.size > PLACES_KEEP) places.delete(places.keys().next().value!);
-      if (waiting && !questions.some((q) => q.state === 'pending')) questions.push(waitingStub(threadId, status!.at, last));
+      if (waiting && !blocking.some((q) => q.state === 'pending')) blocking.push(waitingStub(threadId, status!.at, last));
+      // Asynchronous questions of the history first, then the blocking ones, oldest first by time.
+      const time = (q: ChatQuestion): number => (q.at === null ? Infinity : Date.parse(q.at) || Infinity);
+      const questions = [...(page.questions ?? []), ...blocking].map((q, i) => ({ q, i })).sort((a, b) => time(a.q) - time(b.q) || a.i - b.i).map(({ q }) => q);
       return questions.length > 0 ? { ...page, questions } : page;
     },
     async prepare(threadId) {
@@ -64,6 +68,7 @@ export function createQuestionParts(rt: CodexRuntime, timing?: Partial<ListenerT
     },
     async answer(project, threadId, questionId, attempt, commit) {
       if (questionId.startsWith(STUB_PREFIX)) throw new ProviderError('question-unavailable', CODEX_WAITING_REASON, { status: 409 });
+      if (questionId.startsWith(ASYNC_PREFIX)) throw new ProviderError('question-unavailable', QUESTION_BY_MESSAGE_REASON, { status: 409 });
       // After a restart the daemon repeats a request Kit already answered: a sent record of the
       // attempts journal forbids a second answer (spec 2.1; the route checks it too).
       const key = questionKey('codex', project.id, threadId, questionId);

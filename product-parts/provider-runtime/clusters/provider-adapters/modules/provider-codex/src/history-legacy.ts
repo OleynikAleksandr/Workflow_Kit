@@ -1,12 +1,12 @@
 // Legacy Codex history (spec M32 section 2.1, T001 results): no thread/items/list, so full turns
 // of thread/turns/list are read again on every poll, a too large turn by its summary or as a gap.
 import type { ChatGap, ChatMessage } from '#provider-registry';
-import { feedMessage, listedTurns } from './history-items.ts';
+import { listedTurns } from './history-items.ts';
 import type { ListedTurn } from './history-items.ts';
 import { HISTORY_PAGE_SIZE, HISTORY_STATUS_RESERVE_MS, OutOfBudget, Oversize, Unsupported, shrink } from './history-poll.ts';
 import type { Poll } from './history-poll.ts';
-import { gapOut, window } from './history-state.ts';
-import type { Entry, Gap, Snapshot } from './history-state.ts';
+import { gapOut, itemEntry, pushEntry, window } from './history-state.ts';
+import type { Asked, Entry, Gap, Snapshot } from './history-state.ts';
 
 /** Legacy history (no thread/items/list): full turns, newest first, read again on every poll. */
 export async function readLegacy(poll: Poll, threadId: string, limit: number): Promise<Snapshot> {
@@ -18,7 +18,7 @@ export async function readLegacy(poll: Poll, threadId: string, limit: number): P
   const add = (turn: ListedTurn, gap: Gap | null): void => {
     const entries = turn.items.map((item, index) => {
       const id = typeof item['id'] === 'string' && item['id'] ? item['id'] : `${turn.id}:${index}`;
-      return { id, message: feedMessage(item, id, undefined, turn.startedAt) };
+      return itemEntry(item, id, undefined, turn.startedAt);
     });
     count += entries.filter((entry) => entry.message).length;
     turns.push({ id: turn.id, entries, gap });
@@ -62,15 +62,16 @@ export async function readLegacy(poll: Poll, threadId: string, limit: number): P
   }
   const messages: ChatMessage[] = [];
   const gaps: { gap: ChatGap; at: number }[] = [];
+  const asked: Asked[] = [];
   for (const turn of turns.reverse()) {
     if (turn.gap && turn.gap.after !== null && turn.entries.length > 1) {
-      messages.push(...turn.entries.slice(0, 1).map((entry) => entry.message).filter((m): m is ChatMessage => m !== null));
+      pushEntry(messages, asked, turn.entries[0]!);
       gaps.push({ gap: gapOut(turn.id, turn.gap), at: messages.length });
-      messages.push(...turn.entries.slice(1).map((entry) => entry.message).filter((m): m is ChatMessage => m !== null));
+      for (const entry of turn.entries.slice(1)) pushEntry(messages, asked, entry);
       continue;
     }
-    messages.push(...turn.entries.map((entry) => entry.message).filter((m): m is ChatMessage => m !== null));
+    for (const entry of turn.entries) pushEntry(messages, asked, entry);
     if (turn.gap) gaps.push({ gap: gapOut(turn.id, turn.gap), at: messages.length });
   }
-  return window(messages, gaps, limit, !complete, !complete && count < limit);
+  return window(messages, gaps, limit, !complete, !complete && count < limit, asked);
 }

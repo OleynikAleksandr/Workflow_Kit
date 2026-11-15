@@ -46,6 +46,12 @@ export interface ChatQuestion {
   delivery?: 'sent';
   /** Only a proven outcome of an answered question; absent — unknown. */
   answers?: ChatQuestionAnswer;
+  /**
+   * 'message': the answer goes to the agent as an ordinary message of the panel, not through the
+   * answer route (the asynchronous question of Codex, spec M33 section 2.7). Such a question has no
+   * delivery and no answers.
+   */
+  reply?: 'message';
 }
 
 /** An answer attempt of the panel: the client's UUID and the answer. */
@@ -98,6 +104,7 @@ export const QUESTION_TOO_LARGE_REASON = 'Вопрос больше, чем по
 export const QUESTION_SENT_REASON = 'Ответ отправлен, ждём подтверждения';
 export const QUESTION_SENT_BEFORE_RESTART_REASON = 'Ответ был отправлен до перезапуска службы. Если вопрос ещё открыт, ответьте в приложении провайдера';
 export const QUESTION_UNAVAILABLE_REASON = 'Ответьте в приложении провайдера';
+export const QUESTION_BY_MESSAGE_REASON = 'Ответ на этот вопрос отправляется сообщением';
 
 const STATES: readonly string[] = ['pending', 'answered', 'cancelled'];
 
@@ -174,14 +181,15 @@ export function questionOut(value: unknown): ChatQuestion | null {
   const all = Array.isArray(value['parts']) ? value['parts'] : [];
   if (all.length > QUESTION_PARTS_MAX) mark.large = true;
   const parts = all.slice(0, QUESTION_PARTS_MAX).map((p) => partOut(p, mark)).filter((p): p is ChatQuestionPart => p !== null);
-  const delivery = value['delivery'] === 'sent' ? 'sent' : undefined;
+  const reply = value['reply'] === 'message' ? 'message' : undefined;
+  const delivery = value['delivery'] === 'sent' && !reply ? 'sent' : undefined;
   let reason = safeLine(value['reason']) ?? undefined;
   if (mark.large) reason = QUESTION_TOO_LARGE_REASON;
   const answerable = value['answerable'] === true && state === 'pending' && delivery === undefined && !mark.large && parts.length > 0;
   if (!answerable && state === 'pending' && reason === undefined) reason = delivery ? QUESTION_SENT_REASON : QUESTION_UNAVAILABLE_REASON;
   const at = typeof value['at'] === 'string' ? value['at'] : null;
   const after = safeId(value['afterMessageId']);
-  const answers = state === 'answered' ? answersOut(value['answers'], parts) : undefined;
+  const answers = state === 'answered' && !reply ? answersOut(value['answers'], parts) : undefined;
   return {
     id,
     at,
@@ -192,6 +200,7 @@ export function questionOut(value: unknown): ChatQuestion | null {
     ...(reason === undefined || answerable ? {} : { reason }),
     ...(delivery ? { delivery } : {}),
     ...(answers ? { answers } : {}),
+    ...(reply ? { reply } : {}),
   };
 }
 
@@ -205,9 +214,11 @@ export function questionsOut(value: unknown): ChatQuestion[] | undefined {
 /**
  * The common check of an answer against the current question (spec M33 section 2.1). Resolves to
  * the normalized answer, throws ProviderError question-stale, question-sent, question-unavailable
- * or question-invalid. A provider calls it on a fresh read right before handing the answer out.
+ * or question-invalid. A provider calls it on a fresh read right before handing the answer out. A
+ * question answered by a message (reply: 'message') is never answered here: question-unavailable.
  */
 export function checkQuestionAnswer(question: ChatQuestion, answer: unknown): ChatQuestionAnswer {
+  if (question.reply === 'message') throw new ProviderError('question-unavailable', QUESTION_BY_MESSAGE_REASON, { status: 409 });
   if (question.state !== 'pending') throw new ProviderError('question-stale', 'На вопрос уже ответили', { status: 409 });
   if (question.delivery === 'sent') throw new ProviderError('question-sent', 'Ответ на этот вопрос уже отправлен', { status: 409 });
   if (!question.answerable) throw new ProviderError('question-unavailable', question.reason ?? QUESTION_UNAVAILABLE_REASON, { status: 409 });

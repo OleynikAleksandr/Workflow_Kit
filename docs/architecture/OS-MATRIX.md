@@ -65,3 +65,4 @@
 | M33 T005: хук `PermissionRequest` вопроса (`wfk hook question`, `POST /api/hooks/question`), ожидания и ответ панели | POSIX-команда хука `~/.local/bin/wfk` | то же | exec-форма `node.exe wfk.mjs hook question`, x64/ARM64 |
 | M33 T011: хук `PreToolUse` вопроса (`wfk hook question` выходит сразу), закрытие ожидания без привязки | POSIX-команда хука `~/.local/bin/wfk` | то же | exec-форма `node.exe wfk.mjs hook question`, x64/ARM64 |
 | M33 T006: вопросы Codex — флаг `waitingOnUserInput`, слушатель (долгое соединение), ответ результатом запроса; соединения Kit не отвечают на запросы сервера | сокет управления демона | то же | долгий процесс `codex app-server proxy`, x64/ARM64 |
+| M33 T012: асинхронный вопрос Codex (`agentMessage.questions` истории, `reply: 'message'`) | опрос ленты через сокет демона | то же | через `codex app-server proxy`, x64/ARM64 |

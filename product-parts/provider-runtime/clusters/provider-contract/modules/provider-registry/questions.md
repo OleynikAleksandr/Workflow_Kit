@@ -10,8 +10,10 @@
 - `ChatQuestionOption { label, description }`; `ChatQuestionPart { id, header, question,
   options, multiSelect, allowOther }` — пустые `options` дают `allowOther: true`.
 - `ChatQuestion { id, at, afterMessageId, state, parts, answerable, reason?, delivery?,
-  answers? }`: `state` — `pending | answered | cancelled`; `delivery: 'sent'` — ответ передан,
-  итог не подтверждён; `answers` — только доказанный итог у `answered`.
+  answers?, reply? }`: `state` — `pending | answered | cancelled`; `delivery: 'sent'` — ответ передан,
+  итог не подтверждён; `answers` — только доказанный итог у `answered`; `reply: 'message'` —
+  ответ уходит агенту обычным сообщением панели, а не маршрутом ответа (асинхронный вопрос
+  Codex, спецификация M33 раздел 2.7, T012): у такого вопроса нет `delivery` и `answers`.
 - `ChatQuestionAnswer` — `{ [partId]: { selected: string[]; other?: string } }`;
   `QuestionAttempt { id, answers }`; `QuestionOutcome` — `accepted | unknown`.
 - `ChatPage.questions?` — от старых к новым; нет поля — провайдер вопросов не отдаёт.
@@ -20,9 +22,11 @@
 - `questionOut` / `questionsOut` (вызывает `chatPageOut`): только поля контракта; превышение
   предела обрезает текст (`…`) и делает вопрос `answerable: false` с
   `QUESTION_TOO_LARGE_REASON`; `answerable` — только у `pending` без `delivery` и с частями;
-  у неотвечаемого ожидающего вопроса всегда есть `reason`.
+  у неотвечаемого ожидающего вопроса всегда есть `reason`; `reply` — только значение
+  `'message'`, тогда `delivery` и `answers` отбрасываются.
 - `checkQuestionAnswer(question, answer)` — провайдер вызывает её на свежем чтении прямо перед
-  передачей: не `pending` — `question-stale`; `delivery` — `question-sent`; не `answerable` —
+  передачей: `reply: 'message'` — `question-unavailable` с `QUESTION_BY_MESSAGE_REASON` («Ответ
+  на этот вопрос отправляется сообщением»); не `pending` — `question-stale`; `delivery` — `question-sent`; не `answerable` —
   `question-unavailable` с причиной; иначе ответ на каждую часть, подписи только из `options`
   без повторов, свой текст только при `allowOther` (очищен `cleanAnswerText`, не пуст), без
   `multiSelect` — ровно один выбор, с ним — хотя бы один; нарушение — `question-invalid`.

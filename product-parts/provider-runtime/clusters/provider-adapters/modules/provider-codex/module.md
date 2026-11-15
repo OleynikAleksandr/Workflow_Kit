@@ -135,7 +135,8 @@ app-server на весь Mac, доверие к папке, одобрение �
 ограниченные gaps вокруг слишком больших элементов, кэш LRU 64 треда / 32 МиБ (чат не
 загружается); `sendDirect` — ход самим текстом при общем доступе, если чат не `active`.
 `src/chat.ts`, `src/history-*.ts`, `threadStatus` — [chat.md](chat.md). Вопросы
-`request_user_input` (флаг, слушатель, ответ, M33) — [questions.md](questions.md).
+`request_user_input` (флаг, слушатель, ответ, M33) и асинхронные вопросы
+`request_user_input_async` из истории (T012) — [questions.md](questions.md).
 
 ## Инварианты
 

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1001,
+  "revision": 1004,
   "rounds": [
     {
       "digest": null,
@@ -103,12 +103,16 @@
       {
         "at": "2026-11-15T08:55:44.365Z",
         "text": "T001 проверяет oversized на настоящем сервере с пониженным пределом только скрипта пробы; live output >16 МиБ не требуется. Фикстуру желательно подготовить после ревью до старта T001; рабочий лимит 16 МиБ сохраняется."
+      },
+      {
+        "at": "2026-11-15T08:56:16.936Z",
+        "text": "Owner session moved from 01a1de3c-b4ea-73a2-82d6-61c33ceb572d to 3967748e-6627-496f-9f10-fb2fa729caac: The user started the plan from this session in the Workflow Kit panel"
       }
     ],
     "delivery": "IN_PROGRESS",
     "execution": {
       "maxWorkers": 1,
-      "ownerSession": "01a1de3c-b4ea-73a2-82d6-61c33ceb572d",
+      "ownerSession": "3967748e-6627-496f-9f10-fb2fa729caac",
       "strategy": "sequential"
     },
     "id": "M32-codex-history-recovery-retry1",
@@ -153,7 +157,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Подтвердить протокол пагинации и совместимость старых сессий",
       "why": "Подтвердить протокол пагинации и совместимость старых сессий"
     },
@@ -545,8 +549,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 0/11
-- Revision: 1001
+- Progress: 1/11
+- Revision: 1004
 
 ## Objective
 
@@ -565,7 +569,7 @@
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T001 — Подтвердить протокол пагинации и совместимость старых сессий (work)
+- [DONE] T001 — Подтвердить протокол пагинации и совместимость старых сессий (work)
   - Commit: docs: verify Codex paginated history protocol
   - Files: docs/planning/M32-codex-history-recovery.md, docs/planning/M32-codex-validation.md, docs/evidence/M32-codex-protocol.md, docs/planning/M32-codex-protocol-plan.md, docs/planning/M32-codex-connection.md, docs/planning/M32-document-split.md
 - [TODO] T002a — Ограничить транспорт и сохранить типизированные ошибки (work)

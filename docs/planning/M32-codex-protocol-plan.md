@@ -115,11 +115,95 @@ SHA, результаты/счётчики и уровень каждого до
 RPC, не импортирует Kit runtime; новые исполняемые файлы репозитория в T001 не создаются.
 Повтор запуска читает ту же фикстуру без изменения её состояния и без печати переписки.
 
+## Результаты T001
+
+Счётчики, скрипт и уровни доказательства — [M32-codex-protocol.md](../evidence/M32-codex-protocol.md);
+codex-cli и сервер 0.169.0, 15.11.2026. Здесь факты и выбор уже описанных вариантов; согласованные
+критерии следующих задач не меняются.
+
+### Форма протокола (schema, подтверждена live)
+
+- `thread/turns/list`: threadId, cursor, limit, sortDirection (по умолчанию desc), itemsView
+  notLoaded | summary | full (по умолчанию summary, поэтому всегда задаётся явно). Ответ: data
+  (Turn: id, status, items, itemsView, startedAt, completedAt), nextCursor, backwardsCursor.
+- `thread/items/list`: threadId, turnId (без него — элементы всего треда), limit, sortDirection
+  (по умолчанию asc), cursor — opaque-строка или исключающий якорь `{ type: 'item', itemId }`
+  только вместе с turnId, deferOutput. Элемент ответа — `{ item, turnId, startedAtMs,
+  completedAtMs }`; nextCursor, backwardsCursor.
+- `Thread.historyMode`: legacy | paginated (по умолчанию legacy) выбирается при создании треда и
+  приходит в `thread/read` без ходов. `thread/resume` принимает excludeTurns.
+- backwardsCursor страницы при обратном sortDirection повторяет первый элемент этой страницы и
+  продолжает в обратную сторону; так у ходов и у элементов.
+
+### Наблюдения
+
+- paginated: turns/list и items/list работают на notLoaded треде; loaded/list и статус до и после
+  те же; порядок стабилен; limit=1 проходит ход целиком в обе стороны; якоря исключающие; чтение
+  после якоря отдаёт только более новые элементы.
+- legacy: items/list всегда -32601 «thread/items/list is not supported yet»; turns/list, курсоры и
+  notLoaded как у paginated; itemsView=full содержит только userMessage и agentMessage, без
+  выводов команд. На этом Mac legacy-тредов нет (26 тредов CLI 0.164–0.169 — paginated); legacy
+  проверен на треде, созданном 0.169.0 во временном CODEX_HOME.
+- Новый paginated тред до сохранения первого хода отвечает тем же -32601 у turns/list
+  («list_turns is not supported yet») и items/list, includeTurns — тем же текстом ошибки; это не
+  постоянная несовместимость.
+- summary: первая userMessage и одна agentMessage хода (обычно финальная) с полным текстом;
+  промежуточных реплик и commandExecution нет. Для ленты M18 этого мало.
+- Вывод commandExecution хранится не длиннее 65 536 байт (300 000 → 65 536 для exit 0 и exit 3;
+  в истории пользователя максимум тот же) — наблюдение 0.169.0, а не объявленный предел.
+  Крупнейший элемент — userMessage 591 095 байт с тремя изображениями; страница 50 элементов —
+  до 2,69 МБ; история 20,4 МБ. Изображения входят в байты транспорта, но не в текст ленты.
+- Обход oversized на настоящем сервере: клиент отказывает по заголовку кадра, чтение с другой
+  стороны по исключающим якорям даёт обе реплики; gap — один элемент или диапазон между двумя
+  большими выводами (реплика между ними входит в диапазон). Среди упавших выводов пользователя с
+  репликами по обе стороны нет крупнейшего в своём ходе, поэтому изоляция показана во временном
+  сервере; на демоне у упавшего вывода проверены limit=1 и якоря.
+- Активный ход: items/list отдаёт только завершённые элементы; изменения уже выданного элемента
+  не наблюдалось. turns/list отстаёт от живого thread/read: новейшим бывает прежний ход; новый
+  ход виден interrupted без items, пока thread/read показывает active и inProgress (в каждом из
+  7 прогонов); бывает и inProgress при живом completed.
+- deferOutput: в обычной схеме пустой объект; `commandExecution` требует experimentalApi (иначе
+  -32600) и откладывает только успешные выводы (aggregatedOutput null); получить их можно
+  экспериментальным thread/items/read. Наличие поля поддержкой не считается.
+- resume с excludeTurns=true возвращает тред без ходов (paginated и legacy), без флага — все ходы.
+- Идентичность: initialize отдаёт userAgent (с clientInfo клиента), codexHome, platformFamily,
+  platformOs; pid и processIdentity.startSeconds — в daemon.pid; цель сокета — realpath.
+
+### Выбор вариантов для следующих задач
+
+- paginated — базовый путь §2.1: thread/read без ходов, turns/list с явным itemsView=notLoaded,
+  items/list по turnId. summary, itemsView=full и deferOutput не используются.
+- legacy — «ограниченный turns/list путь» §2.1, путь выбирается по historyMode из thread/read:
+  turns/list с явным itemsView=full; страница ходов при отказе по размеру уменьшается до одного.
+  Если и один ход больше предела — summary этого хода и gap-диапазон между его репликами; если
+  больше и summary — gap хода с причиной `codex-history-item-too-large`. items/list и
+  includeTurns=true для legacy не вызываются; другая форма ответа — отказ `codex-history-unsupported`.
+- -32601 у paginated треда — ещё не сохранённая история: пустой хвост и повтор на следующем
+  опросе, без отметки unsupported в кэше возможностей сервера.
+- Хвост активного хода — консервативный вариант §2.2: asc от последнего подтверждённого
+  завершённого item-якоря с дедупликацией по id; backwardsCursor не обязателен. Завершённые
+  outputs не перечитываются; при terminal хвост дочитывается один раз.
+- Снимок Stop (§2.4, interrupt.md): статус хода из turns/list сам по себе не доказывает
+  завершения. Доказательство — событие turn/completed или terminal статус цели при thread/read
+  не active. Сочетания active с terminal, idle с inProgress и новейший ход не цель — противоречие:
+  перепроверка в пределах deadline, иначе unavailable/stale. Это уже согласованное правило о
+  неатомарных чтениях, применённое к наблюдённому отставанию.
+- Идентичность сервера для epoch и gaps — pid и startSeconds из daemon.pid, realpath цели,
+  userAgent при своём clientInfo; отсутствующий признак — unknown.
+- Байтовый бюджет и уменьшение страницы нужны и без больших выводов: изображения userMessage.
+
+### Pending
+
+Legacy-сессии старых CLI (на этом Mac их нет; `discover` покажет их и отказ items/list);
+изменение существующего item и backwardsCursor при обновлении якоря; элемент > 16 МиБ — fake в
+T002a/T005; Linux (CI) и Windows proxy (проверяющий) — по [M32-codex-validation.md](M32-codex-validation.md).
+
 ## Поведение на ОС
 
 | Проба | macOS | Linux | Windows |
 | --- | --- | --- | --- |
 | Schema/fake RPC | локально и CI | CI | CI x64/ARM64 |
 | Существующий демон | только read RPC | только CI сейчас | проверяющий Windows, proxy |
+| Временный сервер T001 | выполнено | тот же stdio-код, не запускался | тот же stdio-код, не запускался |
 
 Необходимые сведения одинаковы; отсутствие доступного live не заменяется результатом fake.

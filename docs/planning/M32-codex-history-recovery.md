@@ -48,7 +48,8 @@
 ### 2.1. Проверка совместимости до реализации
 
 Обязательная программа и критерий блокировки T001 —
-[M32-codex-protocol-plan.md](M32-codex-protocol-plan.md).
+[M32-codex-protocol-plan.md](M32-codex-protocol-plan.md). Результаты T001 и выбранные варианты —
+там же, раздел «Результаты T001»; доказательства — [M32-codex-protocol.md](../evidence/M32-codex-protocol.md).
 
 ### 2.2. Порционная загрузка и ограниченная память
 

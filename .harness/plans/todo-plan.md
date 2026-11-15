@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1033,
+  "revision": 1035,
   "rounds": [
     {
       "digest": {
@@ -161,7 +161,7 @@
       ],
       "checks": [],
       "commitMessage": "chore: deliver Codex WebSocket ordering fix",
-      "confirmation": null,
+      "confirmation": "Подтверждаю.",
       "context": [
         {
           "path": "docs/planning/M32-codex-validation.md",
@@ -187,7 +187,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Собрать и установить 0.13.7 с исправлением транспорта",
       "why": "Повторная поставка после F001: T006 прежнего scope поставил 0.13.6 с дефектом ws.ts"
     },
@@ -234,8 +234,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 2/4
-- Revision: 1033
+- Progress: 3/4
+- Revision: 1035
 
 ## Objective
 
@@ -261,7 +261,7 @@
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M32-codex-history-recovery.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, docs/architecture/OS-MATRIX.md
   - Depends on: F001
-- [TODO] T007 — Собрать и установить 0.13.7 с исправлением транспорта (delivery)
+- [DONE] T007 — Собрать и установить 0.13.7 с исправлением транспорта (delivery)
   - Commit: chore: deliver Codex WebSocket ordering fix
   - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/installation.md, docs/usage.md, docs/evidence/M32/local-delivery.md, docs/evidence/M32-codex-history-recovery.md
   - Depends on: DOCS-R1

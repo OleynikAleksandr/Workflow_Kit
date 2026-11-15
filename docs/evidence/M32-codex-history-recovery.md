@@ -102,12 +102,27 @@ node $T/run-browser.mjs "$PWD" <каталог> \
 существующих сессий ChatGPT (короткая — `ready` сразу, длинная — 100 сообщений за 9 опросов) —
 [local-delivery.md](M32/local-delivery.md).
 
+## Исправление и повторная поставка (scope M32-codex-history-recovery-fix)
+
+CI run 43708900530 (https://github.com/OleynikAleksandr/Workflow_Kit/actions/runs/43708900530)
+на поставленном SHA `0d04a7dbe0b9565c896343b1975166cf4a12b7ba`, 15.11.2026: macOS ARM64, Windows
+x64 и Windows ARM64 — success; Linux x64 — failure. Упал тест `ws-rpc.test.ts` «real WebSocket on a
+test socket: 16 MiB message…» с `protocol-error` «continuation without a message». Причина —
+дефект `ws.ts` с первой версии адаптера: остаток куска с ответом рукопожатия разбирался через
+`setImmediate`, а следующий кусок сокета успевал раньше. Это функциональный дефект, а не сбой CI.
+
+По решению пользователя («carryover M32, Kit потом») T007 перенесена в новый scope. F001
+(`3c6eb77e`) декодирует байты строго по порядку прихода; детерминированный тест падает на прежнем
+коде и проходит на новом. T007 — поставка 0.13.7 на macOS: doctor «всё в порядке», служба 0.13.7;
+smoke ленты восьми сессий ChatGPT без ошибок — [local-delivery.md](M32/local-delivery.md).
+CI нового поставляемого SHA — F002.
+
 ## Не проверено здесь (pending)
 
 | Проверка | macOS | Linux | Windows x64 / ARM64 |
 | --- | --- | --- | --- |
-| Автоматические тесты | пройдено (этот прогон) | pending — CI (T007) | pending — CI (T007) |
-| Живая лента длинной сессии, Stop, возврат демона | pending — пользователь на установленной 0.13.6 | не проводится | pending — проверяющий на Windows |
+| Автоматические тесты | пройдено (этот прогон) | pending — CI (F002) | pending — CI (F002) |
+| Живая лента длинной сессии, Stop, возврат демона | pending — пользователь на установленной 0.13.7 | не проводится | pending — проверяющий на Windows |
 | iPad: лента и поле при восстановлении | pending — пользователь | — | — |
 | Возврат proxy без видимого окна | — | — | pending — проверяющий на Windows |
 | Legacy-сессии старых CLI | pending: на этом Mac их нет (T001) | pending | pending |

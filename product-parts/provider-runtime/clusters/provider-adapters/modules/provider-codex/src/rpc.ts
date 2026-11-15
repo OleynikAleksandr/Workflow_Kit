@@ -11,17 +11,63 @@ export interface RpcTransport {
   close(): void;
 }
 
-/** Error answer of a JSON-RPC call, or a transport failure while waiting for one. */
+/** Why a transport closed with a failure (spec M32 section 2.3); sizes are bytes, never content. */
+export type TransportErrorCode = 'frame-too-large' | 'message-too-large' | 'malformed-json' | 'protocol-error' | 'connection-lost';
+
+/** Structured details of a transport failure, kept by RpcError for the callers. */
+export interface TransportFailure {
+  code: TransportErrorCode;
+  /** Declared or received size in bytes (size errors, malformed JSON). */
+  size?: number;
+  /** The limit that size exceeded. */
+  limit?: number;
+  /** The errno of a socket or pipe error (ENOENT, ECONNREFUSED, ECONNRESET, EPIPE, …). */
+  errno?: string;
+}
+
+/** A transport failure: a size limit, malformed JSON, a protocol error or a lost connection. */
+export class TransportError extends Error {
+  readonly code: TransportErrorCode;
+  readonly size: number | undefined;
+  readonly limit: number | undefined;
+  readonly errno: string | undefined;
+  constructor(code: TransportErrorCode, message: string, details: Omit<TransportFailure, 'code'> = {}) {
+    super(message);
+    this.name = 'TransportError';
+    this.code = code;
+    this.size = details.size;
+    this.limit = details.limit;
+    this.errno = details.errno;
+  }
+
+  /** The details without the message. */
+  failure(): TransportFailure {
+    return {
+      code: this.code,
+      ...(this.size !== undefined ? { size: this.size } : {}),
+      ...(this.limit !== undefined ? { limit: this.limit } : {}),
+      ...(this.errno !== undefined ? { errno: this.errno } : {}),
+    };
+  }
+}
+
+/**
+ * Error answer of a JSON-RPC call, or a transport failure while waiting for one. A transport
+ * failure has code = the TransportError code (or "closed" for a normal close, "timeout") and
+ * keeps its details in transport.
+ */
 export class RpcError extends Error {
   readonly code: number | string;
   readonly method: string;
   readonly data: unknown;
-  constructor(method: string, code: number | string, message: string, data?: unknown) {
+  readonly transport: TransportFailure | null;
+  constructor(method: string, code: number | string, message: string, data?: unknown, transport: TransportFailure | null = null) {
     super(`${method}: ${message}`);
     this.name = 'RpcError';
     this.method = method;
     this.code = code;
     this.data = data;
+    this.transport = transport;
   }
 }
 
@@ -64,6 +110,11 @@ export function createRpcSession(transport: RpcTransport, options: { timeoutMs?:
   const waiters: { method: string; resolve: (params: unknown) => void }[] = [];
   let nextId = 1;
   let closed: Error | null = null;
+  /** The error a call gets once the transport closed: a failure keeps its code and details. */
+  const closedError = (method: string): RpcError =>
+    closed instanceof TransportError
+      ? new RpcError(method, closed.code, closed.message, undefined, closed.failure())
+      : new RpcError(method, 'closed', closed?.message ?? 'connection closed');
 
   const failAll = (error: Error): void => {
     for (const [id, entry] of pending) {
@@ -105,13 +156,13 @@ export function createRpcSession(transport: RpcTransport, options: { timeoutMs?:
   });
   transport.onClose((error) => {
     closed = error ?? new Error('connection closed');
-    failAll(new RpcError('connection', 'closed', closed.message));
+    failAll(closedError('connection'));
   });
 
   return {
     notifications,
     request<T>(method: string, params?: unknown, timeoutMs?: number): Promise<T> {
-      if (closed) return Promise.reject(new RpcError(method, 'closed', closed.message));
+      if (closed) return Promise.reject(closedError(method));
       const id = nextId++;
       return new Promise<T>((resolve, reject) => {
         const timer = setTimeout(() => {

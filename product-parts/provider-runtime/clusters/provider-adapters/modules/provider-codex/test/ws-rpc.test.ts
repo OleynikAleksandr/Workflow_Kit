@@ -1,11 +1,14 @@
 import assert from 'node:assert/strict';
 import { mkdtemp, rm } from 'node:fs/promises';
+import { createServer } from 'node:net';
+import type { Socket } from 'node:net';
 import os from 'node:os';
 import path from 'node:path';
 import { after, before, test } from 'node:test';
-import { createRpcSession, initializeSession } from '../src/rpc.ts';
+import { RpcError, TransportError, createRpcSession, initializeSession } from '../src/rpc.ts';
 import type { RpcTransport } from '../src/rpc.ts';
-import { OPCODE, acceptKey, connectUnixWebSocket, createFrameDecoder, encodeFrame } from '../src/ws.ts';
+import { MAX_FRAME_BYTES, MAX_MESSAGE_BYTES, OPCODE, acceptKey, connectUnixWebSocket, connectWebSocket, createFrameDecoder, encodeFrame } from '../src/ws.ts';
+import type { ByteStream, Frame } from '../src/ws.ts';
 import { listenPath, startFakeDaemon } from './fake-daemon.ts';
 
 let tmp = '';
@@ -91,4 +94,232 @@ test('the fake daemon listens on the Unix socket on macOS and Linux and on a nam
   assert.equal(listenPath('/tmp/a.sock', 'linux'), '/tmp/a.sock');
   assert.match(listenPath('C:\\T\\a.sock', 'win32'), /^\\\\\.\\pipe\\wfk-fake-[0-9a-f]{16}$/);
   assert.notEqual(listenPath('C:\\T\\a.sock', 'win32'), listenPath('C:\\T\\b.sock', 'win32'));
+});
+
+/** A server frame with FIN cleared (a fragment that more frames continue). */
+function fragment(opcode: number, payload: Buffer): Buffer {
+  const frame = encodeFrame(opcode, payload, null);
+  frame[0] = opcode;
+  return frame;
+}
+
+/** An in-memory peer: answers the handshake, then pushes exactly the chunks a test gives it. */
+function memoryPeer(): { stream: ByteStream; push(chunk: Buffer): void; hangUp(): void; ended(): boolean } {
+  let data: (chunk: Buffer) => void = () => undefined;
+  let closed: () => void = () => undefined;
+  let ended = false;
+  const stream: ByteStream & { destroyed: boolean } = {
+    destroyed: false,
+    write: (chunk) => {
+      const key = /Sec-WebSocket-Key: (\S+)/.exec(chunk.toString('latin1'))?.[1];
+      if (key) setImmediate(() => data(Buffer.from(`HTTP/1.1 101 Switching Protocols\r\nSec-WebSocket-Accept: ${acceptKey(key)}\r\n\r\n`, 'latin1')));
+    },
+    end: () => void (ended = true),
+    destroy: () => {
+      if (stream.destroyed) return;
+      stream.destroyed = true;
+      setImmediate(closed);
+    },
+    onReady: (listener) => void setImmediate(listener),
+    onData: (listener) => void (data = listener),
+    onError: () => undefined,
+    onClose: (listener) => void (closed = listener),
+  };
+  return {
+    stream,
+    push: (chunk) => data(chunk),
+    hangUp: () => {
+      stream.destroyed = true;
+      closed();
+    },
+    ended: () => ended,
+  };
+}
+
+/** Opens a transport over a memory peer and records its messages and its close reason. */
+async function openMemory(options: { maxMessageBytes?: number; maxFrameBytes?: number } = {}) {
+  const peer = memoryPeer();
+  const transport = await connectWebSocket(peer.stream, { timeoutMs: 1000, ...options });
+  const messages: unknown[] = [];
+  transport.onMessage((message) => messages.push(message));
+  const closed = new Promise<Error | undefined>((resolve) => transport.onClose(resolve));
+  return { peer, transport, messages, closed };
+}
+
+const isTransport = (code: string, size?: number, limit?: number) => (error: unknown): boolean =>
+  error instanceof TransportError && error.code === code && (size === undefined || error.size === size) && (limit === undefined || error.limit === limit);
+
+test('frame limit: exactly the limit passes; one byte more is refused by the header alone', () => {
+  const ok = createFrameDecoder(100)(encodeFrame(OPCODE.text, Buffer.alloc(100), null));
+  assert.equal(ok[0]!.payload.length, 100);
+  const header16 = encodeFrame(OPCODE.text, Buffer.alloc(101), null).subarray(0, 4);
+  assert.throws(() => createFrameDecoder(100)(header16), isTransport('frame-too-large', 101, 100));
+  // A 64-bit length of 16 MiB + 1 is refused before any payload byte arrives.
+  const header64 = Buffer.from([0x81, 127, 0, 0, 0, 0, 0x01, 0, 0, 0x01]);
+  assert.throws(() => createFrameDecoder()(header64), isTransport('frame-too-large', MAX_FRAME_BYTES + 1, MAX_FRAME_BYTES));
+  assert.throws(() => createFrameDecoder()(Buffer.from([0x81, 127, 0xff, 0, 0, 0, 0, 0, 0, 0])), isTransport('frame-too-large'));
+});
+
+test('a 16 MiB frame arriving in 4 KiB chunks is assembled with linear copying', () => {
+  const payload = Buffer.alloc(MAX_FRAME_BYTES, 0x61);
+  payload[payload.length - 1] = 0x62;
+  const frame = encodeFrame(OPCODE.text, payload, null);
+  const decode = createFrameDecoder();
+  const started = performance.now();
+  const frames: Frame[] = [];
+  for (let i = 0; i < frame.length; i += 4096) frames.push(...decode(frame.subarray(i, i + 4096)));
+  const elapsed = performance.now() - started;
+  assert.equal(frames.length, 1);
+  assert.equal(frames[0]!.payload.equals(payload), true);
+  // Copying the whole buffer on every chunk (the old decoder) would move about 34 GB here.
+  assert.ok(elapsed < 5000, `decoding took ${Math.round(elapsed)} ms`);
+});
+
+test('UTF-8 split across TCP chunks and across fragments arrives intact', async () => {
+  const { peer, messages, transport } = await openMemory();
+  const body = Buffer.from(JSON.stringify({ jsonrpc: '2.0', method: 'note', params: { text: 'привет, мир' } }));
+  for (const byte of encodeFrame(OPCODE.text, body, null)) peer.push(Buffer.from([byte]));
+  const cut = body.indexOf(Buffer.from('и')) + 1; // inside the two bytes of a Cyrillic letter
+  peer.push(Buffer.concat([fragment(OPCODE.text, body.subarray(0, cut)), encodeFrame(OPCODE.continuation, body.subarray(cut), null)]));
+  assert.deepEqual(messages, [JSON.parse(body.toString()), JSON.parse(body.toString())]);
+  transport.close();
+});
+
+test('fragments: exactly the message limit passes, more is refused on the header of the next fragment', async () => {
+  const fits = await openMemory({ maxMessageBytes: 50 });
+  const json = Buffer.from(JSON.stringify({ method: 'x', params: 'a'.repeat(50 - 26) }));
+  assert.equal(json.length, 50);
+  fits.peer.push(Buffer.concat([fragment(OPCODE.text, json.subarray(0, 25)), encodeFrame(OPCODE.continuation, json.subarray(25), null)]));
+  assert.equal(fits.messages.length, 1);
+  fits.transport.close();
+
+  const over = await openMemory({ maxMessageBytes: 50 });
+  over.peer.push(fragment(OPCODE.text, Buffer.alloc(30, 0x20)));
+  // Only the header of the second fragment: the limit is checked before its payload is buffered.
+  over.peer.push(encodeFrame(OPCODE.continuation, Buffer.alloc(30, 0x20), null).subarray(0, 2));
+  assert.equal(over.peer.stream.destroyed, true);
+  assert.ok(isTransport('message-too-large', 60, 50)(await over.closed));
+  assert.deepEqual(over.messages, []);
+});
+
+test('malformed JSON, invalid UTF-8 and protocol errors close the transport with a typed error', async () => {
+  const notJson = await openMemory();
+  notJson.peer.push(encodeFrame(OPCODE.text, Buffer.from('not json'), null));
+  assert.ok(isTransport('malformed-json', 8)(await notJson.closed));
+
+  const badUtf8 = await openMemory();
+  badUtf8.peer.push(encodeFrame(OPCODE.text, Buffer.from([0x22, 0xff, 0x22]), null));
+  assert.ok(isTransport('malformed-json', 3)(await badUtf8.closed));
+
+  const orphan = await openMemory();
+  orphan.peer.push(encodeFrame(OPCODE.continuation, Buffer.from('{}'), null));
+  assert.ok(isTransport('protocol-error')(await orphan.closed));
+
+  const reserved = await openMemory();
+  reserved.peer.push(encodeFrame(3, Buffer.from('{}'), null));
+  assert.ok(isTransport('protocol-error')(await reserved.closed));
+
+  const nested = await openMemory();
+  nested.peer.push(Buffer.concat([fragment(OPCODE.text, Buffer.from('{')), encodeFrame(OPCODE.text, Buffer.from('{}'), null)]));
+  assert.ok(isTransport('protocol-error')(await nested.closed));
+});
+
+test('a cut body is a lost connection; a client close or a server close frame is a normal close', async () => {
+  const cut = await openMemory();
+  cut.peer.push(encodeFrame(OPCODE.text, Buffer.from('{"id":1,"result":{}}'), null).subarray(0, 8));
+  cut.peer.hangUp();
+  assert.ok(isTransport('connection-lost')(await cut.closed));
+
+  const client = await openMemory();
+  client.transport.close();
+  assert.equal(client.peer.ended(), true);
+  client.peer.hangUp();
+  assert.equal(await client.closed, undefined);
+
+  const server = await openMemory();
+  server.peer.push(encodeFrame(OPCODE.close, Buffer.alloc(0), null));
+  server.peer.hangUp();
+  assert.equal(await server.closed, undefined);
+});
+
+test('RpcError keeps code, size and limit of the transport failure for pending and later calls', async () => {
+  const peer = memoryPeer();
+  const session = createRpcSession(await connectWebSocket(peer.stream, { timeoutMs: 1000, maxMessageBytes: 64 }), { timeoutMs: 1000 });
+  const pending = session.request('thread/items/list', { threadId: 't' });
+  peer.push(encodeFrame(OPCODE.text, Buffer.alloc(65, 0x20), null).subarray(0, 2));
+  const check = (method: string) => (error: unknown): boolean =>
+    error instanceof RpcError && error.method === method && error.code === 'message-too-large' && error.transport?.code === 'message-too-large' && error.transport.size === 65 && error.transport.limit === 64;
+  await assert.rejects(pending, check('connection'));
+  await assert.rejects(session.request('thread/read'), check('thread/read'));
+
+  const lost = memoryPeer();
+  const second = createRpcSession(await connectWebSocket(lost.stream, { timeoutMs: 1000 }), { timeoutMs: 1000 });
+  const waiting = second.request('thread/read');
+  lost.hangUp();
+  await assert.rejects(waiting, (error: unknown) => error instanceof RpcError && error.code === 'connection-lost' && error.transport?.code === 'connection-lost');
+
+  const normal = memoryPeer();
+  const third = createRpcSession(await connectWebSocket(normal.stream, { timeoutMs: 1000 }), { timeoutMs: 1000 });
+  third.close();
+  await assert.rejects(third.request('thread/read'), (error: unknown) => error instanceof RpcError && error.code === 'closed' && error.transport === null);
+});
+
+/** A raw WebSocket server on a test socket (a named pipe on Windows) that runs onOpen after the handshake. */
+async function rawDaemon(name: string, onOpen: (socket: Socket) => void): Promise<{ socketPath: string; close(): Promise<void> }> {
+  const socketPath = listenPath(path.join(tmp, name));
+  const sockets = new Set<Socket>();
+  const server = createServer((socket) => {
+    sockets.add(socket);
+    socket.on('error', () => undefined);
+    let head = Buffer.alloc(0);
+    let open = false;
+    socket.on('data', (chunk: Buffer) => {
+      if (open) return;
+      head = Buffer.concat([head, chunk]);
+      const end = head.indexOf('\r\n\r\n');
+      if (end < 0) return;
+      const key = /^sec-websocket-key:\s*(\S+)/im.exec(head.subarray(0, end).toString())?.[1] ?? '';
+      socket.write(`HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: ${acceptKey(key)}\r\n\r\n`);
+      open = true;
+      onOpen(socket);
+    });
+  });
+  await new Promise<void>((resolve) => server.listen(socketPath, resolve));
+  return {
+    socketPath,
+    close: () => new Promise<void>((resolve) => {
+      for (const socket of sockets) socket.destroy();
+      server.close(() => resolve());
+    }),
+  };
+}
+
+test('real WebSocket on a test socket: 16 MiB message in fragments passes, 16 MiB + 1 frame or message is refused', async () => {
+  const half = MAX_MESSAGE_BYTES / 2;
+  const json = Buffer.alloc(MAX_MESSAGE_BYTES, 0x20);
+  json.write('{"id":1,"result":"x"}', 0);
+  const fits = await rawDaemon('f.sock', (socket) => socket.write(Buffer.concat([fragment(OPCODE.text, json.subarray(0, half)), encodeFrame(OPCODE.continuation, json.subarray(half), null)])));
+  try {
+    const session = createRpcSession(await connectUnixWebSocket(fits.socketPath, { timeoutMs: 2000 }), { timeoutMs: 10_000 });
+    assert.equal(await session.request('big'), 'x');
+    session.close();
+  } finally {
+    await fits.close();
+  }
+
+  const frame = await rawDaemon('g.sock', (socket) => socket.write(Buffer.from([0x81, 127, 0, 0, 0, 0, 0x01, 0, 0, 0x01])));
+  try {
+    const session = createRpcSession(await connectUnixWebSocket(frame.socketPath, { timeoutMs: 2000 }), { timeoutMs: 5000 });
+    await assert.rejects(session.request('big'), (error: unknown) => error instanceof RpcError && error.code === 'frame-too-large' && error.transport?.size === MAX_FRAME_BYTES + 1 && error.transport.limit === MAX_FRAME_BYTES);
+  } finally {
+    await frame.close();
+  }
+
+  const message = await rawDaemon('h.sock', (socket) => socket.write(Buffer.concat([fragment(OPCODE.text, json.subarray(0, half)), encodeFrame(OPCODE.continuation, Buffer.alloc(half + 1, 0x20), null).subarray(0, 10)])));
+  try {
+    const session = createRpcSession(await connectUnixWebSocket(message.socketPath, { timeoutMs: 2000 }), { timeoutMs: 5000 });
+    await assert.rejects(session.request('big'), (error: unknown) => error instanceof RpcError && error.code === 'message-too-large' && error.transport?.size === MAX_MESSAGE_BYTES + 1 && error.transport.limit === MAX_MESSAGE_BYTES);
+  } finally {
+    await message.close();
+  }
 });

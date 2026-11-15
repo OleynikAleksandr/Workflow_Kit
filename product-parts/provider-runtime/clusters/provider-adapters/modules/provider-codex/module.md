@@ -64,7 +64,23 @@ app-server на весь Mac, доверие к папке, одобрение �
 - `ws.ts` — WebSocket-клиент RFC 6455 поверх `node:net` без зависимостей
   (встроенный `WebSocket` Node не умеет unix-сокет): рукопожатие с
   проверкой `Sec-WebSocket-Accept`, маскированные кадры, длины 7/16/64 бит,
-  фрагменты, ping → pong, close, предел кадра 16 МиБ.
+  фрагменты, ping → pong, close.
+- Пределы транспорта (M32 T002a): кадр `MAX_FRAME_BYTES` и собранное из
+  фрагментов сообщение `MAX_MESSAGE_BYTES` — по 16 МиБ; оба проверяются по
+  заголовку кадра до буферизации тела. Байты копятся очередью chunks, каждый
+  копируется один раз; после отказа буферы освобождаются.
+- Ошибки транспорта — `TransportError` (`rpc.ts`) с кодом `frame-too-large`,
+  `message-too-large` (`size`, `limit`), `malformed-json` (не JSON или не
+  UTF-8, `size`), `protocol-error` (продолжение без начала, вложенное
+  сообщение, зарезервированный opcode, длинный или фрагментированный
+  управляющий кадр) и `connection-lost` (ошибка сокета с `errno` или закрытие
+  без close-кадра). Любая из них закрывает транспорт; текста сообщения в
+  ошибке нет. Закрытие по `close()` клиента или close-кадру сервера —
+  штатное, без ошибки.
+- `RpcError` ожидающего и последующих вызовов получает `code` = код
+  `TransportError` и `transport` = `{ code, size?, limit?, errno? }`; при
+  штатном закрытии — `code: 'closed'`, `transport: null`. По этим полям
+  читатель отличает oversized от сетевого сбоя, не разбирая строку.
 - `stdio.ts` — короткоживущий `codex app-server` по stdio (строка = JSON).
   Запускается своим `spawn`, а не `runCommand`: процесс выходит по EOF
   stdin, не ответив на запросы (проверено), поэтому stdin держится
@@ -178,3 +194,6 @@ M27/T004: access — только effort-card. Неизвестный ключ (
 ## Поведение на ОС
 
 Платформенные детали — [behavior.md](behavior.md); Stop — [interrupt.md](interrupt.md).
+Пределы и типизированные ошибки транспорта (M32 T002a) одинаковы на всех ОС: macOS и Linux —
+Unix-сокет, Windows — stdio `codex app-server proxy` (тот же `connectWebSocket`); тесты на
+настоящем WebSocket идут через тестовый сокет, на Windows — именованный канал.

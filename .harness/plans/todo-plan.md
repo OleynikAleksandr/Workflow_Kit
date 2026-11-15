@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1004,
+  "revision": 1006,
   "rounds": [
     {
       "digest": null,
@@ -194,7 +194,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Ограничить транспорт и сохранить типизированные ошибки",
       "why": "Ограничить транспорт и сохранить типизированные ошибки"
     },
@@ -549,8 +549,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 1/11
-- Revision: 1004
+- Progress: 2/11
+- Revision: 1006
 
 ## Objective
 
@@ -572,7 +572,7 @@
 - [DONE] T001 — Подтвердить протокол пагинации и совместимость старых сессий (work)
   - Commit: docs: verify Codex paginated history protocol
   - Files: docs/planning/M32-codex-history-recovery.md, docs/planning/M32-codex-validation.md, docs/evidence/M32-codex-protocol.md, docs/planning/M32-codex-protocol-plan.md, docs/planning/M32-codex-connection.md, docs/planning/M32-document-split.md
-- [TODO] T002a — Ограничить транспорт и сохранить типизированные ошибки (work)
+- [DONE] T002a — Ограничить транспорт и сохранить типизированные ошибки (work)
   - Commit: fix: bound Codex websocket messages and preserve transport errors
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/ws.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/rpc.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/ws-rpc.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, docs/architecture/OS-MATRIX.md
   - Depends on: T001

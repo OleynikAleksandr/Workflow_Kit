@@ -43,6 +43,7 @@ M25: disabled; managed с restricted-сетью и единственным read
 | Unix WebSocket демона, файл по thread.path | тот же демон; общий доступ unsupported | существующий proxy, файл по thread.path |
 
 Платформа внедряется в runtime и распознавание путей разрешений. Новых программ ОС нет.
+`excludeTurns` у resume одинаков на всех ОС.
 Живое чтение проверено на macOS; Windows — проверяющий на Windows, Linux — CI.
 
 ## Изменение (T004)
@@ -53,6 +54,10 @@ sharedMode.refresh, сериализует изменения одной сес�
 Явно неподдерживаемое значение — parameter-invalid без отправки. Унаследованные
 несовместимые усилие/скорость при смене модели заменяются её defaultReasoningEffort
 и serviceTier null; каждая поправка указана в notes.
+
+Незагруженный демоном тред перед записью возобновляется `thread/resume { threadId,
+excludeTurns: true }` (M32 T002c: история треда не передаётся, длинная история не задерживает
+изменение) и после записи отписывается `thread/unsubscribe`.
 
 Один thread/settings/update несёт только присланные поля и зависимые поправки.
 collaborationMode передаётся только при выборе режима, с актуальными моделью/усилием

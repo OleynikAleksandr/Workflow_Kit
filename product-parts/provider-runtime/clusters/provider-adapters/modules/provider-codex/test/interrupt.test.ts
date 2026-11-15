@@ -5,7 +5,7 @@ import type { RpcSession, InitializeResult } from '../src/rpc.ts';
 import { createChatParts } from '../src/chat.ts';
 import { PROJECT, TARGET, THREAD, answer, deferred, tick, world } from './interrupt-world.ts';
 
-const mutations = (calls: Array<{ method: string }>) => calls.filter((c) => c.method !== 'thread/read' && c.method !== 'initialize');
+const mutations = (calls: Array<{ method: string }>) => calls.filter((c) => !['thread/read', 'thread/turns/list', 'initialize'].includes(c.method));
 
 test('the exact native id is interrupted and terminal thread/read confirms it without a Stop hook', async () => {
   const { w, parts, interrupt } = world();
@@ -159,4 +159,33 @@ test('a failed expected turn cannot be reported stopped by a conflicting late co
     return {};
   };
   await assert.rejects(interrupt(), { code: 'interrupt-failed' });
+});
+
+test('Stop reads its own metadata and newest turns, never items or the whole history', async () => {
+  const { w, interrupt } = world();
+  assert.equal((await interrupt()).status, 'interrupted');
+  const reads = w.calls.filter((c) => c.method !== 'turn/interrupt' && c.method !== 'initialize');
+  assert.ok(reads.length >= 6, 'two preflight pairs and a confirmation pair');
+  for (const call of reads) {
+    if (call.method === 'thread/read') assert.deepEqual(call.params, { threadId: THREAD });
+    else assert.deepEqual(call, { method: 'thread/turns/list', params: { threadId: THREAD, limit: 10, sortDirection: 'desc', itemsView: 'notLoaded' } });
+  }
+});
+
+test('a lagging turn list is read again: an active thread with the target missing or terminal is no proof', async () => {
+  for (const lag of [answer('native-0', 'completed', 'active'), answer('native-1', 'interrupted', 'active')]) {
+    const { w, interrupt } = world();
+    // The live state says active while the listed turns lag behind (codex 0.169.0, M32 T001).
+    w.read = () => (w.reads <= 2 ? lag : w.value);
+    assert.equal((await interrupt()).status, 'interrupted');
+    assert.equal(mutations(w.calls).length, 1);
+    assert.ok(w.reads >= 4);
+  }
+});
+
+test('idle with an inProgress target stays a contradiction until the deadline: no interrupt is sent', async () => {
+  const { w, interrupt } = world(80);
+  w.read = () => answer('native-1', 'inProgress', 'idle');
+  await assert.rejects(interrupt(), { code: 'interrupt-timeout' });
+  assert.deepEqual(mutations(w.calls), []);
 });

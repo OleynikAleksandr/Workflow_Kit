@@ -100,7 +100,8 @@ legacy (`historyMode` нет или `legacy`; `items/list` там всегда `
 иначе `false` без обращения к демону. Неверный id или пустой текст — `false`. Затем в одном
 соединении `threadStatus`:
 
-- `idle` или `notLoaded` — `wakeThread(session, threadId, text)`: `thread/resume`, если тред не
+- `idle` или `notLoaded` — `wakeThread(session, threadId, text)`: `thread/resume` с
+  `excludeTurns: true` (M32: без истории), если тред не
   загружен, `turn/start` самим текстом, `thread/unsubscribe`; в ChatGPT текст виден репликой
   пользователя → `true`, строка `codex: direct message started a turn of thread <id>`;
 - `active` — `false` без `turn/start`: второй `turn/start` во время хода не встаёт в очередь, а

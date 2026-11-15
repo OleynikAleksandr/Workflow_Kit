@@ -56,7 +56,7 @@ ChatGPT подключается к этому Mac по SSH (`wfk-local`) и ч�
 - `createSession`: `thread/start`, имя, первый ход, `thread/unsubscribe` — и всё: ни ожидания
   `turn/completed`, ни `thread/archive` + `unarchive`, ни `thread/loaded/list`; заметки
   `HELD_NOTE` и `BUSY_NOTE` нет (чат открывается и во время хода);
-- `wakeSession(project, id)` → `wakeThread`: `thread/resume`, если демон не держит тред,
+- `wakeSession(project, id)` → `wakeThread`: `thread/resume` с `excludeTurns: true`, если демон не держит тред,
   `turn/start` с `WAKE_TEXT`, `thread/unsubscribe`; очередь отдаёт хук `UserPromptSubmit`. Вне
   режима — `false` (бэкенд будит только простаивающую сессию);
 - `reviewBrief: 'first-message'` всегда: ревьюер получает задание первым сообщением

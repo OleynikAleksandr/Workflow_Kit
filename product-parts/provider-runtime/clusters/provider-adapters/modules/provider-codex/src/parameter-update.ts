@@ -79,7 +79,7 @@ export function createParameterUpdater(rt: CodexRuntime, parts: ReturnType<typeo
         } while (!loaded && cursor);
         let resumed = false;
         try {
-          if (!loaded) { await session.request('thread/resume', { threadId: id }); resumed = true; }
+          if (!loaded) { await session.request('thread/resume', { threadId: id, excludeTurns: true }); resumed = true; }
           try { await session.request('thread/settings/update', request); }
           catch (error) {
             if (error instanceof RpcError && (error.code === -32601 || /requires experimentalApi|method.*not.*(found|available)|unknown method/i.test(error.message))) {

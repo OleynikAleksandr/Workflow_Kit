@@ -63,13 +63,14 @@ export async function isLoaded(session: RpcSession, threadId: string): Promise<b
 export const WAKE_TEXT = 'Workflow Kit: для тебя есть сообщения панели.';
 
 /**
- * Wakes an idle thread (spec M12 section 2.3): thread/resume when the daemon has not loaded it,
+ * Wakes an idle thread (spec M12 section 2.3): thread/resume without its turns (excludeTurns,
+ * M32: the history is never sent along) when the daemon has not loaded it,
  * then turn/start with WAKE_TEXT, then thread/unsubscribe. In the shared daemon mode the ChatGPT
  * app is a client of the same daemon, so a chat open in the app takes the turn too (checked
  * 2026-11-11: the text shows as a message of the user).
  */
 export async function wakeThread(session: RpcSession, threadId: string, text: string = WAKE_TEXT): Promise<void> {
-  if ((await isLoaded(session, threadId)) !== true) await session.request('thread/resume', { threadId });
+  if ((await isLoaded(session, threadId)) !== true) await session.request('thread/resume', { threadId, excludeTurns: true });
   try {
     await session.request('turn/start', { threadId, input: [{ type: 'text', text }] });
   } finally {

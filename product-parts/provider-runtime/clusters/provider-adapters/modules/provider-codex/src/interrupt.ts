@@ -8,6 +8,8 @@ import { NATIVE_ID, nativeTurn, object, turnSnapshot } from './turn-snapshot.ts'
 import type { NativeTurn, TurnSnapshot } from './turn-snapshot.ts';
 
 export const MIN_INTERRUPT_CODEX = '0.167.2';
+/** Newest turns each Stop read lists (M32: no full history). */
+export const INTERRUPT_TURNS_PAGE = 10;
 export interface InterruptDeps { interruptWaitMs?: number; interruptPollMs?: number }
 const HINT = 'Автопродолжение удерживается; проверьте Codex и повторите остановку.';
 export function interruptProgramReason(rt: Pick<CodexRuntime, 'program'>): string | null {
@@ -80,32 +82,49 @@ export function createInterruptParts(rt: CodexRuntime, deps: InterruptDeps = {},
         cursor = session.notifications.length;
         return successor ? stale : completed ? success(completed, 'provider-event') : null;
       };
+      // Own fresh reads on this connection (M32): metadata without turns, then the newest turns
+      // without items; never the feed's inflight or cache, never the whole history.
       const read = async () => {
         let answer: unknown;
-        try { answer = await session.request('thread/read', { threadId, includeTurns: true }, remaining()); }
-        catch (error) { observe(threadId, null); throw error; }
+        try {
+          const meta = await session.request('thread/read', { threadId }, remaining());
+          remaining();
+          const page = await session.request('thread/turns/list', { threadId, limit: INTERRUPT_TURNS_PAGE, sortDirection: 'desc', itemsView: 'notLoaded' }, remaining());
+          const listed = object(page) && Array.isArray(page['data']) ? [...page['data']].reverse() : null;
+          answer = object(meta) && object(meta['thread']) && listed ? { thread: { ...meta['thread'], turns: listed } } : null;
+        } catch (error) { observe(threadId, null); throw error; }
         remaining();
         observe(threadId, answer);
         return turnSnapshot(answer, threadId);
       };
-      const classify = (snapshot: TurnSnapshot): InterruptResult | null => {
+      /**
+       * An outcome, 'proceed' (the target runs in the active daemon) or 'retry': the two reads are
+       * not atomic and turns/list lags behind the live state (T001), so a contradiction is read again.
+       */
+      const classify = (snapshot: TurnSnapshot): InterruptResult | 'proceed' | 'retry' => {
         if (snapshot.active && snapshot.active.id !== expected) return stale;
         const turn = snapshot.turns.find((candidate) => candidate.id === expected);
-        if (!turn) return stale;
+        const newest = snapshot.turns.at(-1)?.id === expected;
+        if (!turn) return snapshot.state === 'active' ? 'retry' : stale;
         if (turn.status !== 'inProgress') {
-          if (snapshot.turns.at(-1)?.id !== expected) return stale;
-          return success(turn, 'provider-state');
+          if (snapshot.state === 'active') return 'retry';
+          return newest ? success(turn, 'provider-state') : stale;
         }
-        if (snapshot.state !== 'active') return { status: 'unavailable', stopped: false, reason: 'Этот ход не управляется активным демоном Kit' };
-        return null;
+        if (snapshot.state === 'active') return newest ? 'proceed' : 'retry';
+        if (snapshot.state === 'idle') return 'retry';
+        return { status: 'unavailable', stopped: false, reason: 'Этот ход не управляется активным демоном Kit' };
       };
-      let snapshot = await read();
-      let outcome = classify(snapshot);
-      if (outcome) return outcome;
-      // A second read fences a native successor that arrived during preflight IO.
-      snapshot = await read();
-      outcome = classify(snapshot);
-      if (outcome) return outcome;
+      const pause = () => new Promise((resolve) => setTimeout(resolve, Math.min(pollMs, remaining())));
+      let snapshot: TurnSnapshot;
+      // Two consecutive confirming reads: the second fences a native successor that arrived during
+      // preflight IO. A contradiction starts the pair again within the deadline.
+      for (let confirmed = 0; confirmed < 2;) {
+        snapshot = await read();
+        const outcome = classify(snapshot);
+        if (outcome === 'retry') { confirmed = 0; await pause(); continue; }
+        if (outcome !== 'proceed') return outcome;
+        confirmed += 1;
+      }
       const before = notes();
       if (before) return before;
       let failure: unknown;
@@ -116,13 +135,13 @@ export function createInterruptParts(rt: CodexRuntime, deps: InterruptDeps = {},
         try { snapshot = await read(); } catch (error) { const note = notes(); if (note) return note; throw error; }
         if (snapshot.active && snapshot.active.id !== expected) return stale;
         const observed = snapshot.turns.find((turn) => turn.id === expected);
-        if (observed?.status === 'failed') return success(observed, 'provider-state');
+        if (observed?.status === 'failed' && snapshot.state !== 'active') return success(observed, 'provider-state');
         const completed = notes();
         if (completed) return completed;
-        outcome = classify(snapshot);
-        if (outcome) return outcome;
+        const outcome = classify(snapshot);
+        if (outcome !== 'proceed' && outcome !== 'retry') return outcome;
         if (failure) throw failure;
-        await new Promise((resolve) => setTimeout(resolve, Math.min(pollMs, remaining())));
+        await pause();
       }
     }, timeoutMs);
     return Promise.race([work, new Promise<never>((_, reject) => { timer = setTimeout(() => { expired = true; reject(timeout()); }, Math.max(1, expires - Date.now())); })])

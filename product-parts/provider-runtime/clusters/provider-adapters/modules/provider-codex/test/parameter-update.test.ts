@@ -90,6 +90,8 @@ test('a not loaded thread is resumed and unsubscribed; refusal cached until refr
     f.loaded(false); f.thread.status.type = 'notLoaded';
     await f.update('s', { effort: 'high' });
     assert.deepEqual(f.calls.filter(c => ['thread/resume', 'thread/settings/update', 'thread/unsubscribe'].includes(c.method)).map(c => c.method), ['thread/resume', 'thread/settings/update', 'thread/unsubscribe']);
+    // M32: the resume never carries the history along.
+    assert.deepEqual(f.calls.find(c => c.method === 'thread/resume')?.params, { threadId: 's', excludeTurns: true });
     f.error(new RpcError('thread/settings/update', -32601, 'unknown method'));
     await assert.rejects(f.update('s', { effort: 'low' }), { code: 'parameters-unavailable' });
     assert.equal((await f.parts.readParameters('s')).editable, false);

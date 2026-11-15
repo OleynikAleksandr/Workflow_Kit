@@ -6,6 +6,7 @@ import assert from 'node:assert/strict';
 import { mkdtemp, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+import { readdir, readFile } from 'node:fs/promises';
 import { after, before, test } from 'node:test';
 import { ProviderError } from '#provider-registry';
 import type { Project, ProviderContext } from '#provider-registry';
@@ -182,6 +183,7 @@ test('sendDirect on a not loaded chat resumes it and starts a turn with the text
   reset('notLoaded');
   assert.equal(await parts(true).sendDirect(THREAD, 'Привет'), true);
   assert.deepEqual(methods(), ['thread/read', 'thread/loaded/list', 'thread/resume', 'turn/start', 'thread/unsubscribe']);
+  assert.deepEqual(daemon.calls.find((c) => c.method === 'thread/resume')?.params, { threadId: THREAD, excludeTurns: true });
 });
 
 test('sendDirect while a turn runs is false and never calls turn/start', async () => {
@@ -252,3 +254,18 @@ for (const platform of ['darwin', 'linux', 'win32'] as const) {
     assert.ok(!daemon.calls.some((c) => c.method === 'turn/start'));
   });
 }
+
+test('no code of the adapter reads the whole history: no includeTurns true, every resume excludes turns', async () => {
+  const dir = new URL('../src/', import.meta.url);
+  const files = (await readdir(dir)).filter((name) => name.endsWith('.ts'));
+  let resumes = 0;
+  for (const name of files) {
+    const source = await readFile(new URL(name, dir), 'utf8');
+    assert.doesNotMatch(source, /includeTurns:\s*true/, name);
+    for (const call of source.matchAll(/request\('thread\/resume',[^)]*\)/g)) {
+      resumes += 1;
+      assert.match(call[0], /excludeTurns: true/, `${name}: ${call[0]}`);
+    }
+  }
+  assert.equal(resumes, 2, 'thread-ops.ts and parameter-update.ts');
+});

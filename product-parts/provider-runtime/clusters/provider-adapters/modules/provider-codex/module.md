@@ -206,6 +206,10 @@ M27/T004: access — только effort-card. Неизвестный ключ (
 Пределы и типизированные ошибки транспорта (M32 T002a) одинаковы на всех ОС: macOS и Linux —
 Unix-сокет, Windows — stdio `codex app-server proxy` (тот же `connectWebSocket`); тесты на
 настоящем WebSocket идут через тестовый сокет, на Windows — именованный канал.
+Stop (M32 T002c) читает собственными свежими RPC `thread/read` без ходов и 10 новейших ходов
+`thread/turns/list`, противоречия отстающего списка перечитывает до deadline 8 с; каждый
+`thread/resume` (`thread-ops.ts`, `parameter-update.ts`) передаёт `excludeTurns: true`, и ни один
+`thread/read` адаптера не просит `includeTurns: true` — одинаково на всех ОС.
 Порционная лента (M32 T002b2) — общий код без веток по ОС: курсоры, бюджет опроса, gaps и кэш
 одинаковы; на Windows запросы идут через тот же proxy. Тесты reader и провайдера с подставной
 платформой `darwin`/`linux`/`win32` идут в CI на всех ОС.

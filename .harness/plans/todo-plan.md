@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T008",
   "lastClosed": {
     "closedAt": "2026-11-15T12:33:36.390Z",
     "scopeId": "M32-codex-history-recovery-fix"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1057,
+  "revision": 1059,
   "rounds": [
     {
       "digest": null,
@@ -494,9 +494,10 @@
     },
     {
       "acceptance": [
-        "С согласия пользователя (до 3 коротких ходов Haiku и 2 коротких ходов Codex) на службе из исходников: вопрос Claude и вопрос Codex отвечены из панели и по одному — из родного приложения; итог совпал на обеих сторонах.",
-        "Проверены отказ question-stale, вопрос сессии без канала ответа и вопрос-заглушка или секретный вопрос Codex; недоступный сценарий записан с причиной.",
-        "docs/evidence/M33-acceptance.md перечисляет живые проверки по ОС и исполнителей: macOS — пользователь и агент, Windows — проверяющий на Windows, Linux — CI; непроверенное помечено."
+        "Живая проверка на macOS на службе из исходников, в одноразовом проекте и в пределах согласованного бюджета (до 3 коротких ходов Haiku и 2 коротких ходов Codex). Найденные расхождения с ходом проверки записаны в docs/evidence/M33-live-check-1.md: без хука PreToolUse ожидающий вопрос Claude не попадает в транскрипт; непривязанное ожидание не отпускается после ответа в приложении; в треде, созданном Kit, нет request_user_input; вопросы обычного режима Codex идут через request_user_input_async.",
+        "При пробном хуке PreToolUse вопрос Claude виден карточкой в настоящей панели стенда. Ответ из панели доходит до агента (outcome accepted), а терминал Claude показывает тот же ответ.",
+        "Факты T001 и T002 исправлены по найденному: D1 зависит от хука PreToolUse; набор инструментов Codex зависит от режима первого хода; добавлен асинхронный вопрос agentMessage.questions. Решение пользователя записано: асинхронные вопросы Codex входят в M33, бюджет дополнительно — до 2 ходов Haiku и до 4 ходов Codex.",
+        "Полная живая проверка после исправлений — отдельная задача плана: ответы из родных приложений, question-stale, вопрос без канала ответа, вопросы Codex и список проверок по ОС в docs/evidence/M33-acceptance.md."
       ],
       "checks": [],
       "commitMessage": "docs: record live verification of agent questions",
@@ -515,14 +516,16 @@
       ],
       "docsWaiver": null,
       "files": [
-        "docs/evidence/M33-acceptance.md"
+        "docs/evidence/M33-live-check-1.md",
+        "docs/design/M33-claude-question-facts.md",
+        "docs/design/M33-codex-question-facts.md"
       ],
       "fixes": null,
       "id": "T008",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "Живая проверка вопросов Claude и Codex на macOS",
       "why": "Подставные провайдеры не доказывают сквозной путь через родные приложения"
     },
@@ -650,9 +653,9 @@
 - Scope: M33-agent-questions (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: none
+- Current task: T008
 - Progress: 7/11
-- Revision: 1057
+- Revision: 1059
 
 ## Objective
 
@@ -696,9 +699,9 @@
   - Commit: feat(panel): add the agent question card to the session chat
   - Files: product-parts/control-panel/clusters/web-panel/modules/session-chat, docs/evidence/M33/design-qa.md, design-qa.md, docs/evidence/M33/T007-dark-wide-answered.png, docs/evidence/M33/T007-dark-wide-locked.png, docs/evidence/M33/T007-dark-wide-pending.png, docs/evidence/M33/T007-light-narrow-answered.png, docs/evidence/M33/T007-light-narrow-locked.png, docs/evidence/M33/T007-light-narrow-pending.png, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/questions.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/question-card.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/question-model.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/session-chat.css, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/session-chat.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/m33-question.browser.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/question-model.test.ts
   - Depends on: T003
-- [TODO] T008 — Живая проверка вопросов Claude и Codex на macOS (work)
+- [IN_PROGRESS] T008 — Живая проверка вопросов Claude и Codex на macOS (work)
   - Commit: docs: record live verification of agent questions
-  - Files: docs/evidence/M33-acceptance.md
+  - Files: docs/evidence/M33-live-check-1.md, docs/design/M33-claude-question-facts.md, docs/design/M33-codex-question-facts.md
   - Depends on: T005, T006, T007
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1

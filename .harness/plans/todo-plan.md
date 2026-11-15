@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": "T008",
+  "currentTaskId": null,
   "lastClosed": {
     "closedAt": "2026-11-15T12:33:36.390Z",
     "scopeId": "M32-codex-history-recovery-fix"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1060,
+  "revision": 1061,
   "rounds": [
     {
       "digest": null,
@@ -527,7 +527,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "title": "Живая проверка вопросов Claude и Codex на macOS",
       "why": "Подставные провайдеры не доказывают сквозной путь через родные приложения"
     },
@@ -655,9 +655,9 @@
 - Scope: M33-agent-questions (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: T008
-- Progress: 7/11
-- Revision: 1060
+- Current task: none
+- Progress: 8/11
+- Revision: 1061
 
 ## Objective
 
@@ -701,7 +701,7 @@
   - Commit: feat(panel): add the agent question card to the session chat
   - Files: product-parts/control-panel/clusters/web-panel/modules/session-chat, docs/evidence/M33/design-qa.md, design-qa.md, docs/evidence/M33/T007-dark-wide-answered.png, docs/evidence/M33/T007-dark-wide-locked.png, docs/evidence/M33/T007-dark-wide-pending.png, docs/evidence/M33/T007-light-narrow-answered.png, docs/evidence/M33/T007-light-narrow-locked.png, docs/evidence/M33/T007-light-narrow-pending.png, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/questions.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/question-card.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/question-model.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/session-chat.css, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/session-chat.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/m33-question.browser.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/question-model.test.ts
   - Depends on: T003
-- [IN_PROGRESS] T008 — Живая проверка вопросов Claude и Codex на macOS (work)
+- [DONE] T008 — Живая проверка вопросов Claude и Codex на macOS (work)
   - Commit: docs: record live verification of agent questions
   - Files: docs/evidence/M33-live-check-1.md, docs/design/M33-claude-question-facts.md, docs/design/M33-codex-question-facts.md, docs/evidence/M33/T008-claude-pending.png, docs/evidence/M33/T008-claude-answered.png
   - Depends on: T005, T006, T007

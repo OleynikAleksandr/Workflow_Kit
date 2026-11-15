@@ -231,6 +231,9 @@ export function connectWebSocket(socket: ByteStream, options: WebSocketOptions =
     let current: 'text' | 'binary' | null = null;
     let fragments: Buffer[] = [];
     let fragmentBytes = 0;
+    // Bytes that came with the handshake answer wait until the caller attached its handlers; every
+    // chunk received meanwhile queues behind them, so frames are decoded in the order they arrived.
+    let backlog: Buffer[] | null = null;
     const protocolError = (message: string): TransportError => new TransportError('protocol-error', `WebSocket protocol error: ${message}`);
     const checkHeader = ({ fin, opcode, length }: FrameHeader): void => {
       if (opcode >= 8) {
@@ -326,7 +329,8 @@ export function connectWebSocket(socket: ByteStream, options: WebSocketOptions =
     socket.onData((chunk: Buffer) => {
       if (dead) return;
       if (open) {
-        onFrames(chunk);
+        if (backlog) backlog.push(chunk);
+        else onFrames(chunk);
         return;
       }
       handshake = Buffer.concat([handshake, chunk]);
@@ -361,7 +365,14 @@ export function connectWebSocket(socket: ByteStream, options: WebSocketOptions =
           setTimeout(() => socket.destroy(), 200).unref();
         },
       });
-      if (rest.length > 0) setImmediate(() => onFrames(rest));
+      if (rest.length > 0) {
+        backlog = [rest];
+        setImmediate(() => {
+          const queued = backlog ?? [];
+          backlog = null;
+          for (const chunk of queued) onFrames(chunk);
+        });
+      }
     });
     socket.onError((error) => {
       const errno = (error as NodeJS.ErrnoException).code;

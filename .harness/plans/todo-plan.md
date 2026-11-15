@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1029,
+  "revision": 1031,
   "rounds": [
     {
       "digest": null,
@@ -105,7 +105,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Сохранить порядок байтов после рукопожатия WebSocket Codex",
       "why": "CI Linux x64 run 43708900530 на SHA 0d04a7db: начало кадра в куске рукопожатия обрабатывается через setImmediate, следующий кусок сокета успевает раньше — protocol-error «continuation without a message» (дефект T002a/db08ada прежнего scope M32-codex-history-recovery-retry1)"
     },
@@ -219,8 +219,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 0/4
-- Revision: 1029
+- Progress: 1/4
+- Revision: 1031
 
 ## Objective
 
@@ -239,7 +239,7 @@
 
 ### R1 — Carried over (implementation, OPEN)
 
-- [TODO] F001 — Сохранить порядок байтов после рукопожатия WebSocket Codex (work)
+- [DONE] F001 — Сохранить порядок байтов после рукопожатия WebSocket Codex (work)
   - Commit: fix: keep WebSocket bytes in order after the Codex handshake
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/ws.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/ws-rpc.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, docs/architecture/OS-MATRIX.md
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)

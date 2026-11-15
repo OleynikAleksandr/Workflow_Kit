@@ -264,6 +264,40 @@ test('RpcError keeps code, size and limit of the transport failure for pending a
   await assert.rejects(third.request('thread/read'), (error: unknown) => error instanceof RpcError && error.code === 'closed' && error.transport === null);
 });
 
+test('bytes that come with the handshake answer stay ahead of the chunks that follow it', async () => {
+  // The start of a frame arrives with the handshake answer and the rest right after it, before the
+  // transport is handed out: the frame is decoded in order, with no protocol error.
+  const frame = Buffer.concat([fragment(OPCODE.text, Buffer.from('{"id":1,')), encodeFrame(OPCODE.continuation, Buffer.from('"result":"x"}'), null)]);
+  for (const cut of [1, 2, 5, 12, frame.length - 1]) {
+    let data: (chunk: Buffer) => void = () => undefined;
+    let closed: () => void = () => undefined;
+    const stream: ByteStream & { destroyed: boolean } = {
+      destroyed: false,
+      write: (chunk) => {
+        const key = /Sec-WebSocket-Key: (\S+)/.exec(chunk.toString('latin1'))?.[1];
+        if (!key) return;
+        setImmediate(() => {
+          data(Buffer.concat([Buffer.from(`HTTP/1.1 101 Switching Protocols\r\nSec-WebSocket-Accept: ${acceptKey(key)}\r\n\r\n`, 'latin1'), frame.subarray(0, cut)]));
+          data(frame.subarray(cut));
+        });
+      },
+      end: () => undefined,
+      destroy: () => {
+        if (stream.destroyed) return;
+        stream.destroyed = true;
+        setImmediate(closed);
+      },
+      onReady: (listener) => void setImmediate(listener),
+      onData: (listener) => void (data = listener),
+      onError: () => undefined,
+      onClose: (listener) => void (closed = listener),
+    };
+    const session = createRpcSession(await connectWebSocket(stream, { timeoutMs: 1000 }), { timeoutMs: 1000 });
+    assert.equal(await session.request('read'), 'x', `cut at ${cut}`);
+    session.close();
+  }
+});
+
 /** A raw WebSocket server on a test socket (a named pipe on Windows) that runs onOpen after the handshake. */
 async function rawDaemon(name: string, onOpen: (socket: Socket) => void): Promise<{ socketPath: string; close(): Promise<void> }> {
   const socketPath = listenPath(path.join(tmp, name));

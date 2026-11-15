@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1016,
+  "revision": 1018,
   "rounds": [
     {
       "digest": null,
@@ -485,14 +485,15 @@
         "product-parts/control-panel/clusters/web-panel/modules/session-chat/test",
         "product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md",
         "docs/evidence/M32-codex-history-recovery.md",
-        "docs/architecture/OS-MATRIX.md"
+        "docs/architecture/OS-MATRIX.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/m32-e2e.test.ts"
       ],
       "fixes": null,
       "id": "T005",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Проверить длинную историю и восстановление сквозными сценариями",
       "why": "Проверить длинную историю и восстановление сквозными сценариями"
     },
@@ -614,8 +615,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 7/11
-- Revision: 1016
+- Progress: 8/11
+- Revision: 1018
 
 ## Objective
 
@@ -661,9 +662,9 @@
   - Commit: fix: preserve session chat while Codex reconnects
   - Files: product-parts/control-panel/clusters/web-panel/modules/session-chat, docs/architecture/OS-MATRIX.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/chat-model.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/session-chat.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/sync.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/chat-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/m32-recovery.browser.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/run-browser.mjs
   - Depends on: T003
-- [TODO] T005 — Проверить длинную историю и восстановление сквозными сценариями (work)
+- [DONE] T005 — Проверить длинную историю и восстановление сквозными сценариями (work)
   - Commit: test: cover Codex long history and socket recovery
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/test, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, docs/evidence/M32-codex-history-recovery.md, docs/architecture/OS-MATRIX.md
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/test, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, docs/evidence/M32-codex-history-recovery.md, docs/architecture/OS-MATRIX.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/m32-e2e.test.ts
   - Depends on: T004
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1

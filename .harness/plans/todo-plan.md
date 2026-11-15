@@ -10,10 +10,22 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1096,
+  "revision": 1098,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "Тест с подставленной чужой ОС и настоящей папкой данных службы выполняется только на своём семействе ОС (OVERVIEW, раздел проверок)."
+        ],
+        "decisions": [
+          "Меняется только тест, код службы и панели — нет; ветка win32 resolveAutoCompactWindow по-прежнему проверяется на всех ОС в auto-compact-window.test.ts.",
+          "Общая проверка чистоты корня для всех тестов не входит в M35."
+        ],
+        "references": [
+          "docs/planning/M35-test-stray-folders.md"
+        ],
+        "result": "Вариант win32 теста auto-compact-context идёт только на Windows, darwin и linux — вне Windows; новая проверка в том же файле требует, чтобы в текущей папке не было записей wfk-acw-. npm test больше не оставляет папок \\var\\folders\\… в корне. README и OVERVIEW сверены: версия 0.14.2, вехи M24–M34 приняты."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -129,7 +141,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -215,8 +227,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 1/4
-- Revision: 1096
+- Progress: 2/4
+- Revision: 1098
 
 ## Objective
 
@@ -236,7 +248,7 @@
 - [DONE] T001 — Тест auto-compact-context: варианты на своём семействе ОС и проверка чистоты текущей папки (work, parallel-safe)
   - Commit: test(cli): keep the win32 auto-compact variant from creating folders off Windows
   - Files: product-parts/backend-core/clusters/runtime/modules/cli/test/auto-compact-context.test.ts
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M35-test-stray-folders.md
   - Depends on: T001
@@ -248,5 +260,7 @@
   - Commit: docs: record test stray folders fix cross-platform CI
   - Files: docs/evidence/M35-acceptance.md
   - Depends on: T002, DOCS-R1
+
+Digest: Вариант win32 теста auto-compact-context идёт только на Windows, darwin и linux — вне Windows; новая проверка в том же файле требует, чтобы в текущей папке не было записей wfk-acw-. npm test больше не оставляет папок \var\folders\… в корне. README и OVERVIEW сверены: версия 0.14.2, вехи M24–M34 приняты.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

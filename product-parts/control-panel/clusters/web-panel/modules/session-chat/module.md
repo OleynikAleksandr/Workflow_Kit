@@ -48,14 +48,15 @@
 | Файл | Содержание |
 | --- | --- |
 | `src/index.ts` | монтирование файлов модуля |
-| `src/chat-model.js` | чистая логика без DOM: `messagesUrl(projectId, session)`, `sendUrl(projectId, key)` (части пути кодируются, `localId` — часть ключа после первого двоеточия), `mergePage(previous, page)` (по `id`: `messages` страницы, `added`, `hasNew`, `changed`), `canSend(text, busy)` (непустой текст до 20 000 знаков, отправка не идёт), `roleLabel(role, providerLabel)` («Вы» / название провайдера), `timeLabel(at)` (местное время «ЧЧ:ММ», другой день — с датой), `unsupportedText`, `errorText`, `TRUNCATED_TEXT`, `POLL_MS` |
+| `src/chat-model.js` | чистая логика без DOM: `messagesUrl(projectId, session)`, `sendUrl(projectId, key)` (части пути кодируются, `localId` — часть ключа после первого двоеточия), `mergePage(previous, page)` (по `id`: `messages` страницы, `added`, `hasNew`, `changed`), `canSend(text, busy)` (непустой текст до 20 000 знаков, отправка не идёт), `roleLabel(role, providerLabel)` («Вы» / название провайдера), `timeLabel(at)` (местное время «ЧЧ:ММ», другой день — с датой), `unsupportedText`, `errorText`, `TRUNCATED_TEXT`, `POLL_MS`; M32 — `syncView`, `TRANSIENT_CODES` и тексты состояний ([sync.md](sync.md)) |
 | `src/session-chat.js` | DOM карточки «Диалог»: лента (подпись «кто · время» и текст), строка об обрезке, состояние `supported: false` («<Провайдер> не отдаёт переписку; сообщение агенту можно отправить»), ошибка чтения, компактный composer M24, опрос |
 | `src/composer-model.js` | выбор `channel.interruptions` и `SessionInfo.model`, поколения, ревизия черновика, модель клавиатуры/IME |
 | `src/composer.js` | постоянный DOM ввода, блокировка запросов, отправка/Stop, растущая textarea и параметры |
 | `src/icons/` | SVG Lucide 0.468.0 и исходная лицензия ISC; локальные статические маски, без новой зависимости |
 | `test/composer-model.test.ts` | состояния, IME/Safari/229, Enter и очередь, старые подтверждения и новые черновики |
 | `src/session-chat.css` | `.sc-card`, `.sc-feed`, `.sc-msg`, `.sc-msg-user`, `.sc-msg-agent`, `.sc-meta`, `.sc-input`, `.sc-status` на переменных темы панели (светлая и тёмная) |
-| `test/chat-model.test.ts` | адреса, `mergePage`, `sendOutcome`, `canSend`, подписи, монтирование |
+| `test/chat-model.test.ts` | адреса, `mergePage`, `sendOutcome`, `canSend`, подписи, монтирование, `syncView` (M32) |
+| `test/m32-recovery.browser.js`, `test/run-browser.mjs` | сценарий восстановления ленты и запуск браузерных сценариев ([sync.md](sync.md)) |
 
 ## Поведение карточки
 
@@ -71,6 +72,9 @@
 - Лента заполняет оставшееся место области диалога и прокручивается внутри карточки (M24) и сама уходит
   вниз при новых сообщениях, только если пользователь был внизу.
 - Ошибка чтения показывается в карточке, прежние сообщения остаются.
+- M32: `sync` страницы — строка состояния над лентой (загрузка, пробел) и строка
+  восстановления подключения в области ошибки; ввод, прокрутка и очередь сохраняются —
+  [sync.md](sync.md).
 - Enter отправляет в waiting/holding/unknown, Shift+Enter вставляет строку.
   В working обычный Enter вставляет строку; Ctrl/⌘+Enter и «В очередь» сохраняют
   доставку M18. Основная кнопка working — Stop, локальная HTTP-отправка не
@@ -144,7 +148,7 @@ min(120px, 25% высоты карточки), затем прокручивае
 вызовов программ ОС и путей ОС в нём нет; `index.ts` строит путь к `src/`
 через `fileURLToPath`. Различия провайдеров по ОС (откуда берётся лента,
 когда возможны прямая отправка и Stop) — в их модулях. Ввод/IME/resize/параметры
-не ветвятся по ОС. Живую проверку macOS/iPad проводит пользователь, Windows —
+не ветвятся по ОС, состояние `sync` (M32) — тоже. Живую проверку macOS/iPad проводит пользователь, Windows —
 проверяющий, Linux — CI; локальный Chromium не подтверждает остальные ОС. Карточка показывает то, что
 отдаёт служба.
 

@@ -3,7 +3,7 @@
 // a field to write to its agent. Panel extension: install(shell) fills the "sessionChat" slot of
 // panel-shell. One element per session lives in a Map and is updated in place by its own polling,
 // so the typed text and the scroll position survive polls and leaving the screen.
-import { EMPTY_TEXT, LOADING_TEXT, POLL_MS, TRUNCATED_TEXT, errorText, mergePage, messagesUrl, roleLabel, timeLabel, unsupportedText } from './chat-model.js';
+import { EMPTY_TEXT, LOADING_TEXT, POLL_MS, TRUNCATED_TEXT, errorText, mergePage, messagesUrl, roleLabel, syncView, timeLabel, unsupportedText } from './chat-model.js';
 
 import { createComposer } from './composer.js';
 import { QUEUED_LABEL, composerData } from './composer-model.js';
@@ -29,7 +29,9 @@ import { QUEUED_LABEL, composerData } from './composer-model.js';
  * @property {HTMLElement} root the card
  * @property {HTMLElement} feed
  * @property {HTMLElement} note truncated or unsupported line
- * @property {HTMLElement} error read error
+ * @property {HTMLElement} state reading state line (M32: loading, a gap)
+ * @property {HTMLElement} error read error, or the reconnecting/unavailable line
+ * @property {boolean} hadFull a full snapshot was shown: a loading page no longer replaces it
  * @property {ReturnType<typeof createComposer>} composer
  * @property {Map<string, HTMLElement>} nodes message nodes by id
  * @property {ChatMessage[] | null} messages null before the first page
@@ -138,7 +140,14 @@ export function install(shell) {
    */
   function apply(entry, answer) {
     const page = answer && typeof answer === 'object' ? /** @type {Record<string, unknown>} */ (answer) : {};
-    line(entry.error, '');
+    const view = syncView(page['sync'], entry.hadFull);
+    const lines = `${entry.state.textContent}\n${entry.error.textContent}`;
+    line(entry.error, view.error, 'error');
+    line(entry.state, page['supported'] === false ? '' : view.state, 'muted');
+    if (lines !== `${entry.state.textContent}\n${entry.error.textContent}`) entry.version += 1;
+    // A pass in progress never replaces a full snapshot with a part of the history (M32 2.7).
+    if (page['supported'] !== false && !view.replace) return;
+    if (view.full) entry.hadFull = true;
     if (page['supported'] === false) {
       entry.messages = [];
       entry.nodes.clear();
@@ -184,8 +193,10 @@ export function install(shell) {
     try {
       apply(entry, await shell.api('GET', messagesUrl(entry.projectId, { key: entry.key, provider: entry.provider })));
     } catch (error) {
-      // Earlier messages stay; the error shows above the input.
+      // Earlier messages, the draft, the focus, the scroll and the queued bubbles stay; the error
+      // (or the service's reconnecting line) shows above the input; nothing is sent again.
       if (entry.messages === null) entry.feed.replaceChildren();
+      line(entry.state, '');
       line(entry.error, errorText(error), 'error');
       entry.version += 1;
     } finally {
@@ -235,20 +246,23 @@ export function install(shell) {
     }
     const feed = h('div', { class: 'sc-feed', role: 'log', 'aria-live': 'polite' }, [h('p', { class: 'sc-empty' }, [LOADING_TEXT])]);
     const note = h('p', { class: 'sc-note' });
+    const state = h('p', { class: 'sc-note sc-state', role: 'status' });
     const error = h('p', { class: 'sc-error', role: 'alert' });
+    state.hidden = true;
     const composer = createComposer({ shell, projectId, key, provider, onSent: () => void poll(entry) });
     note.hidden = true;
     error.hidden = true;
     const root = h('div', { class: 'panel sc-card' }, [
       h('h2', {}, ['Диалог']),
       note,
+      state,
       feed,
       error,
       composer.node,
     ]);
     /** @type {ChatEntry} */
     const entry = {
-      projectId, key, provider, providerLabel, root, feed, note, error, composer,
+      projectId, key, provider, providerLabel, root, feed, note, state, error, composer, hadFull: false,
       nodes: new Map(), messages: null, queued: [], queuedNodes: new Map(), inflight: false, again: false, shown: false, lastPoll: 0, version: 0,
     };
     entries.set(id, entry);

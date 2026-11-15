@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { test } from 'node:test';
 import { SESSION_CHAT_ASSETS_DIR, SESSION_CHAT_PREFIX, sessionChatMount } from '../src/index.ts';
-import { SEND_MAX_CHARS, TRUNCATED_TEXT, canSend, errorText, localIdOf, mergePage, messagesUrl, roleLabel, sendUrl, timeLabel, unsupportedText } from '../src/chat-model.js';
+import { RECONNECTING_TEXT, SEND_MAX_CHARS, SYNC_LOADING_TEXT, SYNC_PARTIAL_TEXT, TRUNCATED_TEXT, UNAVAILABLE_TEXT, canSend, errorText, localIdOf, mergePage, messagesUrl, roleLabel, sendUrl, syncView, timeLabel, unsupportedText } from '../src/chat-model.js';
 
 const msg = (id: string, role: 'user' | 'assistant', text: string, at: string | null = null) => ({ id, role, text, at });
 
@@ -77,4 +77,25 @@ test('labels: who, when, unsupported, truncated and errors', () => {
   assert.equal(TRUNCATED_TEXT, 'Показаны последние сообщения; полная переписка — в чате провайдера');
   assert.equal(errorText({ message: 'Сессия не найдена' }), 'Сессия не найдена');
   assert.equal(errorText({ message: 'Нет связи', hint: 'Проверьте службу' }), 'Нет связи. Проверьте службу');
+});
+
+test('sync (M32): no sync and ready show nothing; loading replaces only before a full snapshot', () => {
+  const quiet = { state: '', error: '', replace: true, full: true };
+  assert.deepEqual(syncView(undefined, false), quiet, 'Claude and Kimi pages without sync');
+  assert.deepEqual(syncView({ state: 'ready' }, true), quiet);
+  assert.deepEqual(syncView({ state: 'bogus' }, true), quiet);
+  assert.deepEqual(syncView({ state: 'loading' }, false), { state: SYNC_LOADING_TEXT, error: '', replace: true, full: false });
+  assert.deepEqual(syncView({ state: 'loading' }, true), { state: SYNC_LOADING_TEXT, error: '', replace: false, full: false });
+  assert.deepEqual(syncView({ state: 'partial', reason: ' Пробел ', gaps: [{ turnId: 't' }] }, true), { state: 'Пробел', error: '', replace: true, full: true });
+  assert.equal(syncView({ state: 'partial' }, true).state, SYNC_PARTIAL_TEXT);
+  assert.equal(syncView({ state: 'ready', gaps: [{ turnId: 't' }] }, true).state, SYNC_PARTIAL_TEXT, 'gaps are never ready');
+  assert.deepEqual(syncView({ state: 'reconnecting', retryAfterMs: 900 }, true), { state: '', error: RECONNECTING_TEXT, replace: true, full: true });
+  assert.deepEqual(syncView({ state: 'unavailable', reason: 'Свой текст' }, false), { state: '', error: 'Свой текст', replace: true, full: true });
+});
+
+test('a 503 of a reconnecting provider shows its own line without a hint', () => {
+  assert.equal(errorText({ code: 'codex-reconnecting', message: 'Восстанавливаем подключение к Codex…', hint: 'x' }), 'Восстанавливаем подключение к Codex…');
+  assert.equal(errorText({ code: 'codex-unavailable' }), UNAVAILABLE_TEXT);
+  assert.equal(errorText({ code: 'codex-reconnecting', message: '' }), RECONNECTING_TEXT);
+  assert.equal(errorText({ code: 'chat-unavailable', message: 'Codex не отдал переписку', hint: 'Проверьте демон' }), 'Codex не отдал переписку. Проверьте демон');
 });

@@ -35,6 +35,48 @@ export const LOADING_TEXT = 'Загружаю диалог…';
 /** Feed placeholder of a conversation without messages. */
 export const EMPTY_TEXT = 'Сообщений пока нет';
 
+/** Reading states (spec M32 2.7) shown in the state line of the feed (loading, partial). */
+export const SYNC_LOADING_TEXT = 'Загружаем диалог…';
+export const SYNC_PARTIAL_TEXT = 'Часть диалога недоступна';
+/** Fallbacks of the error line while the provider reconnects (the service sends its own text). */
+export const RECONNECTING_TEXT = 'Восстанавливаем подключение к Codex…';
+export const UNAVAILABLE_TEXT = 'Нет подключения к Codex. Проверьте демон в настройках провайдера';
+/** Error codes of a read that is retried by the service itself (HTTP 503). */
+export const TRANSIENT_CODES = ['codex-reconnecting', 'codex-unavailable'];
+
+const SYNC_STATES = ['loading', 'ready', 'partial', 'reconnecting', 'unavailable'];
+
+/**
+ * How a page (or its absence) shows: the state line above the feed, the error line, and whether
+ * the page may replace the shown messages.
+ * @typedef {object} SyncView
+ * @property {string} state text of the state line ('' hides it): loading, a gap
+ * @property {string} error text of the error line ('' hides it): reconnecting, unavailable
+ * @property {boolean} replace the page is a full snapshot (or the first one) and replaces the feed
+ * @property {boolean} full the page is a full snapshot
+ */
+
+/**
+ * The view of a page's sync (M32): no sync (Claude, Kimi) and ready show nothing; loading shows
+ * «Загружаем диалог…» and replaces the feed only while no full snapshot was shown; partial shows
+ * its reason; reconnecting and unavailable come with the full last snapshot and show their reason
+ * in the error line. A successful read clears the lines without a success message.
+ * @param {unknown} sync
+ * @param {boolean} hadFull a full snapshot is already shown
+ * @returns {SyncView}
+ */
+export function syncView(sync, hadFull) {
+  const raw = sync && typeof sync === 'object' ? /** @type {Record<string, unknown>} */ (sync) : null;
+  const state = raw && typeof raw['state'] === 'string' && SYNC_STATES.includes(raw['state']) ? raw['state'] : 'ready';
+  const reason = raw && typeof raw['reason'] === 'string' && raw['reason'].trim() ? raw['reason'].trim() : '';
+  const gaps = raw && Array.isArray(raw['gaps']) && raw['gaps'].length > 0;
+  if (state === 'loading') return { state: SYNC_LOADING_TEXT, error: '', replace: !hadFull, full: false };
+  if (state === 'reconnecting') return { state: '', error: reason || RECONNECTING_TEXT, replace: true, full: true };
+  if (state === 'unavailable') return { state: '', error: reason || UNAVAILABLE_TEXT, replace: true, full: true };
+  if (state === 'partial' || gaps) return { state: reason || SYNC_PARTIAL_TEXT, error: '', replace: true, full: true };
+  return { state: '', error: '', replace: true, full: true };
+}
+
 /**
  * Part of the session key after the first colon (`<provider>:<localId>`).
  * @param {string} key
@@ -159,6 +201,11 @@ export function unsupportedText(providerLabel) {
  */
 export function errorText(error) {
   if (error && typeof error === 'object') {
+    const { code, message: said } = /** @type {{ code?: unknown, message?: unknown }} */ (error);
+    // The service's own reconnecting or unavailable line, without a hint (spec M32 2.6).
+    if (typeof code === 'string' && TRANSIENT_CODES.includes(code)) {
+      return typeof said === 'string' && said ? said : code === 'codex-unavailable' ? UNAVAILABLE_TEXT : RECONNECTING_TEXT;
+    }
     const { message, hint } = /** @type {{ message?: unknown, hint?: unknown }} */ (error);
     const text = typeof message === 'string' && message ? message : 'Неизвестная ошибка';
     return typeof hint === 'string' && hint ? `${text}. ${hint}` : text;

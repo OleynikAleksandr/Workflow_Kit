@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1014,
+  "revision": 1016,
   "rounds": [
     {
       "digest": null,
@@ -434,14 +434,21 @@
       "docsWaiver": null,
       "files": [
         "product-parts/control-panel/clusters/web-panel/modules/session-chat",
-        "docs/architecture/OS-MATRIX.md"
+        "docs/architecture/OS-MATRIX.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/chat-model.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/session-chat.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/sync.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/test/chat-model.test.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/test/m32-recovery.browser.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/test/run-browser.mjs"
       ],
       "fixes": null,
       "id": "T004",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Показать восстановление ленты с сохранением ввода и прокрутки",
       "why": "Показать восстановление ленты с сохранением ввода и прокрутки"
     },
@@ -607,8 +614,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 6/11
-- Revision: 1014
+- Progress: 7/11
+- Revision: 1016
 
 ## Objective
 
@@ -650,9 +657,9 @@
   - Commit: fix: recover Codex socket reads with bounded retry
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, docs/architecture/OS-MATRIX.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/chat.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/connection.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/interrupt.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/parameters.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/chat.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/connection.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/history-poll.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/history-reader.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/interrupt.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/parameters.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/proxy.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/runtime.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/ws.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/access-harness.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/connection.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/history.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/parameter-update.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/parameters.test.ts
   - Depends on: T002c
-- [TODO] T004 — Показать восстановление ленты с сохранением ввода и прокрутки (work)
+- [DONE] T004 — Показать восстановление ленты с сохранением ввода и прокрутки (work)
   - Commit: fix: preserve session chat while Codex reconnects
-  - Files: product-parts/control-panel/clusters/web-panel/modules/session-chat, docs/architecture/OS-MATRIX.md
+  - Files: product-parts/control-panel/clusters/web-panel/modules/session-chat, docs/architecture/OS-MATRIX.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/chat-model.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/session-chat.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/sync.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/chat-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/m32-recovery.browser.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/run-browser.mjs
   - Depends on: T003
 - [TODO] T005 — Проверить длинную историю и восстановление сквозными сценариями (work)
   - Commit: test: cover Codex long history and socket recovery

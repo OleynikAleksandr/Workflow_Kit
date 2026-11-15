@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1061,
+  "revision": 1062,
   "rounds": [
     {
       "digest": null,
@@ -533,6 +533,164 @@
     },
     {
       "acceptance": [
+        "Структура Kit для Claude ставит вторую группу хуков: событие PreToolUse с matcher AskUserQuestion, командой wfk hook question --client claude и timeout QUESTION_PRETOOL_TIMEOUT_S = 30. На Windows — exec-форма, как у остальных хуков Claude. Codex и Kimi не меняются; существующие проекты получают статус «устарела».",
+        "wfk hook question на входе PreToolUse читает stdin и выходит с кодом 0 без вывода и без запроса к службе; на PermissionRequest поведение прежнее.",
+        "Ожидание без привязки закрывается (release) по закрытому вопросу транскрипта с тем же ключом содержимого, без привязанного ожидания и не раньше чем за graceMs до регистрации. Привязанные ожидания, вытеснение и сроки не меняются.",
+        "Тесты: структура с PreToolUse на трёх платформах (подставная платформа для win32 и linux), выход хука на PreToolUse без запроса, закрытие непривязанного ожидания и отсутствие ложного закрытия при более старом одинаковом вопросе. questions.md затронутых модулей, OS-MATRIX и CONTRACTS обновлены."
+      ],
+      "checks": [],
+      "commitMessage": "fix(claude): record the pending question with a PreToolUse hook",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M33-agent-questions-providers.md",
+          "required": true,
+          "heading": "2.3. Claude: ответ"
+        },
+        {
+          "path": "docs/design/M33-claude-question-facts.md",
+          "required": true,
+          "heading": "7. Поправка живой проверки T008"
+        }
+      ],
+      "dependencies": [
+        "T008"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/backend-core/clusters/projects/modules/kit-structure",
+        "product-parts/backend-core/clusters/runtime/modules/cli",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude",
+        "docs/architecture/OS-MATRIX.md",
+        "docs/architecture/CONTRACTS.md"
+      ],
+      "fixes": "T005",
+      "id": "T011",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R1",
+      "status": "TODO",
+      "title": "Claude: хук PreToolUse и отпускание непривязанного ожидания",
+      "why": "Живая проверка T008: без хука PreToolUse ожидающий вопрос Claude не попадает в транскрипт, а непривязанное ожидание не отпускается"
+    },
+    {
+      "acceptance": [
+        "Контракт ChatQuestion получает необязательное поле reply: 'message'; нормализация страницы его сохраняет, у такого вопроса нет delivery и answers.",
+        "Лента Codex отдаёт вопрос из agentMessage с непустым questions по разделу 2.7: id async:<id элемента>, afterMessageId, части с пустым header и allowOther, reply message; pending до следующего сообщения пользователя, затем answered без answers; вместе с блокирующими вопросами слушателя не больше QUESTIONS_PAGE_MAX.",
+        "answerQuestion для id async: отказывает question-unavailable и ничего не передаёт; текст вопросов и ответов в журналы не пишется.",
+        "Тесты на подставном демоне: разбор вопроса из thread/turns/list и thread/items/list, пустой текст сообщения, закрытие следующим сообщением пользователя, вопрос сверх пределов, отказ answerQuestion. questions.md модулей, OS-MATRIX и CONTRACTS обновлены."
+      ],
+      "checks": [],
+      "commitMessage": "feat(codex): show asynchronous questions of the agent in the feed",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M33-codex-async-questions.md",
+          "required": true
+        },
+        {
+          "path": "docs/design/M33-codex-question-facts.md",
+          "required": true,
+          "heading": "7. Живая проверка T008: инструмент вопроса и асинхронный вопрос"
+        }
+      ],
+      "dependencies": [
+        "T011"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex",
+        "docs/architecture/OS-MATRIX.md",
+        "docs/architecture/CONTRACTS.md"
+      ],
+      "fixes": null,
+      "id": "T012",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R1",
+      "status": "TODO",
+      "title": "Codex: асинхронный вопрос в ленте",
+      "why": "Решение пользователя после T008: вопросы request_user_input_async обычного режима Codex входят в M33"
+    },
+    {
+      "acceptance": [
+        "Карточка вопроса с reply: 'message' стоит после своего сообщения, без метки при пустом header, строку состояния не меняет; «Отправить» и Ctrl/⌘+Enter отправляют собранный текст маршрутом сообщения панели с телом { text }.",
+        "После отправки — «Ответ отправлен сообщением» без кнопки; ошибка — текст под карточкой с сохранённым выбором; закрытый вопрос — «Ответ дан сообщением». Блокирующие вопросы ведут себя как прежде.",
+        "Модельные и браузерные тесты (обе темы, узкая раскладка, сенсорные цели не меньше 44 px) зелёные; снимки — в docs/evidence/M33; questions.md модуля обновлён."
+      ],
+      "checks": [],
+      "commitMessage": "feat(panel): answer an asynchronous question with a message",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M33-codex-async-questions.md",
+          "required": true
+        },
+        {
+          "path": "docs/planning/M33-agent-questions-panel.md",
+          "required": true
+        }
+      ],
+      "dependencies": [
+        "T012"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat",
+        "design-qa.md",
+        "docs/evidence/M33"
+      ],
+      "fixes": null,
+      "id": "T013",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R1",
+      "status": "TODO",
+      "title": "Панель: карточка асинхронного вопроса",
+      "why": "Ответ на асинхронный вопрос Codex кнопкой вместо набора текста"
+    },
+    {
+      "acceptance": [
+        "Служба из исходников, одноразовый проект, согласованный бюджет: до 3 коротких ходов Haiku и до 4 коротких ходов Codex. Вопрос Claude отвечен из панели и из Claude Desktop. Блокирующий вопрос Codex в треде, начатом в режиме плана, и асинхронный вопрос Codex отвечены из панели и из ChatGPT. Итог совпал на обеих сторонах (родное приложение подтверждает пользователь).",
+        "Проверены отказ question-stale, вопрос без канала ответа и заглушка или секретный вопрос Codex; недоступный сценарий записан с причиной.",
+        "docs/evidence/M33-acceptance.md перечисляет живые проверки по ОС и исполнителей (macOS — пользователь и агент, Windows — проверяющий на Windows, Linux — CI) и помечает непроверенное."
+      ],
+      "checks": [],
+      "commitMessage": "docs: record the full live verification of agent questions",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M33-agent-questions.md",
+          "required": true,
+          "heading": "4. Проверка"
+        },
+        {
+          "path": "docs/evidence/M33-live-check-1.md",
+          "required": true
+        }
+      ],
+      "dependencies": [
+        "T013"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "docs/evidence/M33-acceptance.md",
+        "docs/evidence/M33",
+        "docs/design/M33-claude-question-facts.md",
+        "docs/design/M33-codex-question-facts.md"
+      ],
+      "fixes": null,
+      "id": "T014",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R1",
+      "status": "TODO",
+      "title": "Полная живая проверка вопросов на macOS",
+      "why": "После исправлений нужен сквозной путь через родные приложения"
+    },
+    {
+      "acceptance": [
         "Project-wide documents describe the round result",
         "The round digest records result, decisions, contracts and references"
       ],
@@ -548,7 +706,11 @@
         "T005",
         "T006",
         "T007",
-        "T008"
+        "T008",
+        "T011",
+        "T012",
+        "T013",
+        "T014"
       ],
       "docsWaiver": null,
       "files": [
@@ -563,7 +725,21 @@
         "docs/architecture/OS-MATRIX.md",
         "docs/evidence/M33/design-qa.md",
         "design-qa.md",
-        "docs/evidence/M33-acceptance.md"
+        "docs/evidence/M33-acceptance.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/connected-modules.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/questions.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/chat.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/questions.md",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/questions.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/questions.md",
+        "docs/evidence/M33-live-check-1.md"
       ],
       "fixes": null,
       "id": "DOCS-R1",
@@ -656,8 +832,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 8/11
-- Revision: 1061
+- Progress: 8/15
+- Revision: 1062
 
 ## Objective
 
@@ -705,10 +881,27 @@
   - Commit: docs: record live verification of agent questions
   - Files: docs/evidence/M33-live-check-1.md, docs/design/M33-claude-question-facts.md, docs/design/M33-codex-question-facts.md, docs/evidence/M33/T008-claude-pending.png, docs/evidence/M33/T008-claude-answered.png
   - Depends on: T005, T006, T007
+- [TODO] T011 — Claude: хук PreToolUse и отпускание непривязанного ожидания (work)
+  - Commit: fix(claude): record the pending question with a PreToolUse hook
+  - Files: product-parts/backend-core/clusters/projects/modules/kit-structure, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, docs/architecture/OS-MATRIX.md, docs/architecture/CONTRACTS.md
+  - Depends on: T008
+  - Fixes: T005
+- [TODO] T012 — Codex: асинхронный вопрос в ленте (work)
+  - Commit: feat(codex): show asynchronous questions of the agent in the feed
+  - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, docs/architecture/OS-MATRIX.md, docs/architecture/CONTRACTS.md
+  - Depends on: T011
+- [TODO] T013 — Панель: карточка асинхронного вопроса (work)
+  - Commit: feat(panel): answer an asynchronous question with a message
+  - Files: product-parts/control-panel/clusters/web-panel/modules/session-chat, design-qa.md, docs/evidence/M33
+  - Depends on: T012
+- [TODO] T014 — Полная живая проверка вопросов на macOS (work)
+  - Commit: docs: record the full live verification of agent questions
+  - Files: docs/evidence/M33-acceptance.md, docs/evidence/M33, docs/design/M33-claude-question-facts.md, docs/design/M33-codex-question-facts.md
+  - Depends on: T013
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
-  - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M33-agent-questions.md, docs/design/M33-claude-question-facts.md, docs/evidence/M33-claude-question-probe.md, docs/design/M33-codex-question-facts.md, docs/evidence/M33-codex-question-probe.md, docs/architecture/CONTRACTS.md, docs/architecture/OS-MATRIX.md, docs/evidence/M33/design-qa.md, design-qa.md, docs/evidence/M33-acceptance.md
-  - Depends on: T001, T002, T003, T004, T005, T006, T007, T008
+  - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M33-agent-questions.md, docs/design/M33-claude-question-facts.md, docs/evidence/M33-claude-question-probe.md, docs/design/M33-codex-question-facts.md, docs/evidence/M33-codex-question-probe.md, docs/architecture/CONTRACTS.md, docs/architecture/OS-MATRIX.md, docs/evidence/M33/design-qa.md, design-qa.md, docs/evidence/M33-acceptance.md, product-parts/backend-core/clusters/runtime/modules/cli/connected-modules.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/questions.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/chat.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/questions.md, product-parts/backend-core/clusters/projects/modules/kit-structure/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/questions.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/questions.md, docs/evidence/M33-live-check-1.md
+  - Depends on: T001, T002, T003, T004, T005, T006, T007, T008, T011, T012, T013, T014
 - [TODO] T009 — Поставка 0.14.0, установка и функциональная проверка установленной версии (delivery)
   - Commit: chore: deliver agent questions in the session chat
   - Files: package.json, CHANGELOG.md, docs/evidence/M33/local-delivery.md, docs/evidence/M33-acceptance.md

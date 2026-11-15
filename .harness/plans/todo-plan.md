@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1037,
+  "revision": 1038,
   "rounds": [
     {
       "digest": {
@@ -45,7 +45,10 @@
       "Обязательные проверки и CI точного поставляемого SHA зелёные на macOS, Linux, Windows x64/ARM64; живая приёмка пользователя и Windows-тестера отдельно подтверждается, pending не выдаётся за passed.",
       "Контракты и OS-MATRIX согласованы; локальная сборка установлена и проверена; опубликована только разрешённая CI-ветка, main не публикуется."
     ],
-    "acceptanceNote": null,
+    "acceptanceNote": {
+      "at": "2026-11-15T12:33:27.003Z",
+      "text": "Пользователь принял план в панели Workflow Kit"
+    },
     "approval": {
       "at": "2026-11-15T11:42:11.263Z",
       "text": "Пользователь 15.11.2026 выбрал «carryover M32, Kit потом»: перенести незавершённую T007 в новый scope, добавить исправление ws.ts (F001), сборку и установку 0.13.7 (F002) и повторный CI на ci/M32-codex-history-recovery без force; исправление Kit — отдельным планом. Прежние разрешения: «Да: установка и CI до приёмки»; «завершай те 007 выполняя его собирай новый релиз если он не собран»."
@@ -80,7 +83,7 @@
         "text": "Carried over unfinished tasks from scope M32-codex-history-recovery-retry1."
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "ACCEPTED",
     "execution": {
       "maxWorkers": 1,
       "ownerSession": "3967748e-6627-496f-9f10-fb2fa729caac",
@@ -231,11 +234,11 @@
 ## State
 
 - Scope: M32-codex-history-recovery-fix (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: ACCEPTED
 - Execution: sequential
 - Current task: none
 - Progress: 4/4
-- Revision: 1037
+- Revision: 1038
 
 ## Objective
 

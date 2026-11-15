@@ -28,7 +28,7 @@ export type {
   TrustWrite,
 } from './contract.ts';
 export type { ChatGap, ChatMessage, ChatPage, ChatSync, ChatSyncState } from './chat.ts';
-export type { ChatQuestion, ChatQuestionAnswer, ChatQuestionOption, ChatQuestionPart, ChatQuestionPartAnswer, ChatQuestionState, QuestionAttempt, QuestionOutcome } from './questions.ts';
+export type { ChatQuestion, ChatQuestionAnswer, ChatQuestionOption, ChatQuestionPart, ChatQuestionPartAnswer, ChatQuestionState, ProviderQuestions, QuestionAttempt, QuestionHookReply, QuestionHookRequest, QuestionOutcome } from './questions.ts';
 export {
   QUESTIONS_PAGE_MAX, QUESTION_DESCRIPTION_MAX, QUESTION_HEADER_MAX, QUESTION_LABEL_MAX, QUESTION_OPTIONS_MAX, QUESTION_OTHER_MAX, QUESTION_PARTS_MAX, QUESTION_TEXT_MAX,
   QUESTION_SENT_BEFORE_RESTART_REASON, QUESTION_SENT_REASON, QUESTION_TOO_LARGE_REASON, QUESTION_UNAVAILABLE_REASON,

@@ -51,8 +51,10 @@
   `ChatPage` (необязательный `sync` M32: `ChatSync`, `ChatGap`, `chatSyncOut`), константы
   `CHAT_PAGE_LIMIT`, `CHAT_TEXT_MAX_CHARS`, идемпотентная `cutChatText` — в `chat.ts`,
   503 `CHAT_TRANSIENT_CODES` — в `chat-routes.ts`, подробности — [chat.md](chat.md),
-  `answerQuestion?(project, sid, qid, attempt, commit)` и `ChatPage.questions?` — вопросы
-  агента, маршрут ответа и журнал попыток (M33) — [questions.md](questions.md),
+  `answerQuestion?(project, sid, qid, attempt, commit)`, `questionHook?(project, request, signal)`
+  (`ProviderQuestions`, хук вопроса `QuestionHookRequest` → `QuestionHookReply`) и
+  `ChatPage.questions?` — вопросы агента, маршрут ответа и журнал попыток (M33) —
+  [questions.md](questions.md),
   `actions(project | null)`, `runAction(id, project | null)`,
   `removeBlockers?(project)`.
   Расширения раздела 1: `trust(project)` — текущее доверие для панели

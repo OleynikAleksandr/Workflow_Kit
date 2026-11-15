@@ -4,6 +4,7 @@ export { FRAGMENTS, sha256 } from './fragments.ts';
 export {
   HOOK_EVENT,
   PROMPT_HOOK_TIMEOUT_S,
+  QUESTION_HOOK_TIMEOUT_S,
   STOP_HOOK_TIMEOUT_S,
   expectedKitHooksText,
   findKitHook,
@@ -33,8 +34,11 @@ export {
   AGENTS_END,
   GITIGNORE_BEGIN,
   GITIGNORE_END,
+  CLAUDE_HOOK_EVENTS,
   HOOK_CLIENTS,
   KIT_HOOK_EVENTS,
+  QUESTION_HOOK_MATCHER,
   STRUCTURE_VERSION,
   hookCommand,
+  kitHookEvents,
 } from './templates.ts';

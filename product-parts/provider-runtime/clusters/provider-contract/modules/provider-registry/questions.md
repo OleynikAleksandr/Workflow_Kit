@@ -29,11 +29,19 @@
 
 ## Контракт провайдера
 
+Методы вопросов собраны в `ProviderQuestions` (`src/questions.ts`), `Provider` его расширяет.
+
 `answerQuestion?(project, sid, questionId, attempt, commit) → 'accepted' | 'unknown'`. Провайдер
 читает вопрос заново, вызывает `checkQuestionAnswer`, затем `commit()` (запись журнала; отказ —
 ничего не передавать) и передаёт ответ наружу один раз; ждёт итога. Отказы — `ProviderError`
 с кодами `question-*`. Возможность `answerQuestion` — явное включение (по умолчанию
 недоступна, как `interruptTurn`).
+
+`questionHook?(project, request, signal) → QuestionHookReply` (M33, раздел 2.3) — один запрос
+`wfk hook question`: `QuestionHookRequest { client, sessionId, transcriptPath, cwd, projectDir,
+waiterId, toolName, toolInput }`; ответ `{ wait: true }` (спросить снова), `{ release: true }`
+(выйти без вывода, родной диалог работает дальше) или `{ decision }` (хук печатает решение).
+`signal` кончается с HTTP-запросом. Маршрут — `agent-channel`, связка — `cli`.
 
 ## Маршрут
 

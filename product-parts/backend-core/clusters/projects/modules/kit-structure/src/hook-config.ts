@@ -1,10 +1,11 @@
 // Kit hook entries inside .claude/settings.json and .codex/hooks.json (structure v2): SessionStart,
-// Stop and UserPromptSubmit. Both files use { hooks: { <Event>: [{ matcher?, hooks: [{ type,
-// command, timeout? }] }] } }; foreign entries stay where they are, and a Kit group is only ever
-// appended at the end of its event list (Codex approves hooks by position).
+// Stop and UserPromptSubmit; Claude also PermissionRequest of AskUserQuestion (structure v4, spec
+// M33). Both files use { hooks: { <Event>: [{ matcher?, hooks: [{ type, command, timeout? }] }] } };
+// foreign entries stay where they are, and a Kit group is only ever appended at the end of its
+// event list (Codex approves hooks by position).
 import { defaultHookHost, forwardSlashes, hookArgs, hookText, powershellHookCommand } from './hook-host.ts';
 import type { HookHost } from './hook-host.ts';
-import { hookCommand, KIT_HOOK_EVENTS } from './templates.ts';
+import { CLAUDE_HOOK_EVENTS, HOOK_SUBCOMMAND, QUESTION_HOOK_MATCHER, hookCommand, kitHookEvents } from './templates.ts';
 import type { HookClient, KitHookEvent } from './templates.ts';
 
 /** Hook event of structure v1 (kept for callers that only care about the session start). */
@@ -14,6 +15,14 @@ export const HOOK_EVENT = 'SessionStart';
 export const STOP_HOOK_TIMEOUT_S = 600;
 /** Seconds a UserPromptSubmit hook may take. */
 export const PROMPT_HOOK_TIMEOUT_S = 30;
+/** Seconds the question hook may wait for the user's answer (accepted by Claude, T001 P5). */
+export const QUESTION_HOOK_TIMEOUT_S = 43_200;
+
+const HOOK_TIMEOUTS: Readonly<Partial<Record<KitHookEvent, number>>> = {
+  Stop: STOP_HOOK_TIMEOUT_S,
+  UserPromptSubmit: PROMPT_HOOK_TIMEOUT_S,
+  PermissionRequest: QUESTION_HOOK_TIMEOUT_S,
+};
 
 /** The config file has a shape Kit cannot safely edit (not an object, hooks not an object...). */
 export class HookConfigError extends Error {
@@ -34,11 +43,7 @@ function isObject(value: unknown): value is JsonObject {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-const SUBCOMMANDS: Readonly<Record<KitHookEvent, string>> = {
-  SessionStart: 'session-start',
-  Stop: 'stop',
-  UserPromptSubmit: 'prompt',
-};
+const SUBCOMMANDS = HOOK_SUBCOMMAND;
 
 /**
  * The hook object Kit writes for a client and an event (SessionStart by default). Windows (spec M5
@@ -53,7 +58,7 @@ export function kitHookEntry(client: HookClient, event: KitHookEvent = 'SessionS
   } else if (host.platform === 'win32') {
     entry['commandWindows'] = powershellHookCommand(host, SUBCOMMANDS[event], client);
   }
-  const timeout = event === 'Stop' ? STOP_HOOK_TIMEOUT_S : event === 'UserPromptSubmit' ? PROMPT_HOOK_TIMEOUT_S : undefined;
+  const timeout = HOOK_TIMEOUTS[event];
   // Claude reads `timeout`, Codex reads `timeoutSec` (seconds in both).
   if (timeout !== undefined) entry[client === 'codex' ? 'timeoutSec' : 'timeout'] = timeout;
   return entry;
@@ -76,7 +81,7 @@ export function isKitHookCommand(command: unknown): boolean {
 
 /** True for a Kit hook entry of any event: command, exec-form args or commandWindows. */
 export function isKitHookEntry(hook: unknown): boolean {
-  return isObject(hook) && KIT_HOOK_EVENTS.some((event) => isKitEventCommand(hookText(hook), event));
+  return isObject(hook) && CLAUDE_HOOK_EVENTS.some((event) => isKitEventCommand(hookText(hook), event));
 }
 
 function sortKeys(value: unknown): unknown {
@@ -119,7 +124,8 @@ export function findKitHook(config: unknown, event: KitHookEvent = 'SessionStart
 
 /**
  * Returns a copy of the config with the Kit hook of one event written: replaced in place when it
- * exists, otherwise appended as a new group at the end of the event list.
+ * exists, otherwise appended as a new group at the end of the event list. A new PermissionRequest
+ * group gets the matcher of the question tool.
  */
 export function withKitHook(config: unknown, client: HookClient, event: KitHookEvent = 'SessionStart', host: HookHost = defaultHookHost()): JsonObject {
   const copy: JsonObject = config === undefined ? {} : (structuredClone(config) as JsonObject);
@@ -135,14 +141,14 @@ export function withKitHook(config: unknown, client: HookClient, event: KitHookE
   copy['hooks'] = hooks;
   const groups = Array.isArray(hooks[event]) ? (hooks[event] as unknown[]) : [];
   hooks[event] = groups;
-  groups.push({ hooks: [entry] });
+  groups.push(event === 'PermissionRequest' ? { matcher: QUESTION_HOOK_MATCHER, hooks: [entry] } : { hooks: [entry] });
   return copy;
 }
 
-/** All Kit hooks of structure v2 written into a config. */
+/** All Kit hooks of a client written into a config (Claude: with the question hook). */
 export function withKitHooks(config: unknown, client: HookClient, host: HookHost = defaultHookHost()): JsonObject {
   let result: unknown = config;
-  for (const event of KIT_HOOK_EVENTS) result = withKitHook(result, client, event, host);
+  for (const event of kitHookEvents(client)) result = withKitHook(result, client, event, host);
   return result as JsonObject;
 }
 
@@ -153,7 +159,7 @@ export function withKitHooks(config: unknown, client: HookClient, host: HookHost
  */
 export function kitHooksText(config: unknown): string | undefined {
   const found: JsonObject = {};
-  for (const event of KIT_HOOK_EVENTS) {
+  for (const event of CLAUDE_HOOK_EVENTS) {
     const lookup = findKitHook(config, event);
     if (lookup.kind === 'found') found[event] = lookup.hook;
   }
@@ -166,7 +172,7 @@ export function kitHooksText(config: unknown): string | undefined {
 /** The managed text Kit writes for a client (all events). */
 export function expectedKitHooksText(client: HookClient, host: HookHost = defaultHookHost()): string {
   const all: JsonObject = {};
-  for (const event of KIT_HOOK_EVENTS) all[event] = kitHookEntry(client, event, host);
+  for (const event of kitHookEvents(client)) all[event] = kitHookEntry(client, event, host);
   return normalizeHook(all);
 }
 

@@ -29,7 +29,8 @@ type Row = Record<string, unknown>;
 const isObject = (value: unknown): value is Row => typeof value === 'object' && value !== null && !Array.isArray(value);
 const text = (value: unknown): string => (typeof value === 'string' ? value : '');
 
-function partsOf(input: unknown): { parts: ChatQuestionPart[]; texts: string[] } {
+/** Parts of a question from the tool input (questions[]) and the original question texts. */
+export function partsOf(input: unknown): { parts: ChatQuestionPart[]; texts: string[] } {
   const list = isObject(input) && Array.isArray(input['questions']) ? input['questions'].filter(isObject) : [];
   const parts = list.map((q, i): ChatQuestionPart => ({
     id: `q${i + 1}`,

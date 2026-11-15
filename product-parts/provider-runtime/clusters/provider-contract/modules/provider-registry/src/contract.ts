@@ -7,6 +7,7 @@ export type { ProviderContext } from './context.ts';
 import type { Project } from '#project-registry';
 import type { ChatPage } from './chat.ts';
 import type { SharedAccess } from './shared-access.ts';
+import type { ProviderQuestions } from './questions.ts';
 export type { Project };
 /** Registry key of a provider ("claude", "codex", ...); the set is open for new providers. */
 export type ProviderId = string;
@@ -257,7 +258,7 @@ export interface NativeHookEvent {
 export interface ProviderTurnState { state: 'working' | 'idle'; at: number; source: 'hook' | 'interrupt' }
 
 /** The provider contract. All read methods must be cheap and read-only (D11). */
-export interface Provider {
+export interface Provider extends ProviderQuestions {
   readonly id: ProviderId;
   readonly title: string;
   /** Short name on buttons, badges and in messages ("ChatGPT"); absent means the title. */
@@ -335,7 +336,6 @@ export interface Provider {
   readMessages?(project: Project, sessionId: string, opts: { limit: number }): Promise<ChatPage>;
   readParameters?(project: Project, sessionId: string): Promise<import('./parameters.ts').SessionParameters>;
   updateParameters?(project: Project, sessionId: string, change: import('./parameters.ts').ParameterChange): Promise<import('./parameters.ts').SessionParameters>;
-  answerQuestion?(project: Project, sessionId: string, questionId: string, attempt: import('./questions.ts').QuestionAttempt, commit: () => Promise<void>): Promise<import('./questions.ts').QuestionOutcome>;
   /** Hands text to the agent as a user turn now; false when it cannot now (the caller queues it). */
   sendDirect?(project: Project, sessionId: string, text: string): Promise<boolean>;
   /** Name of the setting that turns session locks off; without locks the turn end cannot be told. */

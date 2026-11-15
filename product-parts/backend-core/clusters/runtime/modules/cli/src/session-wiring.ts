@@ -14,7 +14,7 @@ import type { ReviewToggles } from '#plan-review';
 import type { Project, ProjectRegistry } from '#project-registry';
 import { SERVICE_MESSAGE_MARK } from '#project-setup';
 import { providerCapability, providerLabel } from '#provider-registry';
-import type { HookDialect, Provider, ProviderRegistry, SessionInfo } from '#provider-registry';
+import type { HookDialect, Provider, ProviderRegistry, QuestionHookReply, QuestionHookRequest, SessionInfo } from '#provider-registry';
 import { createSessionTitles, registerTitleRoutes } from '#session-titles';
 import type { SessionTitles, SessionTitlesOptions } from '#session-titles';
 import { createTurnInterruption, deliverAfterInterruption } from './turn-interruption.ts';
@@ -271,6 +271,16 @@ export function wireSessions(options: SessionWiringOptions): SessionWiring {
   }, TURN_RECONCILE_MS);
   reconciler.unref?.();
   const interruptions = createTurnInterruption({ channel, providers, projects, autopilot, reviews: crossReview, wake: (key) => { void wakeIdle(key); } });
-  registerChannelRoutes({ router, state, channel: observedChannel, messages: wakingChannel, owns: ownsSession, dialects, direct, interrupt: interruptions.interrupt, interruptions: interruptions.section });
+  // The question hook (spec M33 section 2.3): the provider of the client holds it for the project of
+  // its folder; an unknown project or a provider without questionHook releases the native dialog.
+  const question = async (request: QuestionHookRequest, signal: AbortSignal): Promise<QuestionHookReply> => {
+    const provider = providers.get(request.client);
+    const folder = request.projectDir ?? request.cwd;
+    const ref = provider?.questionHook && folder ? await resolveFolderProject(folder) : undefined;
+    const project = ref ? await projects.get(ref.id) : undefined;
+    if (!provider?.questionHook || !project) return { release: true };
+    return provider.questionHook(project, request, signal);
+  };
+  registerChannelRoutes({ router, state, channel: observedChannel, messages: wakingChannel, owns: ownsSession, dialects, direct, interrupt: interruptions.interrupt, interruptions: interruptions.section, question });
   return { channel, autopilot, review, titles, crossReview };
 }

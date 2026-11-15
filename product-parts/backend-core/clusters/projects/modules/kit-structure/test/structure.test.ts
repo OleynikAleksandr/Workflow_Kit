@@ -92,6 +92,8 @@ test('an empty folder is "missing"; install writes everything and the result is 
       SessionStart: [{ hooks: [kitHookEntry('claude')] }],
       Stop: [{ hooks: [kitHookEntry('claude', 'Stop')] }],
       UserPromptSubmit: [{ hooks: [kitHookEntry('claude', 'UserPromptSubmit')] }],
+      // Spec M33 section 2.3: the question hook of Claude only.
+      PermissionRequest: [{ matcher: 'AskUserQuestion', hooks: [kitHookEntry('claude', 'PermissionRequest')] }],
     },
   });
   assert.equal(hookCommand('claude', 'Stop'), '[ -x "$HOME/.local/bin/wfk" ] && "$HOME/.local/bin/wfk" hook stop --client claude; exit 0');
@@ -104,6 +106,7 @@ test('an empty folder is "missing"; install writes everything and the result is 
   assert.deepEqual(codex.hooks.SessionStart[0].hooks[0], kitHookEntry('codex'));
   assert.deepEqual(codex.hooks.Stop[0].hooks[0], kitHookEntry('codex', 'Stop'));
   assert.deepEqual(codex.hooks.UserPromptSubmit[0].hooks[0], kitHookEntry('codex', 'UserPromptSubmit'));
+  assert.deepEqual(Object.keys(codex.hooks), ['SessionStart', 'Stop', 'UserPromptSubmit'], 'Codex gets no question hook');
   assert.equal(kitHookEntry('claude', 'Stop', { platform: 'darwin', node: '', launcher: '' }).timeout, 600);
   assert.equal(kitHookEntry('codex', 'UserPromptSubmit', { platform: 'linux', node: '', launcher: '' }).timeoutSec, 30);
   assert.match(agents, /wfk session title/);

@@ -114,6 +114,8 @@ export function claudeCapabilities(platform: NodeJS.Platform, programs: ClaudePr
     resumeSession: { ...pty },
     stopSession: { available: true },
     interruptTurn: { ...pty },
+    // Spec M33: the PermissionRequest hook answers AskUserQuestion in any Claude session of a project.
+    answerQuestion: { available: true },
     environment: { ...pty },
   };
 }

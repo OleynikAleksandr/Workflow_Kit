@@ -33,7 +33,7 @@
 
 Интерфейс `Provider` (`status`, `capabilities`, `trust`, `previewTrust`,
 `grantTrust`, `hooks`, `approveHooks?`, `listSessions`, `createSession`,
-`resumeSession?`, `stopSession?`, `interruptAvailability?`, `interruptTurn?`, `readMessages?`, `answerQuestion?`, `sendDirect?`, `readParameters?`, `updateParameters?`, `marksPanelProcess?`, `actions`, `runAction`,
+`resumeSession?`, `stopSession?`, `interruptAvailability?`, `interruptTurn?`, `readMessages?`, `answerQuestion?`, `questionHook?`, `sendDirect?`, `readParameters?`, `updateParameters?`, `marksPanelProcess?`, `actions`, `runAction`,
 `refresh?`, `removeBlockers?` и другие) и фабрика `createProvider(context)` из `src/index.ts`
 модуля провайдера. Чтение дёшево и ничего не меняет (D11); запись в чужие конфиги — по
 одноразовому токену предпросмотра с отпечатком показанного (D7). `TrustPreview.choices` —
@@ -92,7 +92,10 @@ operation, existing }`, ход и итог — в разделе `operations`, �
 Kit 2.2.5 ставится в проект бандлом (`install --host harness`; бандл собирается из `kit-core`
 `npm run build:kit`, M22), команды — отдельным процессом
 с JSON-ответом (`kit-runner`); `.harness/**` служба не читает и не пишет. Раздел `workflow` даёт модели
-карточек плана и выбора пути (`plan-view`). Хуки `wfk hook stop|prompt|turn-end` идут в
+карточек плана и выбора пути (`plan-view`). Хук вопроса Claude `wfk hook question`
+(`PermissionRequest` вопроса `AskUserQuestion`, структура v4, M33) держит
+`POST /api/hooks/question` по `waiterId`, пока пользователь не ответит в панели или в приложении:
+маршрут `agent-channel`, провайдер — `questionHook`. Хуки `wfk hook stop|prompt|turn-end` идут в
 `agent-channel` (`POST /api/hooks/…`, только loopback): `Stop` держится до 9 минут, пока
 пользователь решает (сессию, которую запустила панель и умеет будить, — нет: M29, `release`,
 она свободна и будится, когда есть что сказать); провайдеру без удержания `Stop` (`turn-end`) сообщение уходит промптом,

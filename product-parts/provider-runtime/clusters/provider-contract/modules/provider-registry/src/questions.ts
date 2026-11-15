@@ -1,6 +1,7 @@
 // Interactive questions of an agent (spec M33 section 2.1): the shapes a provider gives with a chat
 // page, the limits the route applies and the check of an answer. Details: questions.md of this module.
 import { ProviderError } from './contract.ts';
+import type { Project } from '#project-registry';
 
 /** One option of a question part. */
 export interface ChatQuestionOption {
@@ -55,6 +56,30 @@ export interface QuestionAttempt {
 
 /** accepted: the provider confirmed the panel's answer; unknown: delivered, whose answer won is not known. */
 export type QuestionOutcome = 'accepted' | 'unknown';
+
+/** One request of a question hook (wfk hook question, spec M33 section 2.3). */
+export interface QuestionHookRequest {
+  client: string;
+  sessionId: string;
+  transcriptPath: string | null;
+  cwd: string | null;
+  projectDir: string | null;
+  /** UUID the hook process made at its start; the same in every request of that process. */
+  waiterId: string;
+  toolName: string | null;
+  toolInput: unknown;
+}
+
+/** wait: ask again; release: exit without output (the native dialog goes on); decision: print it. */
+export type QuestionHookReply = { wait: true } | { release: true } | { decision: Record<string, unknown> };
+
+/** The question methods of a provider (part of Provider). */
+export interface ProviderQuestions {
+  /** Answers an agent's question once: fresh read, checkQuestionAnswer, commit(), hand-out (questions.md). */
+  answerQuestion?(project: Project, sessionId: string, questionId: string, attempt: QuestionAttempt, commit: () => Promise<void>): Promise<QuestionOutcome>;
+  /** Holds a question hook request (at most a few minutes); the signal ends with the HTTP request. */
+  questionHook?(project: Project, request: QuestionHookRequest, signal: AbortSignal): Promise<QuestionHookReply>;
+}
 
 /** Newest questions a page carries. */
 export const QUESTIONS_PAGE_MAX = 20;

@@ -19,7 +19,10 @@
   `homedir`, `dirs`, `config`, `events`, `supervisor`, `runCommand`, `now`,
   `log`); охранник удаления проекта `projects.addRemoveGuard` — живые сессии
   и `removeBlockers?` провайдеров; журнал попыток ответа на вопросы агента
-  `createQuestionAttempts({ file: questionAttemptsFile(dirs, platform) })` (M33).
+  `createQuestionAttempts({ file: questionAttemptsFile(dirs, platform) })` (M33); хук вопроса
+  (`src/session-wiring.ts`, опция `question` маршрутов канала): проект — по папке
+  `projectDir` или `cwd` (`resolveFolderProject`), затем `questionHook` провайдера клиента;
+  нет проекта или метода — `{ release: true }`.
 - `data-store` (T004): раздел `operations` (`operations.section()`).
 - `project-wizard`, `session-view` (веха 2, T008), `session-chat` (M18): статика мастера, экрана
   сессии и диалога (`projectWizardMount()`, `sessionViewMount()`, `sessionChatMount()`).

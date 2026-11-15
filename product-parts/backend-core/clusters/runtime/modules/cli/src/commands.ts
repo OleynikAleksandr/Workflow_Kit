@@ -54,7 +54,7 @@ const USAGE = `Использование: wfk <команда>
                                 управление службой (restart — stop, затем start)
   doctor [--installed]          проверка установки
   link [--force]                запускатель ~/.local/bin/wfk на текущий клон (разработка)
-  hook session-start|stop|prompt|turn-end --client <провайдер>
+  hook session-start|stop|prompt|turn-end|question --client <провайдер>
                                 хуки агентов: начало сессии, конец хода, новое сообщение,
                                 конец хода без удержания
   session title "<тема>"        имя сессии от агента (один раз, в идущем ходе)
@@ -199,6 +199,7 @@ export async function main(argv: readonly string[], deps?: Partial<CliDeps>): Pr
         homedir: full.app?.homedir,
         platform: full.app?.platform,
         post: full.postJson,
+        ...(full.requestJson ? { request: full.requestJson } : {}),
         clients: full.hookClients,
         env: full.app?.env ?? process.env,
         cwd: full.cwd ?? process.cwd(),

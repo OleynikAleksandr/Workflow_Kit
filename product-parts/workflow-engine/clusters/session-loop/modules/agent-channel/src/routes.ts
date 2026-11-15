@@ -1,8 +1,10 @@
-// HTTP side of the channel: POST /api/hooks/stop, /api/hooks/prompt and /api/hooks/turn-end (loopback only),
+// HTTP side of the channel: POST /api/hooks/stop, /api/hooks/prompt, /api/hooks/turn-end and
+// /api/hooks/question (spec M33, loopback only),
 // POST /api/projects/:id/sessions/:sid/message (a message from the panel: direct or queued; 409 for a
 // session out of the Kit process) and the "channel" section of /api/state.
 import { HttpError, classifyAddress } from '#http-server';
 import type { Router, StateRegistry } from '#http-server';
+import type { QuestionHookReply, QuestionHookRequest } from '#provider-registry';
 import { TURN_END_EVENTS, USER_MESSAGE_SOURCE } from './types.ts';
 import type { AgentChannel, HookReply, QueuedMessage, TurnEndEvent } from './types.ts';
 import { parseHookInput } from './hook-input.ts';
@@ -28,6 +30,21 @@ export interface ChannelRoutesOptions {
   direct?: (projectId: string, key: string, text: string) => Promise<boolean>;
   interrupt?: (projectId: string, key: string, body: unknown) => Promise<unknown>;
   interruptions?: () => Promise<Record<string, unknown>>;
+  /** Holds a question hook request (wfk hook question); without it the route is not registered. */
+  question?: (request: QuestionHookRequest, signal: AbortSignal) => Promise<QuestionHookReply>;
+}
+
+const WAITER_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** The question hook request of a body { client, input, projectDir, panelProcess, waiterId }; null when unusable. */
+export function questionHookRequest(body: unknown, dialects?: HookDialects): QuestionHookRequest | null {
+  const raw = hookBody(body);
+  const waiterId = (body as Record<string, unknown>)['waiterId'];
+  const input = parseHookInput(raw.client, raw.input, raw.projectDir, dialects, raw.panelProcess);
+  if (!input || typeof waiterId !== 'string' || !WAITER_ID.test(waiterId)) return null;
+  const value = raw.input as Record<string, unknown>;
+  const toolName = typeof value['tool_name'] === 'string' ? value['tool_name'] : null;
+  return { client: input.client, sessionId: input.sessionId, transcriptPath: input.transcriptPath, cwd: input.cwd, projectDir: input.projectDir, waiterId, toolName, toolInput: value['tool_input'] ?? null };
 }
 
 /** Longest panel message, in characters (a task from the panel can be long). */
@@ -129,6 +146,17 @@ export function registerChannelRoutes(options: ChannelRoutesOptions): void {
       const reply = event === 'stop' ? await channel.stop(input, aborted.signal) : await channel.prompt(input);
       send(res, reply);
       return undefined;
+    });
+  }
+  if (options.question) {
+    const question = options.question;
+    router.post('/api/hooks/question', async ({ body, req, res }) => {
+      if (classifyAddress(req.socket.remoteAddress) !== 'loopback') throw new HttpError(403, 'loopback-only', LOOPBACK_ONLY);
+      const request = questionHookRequest(body, options.dialects);
+      if (!request) throw new HttpError(400, 'bad-hook-input', 'Неизвестный client, нет session_id или waiterId во входе хука');
+      const aborted = new AbortController();
+      res.once('close', () => aborted.abort());
+      return question(request, aborted.signal);
     });
   }
   const messages = options.messages ?? channel;

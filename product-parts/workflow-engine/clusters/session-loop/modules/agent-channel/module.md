@@ -102,6 +102,12 @@
   (`{ sessions: SessionActivity[] }`) в `/api/state`.
   Опция `messages` — канал для сообщений панели (служба передаёт канал,
   который ещё и будит ожидающую сессию Claude).
+  Опция `question` (M33): `POST /api/hooks/question` с телом `{ client, input, projectDir,
+  panelProcess?, waiterId }` → ответ опции (`{ wait: true }`, `{ release: true }` или
+  `{ decision }`, `QuestionHookReply` реестра); только loopback (иначе 403), клиент вне
+  `dialects`, вход без `session_id` или `waiterId` не UUID — 400 `bad-hook-input`; запрос
+  (`questionHookRequest(body, dialects)` — поля хука, `tool_name`, `tool_input`) уходит опции
+  с сигналом, который кончается с закрытием HTTP-запроса; без опции маршрута нет.
 - `POST /api/projects/:id/sessions/:sid/message { text }` → `{ sent: true }`
   или `{ queued: <id сообщения> }`: сообщение панели агенту (M18 раздел 2.5).
   Проверки — `checkSessionMessage(channel, projectId, key, text, owned) → string`

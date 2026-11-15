@@ -13,6 +13,7 @@ import { createClaudeParameterReader } from './parameters.ts';
 import { claudeTurnState, nativeControlHook } from './native-parameters.ts';
 import { sendDirect } from './direct.ts';
 import { questionOpen } from './question-guard.ts';
+import { answerQuestion, questionHook, withWaiters } from './question-waiters.ts';
 import { claudeCapabilities, ptyUnavailableReason } from './programs.ts';
 import { purgeProject } from './purge.ts';
 import { forgetProjects } from './records.ts';
@@ -154,7 +155,15 @@ export function createClaudeProvider(context: ProviderContext, options: ClaudePr
     // An open question gets no wake text (spec M33): the queued message waits for the next turn.
     wakeSession: async (project, sid) => ((await questionOpen(rt, project, sid)) ? true : wakeSession(rt, project, sid)),
     // The conversation from the transcript the hook journal names (spec M18 section 2.2).
-    readMessages: async (project, sid, opts) => rt.chat.read((await findSession(rt, project, sid)).hook?.hook.transcriptPath ?? null, opts.limit),
+    // Questions of AskUserQuestion are answerable while a question hook waits (spec M33, questions.md).
+    async readMessages(project, sid, opts) {
+      const transcriptPath = (await findSession(rt, project, sid)).hook?.hook.transcriptPath ?? null;
+      const page = await rt.chat.read(transcriptPath, opts.limit);
+      const questions = withWaiters(rt, transcriptPath, page.questions);
+      return questions ? { ...page, questions } : page;
+    },
+    answerQuestion: (project, sid, questionId, attempt, commit) => answerQuestion(rt, project, sid, questionId, attempt, commit),
+    questionHook: (project, request, signal) => questionHook(rt, project, request, signal),
     readParameters: controls.read,
     updateParameters: controls.update,
     sendDirect: (project, sid, text) => sendDirect(rt, project, sid, text),

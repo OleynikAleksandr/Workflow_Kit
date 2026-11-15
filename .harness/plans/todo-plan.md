@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1040,
+  "revision": 1044,
   "rounds": [
     {
       "digest": null,
@@ -141,7 +141,7 @@
       "kind": "work",
       "parallelSafe": true,
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Проба Claude: показ вопроса и канал ответа",
       "why": "Ответ на AskUserQuestion хуком документирован, но вживую не испытан; видимость вопроса в приложении при ожидающем хуке не документирована"
     },
@@ -571,8 +571,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 0/11
-- Revision: 1040
+- Progress: 1/11
+- Revision: 1044
 
 ## Objective
 
@@ -590,7 +590,7 @@
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T001 — Проба Claude: показ вопроса и канал ответа (work, parallel-safe)
+- [DONE] T001 — Проба Claude: показ вопроса и канал ответа (work, parallel-safe)
   - Commit: docs: verify Claude question display and answer channel
   - Files: docs/design/M33-claude-question-facts.md, docs/evidence/M33-claude-question-probe.md
 - [TODO] T002 — Проба Codex: доставка вопроса подписчику и ответ (work, parallel-safe)

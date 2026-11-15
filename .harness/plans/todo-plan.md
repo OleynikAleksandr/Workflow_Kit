@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1081,
+  "revision": 1083,
   "rounds": [
     {
       "digest": null,
@@ -177,14 +177,22 @@
       ],
       "docsWaiver": null,
       "files": [
-        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex"
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/chat.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/questions.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/history-items.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/history-state.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/question-reply.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/questions.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/reply-feed.test.ts"
       ],
       "fixes": null,
       "id": "T002",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Codex: ответ в ленте читаемым текстом и answers вопроса",
       "why": "Ответ виден в ленте сырой служебной обёрткой, а закрытая карточка не знает ответа"
     },
@@ -353,8 +361,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 1/6
-- Revision: 1081
+- Progress: 2/6
+- Revision: 1083
 
 ## Objective
 
@@ -375,9 +383,9 @@
 - [DONE] T001 — Codex: ответ на асинхронный вопрос в идущий ход (work)
   - Commit: fix(codex): steer the answer of an asynchronous question into the running turn
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, docs/architecture/CONTRACTS.md, docs/architecture/OS-MATRIX.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/chat.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/questions.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/async-answer.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/question-parts.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/question-reply.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/thread-ops.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/async-answer.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/async-questions.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/questions.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/questions.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/questions.test.ts
-- [TODO] T002 — Codex: ответ в ленте читаемым текстом и answers вопроса (work)
+- [DONE] T002 — Codex: ответ в ленте читаемым текстом и answers вопроса (work)
   - Commit: fix(codex): show question replies as text and record their answers
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/chat.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/questions.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/history-items.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/history-state.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/question-reply.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/questions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/reply-feed.test.ts
   - Depends on: T001
 - [TODO] T003 — Панель: карточка асинхронного вопроса отвечает маршрутом ответа (work, parallel-safe)
   - Commit: fix(panel): answer an asynchronous question through the answer route

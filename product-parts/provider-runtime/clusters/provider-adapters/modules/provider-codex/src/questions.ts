@@ -80,11 +80,12 @@ export function asyncAsks(item: Row): AsyncAsk[] | null {
 
 /**
  * The feed question of an asynchronous ask (spec M33 section 2.7): no header, own text always allowed,
- * the answer is an ordinary message; answered (without answers) once a user message follows it.
+ * the answer is a user's message; answered once a user message follows it, with the answers of a
+ * reply message to this question (spec M34 section 2.4).
  */
-export function asyncQuestion(itemId: string, asks: readonly AsyncAsk[], at: string | null, afterMessageId: string | null, answered: boolean): ChatQuestion {
+export function asyncQuestion(itemId: string, asks: readonly AsyncAsk[], at: string | null, afterMessageId: string | null, answered: boolean, answers?: ChatQuestionAnswer): ChatQuestion {
   const parts = asks.map((ask, i): ChatQuestionPart => ({
     id: `q${i + 1}`, header: '', question: ask.title, options: ask.options.map((label) => ({ label, description: '' })), multiSelect: false, allowOther: true,
   }));
-  return { id: `${ASYNC_PREFIX}${itemId}`, at, afterMessageId, state: answered ? 'answered' : 'pending', parts, answerable: !answered, reply: 'message' };
+  return { id: `${ASYNC_PREFIX}${itemId}`, at, afterMessageId, state: answered ? 'answered' : 'pending', parts, answerable: !answered, reply: 'message', ...(answered && answers ? { answers } : {}) };
 }

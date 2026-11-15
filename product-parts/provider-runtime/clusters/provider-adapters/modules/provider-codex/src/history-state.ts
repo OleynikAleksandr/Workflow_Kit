@@ -4,16 +4,24 @@
 // (spec M33 section 2.7) ride on their items.
 import { CHAT_PAGE_LIMIT, ProviderError } from '#provider-registry';
 import type { ChatGap, ChatMessage, ChatQuestion } from '#provider-registry';
-import { feedMessage, isoTime } from './history-items.ts';
+import { feedMessage, isoTime, userText } from './history-items.ts';
 import type { ListedItem, ListedTurn } from './history-items.ts';
 import { HISTORY_GAP_REASON, HISTORY_PAGE_SIZE, HISTORY_TURNS_MAX } from './history-poll.ts';
 import { asyncAsks, asyncQuestion } from './questions.ts';
 import type { AsyncAsk } from './questions.ts';
+import { parseReply, replyAnswers } from './question-reply.ts';
+import type { ReplyEntry } from './question-reply.ts';
 
-/** An item of the cache: its feed message and the asynchronous questions it carries (with their time). */
-export interface Entry { id: string; message: ChatMessage | null; asks?: AsyncAsk[]; at?: string | null }
-/** An asynchronous question met while the messages were collected: position — messages before it and its own. */
-export interface Asked { id: string; asks: AsyncAsk[]; at: string | null; after: string | null; position: number }
+/**
+ * An item of the cache: its feed message, the asynchronous questions it carries (with their time)
+ * and, for a reply message, the answers it gives (spec M34 section 2.4).
+ */
+export interface Entry { id: string; message: ChatMessage | null; asks?: AsyncAsk[]; at?: string | null; replies?: ReplyEntry[] }
+/**
+ * An asynchronous question met while the messages were collected: position — messages before it and
+ * its own; replies — those of the first user message after it (null: a message without a reply).
+ */
+export interface Asked { id: string; asks: AsyncAsk[]; at: string | null; after: string | null; position: number; replies?: ReplyEntry[] | null }
 /** An unread range after item `after` and before item `before` (null: the edge of the turn). */
 export interface Gap { after: string | null; before: string | null; identity: string | null; status: string; checkedAt: number }
 export interface TurnState {
@@ -51,10 +59,13 @@ export const textBytes = (messages: Iterable<ChatMessage | null>): number => {
   for (const message of messages) if (message) total += Buffer.byteLength(message.text, 'utf8');
   return total;
 };
-/** UTF-8 bytes of the asynchronous questions of entries (titles and options). */
+/** UTF-8 bytes of the asynchronous questions of entries (titles and options) and of their replies. */
 const askBytes = (entries: readonly Entry[]): number => {
   let total = 0;
-  for (const entry of entries) for (const ask of entry.asks ?? []) total += Buffer.byteLength(ask.title + ask.options.join(''), 'utf8');
+  for (const entry of entries) {
+    for (const ask of entry.asks ?? []) total += Buffer.byteLength(ask.title + ask.options.join(''), 'utf8');
+    for (const reply of entry.replies ?? []) total += Buffer.byteLength(reply.itemId + reply.question + reply.answer, 'utf8');
+  }
   return total;
 };
 
@@ -71,6 +82,9 @@ export function resetTurn(turn: TurnState): void {
 /** The entry of an item; startedAtMs — the time of the entry, turnAt — of its turn. */
 export function itemEntry(item: Record<string, unknown>, id: string, startedAtMs: unknown, turnAt: unknown): Entry {
   const message = feedMessage(item, id, startedAtMs, turnAt);
+  const raw = userText(item);
+  const replies = raw === null ? null : parseReply(raw);
+  if (replies) return { id, message, replies };
   const asks = asyncAsks(item);
   if (!asks) return { id, message };
   return { id, message, asks, at: message?.at ?? isoTime(startedAtMs) ?? isoTime(item['startedAtMs']) ?? isoTime(turnAt) };
@@ -78,9 +92,13 @@ export function itemEntry(item: Record<string, unknown>, id: string, startedAtMs
 export function entryOf(turn: TurnState, listed: ListedItem): Entry {
   return itemEntry(listed.item, listed.id, listed.startedAtMs, turn.startedAt);
 }
-/** Adds the message of an entry to the feed and notes its asynchronous questions. */
+/**
+ * Adds the message of an entry to the feed and notes its asynchronous questions; the first user
+ * message after a question gives it its replies.
+ */
 export function pushEntry(messages: ChatMessage[], asked: Asked[], entry: Entry): void {
   if (entry.message) messages.push(entry.message);
+  if (entry.message?.role === 'user') for (const open of asked) if (open.replies === undefined) open.replies = entry.replies ?? null;
   if (entry.asks) asked.push({ id: entry.id, asks: entry.asks, at: entry.at ?? null, after: messages.at(-1)?.id ?? null, position: messages.length });
 }
 export function append(turn: TurnState, segment: number, items: ListedItem[]): void {
@@ -142,11 +160,15 @@ export const gapOut = (turnId: string, gap: Gap): ChatGap => ({
 
 /**
  * The newest limit messages, the gaps among or right before them and the asynchronous questions
- * among them: answered (without answers) once a user message follows the question.
+ * among them: answered once a user message follows the question, with the answers of that message
+ * when it is a reply to this question (spec M34 section 2.4).
  */
 export function window(messages: ChatMessage[], gaps: { gap: ChatGap; at: number }[], limit: number, older: boolean, pending: boolean, asked: Asked[] = []): Snapshot {
   const from = Math.max(0, messages.length - limit);
-  const questions = asked.filter((a) => a.position >= from).map((a) => asyncQuestion(a.id, a.asks, a.at, a.after, messages.slice(a.position).some((m) => m.role === 'user')));
+  const questions = asked.filter((a) => a.position >= from).map((a) => {
+    const answers = a.replies ? replyAnswers(a.id, a.asks.map((ask) => ask.options), a.replies) : undefined;
+    return asyncQuestion(a.id, a.asks, a.at, a.after, messages.slice(a.position).some((m) => m.role === 'user'), answers);
+  });
   return { messages: messages.slice(from), truncated: older || messages.length > limit, gaps: gaps.filter((gap) => gap.at >= from).map((gap) => gap.gap), pending, ...(questions.length > 0 ? { questions } : {}) };
 }
 

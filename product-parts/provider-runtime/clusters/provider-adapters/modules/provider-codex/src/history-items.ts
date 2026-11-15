@@ -2,6 +2,7 @@
 // message of an item and the turns of thread/turns/list. Shared by the feed and its reader.
 import { cutChatText } from '#provider-registry';
 import type { ChatMessage } from '#provider-registry';
+import { parseReply, replyReadable } from './question-reply.ts';
 
 export function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -20,12 +21,24 @@ export function isoTime(value: unknown): string | null {
   return Number.isNaN(time.getTime()) ? null : time.toISOString();
 }
 
-/** Text of an item: the text parts of a userMessage, the text of an agentMessage; null for others. */
+/** The raw text of a userMessage: its text parts joined by line breaks; null for other items. */
+export function userText(item: Record<string, unknown>): string | null {
+  if (item['type'] !== 'userMessage') return null;
+  const parts = Array.isArray(item['content']) ? item['content'] : [];
+  return parts.filter(isObject).map((part) => part['text']).filter((text): text is string => typeof text === 'string').join('\n');
+}
+
+/**
+ * Text of an item: the text parts of a userMessage, the text of an agentMessage; null for others.
+ * A reply message of an asynchronous question shows as its answers (spec M34 section 2.4).
+ */
 export function itemMessage(item: Record<string, unknown>): { role: ChatMessage['role']; text: string } | null {
-  if (item['type'] === 'userMessage') {
-    const parts = Array.isArray(item['content']) ? item['content'] : [];
-    const texts = parts.filter(isObject).map((part) => part['text']).filter((text): text is string => typeof text === 'string');
-    return { role: 'user', text: texts.join('\n') };
+  const raw = userText(item);
+  if (raw !== null) {
+    // An empty answer keeps the raw text: the message must stay in the feed to close its question.
+    const readable = parseReply(raw);
+    const text = readable ? replyReadable(readable) : '';
+    return { role: 'user', text: text.trim() !== '' ? text : raw };
   }
   if (item['type'] === 'agentMessage') return { role: 'assistant', text: typeof item['text'] === 'string' ? item['text'] : '' };
   return null;

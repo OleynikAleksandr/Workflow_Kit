@@ -136,8 +136,9 @@ app-server на весь Mac, доверие к папке, одобрение �
 загружается); `sendDirect` — ход самим текстом при общем доступе, если чат не `active`.
 `src/chat.ts`, `src/history-*.ts`, `threadStatus` — [chat.md](chat.md). Вопросы
 `request_user_input` (флаг, слушатель, ответ, M33) и асинхронные вопросы
-`request_user_input_async` из истории (T012) и ответ на них в идущий ход (`turn/steer`,
-M34) — [questions.md](questions.md).
+`request_user_input_async` из истории (T012), ответ на них в идущий ход (`turn/steer`, M34)
+и ответ-обёртка в ленте: читаемый текст и `answers` вопроса (M34) — [questions.md](questions.md),
+[chat.md](chat.md).
 
 ## Инварианты
 

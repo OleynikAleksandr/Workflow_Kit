@@ -83,3 +83,22 @@ export function parseReply(text: string): ReplyEntry[] | null {
   }
   return entries;
 }
+
+/** The text the feed shows for a reply message: the answer, or "question — answer" lines. */
+export function replyReadable(entries: readonly ReplyEntry[]): string {
+  if (entries.length === 1) return entries[0]!.answer;
+  return entries.map((entry) => `${entry.question} — ${entry.answer}`).join('\n');
+}
+
+/**
+ * The answers of an asynchronous question from a reply message (spec M34 section 2.4): the entries
+ * of this item; part q<index + 1> gets the label it matches, else the answer as own text.
+ */
+export function replyAnswers(itemId: string, labels: readonly (readonly string[])[], entries: readonly ReplyEntry[]): ChatQuestionAnswer | undefined {
+  const out: ChatQuestionAnswer = {};
+  for (const entry of entries) {
+    if (entry.itemId !== itemId || entry.index >= labels.length || entry.answer.trim() === '') continue;
+    out[`q${entry.index + 1}`] = labels[entry.index]!.includes(entry.answer) ? { selected: [entry.answer] } : { selected: [], other: entry.answer };
+  }
+  return Object.keys(out).length > 0 ? out : undefined;
+}

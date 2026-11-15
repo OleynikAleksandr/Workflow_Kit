@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1028,
+  "revision": 1029,
   "rounds": [
     {
       "digest": null,
@@ -178,12 +178,12 @@
     },
     {
       "acceptance": [
-        "Patch-версия поднята 0.13.6→0.13.7 синхронно в package.json, package-lock.json, CHANGELOG.md, README.md, docs/installation.md и docs/usage.md.",
-        "Сборка установлена штатно, wfk doctor --installed без ошибок, служба 0.13.7; smoke ленты Codex без прерывания хода пользователя; результат в docs/evidence/M32/local-delivery.md.",
-        "Main не публикуется; живые проверки macOS/iPad/Windows остаются pending, если не проведены."
+        "Разрешён только push ci/M32-codex-history-recovery без force (fast-forward от 0d04a7db); чужие remote изменения сохраняются, main не публикуется.",
+        "Для точного SHA T007 зелёные macOS/Linux/Windows x64/ARM64; evidence содержит SHA/URL/results, а также неудачный run 43708900530 на 0d04a7db с причиной; падение CI не объявляется DONE.",
+        "Собственный evidence/plan commit F002 не отправляется после DONE: его CI проводится при отдельной публикации main после приёмки и закрытия; здесь требуется CI поставляемого SHA T007. Функциональные дефекты — fixes round."
       ],
       "checks": [],
-      "commitMessage": "chore: deliver Codex WebSocket ordering fix",
+      "commitMessage": "docs: record Codex history recovery cross-platform CI",
       "confirmation": null,
       "context": [
         {
@@ -192,18 +192,11 @@
         }
       ],
       "dependencies": [
-        "F001",
-        "DOCS-R1"
+        "DOCS-R1",
+        "T007"
       ],
       "docsWaiver": null,
       "files": [
-        "package.json",
-        "package-lock.json",
-        "CHANGELOG.md",
-        "README.md",
-        "docs/installation.md",
-        "docs/usage.md",
-        "docs/evidence/M32/local-delivery.md",
         "docs/evidence/M32-codex-history-recovery.md"
       ],
       "fixes": null,
@@ -212,8 +205,8 @@
       "kind": "delivery",
       "roundId": "R1",
       "status": "TODO",
-      "title": "Собрать и установить 0.13.7 с исправлением транспорта",
-      "why": "Повторная поставка после F001: T006 прежнего scope поставил 0.13.6 с дефектом ws.ts"
+      "title": "Проверить поставляемый SHA T007 в CI на четырёх платформах",
+      "why": "CI run 43708900530 на SHA 0d04a7db (T006 прежнего scope) упал на Linux x64 из-за дефекта ws.ts; после F001 и T007 проверяется новый поставляемый SHA"
     }
   ]
 }
@@ -227,7 +220,7 @@
 - Execution: sequential
 - Current task: none
 - Progress: 0/4
-- Revision: 1028
+- Revision: 1029
 
 ## Objective
 
@@ -257,9 +250,9 @@
   - Commit: chore: deliver Codex WebSocket ordering fix
   - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/installation.md, docs/usage.md, docs/evidence/M32/local-delivery.md, docs/evidence/M32-codex-history-recovery.md
   - Depends on: DOCS-R1
-- [TODO] F002 — Собрать и установить 0.13.7 с исправлением транспорта (delivery)
-  - Commit: chore: deliver Codex WebSocket ordering fix
-  - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/installation.md, docs/usage.md, docs/evidence/M32/local-delivery.md, docs/evidence/M32-codex-history-recovery.md
-  - Depends on: F001, DOCS-R1
+- [TODO] F002 — Проверить поставляемый SHA T007 в CI на четырёх платформах (delivery)
+  - Commit: docs: record Codex history recovery cross-platform CI
+  - Files: docs/evidence/M32-codex-history-recovery.md
+  - Depends on: DOCS-R1, T007
 
 State changes only through `scripts/workflow` commands. History lives in Git.

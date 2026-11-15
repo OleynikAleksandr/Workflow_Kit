@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1100,
+  "revision": 1102,
   "rounds": [
     {
       "digest": {
@@ -28,7 +28,7 @@
       },
       "id": "R1",
       "kind": "implementation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Implementation"
     }
   ],
@@ -75,7 +75,7 @@
         "text": "Рекомендован sequential: одна рабочая задача в одном файле, затем поставка и CI."
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 1,
       "ownerSession": "e93021a5-9717-4ec2-833d-db51b48373f3",
@@ -191,7 +191,7 @@
       ],
       "checks": [],
       "commitMessage": "docs: record test stray folders fix cross-platform CI",
-      "confirmation": null,
+      "confirmation": "Пользователь, 15.11.2026: «выполняй вплоть до сборки нового релиза и публикации его на GitHub»; 16.11.2026: «Дальше»",
       "context": [
         {
           "path": "docs/planning/M35-test-stray-folders.md",
@@ -212,7 +212,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "CI точного SHA поставки на четырёх платформах",
       "why": "Поставка не готова, пока CI не зелёная на всех ОС"
     }
@@ -224,11 +224,11 @@
 ## State
 
 - Scope: M35-test-stray-folders (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 3/4
-- Revision: 1100
+- Progress: 4/4
+- Revision: 1102
 
 ## Objective
 
@@ -243,7 +243,7 @@
 
 ## Rounds
 
-### R1 — Implementation (implementation, OPEN)
+### R1 — Implementation (implementation, CLOSED)
 
 - [DONE] T001 — Тест auto-compact-context: варианты на своём семействе ОС и проверка чистоты текущей папки (work, parallel-safe)
   - Commit: test(cli): keep the win32 auto-compact variant from creating folders off Windows
@@ -256,7 +256,7 @@
   - Commit: chore: deliver the test stray folders fix
   - Files: package.json, package-lock.json, CHANGELOG.md, docs/evidence/M35-acceptance.md
   - Depends on: T001, DOCS-R1
-- [TODO] T003 — CI точного SHA поставки на четырёх платформах (delivery)
+- [DONE] T003 — CI точного SHA поставки на четырёх платформах (delivery)
   - Commit: docs: record test stray folders fix cross-platform CI
   - Files: docs/evidence/M35-acceptance.md
   - Depends on: T002, DOCS-R1

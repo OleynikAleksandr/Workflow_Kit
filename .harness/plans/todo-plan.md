@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1035,
+  "revision": 1037,
   "rounds": [
     {
       "digest": {
@@ -31,7 +31,7 @@
       },
       "id": "R1",
       "kind": "implementation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Carried over"
     }
   ],
@@ -80,7 +80,7 @@
         "text": "Carried over unfinished tasks from scope M32-codex-history-recovery-retry1."
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 1,
       "ownerSession": "3967748e-6627-496f-9f10-fb2fa729caac",
@@ -199,7 +199,7 @@
       ],
       "checks": [],
       "commitMessage": "docs: record Codex history recovery cross-platform CI",
-      "confirmation": null,
+      "confirmation": "Подтверждаю.",
       "context": [
         {
           "path": "docs/planning/M32-codex-validation.md",
@@ -219,7 +219,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Проверить поставляемый SHA T007 в CI на четырёх платформах",
       "why": "CI run 43708900530 на SHA 0d04a7db (T006 прежнего scope) упал на Linux x64 из-за дефекта ws.ts; после F001 и T007 проверяется новый поставляемый SHA"
     }
@@ -231,11 +231,11 @@
 ## State
 
 - Scope: M32-codex-history-recovery-fix (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 3/4
-- Revision: 1035
+- Progress: 4/4
+- Revision: 1037
 
 ## Objective
 
@@ -252,7 +252,7 @@
 
 ## Rounds
 
-### R1 — Carried over (implementation, OPEN)
+### R1 — Carried over (implementation, CLOSED)
 
 - [DONE] F001 — Сохранить порядок байтов после рукопожатия WebSocket Codex (work)
   - Commit: fix: keep WebSocket bytes in order after the Codex handshake
@@ -265,7 +265,7 @@
   - Commit: chore: deliver Codex WebSocket ordering fix
   - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/installation.md, docs/usage.md, docs/evidence/M32/local-delivery.md, docs/evidence/M32-codex-history-recovery.md
   - Depends on: DOCS-R1
-- [TODO] F002 — Проверить поставляемый SHA T007 в CI на четырёх платформах (delivery)
+- [DONE] F002 — Проверить поставляемый SHA T007 в CI на четырёх платформах (delivery)
   - Commit: docs: record Codex history recovery cross-platform CI
   - Files: docs/evidence/M32-codex-history-recovery.md
   - Depends on: DOCS-R1, T007

@@ -10,10 +10,30 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1070,
+  "revision": 1072,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "provider-registry: ChatQuestion, ChatPage.questions, reply 'message', checkQuestionAnswer, POST …/questions/:qid/answer с attemptId, журнал question-attempts.json",
+          "kit-structure: STRUCTURE_VERSION 4, хуки вопроса Claude PermissionRequest и PreToolUse (wfk hook question)",
+          "provider-claude: вопросы из транскрипта, ожидания хука вопроса; provider-codex: слушатель и asyncQuestion",
+          "session-chat: карточка вопроса, фазы попытки, ответ сообщением для reply 'message'"
+        ],
+        "decisions": [
+          "Claude: канал A1 — хук PermissionRequest; хук PreToolUse нужен, чтобы вопрос был в транскрипте до ответа",
+          "Codex: блокирующий вопрос — слушатель L1; асинхронный вопрос входит в M33 и отвечается обычным сообщением",
+          "Ответ панели без подтверждения провайдера агенту не приписывается (исход unknown)",
+          "Kit отвечает только по нажатию; одобрения команд и правок не принимает"
+        ],
+        "references": [
+          "docs/planning/M33-agent-questions.md",
+          "docs/planning/M33-agent-questions-providers.md",
+          "docs/planning/M33-codex-async-questions.md",
+          "docs/evidence/M33-acceptance.md"
+        ],
+        "result": "Вопросы агента в диалоге панели: карточка для AskUserQuestion Claude (хуки PermissionRequest и PreToolUse), request_user_input Codex (слушатель) и асинхронного вопроса Codex (ответ сообщением). Живая проверка macOS пройдена."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -794,7 +814,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -880,8 +900,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 12/15
-- Revision: 1070
+- Progress: 13/15
+- Revision: 1072
 
 ## Objective
 
@@ -946,7 +966,7 @@
   - Commit: docs: record the full live verification of agent questions
   - Files: docs/evidence/M33-acceptance.md, docs/evidence/M33, docs/design/M33-claude-question-facts.md, docs/design/M33-codex-question-facts.md, docs/evidence/M33/T014-claude-cancelled.png, docs/evidence/M33/T014-claude-nochannel.png, docs/evidence/M33/T014-claude-q1-answered.png, docs/evidence/M33/T014-claude-q1-pending.png, docs/evidence/M33/T014-codex-q1-answered.png, docs/evidence/M33/T014-codex-q1-pending.png, docs/evidence/M33/T014-codex-q2-app.png, docs/evidence/M33/T014-sol-q1-answered.png, docs/evidence/M33/T014-sol-q1-pending.png, docs/evidence/M33/T014-sol-q2-app.png
   - Depends on: T013
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M33-agent-questions.md, docs/design/M33-claude-question-facts.md, docs/evidence/M33-claude-question-probe.md, docs/design/M33-codex-question-facts.md, docs/evidence/M33-codex-question-probe.md, docs/architecture/CONTRACTS.md, docs/architecture/OS-MATRIX.md, docs/evidence/M33/design-qa.md, design-qa.md, docs/evidence/M33-acceptance.md, product-parts/backend-core/clusters/runtime/modules/cli/connected-modules.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/questions.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/chat.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/questions.md, product-parts/backend-core/clusters/projects/modules/kit-structure/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/questions.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/questions.md, docs/evidence/M33-live-check-1.md
   - Depends on: T001, T002, T003, T004, T005, T006, T007, T008, T011, T012, T013, T014
@@ -958,5 +978,7 @@
   - Commit: docs: record agent questions cross-platform CI
   - Files: docs/evidence/M33-acceptance.md
   - Depends on: T009, DOCS-R1
+
+Digest: Вопросы агента в диалоге панели: карточка для AskUserQuestion Claude (хуки PermissionRequest и PreToolUse), request_user_input Codex (слушатель) и асинхронного вопроса Codex (ответ сообщением). Живая проверка macOS пройдена.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

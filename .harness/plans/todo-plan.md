@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1091,
+  "revision": 1092,
   "rounds": [
     {
       "digest": {
@@ -49,7 +49,10 @@
       "Блокирующие вопросы Codex, вопросы Claude и Kimi, поле ввода, очередь, Stop и параметры не регрессировали; контракты модулей и матрица трёх ОС согласованы.",
       "0.14.1 установлена и проверена вживую на macOS, CI точного SHA зелёная на macOS, Linux, Windows x64 и ARM64; пользовательская приёмка отдельно."
     ],
-    "acceptanceNote": null,
+    "acceptanceNote": {
+      "at": "2026-11-15T21:02:47.110Z",
+      "text": "Пользователь принял план в панели Workflow Kit"
+    },
     "approval": {
       "at": "2026-11-15T18:47:05.180Z",
       "text": "Пользователь, 15.11.2026: «Кит выставил его ответ в очередь, и эта очередь никуда не пришла»; «если мы рассчитываем, что ответ выбранный доходит до агента только когда он находится в этапе пассивном, то он никогда не придет. Он же ждет». После проверки на проекте 003: «результаты ответов появились, хоть и в плохо читаемом виде, с ненужной служебной информацией». Workflow Kit: пользователь выбрал спецификацию и план без ревью. | Execution mode chosen by the user: sequential: Выбор пользователя в панели Workflow Kit: выполнить самому, последовательно"
@@ -101,7 +104,7 @@
         "text": "Рекомендован sequential: T001 и T002 меняют один модуль provider-codex и общий файл обёртки, живая проверка требует участия пользователя; T003 помечена parallelSafe и может идти параллельно при выборе orchestrated."
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "ACCEPTED",
     "execution": {
       "maxWorkers": 2,
       "ownerSession": "042d4520-34f1-40ea-8271-d3c682bd5c32",
@@ -378,11 +381,11 @@
 ## State
 
 - Scope: M34-codex-async-answer (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: ACCEPTED
 - Execution: sequential
 - Current task: none
 - Progress: 6/6
-- Revision: 1091
+- Revision: 1092
 
 ## Objective
 

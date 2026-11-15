@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1049,
+  "revision": 1051,
   "rounds": [
     {
       "digest": null,
@@ -279,14 +279,24 @@
       "docsWaiver": null,
       "files": [
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude",
-        "docs/architecture/OS-MATRIX.md"
+        "docs/architecture/OS-MATRIX.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/chat.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/questions.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/chat.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/direct.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/provider.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/question-guard.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/questions.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/direct.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/questions.test.ts"
       ],
       "fixes": null,
       "id": "T004",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Claude: вопрос в ленте и запрет вставки в открытый диалог",
       "why": "Вопрос AskUserQuestion сейчас отбрасывается лентой, а текст панели может попасть в открытый диалог терминала"
     },
@@ -585,8 +595,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 3/11
-- Revision: 1049
+- Progress: 4/11
+- Revision: 1051
 
 ## Objective
 
@@ -614,9 +624,9 @@
   - Commit: feat: add the agent question contract and answer route
   - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, docs/architecture/CONTRACTS.md, docs/architecture/OS-MATRIX.md, product-parts/backend-core/clusters/runtime/modules/cli/connected-modules.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/questions.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/chat-routes.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/chat.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/question-attempts.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/question-routes.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/questions.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/routes.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/questions.test.ts
   - Depends on: T001, T002
-- [TODO] T004 — Claude: вопрос в ленте и запрет вставки в открытый диалог (work)
+- [DONE] T004 — Claude: вопрос в ленте и запрет вставки в открытый диалог (work)
   - Commit: feat(claude): show AskUserQuestion in the session feed
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, docs/architecture/OS-MATRIX.md
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, docs/architecture/OS-MATRIX.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/chat.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/questions.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/chat.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/direct.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/question-guard.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/questions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/direct.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/questions.test.ts
   - Depends on: T003
 - [TODO] T005 — Claude: ответ на вопрос выбранным каналом (work)
   - Commit: feat(claude): answer AskUserQuestion from the panel

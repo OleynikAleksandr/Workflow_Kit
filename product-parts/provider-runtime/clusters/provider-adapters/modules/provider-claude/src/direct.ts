@@ -4,6 +4,7 @@
 // only a wake. A script of an older version does not know <debug>.text: the file stays untaken,
 // is deleted after directWaitMs and the message goes to the queue. The scripts look for the file
 // once a second and there is one file per session, so the sends of a session go one after another.
+// While an AskUserQuestion dialog is open nothing is pasted (spec M33, question-guard.ts).
 import { access, rename, rm, writeFile } from 'node:fs/promises';
 import type { Project } from '#provider-registry';
 import { poll } from './pty.ts';
@@ -12,6 +13,7 @@ import type { ClaudeRuntime } from './runtime.ts';
 import { runningPanelRecord } from './sessions.ts';
 import { withNativeHost, withNativeSession } from './native-arbiter.ts';
 import { cancelNativeParameters } from './native-parameters.ts';
+import { questionOpen } from './question-guard.ts';
 
 /** How often sendDirect looks whether a control file was taken, ms. */
 export const DIRECT_POLL_MS = 200;
@@ -37,8 +39,9 @@ const exists = (file: string): Promise<boolean> =>
 
 /**
  * Pastes text into the session as the user's message. False when the panel does not run the
- * session, the text is empty after cleaning, the previous file was not taken in time, or the
- * script did not take this one in time (the file is then deleted). Never throws.
+ * session, the text is empty after cleaning, a question of the agent waits for an answer, the
+ * previous file was not taken in time, or the script did not take this one in time (the file is
+ * then deleted). Never throws.
  */
 export function sendDirect(rt: ClaudeRuntime, project: Project, sid: string, text: string): Promise<boolean> {
   return withNativeSession(rt, project.id, sid, () => deliver(rt, project, sid, text));
@@ -62,6 +65,11 @@ async function deliver(rt: ClaudeRuntime, project: Project, sid: string, text: s
       const taken = async (): Promise<true | undefined> => ((await exists(file)) ? undefined : true);
       if (!(await poll(taken, wait))) {
         rt.context.log(`claude: message to ${sid} not sent: the previous control file was not taken`);
+        return false;
+      }
+      // Checked right before the write: the pasted text would become the answer of the question.
+      if (await questionOpen(rt, project, sid)) {
+        rt.context.log(`claude: message to ${sid} not pasted: a question of the agent waits for an answer`);
         return false;
       }
       // Written aside and renamed: the script never reads half a message.

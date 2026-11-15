@@ -2,11 +2,14 @@
 // assistant lines of the JSONL file at transcript_path of the hook journal. Transcripts only grow
 // and carry large service lines, so each file is read incrementally (ino, offset, carry, decoder,
 // as in transcripts.ts) and only the newest CHAT_PAGE_LIMIT messages stay in memory. The
-// transcript directory is never computed here.
+// transcript directory is never computed here. AskUserQuestion calls become questions of the page
+// (spec M33 section 2.2, questions.ts).
 import { open, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { CHAT_PAGE_LIMIT, ProviderError } from '#provider-registry';
 import type { ChatMessage, ChatPage } from '#provider-registry';
+import { bookQuestions, createQuestionBook, noteQuestionRow } from './questions.ts';
+import type { QuestionBook } from './questions.ts';
 
 /** Bytes read per chunk. */
 const CHUNK = 1024 * 1024;
@@ -27,6 +30,9 @@ interface ChatState {
   messages: ChatMessage[];
   /** Older messages were dropped to keep the newest ones. */
   dropped: boolean;
+  /** Id of the latest message, dropped or not: a new question stands after it. */
+  lastMessageId: string | null;
+  questions: QuestionBook;
   /** Kept across calls: a character split between two reads is decoded once both halves are in. */
   decoder: TextDecoder;
 }
@@ -57,8 +63,8 @@ function contentText(content: unknown, skipService: boolean): string {
   return texts.filter((t) => !(skipService && isServiceText(t))).join('\n');
 }
 
-/** One transcript line as a message; null for every other record. */
-export function chatMessageOfLine(line: string): ChatMessage | null {
+/** A user or assistant record of a transcript line; null for every other line. */
+function rowOfLine(line: string): Record<string, unknown> | null {
   if (line.length > CHAT_MAX_LINE || !CANDIDATE.test(line)) return null;
   let value: unknown;
   try {
@@ -66,8 +72,16 @@ export function chatMessageOfLine(line: string): ChatMessage | null {
   } catch {
     return null;
   }
-  if (typeof value !== 'object' || value === null || Array.isArray(value)) return null;
-  const row = value as Record<string, unknown>;
+  return typeof value === 'object' && value !== null && !Array.isArray(value) ? (value as Record<string, unknown>) : null;
+}
+
+/** One transcript line as a message; null for every other record. */
+export function chatMessageOfLine(line: string): ChatMessage | null {
+  const row = rowOfLine(line);
+  return row ? messageOfRow(row) : null;
+}
+
+function messageOfRow(row: Record<string, unknown>): ChatMessage | null {
   const role = row['type'];
   if ((role !== 'user' && role !== 'assistant') || row['isSidechain'] === true) return null;
   if (role === 'user' && row['isMeta'] === true) return null;
@@ -95,8 +109,12 @@ export function createChatReader(options: { keep?: number; maxFiles?: number } =
   const states = new Map<string, ChatState>();
 
   function add(state: ChatState, line: string): void {
-    const message = chatMessageOfLine(line);
+    const row = rowOfLine(line);
+    if (!row) return;
+    const message = messageOfRow(row);
+    noteQuestionRow(state.questions, row, message?.id ?? null, state.lastMessageId);
     if (!message) return;
+    state.lastMessageId = message.id;
     state.messages.push(message);
     if (state.messages.length > keep) {
       state.messages.shift();
@@ -136,7 +154,7 @@ export function createChatReader(options: { keep?: number; maxFiles?: number } =
     if (!info.isFile()) throw unavailable(`${file} — не файл`);
     let state = states.get(file);
     if (!state || state.ino !== info.ino || info.size < state.offset) {
-      state = { ino: info.ino, offset: 0, carry: '', skipping: false, messages: [], dropped: false, decoder: new TextDecoder('utf-8') };
+      state = { ino: info.ino, offset: 0, carry: '', skipping: false, messages: [], dropped: false, lastMessageId: null, questions: createQuestionBook(), decoder: new TextDecoder('utf-8') };
     }
     states.delete(file);
     states.set(file, state);
@@ -169,7 +187,9 @@ export function createChatReader(options: { keep?: number; maxFiles?: number } =
     if (!state) return { messages: [], truncated: false };
     const count = Math.max(0, Math.min(limit, state.messages.length));
     const messages = state.messages.slice(state.messages.length - count).map((m) => ({ ...m }));
-    return { messages, truncated: state.dropped || count < state.messages.length };
+    const questions = bookQuestions(state.questions);
+    // A transcript without questions keeps the page of M18 (no field).
+    return { messages, truncated: state.dropped || count < state.messages.length, ...(questions.length > 0 ? { questions } : {}) };
   }
 
   /** One scan per file at a time: concurrent polls wait for the running one. */
@@ -186,4 +206,10 @@ export function createChatReader(options: { keep?: number; maxFiles?: number } =
     },
     clear: () => states.clear(),
   };
+}
+
+/** A question of the transcript waits for an answer; text pasted now would become its answer (T001, P6). */
+export async function hasOpenQuestion(chat: ChatReader, transcriptPath: string | null): Promise<boolean> {
+  const page = await chat.read(transcriptPath, 1);
+  return page.questions?.some((q) => q.state === 'pending') === true;
 }

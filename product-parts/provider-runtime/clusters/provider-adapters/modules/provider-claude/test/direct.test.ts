@@ -1,9 +1,10 @@
 // sendDirect (spec M18 section 2.2, M19 section 2.1) on a fake supervisor and a simulated session
 // script: the cleaned text in <debug>.text, one send per session at a time, false for a session the
 // panel does not run and for a file nobody takes (a script of an older version); wakeSession next to
-// a waiting text; and readMessages through the hook journal.
+// a waiting text; readMessages through the hook journal; no paste and no wake while a question of
+// the agent is open (spec M33).
 import assert from 'node:assert/strict';
-import { access, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { access, appendFile, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { after, before, test } from 'node:test';
@@ -274,4 +275,37 @@ test('readMessages reads the transcript the hook journal names; a session withou
   });
   assert.deepEqual(await provider.readMessages!(project, 'bare', { limit: 100 }), { messages: [], truncated: false });
   assert.deepEqual(await provider.readMessages!(project, 'local-Live', { limit: 100 }), { messages: [], truncated: false });
+});
+
+test('an open AskUserQuestion: sendDirect writes no control file and returns false, wakeSession types no wake', async () => {
+  const transcript = path.join(tmp, 'home', '.claude', 'projects', 'alpha', 'asking.jsonl');
+  await mkdir(path.dirname(transcript), { recursive: true });
+  const call = { type: 'assistant', uuid: 'a1', timestamp: '2026-11-15T07:00:00.000Z', message: { role: 'assistant', content: [{ type: 'tool_use', id: 'toolu_q', name: 'AskUserQuestion', input: { questions: [{ question: 'Which?', header: 'H', multiSelect: false, options: [{ label: 'A', description: '' }] }] } }] } };
+  await writeFile(transcript, `${JSON.stringify(call)}\n`);
+  const journal = path.join(project.path, '.workflow-kit', 'local', 'sessions.jsonl');
+  await appendFile(journal, `${JSON.stringify({ time: '2026-11-15T07:00:00.000Z', client: 'claude', session_id: 'local-Live', transcript_path: transcript, cwd: project.path, source: 'startup' })}\n`);
+  const text = directTextFile(debugFile('Live'));
+  const wake = `${debugFile('Live')}.message`;
+  await rm(wake, { force: true });
+  logs.length = 0;
+  assert.equal(await sendDirect(runtime(300), project, 'local-Live', 'вариант A'), false);
+  assert.equal(await exists(text), false, 'nothing is pasted into the open dialog');
+  assert.ok(logs.some((l) => l.includes('a question of the agent waits for an answer')));
+  assert.ok(logs.every((l) => !l.includes('вариант A') && !l.includes('Which?')), 'no text of the question or the message in the log');
+  const provider = createClaudeProvider(context);
+  assert.equal(await provider.wakeSession!(project, 'local-Live'), true, 'the queued message waits');
+  assert.equal(await exists(wake), false, 'no wake text into the open dialog');
+  // The answer closes the question: the text goes in again.
+  const answer = { type: 'user', uuid: 'r1', timestamp: '2026-11-15T07:00:05.000Z', toolUseResult: { answers: { 'Which?': 'A' } }, message: { role: 'user', content: [{ type: 'tool_result', tool_use_id: 'toolu_q', content: 'ok' }] } };
+  await appendFile(transcript, `${JSON.stringify(answer)}\n`);
+  const session = script('Live', 50);
+  try {
+    assert.equal(await sendDirect(runtime(2000), project, 'local-Live', 'после ответа'), true);
+    assert.deepEqual(session.taken, ['после ответа']);
+  } finally {
+    session.stop();
+  }
+  assert.equal(await provider.wakeSession!(project, 'local-Live'), true);
+  assert.equal(await exists(wake), true);
+  await rm(wake, { force: true });
 });

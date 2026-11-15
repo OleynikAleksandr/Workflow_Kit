@@ -12,6 +12,7 @@ import { createClaudeControls } from './parameter-controls.ts';
 import { createClaudeParameterReader } from './parameters.ts';
 import { claudeTurnState, nativeControlHook } from './native-parameters.ts';
 import { sendDirect } from './direct.ts';
+import { questionOpen } from './question-guard.ts';
 import { claudeCapabilities, ptyUnavailableReason } from './programs.ts';
 import { purgeProject } from './purge.ts';
 import { forgetProjects } from './records.ts';
@@ -150,7 +151,8 @@ export function createClaudeProvider(context: ProviderContext, options: ClaudePr
     resumeSession: (project, sid) => resumeSession(rt, project, sid),
     stopSession: (project, sid) => stopSession(rt, project, sid),
     renameSession: (project, sid, name) => renameSession(rt, project, sid, name),
-    wakeSession: (project, sid) => wakeSession(rt, project, sid),
+    // An open question gets no wake text (spec M33): the queued message waits for the next turn.
+    wakeSession: async (project, sid) => ((await questionOpen(rt, project, sid)) ? true : wakeSession(rt, project, sid)),
     // The conversation from the transcript the hook journal names (spec M18 section 2.2).
     readMessages: async (project, sid, opts) => rt.chat.read((await findSession(rt, project, sid)).hook?.hook.transcriptPath ?? null, opts.limit),
     readParameters: controls.read,

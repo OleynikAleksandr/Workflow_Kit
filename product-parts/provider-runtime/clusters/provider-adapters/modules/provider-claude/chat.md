@@ -3,7 +3,9 @@
 Лента сообщений и прямая отправка реплики для сессий Claude (M18, раздел 2.2;
 `docs/planning/M18-session-chat.md`; исправления — M19, разделы 2.1 и 2.4,
 `docs/planning/M19-session-chat-fixes.md`). Контракт (`ChatMessage`, `ChatPage`,
-`CHAT_PAGE_LIMIT`) — `provider-registry`, его `chat.md`. Ссылка — из `module.md`.
+`CHAT_PAGE_LIMIT`) — `provider-registry`, его `chat.md`. Ссылка — из `module.md`. Вопросы
+`AskUserQuestion` того же транскрипта (поле `questions` страницы) и запрет вставки при открытом
+вопросе (M33) — [questions.md](questions.md).
 
 ## Чтение: `readMessages(project, sid, { limit })` (`src/chat.ts`)
 

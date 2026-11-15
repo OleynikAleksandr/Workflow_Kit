@@ -93,7 +93,8 @@ Kit 2.2.5 ставится в проект бандлом (`install --host harne
 `npm run build:kit`, M22), команды — отдельным процессом
 с JSON-ответом (`kit-runner`); `.harness/**` служба не читает и не пишет. Раздел `workflow` даёт модели
 карточек плана и выбора пути (`plan-view`). Хук вопроса Claude `wfk hook question`
-(`PermissionRequest` вопроса `AskUserQuestion`, структура v4, M33) держит
+(`PermissionRequest` вопроса `AskUserQuestion`, структура v4, M33; та же команда в хуке `PreToolUse`
+выходит сразу — Claude пишет вызов в транскрипт перед ним, T011) держит
 `POST /api/hooks/question` по `waiterId`, пока пользователь не ответит в панели или в приложении:
 маршрут `agent-channel`, провайдер — `questionHook`. Вопрос Codex `request_user_input` приходит слушателю
 `provider-codex` (долгое соединение с демоном); ни одно соединение Kit не отвечает на запросы

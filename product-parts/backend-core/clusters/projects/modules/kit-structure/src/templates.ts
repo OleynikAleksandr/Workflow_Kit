@@ -18,12 +18,18 @@ export type HookClient = 'claude' | 'codex';
 export const HOOK_CLIENTS: readonly HookClient[] = ['claude', 'codex'];
 
 /** Hook events Kit listens to, in the order they are written. */
-export type KitHookEvent = 'SessionStart' | 'Stop' | 'UserPromptSubmit' | 'PermissionRequest';
+export type KitHookEvent = 'SessionStart' | 'Stop' | 'UserPromptSubmit' | 'PreToolUse' | 'PermissionRequest';
 /** Events of every client (Claude and Codex). */
 export const KIT_HOOK_EVENTS: readonly KitHookEvent[] = ['SessionStart', 'Stop', 'UserPromptSubmit'];
-/** Claude also gets the question hook: PermissionRequest of AskUserQuestion (spec M33 section 2.3). */
-export const CLAUDE_HOOK_EVENTS: readonly KitHookEvent[] = [...KIT_HOOK_EVENTS, 'PermissionRequest'];
-/** Matcher of the Kit PermissionRequest group: only the question tool. */
+/**
+ * Claude also gets the question hooks of AskUserQuestion (spec M33 section 2.3): PermissionRequest
+ * answers the question; PreToolUse only makes Claude write the call into the transcript before the
+ * question waits (live check T008), the launcher exits at once.
+ */
+export const CLAUDE_HOOK_EVENTS: readonly KitHookEvent[] = [...KIT_HOOK_EVENTS, 'PreToolUse', 'PermissionRequest'];
+/** Events whose Kit group has the matcher of the question tool. */
+export const QUESTION_HOOK_EVENTS: readonly KitHookEvent[] = ['PreToolUse', 'PermissionRequest'];
+/** Matcher of the Kit question groups: only the question tool. */
 export const QUESTION_HOOK_MATCHER = 'AskUserQuestion';
 
 /** The events Kit writes for a client. */
@@ -36,6 +42,7 @@ export const HOOK_SUBCOMMAND: Readonly<Record<KitHookEvent, string>> = {
   SessionStart: 'session-start',
   Stop: 'stop',
   UserPromptSubmit: 'prompt',
+  PreToolUse: 'question',
   PermissionRequest: 'question',
 };
 
@@ -52,7 +59,7 @@ export const AGENTS_SECTION = `## Workflow Kit (managed section, do not edit by 
 
 Workflow Kit (\`wfk\`) manages this section, its SessionStart, Stop and
 UserPromptSubmit hook entries in \`.claude/settings.json\` and \`.codex/hooks.json\`, its
-PermissionRequest entry for AskUserQuestion in \`.claude/settings.json\`, the \`.gitignore\` block between
+PreToolUse and PermissionRequest entries for AskUserQuestion in \`.claude/settings.json\`, the \`.gitignore\` block between
 \`# wfk:begin\` and \`# wfk:end\` and the files listed in
 \`.workflow-kit/manifest.json\`. Write project instructions outside the
 \`wfk:begin\`/\`wfk:end\` markers; Kit never changes text outside them.

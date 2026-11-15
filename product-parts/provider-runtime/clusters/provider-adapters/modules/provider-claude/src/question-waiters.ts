@@ -106,6 +106,16 @@ function candidate(b: Book, key: string, questions: readonly ChatQuestion[]): Ch
   return questions.filter((q) => q.state === 'pending' && !bound.has(q.id) && contentKey(q.parts) === key).at(-1);
 }
 
+/**
+ * A closed question with the content of an unbound waiter, no waiter bound, asked at most graceMs
+ * before the registration: the question of the hook, answered in the app before the transcript
+ * showed it pending (live check T008: without the PreToolUse hook the call is written with its result).
+ */
+function answeredUnbound(b: Book, w: Waiter, questions: readonly ChatQuestion[]): ChatQuestion | undefined {
+  const bound = boundIds(b);
+  return questions.find((q) => q.state !== 'pending' && !bound.has(q.id) && contentKey(q.parts) === w.contentKey && q.at !== null && Date.parse(q.at) >= w.registeredAt - b.timing.graceMs);
+}
+
 /** Brings the waiters of a transcript up to date with its questions: binding, closing, expiry. */
 function settle(rt: ClaudeRuntime, transcriptPath: string, questions: readonly ChatQuestion[]): void {
   const b = book(rt);
@@ -114,6 +124,14 @@ function settle(rt: ClaudeRuntime, transcriptPath: string, questions: readonly C
     if (w.questionId === null) {
       const found = candidate(b, w.contentKey, questions);
       if (found) w.questionId = found.id;
+    }
+    if (w.questionId === null) {
+      const answered = answeredUnbound(b, w, questions);
+      if (answered) {
+        w.questionId = answered.id;
+        close(w);
+        continue;
+      }
     }
     const bound = w.questionId === null ? undefined : questions.find((q) => q.id === w.questionId);
     if (bound && bound.state !== 'pending') close(w);

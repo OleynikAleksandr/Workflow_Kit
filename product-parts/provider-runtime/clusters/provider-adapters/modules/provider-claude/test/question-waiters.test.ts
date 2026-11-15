@@ -230,3 +230,26 @@ test('a restart: a returning hook of a question with a sent record gets release;
   const page = withWaiters(restarted, s.transcript, (await restarted.chat.read(s.transcript, 1)).questions) ?? [];
   assert.deepEqual(page.map((q) => [q.id, q.answerable]), [['t1', true], ['t2', false]]);
 });
+
+test('an unbound waiter: released by the closed question of its content, not by an older identical one', async () => {
+  // Without the PreToolUse hook the call is written together with its result (live check T008).
+  const s = await session('s-unbound', { graceMs: 200 });
+  await s.write(`${ask('t0', [COLOR])}\n${result('t0', { 'Which color?': 'Red' })}`);
+  await sleep(300);
+  const held = s.hook(uuid(20));
+  const early = await Promise.race([held, sleep(150).then(() => 'waiting')]);
+  assert.equal(early, 'waiting', 'an identical question closed before the registration does not end the waiter');
+  await s.write(`${ask('t1', [COLOR])}\n${result('t1', { 'Which color?': 'Blue' })}`);
+  assert.deepEqual(await held, { release: true }, 'the question of the hook was answered in the app');
+  assert.deepEqual(await s.hook(uuid(20)), { release: true }, 'the ended waiter never comes back');
+  assert.equal((await s.question('t1'))?.state, 'answered');
+
+  // The same with a pending line later: the waiter binds and is answerable as before.
+  const b = await session('s-unbound-late', { graceMs: 200 });
+  const waiting = b.hook(uuid(21));
+  await sleep(50);
+  await b.write(ask('t1', [COLOR]));
+  await b.until(async () => (await b.question('t1'))?.answerable === true);
+  await b.write(result('t1', { 'Which color?': 'Blue' }));
+  assert.deepEqual(await waiting, { release: true });
+});

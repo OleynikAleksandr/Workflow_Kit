@@ -1,11 +1,11 @@
 // Kit hook entries inside .claude/settings.json and .codex/hooks.json (structure v2): SessionStart,
-// Stop and UserPromptSubmit; Claude also PermissionRequest of AskUserQuestion (structure v4, spec
-// M33). Both files use { hooks: { <Event>: [{ matcher?, hooks: [{ type, command, timeout? }] }] } };
+// Stop and UserPromptSubmit; Claude also PreToolUse and PermissionRequest of AskUserQuestion
+// (structure v4, spec M33). Both files use { hooks: { <Event>: [{ matcher?, hooks: [{ type, command, timeout? }] }] } };
 // foreign entries stay where they are, and a Kit group is only ever appended at the end of its
 // event list (Codex approves hooks by position).
 import { defaultHookHost, forwardSlashes, hookArgs, hookText, powershellHookCommand } from './hook-host.ts';
 import type { HookHost } from './hook-host.ts';
-import { CLAUDE_HOOK_EVENTS, HOOK_SUBCOMMAND, QUESTION_HOOK_MATCHER, hookCommand, kitHookEvents } from './templates.ts';
+import { CLAUDE_HOOK_EVENTS, HOOK_SUBCOMMAND, QUESTION_HOOK_EVENTS, QUESTION_HOOK_MATCHER, hookCommand, kitHookEvents } from './templates.ts';
 import type { HookClient, KitHookEvent } from './templates.ts';
 
 /** Hook event of structure v1 (kept for callers that only care about the session start). */
@@ -17,10 +17,13 @@ export const STOP_HOOK_TIMEOUT_S = 600;
 export const PROMPT_HOOK_TIMEOUT_S = 30;
 /** Seconds the question hook may wait for the user's answer (accepted by Claude, T001 P5). */
 export const QUESTION_HOOK_TIMEOUT_S = 43_200;
+/** Seconds the PreToolUse hook of the question may take (the launcher exits at once). */
+export const QUESTION_PRETOOL_TIMEOUT_S = 30;
 
 const HOOK_TIMEOUTS: Readonly<Partial<Record<KitHookEvent, number>>> = {
   Stop: STOP_HOOK_TIMEOUT_S,
   UserPromptSubmit: PROMPT_HOOK_TIMEOUT_S,
+  PreToolUse: QUESTION_PRETOOL_TIMEOUT_S,
   PermissionRequest: QUESTION_HOOK_TIMEOUT_S,
 };
 
@@ -124,8 +127,8 @@ export function findKitHook(config: unknown, event: KitHookEvent = 'SessionStart
 
 /**
  * Returns a copy of the config with the Kit hook of one event written: replaced in place when it
- * exists, otherwise appended as a new group at the end of the event list. A new PermissionRequest
- * group gets the matcher of the question tool.
+ * exists, otherwise appended as a new group at the end of the event list. A new PreToolUse or
+ * PermissionRequest group gets the matcher of the question tool.
  */
 export function withKitHook(config: unknown, client: HookClient, event: KitHookEvent = 'SessionStart', host: HookHost = defaultHookHost()): JsonObject {
   const copy: JsonObject = config === undefined ? {} : (structuredClone(config) as JsonObject);
@@ -141,7 +144,7 @@ export function withKitHook(config: unknown, client: HookClient, event: KitHookE
   copy['hooks'] = hooks;
   const groups = Array.isArray(hooks[event]) ? (hooks[event] as unknown[]) : [];
   hooks[event] = groups;
-  groups.push(event === 'PermissionRequest' ? { matcher: QUESTION_HOOK_MATCHER, hooks: [entry] } : { hooks: [entry] });
+  groups.push(QUESTION_HOOK_EVENTS.includes(event) ? { matcher: QUESTION_HOOK_MATCHER, hooks: [entry] } : { hooks: [entry] });
   return copy;
 }
 

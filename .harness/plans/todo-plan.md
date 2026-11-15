@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1062,
+  "revision": 1064,
   "rounds": [
     {
       "digest": null,
@@ -562,14 +562,27 @@
         "product-parts/backend-core/clusters/runtime/modules/cli",
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude",
         "docs/architecture/OS-MATRIX.md",
-        "docs/architecture/CONTRACTS.md"
+        "docs/architecture/CONTRACTS.md",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/module.md",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/src/hook-config.ts",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/src/index.ts",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/src/templates.ts",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/test/question-hook.test.ts",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/test/structure.test.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/question-hook.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/question-hook.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/questions.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/question-waiters.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/question-waiters.test.ts"
       ],
       "fixes": "T005",
       "id": "T011",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Claude: хук PreToolUse и отпускание непривязанного ожидания",
       "why": "Живая проверка T008: без хука PreToolUse ожидающий вопрос Claude не попадает в транскрипт, а непривязанное ожидание не отпускается"
     },
@@ -832,8 +845,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 8/15
-- Revision: 1062
+- Progress: 9/15
+- Revision: 1064
 
 ## Objective
 
@@ -881,9 +894,9 @@
   - Commit: docs: record live verification of agent questions
   - Files: docs/evidence/M33-live-check-1.md, docs/design/M33-claude-question-facts.md, docs/design/M33-codex-question-facts.md, docs/evidence/M33/T008-claude-pending.png, docs/evidence/M33/T008-claude-answered.png
   - Depends on: T005, T006, T007
-- [TODO] T011 — Claude: хук PreToolUse и отпускание непривязанного ожидания (work)
+- [DONE] T011 — Claude: хук PreToolUse и отпускание непривязанного ожидания (work)
   - Commit: fix(claude): record the pending question with a PreToolUse hook
-  - Files: product-parts/backend-core/clusters/projects/modules/kit-structure, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, docs/architecture/OS-MATRIX.md, docs/architecture/CONTRACTS.md
+  - Files: product-parts/backend-core/clusters/projects/modules/kit-structure, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, docs/architecture/OS-MATRIX.md, docs/architecture/CONTRACTS.md, product-parts/backend-core/clusters/projects/modules/kit-structure/module.md, product-parts/backend-core/clusters/projects/modules/kit-structure/src/hook-config.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/src/index.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/src/templates.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/test/question-hook.test.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/test/structure.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/question-hook.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/question-hook.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/questions.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/question-waiters.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/question-waiters.test.ts
   - Depends on: T008
   - Fixes: T005
 - [TODO] T012 — Codex: асинхронный вопрос в ленте (work)

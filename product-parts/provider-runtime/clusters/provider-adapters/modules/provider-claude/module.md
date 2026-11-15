@@ -144,8 +144,8 @@ D5) и останавливает только по своим записям (D
 переименования, пробуждения и диалога — [sessions.md](sessions.md).
 Прерывание текущего ответа без завершения процесса — [interrupt.md](interrupt.md).
 Вопросы `AskUserQuestion` в ленте, ответ из панели хуком `PermissionRequest` (`questionHook`,
-`answerQuestion`, возможность `answerQuestion`) и запрет вставки в открытый диалог вопроса
-(M33) — [questions.md](questions.md).
+`answerQuestion`, возможность `answerQuestion`), закрытие ожидания без привязки (T011) и запрет
+вставки в открытый диалог вопроса (M33) — [questions.md](questions.md).
 
 ### Окружение папки (особое действие проекта)
 

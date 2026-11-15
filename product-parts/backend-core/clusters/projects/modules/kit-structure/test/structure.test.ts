@@ -92,7 +92,8 @@ test('an empty folder is "missing"; install writes everything and the result is 
       SessionStart: [{ hooks: [kitHookEntry('claude')] }],
       Stop: [{ hooks: [kitHookEntry('claude', 'Stop')] }],
       UserPromptSubmit: [{ hooks: [kitHookEntry('claude', 'UserPromptSubmit')] }],
-      // Spec M33 section 2.3: the question hook of Claude only.
+      // Spec M33 section 2.3: the question hooks of Claude only (PreToolUse — live check T008).
+      PreToolUse: [{ matcher: 'AskUserQuestion', hooks: [kitHookEntry('claude', 'PreToolUse')] }],
       PermissionRequest: [{ matcher: 'AskUserQuestion', hooks: [kitHookEntry('claude', 'PermissionRequest')] }],
     },
   });

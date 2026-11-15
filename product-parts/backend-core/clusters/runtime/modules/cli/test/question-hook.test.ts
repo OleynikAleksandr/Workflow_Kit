@@ -1,6 +1,7 @@
 // wfk hook question (spec M33 section 2.3): one waiterId for all requests, asks again on wait, prints
 // a decision, exits silently on release, a refusal or no service, retries a break for the recovery
-// time only after the service answered, and never asks for another tool. darwin, linux and win32.
+// time only after the service answered, and never asks for another tool or on PreToolUse (live check
+// T008). darwin, linux and win32.
 import assert from 'node:assert/strict';
 import { mkdtemp, rm } from 'node:fs/promises';
 import os from 'node:os';
@@ -81,8 +82,8 @@ test('a break after the service answered is retried for the recovery time, then 
   assert.ok(clock.t >= QUESTION_RECOVERY_MS && clock.t < QUESTION_RECOVERY_MS + 5000, 'gives up after the recovery time');
 });
 
-test('another tool, broken input and an unknown client ask nothing', async () => {
-  for (const stdin of [JSON.stringify({ ...INPUT, tool_name: 'Bash' }), 'not json', '[]']) {
+test('another tool, broken input, PreToolUse and an unknown client ask nothing', async () => {
+  for (const stdin of [JSON.stringify({ ...INPUT, tool_name: 'Bash' }), 'not json', '[]', JSON.stringify({ ...INPUT, hook_event_name: 'PreToolUse', tool_use_id: 'toolu_1' })]) {
     const { done, calls } = run([{ status: 200, body: { decision: DECISION } }], { stdin });
     await done;
     assert.equal(calls.length, 0);
@@ -106,4 +107,19 @@ test('runHook question dispatches to the question hook and exits 0', async () =>
   });
   assert.equal(code, 0);
   assert.deepEqual(out, [`${JSON.stringify(DECISION)}\n`]);
+});
+
+test('the PreToolUse hook exits 0 at once without output on darwin, linux and win32', async () => {
+  for (const platform of ['darwin', 'linux', 'win32'] as const) {
+    const out: string[] = [];
+    let asked = 0;
+    const code = await runHook(['question', '--client', 'claude'], {
+      stdout: (t) => void out.push(t), stderr: () => undefined, env: { WFK_PORT: '4999' }, cwd: tmp, clients: ['claude'], platform,
+      readStdin: async () => JSON.stringify({ ...INPUT, hook_event_name: 'PreToolUse', tool_use_id: 'toolu_1' }),
+      request: async () => { asked += 1; return { status: 200, body: { decision: DECISION } }; },
+    });
+    assert.equal(code, 0, platform);
+    assert.equal(asked, 0, platform);
+    assert.deepEqual(out, [], platform);
+  }
 });

@@ -16,8 +16,8 @@ SessionStart, Stop и UserPromptSubmit, приём хука SessionStart.
 | --- | --- | --- |
 | `agents-section` | `AGENTS.md` | текст между `<!-- wfk:begin -->` и `<!-- wfk:end -->`: работа с панелью (полный путь `wfk`, если оболочка его не находит: macOS и Linux `"$HOME/.local/bin/wfk"`, Windows PowerShell `& "$env:LOCALAPPDATA\Workflow Kit\wfk.cmd"`, Git Bash `"$LOCALAPPDATA/Workflow Kit/wfk"`, M17 2.2; тема сессии через `wfk session title` в первом ходе с задачей, не в служебном приветствии; вопрос о плане `wfk session plan` перед спецификацией задачи разработки — не для разговоров и исследований, M4 раздел 12; публикация на GitHub — не задача плана: только по просьбе пользователя после приёмки и закрытия scope, кнопкой панели или `wfk project publish`, publication-order 3.3; оркестрация встроенными подагентами приложения — Claude: Agent с `isolation: "worktree"`, ChatGPT/Codex: своя `git worktree add --detach .workflow-kit/local/worktrees/<id> <baseCommit>` и `spawn_agent`, Kimi Code: явное разрешение инструмента `Agent`, свой `git worktree add`, `Agent` на переднем плане с worktree в `cwd` каждого `Bash`, без `AgentSwarm`, а в последовательном режиме — помощники в основной папке без коммитов (M10, раздел 2.3; новый текст меняет хеш фрагмента, и проект показывает `outdated` до обновления структуры); выбор пути и запуск плана кнопками, сообщения `Workflow Kit:`) и соглашение product-parts |
 | `claude-md` | `CLAUDE.md` | `@AGENTS.md`, создаётся только если файла нет; не хешируется (дальше файл пользователя) |
-| `claude-hook` | `.claude/settings.json` | по группе в `hooks.SessionStart`, `hooks.Stop` (`timeout` 600 с), `hooks.UserPromptSubmit` (`timeout` 30 с) и, с версии 4 (M33), `hooks.PermissionRequest` — группа `{ matcher: "AskUserQuestion" }`, команда `hook question`, `timeout` 43 200 с (`QUESTION_HOOK_TIMEOUT_S`) |
-| `codex-hook` | `.codex/hooks.json` | то же без `PermissionRequest`, тайм-аут в поле `timeoutSec`; новая группа — только в конец списка события (одобрение Codex позиционное) |
+| `claude-hook` | `.claude/settings.json` | по группе в `hooks.SessionStart`, `hooks.Stop` (`timeout` 600 с), `hooks.UserPromptSubmit` (`timeout` 30 с) и, с версии 4 (M33), `hooks.PreToolUse` — группа `{ matcher: "AskUserQuestion" }`, команда `hook question`, `timeout` 30 с (`QUESTION_PRETOOL_TIMEOUT_S`; Claude пишет строку вызова в транскрипт перед этим хуком, поправка T008) и `hooks.PermissionRequest` — такая же группа, `timeout` 43 200 с (`QUESTION_HOOK_TIMEOUT_S`); события с matcher — `QUESTION_HOOK_EVENTS` |
+| `codex-hook` | `.codex/hooks.json` | то же без `PreToolUse` и `PermissionRequest`, тайм-аут в поле `timeoutSec`; новая группа — только в конец списка события (одобрение Codex позиционное) |
 | `gitignore-block` | `.gitignore` | `.workflow-kit/local/` между `# wfk:begin` и `# wfk:end` |
 | `product-parts-readme` | `product-parts/README.md` | создаётся, только если каталога `product-parts` нет |
 | `template-product-part`, `template-cluster`, `template-module` | `.workflow-kit/templates/*.md` | файлы целиком (разделы Purpose, Public interface, Invariants, Dependencies) |
@@ -28,10 +28,11 @@ SessionStart, Stop и UserPromptSubmit, приём хука SessionStart.
 Свой хук события находится по команде (`/.local/bin/wfk` и `hook <подкоманда> `).
 
 Управляемый текст хуков файла — нормализованный объект
-`{ SessionStart, Stop, UserPromptSubmit, PermissionRequest }` найденных записей Kit (события
+`{ SessionStart, Stop, UserPromptSubmit, PreToolUse, PermissionRequest }` найденных записей Kit (события
 клиента — `kitHookEvents(client)`: Claude — `CLAUDE_HOOK_EVENTS`, Codex — `KIT_HOOK_EVENTS`;
 `STRUCTURE_VERSION` 4: проект версии 3 получает `outdated` по `claude-hook`, обновление
-дописывает группу `PermissionRequest` в конец списка, `.codex/hooks.json` не меняется); если
+дописывает группы `PreToolUse` и `PermissionRequest` в конец их списков, `.codex/hooks.json` не
+меняется; проект v4 без `PreToolUse`, записанный до поправки T008, тоже получает `outdated`); если
 найден только SessionStart, текст — одна запись (форма v1), поэтому
 проект v1 получает статус `outdated`, и обновление дописывает Stop и
 UserPromptSubmit в конец их списков.

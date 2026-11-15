@@ -4,6 +4,8 @@
 // as the hook answer. No service, a refusal or { release: true } — exit 0 without output: the native
 // dialog goes on. A break after the service answered once is retried for QUESTION_RECOVERY_MS (a
 // restart of the service), then the hook gives up silently. It never answers for other tools.
+// The same command is the PreToolUse hook of AskUserQuestion (live check T008): Claude writes the call
+// into the transcript before that hook, so the hook only exits at once, asking nothing.
 import { randomUUID } from 'node:crypto';
 import os from 'node:os';
 import { panelProcess, requestJson, serviceUrl } from './hook-service.ts';
@@ -45,6 +47,7 @@ export async function runQuestionHook(client: string, deps: QuestionHookDeps): P
   } catch {
     return debug('вход хука — не JSON');
   }
+  if (isObject(input) && input['hook_event_name'] === 'PreToolUse') return debug('PreToolUse: служба не нужна');
   if (!isObject(input) || input['tool_name'] !== QUESTION_TOOL) return debug('не вопрос AskUserQuestion');
   const now = deps.now ?? Date.now;
   const sleep = deps.sleep ?? ((ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms)));

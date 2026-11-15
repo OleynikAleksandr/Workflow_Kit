@@ -63,4 +63,5 @@
 | M33 T003: вопрос агента в ленте, маршрут ответа с `attemptId`, журнал попыток `question-attempts.json` в `stateDir` | общий Node-код, `writeJsonAtomic` | то же, injected linux | то же, путь `path.win32`, x64/ARM64 |
 | M33 T004: вопросы `AskUserQuestion` из транскрипта Claude; `sendDirect` и пробуждение не пишут файлы при открытом вопросе | общий Node-код, файлы для `session.exp` | то же, `session.exp` | то же, файлы для `pty/host.ts`, x64/ARM64 |
 | M33 T005: хук `PermissionRequest` вопроса (`wfk hook question`, `POST /api/hooks/question`), ожидания и ответ панели | POSIX-команда хука `~/.local/bin/wfk` | то же | exec-форма `node.exe wfk.mjs hook question`, x64/ARM64 |
+| M33 T011: хук `PreToolUse` вопроса (`wfk hook question` выходит сразу), закрытие ожидания без привязки | POSIX-команда хука `~/.local/bin/wfk` | то же | exec-форма `node.exe wfk.mjs hook question`, x64/ARM64 |
 | M33 T006: вопросы Codex — флаг `waitingOnUserInput`, слушатель (долгое соединение), ответ результатом запроса; соединения Kit не отвечают на запросы сервера | сокет управления демона | то же | долгий процесс `codex app-server proxy`, x64/ARM64 |

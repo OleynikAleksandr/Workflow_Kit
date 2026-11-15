@@ -2,7 +2,7 @@
 // feed poll (C0), the listener (C1, L1) subscribed by the flag and before a turn Kit starts, the
 // questions of the page (with the asynchronous ones of the history, spec 2.7) and the answer.
 // Details: questions.md.
-import { ProviderError, QUESTION_BY_MESSAGE_REASON, questionAttemptsFile, questionKey, readQuestionAttempts } from '#provider-registry';
+import { ProviderError, QUESTION_UNAVAILABLE_REASON, questionAttemptsFile, questionKey, readQuestionAttempts } from '#provider-registry';
 import type { ChatPage, ChatQuestion, Project, QuestionAttempt, QuestionOutcome } from '#provider-registry';
 import { createQuestionListener } from './question-listener.ts';
 import type { ListenerTiming, QuestionListener } from './question-listener.ts';
@@ -68,7 +68,8 @@ export function createQuestionParts(rt: CodexRuntime, timing?: Partial<ListenerT
     },
     async answer(project, threadId, questionId, attempt, commit) {
       if (questionId.startsWith(STUB_PREFIX)) throw new ProviderError('question-unavailable', CODEX_WAITING_REASON, { status: 409 });
-      if (questionId.startsWith(ASYNC_PREFIX)) throw new ProviderError('question-unavailable', QUESTION_BY_MESSAGE_REASON, { status: 409 });
+      // Asynchronous questions are answered by async-answer.ts (spec M34); the listener never has them.
+      if (questionId.startsWith(ASYNC_PREFIX)) throw new ProviderError('question-unavailable', QUESTION_UNAVAILABLE_REASON, { status: 409 });
       // After a restart the daemon repeats a request Kit already answered: a sent record of the
       // attempts journal forbids a second answer (spec 2.1; the route checks it too).
       const key = questionKey('codex', project.id, threadId, questionId);

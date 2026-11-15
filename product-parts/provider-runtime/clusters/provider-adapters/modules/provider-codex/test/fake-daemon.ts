@@ -51,6 +51,11 @@ export interface FakeDaemonOptions {
   silentResolve?: boolean;
   /** Confirm interrupt by a matching completion, state only, or an empty RPC without proof. */
   interruptMode?: 'event' | 'state' | 'empty';
+  /**
+   * The first turn/steer finds the turn just ended (spec M34): the thread becomes idle, its running
+   * turn completed, and the steer is refused like the real daemon does.
+   */
+  steerEnds?: boolean;
 }
 
 /**
@@ -194,6 +199,7 @@ export async function startFakeDaemon(requested: string, options: FakeDaemonOpti
   const threads = new Map<string, FakeThread>();
   const pendingRequests = new Map<number, FakeServerRequest>();
   let nextRequestId = 100;
+  let steerEnded = false;
   const broadcast = (threadId: string, message: unknown): void => {
     for (const socket of subscribers.get(threadId) ?? []) if (!socket.destroyed) sendJson(socket, message, false);
   };
@@ -310,6 +316,14 @@ export async function startFakeDaemon(requested: string, options: FakeDaemonOpti
             answer(message.id, {});
             if (options.interruptMode === 'event') sendJson(socket, { method: 'turn/completed', params: { threadId: params.threadId, turn } }, tricky);
           }
+        } else if (message.method === 'turn/steer') {
+          // Like the real daemon (M34): only the running turn named by expectedTurnId takes the text.
+          const params = message.params as { threadId: string; expectedTurnId: string };
+          const known = threads.get(params.threadId);
+          const running = known?.turns.find((value) => (value as { status?: string } | null)?.status === 'inProgress') as { id: string; status: string } | undefined;
+          if (options.steerEnds && !steerEnded && known && running) [steerEnded, running.status, known.status] = [true, 'completed', 'idle'];
+          if (known?.status === 'active' && running?.status === 'inProgress' && running.id === params.expectedTurnId) answer(message.id, { turnId: running.id });
+          else sendJson(socket, { jsonrpc: '2.0', id: message.id, error: { code: -32600, message: 'no active turn to steer' } }, tricky);
         } else if (message.method === 'turn/start') {
           answer(message.id, { turn: { id: 'turn-1' } });
           if (!options.silentTurn) sendJson(socket, { method: 'turn/completed', params: { threadId } }, tricky);

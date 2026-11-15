@@ -31,7 +31,7 @@ export type { ChatGap, ChatMessage, ChatPage, ChatSync, ChatSyncState } from './
 export type { ChatQuestion, ChatQuestionAnswer, ChatQuestionOption, ChatQuestionPart, ChatQuestionPartAnswer, ChatQuestionState, ProviderQuestions, QuestionAttempt, QuestionHookReply, QuestionHookRequest, QuestionOutcome } from './questions.ts';
 export {
   QUESTIONS_PAGE_MAX, QUESTION_DESCRIPTION_MAX, QUESTION_HEADER_MAX, QUESTION_LABEL_MAX, QUESTION_OPTIONS_MAX, QUESTION_OTHER_MAX, QUESTION_PARTS_MAX, QUESTION_TEXT_MAX,
-  QUESTION_SENT_BEFORE_RESTART_REASON, QUESTION_SENT_REASON, QUESTION_TOO_LARGE_REASON, QUESTION_UNAVAILABLE_REASON, QUESTION_BY_MESSAGE_REASON,
+  QUESTION_SENT_BEFORE_RESTART_REASON, QUESTION_SENT_REASON, QUESTION_TOO_LARGE_REASON, QUESTION_UNAVAILABLE_REASON,
   checkQuestionAnswer, cleanAnswerText, questionOut, questionsOut,
 } from './questions.ts';
 export type { AttemptOutcome, AttemptRecord, AttemptState, QuestionAttempts, QuestionAttemptsOptions } from './question-attempts.ts';

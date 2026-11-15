@@ -1,6 +1,6 @@
 // The Codex provider (docs/planning/M1-providers.md, section 3): status of the CLI and of the
 // Mac-wide daemon, its start as a special action, trust, the Kit hook and sessions.
-import { ProviderError } from '#provider-registry';
+import { CHAT_PAGE_LIMIT, ProviderError } from '#provider-registry';
 import type { Capabilities, Project, ProjectProviderState, Provider, ProviderAction, ProviderContext, ProviderStatus, SharedAccessState } from '#provider-registry';
 import { createHandover, HANDOVER_REASON } from './handover.ts';
 import { ELEVATED_HINT, ELEVATED_REASON, isElevatedRefusal } from './elevation.ts';
@@ -12,6 +12,8 @@ import { createParameterUpdater } from './parameter-update.ts';
 import { createParameterParts } from './parameters.ts';
 import { createChatParts } from './chat.ts';
 import { createQuestionParts } from './question-parts.ts';
+import { createAsyncAnswer } from './async-answer.ts';
+import { ASYNC_PREFIX } from './questions.ts';
 import { createCodexRuntime } from './runtime.ts';
 import type { CodexDeps, CodexRuntime, DaemonState } from './runtime.ts';
 import { createSessionParts } from './sessions.ts';
@@ -133,6 +135,14 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
     prepareTurn: (threadId) => questions.prepare(threadId),
     home: rt.paths.home,
     serverPid: () => rt.cachedDaemon()?.pid ?? null,
+  });
+  // Spec M34: the answer reads the feed as the panel does (same page limit and cache key).
+  const asyncAnswer = createAsyncAnswer({
+    shared: () => sharedMode.refresh(),
+    read: (project, threadId) => chatParts.readMessages(threadId, CHAT_PAGE_LIMIT, project.id),
+    withDaemon: (fn, timeoutMs) => rt.withDaemon((session) => fn(session), timeoutMs),
+    prepareTurn: (threadId) => questions.prepare(threadId),
+    log: context.log,
   });
   const sessionParts = createSessionParts(rt, {
     shared: sharedMode,
@@ -305,7 +315,10 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
     updateParameters: (project, sessionId, change) => updateParameters(sessionId, change, project.path),
     readParameters: (project, sessionId) => parameters.readParameters(sessionId, project.path),
     readMessages: async (project, sessionId, opts) => questions.decorate(sessionId, await chatParts.readMessages(sessionId, opts.limit, project.id)),
-    answerQuestion: (project, sessionId, questionId, attempt, commit) => questions.answer(project, sessionId, questionId, attempt, commit),
+    // Spec M34: an asynchronous question is answered into the running turn, a blocking one by the listener.
+    answerQuestion: (project, sessionId, questionId, attempt, commit) => (questionId.startsWith(ASYNC_PREFIX)
+      ? asyncAnswer.answer(project, sessionId, questionId, attempt, commit)
+      : questions.answer(project, sessionId, questionId, attempt, commit)),
     sendDirect: (_project, sessionId, text) => chatParts.sendDirect(sessionId, text),
     async renameSession(project, sessionId, name) {
       requireCodex(rt);

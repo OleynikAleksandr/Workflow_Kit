@@ -11,7 +11,7 @@ import type { Router } from '#http-server';
 import { createProjectRegistry } from '#project-registry';
 import type { Project, ProjectRegistry } from '#project-registry';
 import {
-  ATTEMPTS_DONE_TTL_MS, ATTEMPTS_MAX, QUESTIONS_PAGE_MAX, QUESTION_BY_MESSAGE_REASON, QUESTION_JOURNAL_FULL_REASON, QUESTION_SENT_BEFORE_RESTART_REASON, QUESTION_TOO_LARGE_REASON,
+  ATTEMPTS_DONE_TTL_MS, ATTEMPTS_MAX, QUESTIONS_PAGE_MAX, QUESTION_JOURNAL_FULL_REASON, QUESTION_SENT_BEFORE_RESTART_REASON, QUESTION_TOO_LARGE_REASON,
   ProviderError, checkQuestionAnswer, createProviderRegistry, createQuestionAttempts, questionAttemptsFile, questionKey, questionOut, questionsOut, registerProviderRoutes,
 } from '../src/index.ts';
 import type { ChatQuestion, ChatQuestionAnswer, QuestionAttempts, QuestionOutcome } from '../src/index.ts';
@@ -163,6 +163,15 @@ test('an accepted answer is handed out once and recorded without texts', async (
   assert.equal(text.includes(questionKey('fake', alpha.id, 's1', 'toolu_1')), true);
 });
 
+test('a question answered by a message (M34) goes through the same attempt rules: one transfer', async () => {
+  fake.questions = [pending('async:a1', { reply: 'message', parts: [{ ...part('q1'), header: '' }] })];
+  const first = await post('async:a1', A1);
+  assert.deepEqual(first, { status: 200, body: { answered: true, outcome: 'accepted' } });
+  assert.deepEqual(await post('async:a1', A1), first, 'the same attempt: the same outcome, no new transfer');
+  assert.equal((await post('async:a1', A2)).body['code'], 'question-stale', 'another attempt after an accepted answer');
+  assert.equal(fake.transfers.length, 1);
+});
+
 test('a direct POST to a secret, too large, closed or sent question hands nothing out', async () => {
   fake.questions = [
     pending('secret', { answerable: false, reason: 'Секретный ответ вводится только в приложении ChatGPT' }),
@@ -297,15 +306,20 @@ test('the journal file lives in stateDir on every OS', () => {
   assert.equal(questionAttemptsFile({ stateDir: '/Users/u/Library/Application Support/Workflow Kit' }, 'darwin'), '/Users/u/Library/Application Support/Workflow Kit/question-attempts.json');
 });
 
-test('a question answered by a message: reply kept, no delivery or answers, never answered by the route check', () => {
-  const asked = questionOut({ ...pending('async:a1'), parts: [{ ...part('q1'), header: '' }], reply: 'message', delivery: 'sent' });
+test('a question answered by a message (M34): reply kept, delivery and answers kept, checked like any other', () => {
+  const asked = questionOut({ ...pending('async:a1'), parts: [{ ...part('q1'), header: '' }], reply: 'message' });
   assert.equal(asked?.reply, 'message');
-  assert.equal(asked?.delivery, undefined, 'no delivery for a message answer');
   assert.equal(asked?.answerable, true);
   assert.equal(asked?.parts[0]?.header, '');
-  const closed = questionOut({ ...pending('async:a1'), state: 'answered', answerable: false, reply: 'message', answers: { q1: { selected: ['Red'] } } });
-  assert.equal(closed?.answers, undefined, 'the answer is the message, not a proven outcome');
+  const sent = questionOut({ ...pending('async:a1'), reply: 'message', delivery: 'sent' });
+  assert.equal(sent?.delivery, 'sent', 'a sent answer of the panel is shown');
+  assert.equal(sent?.answerable, false);
+  const closed = questionOut({ ...pending('async:a1'), state: 'answered', answerable: false, reply: 'message', answers: { q1: { selected: [], other: 'Green' } } });
+  assert.deepEqual(closed?.answers, { q1: { selected: [], other: 'Green' } }, 'the answers of the reply message');
   assert.equal(questionOut({ ...pending('q'), reply: 'other' })?.reply, undefined);
-  assert.throws(() => checkQuestionAnswer({ ...pending('async:a1'), reply: 'message' }, { q1: { selected: ['Red'] } }),
-    (error: unknown) => error instanceof ProviderError && error.code === 'question-unavailable' && error.message === QUESTION_BY_MESSAGE_REASON);
+  assert.deepEqual(checkQuestionAnswer({ ...pending('async:a1'), reply: 'message' }, { q1: { selected: ['Red'] } }), { q1: { selected: ['Red'] } });
+  assert.throws(() => checkQuestionAnswer({ ...pending('async:a1'), reply: 'message', state: 'answered' }, { q1: { selected: ['Red'] } }),
+    (error: unknown) => error instanceof ProviderError && error.code === 'question-stale');
+  assert.throws(() => checkQuestionAnswer({ ...pending('async:a1'), reply: 'message' }, { q1: { selected: ['Red'], other: 'Green' } }),
+    (error: unknown) => error instanceof ProviderError && error.code === 'question-invalid', 'one answer per part');
 });

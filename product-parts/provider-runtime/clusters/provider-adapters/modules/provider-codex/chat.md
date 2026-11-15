@@ -122,7 +122,8 @@ legacy (`historyMode` нет или `legacy`; `items/list` там всегда `
 - другой статус или `null` — `false`, строка `codex: direct message to thread <id> not sent,
   status …`; ошибка соединения или хода — `false`, строка `… failed: …`. Метод не бросает.
 
-`turn/steer` не используется (M18, раздел 5).
+`turn/steer` прямой ход не использует (M18, раздел 5): им Kit вливает в идущий ход только ответ на
+асинхронный вопрос (M34, [questions.md](questions.md)).
 
 ## Поведение на ОС
 

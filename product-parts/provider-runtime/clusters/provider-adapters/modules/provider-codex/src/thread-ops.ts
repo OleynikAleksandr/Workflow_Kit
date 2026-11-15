@@ -1,5 +1,6 @@
 // Operations on one thread of the daemon: is it loaded, unload it now (thread/archive and
-// thread/unarchive), wake it with a short turn (spec M12 section 2.3) and read its status (M18).
+// thread/unarchive), wake it with a short turn (spec M12 section 2.3), read its status (M18) and
+// steer the answer of an asynchronous question into its running turn (M34).
 import type { RpcSession } from './rpc.ts';
 
 /** Timeout of thread/unsubscribe after the service turn. */
@@ -69,13 +70,25 @@ export const WAKE_TEXT = 'Workflow Kit: для тебя есть сообщен�
  * app is a client of the same daemon, so a chat open in the app takes the turn too (checked
  * 2026-11-11: the text shows as a message of the user).
  */
-export async function wakeThread(session: RpcSession, threadId: string, text: string = WAKE_TEXT): Promise<void> {
+export async function wakeThread(session: RpcSession, threadId: string, text: string = WAKE_TEXT): Promise<string | null> {
   if ((await isLoaded(session, threadId)) !== true) await session.request('thread/resume', { threadId, excludeTurns: true });
   try {
-    await session.request('turn/start', { threadId, input: [{ type: 'text', text }] });
+    const answer = await session.request('turn/start', { threadId, input: [{ type: 'text', text }] });
+    const turn = isObject(answer) ? answer['turn'] : null;
+    return isObject(turn) && typeof turn['id'] === 'string' ? turn['id'] : null;
   } finally {
     await session.request('thread/unsubscribe', { threadId }, UNSUBSCRIBE_TIMEOUT_MS).catch(() => undefined);
   }
+}
+
+/**
+ * Puts text into the running turn as a user's message (spec M34 section 2.3): turn/steer with the
+ * required expectedTurnId; the daemon refuses it when that turn is no longer the active one. The id
+ * of the turn the daemon answered with, or null when the answer has none.
+ */
+export async function steerTurn(session: RpcSession, threadId: string, expectedTurnId: string, text: string): Promise<string | null> {
+  const answer = await session.request('turn/steer', { threadId, input: [{ type: 'text', text }], expectedTurnId });
+  return isObject(answer) && typeof answer['turnId'] === 'string' ? answer['turnId'] : null;
 }
 
 /**

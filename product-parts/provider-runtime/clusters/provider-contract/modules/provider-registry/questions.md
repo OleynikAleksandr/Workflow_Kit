@@ -1,6 +1,8 @@
-# provider-registry: вопросы агента (M33)
+# provider-registry: вопросы агента (M33, M34)
 
-Спецификация — [M33](../../../../../../docs/planning/M33-agent-questions.md), раздел 2.1. Код —
+Спецификация — [M33](../../../../../../docs/planning/M33-agent-questions.md), раздел 2.1;
+вопрос с ответом сообщением — [M34](../../../../../../docs/planning/M34-codex-async-answer.md),
+раздел 2.1. Код —
 `src/questions.ts` (типы, пределы, нормализация, проверка ответа), `src/question-attempts.ts`
 (журнал попыток), `src/question-routes.ts` (маршрут ответа и взгляд журнала на вопросы ленты).
 Ссылка — из [module.md](module.md).
@@ -12,8 +14,10 @@
 - `ChatQuestion { id, at, afterMessageId, state, parts, answerable, reason?, delivery?,
   answers?, reply? }`: `state` — `pending | answered | cancelled`; `delivery: 'sent'` — ответ передан,
   итог не подтверждён; `answers` — только доказанный итог у `answered`; `reply: 'message'` —
-  ответ уходит агенту обычным сообщением панели, а не маршрутом ответа (асинхронный вопрос
-  Codex, спецификация M33 раздел 2.7, T012): у такого вопроса нет `delivery` и `answers`.
+  ответ доходит до агента сообщением пользователя (асинхронный вопрос Codex, M33 раздел 2.7),
+  но панель отвечает тем же маршрутом ответа с попыткой (M34): у такого вопроса бывают
+  `delivery` и `answers` (разобранные из ответного сообщения ленты, кто бы его ни прислал);
+  карточка стоит после своего сообщения и не меняет строку состояния.
 - `ChatQuestionAnswer` — `{ [partId]: { selected: string[]; other?: string } }`;
   `QuestionAttempt { id, answers }`; `QuestionOutcome` — `accepted | unknown`.
 - `ChatPage.questions?` — от старых к новым; нет поля — провайдер вопросов не отдаёт.
@@ -23,10 +27,10 @@
   предела обрезает текст (`…`) и делает вопрос `answerable: false` с
   `QUESTION_TOO_LARGE_REASON`; `answerable` — только у `pending` без `delivery` и с частями;
   у неотвечаемого ожидающего вопроса всегда есть `reason`; `reply` — только значение
-  `'message'`, тогда `delivery` и `answers` отбрасываются.
+  `'message'`; `delivery` и `answers` сохраняются и у него (M34).
 - `checkQuestionAnswer(question, answer)` — провайдер вызывает её на свежем чтении прямо перед
-  передачей: `reply: 'message'` — `question-unavailable` с `QUESTION_BY_MESSAGE_REASON` («Ответ
-  на этот вопрос отправляется сообщением»); не `pending` — `question-stale`; `delivery` — `question-sent`; не `answerable` —
+  передачей, для любого вопроса, в том числе с `reply: 'message'` (M34): не `pending` —
+  `question-stale`; `delivery` — `question-sent`; не `answerable` —
   `question-unavailable` с причиной; иначе ответ на каждую часть, подписи только из `options`
   без повторов, свой текст только при `allowOther` (очищен `cleanAnswerText`, не пуст), без
   `multiSelect` — ровно один выбор, с ним — хотя бы один; нарушение — `question-invalid`.

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1079,
+  "revision": 1081,
   "rounds": [
     {
       "digest": null,
@@ -125,14 +125,30 @@
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex",
         "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry",
         "docs/architecture/CONTRACTS.md",
-        "docs/architecture/OS-MATRIX.md"
+        "docs/architecture/OS-MATRIX.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/chat.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/questions.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/async-answer.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/question-parts.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/question-reply.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/thread-ops.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/async-answer.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/async-questions.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/questions.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/questions.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/questions.test.ts"
       ],
       "fixes": null,
       "id": "T001",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Codex: ответ на асинхронный вопрос в идущий ход",
       "why": "Ответ из карточки ждёт в очереди конца хода, а агент ждёт ответа внутри хода"
     },
@@ -337,8 +353,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 0/6
-- Revision: 1079
+- Progress: 1/6
+- Revision: 1081
 
 ## Objective
 
@@ -356,9 +372,9 @@
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T001 — Codex: ответ на асинхронный вопрос в идущий ход (work)
+- [DONE] T001 — Codex: ответ на асинхронный вопрос в идущий ход (work)
   - Commit: fix(codex): steer the answer of an asynchronous question into the running turn
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, docs/architecture/CONTRACTS.md, docs/architecture/OS-MATRIX.md
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, docs/architecture/CONTRACTS.md, docs/architecture/OS-MATRIX.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/chat.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/questions.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/async-answer.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/question-parts.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/question-reply.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/thread-ops.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/async-answer.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/async-questions.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/questions.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/questions.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/questions.test.ts
 - [TODO] T002 — Codex: ответ в ленте читаемым текстом и answers вопроса (work)
   - Commit: fix(codex): show question replies as text and record their answers
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex

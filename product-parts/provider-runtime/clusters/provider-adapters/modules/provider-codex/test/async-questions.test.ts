@@ -2,7 +2,8 @@
 // on the fake daemon with darwin, linux and win32: the question of an agentMessage of the history,
 // pending until a user message follows, then answered without answers; an empty message text, no
 // options, several questions, legacy history, the page window, the order with a blocking question,
-// a question over the limits, and answerQuestion that refuses and sends nothing.
+// a question over the limits, and answerQuestion routed to the asynchronous answer (spec M34), which
+// outside the shared daemon mode refuses and sends nothing (async-answer.test.ts covers the rest).
 import assert from 'node:assert/strict';
 import { mkdtemp, rm } from 'node:fs/promises';
 import os from 'node:os';
@@ -10,10 +11,11 @@ import path from 'node:path';
 import { after, before, test } from 'node:test';
 import { createEventLog } from '#data-store';
 import type { ProcessSupervisor } from '#process-supervisor';
-import { ProviderError, QUESTION_BY_MESSAGE_REASON, QUESTION_TOO_LARGE_REASON, questionOut } from '#provider-registry';
+import { ProviderError, QUESTION_TOO_LARGE_REASON, questionOut } from '#provider-registry';
 import type { ChatQuestion, Project, ProviderContext } from '#provider-registry';
 import { createCodexProvider } from '../src/index.ts';
 import { USER_INPUT_METHOD } from '../src/questions.ts';
+import { CODEX_APP_REASON } from '../src/async-answer.ts';
 import { connectUnixWebSocket } from '../src/ws.ts';
 import { startFakeDaemon } from './fake-daemon.ts';
 import type { FakeDaemon, FakeThread } from './fake-daemon.ts';
@@ -70,10 +72,10 @@ async function world(platform: NodeJS.Platform, thread: FakeThread) {
   return { daemon, provider, project, page, questions, answer, commits: () => commits };
 }
 
-const unavailable = (error: unknown): boolean => error instanceof ProviderError && error.code === 'question-unavailable' && error.message === QUESTION_BY_MESSAGE_REASON;
+const unavailable = (error: unknown): boolean => error instanceof ProviderError && error.code === 'question-unavailable' && error.message === CODEX_APP_REASON;
 
 for (const platform of ['darwin', 'linux', 'win32'] as const) {
-  test(`${platform}: the question of an agentMessage is pending until a user message follows; the answer route refuses`, async () => {
+  test(`${platform}: the question of an agentMessage is pending until a user message follows; without the shared daemon the answer is refused`, async () => {
     const w = await world(platform, { status: 'idle', turns: [turn('turn-1', [user('u1'), asking('a1', 'Сейчас спрошу.', [COLOR])])] });
     const [q] = await w.questions();
     assert.deepEqual(q, {
@@ -84,6 +86,7 @@ for (const platform of ['darwin', 'linux', 'win32'] as const) {
     await assert.rejects(w.answer('async:a1'), unavailable);
     assert.equal(w.commits(), 0);
     assert.deepEqual(w.daemon.responses, [], 'nothing is sent to the daemon');
+    assert.ok(!w.daemon.calls.some((c) => c.method === 'turn/steer' || c.method === 'turn/start'), 'no hand-out');
     // The answer is an ordinary message: the next user message closes the question, without answers.
     w.daemon.threads.set(THREAD, { status: 'idle', turns: [turn('turn-1', [user('u1'), asking('a1', 'Сейчас спрошу.', [COLOR])]), turn('turn-2', [user('u2', 'Blue'), { type: 'agentMessage', id: 'a2', text: 'Синий.' }], 'completed', '2026-11-15T09:01:00.000Z')] });
     const closed = await w.questions();

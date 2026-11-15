@@ -42,7 +42,8 @@
 раздел `providers` и чтение журнала хука `.workflow-kit/local/sessions.jsonl`; сервер и панель
 провайдеров не называют. Вопросы агента (M33): `ChatPage.questions`, `POST …/questions/:qid/answer`
 с `attemptId` и журнал попыток; вопрос с `reply: 'message'` (асинхронный вопрос Codex, T012)
-отвечается обычным сообщением панели — [questions.md](../../product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/questions.md). Контракт —
+отвечается тем же маршрутом, а Codex вливает ответ в идущий ход `turn/steer` обёрткой ChatGPT
+(M34) — [questions.md](../../product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/questions.md). Контракт —
 [provider-registry/module.md](../../product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md).
 
 Диалог сессии (M18): лента — `GET /api/projects/:id/providers/:p/sessions/:sid/messages` → `{ supported, messages,

@@ -2,10 +2,11 @@
 // The card of an agent's question in the dialogue (spec M33 section 2.5): options as radios or
 // checkboxes, «Свой вариант» with a text field, several parts in one card, «Отправить» and
 // Ctrl/⌘+Enter. One click on an option never sends. The choice and the attempt live here per
-// question, so they survive polls; the DOM of a card is built once and updated in place.
+// question, so they survive polls; the DOM of a card is built once and updated in place. A question
+// answered by a message (spec M33 section 2.7) sends its text through the message route of the panel.
 import {
   OPEN_APP_TEXT, OTHER_LABEL, OTHER_PLACEHOLDER, RETRY_MS, SEND_LABEL, SEND_TRIES,
-  afterError, answerOf, answerUrl, cardView, closedView, emptyChoice, newAttemptId, pick, toggleOther, writeOther,
+  afterError, answerOf, answerUrl, byMessage, cardView, closedView, emptyChoice, messageText, newAttemptId, pick, toggleOther, writeOther,
 } from './question-model.js';
 
 /** @typedef {import('./question-model.js').Question} Question */
@@ -20,6 +21,8 @@ const ANSWER_TIMEOUT_MS = 20_000;
  * @property {typeof import('../../panel-shell/src/dom.js').h} h
  * @property {typeof import('../../panel-shell/src/api.js').api} api
  * @property {() => string} messagesUrl the URL of the session's messages
+ * @property {() => string} sendUrl the URL of sending a message to the agent (as the input field does)
+ * @property {() => void} sent a message answer went out: refresh the queue and the feed
  * @property {() => string | null} link the chat link for this device
  * @property {() => void} changed the card changed (the dialogue redraws its version)
  * @property {() => void} repoll poll the feed now
@@ -48,6 +51,21 @@ export function createQuestionCards(deps) {
     if (!card) return;
     const answers = answerOf(card.question, card.choice);
     if (!answers || card.attempt.phase === 'sending' || card.attempt.phase === 'waiting') return;
+    if (byMessage(card.question)) {
+      // An ordinary message, as from the input field: no attempt rules and no automatic repeat.
+      card.attempt = { phase: 'sending', attemptId: '' };
+      card.sync();
+      try {
+        await deps.api('POST', deps.sendUrl(), { text: messageText(card.question, answers) });
+        card.attempt = { phase: 'messaged' };
+        deps.sent();
+      } catch (error) {
+        const message = error && typeof error === 'object' && 'message' in error && typeof error.message === 'string' && error.message ? error.message : 'Ответ не отправлен';
+        card.attempt = { phase: 'refused', text: message };
+      }
+      card.sync();
+      return;
+    }
     const attemptId = newAttemptId();
     card.attempt = { phase: 'sending', attemptId };
     card.sync();

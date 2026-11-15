@@ -1,7 +1,9 @@
 // @ts-check
 // The pure model of an agent's question card (spec M33 section 2.5): which questions of a page are
 // shown where, what the user has chosen, when «Отправить» is active, the body of the answer and
-// the lines of every state of an attempt. No DOM here: question-card.js draws it.
+// the lines of every state of an attempt. No DOM here: question-card.js draws it. A question with
+// reply 'message' (the asynchronous question of Codex, spec M33 section 2.7) stands after its message
+// and is answered by an ordinary message of the panel.
 
 /** @typedef {{ label: string, description: string }} QuestionOption */
 /** @typedef {{ id: string, header: string, question: string, options: QuestionOption[], multiSelect: boolean, allowOther: boolean }} QuestionPart */
@@ -16,13 +18,15 @@
  * @property {string} [reason]
  * @property {'sent'} [delivery]
  * @property {Record<string, { selected: string[], other?: string }>} [answers]
+ * @property {'message'} [reply] the answer goes as an ordinary message (spec M33 section 2.7)
  */
 /** One part as chosen: labels, own text and whether «Свой вариант» is on. @typedef {{ selected: string[], other: string, otherOn: boolean }} PartChoice */
 /** @typedef {Record<string, PartChoice>} Choice */
 /**
  * The attempt of the card: idle, sending (with its attemptId), sent and waiting for the outcome,
- * refused with a line (a new attempt allowed), or done with the outcome.
- * @typedef {{ phase: 'idle' } | { phase: 'sending', attemptId: string } | { phase: 'waiting', attemptId: string } | { phase: 'refused', text: string } | { phase: 'done', outcome: 'accepted' | 'unknown' }} Attempt
+ * refused with a line (a new attempt allowed), done with the outcome, or messaged (the answer went as
+ * an ordinary message).
+ * @typedef {{ phase: 'idle' } | { phase: 'sending', attemptId: string } | { phase: 'waiting', attemptId: string } | { phase: 'refused', text: string } | { phase: 'done', outcome: 'accepted' | 'unknown' } | { phase: 'messaged' }} Attempt
  */
 
 export const WAITING_STATUS = 'Агент ждёт вашего ответа';
@@ -35,6 +39,8 @@ export const ANSWERED_IN_APP_TEXT = 'Ответ дан в приложении';
 export const UNKNOWN_OUTCOME_TEXT = 'Ответ отправлен. Какой ответ принят, провайдер не сообщил';
 export const CANCELLED_TEXT = 'Вопрос отменён';
 export const OPEN_APP_TEXT = 'Открыть чат провайдера';
+export const MESSAGE_SENT_TEXT = 'Ответ отправлен сообщением';
+export const ANSWERED_BY_MESSAGE_TEXT = 'Ответ дан сообщением';
 /** Tries of one attempt after network errors (the same attemptId), and the pause between them. */
 export const SEND_TRIES = 3;
 export const RETRY_MS = 1000;
@@ -56,17 +62,22 @@ export function questionsOf(page) {
   return /** @type {Question[]} */ (page['questions'].filter((q) => isObject(q) && typeof q['id'] === 'string' && Array.isArray(q['parts'])));
 }
 
+/** The answer of a question goes as an ordinary message. @param {Question} question */
+export const byMessage = (question) => question.reply === 'message';
+
 /**
- * The newest pending question (it stands at the end of the feed); null without one.
+ * The newest pending question answered through the answer route (it stands at the end of the feed
+ * and makes the agent wait); null without one. A question answered by a message never counts.
  * @param {Question[] | undefined} questions
  * @returns {Question | null}
  */
 export function pendingQuestion(questions) {
-  return [...(questions ?? [])].reverse().find((q) => q.state === 'pending') ?? null;
+  return [...(questions ?? [])].reverse().find((q) => q.state === 'pending' && !byMessage(q)) ?? null;
 }
 
 /**
- * The closed questions placed after their message: message id → questions; '' — before every message.
+ * The questions placed after their message: closed ones and pending ones answered by a message;
+ * message id → questions; '' — before every message.
  * @param {Question[] | undefined} questions
  * @param {ReadonlySet<string>} messageIds
  * @returns {Map<string, Question[]>}
@@ -75,7 +86,7 @@ export function closedPlaces(questions, messageIds) {
   /** @type {Map<string, Question[]>} */
   const places = new Map();
   for (const q of questions ?? []) {
-    if (q.state === 'pending') continue;
+    if (q.state === 'pending' && !byMessage(q)) continue;
     const after = q.afterMessageId && messageIds.has(q.afterMessageId) ? q.afterMessageId : '';
     places.set(after, [...(places.get(after) ?? []), q]);
   }
@@ -140,6 +151,22 @@ export function answerOf(question, choice) {
 }
 
 /**
+ * The text of a message answer (spec M33 section 2.7): one part — its labels and own text; several
+ * parts — a line «<question> — <answer>» each.
+ * @param {Question} question
+ * @param {Record<string, { selected: string[], other?: string }>} answers
+ * @returns {string}
+ */
+export function messageText(question, answers) {
+  const value = (/** @type {QuestionPart} */ part) => {
+    const a = answers[part.id];
+    return a ? [...a.selected, ...(a.other ? [a.other] : [])].join(', ') : '';
+  };
+  if (question.parts.length === 1) return value(/** @type {QuestionPart} */ (question.parts[0]));
+  return question.parts.map((part) => `${part.question} — ${value(part)}`).join('\n');
+}
+
+/**
  * What the card of a pending question shows under its parts: the line, its tone, whether the
  * options can be chosen and whether «Отправить» is there and active.
  * @param {Question} question
@@ -148,6 +175,7 @@ export function answerOf(question, choice) {
  * @returns {{ text: string, tone: 'muted' | 'error' | '', choosable: boolean, button: boolean, active: boolean, openApp: boolean }}
  */
 export function cardView(question, choice, attempt) {
+  if (attempt.phase === 'messaged') return { text: MESSAGE_SENT_TEXT, tone: 'muted', choosable: false, button: false, active: false, openApp: false };
   if (question.delivery === 'sent' || attempt.phase === 'waiting') {
     // Sent before a restart of the service: its own reason and the link to the provider's chat.
     const restart = question.delivery === 'sent' && question.reason !== undefined && question.reason !== SENT_WAITING_TEXT;
@@ -168,6 +196,7 @@ export function cardView(question, choice, attempt) {
  */
 export function closedView(question, attempt) {
   if (question.state === 'cancelled') return { answers: [], note: CANCELLED_TEXT };
+  if (byMessage(question)) return { answers: [], note: ANSWERED_BY_MESSAGE_TEXT };
   if (question.answers) {
     const answers = question.parts.filter((p) => question.answers?.[p.id]).map((p) => {
       const a = /** @type {{ selected: string[], other?: string }} */ (question.answers?.[p.id]);

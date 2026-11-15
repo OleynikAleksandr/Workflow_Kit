@@ -1,10 +1,11 @@
 // The model of the agent's question card (spec M33 section 2.5): placement, choice, the answer,
-// the card states of every attempt phase, closed questions and refusals of the route.
+// the card states of every attempt phase, closed questions and refusals of the route; the question
+// answered by a message (spec M33 section 2.7).
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
-  ANSWERED_IN_APP_TEXT, CANCELLED_TEXT, SENDING_TEXT, SENT_WAITING_TEXT, UNKNOWN_OUTCOME_TEXT,
-  afterError, answerOf, answerUrl, cardView, closedPlaces, closedView, emptyChoice, newAttemptId, pendingQuestion, pick, questionsOf, toggleOther, writeOther,
+  ANSWERED_BY_MESSAGE_TEXT, ANSWERED_IN_APP_TEXT, CANCELLED_TEXT, MESSAGE_SENT_TEXT, SENDING_TEXT, SENT_WAITING_TEXT, UNKNOWN_OUTCOME_TEXT,
+  afterError, answerOf, answerUrl, byMessage, cardView, closedPlaces, closedView, emptyChoice, messageText, newAttemptId, pendingQuestion, pick, questionsOf, toggleOther, writeOther,
 } from '../src/question-model.js';
 import type { Question } from '../src/question-model.js';
 
@@ -82,4 +83,21 @@ test('the answer URL and the attempt id', () => {
   assert.equal(answerUrl('/api/projects/p/providers/claude/sessions/s%201/messages', 'toolu_1'), '/api/projects/p/providers/claude/sessions/s%201/questions/toolu_1/answer');
   assert.match(newAttemptId(), /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
   assert.notEqual(newAttemptId(), newAttemptId());
+});
+
+test('a question answered by a message: placed after its message, never the waiting one, its text and lines', () => {
+  const asked = q({ id: 'async:a1', afterMessageId: 'm1', parts: [{ ...COLOR, header: '' }], reply: 'message' });
+  assert.equal(byMessage(asked), true);
+  assert.equal(pendingQuestion([asked]), null, 'it does not make the agent wait');
+  assert.equal(pendingQuestion([q({ id: 'b' }), asked])?.id, 'b', 'a blocking one still stands at the end');
+  const places = closedPlaces([asked, q({ id: 'c', state: 'answered', afterMessageId: 'm2' })], new Set(['m1', 'm2']));
+  assert.deepEqual([...places.entries()].map(([k, v]) => [k, v.map((x) => x.id)]), [['m1', ['async:a1']], ['m2', ['c']]]);
+  assert.equal(messageText(asked, { q1: { selected: ['Blue'] } }), 'Blue');
+  assert.equal(messageText(asked, { q1: { selected: [], other: 'Зелёный' } }), 'Зелёный');
+  const two = q({ reply: 'message' });
+  assert.equal(messageText(two, { q1: { selected: ['Red'] }, q2: { selected: ['Apple', 'Plum'] } }), 'Which color? — Red\nWhich fruits? — Apple, Plum');
+  assert.deepEqual(cardView(asked, emptyChoice(asked), { phase: 'messaged' }), { text: MESSAGE_SENT_TEXT, tone: 'muted', choosable: false, button: false, active: false, openApp: false });
+  assert.equal(cardView(asked, pick(emptyChoice(asked), asked.parts[0]!, 'Blue'), { phase: 'idle' }).active, true);
+  assert.deepEqual(closedView({ ...asked, state: 'answered', answerable: false }, { phase: 'messaged' }), { answers: [], note: ANSWERED_BY_MESSAGE_TEXT });
+  assert.deepEqual(closedView({ ...asked, state: 'answered', answerable: false }), { answers: [], note: ANSWERED_BY_MESSAGE_TEXT });
 });

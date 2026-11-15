@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1066,
+  "revision": 1068,
   "rounds": [
     {
       "digest": null,
@@ -665,14 +665,26 @@
       "files": [
         "product-parts/control-panel/clusters/web-panel/modules/session-chat",
         "design-qa.md",
-        "docs/evidence/M33"
+        "docs/evidence/M33",
+        "docs/evidence/M33/T013-async-dark-answered.png",
+        "docs/evidence/M33/T013-async-dark-pending.png",
+        "docs/evidence/M33/T013-async-light-390-answered.png",
+        "docs/evidence/M33/T013-async-light-390-pending.png",
+        "docs/evidence/M33/design-qa.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/questions.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/question-card.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/question-model.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/session-chat.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/test/m33-async-question.browser.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/test/question-model.test.ts"
       ],
       "fixes": null,
       "id": "T013",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Панель: карточка асинхронного вопроса",
       "why": "Ответ на асинхронный вопрос Codex кнопкой вместо набора текста"
     },
@@ -858,8 +870,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 10/15
-- Revision: 1066
+- Progress: 11/15
+- Revision: 1068
 
 ## Objective
 
@@ -916,9 +928,9 @@
   - Commit: feat(codex): show asynchronous questions of the agent in the feed
   - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, docs/architecture/OS-MATRIX.md, docs/architecture/CONTRACTS.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/questions.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/history-legacy.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/history-reader.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/history-state.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/question-parts.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/questions.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/async-questions.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/questions.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/questions.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/questions.test.ts
   - Depends on: T011
-- [TODO] T013 — Панель: карточка асинхронного вопроса (work)
+- [DONE] T013 — Панель: карточка асинхронного вопроса (work)
   - Commit: feat(panel): answer an asynchronous question with a message
-  - Files: product-parts/control-panel/clusters/web-panel/modules/session-chat, design-qa.md, docs/evidence/M33
+  - Files: product-parts/control-panel/clusters/web-panel/modules/session-chat, design-qa.md, docs/evidence/M33, docs/evidence/M33/T013-async-dark-answered.png, docs/evidence/M33/T013-async-dark-pending.png, docs/evidence/M33/T013-async-light-390-answered.png, docs/evidence/M33/T013-async-light-390-pending.png, docs/evidence/M33/design-qa.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/questions.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/question-card.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/question-model.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/session-chat.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/m33-async-question.browser.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/question-model.test.ts
   - Depends on: T012
 - [TODO] T014 — Полная живая проверка вопросов на macOS (work)
   - Commit: docs: record the full live verification of agent questions

@@ -272,4 +272,5 @@ docs/evidence/M29/{light-375,dark-1280}-pending.png, docs/evidence/M29/{light-12
 
 Поверхность — карточка «Диалог» (`session-chat`): `question-card.js`, стили `.sc-question*` в
 `session-chat.css`. Сверка с эталоном Claude Desktop, браузерный прогон в обеих темах и узкой
-раскладке и снимки — [docs/evidence/M33/design-qa.md](docs/evidence/M33/design-qa.md).
+раскладке и снимки — [docs/evidence/M33/design-qa.md](docs/evidence/M33/design-qa.md); там же
+карточка вопроса, на который отвечают сообщением (асинхронный вопрос Codex, T013).

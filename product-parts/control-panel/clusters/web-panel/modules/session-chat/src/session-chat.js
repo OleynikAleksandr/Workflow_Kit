@@ -3,7 +3,7 @@
 // a field to write to its agent. Panel extension: install(shell) fills the "sessionChat" slot of
 // panel-shell. One element per session lives in a Map and is updated in place by its own polling,
 // so the typed text and the scroll position survive polls and leaving the screen.
-import { EMPTY_TEXT, LOADING_TEXT, POLL_MS, TRUNCATED_TEXT, errorText, mergePage, messagesUrl, roleLabel, syncView, timeLabel, unsupportedText } from './chat-model.js';
+import { EMPTY_TEXT, LOADING_TEXT, POLL_MS, TRUNCATED_TEXT, errorText, mergePage, messagesUrl, roleLabel, sendUrl, syncView, timeLabel, unsupportedText } from './chat-model.js';
 
 import { createComposer } from './composer.js';
 import { QUEUED_LABEL, composerData } from './composer-model.js';
@@ -46,6 +46,7 @@ import { WAITING_STATUS, closedPlaces, pendingQuestion, questionsOf } from './qu
  * @property {number} version grows on every change of the card
  * @property {import('./question-model.js').Question[] | undefined} questions questions of the agent (M33)
  * @property {ReturnType<typeof createQuestionCards>} cards
+ * @property {(() => void) | null} refresh the shell's refresh of the last render (the queue of a message answer)
  * @property {string | null} link the chat link for this device
  */
 
@@ -114,13 +115,15 @@ export function install(shell) {
    * @param {ChatEntry} entry
    */
   function layout(entry) {
-    // M33 2.5: a closed question after its message, the pending one at the end above the input.
+    // M33 2.5: a closed question after its message, the pending one at the end above the input; a
+    // pending question answered by a message stays after its message (2.7).
     const places = closedPlaces(entry.questions, new Set(entry.nodes.keys()));
     const pending = pendingQuestion(entry.questions);
     entry.cards.keep(new Set((entry.questions ?? []).map((q) => q.id)));
+    const place = (/** @type {import('./question-model.js').Question} */ q) => (q.state === 'pending' ? entry.cards.pending(q) : entry.cards.closed(q));
     const nodes = [
-      ...(places.get('') ?? []).map((q) => entry.cards.closed(q)),
-      ...[...entry.nodes.entries()].flatMap(([id, node]) => [node, ...(places.get(id) ?? []).map((q) => entry.cards.closed(q))]),
+      ...(places.get('') ?? []).map(place),
+      ...[...entry.nodes.entries()].flatMap(([id, node]) => [node, ...(places.get(id) ?? []).map(place)]),
       ...entry.queuedNodes.values(),
       ...(pending ? [entry.cards.pending(pending)] : []),
     ];
@@ -295,6 +298,8 @@ export function install(shell) {
     const cards = createQuestionCards({
       h, api: shell.api,
       messagesUrl: () => messagesUrl(projectId, { key, provider }),
+      sendUrl: () => sendUrl(projectId, key),
+      sent: () => { entry.refresh?.(); void poll(entry); },
       link: () => entry.link,
       changed: () => void (entry.version += 1),
       repoll: () => void poll(entry),
@@ -303,7 +308,7 @@ export function install(shell) {
     const entry = {
       projectId, key, provider, providerLabel, root, feed, note, state, error, composer, hadFull: false,
       nodes: new Map(), messages: null, queued: [], queuedNodes: new Map(), inflight: false, again: false, shown: false, lastPoll: 0, version: 0,
-      questions: undefined, cards, link: session.link,
+      questions: undefined, cards, link: session.link, refresh: null,
     };
     entries.set(id, entry);
     return entry;
@@ -316,6 +321,7 @@ export function install(shell) {
     },
     render(data, _state, session, ctx) {
       const entry = entryOf(session);
+      entry.refresh = ctx.requestRefresh;
       entry.composer.update(data.composer, ctx.requestRefresh);
       applyQueued(entry, data.composer.queuedMessages);
       // The shell attaches the element after render; poll as soon as it is in the document.

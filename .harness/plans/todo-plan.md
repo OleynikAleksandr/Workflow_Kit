@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1059,
+  "revision": 1060,
   "rounds": [
     {
       "digest": null,
@@ -518,7 +518,9 @@
       "files": [
         "docs/evidence/M33-live-check-1.md",
         "docs/design/M33-claude-question-facts.md",
-        "docs/design/M33-codex-question-facts.md"
+        "docs/design/M33-codex-question-facts.md",
+        "docs/evidence/M33/T008-claude-pending.png",
+        "docs/evidence/M33/T008-claude-answered.png"
       ],
       "fixes": null,
       "id": "T008",
@@ -655,7 +657,7 @@
 - Execution: sequential
 - Current task: T008
 - Progress: 7/11
-- Revision: 1059
+- Revision: 1060
 
 ## Objective
 
@@ -701,7 +703,7 @@
   - Depends on: T003
 - [IN_PROGRESS] T008 — Живая проверка вопросов Claude и Codex на macOS (work)
   - Commit: docs: record live verification of agent questions
-  - Files: docs/evidence/M33-live-check-1.md, docs/design/M33-claude-question-facts.md, docs/design/M33-codex-question-facts.md
+  - Files: docs/evidence/M33-live-check-1.md, docs/design/M33-claude-question-facts.md, docs/design/M33-codex-question-facts.md, docs/evidence/M33/T008-claude-pending.png, docs/evidence/M33/T008-claude-answered.png
   - Depends on: T005, T006, T007
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1

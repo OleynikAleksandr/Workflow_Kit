@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1072,
+  "revision": 1074,
   "rounds": [
     {
       "digest": {
@@ -829,7 +829,7 @@
         "installed-service"
       ],
       "commitMessage": "chore: deliver agent questions in the session chat",
-      "confirmation": null,
+      "confirmation": "И в принципе останавливайся только если я нужен тебе. А так я тебе даю разрешение выполнить весь план до самого конца, не останавливаясь, без пауз.",
       "context": [
         {
           "path": "docs/planning/M33-agent-questions.md",
@@ -846,14 +846,15 @@
         "package.json",
         "CHANGELOG.md",
         "docs/evidence/M33/local-delivery.md",
-        "docs/evidence/M33-acceptance.md"
+        "docs/evidence/M33-acceptance.md",
+        "package-lock.json"
       ],
       "fixes": null,
       "id": "T009",
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Поставка 0.14.0, установка и функциональная проверка установленной версии",
       "why": "Пользователь проверяет вопросы в установленной панели"
     },
@@ -900,8 +901,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 13/15
-- Revision: 1072
+- Progress: 14/15
+- Revision: 1074
 
 ## Objective
 
@@ -970,9 +971,9 @@
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M33-agent-questions.md, docs/design/M33-claude-question-facts.md, docs/evidence/M33-claude-question-probe.md, docs/design/M33-codex-question-facts.md, docs/evidence/M33-codex-question-probe.md, docs/architecture/CONTRACTS.md, docs/architecture/OS-MATRIX.md, docs/evidence/M33/design-qa.md, design-qa.md, docs/evidence/M33-acceptance.md, product-parts/backend-core/clusters/runtime/modules/cli/connected-modules.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/questions.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/chat.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/questions.md, product-parts/backend-core/clusters/projects/modules/kit-structure/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/questions.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/questions.md, docs/evidence/M33-live-check-1.md
   - Depends on: T001, T002, T003, T004, T005, T006, T007, T008, T011, T012, T013, T014
-- [TODO] T009 — Поставка 0.14.0, установка и функциональная проверка установленной версии (delivery)
+- [DONE] T009 — Поставка 0.14.0, установка и функциональная проверка установленной версии (delivery)
   - Commit: chore: deliver agent questions in the session chat
-  - Files: package.json, CHANGELOG.md, docs/evidence/M33/local-delivery.md, docs/evidence/M33-acceptance.md
+  - Files: package.json, CHANGELOG.md, docs/evidence/M33/local-delivery.md, docs/evidence/M33-acceptance.md, package-lock.json
   - Depends on: T008, DOCS-R1
 - [TODO] T010 — CI точного SHA поставки на четырёх платформах (delivery)
   - Commit: docs: record agent questions cross-platform CI

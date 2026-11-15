@@ -218,7 +218,7 @@ export function connectWebSocket(socket: ByteStream, options: WebSocketOptions =
     let open = false;
     let closing = false;
     let dead = false;
-    let messageHandler: (message: unknown) => void = () => undefined;
+    let messageHandler: (message: unknown, bytes?: number) => void = () => undefined;
     let closeHandler: (error?: Error) => void = () => undefined;
     let closedOnce = false;
     // The decoder sees every header before its frame is delivered, so the headers keep their own
@@ -310,7 +310,7 @@ export function connectWebSocket(socket: ByteStream, options: WebSocketOptions =
             fail(new TransportError('malformed-json', `the Codex daemon sent a message that is not JSON (${size} bytes)`, { size }));
             return;
           }
-          messageHandler(message);
+          messageHandler(message, size);
         }
       }
     };

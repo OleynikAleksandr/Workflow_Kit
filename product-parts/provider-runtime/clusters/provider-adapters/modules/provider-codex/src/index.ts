@@ -16,6 +16,8 @@ export { SHARED_APP_OWNER_REASON, appOwnerNote, createSharedMode, isSecondAppSer
 export type { SharedMode } from './shared-mode.ts';
 export { WAKE_TEXT, threadStatus, wakeThread } from './thread-ops.ts';
 export { CHAT_TIMEOUT_MS, DIRECT_STATUSES, chatPage, createChatParts, threadMessages } from './chat.ts';
+export { HISTORY_CACHE_BYTES, HISTORY_CACHE_THREADS, HISTORY_GAP_REASON, HISTORY_GAP_RECHECK_MS, HISTORY_PAGE_SIZE, HISTORY_POLL_BYTES, HISTORY_POLL_MS, HISTORY_POLL_PAGES, HISTORY_UNSUPPORTED_REASON, createHistoryReader } from './history-reader.ts';
+export type { HistoryDeps, HistoryReader } from './history-reader.ts';
 export type { ChatDeps, ChatParts } from './chat.ts';
 export { HARNESS_CODEX_HOOK_COMMAND, KIT_HOOK_COMMAND, KIT_HOOK_COMMANDS, isExactKitCommand, isKitApprovable } from './hooks.ts';
 export { HELD_NOTE, RELEASE_POLL_MS, RELEASE_WAIT_MS, FIRST_TURN_WAIT_MS, RELEASING_NOTE, SERVICE_TURN_WAIT_MS, UNSUBSCRIBE_TIMEOUT_MS, serviceTurnText, threadLinks } from './sessions.ts';

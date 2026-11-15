@@ -52,7 +52,7 @@ for (const platform of ['darwin', 'linux', 'win32'] as const) for (const mode of
     const result = await parts.interruptTurn(PROJECT, THREAD, TARGET);
     assert.equal(result.status, 'interrupted');
     if (result.stopped) assert.equal(result.proof, mode === 'event' ? 'provider-event' : 'provider-state');
-    const mutations = daemon.calls.filter((c) => !['initialize', 'initialized', 'thread/read'].includes(c.method));
+    const mutations = daemon.calls.filter((c) => !['initialize', 'initialized', 'thread/read', 'thread/turns/list', 'thread/items/list'].includes(c.method));
     assert.deepEqual(mutations, [{ method: 'turn/interrupt', params: { threadId: THREAD, turnId: TARGET.nativeTurnId } }]);
     assert.equal(daemon.loaded.has(THREAD), true);
     assert.equal(daemon.archived.size, 0);

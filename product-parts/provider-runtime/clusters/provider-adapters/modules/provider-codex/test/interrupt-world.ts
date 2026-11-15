@@ -34,6 +34,9 @@ export function world(timeoutMs = 1000) {
           void Promise.resolve().then(async () => {
             if (message.method === 'initialize') return {};
             if (message.method === 'thread/read') { w.reads++; return w.read ? w.read() : w.value; }
+            // The feed (M32) lists the turns of the current answer without items, then their items.
+            if (message.method === 'thread/turns/list') { const value = (await (w.read ? w.read() : w.value)) as ReturnType<typeof answer>; return { data: [...value.thread.turns].reverse(), nextCursor: null }; }
+            if (message.method === 'thread/items/list') return { data: [], nextCursor: null };
             if (message.method === 'turn/interrupt') {
               if (w.command) return w.command();
               w.value = answer('native-1', 'interrupted', 'idle');

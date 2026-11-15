@@ -4,8 +4,8 @@
 /** A bidirectional message channel carrying parsed JSON-RPC messages. */
 export interface RpcTransport {
   send(message: unknown): void;
-  /** Registers the handler of incoming messages (one handler per transport). */
-  onMessage(handler: (message: unknown) => void): void;
+  /** Registers the handler of incoming messages (one handler per transport); bytes — the payload size when known. */
+  onMessage(handler: (message: unknown, bytes?: number) => void): void;
   /** Registers the handler called once when the channel closes (with the reason if it failed). */
   onClose(handler: (error?: Error) => void): void;
   close(): void;
@@ -85,6 +85,13 @@ export interface RpcSession {
   readonly notifications: readonly RpcNotification[];
   /** Resolves with the params of the first notification of method (already received or upcoming); undefined on timeout. */
   waitForNotification(method: string, timeoutMs: number): Promise<unknown>;
+  /** Payload bytes received so far (answers and notifications; 0 when the transport does not tell). */
+  readonly receivedBytes: number;
+  /**
+   * Stops the session once more than maxBytes were received: the transport is closed and every
+   * pending and later call fails with RpcError code "budget-exhausted" (spec M32 section 2.2).
+   */
+  limitReceived(maxBytes: number): void;
   close(): void;
 }
 
@@ -110,11 +117,23 @@ export function createRpcSession(transport: RpcTransport, options: { timeoutMs?:
   const waiters: { method: string; resolve: (params: unknown) => void }[] = [];
   let nextId = 1;
   let closed: Error | null = null;
+  let received = 0;
+  let receiveLimit = Infinity;
+  let overBudget = false;
+  const exhausted = (): void => {
+    if (closed || received <= receiveLimit) return;
+    overBudget = true;
+    closed = new Error(`received ${received} bytes, budget ${receiveLimit}`);
+    failAll(new RpcError('connection', 'budget-exhausted', closed.message));
+    transport.close();
+  };
   /** The error a call gets once the transport closed: a failure keeps its code and details. */
   const closedError = (method: string): RpcError =>
     closed instanceof TransportError
       ? new RpcError(method, closed.code, closed.message, undefined, closed.failure())
-      : new RpcError(method, 'closed', closed?.message ?? 'connection closed');
+      : overBudget
+        ? new RpcError(method, 'budget-exhausted', closed?.message ?? 'budget exhausted')
+        : new RpcError(method, 'closed', closed?.message ?? 'connection closed');
 
   const failAll = (error: Error): void => {
     for (const [id, entry] of pending) {
@@ -124,7 +143,13 @@ export function createRpcSession(transport: RpcTransport, options: { timeoutMs?:
     }
   };
 
-  transport.onMessage((message) => {
+  transport.onMessage((message, bytes) => {
+    if (closed) return;
+    received += bytes ?? 0;
+    if (received > receiveLimit) {
+      exhausted();
+      return;
+    }
     if (!isObject(message)) return;
     const id = message['id'];
     const method = message['method'];
@@ -155,12 +180,19 @@ export function createRpcSession(transport: RpcTransport, options: { timeoutMs?:
     }
   });
   transport.onClose((error) => {
-    closed = error ?? new Error('connection closed');
+    if (!overBudget) closed = error ?? new Error('connection closed');
     failAll(closedError('connection'));
   });
 
   return {
     notifications,
+    get receivedBytes() {
+      return received;
+    },
+    limitReceived(maxBytes) {
+      receiveLimit = maxBytes;
+      exhausted();
+    },
     request<T>(method: string, params?: unknown, timeoutMs?: number): Promise<T> {
       if (closed) return Promise.reject(closedError(method));
       const id = nextId++;

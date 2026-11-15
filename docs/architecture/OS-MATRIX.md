@@ -43,6 +43,7 @@
 | M28: ход Claude по хукам, Stop по кадру и до движка; ввод без строк, «в очереди» | expect, фикстуры | injected linux | ConPTY, injected win32 |
 | Claude M28: окно по `autoCompactWindow`, и для старых host | managed `/Library/Application Support/ClaudeCode`, `/context` сверен | `/etc/claude-code`, injected linux | `C:\Program Files\ClaudeCode`, injected win32 |
 | M29: Stop-хук не держит сессию, которую запустила панель Claude; её будит хост | общий код канала | то же | то же |
+| M32 T002b2: лента Codex порциями (`turns/list`, `items/list`), бюджет опроса, ограниченные gaps, LRU-кэш, снимок Stop из метаданных | Unix-сокет демона; тесты на настоящем WebSocket | тот же код, CI | proxy stdio, тот же код; именованный канал в тестах, CI x64/ARM64 |
 | M32 T002b1: контракт ленты `sync`, 503 для временных кодов, идемпотентная обрезка | общий код маршрута | то же | то же, x64/ARM64 |
 | M32 T002a: WebSocket Codex — кадр и сообщение ≤ 16 МиБ, типизированные ошибки транспорта | Unix-сокет; тесты и настоящий сокет | тот же код, CI | proxy stdio, тот же код; именованный канал в тестах, CI x64/ARM64 |
 | M29: хост применяет желаемые параметры Claude в фоне, каталог на версию CLI | expect-хост | expect-хост, injected linux | ConPTY, `rename` с повтором при `EPERM` |

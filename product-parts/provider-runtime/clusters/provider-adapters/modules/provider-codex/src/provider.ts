@@ -116,7 +116,14 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
   const handover = createHandover(rt, { ...deps.handover, busy: () => creating > 0, shared: () => sharedMode.active() });
   const trustParts = createTrustParts(rt);
   const interruptions = createInterruptParts(rt, deps, () => handover.active ? HANDOVER_REASON : null);
-  const chatParts = createChatParts({ withDaemon: (fn, timeoutMs) => rt.withDaemon((session) => fn(session), timeoutMs), shared: () => sharedMode.refresh(), log: context.log, onThreadRead: interruptions.observe });
+  const chatParts = createChatParts({
+    withDaemon: (fn, timeoutMs) => rt.withDaemon(fn, timeoutMs),
+    shared: () => sharedMode.refresh(),
+    log: context.log,
+    onThreadRead: interruptions.observe,
+    home: rt.paths.home,
+    serverPid: () => rt.cachedDaemon()?.pid ?? null,
+  });
   const sessionParts = createSessionParts(rt, {
     shared: sharedMode,
     ...(deps.serviceTurnWaitMs === undefined ? {} : { serviceTurnWaitMs: deps.serviceTurnWaitMs }),
@@ -286,7 +293,7 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
     // Conversation (spec M18 section 2.3): thread/read with turns; a direct turn in the shared mode.
     updateParameters: (project, sessionId, change) => updateParameters(sessionId, change, project.path),
     readParameters: (project, sessionId) => parameters.readParameters(sessionId, project.path),
-    readMessages: (_project, sessionId, opts) => chatParts.readMessages(sessionId, opts.limit),
+    readMessages: (project, sessionId, opts) => chatParts.readMessages(sessionId, opts.limit, project.id),
     sendDirect: (_project, sessionId, text) => chatParts.sendDirect(sessionId, text),
     async renameSession(project, sessionId, name) {
       requireCodex(rt);

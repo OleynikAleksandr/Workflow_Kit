@@ -39,6 +39,8 @@ app-server на весь Mac, доверие к папке, одобрение �
 - Общий доступ к чатам (M12): `createSharedAccess(rt, deps?)`, `SHARED_ALIAS` (`wfk-local`),
   `SHARED_HOST_ID` (`remote-ssh-discovered:wfk-local`), `CONNECTIONS_LINK`,
   `REMOTE_LOGIN_LINK`, `BLOCK_BEGIN`/`BLOCK_END`; тип `SharedAccessDeps`.
+- Лента (M18, M32): `createChatParts`, `createHistoryReader`, константы `HISTORY_*`, типы
+  `ChatDeps`, `ChatParts`, `HistoryDeps`, `HistoryReader` — [chat.md](chat.md).
 - Типы: `CodexDeps`, `DaemonOpener`, `DaemonState`, `ProgramState`,
   `AppServerOpener`, `AppServerSpec`, `RpcTransport`, `CodexRecord`.
 
@@ -61,6 +63,10 @@ app-server на весь Mac, доверие к папке, одобрение �
   (`clientInfo` Workflow Kit) → уведомление `initialized` → вызовы;
   таймауты; запросы сервера к клиенту (одобрения и т. п.) получают ошибку
   `-32601` — Kit ничего не одобряет за пользователя.
+- Бюджет приёма (M32 T002b2): `RpcSession.receivedBytes` — принятые байты
+  payload (ответы и уведомления; транспорт передаёт размер в `onMessage`);
+  `limitReceived(max)` — при превышении транспорт закрывается, ожидающие и
+  следующие вызовы получают `RpcError` с `code: 'budget-exhausted'`.
 - `ws.ts` — WebSocket-клиент RFC 6455 поверх `node:net` без зависимостей
   (встроенный `WebSocket` Node не умеет unix-сокет): рукопожатие с
   проверкой `Sec-WebSocket-Accept`, маскированные кадры, длины 7/16/64 бит,
@@ -114,8 +120,11 @@ app-server на весь Mac, доверие к папке, одобрение �
 
 ## Диалог сессии (M18)
 
-`readMessages` — лента из `thread/read` с ходами (чат не загружается); `sendDirect` — ход самим
-текстом при общем доступе, если чат не `active`. `src/chat.ts`, `threadStatus` — [chat.md](chat.md).
+`readMessages` — лента порциями (M32): метаданные `thread/read`, `thread/turns/list` без items для
+снимка Stop, `thread/items/list` по ходам от якоря в бюджете 8 страниц, 32 МиБ и 5 с на опрос,
+ограниченные gaps вокруг слишком больших элементов, кэш LRU 64 треда / 32 МиБ (чат не
+загружается); `sendDirect` — ход самим текстом при общем доступе, если чат не `active`.
+`src/chat.ts`, `src/history-*.ts`, `threadStatus` — [chat.md](chat.md).
 
 ## Инварианты
 
@@ -197,3 +206,6 @@ M27/T004: access — только effort-card. Неизвестный ключ (
 Пределы и типизированные ошибки транспорта (M32 T002a) одинаковы на всех ОС: macOS и Linux —
 Unix-сокет, Windows — stdio `codex app-server proxy` (тот же `connectWebSocket`); тесты на
 настоящем WebSocket идут через тестовый сокет, на Windows — именованный канал.
+Порционная лента (M32 T002b2) — общий код без веток по ОС: курсоры, бюджет опроса, gaps и кэш
+одинаковы; на Windows запросы идут через тот же proxy. Тесты reader и провайдера с подставной
+платформой `darwin`/`linux`/`win32` идут в CI на всех ОС.

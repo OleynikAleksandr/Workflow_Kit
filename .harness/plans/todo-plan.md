@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1008,
+  "revision": 1010,
   "rounds": [
     {
       "digest": null,
@@ -265,14 +265,33 @@
       "docsWaiver": null,
       "files": [
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex",
-        "docs/architecture/OS-MATRIX.md"
+        "docs/architecture/OS-MATRIX.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/chat.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/interrupt.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/chat.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/history-items.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/history-legacy.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/history-poll.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/history-reader.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/history-state.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/rpc.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/turn-snapshot.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/ws.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/chat.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/history.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/interrupt-transport.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/interrupt-world.ts"
       ],
       "fixes": null,
       "id": "T002b2",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Читать Codex порциями с ограниченными gaps и совместимым снимком Stop",
       "why": "Читать Codex порциями с ограниченными gaps и совместимым снимком Stop"
     },
@@ -556,8 +575,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 3/11
-- Revision: 1008
+- Progress: 4/11
+- Revision: 1010
 
 ## Objective
 
@@ -587,9 +606,9 @@
   - Commit: fix: add chat sync contract and idempotent text normalization
   - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, docs/architecture/OS-MATRIX.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/chat.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/routes.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/chat-routes.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/chat.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/test/chat-routes.test.ts
   - Depends on: T002a
-- [TODO] T002b2 — Читать Codex порциями с ограниченными gaps и совместимым снимком Stop (work)
+- [DONE] T002b2 — Читать Codex порциями с ограниченными gaps и совместимым снимком Stop (work)
   - Commit: fix: paginate Codex history and preserve turn snapshots
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, docs/architecture/OS-MATRIX.md
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex, docs/architecture/OS-MATRIX.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/chat.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/interrupt.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/chat.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/history-items.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/history-legacy.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/history-poll.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/history-reader.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/history-state.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/rpc.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/turn-snapshot.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/ws.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/chat.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/fake-daemon.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/history.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/interrupt-transport.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/interrupt-world.ts
   - Depends on: T002b1
 - [TODO] T002c — Сохранить свежие проверки Stop и исключить историю из всех resume (work)
   - Commit: fix: read fresh Codex turn state and exclude resume history

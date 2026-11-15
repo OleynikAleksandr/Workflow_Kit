@@ -1,5 +1,5 @@
-// Conversation of ChatGPT sessions (spec M18 section 2.3) on the fake daemon: the feed from
-// thread/read with turns, the item time, a chat that stays not loaded, the refusals, every branch
+// Conversation of ChatGPT sessions (spec M18 section 2.3, M32) on the fake daemon: the feed read in
+// portions (history.test.ts covers the reader), the item time, a chat that stays not loaded, the refusals, every branch
 // of sendDirect, and the provider with the platform injected (the Windows proxy transport is
 // replaced by a direct connection to the fake daemon, which listens on a named pipe on Windows).
 import assert from 'node:assert/strict';
@@ -15,7 +15,7 @@ import { CHAT_PAGE_LIMIT } from '#provider-registry';
 import { chatPage, createChatParts, createCodexProvider, threadMessages, threadStatus } from '../src/index.ts';
 import type { ChatDeps } from '../src/index.ts';
 import { createRpcSession, initializeSession } from '../src/rpc.ts';
-import type { RpcSession } from '../src/rpc.ts';
+import type { InitializeResult, RpcSession } from '../src/rpc.ts';
 import { connectUnixWebSocket } from '../src/ws.ts';
 import { startFakeDaemon } from './fake-daemon.ts';
 import type { FakeDaemon } from './fake-daemon.ts';
@@ -63,11 +63,11 @@ after(async () => {
 
 /** CodexRuntime.withDaemon over a fake daemon. */
 function withDaemonOf(target: FakeDaemon): ChatDeps['withDaemon'] {
-  return async <T>(fn: (session: RpcSession) => Promise<T>): Promise<T> => {
+  return async <T>(fn: (session: RpcSession, init: InitializeResult) => Promise<T>): Promise<T> => {
     const session = createRpcSession(await connectUnixWebSocket(target.socketPath, { timeoutMs: 2000 }), { timeoutMs: 2000 });
     try {
-      await initializeSession(session);
-      return await fn(session);
+      const init = await initializeSession(session);
+      return await fn(session, init);
     } finally {
       session.close();
     }
@@ -111,21 +111,28 @@ test('the page keeps the newest messages and says when older ones were left out'
   assert.deepEqual(chatPage([], 5), { messages: [], truncated: false });
 });
 
-test('readMessages reads a not loaded chat with turns and leaves it not loaded', async () => {
+test('readMessages reads a not loaded chat in portions and leaves it not loaded', async () => {
   reset('notLoaded');
-  const page = await parts(false).readMessages(THREAD, CHAT_PAGE_LIMIT);
+  const chat = parts(false);
+  const page = await chat.readMessages(THREAD, CHAT_PAGE_LIMIT);
   assert.deepEqual(page.messages.map((m) => m.id), ['u1', 'a1', 'u2']);
+  assert.equal(page.messages[0]?.text, 'Привет\nвторая строка');
   assert.equal(page.truncated, false);
-  assert.deepEqual(methods(), ['thread/read']);
-  assert.deepEqual(daemon.calls.find((c) => c.method === 'thread/read')?.params, { threadId: THREAD, includeTurns: true });
+  assert.deepEqual(page.sync, { state: 'ready' });
+  // Metadata without turns, the newest turns without items, then the items of each turn, newest first.
+  assert.deepEqual(methods(), ['thread/read', 'thread/turns/list', 'thread/items/list', 'thread/items/list']);
+  assert.deepEqual(daemon.calls.find((c) => c.method === 'thread/read')?.params, { threadId: THREAD });
+  assert.deepEqual(daemon.calls.find((c) => c.method === 'thread/turns/list')?.params, { threadId: THREAD, limit: 50, sortDirection: 'desc', itemsView: 'notLoaded' });
+  assert.deepEqual(daemon.calls.filter((c) => c.method === 'thread/items/list').map((c) => (c.params as { turnId: string }).turnId), ['turn-2', 'turn-1']);
+  assert.ok(!daemon.calls.some((c) => (c.params as { includeTurns?: unknown } | undefined)?.includeTurns !== undefined));
   assert.equal(daemon.loaded.has(THREAD), false);
-  const limited = await parts(false).readMessages(THREAD, 1);
-  assert.deepEqual(limited, { messages: [page.messages[2]], truncated: true });
+  const limited = await chat.readMessages(THREAD, 1);
+  assert.deepEqual(limited, { messages: [page.messages[2]], truncated: true, sync: { state: 'ready' } });
 });
 
-test('readMessages: a thread without turns is an empty page', async () => {
+test('readMessages: a thread without saved turns is an empty page', async () => {
   reset();
-  assert.deepEqual(await parts(false).readMessages('thread-empty', CHAT_PAGE_LIMIT), { messages: [], truncated: false });
+  assert.deepEqual(await parts(false).readMessages('thread-empty', CHAT_PAGE_LIMIT), { messages: [], truncated: false, sync: { state: 'ready' } });
 });
 
 test('readMessages: a refusal of the daemon, no daemon or a bad id is chat-unavailable', async () => {

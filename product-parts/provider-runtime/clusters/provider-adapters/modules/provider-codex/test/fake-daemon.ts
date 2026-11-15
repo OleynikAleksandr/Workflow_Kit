@@ -43,14 +43,71 @@ export interface FakeDaemonOptions {
   deleteGone?: string;
   /** thread/read answers with a JSON-RPC error with this message. */
   readError?: string;
+  /** thread/items/list answers with a JSON-RPC error with this message (M32). */
+  itemsError?: string;
   /** Confirm interrupt by a matching completion, state only, or an empty RPC without proof. */
   interruptMode?: 'event' | 'state' | 'empty';
 }
 
-/** What thread/read returns for a thread (M18): its status type and turns. */
+/**
+ * What thread/read returns for a thread (M18): its status type and turns; historyMode (M32,
+ * default paginated) decides how thread/turns/list and thread/items/list answer.
+ */
 export interface FakeThread {
   status: string;
   turns: unknown[];
+  historyMode?: string;
+}
+
+type FakeItem = Record<string, unknown> & { id?: string; type?: string };
+type FakeTurn = { id: string; status: string; items?: FakeItem[]; [key: string]: unknown };
+
+/** The view of a turn like codex 0.169.0 (M32 T001): notLoaded, summary or full items. */
+function turnView(turn: FakeTurn, view: string, legacy: boolean): Record<string, unknown> {
+  const items = turn.items ?? [];
+  const visible = items.filter((item) => item.type === 'userMessage' || item.type === 'agentMessage');
+  const picked = view === 'notLoaded' ? [] : view === 'full' ? (legacy ? visible : items)
+    : [visible.find((item) => item.type === 'userMessage'), visible.filter((item) => item.type === 'agentMessage').at(-1)].filter((item): item is FakeItem => item !== undefined);
+  return { ...turn, items: picked, itemsView: view };
+}
+
+/** thread/turns/list and thread/items/list of the fake (M32): opaque cursors, exclusive item anchors. */
+function listAnswer(method: string, params: Record<string, unknown>, thread: FakeThread | undefined): { result?: unknown; error?: { code: number; message: string } } {
+  const legacy = (thread?.historyMode ?? 'paginated') === 'legacy';
+  const turns = (thread?.turns ?? []) as FakeTurn[];
+  const limit = typeof params['limit'] === 'number' ? params['limit'] : 25;
+  const page = <T>(all: T[], start: number, tag: string) => {
+    const data = all.slice(start, start + limit);
+    return { data, next: start + limit < all.length ? `${tag}:${start + limit}` : null };
+  };
+  const at = (cursor: unknown, tag: string): number | null => {
+    if (cursor === null || cursor === undefined) return 0;
+    const match = typeof cursor === 'string' ? new RegExp(`^${tag}:(\\d+)$`).exec(cursor) : null;
+    return match ? Number(match[1]) : null;
+  };
+  if (method === 'thread/turns/list') {
+    if (turns.length === 0 && !legacy) return { error: { code: -32601, message: 'list_turns is not supported yet' } };
+    const ordered = params['sortDirection'] === 'asc' ? turns : [...turns].reverse();
+    const start = at(params['cursor'], 't');
+    if (start === null) return { error: { code: -32602, message: 'invalid cursor' } };
+    const { data, next } = page(ordered, start, 't');
+    const view = typeof params['itemsView'] === 'string' ? params['itemsView'] : 'summary';
+    return { result: { data: data.map((turn) => turnView(turn, view, legacy)), nextCursor: next, backwardsCursor: null } };
+  }
+  if (legacy) return { error: { code: -32601, message: 'thread/items/list is not supported yet' } };
+  const turn = turns.find((candidate) => candidate.id === params['turnId']);
+  if (!turn) return { error: { code: -32602, message: 'turn not found' } };
+  const done = (turn.items ?? []).filter((item) => item['pending'] !== true);
+  const ordered = params['sortDirection'] === 'desc' ? [...done].reverse() : done;
+  const cursor = params['cursor'];
+  let start: number | null;
+  if (cursor !== null && typeof cursor === 'object') {
+    const index = ordered.findIndex((item) => item.id === (cursor as { itemId?: unknown }).itemId);
+    start = index < 0 ? null : index + 1;
+  } else start = at(cursor, 'i');
+  if (start === null) return { error: { code: -32602, message: 'invalid cursor' } };
+  const { data, next } = page(ordered, start, 'i');
+  return { result: { data: data.map((item) => ({ item, turnId: turn.id, startedAtMs: item['startedAtMs'] ?? null, completedAtMs: null })), nextCursor: next, backwardsCursor: null } };
 }
 
 /** A running fake daemon. */
@@ -67,11 +124,14 @@ export interface FakeDaemon {
    * "notLoaded", without turns. thread/read never loads a thread (like the real daemon).
    */
   threads: Map<string, FakeThread>;
+  /** Payload bytes of every answer sent (M32 budgets). */
+  sentBytes: number;
   close(): Promise<void>;
 }
 
-function sendJson(socket: Socket, message: unknown, tricky: boolean): void {
+function sendJson(socket: Socket, message: unknown, tricky: boolean, daemon?: FakeDaemon): void {
   const payload = Buffer.from(JSON.stringify(message));
+  if (daemon) daemon.sentBytes += payload.length;
   if (!tricky || payload.length < 4) {
     socket.write(encodeFrame(OPCODE.text, payload, null));
     return;
@@ -103,7 +163,7 @@ export async function startFakeDaemon(requested: string, options: FakeDaemonOpti
   const idle = new Map<string, number>();
   const archived = new Set<string>();
   const threads = new Map<string, FakeThread>();
-  const daemon: FakeDaemon = { socketPath, calls, pongs: 0, loaded, archived, threads, close: async () => undefined };
+  const daemon: FakeDaemon = { socketPath, calls, pongs: 0, loaded, archived, threads, sentBytes: 0, close: async () => undefined };
   const release = (threadId: string, socket: Socket): 'unsubscribed' | 'notSubscribed' | 'notLoaded' => {
     if (!loaded.has(threadId)) return 'notLoaded';
     const set = subscribers.get(threadId);
@@ -132,7 +192,7 @@ export async function startFakeDaemon(requested: string, options: FakeDaemonOpti
         pinged = true;
         socket.write(encodeFrame(OPCODE.ping, Buffer.from('hi'), null));
       }
-      sendJson(socket, { jsonrpc: '2.0', id, result }, tricky);
+      sendJson(socket, { jsonrpc: '2.0', id, result }, tricky, daemon);
     };
     socket.on('data', (chunk: Buffer) => {
       if (!open) {
@@ -225,7 +285,14 @@ export async function startFakeDaemon(requested: string, options: FakeDaemonOpti
           const id = String(params.threadId ?? '');
           const known = threads.get(id);
           const status = known?.status ?? (loaded.has(id) ? 'idle' : 'notLoaded');
-          answer(message.id, { thread: { id, status: { type: status }, turns: params.includeTurns === true ? (known?.turns ?? []) : [] } });
+          answer(message.id, { thread: { id, status: { type: status }, historyMode: known?.historyMode ?? 'paginated', turns: params.includeTurns === true ? (known?.turns ?? []) : [] } });
+        } else if (message.method === 'thread/items/list' && options.itemsError) {
+          sendJson(socket, { jsonrpc: '2.0', id: message.id, error: { code: -32000, message: options.itemsError } }, tricky);
+        } else if (message.method === 'thread/turns/list' || message.method === 'thread/items/list') {
+          const params = (message.params ?? {}) as Record<string, unknown>;
+          const listed = listAnswer(message.method, params, threads.get(String(params['threadId'] ?? '')));
+          if (listed.error) sendJson(socket, { jsonrpc: '2.0', id: message.id, error: listed.error }, tricky);
+          else answer(message.id, listed.result);
         } else if (message.method === 'thread/loaded/list') {
           answer(message.id, { data: [...loaded], nextCursor: null });
           for (const [id, left] of idle) {

@@ -13,8 +13,10 @@ export function nativeTurn(value: unknown): NativeTurn | null {
 export function turnSnapshot(answer: unknown, threadId: string): TurnSnapshot {
   const thread = object(answer) ? answer['thread'] : null;
   const status = object(thread) ? thread['status'] : null;
-  if (!object(thread) || thread['id'] !== threadId || !object(status) || !STATES.includes(String(status['type'])) || !Array.isArray(thread['turns'])) throw new Error('Неизвестное состояние thread/read');
-  const turns = thread['turns'].map(nativeTurn);
+  // Metadata without turns (M32: the feed reads turns separately) is a thread without known turns.
+  const listed = object(thread) && thread['turns'] === undefined ? [] : object(thread) ? thread['turns'] : null;
+  if (!object(thread) || thread['id'] !== threadId || !object(status) || !STATES.includes(String(status['type'])) || !Array.isArray(listed)) throw new Error('Неизвестное состояние thread/read');
+  const turns = listed.map(nativeTurn);
   if (turns.some((turn) => !turn) || new Set(turns.map((turn) => turn!.id)).size !== turns.length) throw new Error('Неизвестные или повторяющиеся native turn id');
   const known = turns as NativeTurn[];
   const active = known.filter((turn) => turn.status === 'inProgress');

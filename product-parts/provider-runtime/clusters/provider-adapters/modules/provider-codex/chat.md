@@ -1,37 +1,98 @@
 # provider-codex: диалог сессии (M18)
 
-Спецификация — `docs/planning/M18-session-chat.md`, раздел 2.3; контракт `ChatMessage`,
-`ChatPage`, `readMessages`, `sendDirect` — `provider-registry` (`chat.md` того модуля). Код —
-`src/chat.ts` (`createChatParts`), статус чата — `threadStatus` в `src/thread-ops.ts`; провайдер
-(`src/provider.ts`) передаёт им `rt.withDaemon`, `sharedMode.refresh()` и журнал. Id сессии —
-id треда (`[A-Za-z0-9_-]{1,128}`).
+Спецификация — `docs/planning/M18-session-chat.md`, раздел 2.3, и M32
+(`docs/planning/M32-codex-history-recovery.md`, разделы 2.2–2.4); контракт `ChatMessage`,
+`ChatPage`, `ChatSync`, `readMessages`, `sendDirect` — `provider-registry` (`chat.md` того модуля).
+Код — `src/chat.ts` (`createChatParts`), чтение порциями — `src/history-reader.ts` (бюджет
+опроса и соединение — `history-poll.ts`, кэш ходов и gaps — `history-state.ts`, legacy —
+`history-legacy.ts`), разбор ответов — `src/history-items.ts`, статус чата — `threadStatus` в `src/thread-ops.ts`; провайдер
+(`src/provider.ts`) передаёт им `rt.withDaemon` (с результатом `initialize`), `sharedMode.refresh()`,
+журнал, `rt.paths.home` и pid демона из `rt.cachedDaemon()`. Id сессии — id треда
+(`[A-Za-z0-9_-]{1,128}`).
 
 ## Публичный интерфейс (`src/index.ts`)
 
 - `threadStatus(session, threadId) → Promise<string | null>` — `thread.status.type` ответа
   `thread/read { threadId }` без ходов (`idle`, `active`, `notLoaded`); отказ демона или нет поля —
   `null`. Чтение тред не загружает.
-- `createChatParts({ withDaemon, shared, log })` → `{ readMessages(threadId, limit),
-  sendDirect(threadId, text) }`; типы `ChatDeps`, `ChatParts`.
-- `threadMessages(answer)` — сообщения ответа `thread/read` с ходами, от старых к новым;
-  `chatPage(messages, limit)` — не больше `limit` новейших, `truncated`, если старые отброшены.
-- `CHAT_TIMEOUT_MS` (30 с, одно соединение), `DIRECT_STATUSES` (`idle`, `notLoaded`).
+- `createChatParts({ withDaemon, shared, log, onThreadRead?, home?, serverPid?, now? })` →
+  `{ readMessages(threadId, limit, scope?), sendDirect(threadId, text) }`; `scope` — id проекта
+  (провайдер передаёт `project.id`); типы `ChatDeps`, `ChatParts`.
+- `createHistoryReader({ withDaemon, onThreadRead?, serverPid?, now?, cacheBytes? })` →
+  `{ read(key, threadId, limit), usage() }`; типы `HistoryDeps`, `HistoryReader`. Константы
+  `HISTORY_POLL_PAGES` (8), `HISTORY_POLL_BYTES` (32 МиБ), `HISTORY_POLL_MS` (5 с),
+  `HISTORY_PAGE_SIZE` (50), `HISTORY_GAP_RECHECK_MS` (30 с), `HISTORY_CACHE_THREADS` (64),
+  `HISTORY_CACHE_BYTES` (32 МиБ), `HISTORY_GAP_REASON`, `HISTORY_UNSUPPORTED_REASON`.
+- `threadMessages(answer)` — сообщения ответа с ходами, от старых к новым (лента его больше не
+  вызывает); `chatPage(messages, limit)` — не больше `limit` новейших, `truncated`, если старые
+  отброшены.
+- `CHAT_TIMEOUT_MS` (30 с, соединение прямого хода), `DIRECT_STATUSES` (`idle`, `notLoaded`).
 
-## Лента — `readMessages`
+## Лента — `readMessages` (M32: порциями)
 
-`thread/read { threadId, includeTurns: true }` через сокет демона (на Windows — `codex app-server
-proxy`). Проба 2026-11-12 (codex-cli 0.167.2): чат при этом не загружается (`notLoaded` до и
-после), чтение работает с неподписанного соединения и во время хода; общий доступ не нужен.
+Через сокет демона (на Windows — `codex app-server proxy`); чат не загружается, `includeTurns`
+нигде в ленте не передаётся. Выбор пути и факты протокола — T001,
+`docs/planning/M32-codex-protocol-plan.md` («Результаты T001»).
 
-- Из `thread.turns[].items[]` берутся `userMessage` (части `content[]` с полем `text` через
-  перевод строки) и `agentMessage` (`text`). `reasoning`, `commandExecution` и прочие элементы —
-  не сообщения; пустой после обрезки пробелов текст — тоже.
-- `id` — `id` элемента (нет — `<id хода>:<номер>`); `at` — `startedAtMs` элемента в ISO, нет —
-  `startedAt` хода (число секунд или миллисекунд, или строка времени), иначе `null`.
-- Элемент появляется, когда завершён, поэтому лента растёт целыми сообщениями.
-- Полные тексты: обрезку длинных делает маршрут `provider-registry`.
-- Демон не запущен, не ответил или отказал, неверный id — `ProviderError('chat-unavailable',
-  'Codex не отдал переписку: <причина>')`.
+Опрос (`HistoryReader.read`, один на тред: параллельные вкладки ждут тот же inflight):
+
+1. `thread/read { threadId }` — метаданные и `historyMode`; `thread/turns/list { threadId,
+   limit: 50, sortDirection: 'desc', itemsView: 'notLoaded' }` — новейшие ходы без items.
+   Ответ `{ thread: { ...метаданные, turns: [{ id, status, items: [] }] } }` (ходы от старых к
+   новым) уходит в `onThreadRead` — снимок Stop. Ошибка этого шага — `onThreadRead(id, null)`.
+   `-32601` у `turns/list` paginated-треда — ещё не сохранённая история, пустой список.
+2. paginated: новые ходы соединяются с кэшем. Пропавший или переставленный известный ход —
+   новый проход; прежний опубликованный снимок отдаётся с `loading`, пока новый не готов.
+3. `thread/items/list { threadId, turnId, cursor, limit, sortDirection }` по ходам, от новых к
+   старым: каждый опрос читает новейший ход, ходы `inProgress` и ходы со сменившимся статусом
+   — asc от последнего известного item (исключающий якорь `{ type: 'item', itemId }`, в начале
+   хода `cursor: null`). Завершённые элементы повторно не скачиваются, terminal-переход
+   дочитывает хвост. Затем непрочитанные старые ходы до `limit` сообщений, при нехватке —
+   `turns/list` по opaque `nextCursor` дальше в прошлое.
+4. Если запрос статуса старше 2 с и время осталось — шаг 1 ещё раз (снимок Stop не стареет).
+
+Бюджет опроса (connect, `initialize`, статус и items вместе): не больше 8 list-страниц
+(одна оставлена для повторного статуса), 32 МиБ принятых байтов (`RpcSession.limitReceived`;
+перед каждым запросом в остатке должно быть 16 МиБ) и 5 с; запрос получает остаток времени.
+Нет бюджета — опрос отвечает накопленным, следующий продолжает с того же места.
+
+Отказ страницы по размеру (`frame-too-large`, `message-too-large`) закрывает соединение;
+следующий запрос открывает новое. Размер страницы хода уменьшается 50 → 25 → 12 → 6 → 3 → 1 и
+хранится между опросами (удачная страница удваивает его до 50). Элемент, не прошедший и при
+`limit: 1`, — gap: ход читается с конца (desc) до него, каждая страница сразу сохраняется.
+`ChatGap { turnId, reason: HISTORY_GAP_REASON, afterItemId?, beforeItemId? }` — непрочитанный
+диапазон после `afterItemId` и до `beforeItemId`; нет границы — край хода; `itemId` не
+выдаётся (идентичность отказанного элемента не доказана). Gap проверяется снова только при
+смене серверной идентичности (`initialize.userAgent` и pid демона) или статуса хода, открытый
+gap в конце хода — ещё и раз в 30 с; при неизвестной идентичности границы не стираются и не
+перечитываются. Повторённый исключающим якорем элемент или курсор старых ходов без
+продвижения — отказ `chat-unavailable` вместо бесконечного цикла; `-32602` у якоря — ход
+читается заново.
+
+legacy (`historyMode` нет или `legacy`; `items/list` там всегда `-32601`): каждый опрос заново
+`turns/list` desc с `itemsView: 'full'` (только userMessage/agentMessage) до `limit` сообщений;
+ход больше предела — его `summary` и gap между её сообщениями, больше и summary — gap хода.
+Другой `historyMode` или форма ответа — `ProviderError('codex-history-unsupported', …,
+{ status: 502, details: { sync: { state: 'unavailable', reason } } })` без `retryAfterMs`.
+
+Кэш: ключ — CODEX_HOME, проект, тред; LRU не больше 64 тредов и 32 МиБ текста (байты UTF-8).
+Тексты обрезаются общей `cutChatText` до кэша; выводы инструментов не хранятся. Старые ходы
+за пределом 100 сообщений теряют тексты (ход остаётся известным), в треде не больше 512 ходов.
+На диск кэш не пишется; перезапуск службы собирает его заново порциями.
+
+- Сообщения: `userMessage` (части `content[]` с `text` через перевод строки) и `agentMessage`
+  (`text`); пустой после обрезки пробелов текст — не сообщение. `id` — id элемента; `at` —
+  `startedAtMs` записи `items/list` или элемента в ISO, нет — `startedAt` хода, иначе `null`.
+- `items/list` активного хода отдаёт только завершённые элементы: лента растёт целыми
+  сообщениями.
+- `sync`: `loading` — первичная загрузка или новый проход ещё идут; `ready`; `partial` с `gaps`,
+  `gapCount` и `reason` = `HISTORY_GAP_REASON` («Часть диалога Codex недоступна: слишком большой
+  элемент. Полный текст доступен в чате провайдера»). `retryAfterMs` до T003 не выдаётся.
+  `truncated` — есть непрочитанные или не вошедшие старые сообщения.
+- Демон не запущен, не ответил, отказал, обрыв, malformed JSON, ошибка протокола, неверный id —
+  `ProviderError('chat-unavailable', 'Codex не отдал переписку: <причина>')`, HTTP 502, даже
+  если кэш есть (до T003 устаревший снимок не выдаётся за свежий). Ошибка items снимок Stop
+  не инвалидирует.
 
 ## Прямой ход — `sendDirect`
 
@@ -54,24 +115,38 @@ proxy`). Проба 2026-11-12 (codex-cli 0.167.2): чат при этом не 
 
 | Что | macOS | Linux | Windows |
 | --- | --- | --- | --- |
-| Лента | `thread/read` через сокет демона | так же | через `codex app-server proxy` (x64 и ARM64) |
+| Лента | `thread/read`, `turns/list`, `items/list` порциями через сокет демона | так же | через `codex app-server proxy` (x64 и ARM64) |
 | Прямой ход | при общем доступе к чатам | общего доступа нет — всегда `false` | при общем доступе к чатам |
 
-Кода с ветками по ОС в `chat.ts` нет: транспорт выбирает `runtime.ts`.
+Кода с ветками по ОС в `chat.ts` и `history-*.ts` нет: транспорт
+выбирает `runtime.ts`; пределы, бюджет и gaps одинаковы на macOS, Linux и Windows.
 
 ## Тесты
 
 `test/chat.test.ts` на подставном демоне (`test/fake-daemon.ts`: `thread/read` отдаёт
-`daemon.threads` — статус и ходы — или по умолчанию `idle`/`notLoaded` по списку загруженных без
-ходов; тред не загружает; `readError` — отказ). Разбор ходов, время элемента и хода, предел
-страницы, незагруженный чат остаётся незагруженным, `chat-unavailable`; все ветки `sendDirect`;
-провайдер с подставной платформой `darwin`, `linux` и `win32` (подставной `openDaemon`) — наборы
-идут на всех ОС, на Windows демон слушает именованный канал.
+`daemon.threads` — статус, `historyMode` (по умолчанию `paginated`) и ходы только при
+`includeTurns`; `thread/turns/list` и `thread/items/list` — opaque-курсоры, исключающие якоря,
+виды `notLoaded`/`summary`/`full`, `-32601` для legacy `items/list` и для paginated-треда без
+ходов, элементы с `pending: true` ещё не завершены; `readError`, `itemsError` — отказы).
+Разбор, время элемента и хода, предел страницы, порядок вызовов и параметры (явный
+`itemsView`, нет `includeTurns`), незагруженный чат остаётся незагруженным, `chat-unavailable`;
+все ветки `sendDirect`; провайдер с подставной платформой `darwin`, `linux` и `win32`
+(подставной `openDaemon`) — наборы идут на всех ОС, на Windows демон слушает именованный канал.
 
-## Наблюдение состояния для Stop (M24)
+`test/history.test.ts` — reader с пониженным пределом сообщения (64 КиБ) и с настоящим 16 МиБ:
+обе реплики вокруг большого вывода и gap-диапазон, два больших вывода, хвост активного хода
+без повторного скачивания, открытый gap и 30 с, повтор при смене статуса, длинная история за
+несколько опросов в пределах 8 страниц, общий inflight, legacy, unsupported, 502 после сбоя,
+снимок Stop при ошибке items, deadline и повторный статус (подставные часы), LRU по тредам и
+байтам UTF-8 после `cutChatText`.
 
-Необязательный ChatDeps.onThreadRead(threadId, answer) получает уже прочитанный ответ
-ленты; при ошибке — null для инвалидирования доступности Stop. Второй RPC не добавляется.
-Provider передаёт снимок контроллеру [interrupt.md](interrupt.md); рендеринг сообщений
-и правила sendDirect сохраняются. CachedDaemon — наблюдение демона без IO, а не команда
-его запуска. Неподдерживаемый/неизвестный снимок не объявляет управление доступным.
+## Наблюдение состояния для Stop (M24, M32)
+
+Необязательный ChatDeps.onThreadRead(threadId, answer) получает в начале каждого опроса
+метаданные `thread/read` и новейшую страницу `turns/list` (`notLoaded`) в форме
+`{ thread: { ...метаданные, turns } }`; при ошибке этого шага — null для инвалидирования
+доступности Stop. Отдельного RPC для Stop лента не делает; длинное чтение items повторяет
+статус (шаг 4). Ошибка items не инвалидирует уже переданный снимок. Provider передаёт снимок
+контроллеру [interrupt.md](interrupt.md); рендеринг сообщений и правила sendDirect сохраняются.
+CachedDaemon — наблюдение демона без IO, а не команда его запуска. Неподдерживаемый/неизвестный
+снимок не объявляет управление доступным.

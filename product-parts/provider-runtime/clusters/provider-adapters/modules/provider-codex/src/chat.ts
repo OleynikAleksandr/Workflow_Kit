@@ -1,46 +1,20 @@
-// Conversation of a ChatGPT session (spec M18 section 2.3; details: chat.md of this module): the
-// feed comes from thread/read with turns (the read does not load the chat), a direct message
-// starts a turn with its own text in the shared daemon mode while the chat is not working.
+// Conversation of a ChatGPT session (spec M18 section 2.3, M32; details: chat.md of this module):
+// the feed is read in portions by the history reader (the read does not load the chat), a direct
+// message starts a turn with its own text in the shared daemon mode while the chat is not working.
 import { ProviderError } from '#provider-registry';
 import type { ChatMessage, ChatPage } from '#provider-registry';
-import type { RpcSession } from './rpc.ts';
+import type { InitializeResult, RpcSession } from './rpc.ts';
 import { threadStatus, wakeThread } from './thread-ops.ts';
+import { isObject, isoTime, itemMessage } from './history-items.ts';
+import { createHistoryReader } from './history-reader.ts';
 
-/** Timeout of one connection that reads the feed or sends a direct message. */
+/** Timeout of the connection that sends a direct message (a feed poll has its own 5 s budget). */
 export const CHAT_TIMEOUT_MS = 30_000;
 
 /** Statuses of a thread in which a direct message may start a turn (not "active"). */
 export const DIRECT_STATUSES: readonly string[] = ['idle', 'notLoaded'];
 
 const THREAD_ID = /^[A-Za-z0-9_-]{1,128}$/;
-
-function isObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-/** Below this an epoch number is in seconds (the turn's startedAt), above it in milliseconds. */
-const SECONDS_BELOW = 1e11;
-
-/** ISO time of epoch seconds or milliseconds or of a time string; null when there is none. */
-function isoTime(value: unknown): string | null {
-  if (typeof value !== 'number' && typeof value !== 'string') return null;
-  if (typeof value === 'string' && value.trim() === '') return null;
-  let input: number | string = typeof value === 'string' && /^\d+$/.test(value) ? Number(value) : value;
-  if (typeof input === 'number' && input > 0 && input < SECONDS_BELOW) input *= 1000;
-  const time = new Date(input);
-  return Number.isNaN(time.getTime()) ? null : time.toISOString();
-}
-
-/** Text of an item: the text parts of a userMessage, the text of an agentMessage; null for others. */
-function itemMessage(item: Record<string, unknown>): { role: ChatMessage['role']; text: string } | null {
-  if (item['type'] === 'userMessage') {
-    const parts = Array.isArray(item['content']) ? item['content'] : [];
-    const texts = parts.filter(isObject).map((part) => part['text']).filter((text): text is string => typeof text === 'string');
-    return { role: 'user', text: texts.join('\n') };
-  }
-  if (item['type'] === 'agentMessage') return { role: 'assistant', text: typeof item['text'] === 'string' ? item['text'] : '' };
-  return null;
-}
 
 /**
  * The messages of a thread/read answer with turns, oldest first: userMessage and agentMessage
@@ -78,34 +52,39 @@ function reason(error: unknown): string {
 /** What the chat parts need from the provider. */
 export interface ChatDeps {
   /** Opens a connection to the daemon (CodexRuntime.withDaemon). */
-  withDaemon<T>(fn: (session: RpcSession) => Promise<T>, timeoutMs?: number): Promise<T>;
+  withDaemon<T>(fn: (session: RpcSession, init: InitializeResult) => Promise<T>, timeoutMs?: number): Promise<T>;
   /** The shared daemon mode is on (SharedMode.refresh). */
   shared(): Promise<boolean>;
   log(line: string): void;
-  /** Reuses the existing feed read for interruption availability; no additional RPC. */
+  /** Gets the metadata and newest turns every feed poll reads (the Stop snapshot); null after a failure. */
   onThreadRead?(threadId: string, answer: unknown): void;
+  /** CODEX_HOME of the provider: part of the cache key of the feed. */
+  home?: string;
+  /** The daemon pid last observed (CodexRuntime.cachedDaemon), part of the server identity of gaps. */
+  serverPid?(): number | null;
+  /** Monotonic clock of the feed poll (tests inject it). */
+  now?(): number;
 }
 
 /** readMessages and sendDirect of the Codex provider; the session id is the thread id. */
 export interface ChatParts {
-  readMessages(threadId: string, limit: number): Promise<ChatPage>;
+  /** The newest messages; scope (the project id) separates the caches of projects. */
+  readMessages(threadId: string, limit: number, scope?: string): Promise<ChatPage>;
   sendDirect(threadId: string, text: string): Promise<boolean>;
 }
 
 /** Creates the chat parts over the daemon connection of the provider. */
 export function createChatParts(deps: ChatDeps): ChatParts {
+  const history = createHistoryReader({
+    withDaemon: (fn, timeoutMs) => deps.withDaemon(fn, timeoutMs),
+    ...(deps.onThreadRead ? { onThreadRead: deps.onThreadRead } : {}),
+    ...(deps.serverPid ? { serverPid: deps.serverPid } : {}),
+    ...(deps.now ? { now: deps.now } : {}),
+  });
   return {
-    async readMessages(threadId, limit) {
+    async readMessages(threadId, limit, scope = '') {
       if (!THREAD_ID.test(threadId)) throw new ProviderError('chat-unavailable', 'Codex не отдал переписку: неверный id чата', { status: 502 });
-      let answer: unknown;
-      try {
-        answer = await deps.withDaemon((session) => session.request('thread/read', { threadId, includeTurns: true }, CHAT_TIMEOUT_MS), CHAT_TIMEOUT_MS);
-      } catch (error) {
-        deps.onThreadRead?.(threadId, null);
-        throw new ProviderError('chat-unavailable', `Codex не отдал переписку: ${reason(error)}`, { status: 502 });
-      }
-      deps.onThreadRead?.(threadId, answer);
-      return chatPage(threadMessages(answer), limit);
+      return history.read(`${deps.home ?? ''}\n${scope}\n${threadId}`, threadId, limit);
     },
     async sendDirect(threadId, text) {
       if (!THREAD_ID.test(threadId) || text.trim() === '') return false;

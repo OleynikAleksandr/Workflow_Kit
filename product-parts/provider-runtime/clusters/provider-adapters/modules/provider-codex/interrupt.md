@@ -42,8 +42,12 @@ Stop включается с 0.167.2 — это подтверждённая з�
 Capability interruptTurn требует найденной, проверенной версии без ошибки. Реальная
 interruptAvailability(project, id) дополнительно проверяет принадлежность проекту,
 кэш состояния демона и свежий снимок thread/read (6 с). Кэш обновляется уже существующим
-readMessages: ChatDeps.onThreadRead не делает второй RPC. Ошибка/неизвестный ответ
-инвалидирует положительный снимок. CodexRuntime.cachedDaemon читает последнюю наблюдённую
+readMessages: ChatDeps.onThreadRead не делает второй RPC. С M32 (T002b2) лента передаёт
+метаданные `thread/read` без ходов и новейшую страницу `thread/turns/list` с
+`itemsView: 'notLoaded'` как `{ thread: { ...метаданные, turns } }` ([chat.md](chat.md)); turnSnapshot
+считает отсутствующие `thread.turns` пустым списком, другая форма по-прежнему отказ. Ошибка
+items снимок не трогает; ошибка/неизвестный ответ статуса инвалидирует положительный снимок.
+Собственные чтения Stop до T002c ещё идут через thread/read с includeTurns=true. CodexRuntime.cachedDaemon читает последнюю наблюдённую
 запись без IO; forgetDaemon сбрасывает и её.
 
 notLoaded, ошибка треда, отсутствие native id, противоречие idle/inProgress, отсутствие

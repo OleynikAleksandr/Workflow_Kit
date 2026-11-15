@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1044,
+  "revision": 1046,
   "rounds": [
     {
       "digest": null,
@@ -179,7 +179,7 @@
       "kind": "work",
       "parallelSafe": true,
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Проба Codex: доставка вопроса подписчику и ответ",
       "why": "Запрос item/tool/requestUserInput известен только по схеме; поведение демона при нескольких клиентах не испытано"
     },
@@ -571,8 +571,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 1/11
-- Revision: 1044
+- Progress: 2/11
+- Revision: 1046
 
 ## Objective
 
@@ -593,7 +593,7 @@
 - [DONE] T001 — Проба Claude: показ вопроса и канал ответа (work, parallel-safe)
   - Commit: docs: verify Claude question display and answer channel
   - Files: docs/design/M33-claude-question-facts.md, docs/evidence/M33-claude-question-probe.md
-- [TODO] T002 — Проба Codex: доставка вопроса подписчику и ответ (work, parallel-safe)
+- [DONE] T002 — Проба Codex: доставка вопроса подписчику и ответ (work, parallel-safe)
   - Commit: docs: verify Codex user input request delivery and answer
   - Files: docs/design/M33-codex-question-facts.md, docs/evidence/M33-codex-question-probe.md
 - [TODO] T003 — Общий контракт вопроса и маршрут ответа (work)

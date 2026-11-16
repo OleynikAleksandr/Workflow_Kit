@@ -10,10 +10,39 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1192,
+  "revision": 1194,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "Kit 2.3.3: scope.automation, scope:proposal --digest, autopilot:authorize/revoke, accept/close --autopilot-run (host), task:defer-delivery",
+          "autopilot: настройки, RunRecord (wait, retries, completion), createRuns/Preparation/RunTurns/RunControl/RunWaits/RunCompletion, RunBrief",
+          "HTTP: /api/settings/autopiloting, autopiloting/pause|resume|stop|policy, /api/sessions/progress|run; раздел autopiloting",
+          "git-publish: publish с ExpectedPublication, stageCi, createPublisher, GitHubCi (gh), push-auth",
+          "CLI: wfk session plan --authorized, wfk session progress --input, wfk session run pause|stop",
+          "Панель: карточка «Автопилотирование», collapsible-карточки, runView/runCard, policyLine"
+        ],
+        "decisions": [
+          "Kit 2.3.3 установлен в Workflow_Kit между T004 и T005 по согласию пользователя «Установить и разрешить следующие»",
+          "Приёмку, закрытие и публикацию выполняет служба через host-тикеты; агенту они не поручаются",
+          "Доказательство CI хранится в журнале запуска вне git: коммит доказательства не создаёт новый SHA",
+          "Кнопка «Опубликовать» и запуски используют один publisher под мьютексом project:<id>",
+          "T009 расширен на модуль autopilot (task:update): сводка запуска обновляется после любой записи журнала",
+          "Дефект T007 найден сквозным тестом T010 и исправлен отдельной fixes-задачей F001",
+          "Защита старта M11 в автопилоте оставлена как есть; своя блокировка — решение пользователя"
+        ],
+        "references": [
+          "docs/planning/M39-autopiloting.md",
+          "docs/planning/M39-autopiloting-validation.md",
+          "docs/evidence/M39-acceptance.md",
+          "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md",
+          "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting-completion.md",
+          "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/autopilot.md",
+          "docs/architecture/HTTP-CONTRACTS.md",
+          "docs/usage.md#автопилотирование"
+        ],
+        "result": "M39 R1: Kit 2.3.3 (automation, host-тикеты, defer-delivery); служба — настройки, журнал запусков, подготовка с ревью версии, ходы без предела 40, пауза/стоп, ожидания CI и вопросов, восстановление, приёмка, закрытие, stageCi и проверенная публикация; панель — «Автопилотирование», свёрнутые карточки, карточка запуска; сквозные тесты; F001."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -1086,7 +1115,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -1191,8 +1220,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 11/14
-- Revision: 1192
+- Progress: 12/14
+- Revision: 1194
 
 ## Objective
 
@@ -1256,7 +1285,7 @@
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, docs/architecture/OS-MATRIX.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/autopilot.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/runs.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/lifecycle-real.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/run-turns.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/runs.test.ts
   - Depends on: T010
   - Fixes: T007
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M39-autopiloting.md, docs/architecture/workflow-kit/WorkflowKitCommands.md, docs/architecture/workflow-kit/WorkflowKitRecovery.md, docs/architecture/OS-MATRIX.md, docs/architecture/CONTRACTS.md, docs/architecture/HTTP-CONTRACTS.md, docs/architecture/workflow-kit/WorkflowKitProcess.md, docs/architecture/workflow-kit/WorkflowKitExecutionModes.md, docs/architecture/workflow-kit/WorkflowKitInstallation.md, docs/architecture/workflow-kit/WorkflowKitHost.md, docs/architecture/workflow-kit/WorkflowKitHostInstallation.md, docs/usage.md, design-qa.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/projects/modules/git-publish/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, docs/evidence/M39-acceptance.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-execution-mode/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/operations.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/tests.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/automation.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-git/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/autopilot.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/authorization.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/module.md, product-parts/backend-core/clusters/projects/modules/kit-structure/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-autopilot/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/module.md, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/module.md, product-parts/backend-core/clusters/runtime/modules/cli/commands.md, product-parts/backend-core/clusters/runtime/modules/cli/connected-modules.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting-completion.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/files.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md
   - Depends on: T001, T002, T003, T004, T005, T006, T007, T008, T009, T010, F001
@@ -1268,5 +1297,7 @@
   - Commit: test: verify M39 cross-platform delivery and live evidence
   - Files: docs/evidence/M39-acceptance.md, docs/architecture/OS-MATRIX.md
   - Depends on: T011, DOCS-R1
+
+Digest: M39 R1: Kit 2.3.3 (automation, host-тикеты, defer-delivery); служба — настройки, журнал запусков, подготовка с ревью версии, ходы без предела 40, пауза/стоп, ожидания CI и вопросов, восстановление, приёмка, закрытие, stageCi и проверенная публикация; панель — «Автопилотирование», свёрнутые карточки, карточка запуска; сквозные тесты; F001.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

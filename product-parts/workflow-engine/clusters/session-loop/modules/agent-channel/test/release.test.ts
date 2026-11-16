@@ -146,3 +146,47 @@ test('a session outside any project is never released', async () => {
   await ch.stop(stop());
   assert.ok(Date.now() - started >= 25, 'held until the hold time');
 });
+
+test('M36: a released session is reminded once in a row; a wake keeps the hold quiet, a new turn reminds again', async () => {
+  const { ch, woken } = world(() => ({ kind: 'hold', reason: 'waiting-for-plan-decision', timeoutAnswer: 'Workflow Kit: напоминание' }), { holdMs: 20 });
+  await ch.stop(stop());
+  await tick(60);
+  assert.equal(woken.length, 1, 'the first hold reminds');
+  // The reminder turn: the prompt hook takes the reminder, the agent answers and ends its turn.
+  await ch.automaticWake(KEY, async () => true);
+  const reply = await ch.prompt(prompt('Workflow Kit: новое сообщение из панели.'));
+  assert.match(JSON.stringify(reply.answer), /напоминание/);
+  reply.ack();
+  await ch.stop(stop());
+  assert.equal(ch.get(KEY)!.state, 'holding', 'the session still waits for the answer');
+  ch.wake(KEY); await tick();
+  await tick(60);
+  assert.equal(woken.length, 1, 'no second reminder');
+  assert.deepEqual([ch.get(KEY)!.state, ch.get(KEY)!.pending], ['waiting', 0], 'the hold ended at its time');
+  // A turn of the user is no reminder turn: its hold reminds again.
+  (await ch.prompt(prompt('вопрос из Desktop'))).ack();
+  await ch.stop(stop());
+  await tick(60);
+  assert.equal(woken.length, 2);
+});
+
+test('M36: during the quiet hold a message still wakes the session', async () => {
+  const { ch, woken } = world(() => ({ kind: 'hold', reason: 'waiting-for-plan-decision', timeoutAnswer: 'Workflow Kit: напоминание' }), { holdMs: 40 });
+  await ch.stop(stop());
+  await tick(80);
+  await ch.automaticWake(KEY, async () => true);
+  (await ch.prompt(prompt('Workflow Kit: новое сообщение из панели.'))).ack();
+  await ch.stop(stop());
+  assert.equal(woken.length, 1);
+  ch.enqueue(KEY, 'Workflow Kit: пользователь выбрал план без ревью', 'panel', 'p1');
+  assert.equal(woken.length, 2, 'the answer wakes the session');
+});
+
+test('M36: a held Stop hook is reminded at every hold time, as before', async () => {
+  const { ch } = world(() => ({ kind: 'hold', reason: 'waiting-for-plan-decision', timeoutAnswer: 'Workflow Kit: напоминание' }), { supports: false, holdMs: 20 });
+  const first = await ch.stop(stop());
+  assert.match(JSON.stringify(first.answer), /напоминание/);
+  first.ack();
+  const second = await ch.stop(stop());
+  assert.match(JSON.stringify(second.answer), /напоминание/, 'the hook would otherwise end without the delivery');
+});

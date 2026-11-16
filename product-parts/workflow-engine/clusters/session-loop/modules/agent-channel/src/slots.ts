@@ -54,6 +54,8 @@ export interface Slot {
   reminder: { at: number; timer: Timer } | null;
   /** A hold whose Stop hook was not kept (M29): its end, reminder and the context for a new decision. */
   released: Released | null;
+  /** The last ended turn was started by a reminder alone: a wakeable hold is not reminded again (M36). */
+  afterReminder: boolean;
 }
 
 export interface Released {
@@ -101,6 +103,7 @@ export function newSlot(key: string, client: AgentClient, sessionId: string, pro
     watch: null,
     reminder: null,
     released: null,
+    afterReminder: false,
   };
 }
 

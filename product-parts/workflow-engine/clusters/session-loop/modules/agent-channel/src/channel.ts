@@ -13,6 +13,7 @@ import { blockAnswer, promptAnswer, sessionKey } from './hook-input.ts';
 import { activityOf, newSlot, pendingOf } from './slots.ts';
 import type { ChannelCore, Slot } from './slots.ts';
 import { createRelease } from './release.ts';
+import { remindedTurn } from './reminder.ts';
 import { LAST_MESSAGE_CHARS, STOP_HOLD_MS } from './types.ts';
 import type { ActivityState, AgentChannel, AgentChannelOptions, HookReply, IdleListener, QueuedMessage, SessionActivity, StopContext, StopDecider, StopDecision, StopEvent, StopListener, TurnOrigin } from './types.ts';
 
@@ -225,6 +226,7 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
       const generation = slot.generation;
       const last = input.lastAssistantMessage ? input.lastAssistantMessage.slice(-LAST_MESSAGE_CHARS) : slot.activity.lastAssistantMessage;
       setState(slot, 'waiting', { lastStopAt: iso(), turnStartedAt: null, lastAssistantMessage: last });
+      slot.afterReminder = remindedTurn(slot.origin, slot.sources);
       notify(slot, input.lastAssistantMessage);
       const deadline = now().getTime() + holdMs;
       let woken = false;

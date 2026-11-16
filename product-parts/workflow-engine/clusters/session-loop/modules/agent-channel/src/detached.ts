@@ -6,6 +6,7 @@
 import { randomUUID } from 'node:crypto';
 import { acceptTurn, reserveTurn } from './turn-state.ts';
 import type { ChannelCore, Detached, Outbox, Slot } from './slots.ts';
+import { reminderOf, remindedTurn } from './reminder.ts';
 import { LAST_MESSAGE_CHARS } from './types.ts';
 import type { DetachedDelivery, SessionRef, StopDecision, TurnEndEvent, TurnOrigin } from './types.ts';
 
@@ -167,6 +168,7 @@ export function createDetached(core: ChannelCore, deps: DetachedDelivery): Detac
         lastAssistantMessage: answer ? answer.slice(-LAST_MESSAGE_CHARS) : slot.activity.lastAssistantMessage,
         note: read ? null : `ответ ${names(slot).label} не прочитан: ${failure}`,
       });
+      slot.afterReminder = read && remindedTurn(slot.origin, slot.sources);
       if (read) core.notify(slot, answer);
       else {
         // An unread answer is not an agent answer: the listeners and the decider are not called.
@@ -181,7 +183,7 @@ export function createDetached(core: ChannelCore, deps: DetachedDelivery): Detac
 
   /** A hold lasts until a wake or a new message; with timeoutAnswer the agent gets the reminder. */
   function hold(slot: Slot, decision: Extract<StopDecision, { kind: 'hold' }>): void {
-    const text = decision.timeoutAnswer;
+    const text = reminderOf(decision, slot.afterReminder);
     if (!text) {
       dropReminder(slot);
       core.setState(slot, 'holding', { holdReason: decision.reason });

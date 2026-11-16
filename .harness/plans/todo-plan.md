@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1107,
+  "revision": 1109,
   "rounds": [
     {
       "digest": null,
@@ -168,7 +168,7 @@
       "kind": "work",
       "parallelSafe": true,
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Одно напоминание удержания подряд для сессий, которые служба может разбудить",
       "why": "Каждые 9 минут открытого вопроса сессия получала пустой ход с напоминанием"
     },
@@ -287,8 +287,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 1/5
-- Revision: 1107
+- Progress: 2/5
+- Revision: 1109
 
 ## Objective
 
@@ -309,7 +309,7 @@
 - [DONE] T001 — Устаревший вопрос о плане закрывается сам (work, parallel-safe)
   - Commit: fix(review): close a plan question the plan has already answered
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/plan-review/src/toggles.ts, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/module.md, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/test/toggles.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/question-stale.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/review.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/contract.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test/question-stale.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test/review.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/review-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/test/review.test.ts
-- [TODO] T002 — Одно напоминание удержания подряд для сессий, которые служба может разбудить (work, parallel-safe)
+- [DONE] T002 — Одно напоминание удержания подряд для сессий, которые служба может разбудить (work, parallel-safe)
   - Commit: fix(channel): remind a wakeable held session once in a row
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/channel.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/release.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/detached.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/slots.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/reminder.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/release.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/detached.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/channel.test.ts
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)

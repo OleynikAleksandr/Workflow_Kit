@@ -153,3 +153,24 @@ test('a turn generation that changed cancels the detached stop: a user prompt wi
   w.ch.close();
 });
 
+
+test('M36: a detached session is reminded once in a row; the hold after the reminder turn waits for a wake', async () => {
+  const w = world(() => ({ kind: 'hold', reason: 'waiting-for-plan-decision', timeoutAnswer: 'Workflow Kit: напоминание' }), { holdMs: 20 });
+  await w.ch.prompt(prompt('задача'));
+  await w.end();
+  w.idle = true;
+  await until(() => w.sent.length === 1, 'the first hold reminds');
+  assert.equal(w.sent[0]!.text, 'Workflow Kit: напоминание');
+  // The reminder turn: its prompt hook is the service's own, then the turn ends.
+  w.idle = false;
+  assert.equal((await w.ch.prompt(prompt('Workflow Kit: напоминание'))).own, true);
+  await w.end();
+  w.idle = true;
+  await until(() => w.ch.get(KEY)!.state === 'holding', 'the session waits again');
+  await pause(60);
+  assert.equal(w.sent.length, 1, 'no second reminder');
+  assert.equal(w.ch.get(KEY)!.state, 'holding', 'the hold lasts until a wake');
+  w.ch.enqueue(KEY, 'Workflow Kit: пользователь выбрал план', 'panel');
+  await until(() => w.sent.length === 2, 'a message is still delivered');
+  w.ch.close();
+});

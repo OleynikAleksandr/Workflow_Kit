@@ -2,6 +2,7 @@
 // at once; the slot shows the hold reason, and what the decider or the panel says later is queued
 // and the session woken (its UserPromptSubmit hook takes the queue).
 import { randomUUID } from 'node:crypto';
+import { reminderOf } from './reminder.ts';
 import { pendingOf } from './slots.ts';
 import type { ChannelCore, Released, Slot } from './slots.ts';
 import type { ReleaseDelivery, SessionRef, StopContext, StopDecision } from './types.ts';
@@ -49,7 +50,7 @@ export function createRelease(core: ChannelCore, deps: ReleaseDelivery | undefin
     drop(slot);
     const deadline = at ?? core.now().getTime() + core.holdMs;
     core.setState(slot, 'holding', { holdReason: decision.reason, holdUntil: new Date(deadline).toISOString() });
-    const mark: Released = { at: deadline, timer: null, timeoutAnswer: decision.timeoutAnswer, context };
+    const mark: Released = { at: deadline, timer: null, timeoutAnswer: reminderOf(decision, slot.afterReminder), context };
     slot.released = mark;
     mark.timer = setTimeout(() => {
       if (slot.released !== mark || core.slots.get(slot.activity.key) !== slot) return;

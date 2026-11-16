@@ -54,22 +54,26 @@ The recovery packet names your `role:`; follow it.
 - **executor** (assignment worktree): `assignment:attach <id>`, then
   `task:start`, work only within the task files, `commit --task`, reply
   with the SHA. Never touch main, the plan or other tasks; no nested
-  executors, no push.
+  executors, no push, acceptance, close or publication.
 - Never set the git identity (`git config user.*`). If a command refuses
   with `GIT_IDENTITY_REQUIRED`, report it to the user with the command it
   prints.
 
 ### One task, one commit, one turn
 1. `scripts/workflow task:start <ID>`; a delivery task needs
-   `--confirmed "<the user's confirmation>"`.
+   `--confirmed "<the user's confirmation>"`, or
+   `--autopilot-run <run>` when the `next` line names a live autopilot
+   run that confirmed this task in advance.
 2. Implement the task within its files and acceptance criteria.
 3. `scripts/workflow commit --task <ID>`. The DOCS task of a round
    reconciles shared documents and needs `--digest <file.json>`
    (`result`, `decisions`, `contracts`, `references`).
 4. If a check fails, fix the cause and repeat the same command; your edits
    are kept.
-5. Report the result briefly and end the turn. The user or the Harness
-   autopilot starts the next task.
+5. Report the result briefly and end the turn. The user or the Workflow
+   Kit autopilot starts the next task. Under a live autopilot run (the
+   `next` section says so) ending the turn hands control to Kit: do not
+   ask the user whether to continue.
 - If the task cannot be finished in this turn, stop at a safe point, name
   the state and end the turn without committing it.
 - A new user message does not cancel the accepted instruction; take it into
@@ -87,7 +91,22 @@ The recovery packet names your `role:`; follow it.
   (`docs.contracts` in `.harness/workflow/config.json`).
 - Acceptance (`accept --note "<the user's words>"`) records the user's
   decision. Closing the scope (`close`) needs a separate direct user command.
-- Build, packaging, publishing and push happen only in delivery tasks.
+- Autopilot runs: only the Workflow Kit app grants and revokes a run and
+  accepts or closes a scope automatically. Never run `autopilot:authorize`,
+  `autopilot:revoke`, `accept --autopilot-run` or
+  `close --autopilot-run`; they refuse an agent (`HOST_AUTH_REQUIRED`).
+  Without a live run every manual confirmation above stays.
+- Release build, packaging and installation, and a push of a CI branch a
+  delivery task names, happen only in delivery tasks. Rebuilding a tracked
+  file a commit check requires from the sources (for example a vendored
+  bundle) belongs to the work task that changes those sources.
+- Publishing (`git push` of the main branch to its upstream) is no task:
+  it comes only after the scope is accepted and closed, on the user's direct
+  request or by the live autopilot run of this scope.
+- If the external check of a started delivery task fails (for example a red
+  CI), do not fix it inside the task: keep the results outside git, run
+  `scripts/workflow task:defer-delivery <ID> --reason "<failure and link>" --expected-revision <N>`
+  on a clean tree, then add a fixes round with `plan:extend`.
 - If the scope is BLOCKED, only discuss and diagnose; run `task:unblock`
   after the user resolves the reason.
 - If a command reports an unfinished transaction, run

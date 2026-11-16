@@ -91,7 +91,7 @@ operation, existing }`, ход и итог — в разделе `operations`, �
 
 ## Процесс Kit в проекте (`workflow-engine`, веха 2)
 
-Kit 2.2.5 ставится в проект бандлом (`install --host harness`; бандл собирается из `kit-core`
+Kit 2.2.6 ставится в проект бандлом (`install --host harness`; бандл собирается из `kit-core`
 `npm run build:kit`, M22), команды — отдельным процессом
 с JSON-ответом (`kit-runner`); `.harness/**` служба не читает и не пишет. Раздел `workflow` даёт модели
 карточек плана и выбора пути (`plan-view`). Хук вопроса Claude `wfk hook question`
@@ -108,7 +108,13 @@ Kit 2.2.5 ставится в проект бандлом (`install --host harne
 правилам Harness; кнопки панели (`POST /api/projects/:id/workflow/…`) выполняют команды Kit и
 сообщают агенту. Неначатый план (M31) принадлежит проекту: карточки выбора и фазы `ready` видны
 в любой основной сессии; `start` из другой сессии сначала вызывает `scope:owner` (Kit 2.2.5),
-ревью и вопрос о нём — только у автора предложения (`StopContext.turnStartedAt`). Имена, архив и ревью сессий — в папке проекта (раздел «Данные на диске»).
+ревью и вопрос о нём — только у автора предложения (`StopContext.turnStartedAt`). Конец плана (M37):
+`accept` и `close` из панели выполняют команду Kit и ставят сессии-владельцу сообщение (владельца
+нет или он вне процесса Kit — команда выполняется, сообщения нет); отказ Kit `DIRTY_TREE` —
+409 `dirty-tree` с путями; `POST /api/projects/:id/workflow/tidy` (`{ session }` → `{ owner, paths }`,
+отказы 409 `no-scope`, `not-finished`, `clean`, `no-owner`, `owner-unavailable`) просит владельца
+убрать пути вне коммитов; `workflow.projects[id].plan.dirty` — эти пути в фазах `acceptance` и
+`accepted`. Имена, архив и ревью сессий — в папке проекта (раздел «Данные на диске»).
 Версия Kit проекта — раздел `kitUpdate` (`kit-update`, M22: `inspect` при старте, после
 изменения плана и раз в 60 с); `POST /api/projects/:id/kit/update` (202, 409 `busy`) —
 `install --update`, затем одобрение хуков Kit Codex в доверенной папке; новый Kit старым не
@@ -119,7 +125,7 @@ Kit 2.2.5 ставится в проект бандлом (`install --host harne
 ## Мастер проекта (`project-setup`, веха 2)
 
 `POST /api/setup/preview` только читает и даёт токен; `POST /api/setup/apply` по одному
-согласию делает всё: папку, git, структуру (коммит до Kit), Kit 2.2.5, доверие Claude и Codex
+согласию делает всё: папку, git, структуру (коммит до Kit), Kit 2.2.6, доверие Claude и Codex
 (выбранному провайдеру — обязательно, другому — по возможности), одобрение хуков Kit, первую
 сессию с первым сообщением. Ход — раздел `setup` и операция `project.setup`; отмена — перед
 следующим шагом.

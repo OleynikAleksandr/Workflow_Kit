@@ -25,6 +25,16 @@ M32: лента Codex читается порциями (`thread/turns/list`, `t
 [доказательства M32](../evidence/M32-codex-history-recovery.md). WebSocket-клиент декодирует байты из
 ответа рукопожатия и следующие куски сокета строго по порядку прихода (F001, дефект найден CI Linux).
 
+M37 (реализация и автоматические проверки завершены, поставка 0.14.4 — следующая задача):
+`autopilot` после «Принять план» и «Закрыть план» ставит сессии-владельцу сообщение
+(`acceptedMessage`, `closedMessage`) и отпускает удержанный `Stop`; `tidy`
+(`POST …/workflow/tidy`) просит владельца убрать пути вне коммитов; `PlanView.dirty` отдаёт их
+в фазах `acceptance` и `accepted`, панель показывает предупреждение и кнопку «Попросить агента
+убрать»; отказ `close` на грязном дереве — `dirty-tree` по-русски; метки `accepted` и `closed`;
+карточка «Ревью плана» — только для открытого предложения или активного scope. Kit 2.2.6
+называет папку входных JSON `.harness/inputs/` (git-ignored), пути вне коммитов в `next` и в
+отказе `close` — [спецификация M37](../planning/M37-plan-close-flow.md).
+
 M36: вопрос о плане помнит активный scope (`scopeId`); устаревший вопрос (`agent` — открыто
 предложение новее вопроса или активен другой scope, `proposal` — открытого предложения нет)
 `cross-review` закрывает `dismiss` при `Stop` сессии или выборе пути, без решения о ревью и без
@@ -36,7 +46,7 @@ M36: вопрос о плане помнит активный scope (`scopeId`);
 
 Бэкенд-служба пользователя (Node 24, TypeScript без сборки, без
 runtime-зависимостей) и веб-панель для Mac и iPad. Служба ведёт реестр
-проектов, ставит структуру Kit и процесс Harness Workflow Kit 2.2.5 (собирается здесь из
+проектов, ставит структуру Kit и процесс Harness Workflow Kit 2.2.6 (собирается здесь из
 `kit-core`, M22) в папку проекта, показывает версию Kit проекта и обновляет устаревший Kit
 кнопкой «Обновить Kit», работает с Claude, ChatGPT/Codex и Kimi Code через общий контракт провайдера
 и сама устанавливается как служба с автозапуском. Своего чата нет: сессии
@@ -76,25 +86,25 @@ runtime-зависимостей) и веб-панель для Mac и iPad. С�
 | | [projects](../../product-parts/backend-core/clusters/projects/cluster.md) | [project-registry](../../product-parts/backend-core/clusters/projects/modules/project-registry/module.md) | `projects.json`, проверка имён и путей, выбор папки |
 | | | [kit-structure](../../product-parts/backend-core/clusters/projects/modules/kit-structure/module.md) | структура Kit (v4) в папке проекта, хуки агентов (в том числе хук вопроса Claude `PermissionRequest`/`PreToolUse`, M33), приём хука SessionStart |
 | | | [git-publish](../../product-parts/backend-core/clusters/projects/modules/git-publish/module.md) | push при закрытом scope |
-| | | [project-setup](../../product-parts/backend-core/clusters/projects/modules/project-setup/module.md) | мастер проекта: предпросмотр и одно согласие — git, структура, Kit 2.2.5, доверие, хуки, первая сессия |
+| | | [project-setup](../../product-parts/backend-core/clusters/projects/modules/project-setup/module.md) | мастер проекта: предпросмотр и одно согласие — git, структура, Kit 2.2.6, доверие, хуки, первая сессия |
 | [provider-runtime](../../product-parts/provider-runtime/product-part.md) | [provider-contract](../../product-parts/provider-runtime/clusters/provider-contract/cluster.md) | [provider-registry](../../product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md) | контракт провайдера, реестр, журнал хука, токены предпросмотра, маршруты провайдеров и диалога, вопросы агента и журнал попыток ответа (M33) |
 | | | [process-supervisor](../../product-parts/provider-runtime/clusters/provider-contract/modules/process-supervisor/module.md) | запуск, учёт и остановка процессов (D5, D9), исполнитель внешних программ |
 | | | [pty-host](../../product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/module.md) | ConPTY на Windows (node-pty 1.1.0) |
 | | [provider-adapters](../../product-parts/provider-runtime/clusters/provider-adapters/cluster.md) | [provider-claude](../../product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md) | доверие (`~/.claude.json`, импорты CLAUDE.md), сессии Remote Control, окружение папки (pty), лента и вставка в терминал, вопросы `AskUserQuestion` и ожидания хука вопроса (M33) |
 | | | [provider-codex](../../product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md) | демон app-server, доверие, одобрение хуков Kit, сессии (треды; после служебного хода — `thread/unsubscribe`), лента порциями и прямой ход, восстановление подключения (M32), вопросы `request_user_input` (слушатель) и асинхронные вопросы (M33), ответ на асинхронный вопрос в идущий ход `turn/steer` и читаемый ответ в ленте (M34) |
 | | | [provider-kimi](../../product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/module.md) | сервер приложения или `kimi web`, доверие, хук, сессии, ссылки, лента |
-| [workflow-engine](../../product-parts/workflow-engine/product-part.md) | [kit-host](../../product-parts/workflow-engine/clusters/kit-host/cluster.md) | [kit-bundle](../../product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md) | бандл Kit 2.2.5, собранный из `kit-core`, с проверкой хеша |
+| [workflow-engine](../../product-parts/workflow-engine/product-part.md) | [kit-host](../../product-parts/workflow-engine/clusters/kit-host/cluster.md) | [kit-bundle](../../product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md) | бандл Kit 2.2.6, собранный из `kit-core`, с проверкой хеша |
 | | | [kit-runner](../../product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/module.md) | команды Kit проекта, установка, слежение за планом, раздел `workflow` |
-| | | [plan-view](../../product-parts/workflow-engine/clusters/kit-host/modules/plan-view/module.md) | модели карточек плана и выбора пути (порт правил Harness) |
+| | | [plan-view](../../product-parts/workflow-engine/clusters/kit-host/modules/plan-view/module.md) | модели карточек плана и выбора пути (порт правил Harness); пути вне коммитов `dirty` (M37) |
 | | | [kit-update](../../product-parts/workflow-engine/clusters/kit-host/modules/kit-update/module.md) | версия Kit проекта (раздел `kitUpdate`), «Обновить Kit», одобрение хуков Kit Codex после обновления (M22) |
 | | [session-loop](../../product-parts/workflow-engine/clusters/session-loop/cluster.md) | [agent-channel](../../product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md) | хуки `Stop`/`UserPromptSubmit`, маршрут хука вопроса (M33), очередь сообщений агенту (или `direct`), удержание и конец хода (одно напоминание подряд, M36), активность |
-| | | [autopilot](../../product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md) | «продолжать, держать или отпустить» после хода; действия с планом из панели |
+| | | [autopilot](../../product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md) | «продолжать, держать или отпустить» после хода; действия с планом из панели; сообщения агенту о приёмке и закрытии, `tidy` (M37) |
 | | | [plan-review](../../product-parts/workflow-engine/clusters/session-loop/modules/plan-review/module.md) | решение о ревью и вопрос о плане (scope вопроса, закрытие без решения, M36) |
 | | | [cross-review](../../product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md) | ревью плана сессией другого провайдера (M4), закрытие устаревшего вопроса о плане (M36) |
 | | | [session-titles](../../product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md) | имена сессий, синхронизация с ChatGPT, архив сессий |
 | [control-panel](../../product-parts/control-panel/product-part.md) | [web-panel](../../product-parts/control-panel/clusters/web-panel/cluster.md) | [panel-shell](../../product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md) | раскладка M24, маршруты, опрос, дерево проектов и сессий, «Настройки», слоты расширений, экран «Домой» iPad |
 | | | [project-wizard](../../product-parts/control-panel/clusters/web-panel/modules/project-wizard/module.md) | мастер проекта в панели: предпросмотр, кнопки первой сессии, шаги подготовки, открытие чата |
-| | | [session-view](../../product-parts/control-panel/clusters/web-panel/modules/session-view/module.md) | экран сессии: активность агента, выбор пути, карточка плана, вопрос о плане |
+| | | [session-view](../../product-parts/control-panel/clusters/web-panel/modules/session-view/module.md) | экран сессии: активность агента, выбор пути, карточка плана (файлы вне коммитов, M37), вопрос о плане |
 | | | [session-chat](../../product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md) | диалог: лента, компактный ввод, отправка/очередь и Stop (M18/M24), состояние `sync` и восстановление (M32), карточка вопроса агента (M33; асинхронный вопрос — маршрутом ответа, M34) |
 | [kit-core](../../product-parts/kit-core/product-part.md) | [project-workflow](../../product-parts/kit-core/clusters/project-workflow/cluster.md) | 12 модулей `workflow-*` (список — в `cluster.md`) | исходники Kit: план, коммиты задач, пакет восстановления, качество, установка и доктор, режимы выполнения; из них собирается бандл |
 | [system-service](../../product-parts/system-service/product-part.md) | [deployment](../../product-parts/system-service/clusters/deployment/cluster.md) | [service-installer](../../product-parts/system-service/clusters/deployment/modules/service-installer/module.md) | `install`/`uninstall`, автозапуск, запускатель и значок, `service`, `open`, `doctor`, статус службы |

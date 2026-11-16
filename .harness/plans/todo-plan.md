@@ -3,17 +3,39 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": "DOCS-R1",
+  "currentTaskId": null,
   "lastClosed": {
     "closedAt": "2026-11-16T08:55:12.078Z",
     "scopeId": "M36-plan-question-stale"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1126,
+  "revision": 1127,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "autopilot: accept/close(projectId, note?, session?), tidy(projectId, session?) → { owner, paths }; POST /api/projects/:id/workflow/tidy; отказы 409 dirty-tree, no-scope, not-finished, clean, no-owner, owner-unavailable.",
+          "autopilot: AutopilotReason и STOP_LABELS += accepted, closed; createPlanEnd (src/acceptance.ts); тексты acceptedMessage, closedMessage, tidyMessage, tidyNote, dirtyTreeText, CLEAN_TEXTS.",
+          "plan-view: KitStatus.changes?, PlanView.dirty — пути вне коммитов в фазах acceptance и accepted.",
+          "session-view: planView.dirty, plan-dirty.js (dirtyBlock, dirtyText), crossReviewView.current, showsReview, REASON_LABELS accepted/closed.",
+          "Kit 2.2.6: .harness/inputs/ в .gitignore и секции AGENTS.md, строка схемы, next с путями, DIRTY_TREE с путями в сообщении и nextAction."
+        ],
+        "decisions": [
+          "Приёмка и закрытие из панели не зависят от агента: владельца нет или он вне процесса Kit — команда Kit выполняется, сообщение не ставится.",
+          "Служба сама не удаляет и не коммитит файлы проекта: это делает агент по сообщению tidy или пользователь.",
+          "Метки accepted и closed не обещают закрытия; decide() поправляет устаревшую метку и после приёмки или закрытия словами в чате.",
+          "Законченное ревью показывается основной сессии, только пока его scope — открытое предложение или активный scope.",
+          "tidy не включает автопилот; будущий полный автопилот (M33) сможет вызывать его перед close."
+        ],
+        "references": [
+          "docs/planning/M37-plan-close-flow.md",
+          "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md",
+          "product-parts/control-panel/clusters/web-panel/modules/session-view/module.md",
+          "docs/architecture/OS-MATRIX.md"
+        ],
+        "result": "Kit 2.2.6 называет папку входных JSON .harness/inputs/ и пути вне коммитов в next и отказе close. Служба после «Принять план» и «Закрыть план» сообщает сессии-владельцу, tidy просит её убрать файлы. Панель показывает файлы вне коммитов и скрывает ревью закрытого плана."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -319,7 +341,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -407,9 +429,9 @@
 - Scope: M37-plan-close-flow (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: DOCS-R1
-- Progress: 3/6
-- Revision: 1126
+- Current task: none
+- Progress: 4/6
+- Revision: 1127
 
 ## Objective
 
@@ -439,7 +461,7 @@
   - Commit: feat(panel): warn about uncommitted files and hide the review of a closed plan
   - Files: product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/plan-cards.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/plan-dirty.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/sidebar-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/activity-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.css, product-parts/control-panel/clusters/web-panel/modules/session-view/src/index.ts, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/test, design-qa.md, docs/architecture/OS-MATRIX.md, product-parts/control-panel/clusters/web-panel/modules/session-view/test/plan-close.test.ts
   - Depends on: T002
-- [IN_PROGRESS] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M37-plan-close-flow.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/tests.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md, product-parts/backend-core/clusters/projects/cluster.md, product-parts/backend-core/clusters/projects/modules/project-setup/module.md, product-parts/backend-core/clusters/runtime/modules/cli/connected-modules.md, docs/architecture/workflow-kit/WorkflowKitInstallation.md, docs/architecture/workflow-kit/WorkflowKitCommands.md, docs/architecture/workflow-kit/WorkflowKitRecovery.md, docs/architecture/OS-MATRIX.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, design-qa.md, docs/usage.md, docs/architecture/CONTRACTS.md
   - Depends on: T001, T002, T003
@@ -451,5 +473,7 @@
   - Commit: docs: record plan closing flow cross-platform CI
   - Files: docs/evidence/M37-acceptance.md
   - Depends on: T004, DOCS-R1
+
+Digest: Kit 2.2.6 называет папку входных JSON .harness/inputs/ и пути вне коммитов в next и отказе close. Служба после «Принять план» и «Закрыть план» сообщает сессии-владельцу, tidy просит её убрать файлы. Панель показывает файлы вне коммитов и скрывает ревью закрытого плана.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

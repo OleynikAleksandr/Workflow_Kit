@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1140,
+  "revision": 1142,
   "rounds": [
     {
       "digest": {
@@ -31,7 +31,7 @@
       },
       "id": "R1",
       "kind": "implementation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Carried over"
     }
   ],
@@ -72,7 +72,7 @@
         "text": "Carried over unfinished tasks from scope M37-plan-close-flow."
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 2,
       "ownerSession": "da6065c6-a99c-4b9f-bd95-2a6d6be687dc",
@@ -153,7 +153,7 @@
       ],
       "checks": [],
       "commitMessage": "docs: record plan closing flow cross-platform CI",
-      "confirmation": null,
+      "confirmation": "Выполняю все без остановки, вплоть до публикации на GitHub.",
       "context": [
         {
           "path": "docs/planning/M37-plan-close-flow.md",
@@ -174,7 +174,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "CI точного SHA поставки на четырёх платформах",
       "why": "Поставка не готова, пока CI не зелёная на всех ОС"
     }
@@ -186,11 +186,11 @@
 ## State
 
 - Scope: M37-plan-close-flow-fix (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 2/3
-- Revision: 1140
+- Progress: 3/3
+- Revision: 1142
 
 ## Objective
 
@@ -207,7 +207,7 @@
 
 ## Rounds
 
-### R1 — Carried over (implementation, OPEN)
+### R1 — Carried over (implementation, CLOSED)
 
 - [DONE] F001 — Уборка временного проекта теста flow.test.ts на Windows (work)
   - Commit: test(autopilot): remove the flow test project with retries on Windows
@@ -216,7 +216,7 @@
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M37-plan-close-flow.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, docs/architecture/OS-MATRIX.md
   - Depends on: F001
-- [TODO] T005 — CI точного SHA поставки на четырёх платформах (delivery)
+- [DONE] T005 — CI точного SHA поставки на четырёх платформах (delivery)
   - Commit: docs: record plan closing flow cross-platform CI
   - Files: docs/evidence/M37-acceptance.md
   - Depends on: F001, DOCS-R1

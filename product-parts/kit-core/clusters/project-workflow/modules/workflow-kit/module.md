@@ -141,7 +141,10 @@ every change is a Kit commit unless noted:
   budget}`); nothing is written.
 - `accept(root, note)` — role `acceptance`; the scope stays open.
 - `close(root, scopeId, note)` — only from `ACCEPTED` and on a clean
-  working tree outside Kit-managed paths (`DIRTY_TREE`); role `close`;
+  working tree outside Kit-managed paths (`DIRTY_TREE`: the message names
+  up to five paths and `(and N more)`, `details.paths` holds all of them,
+  `nextAction` tells to delete temporary files or commit documents with
+  `docs:commit`; spec M37); role `close`;
   clears the scope proposal record.
 - `carryover(root, input)` — role `carryover`.
 - `block(root, reason)` / `unblock(root)` — write the plan only; the next

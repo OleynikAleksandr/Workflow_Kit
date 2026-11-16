@@ -8,7 +8,9 @@ worktrees where noted):
 - `test/workflow-kit-lifecycle.test.mjs` — a whole sequential scope: docs
   commits, scope with spec, QUALITY, task snapshots, prepare checks,
   block/unblock, `task:update`, DOCS digests, a fixes round, history,
-  acceptance, close, recovery and repair.
+  acceptance, close (the `DIRTY_TREE` refusal with one, five and seven
+  paths, an input file in the ignored `.harness/inputs/`), recovery and
+  repair.
 - `test/workflow-kit-plan-checks.test.mjs` — planned `CHECK_UNKNOWN` in
   scope, extend and update, before and after QUALITY.
 - `test/workflow-kit-ignored-commit.test.mjs` — `commit --task` of an

@@ -20,7 +20,7 @@ try {
   const byPath = Object.fromEntries(
     entries.map((entry) => [entry.path, entry])
   );
-  assert.equal(installer.version, "2.2.5");
+  assert.equal(installer.version, "2.2.6");
   assert.deepEqual(Object.keys(byPath), [
     ".harness/workflow/runtime/workflow.mjs",
     "scripts/workflow",
@@ -102,6 +102,7 @@ try {
   assert.ok(inputs.length > 0, "the Inputs and documents block exists");
   for (const pattern of [
     /Before writing a `--input` JSON, run `scripts\/workflow schema <command>`/u,
+    /Write `--input` and `--digest` JSON files to `\.harness\/inputs\/`\n {2}\(git-ignored\): a file left elsewhere in the project is an uncommitted\n {2}change and blocks `close`\./u,
     /`scripts\/workflow context <path>\[#Heading\]` \(one call,\n {2}marked text\) instead of reading large files piecewise/u,
     /`context --list` prints the documents map/u,
     /Never read Kit runtime files \(`\.harness\/workflow\/runtime\/\*\*`, the bundle\),\n {2}generated code, logs or transcripts: the Kit gives what is needed from them\./u,
@@ -219,6 +220,7 @@ try {
       ".harness/workflow/local/",
       ".harness/runtime/",
       ".harness/sessions/",
+      ".harness/inputs/",
       ".claude/worktrees/",
       ".DS_Store",
       "# Dependency folders: installed by quality:apply, never committed",
@@ -246,7 +248,7 @@ try {
     manifest.files.find((file) => file.path === "README.md").sha256,
     null
   );
-  assert.equal(JSON.parse(installer.renderManifest(manifest)).version, "2.2.5");
+  assert.equal(JSON.parse(installer.renderManifest(manifest)).version, "2.2.6");
 } finally {
   await build.cleanup();
 }

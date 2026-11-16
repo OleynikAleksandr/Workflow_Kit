@@ -32,7 +32,10 @@ environment.
   2. `next`* — the step for the role, then one `Role <role>: …` rule line.
      In order: no scope (the planning step), unfinished transaction
      (`repair`), `BLOCKED: <reason>`, the executor step (an executor
-     worktree), `READY_FOR_ACCEPTANCE`, `ACCEPTED`, the orchestrator step
+     worktree), `READY_FOR_ACCEPTANCE`, `ACCEPTED` (with paths outside
+     commits both name them first: `close` needs a clean tree, so the agent
+     tidies them — deletes its temporary files, commits documents with
+     `docs:commit`; spec M37), the orchestrator step
      (orchestrated main), otherwise (role self) continue the task in
      progress, start the next ready task, or confirm a `delivery` task with
      the user first (`task:start <ID> --confirmed "…"`);
@@ -126,7 +129,9 @@ environment.
   line per field `- <name> <type> required|optional [<limits>, code
   <CODE>[, limitCode <CODE>]] — <description>` (limits in this order:
   `minItems`, `maxItems`, `maxBytes`, `minLength`, `minimum`, `maximum`,
-  `enum a|b`, `pattern`), `rules:` with one line per rule, `example:` and
+  `enum a|b`, `pattern`), `rules:` with one line per rule and the common
+  last rule `INPUT_FOLDER_RULE` (write the input file to `.harness/inputs/`,
+  git-ignored, not among the project files; spec M37), `example:` and
   the example as one line of JSON. The Kit `schema --format text` command
   prints the same text.
 - The `schema` section names the descriptor of the next step:
@@ -287,7 +292,8 @@ Node built-ins only.
   budget (`overBudget`, optional sections omitted, task fields whole, no
   `read the file` reference), two sections of one path and an absent
   heading, the `documents` section kept longest among optional ones, task
-  truncation, every `next` variant, heading extraction.
+  truncation, every `next` variant (`READY_FOR_ACCEPTANCE` and `ACCEPTED`
+  with and without paths outside commits), heading extraction.
 - `test/workflow-recovery-documents.test.mjs` — the documents map of a git
   project: outside a repository, tracked and untracked files, ignored,
   deleted and excluded paths, the specification folder first, `##`

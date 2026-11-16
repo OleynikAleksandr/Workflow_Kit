@@ -95,11 +95,17 @@ function nextStep(input: RecoveryInput, role: AgentRole): string {
   if (role === "executor") {
     return executorStep(input);
   }
+  // `close` needs a clean tree: paths outside commits are named before the user closes.
+  const untidy = input.changes.length > 0;
   if (scope.delivery === "READY_FOR_ACCEPTANCE") {
-    return "Scope is READY_FOR_ACCEPTANCE: ask the user to accept the result or report defects.";
+    return untidy
+      ? `Scope is READY_FOR_ACCEPTANCE: first tidy the paths outside commits (see changes) — delete your temporary files, commit documents with \`${KIT_COMMAND} docs:commit\`; \`close\` needs a clean tree. Then ask the user to accept the result or report defects.`
+      : "Scope is READY_FOR_ACCEPTANCE: ask the user to accept the result or report defects.";
   }
   if (scope.delivery === "ACCEPTED") {
-    return "Scope is ACCEPTED: the user decides when to close it.";
+    return untidy
+      ? "Scope is ACCEPTED: the user decides when to close it. `close` needs a clean tree: tidy the paths outside commits (see changes)."
+      : "Scope is ACCEPTED: the user decides when to close it.";
   }
   if (role === "orchestrator") {
     return orchestratorStep(input);

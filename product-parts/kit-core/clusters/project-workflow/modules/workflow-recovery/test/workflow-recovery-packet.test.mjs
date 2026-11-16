@@ -327,6 +327,25 @@ try {
     next({ scope: { ...plan().scope, delivery: "READY_FOR_ACCEPTANCE" } }),
     /READY_FOR_ACCEPTANCE/u
   );
+  // `close` needs a clean tree: paths outside commits are named before it.
+  const ready = { scope: { ...plan().scope, delivery: "READY_FOR_ACCEPTANCE" } };
+  const accepted = { scope: { ...plan().scope, delivery: "ACCEPTED" } };
+  assert.equal(
+    next(ready).split("\n")[0],
+    "Scope is READY_FOR_ACCEPTANCE: first tidy the paths outside commits (see changes) — delete your temporary files, commit documents with `scripts/workflow docs:commit`; `close` needs a clean tree. Then ask the user to accept the result or report defects."
+  );
+  assert.equal(
+    next(ready, { changes: [] }).split("\n")[0],
+    "Scope is READY_FOR_ACCEPTANCE: ask the user to accept the result or report defects."
+  );
+  assert.equal(
+    next(accepted).split("\n")[0],
+    "Scope is ACCEPTED: the user decides when to close it. `close` needs a clean tree: tidy the paths outside commits (see changes)."
+  );
+  assert.equal(
+    next(accepted, { changes: [] }).split("\n")[0],
+    "Scope is ACCEPTED: the user decides when to close it."
+  );
   assert.match(
     next({
       currentTaskId: null,

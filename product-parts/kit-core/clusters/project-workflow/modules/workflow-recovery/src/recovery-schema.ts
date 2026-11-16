@@ -46,6 +46,10 @@ function fieldLine(spec: FieldSpec): string {
   return `- ${spec.name} ${spec.type} ${spec.required ? "required" : "optional"} [${limits(spec).join(", ")}] — ${spec.description}`;
 }
 
+/** Where the JSON of `--input` goes: a file among the project files blocks `close`. */
+export const INPUT_FOLDER_RULE =
+  "Write the input file to .harness/inputs/ (git-ignored), not among the project files.";
+
 /**
  * Compact text of a descriptor: one line per field
  * (`name type required|optional [limits, code] — description`), the
@@ -58,6 +62,7 @@ export function schemaText(schema: InputSchema): string {
     ...schema.fields.map(fieldLine),
     "rules:",
     ...schema.rules.map((rule) => `- ${rule}`),
+    `- ${INPUT_FOLDER_RULE}`,
     "example:",
     JSON.stringify(schema.example),
   ].join("\n");

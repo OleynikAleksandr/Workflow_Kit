@@ -33,7 +33,7 @@ compare it with `managed`.
 | `CLAUDE.md` | line | `@AGENTS.md`, appended once |
 | `.codex/hooks.json` | json | SessionStart → `scripts/workflow hook session-start --client codex` with `"additionalContextLimit": 65536` (`CODEX_CONTEXT_LIMIT`) |
 | `.claude/settings.json` | json | SessionStart → six groups (`CLAUDE_PARTS`) `"$CLAUDE_PROJECT_DIR/scripts/workflow" hook session-start --client claude --part K/6` |
-| `.gitignore` | section | `.harness/workflow/local/`, `.harness/runtime/`, `.harness/sessions/`, `.claude/worktrees/`, `.DS_Store`, dependency folders `node_modules/`, `.venv/`, `__pycache__/` |
+| `.gitignore` | section | `.harness/workflow/local/`, `.harness/runtime/`, `.harness/sessions/`, `.harness/inputs/` (the agent's `--input` and `--digest` JSON, spec M37), `.claude/worktrees/`, `.DS_Store`, dependency folders `node_modules/`, `.venv/`, `__pycache__/` |
 | `.gitattributes` | section | `eol=lf` for the POSIX launcher and `.harness/**`, `eol=crlf` for `.cmd` and `.ps1` |
 | `README.md`, `docs/architecture/OVERVIEW.md` | create | skeletons, only when absent |
 
@@ -63,7 +63,7 @@ Writing rules:
 
 `manifest(entries)` → `{schema "harness-workflow-manifest/1", version,
 files: [{path, kind, executable, sha256}]}`; `sha256` hashes the managed
-part (`null` for `create`). `version` is `KIT_VERSION` (`2.2.5`: `scope:owner`, spec M31; 2.2.4 was the first Kit built in
+part (`null` for `create`). `version` is `KIT_VERSION` (`2.2.6`: the input folder `.harness/inputs/`, spec M37; 2.2.5 added `scope:owner`, spec M31; 2.2.4 was the first Kit built in
 Workflow Kit; Kit 1.x was Workflow Pilot). A change of a managed text or of the runtime raises the version, so
 older installations read as `KIT_OUTDATED` and the update rewrites them
 (2.1.0 added `.harness/sessions/` and `.claude/worktrees/` to `.gitignore`
@@ -108,6 +108,9 @@ to follow the `role:` of the recovery packet:
 
 The Inputs and documents block (after session start) tells the agent to
 run `scripts/workflow schema <command>` before writing a `--input` JSON, to
+write `--input` and `--digest` JSON files to `.harness/inputs/` (git-ignored;
+a file left elsewhere in the project is an uncommitted change and blocks
+`close`, spec M37), to
 get documents with `scripts/workflow context <path>[#Heading]` (one call,
 marked text; `context --list` prints the documents map) instead of reading
 large files piecewise, and never to read Kit runtime files
@@ -282,6 +285,7 @@ legacyDone, migrated, converted, commit}`.
 | --- | --- | --- | --- |
 | Режим запускателей и хуков | `install` ставит 0755 | `install` ставит 0755 | битов исполнения нет: режим не ставится |
 | Проверка `executable` доктора | есть | есть | нет |
+| Папка входных JSON `.harness/inputs/` в `.gitignore` и в секции `AGENTS.md` (M37) | одинаково | одинаково | одинаково, x64/ARM64 |
 
 ## Dependencies
 
@@ -307,8 +311,9 @@ Node built-ins only.
   hooks, created files, the gitignore lines (with the dependency folders) and gitattributes, manifest
   hashes; the Execution modes block (four roles, helpers in sequential,
   integration commands, the identity rule, under 1800 bytes), the Inputs and
-  documents block (`schema`, `context`, files never to read), the Harness
-  note on proposing the scope and `KIT_VERSION` 2.2.5; the six Claude
+  documents block (`schema`, the input folder `.harness/inputs/`, `context`,
+  files never to read), the Harness
+  note on proposing the scope and `KIT_VERSION` 2.2.6; the six Claude
   groups with `--part K/6`, the replaced 2.2.2 group, a changed part read
   as a difference, the Codex entry with `additionalContextLimit`.
 - `test/workflow-installer-install.test.mjs` (with

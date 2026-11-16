@@ -179,7 +179,9 @@ for Kit builtins). Manual checks belong in `acceptance`.
   `READY_FOR_ACCEPTANCE`), `ACCEPTANCE_NOTE`.
 - `close --scope <id> --note "<direct user command>"` — closes an accepted
   scope. Refusals: `SCOPE_ID`, `NOT_ACCEPTED`, `USER_CLOSE_REQUIRED`,
-  `DIRTY_TREE`.
+  `DIRTY_TREE` (Kit 2.2.6, spec M37: the message names up to five paths
+  outside commits, `details.paths` all of them, `nextAction` — delete
+  temporary files or commit documents with `docs:commit`, then repeat).
 - `carryover --input <file.json>` — closes the scope and opens a new one
   with the unfinished tasks; input: `schema carryover`. Refusals:
   `NO_SCOPE`, `NO_BASELINE`, `NOTHING_TO_CARRY`, `SCOPE_APPROVAL`.

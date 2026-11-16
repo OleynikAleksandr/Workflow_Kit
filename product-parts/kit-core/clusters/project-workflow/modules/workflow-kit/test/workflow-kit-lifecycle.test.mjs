@@ -59,7 +59,7 @@ try {
   git.init(root);
   git.setConfig(root, "user.name", "Workflow Test");
   git.setConfig(root, "user.email", "workflow@harness-ai.test");
-  write(".gitignore", ".harness/workflow/local/\n");
+  write(".gitignore", ".harness/workflow/local/\n.harness/inputs/\n");
   git.transactions.commit(root, {
     files: [".gitignore"],
     message: "chore: bootstrap",
@@ -307,7 +307,48 @@ try {
     code(() => kit.close(root, "demo-1", "User: close the demo scope")),
     "DIRTY_TREE"
   );
+  // The refusal names the paths: up to five in the message, all in details.
+  const refusal = (action) => {
+    try {
+      action();
+    } catch (error) {
+      return error;
+    }
+    return null;
+  };
+  const close = () => kit.close(root, "demo-1", "User: close the demo scope");
+  const one = refusal(close);
+  assert.equal(
+    one.message,
+    "Close the scope on a clean working tree; not committed: scratch.txt."
+  );
+  assert.deepEqual(one.details.paths, ["scratch.txt"]);
+  assert.match(one.nextAction, /docs:commit --files <paths>.+then repeat close/u);
+  assert.match(
+    kit.recover(root).text,
+    /Scope is ACCEPTED: the user decides when to close it\. `close` needs a clean tree: tidy the paths outside commits \(see changes\)\./u
+  );
+  for (const name of ["s1", "s2", "s3", "s4"]) {
+    write(`stray/${name}.txt`, "stray");
+  }
+  const five = refusal(close);
+  assert.equal(five.details.paths.length, 5);
+  assert.ok(!five.message.includes("more)"), five.message);
+  assert.ok(five.message.includes("stray/s4.txt"), five.message);
+  write("stray/s5.txt", "stray");
+  write("stray/s6.txt", "stray");
+  const seven = refusal(close);
+  assert.equal(seven.details.paths.length, 7);
+  assert.match(seven.message, / \(and 2 more\)\.$/u);
+  rmSync(path.join(root, "stray"), { recursive: true });
   rmSync(path.join(root, "scratch.txt"));
+  // An input file in the ignored .harness/inputs/ is no change and blocks nothing.
+  write(".harness/inputs/scope.json", "{}\n");
+  assert.deepEqual(kit.status(root).changes, []);
+  assert.match(
+    kit.recover(root).text,
+    /Scope is ACCEPTED: the user decides when to close it\.\n/u
+  );
   const closed = kit.close(root, "demo-1", "User: close the demo scope");
   assert.equal(closed.scopeId, null);
   assert.equal(kit.status(root).scope, null);

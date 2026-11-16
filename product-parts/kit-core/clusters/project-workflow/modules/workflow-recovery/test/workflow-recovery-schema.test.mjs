@@ -147,6 +147,11 @@ try {
     /\n- decisions\[\] string optional \[maxBytes 300,/u
   );
   assert.match(digestText, /\nrules:\n- Only the DOCS task of a round/u);
+  // Every schema ends its rules with the folder of the input files.
+  assert.match(
+    digestText,
+    /\n- Write the input file to \.harness\/inputs\/ \(git-ignored\), not among the project files\.\nexample:\n/u
+  );
   const exampleLine = digestText.split("\n").at(-1);
   assert.equal(digestText.split("\n").at(-2), "example:");
   assert.deepEqual(JSON.parse(exampleLine), digest.example);

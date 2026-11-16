@@ -184,6 +184,15 @@ export function acceptScope(context: KitContext, note: string): PlanChange {
   });
 }
 
+/** Paths the `close` refusal names; the full list goes into `details.paths`. */
+const NAMED_PATHS = 5;
+
+function namedPaths(paths: readonly string[]): string {
+  const named = paths.slice(0, NAMED_PATHS).join(", ");
+  const more = paths.length - NAMED_PATHS;
+  return more > 0 ? `${named} (and ${more} more)` : named;
+}
+
 /** `close`: only from ACCEPTED, on a clean tree, by a direct user command. */
 export function closeScope(
   context: KitContext,
@@ -198,8 +207,9 @@ export function closeScope(
     ensure(
       dirty.length === 0,
       "DIRTY_TREE",
-      "Close the scope on a clean working tree.",
-      { paths: dirty }
+      `Close the scope on a clean working tree; not committed: ${namedPaths(dirty)}.`,
+      { paths: dirty },
+      "Delete temporary files or commit documents with `scripts/workflow docs:commit --files <paths>`, then repeat close."
     );
     const plan = workflowPlanFacade.close(
       readPlan(context),

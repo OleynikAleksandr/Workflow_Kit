@@ -78,7 +78,9 @@ identity (`user.name`, `user.email`), а также незавершённую �
 среда выполнения (`KitFixes-2026-11-05.md`, разделы 1 и 6); 2.2.3 — шесть
 групп хука SessionStart для Claude (`--part K/6`), одна запись Codex с
 `"additionalContextLimit": 65536` и правило о неполном пакете в
-`AGENTS.md` (`KitRecoveryParts-2026-11-12.md`). Поэтому более ранние
+`AGENTS.md` (`KitRecoveryParts-2026-11-12.md`); 2.2.6 — `.harness/inputs/`
+в `.gitignore` и пункт о папке входных JSON в блоке «Inputs and documents»
+(M37). Поэтому более ранние
 установки читаются как `KIT_OUTDATED`.
 План, конфигурация и пользовательский текст остаются нетронутыми. Коммит
 делается с ролью `kit-update`.

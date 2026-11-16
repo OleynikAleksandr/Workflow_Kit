@@ -103,8 +103,28 @@ Doctor: все строки `ok`, «итог: всё в порядке», слу
 | --- | --- | --- | --- |
 | macOS | агент | тесты, установка 0.14.5, doctor, `/api/health`, живая проверка выше | пройдено |
 | macOS | пользователь | вид карточки «Обновить Kit» со структурой в браузере; приёмка результата M38 | после поставки |
-| Linux | CI | typecheck, тесты, platform-guard для точного SHA поставки | в T006 |
-| Windows x64 и ARM64 | CI | то же | в T006 |
+| Linux | CI | typecheck, тесты, platform-guard для точного SHA поставки | пройдено (CI ниже) |
+| Windows x64 и ARM64 | CI | то же | пройдено (CI ниже; ARM64 — со второй попытки) |
 | Windows x64 или ARM64 | проверяющий на Windows | раздел 4 спецификации: «Обновить Kit» в проекте со структурой 3 — один коммит, структура `ok`, хук Claude в exec-форме | pending — не проверено вживую на Windows |
 
 CI проверку на Windows не заменяет.
+
+## CI точного SHA поставки (T006)
+
+Подтверждение в `task:start --confirmed`: «Выполняй весь план задача за задачей без пауз - даю
+тебе на это своё согласие.» (16.11.2026). SHA задачи T005
+`aa402cc5b6d24476e191a2bcb85fd8258b24e037` отправлен в новую ветку
+`ci/M38-kit-structure-update` (`git push origin <sha>:refs/heads/ci/M38-kit-structure-update`,
+без `--force`), прогон
+[43913115642](https://github.com/OleynikAleksandr/Workflow_Kit/actions/runs/43913115642).
+
+- Попытка 1: Linux x64, macOS ARM64, Windows x64 — success; Windows ARM64 — один провал
+  старого теста M8 `agent-channel/test/detached.test.ts` «an expired watch is picked up by
+  maintain» (`[1, 'working']` вместо `[0, 'working']`): таймер наблюдения 16 мс сработал
+  позже паузы 60 мс на загруженной машине. Тот же провал и тот же исход — в
+  [M30](M30-claude-feed-quiet.md). Ни тест, ни модуль `agent-channel` в M38 не менялись.
+- Попытка 2 (`gh run rerun --failed`, тот же SHA): Windows ARM64 — success (17:14:43 UTC);
+  итог прогона — success на всех четырёх платформах.
+
+`main` не публиковался и релиз не создавался: это после приёмки и закрытия scope по команде
+пользователя.

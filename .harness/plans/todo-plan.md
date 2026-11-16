@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": "T006",
+  "currentTaskId": null,
   "lastClosed": {
     "closedAt": "2026-11-16T15:16:10.108Z",
     "scopeId": "M37-plan-close-flow-fix"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1161,
+  "revision": 1162,
   "rounds": [
     {
       "digest": {
@@ -38,7 +38,7 @@
       },
       "id": "R1",
       "kind": "implementation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Implementation"
     }
   ],
@@ -87,7 +87,7 @@
         "text": "Ревью плана не проводится (выбор пользователя в панели 16.11.2026)."
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "44f051db-d949-42ed-9d82-7c6737f9a848",
@@ -441,7 +441,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "title": "CI точного SHA поставки на четырёх платформах",
       "why": "Поставка не готова, пока CI не зелёная на всех ОС"
     }
@@ -453,11 +453,11 @@
 ## State
 
 - Scope: M38-kit-structure-update (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
-- Current task: T006
-- Progress: 7/8
-- Revision: 1161
+- Current task: none
+- Progress: 8/8
+- Revision: 1162
 
 ## Objective
 
@@ -474,7 +474,7 @@
 
 ## Rounds
 
-### R1 — Implementation (implementation, OPEN)
+### R1 — Implementation (implementation, CLOSED)
 
 - [DONE] T001 — Коммит структуры Kit 4 этого репозитория (work)
   - Commit: chore: commit the Workflow Kit structure 4 of this repository
@@ -503,7 +503,7 @@
   - Commit: chore: deliver the Kit structure update
   - Files: package.json, package-lock.json, CHANGELOG.md, docs/evidence/M38-acceptance.md, README.md
   - Depends on: T004, DOCS-R1
-- [IN_PROGRESS] T006 — CI точного SHA поставки на четырёх платформах (delivery)
+- [DONE] T006 — CI точного SHA поставки на четырёх платформах (delivery)
   - Commit: docs: record the Kit structure update cross-platform CI
   - Files: docs/evidence/M38-acceptance.md
   - Depends on: T005, DOCS-R1

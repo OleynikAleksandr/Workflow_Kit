@@ -82,6 +82,13 @@ export interface ChooseRequest {
   session: string;
   generation: number;
   option: KitChoiceOption;
+  /** `scope:choose --expected-digest` (M39): Kit refuses a proposal changed since this digest. */
+  expectedDigest?: string;
+  /**
+   * M39: the choice of an autopiloting run — its note names the run, and no «wait for the start
+   * button» message goes to the agent: the start follows at once.
+   */
+  automatic?: { runId: string; note: string };
 }
 
 export interface Autopilot {

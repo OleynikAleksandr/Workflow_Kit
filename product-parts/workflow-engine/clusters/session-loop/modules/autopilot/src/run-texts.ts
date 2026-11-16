@@ -1,5 +1,6 @@
 // Texts of autopiloting runs (spec M39): the policy of a start for the panel (Russian, exact
 // labels of the agreed specification) and the preparation instruction for the agent (English).
+import type { RunRecord } from './run-journal.ts';
 import type { AutopilotingMode } from './settings.ts';
 
 export const POLICY_TEXTS = {
@@ -22,4 +23,15 @@ export function preparationText(policy: AutopilotingMode | 'kit-update-required'
     return `The user's instruction allows the preparation, but the project's Kit cannot autopilot (update Kit). Continue this turn: ${propose}, then end the turn; the user chooses the mode and starts the plan in the panel.`;
   }
   return `The user's instruction allows the preparation. Continue this turn without the plan question: ${propose}, then end the turn; the user chooses the mode and starts the plan in the panel. ${reviewed}`;
+}
+
+/** The note of the Kit grant: where the user's advance instruction came from (English, as Kit notes). */
+export function grantNote(run: Pick<RunRecord, 'runId' | 'mode' | 'request'>): string {
+  if (run.request.source === 'user-command') {
+    return `Full autopilot run ${run.runId}: the user's direct instruction «${run.request.quote.slice(0, 200)}» (${run.request.at}) to prepare and carry out the plan`;
+  }
+  if (run.request.source === 'plan-decision') {
+    return `Full autopilot run ${run.runId}: the user's answer «${run.request.quote}» on the plan question (${run.request.at})`;
+  }
+  return `The user pressed «Начать выполнение плана» with the autopiloting mode «${run.mode === 'full' ? 'Полный автопилот' : 'После ручного запуска Плана'}» (run ${run.runId})`;
 }

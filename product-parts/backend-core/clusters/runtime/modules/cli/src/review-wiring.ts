@@ -111,6 +111,10 @@ export function wireCrossReview(options: {
   resolveFolderProject: (folder: string) => Promise<{ id: string } | undefined>;
   /** True for the id of a registered provider. */
   isClient: (client: string) => boolean;
+  /** M39: the digest of the open proposal (`scope:proposal --digest`) the agreement is bound to. */
+  digest?: CrossReviewDeps['digest'];
+  /** M39: hears every finished review (the full-run preparation). */
+  onReviewFinished?: CrossReviewDeps['onFinished'];
   /** M39: `wfk session plan --authorized` (the autopiloting runs). */
   authorize?: (projectId: string, key: string, summary: string, quote: string) => Promise<Record<string, unknown>>;
   log?: (line: string) => void;
@@ -142,6 +146,8 @@ export function wireCrossReview(options: {
     continuationBlocked: (key) => options.channel.interruption(key)?.barrier === true,
     resumeDelivery: (key) => options.channel.resumeDelivery(key),
     toggle: (projectId, key) => options.toggles.get(projectId, key),
+    ...(options.digest ? { digest: options.digest } : {}),
+    ...(options.onReviewFinished ? { onFinished: options.onReviewFinished } : {}),
     proposal: async (projectId) => {
       const view = (await options.workflow.refresh(projectId)) ?? options.workflow.get(projectId);
       const proposal = view?.proposal ?? null;

@@ -9,6 +9,9 @@ import { createStubProvider } from '#provider-registry';
 import { createApp } from '../src/index.ts';
 import type { App } from '../src/index.ts';
 import { SESSION_USAGE, preparedText, runSessionCommand, sessionFlags } from '../src/session-command.ts';
+import { proposalDigest, reviewFact } from '../src/autopiloting-links.ts';
+import type { Review } from '#cross-review';
+import type { KitRunner } from '#kit-runner';
 
 let tmp = '';
 let app: App;
@@ -97,4 +100,18 @@ test('wfk session plan --authorized sends the words and prints the run; title re
   err.length = 0;
   assert.equal(await runSessionCommand(['title', 'Склад', '--authorized', 'да'], deps({ status: 200, body: {} })), 64);
   assert.equal(err.join(''), SESSION_USAGE);
+});
+
+test('T006 links: the proposal version for the review and the review fact of the run owner', async () => {
+  const projects = { get: async (id: string) => (id === 'p1' ? ({ id, path: '/p' } as never) : undefined) };
+  const kit = (result: unknown, ok = true) => ({ installed: () => true, proposalDigest: async () => (ok ? { ok: true, result } : { ok: false, code: 'USAGE' }) }) as unknown as Pick<KitRunner, 'installed' | 'proposalDigest'>;
+  const version = { scopeId: 's', generation: 2, proposalDigest: 'd'.repeat(64), documentDigests: { 'docs/b.md': 'x', 'docs/a.md': null } };
+  assert.deepEqual(await proposalDigest(kit(version), projects, 'p1'), { scopeId: 's', generation: 2, digest: 'd'.repeat(64), documents: ['docs/a.md', 'docs/b.md'] });
+  assert.equal(await proposalDigest(kit(null), projects, 'p1'), null, 'no open proposal');
+  assert.equal(await proposalDigest(kit(version, false), projects, 'p1'), null, 'an old Kit without --digest');
+  assert.equal(await proposalDigest(kit(version), projects, 'p2'), null);
+  const review = { mainKey: 'claude:a', status: 'agreed', scopeId: 's', reason: null, reviewedProposal: { scopeId: 's', generation: 2, digest: 'd' } } as unknown as Review;
+  assert.deepEqual(reviewFact(review, 'claude:a'), { status: 'agreed', scopeId: 's', reason: null, reviewedProposal: { scopeId: 's', generation: 2, digest: 'd' } });
+  assert.equal(reviewFact(review, 'codex:reviewer'), null, 'the reviewer\'s side is not its own proposal');
+  assert.equal(reviewFact({ ...review, reviewedProposal: undefined } as Review, 'claude:a')?.reviewedProposal, null, 'an older review file');
 });

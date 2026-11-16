@@ -6,6 +6,7 @@ import { mkdir, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import type { KitOutcome, KitRunner } from '#kit-runner';
 import { autopilotSupport } from '#plan-view';
+import type { KitProposal, KitProposalDigest } from '#plan-view';
 import type { HostOperation, HostTickets } from './host-ticket.ts';
 import { hostInputDigest } from './host-ticket.ts';
 
@@ -61,6 +62,18 @@ export function createRunKit(options: { runner: KitRunner; tickets: HostTickets 
 
   return {
     status: (root: string) => read<RunKitStatus>(root, ['autopilot:status']),
+    /** The open proposal (`scope:proposal`): recommended mode and options; null without one. */
+    proposal: async (root: string): Promise<KitProposal | null> => {
+      if (!options.runner.installed(root)) return null;
+      const outcome = await options.runner.proposal(root);
+      return outcome.ok ? outcome.result : null;
+    },
+    /** The digest of the open proposal (`scope:proposal --digest`); null without one. */
+    digest: async (root: string): Promise<KitProposalDigest | null> => {
+      if (!options.runner.installed(root)) return null;
+      const outcome = await options.runner.proposalDigest(root);
+      return outcome.ok ? outcome.result : null;
+    },
     supported: (status: RunKitStatus | null) => autopilotSupport(status),
 
     async scope(root: string): Promise<RunScope | null> {

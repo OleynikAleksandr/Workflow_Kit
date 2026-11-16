@@ -78,6 +78,18 @@ export interface KitStatus {
   changes?: string[];
 }
 
+/**
+ * Result of `scope:proposal --digest` (Kit 2.3.0+, M39): the digest of the open proposal over
+ * its canonical plan fields and the bytes of its spec/context documents.
+ */
+export interface KitProposalDigest {
+  /** sha256 of every spec/context document by path; null for a missing file. */
+  documentDigests: Record<string, string | null>;
+  generation: number;
+  proposalDigest: string;
+  scopeId: string | null;
+}
+
 /** Result of `scope:proposal` (null when no proposal is open). */
 export interface KitProposal {
   createdAt: string;

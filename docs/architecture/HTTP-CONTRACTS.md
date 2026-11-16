@@ -30,4 +30,6 @@
   `authorization-source-missing`, `authorization-quote-mismatch`, `run-active` с
   `nextAction`. `POST /api/projects/:id/workflow/start|resume` отвечают и `runId`, когда
   старт записал разрешение запуска; 409 `run-paused`, `run-active`, `scope-changed`.
+- Раздел `reviews` (T006): у ревью есть `approvedDigest`, `versioned` и `reviewedProposal`
+  (`{ scopeId, generation, digest }` согласованной версии предложения).
 - Контракт — [autopilot/autopiloting.md](../../product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md).

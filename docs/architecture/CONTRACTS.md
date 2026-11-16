@@ -93,7 +93,10 @@ Kit 2.2.6 ставится в проект бандлом (`install --host harne
 (`off`/`after-start`/`full` и ревью, с ревизией), журнал запусков проекта
 `.workflow-kit/local/autopiloting/<runId>.json`; ручной старт пишет разрешение запуска до
 первого рабочего сообщения, `wfk session plan --authorized` сверяет слова с текстом, который
-пользователь действительно написал сессии (`agent-channel userWords`) — контракт
+пользователь действительно написал сессии (`agent-channel userWords`). Полный режим (T006):
+предложение → ревью, согласованное на digest `scope:proposal --digest` (`cross-review`
+`reviewedProposal`), → автоматический `scope:choose --expected-digest` и старт тем же
+действием, что кнопки; изменённая после согласия спецификация отменяет допуск — контракт
 [autopilot/autopiloting.md](../../product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md),
 маршруты — [HTTP-CONTRACTS.md](HTTP-CONTRACTS.md#автопилотирование-m39). Раздел `workflow` даёт модели
 карточек плана и выбора пути (`plan-view`). Хук вопроса Claude `wfk hook question`

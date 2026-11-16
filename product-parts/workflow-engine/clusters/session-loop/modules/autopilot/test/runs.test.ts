@@ -16,7 +16,7 @@ const CAPABILITY = { authorization: true, automation: true, complete: true, defe
 const KEY = 'claude:s-1';
 let n = 0;
 
-async function setup(mode: AutopilotingMode, status: Partial<RunKitStatus> | null = {}, review = true) {
+async function setup(mode: AutopilotingMode, status: Partial<RunKitStatus> | null = {}, review = true, sessionDecision?: boolean) {
   const dir = path.join(tmp, `p${(n += 1)}`);
   await mkdir(path.join(dir, 'config'), { recursive: true });
   const settings = createSettingsStore({ configDir: path.join(dir, 'config') });
@@ -37,7 +37,10 @@ async function setup(mode: AutopilotingMode, status: Partial<RunKitStatus> | nul
     words: (key) => words.get(key) ?? [],
     projectPath: async (id) => (id === 'p1' ? dir : undefined),
     listProjects: async () => [{ id: 'p1', path: dir }],
-    decideReview: async (_id, key, on) => void decided.push([key, on]),
+    decideReview: async (_id, key, on) => {
+      decided.push([key, on]);
+      return sessionDecision;
+    },
   });
   const say = (key: string, text: string, at = '2026-11-16T10:00:00.000Z') => words.set(key, [...(words.get(key) ?? []), { text, at, via: 'prompt', turnId: 't-1' }]);
   return { runs, say, decided, dir, settings };
@@ -119,4 +122,12 @@ test('a manual start gets no M39 authority when off, on a legacy plan or with an
     const { runs } = await setup(mode, status);
     assert.equal(await runs.beginExecution('p1', KEY), null, `${mode}`);
   }
+});
+
+test('T006: a review decision the session already has wins over the Settings default in the run snapshot', async () => {
+  const { runs, say } = await setup('full', {}, true, false);
+  say(KEY, 'Да, составляй спецификацию и план');
+  const result = await runs.authorizePreparation('p1', KEY, 'Docs', 'составляй спецификацию и план');
+  assert.equal(result.review, false);
+  assert.match(result.instruction, /without a cross review/u);
 });

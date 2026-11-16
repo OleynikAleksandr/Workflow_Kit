@@ -27,7 +27,9 @@
   `scope(projectId)` (id активного scope или `null`), `deliver(key, text, projectId)`
   (необязательная: очередь и немедленное пробуждение сессии без первого `Stop`; по умолчанию
   `enqueue`), `findReviewer` (`{ pollMs, timeoutMs }`, по умолчанию `FIND_REVIEWER` — 2 с и 3 мин),
-  `now`, `log`. Типы — в `src/contract.ts`.
+  `now`, `log`; M39 — `digest(projectId)` (версия открытого предложения `ProposalDigestRef`
+  `{ scopeId, generation, digest, documents }` из `scope:proposal --digest` Kit или `null`) и
+  `onFinished(review)` (каждое законченное ревью после записи). Типы — в `src/contract.ts`.
 - `CrossReview`:
   - `load()` — ревью проектов из `.workflow-kit/local/reviews/<client>.<id>.json`.
   - `onStop(event)` — слушатель канала: в `preparing` любой законченный ход основной —
@@ -80,6 +82,18 @@
   последний ответ ревьюера с `REVIEW: APPROVED` и ответ основной с `REVIEW: AGREED`; после
   `MAX_ROUNDS` (5) ответов без согласия — `disagreed`. По окончании ревьюер получает
   заключительное сообщение, основная будится (`wake`).
+- Версия согласия (M39 T006, `src/rounds.ts` — `createRounds`, круги вынесены из `review.ts`):
+  с `digest` одобрение ревьюера записывает `approvedDigest` — digest, который он видел;
+  `REVIEW: AGREED` заканчивает ревью как `agreed` только при том же digest и scope сейчас, и
+  ревью получает `reviewedProposal = { scopeId, generation, digest }`. Изменённое после
+  одобрения предложение или документ (даже без новой generation) или закрытое предложение —
+  не согласие: одобрение снимается, ревьюер получает окончательную версию (`changedNote`) в
+  следующем круге, после `MAX_ROUNDS` — `disagreed`. Каждое сообщение ревьюеру с `digest`
+  несёт `versionNote` (generation, начало digest, пути документов). Ревью, видевшее digest,
+  помечено `versioned` и без него больше не согласуется; старый Kit без `--digest` (digest не
+  было ни разу) согласуется по-прежнему, без `reviewedProposal`. Поля `approvedDigest`,
+  `versioned`, `reviewedProposal` хранятся в файле ревью и переживают перезапуск; в старых
+  файлах их нет (читается как `null`).
 - Тексты (`texts.ts`): `PLAN_REQUEST`, `reviewerBrief` (роль, описание плана от основной или
   просьба запросить его, правила «только читай», команды контекста `recover`,
   `scope:proposal`, `context`, формат ответа), `toMain`, `toReviewer` (пересылаемый
@@ -101,7 +115,9 @@
 
 ## Зависимости
 
-`#agent-channel` (типы), `#data-store`, `#http-server`.
+`#agent-channel` (типы), `#data-store`, `#http-server`. Тест M39 — `test/version.test.ts`
+(согласие на одобренной версии, изменение после одобрения и новый круг, закрытое предложение,
+старый Kit).
 
 ## Прерванный ход и ОС (M24)
 

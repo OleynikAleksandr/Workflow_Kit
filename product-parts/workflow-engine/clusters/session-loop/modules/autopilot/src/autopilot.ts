@@ -228,13 +228,17 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
         '--session',
         idOf(request.session),
         '--note',
-        CHOICE_NOTES[request.option],
+        request.automatic?.note ?? CHOICE_NOTES[request.option],
+        ...(request.expectedDigest ? ['--expected-digest', request.expectedDigest] : []),
       ]);
       wakeHolders(options.channel, projectId, request.session, ['waiting-for-mode-choice']); // M31 3.3: release the other holders
       const entry = state(request.session, projectId);
       if (request.option === 'refine') {
         entry.enabled = false;
         options.channel.enqueue(request.session, REFINE_MESSAGE, 'panel', projectId);
+      } else if (request.automatic) {
+        owners.set(projectId, request.session);
+        await options.workflow.refresh(projectId); // the start that follows reads the chosen execution
       } else {
         owners.set(projectId, request.session);
         const only = request.option === 'sequential' ? await sequentialOnly(request.session) : '';

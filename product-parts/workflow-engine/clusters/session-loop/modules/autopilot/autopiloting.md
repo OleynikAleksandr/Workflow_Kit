@@ -103,6 +103,39 @@ decideReview?, mutex?, log? }) → Runs`:
 - `section()` → `{ projects: { <id>: RunBrief } }` (`runId`, `mode`, `phase`, `reason`,
   `source`, `scopeId`, `review`, `updatedAt`) — без цитат пользователя.
 
+## Подготовка полного запуска (`src/run-prepare.ts`, T006)
+
+`createPreparation({ journal, kit, projectPath, review, reviewOn, orchestration?, actions,
+mutex?, log?, now? })` → `{ reconcile(projectId) }`. Один шаг под мьютексом `project:<id>`
+(с кнопками панели), не больше одного действия; ошибки пишутся в журнал службы:
+
+- действует только активный запуск `full` в фазах `preparing`, `reviewing`, `choosing`,
+  `starting`; `after-start`, `paused`, `blocked`, `stopped`, `executing` и поздние события не
+  выбирают и не запускают план. После каждого ожидания запуск перечитывается.
+- Выбранный scope: только своего владельца (`execution.ownerSession`) и своего предложения,
+  иначе `blocked` (`PREPARE_TEXTS.scopeChanged`); живое разрешение этого запуска — `executing`,
+  иначе `start` (повтор после перезапуска запускает один раз).
+- Нет предложения — `preparing`. Ревью сессии выключено (`reviewOn` — действующее решение
+  `plan-review`) — выбор текущей версии с квитанцией ревью `skipped-by-setting` (не «ревью
+  пройдено»). Включено: ревью нет, идёт или другого scope — `reviewing`; `failed`,
+  `disagreed`, `cancelled` — `blocked` с причиной; `agreed`, но `reviewedProposal` не равен
+  текущей версии (`scope:proposal --digest`: digest и generation) — `blocked`
+  (`PREPARE_TEXTS.changed`): изменённая спецификация отменяет допуск.
+- Выбор: рекомендованный способ `scope:proposal`; `orchestrated` без capability провайдера —
+  `sequential` с записанной причиной, если план его допускает, иначе `blocked`
+  (`noOption`). `actions.choose` (тот же `autopilot.choose`, что кнопка) с `expectedDigest`
+  выбранной версии и `automatic` (`Автоматический выбор по поручению <runId>: …` в заметке
+  выбора, без сообщения «ждите кнопку»); отказ Kit `PROPOSAL_CHANGED` (гонка изменения
+  между чтением согласия и выбором) — `blocked` `changed`. Перед вызовом — `pendingAction`
+  (`choose:<generation>:<digest>`), после — квитанция `choose`, `scopeId`, фаза `starting`.
+- Старт: `actions.start(projectId, owner)` — тот же старт, что кнопка; разрешение пишет
+  `authority.beforeStart` (`beginExecution`) до первого сообщения, примечание разрешения —
+  `grantNote` по источнику поручения (`user-command`, `plan-decision`, `panel-start`).
+
+`autopilot.choose` (`ChooseRequest`) принимает `expectedDigest` (`scope:choose
+--expected-digest`) и `automatic: { runId, note }`; автоматический выбор дожидается
+обновления `workflow`, чтобы следующий `start` видел выбранное выполнение.
+
 ## Маршруты (`src/runs-routes.ts`)
 
 `registerAutopilotingRoutes({ router, state, settings, runs })`:
@@ -126,4 +159,11 @@ decideReview?, mutex?, log? }) → Runs`:
 ответ на карточке, политики до старта; `test/runs-real.test.ts` — настоящий бандл:
 legacy-план без прав, разрешение после ручного старта проверено бандлом, повтор без
 коммита, Settings off отзывает, повторное включение не возобновляет, «Продолжить» —
-новая ревизия; `test/start.test.ts` — разрешение до сообщения старта.
+новая ревизия; `test/start.test.ts` — разрешение до сообщения старта;
+`test/prepare.test.ts` — подготовка с подставным Kit: без ревью (digest, `skipped-by-setting`,
+повтор), ожидание ревью и согласие на той же версии, изменённая версия, неуспешные ревью,
+отказ `PROPOSAL_CHANGED`, `after-start`/пауза/остановка/конкурирующие события, чужой
+владелец и старт после перезапуска, оркестрация и последовательный fallback;
+`test/prepare-real.test.ts` — настоящий бандл, канал и автопилот: поручение → предложение →
+выбор с digest Kit → старт с разрешением без карточек; изменённая после согласия
+спецификация отменяет допуск, и Kit сам отклоняет старый digest.

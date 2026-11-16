@@ -15,20 +15,16 @@ import {
   QUESTION_REMINDER,
   REMINDER,
   REVIEW_PAIRS,
-  SOURCE,
   STATUS_LABELS,
-  mainAgrees,
   providerOf,
-  reviewerApproves,
   reviewerBrief,
-  toMain,
-  toReviewer,
 } from './texts.ts';
 import type { CrossReview, CrossReviewDeps, ReviewSummary } from './contract.ts';
 import { FIND_REVIEWER, findReviewer } from './find-reviewer.ts';
 import { createQuestionGate } from './question-stale.ts';
+import { createRounds } from './rounds.ts';
 
-export type { CrossReview, CrossReviewDeps, OpenQuestion, ReviewSummary } from './contract.ts';
+export type { CrossReview, CrossReviewDeps, OpenQuestion, ProposalDigestRef, ReviewSummary } from './contract.ts';
 
 export const CHOICE_WAITS_REVIEW = 'Идёт ревью плана: путь выбирается после согласия ревьюера и агента';
 export const CHOICE_WAITS_TURN = 'Сначала ревью плана: оно (или вопрос о нём) появится, когда агент закончит ход';
@@ -100,23 +96,13 @@ export function createCrossReview(deps: CrossReviewDeps): CrossReview {
     }
     deps.wake(review.mainKey);
     log(`review: ${review.mainKey} ${status}${reason ? ` (${reason})` : ''}`);
+    deps.onFinished?.(structuredClone(review));
   }
 
-  /** A finished turn of the reviewer: its remarks go to the main agent. */
-  async function fromReviewer(review: Review, event: StopEvent): Promise<void> {
-    const expected = review.status === 'starting' || (review.status === 'reviewing' && event.origin === 'delivery' && event.sources.includes(SOURCE));
-    if (!expected) return;
-    const text = event.lastAssistantMessage?.trim() || '(ревьюер не написал замечаний)';
-    review.round += 1;
-    review.approved = reviewerApproves(text);
-    review.entries.push({ from: 'reviewer', round: review.round, text, at: iso() });
-    review.status = 'answering';
-    await save(review);
-    if (review.status !== 'answering') return;
-    deps.enqueue(review.mainKey, toMain(titleOf(review.reviewerProvider), review.round, text), review.projectId);
-  }
+  const rounds = createRounds({ deps, iso, titleOf, save, finish });
+  const fromReviewer = rounds.fromReviewer;
 
-  /** A finished turn of the main agent: the plan description, agreement, the end of the rounds, or the next round. */
+  /** A finished turn of the main agent: the plan description, then the rounds. */
   async function fromMain(review: Review, event: StopEvent): Promise<void> {
     if (review.status === 'preparing') {
       // Any finished turn ends the preparation: the service continued it with PLAN_REQUEST.
@@ -127,14 +113,7 @@ export function createCrossReview(deps: CrossReviewDeps): CrossReview {
       if (review.status === 'starting') launch(review, plan);
       return;
     }
-    if (review.status !== 'answering' || event.origin !== 'delivery' || !event.sources.includes(SOURCE)) return;
-    const text = event.lastAssistantMessage?.trim() || '(агент ответил без текста)';
-    review.entries.push({ from: 'main', round: review.round, text, at: iso() });
-    if (review.approved && mainAgrees(text)) return finish(review, 'agreed');
-    if (review.round >= review.maxRounds) return finish(review, 'disagreed', `${review.maxRounds} кругов без согласия`);
-    review.status = 'reviewing';
-    await save(review);
-    if (review.status === 'reviewing' && review.reviewerKey) deps.enqueue(review.reviewerKey, toReviewer(titleOf(review.mainProvider), review.round, text), review.projectId);
+    await rounds.fromMain(review, event);
   }
 
   /** Starts the review; false when the main provider has no reviewer (the review is kept as failed). */
@@ -160,6 +139,8 @@ export function createCrossReview(deps: CrossReviewDeps): CrossReview {
       maxRounds: MAX_ROUNDS,
       generation: proposal.generation,
       approved: false,
+      approvedDigest: null,
+      reviewedProposal: null,
       reason: null,
       entries: [],
       createdAt: iso(),

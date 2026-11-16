@@ -34,6 +34,12 @@ export interface Review {
   generation: number;
   /** The last reviewer answer carried REVIEW: APPROVED. */
   approved: boolean;
+  /** The proposal digest when the reviewer approved (M39); null or absent otherwise and in older files. */
+  approvedDigest?: string | null;
+  /** A digest of the proposal was seen during the review (M39): an agreement needs one from then on. */
+  versioned?: boolean;
+  /** The version both sides agreed on (M39): set only with status agreed and a known digest. */
+  reviewedProposal?: { scopeId: string | null; generation: number; digest: string } | null;
   reason: string | null;
   entries: ReviewEntry[];
   createdAt: string;

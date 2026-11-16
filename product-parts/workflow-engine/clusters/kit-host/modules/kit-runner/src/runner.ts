@@ -5,7 +5,7 @@
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import type { CommandRunner } from '#process-supervisor';
-import type { KitProposal, KitStatus } from '#plan-view';
+import type { KitProposal, KitProposalDigest, KitStatus } from '#plan-view';
 import { type HostVerifier, runHostProcess } from './host-run.ts';
 
 /** Codes the runner adds to Kit's own error codes. */
@@ -82,6 +82,8 @@ export interface KitRunner {
   install(root: string, options?: { update?: boolean; name?: string; with?: readonly string[] }): Promise<KitOutcome<KitInstall>>;
   status(root: string): Promise<KitOutcome<KitStatus>>;
   proposal(root: string): Promise<KitOutcome<KitProposal | null>>;
+  /** `scope:proposal --digest` (M39): the digest the review agrees on and `scope:choose --expected-digest` checks. */
+  proposalDigest(root: string): Promise<KitOutcome<KitProposalDigest | null>>;
 }
 
 export const KIT_TIMEOUT_MS = 60_000;
@@ -213,6 +215,7 @@ export function createKitRunner(options: KitRunnerOptions): KitRunner {
     },
     status: (root) => inProject<KitStatus>(root, ['status'], defaultTimeout, true),
     proposal: (root) => inProject<KitProposal | null>(root, ['scope:proposal'], defaultTimeout, true),
+    proposalDigest: (root) => inProject<KitProposalDigest | null>(root, ['scope:proposal', '--digest'], defaultTimeout, true),
   };
   return runner;
 }

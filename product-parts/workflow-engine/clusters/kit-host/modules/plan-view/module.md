@@ -12,7 +12,8 @@
 
 - Типы результатов Kit 2.2.3 (в 2.2.4 те же, M22), которые читает служба: `KitStatus`,
   `KitTask`, `KitTaskRef`, `KitScope`, `KitExecution`, `KitAssignment`,
-  `KitScopeProposalMarker`, `KitProposal`, `KitStrategy`,
+  `KitScopeProposalMarker`, `KitProposal`, `KitProposalDigest` (M39: `scope:proposal --digest` —
+  `documentDigests`, `generation`, `proposalDigest`, `scopeId`), `KitStrategy`,
   `KitChoiceOption`, `KitTaskStatus`.
 - `buildPlanView(status) → PlanView | null` — `null` без Kit или без scope.
   `PlanView`: `scopeId`, `objective`, `mode` (`sequential` без

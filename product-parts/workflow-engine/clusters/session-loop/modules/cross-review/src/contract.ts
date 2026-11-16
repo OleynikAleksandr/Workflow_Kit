@@ -10,6 +10,14 @@ export interface OpenQuestion {
   scopeId?: string | null;
 }
 
+/** The version of an open proposal (M39): `scope:proposal --digest` of Kit and its document paths. */
+export interface ProposalDigestRef {
+  scopeId: string | null;
+  generation: number;
+  digest: string;
+  documents: string[];
+}
+
 export interface CrossReviewDeps {
   listProjects(): Promise<Array<{ id: string; name: string; path: string }>>;
   /** Title of a provider for the texts (default: its id). */
@@ -63,6 +71,10 @@ export interface CrossReviewDeps {
   decided?(projectId: string, key: string): boolean;
   /** Asks the proposal question of a session without a decision (spec M4 12.2). */
   askProposal?(projectId: string, key: string): Promise<void>;
+  /** The digest of the open proposal (M39); without it the agreement is not bound to a version. */
+  digest?(projectId: string): Promise<ProposalDigestRef | null>;
+  /** Hears every finished review (agreed, disagreed, failed, cancelled), after it is saved (M39). */
+  onFinished?(review: Review): void;
   now?: () => Date;
   log?: (line: string) => void;
 }

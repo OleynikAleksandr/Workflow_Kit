@@ -139,7 +139,9 @@
   (`beforeStart`/`beforeResume` → `runId | null`; `start`/`resume` отвечают и `runId`),
   настройки `createSettingsStore`, журнал `createRunJournal`, Kit запуска `createRunKit`,
   запуски `createRuns`, тексты `POLICY_TEXTS`/`preparationText`, маршруты
-  `registerAutopilotingRoutes` и разделение исходников — в [autopiloting.md](autopiloting.md).
+  `registerAutopilotingRoutes` и разделение исходников — в [autopiloting.md](autopiloting.md);
+  там же T006 — подготовка полного запуска `createPreparation` (`PREPARE_TEXTS`, `ReviewFact`,
+  `PrepareActions`), `grantNote` и `ChooseRequest.expectedDigest`/`automatic`.
 
 ## Инварианты
 

@@ -33,3 +33,6 @@ export type { PreparationResult, RunBrief, Runs, RunsOptions, StartPolicy, Start
 export { createRuns } from './runs.ts';
 export { POLICY_TEXTS, preparationText } from './run-texts.ts';
 export { registerAutopilotingRoutes } from './runs-routes.ts';
+export type { PrepareActions, Preparation, PreparationDeps, ReviewFact } from './run-prepare.ts';
+export { PREPARE_TEXTS, createPreparation } from './run-prepare.ts';
+export { grantNote } from './run-texts.ts';

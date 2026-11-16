@@ -98,7 +98,8 @@ stripping).
 
 Что `createApp` подключает и с какими опциями (реестры, Kit, сессии, публикация, обновление
 Kit, ссылки и остановка службы, журнал попыток ответа на вопросы агента M33, автопилотирование
-M39 — `src/autopiloting-wiring.ts`, `wfk session plan --authorized`) — в
+M39 — `src/autopiloting-wiring.ts`, `src/autopiloting-links.ts`, `wfk session plan
+--authorized`) — в
 [connected-modules.md](connected-modules.md) и [commands.md](commands.md).
 
 ## Инварианты

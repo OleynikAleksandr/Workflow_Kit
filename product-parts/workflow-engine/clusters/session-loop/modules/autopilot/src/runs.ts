@@ -11,10 +11,10 @@ import { UPDATE_KIT_TEXT } from '#plan-view';
 import { WorkflowActionError } from './autopilot-types.ts';
 import type { HostTickets } from './host-ticket.ts';
 import { FINAL_PHASES } from './run-journal.ts';
-import type { RunJournal, RunRecord } from './run-journal.ts';
+import type { RunJournal, RunRecord, RunSource } from './run-journal.ts';
 import type { RunKit, RunKitStatus, RunScope } from './run-kit.ts';
 import type { AutopilotingMode, SettingsChange, SettingsStore } from './settings.ts';
-import { POLICY_TEXTS, preparationText } from './run-texts.ts';
+import { POLICY_TEXTS, grantNote, preparationText } from './run-texts.ts';
 
 export type StartPolicyKind = 'off' | 'automatic' | 'manual-acceptance' | 'legacy' | 'kit-update-required';
 
@@ -59,7 +59,11 @@ export interface RunsOptions {
   projectPath: (projectId: string) => Promise<string | undefined>;
   listProjects: () => Promise<Array<{ id: string; path: string }>>;
   /** Stores the review decision of the session (plan-review), so no plan question opens. */
-  decideReview?: (projectId: string, key: string, on: boolean) => Promise<void>;
+  /**
+   * Stores the review decision of the session (plan-review) when it has none yet and returns the
+   * effective one: a decision the session already has wins over the Settings default (T006).
+   */
+  decideReview?: (projectId: string, key: string, on: boolean) => Promise<boolean | void>;
   /** Serializes the work on a project with the panel actions (key `project:<id>`). */
   mutex?: KeyedMutex;
   log?: (line: string) => void;
@@ -109,8 +113,9 @@ export function createRuns(options: RunsOptions): Runs {
     return (await options.projectPath(projectId)) ?? fail('project-not-found', 'Проект не найден', 404);
   }
 
-  async function decideReview(projectId: string, key: string, on: boolean): Promise<void> {
-    await options.decideReview?.(projectId, key, on).catch((error: unknown) => log(`autopiloting: review decision of ${key} kept: ${error instanceof Error ? error.message : String(error)}`));
+  async function decideReview(projectId: string, key: string, on: boolean): Promise<boolean> {
+    const effective = await options.decideReview?.(projectId, key, on).catch((error: unknown) => log(`autopiloting: review decision of ${key} kept: ${error instanceof Error ? error.message : String(error)}`));
+    return typeof effective === 'boolean' ? effective : on;
   }
 
   async function policyOf(projectId: string, mode: AutopilotingMode): Promise<StartPolicy> {
@@ -125,7 +130,7 @@ export function createRuns(options: RunsOptions): Runs {
   }
 
   /** The grant of the run for the scope: written through the host ticket; the run records it. */
-  async function grant(folder: string, run: RunRecord, scope: RunScope, status: RunKitStatus, source: 'panel-start' | 'panel-resume', note: string): Promise<RunRecord> {
+  async function grant(folder: string, run: RunRecord, scope: RunScope, status: RunKitStatus, source: RunSource, note: string): Promise<RunRecord> {
     const automation = scope.automation!;
     const manual = automation.acceptance.some((entry) => entry.kind === 'manual');
     const input = {
@@ -205,12 +210,12 @@ export function createRuns(options: RunsOptions): Runs {
         }
         const { settings } = await options.settings.read();
         const folder = await root(projectId);
-        await decideReview(projectId, key, settings.review);
+        const review = await decideReview(projectId, key, settings.review);
         if (settings.mode !== 'full') {
-          return { action: 'prepare', runId: null, mode: settings.mode, review: settings.review, policy: settings.mode, instruction: preparationText(settings.mode, settings.review, null) };
+          return { action: 'prepare', runId: null, mode: settings.mode, review, policy: settings.mode, instruction: preparationText(settings.mode, review, null) };
         }
         if (!options.kit.supported(await options.kit.status(folder)).ready) {
-          return { action: 'prepare', runId: null, mode: 'full', review: settings.review, policy: 'kit-update-required', instruction: preparationText('kit-update-required', settings.review, null) };
+          return { action: 'prepare', runId: null, mode: 'full', review, policy: 'kit-update-required', instruction: preparationText('kit-update-required', review, null) };
         }
         const active = await options.journal.active(folder);
         if (active && active.owner.key === key && active.request.at === latest!.at && active.request.source === 'user-command') {
@@ -222,7 +227,7 @@ export function createRuns(options: RunsOptions): Runs {
             projectId,
             owner: { key, client: clientOf(key), sessionId: idOf(key) },
             mode: 'full',
-            review: settings.review,
+            review,
             request: { source: 'user-command', quote: quote.trim(), at: latest!.at, turnId: latest!.turnId, goal: summary.trim() },
             proposal: null,
             scopeId: null,
@@ -302,8 +307,7 @@ export function createRuns(options: RunsOptions): Runs {
           nextAction: null,
         }),
       );
-      const note = `The user pressed «Начать выполнение плана» with the autopiloting mode «${run.mode === 'full' ? 'Полный автопилот' : 'После ручного запуска Плана'}» (run ${run.runId})`;
-      return grant(folder, run, scope, status, 'panel-start', note);
+      return grant(folder, run, scope, status, run.request.source, grantNote(run));
     },
 
     async resume(projectId, key) {

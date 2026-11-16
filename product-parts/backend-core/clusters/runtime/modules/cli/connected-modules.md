@@ -90,7 +90,13 @@
   `decideReview` — решение ревью сессии по Settings, если его ещё нет, и закрытие её
   вопроса о плане; ответ `review`/`plan` на карточке в режиме `full` регистрирует запуск
   (`runs.planDecision`); переход Settings в `off` ставит запуски на паузу; при старте
-  службы `runs.load()`. Тест — `test/autopiloting.test.ts`;
+  службы `runs.load()`. T006: `attach` связывает подготовку полного запуска с автопилотом
+  (кнопки), ревью (`reviewFact` из `src/autopiloting-links.ts` — ревью, где сессия основная) и
+  решением ревью сессии; `reconcile` вызывается на каждый `Stop` проекта, на окончание ревью
+  (`onReviewFinished` у `wireCrossReview`) и для всех проектов после загрузки при старте
+  службы; `wireCrossReview` получает `digest` (`proposalDigest` — `scope:proposal --digest`
+  проекта и пути документов). `decideReview` возвращает действующее решение ревью сессии.
+  Тест — `test/autopiloting.test.ts`;
 - перекрёстное ревью плана (M4) собрано в `src/review-wiring.ts`:
   `lateReviewDecider()` — решатель ревью для автопилота (подключается после
   создания; передаёт и `choiceBlocked`), `wireCrossReview({ router, state, channel, messages, projects,

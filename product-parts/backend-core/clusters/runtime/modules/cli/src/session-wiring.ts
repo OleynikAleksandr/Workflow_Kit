@@ -22,6 +22,7 @@ import { createDirectMessage, ledOutside } from './direct-message.ts';
 import { lateReviewDecider, toggleLock, wireCrossReview } from './review-wiring.ts';
 import { wireAutopiloting } from './autopiloting-wiring.ts';
 import type { AutopilotingWiring } from './autopiloting-wiring.ts';
+import { proposalDigest, reviewFact } from './autopiloting-links.ts';
 
 /** How often a turn ended without a Stop hook is looked for (M28). */
 export const TURN_RECONCILE_MS = 2000;
@@ -158,6 +159,7 @@ export function wireSessions(options: SessionWiringOptions): SessionWiring {
   const autopiloting = wireAutopiloting({ router, state, mutex, projects, kit, channel, configDir: options.configDir, platform: options.platform, log: options.log, decideReview: async (id, key, on) => {
     await review.dismiss(id, key);
     if (!review.decided(id, key)) await review.set(id, key, on);
+    return review.get(id, key);
   } });
   const autopilot = createAutopilot({
     authority: autopiloting.authority,
@@ -264,8 +266,15 @@ export function wireSessions(options: SessionWiringOptions): SessionWiring {
   channel.onIdle((key) => titles.onStop(key));
   const isClient = (id: string): boolean => providers.get(id) !== undefined;
   registerTitleRoutes({ router, state, titles, isClient });
-  const crossReview = wireCrossReview({ router, state, channel, messages: wakingChannel, projects, providers, workflow, toggles: review, titles, resolveFolderProject, isClient, authorize: autopiloting.authorize, log: options.log });
+  const crossReview = wireCrossReview({
+    router, state, channel, messages: wakingChannel, projects, providers, workflow, toggles: review, titles, resolveFolderProject, isClient, authorize: autopiloting.authorize, log: options.log,
+    digest: (id) => proposalDigest(kit, projects, id),
+    onReviewFinished: (finished) => void autopiloting.reconcile(finished.projectId),
+  });
   reviewDecider.attach(crossReview);
+  // M39 T006: a full run goes from its proposal to the started plan; every finished turn asks again.
+  autopiloting.attach({ actions: autopilot, review: (id, key) => reviewFact(crossReview.get(id, key), key), reviewOn: (id, key) => review.get(id, key), orchestration: (client) => providerCapability(providers.get(client), 'orchestration') });
+  channel.onStop((event) => void (event.projectId && autopiloting.reconcile(event.projectId)));
   // The session leaves at once: out of the channel (a held Stop is released) and out of a running
   // review, as main or as reviewer; nothing waits for its next hook.
   function leaveProcess(projectId: string, key: string): void {

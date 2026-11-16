@@ -4,6 +4,7 @@ export type {
   KitChoiceOption,
   KitExecution,
   KitProposal,
+  KitProposalDigest,
   KitScope,
   KitScopeProposalMarker,
   KitStatus,

@@ -33,10 +33,12 @@
     тайм-аут — `KIT_TIMEOUT`. Протокол одинаков на macOS, Linux и Windows
     x64/ARM64, без shell, сокетов и программ ОС. Типы `HostVerifier`,
     `HostVerdict`, `HostPayload`, константа `HOST_PROTOCOL` (`wfk-host/1`).
-  - `run(root, args)`, `status(root)`, `proposal(root)` (`scope:proposal`) —
+  - `run(root, args)`, `status(root)`, `proposal(root)` (`scope:proposal`),
+    `proposalDigest(root)` (M39 T006: `scope:proposal --digest` → `KitProposalDigest | null`,
+    версия, к которой привязано согласие ревью и `scope:choose --expected-digest`) —
     бандлом проекта `.harness/workflow/runtime/workflow.mjs`
     (`projectBundlePath`); `installed(root)` — есть ли он. Чтения службы
-    `status` и `proposal` идут с `readEnv(env)` (`GIT_OPTIONAL_LOCKS=0`): их
+    `status`, `proposal` и `proposalDigest` идут с `readEnv(env)` (`GIT_OPTIONAL_LOCKS=0`): их
     `git status` не берёт `.git/index.lock`, и одновременный коммит агента в том
     же проекте не падает с `COMMIT_FAILED` (CI macOS, M6 R1).
 - Результат — `KitOutcome<T>`: `{ ok: true, command, result }` или

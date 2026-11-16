@@ -92,7 +92,9 @@ before(async () => {
 after(async () => {
   channel.close();
   workflow.stop();
-  await rm(tmp, { recursive: true, force: true });
+  // A Kit command started by a channel timer may still run in `demo`: Windows refuses to remove
+  // a busy folder (EBUSY), so the removal retries with a growing delay (up to about 11 s).
+  await rm(tmp, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 });
 });
 
 test('sequential: proposal → choice → start → tasks → ready for acceptance → accept → close', async () => {

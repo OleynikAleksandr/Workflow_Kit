@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1136,
+  "revision": 1138,
   "rounds": [
     {
       "digest": null,
@@ -97,7 +97,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Уборка временного проекта теста flow.test.ts на Windows",
       "why": "CI 43859413953 на 2b0bd0d: на Windows x64 и ARM64 after() теста autopilot/test/flow.test.ts падает с EBUSY при rmdir …\\demo — команда Kit, запущенная оставшимся таймером канала, ещё работает в папке проекта; все тесты файла прошли, macOS и Linux зелёные (дефект теста T002)"
     },
@@ -174,8 +174,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 0/3
-- Revision: 1136
+- Progress: 1/3
+- Revision: 1138
 
 ## Objective
 
@@ -194,7 +194,7 @@
 
 ### R1 — Carried over (implementation, OPEN)
 
-- [TODO] F001 — Уборка временного проекта теста flow.test.ts на Windows (work)
+- [DONE] F001 — Уборка временного проекта теста flow.test.ts на Windows (work)
   - Commit: test(autopilot): remove the flow test project with retries on Windows
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/flow.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, docs/architecture/OS-MATRIX.md
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)

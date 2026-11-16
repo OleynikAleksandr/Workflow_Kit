@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1102,
+  "revision": 1103,
   "rounds": [
     {
       "digest": {
@@ -40,7 +40,10 @@
       "Код службы и панели не меняется; typecheck, platform-guard и все тесты проходят.",
       "0.14.2 собрана и установлена на macOS, CI точного SHA поставки зелёная на macOS, Linux, Windows x64 и ARM64; пользовательская приёмка отдельно."
     ],
-    "acceptanceNote": null,
+    "acceptanceNote": {
+      "at": "2026-11-16T01:44:52.798Z",
+      "text": "Пользователь, 16.11.2026: «Принимаю план.»"
+    },
     "approval": {
       "at": "2026-11-15T23:05:35.489Z",
       "text": "Пользователь, 15.11.2026: «Можешь поправить тест?»; «без ревьювера, готов спецификацию, план, выполняй вплоть до сборки нового релиза и публикации его на GitHub». | Execution mode chosen by the user: sequential: Пользователь в чате, 16.11.2026: «Выбираю последовательно. Приступай.»"
@@ -75,7 +78,7 @@
         "text": "Рекомендован sequential: одна рабочая задача в одном файле, затем поставка и CI."
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "ACCEPTED",
     "execution": {
       "maxWorkers": 1,
       "ownerSession": "e93021a5-9717-4ec2-833d-db51b48373f3",
@@ -224,11 +227,11 @@
 ## State
 
 - Scope: M35-test-stray-folders (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: ACCEPTED
 - Execution: sequential
 - Current task: none
 - Progress: 4/4
-- Revision: 1102
+- Revision: 1103
 
 ## Objective
 

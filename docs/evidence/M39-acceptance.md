@@ -81,6 +81,61 @@ macOS, 16.11.2026, исходники рабочей копии, `npm test`. Kit
   начинает задачу или назначения, поэтому в сквозных проверках этого нет. Нужна ли в
   автопилоте своя блокировка вместо кнопки — решение пользователя.
 
+## Поставка 0.15.0 (T011)
+
+macOS, 16.11.2026, время UTC. Исходники: `2cb2bff` и изменения этой задачи — версия, CHANGELOG,
+README; база — 0.14.5. Номер 0.15.0 свободен: в истории и CHANGELOG его не было.
+`package-lock.json` меняет только два поля версии.
+
+```sh
+npm run typecheck             # без ошибок
+npm run check:platforms       # platform-guard: ok
+npm test                      # test:app 1296 (1294 пройдено, 2 пропущено, 0 ошибок); test:kit 69 из 69
+npm run build:kit             # Kit 2.3.3, 15339 строк, sha256 f7ca59a8…1bfb1418, бандл без изменений
+node bin/wfk.mjs install      # app/0.15.0 вместо 0.14.5, удалена старая 0.14.4
+~/.local/bin/wfk doctor --installed
+curl -s http://127.0.0.1:4747/api/health
+```
+
+Итоговый `KIT_VERSION` — 2.3.3, sha256 бандла
+`f7ca59a807a5702130a286e8c9bb3c98c300cfa3aa682081bc6c65091bfb1418`: тот же файл лежит в
+каталоге данных (`kit/workflow-kit-2.3.3.mjs`) и в runtime Workflow_Kit, установленном
+между T004 и T005 (`8bd6f54`). Позже ядро не менялось, повторной установки Kit не было;
+runtime руками не менялся.
+
+Doctor: все строки `ok`, «итог: всё в порядке», служба 0.15.0 (pid 52413), LaunchAgent
+загружен, общий доступ ChatGPT «Работает». `/api/health`:
+`{"ok":true,"version":"0.15.0","pid":52413,"startedAt":"2026-11-16T21:49:22.107Z"}`.
+Установка перезапустила только службу; работающие сессии пользователя не перезапускались.
+
+Проверки установленной службы (запросами панели с её `Origin`):
+- `GET /api/settings/autopiloting` после обновления: `{"version":1,"revision":0,"mode":"off",
+  "review":false,"error":null}` — файла настроек нет, режим «Выключено».
+- `POST /api/settings/autopiloting` с устаревшей `expectedRevision` 5 — 409; значение не
+  изменилось.
+- `GET /api/projects/:id/autopiloting/policy` Workflow_Kit — `off` с подписью режима;
+  раздел `autopiloting` в `/api/state` — настройки и пустые `projects`.
+- Панель отдаёт `autopiloting-card.js`, `autopiloting-model.js`, `session-view/run-card.js`
+  и `run-card.css`; `settings.js` подключает `createAutopilotingCard`. `wfk session --help`
+  установленной команды называет `wfk session progress` и `wfk session run pause|stop`.
+- Новая сессия: мастер установленной панели создал одноразовый проект
+  `/Volumes/Backup/M39_live_225017` с Claude (`op-7a81b7d5ca57`, все шаги `done`): коммиты
+  `chore: add Workflow Kit structure`, `chore: install workflow kit 2.3.3`, чистое дерево.
+  Структура 5 (`ok`), Kit `KIT_OK` 2.3.3. Раздел `AGENTS.md` содержит правила запуска
+  автопилота (live autopilot run). Первая сессия выполнила `recover` и ответила: проект
+  пустой, задачи нет, режим планирования. Проект можно убрать в архив.
+
+У самого Workflow_Kit структура Kit 4, панель предлагает «Структура Kit 4 → 5». Обновление
+структуры не входило в согласие на Kit и меняет хуки идущей сессии: это кнопка «Обновить Kit»
+по решению пользователя после поставки.
+
+| ОС | Кто | Что | Итог |
+| --- | --- | --- | --- |
+| macOS | агент | тесты, установка 0.15.0, doctor, `/api/health`, маршруты, новая сессия | пройдено |
+| macOS | пользователь | раздел 3 матрицы: живые прогоны режимов, Settings на Mac и iPad | не проверено |
+| Linux, Windows x64 и ARM64 | CI | typecheck, тесты, platform-guard для точного SHA (T012) | после T012 |
+| Windows x64 или ARM64 | проверяющий на Windows | Settings, свёрнутые карточки, запуск | не проверено |
+
 ## Не проверено
 
 - Живые провайдеры (Claude, Codex, Kimi), настоящий `gh` и GitHub, публикация в настоящий

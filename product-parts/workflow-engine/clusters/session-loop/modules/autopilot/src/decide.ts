@@ -2,10 +2,11 @@
 // autopilot-decision.ts): whether the host sends the next turn after a turn ended, from the
 // Kit `autopilot:status`. Pure; the texts to the agent stay in English like in Harness.
 import type { AutopilotDecision, AutopilotProjectStatus, AutopilotState, AutopilotTurn } from './decide-model.ts';
-import { KIT_COMMAND, PAUSED_DETAIL, continueText, decideOrchestration, stop } from './decide-orchestration.ts';
+import { KIT_COMMAND, PAUSED_DETAIL, continueText, decideOrchestration, grantedDelivery, liveGrant, stop } from './decide-orchestration.ts';
 
 export type {
   AutopilotAssignment,
+  AutopilotAuthority,
   AutopilotDecision,
   AutopilotOrchestration,
   AutopilotProjectStatus,
@@ -65,6 +66,19 @@ function commonStop(
       `A commit transaction or check failed; run \`${KIT_COMMAND} repair\` or fix the check.`
     );
   }
+  const grant = liveGrant(status);
+  if (status.delivery === "READY_FOR_ACCEPTANCE" && grant?.accept) {
+    return stop(
+      "host-transition",
+      `Autopilot run ${grant.runId} accepts the result automatically from the evidence; the host runs the acceptance.`
+    );
+  }
+  if (status.delivery === "ACCEPTED" && grant?.close) {
+    return stop(
+      "host-transition",
+      `Autopilot run ${grant.runId} closes the scope; the host runs the close and the publication.`
+    );
+  }
   if (
     status.delivery === "READY_FOR_ACCEPTANCE" ||
     status.delivery === "ACCEPTED"
@@ -99,7 +113,11 @@ export function decideAutopilot(
   if (!task) {
     return stop("blocked", "No task is ready to start.");
   }
-  if (task.kind === "delivery" && task.status === "TODO") {
+  const granted =
+    task.kind === "delivery" && task.status === "TODO"
+      ? grantedDelivery(status, task)
+      : null;
+  if (task.kind === "delivery" && task.status === "TODO" && !granted) {
     return stop(
       "delivery-confirmation",
       `Task ${task.id} is a delivery task and needs the user's confirmation.`
@@ -117,7 +135,7 @@ export function decideAutopilot(
       `The limit of ${state.maxContinues} consecutive continues is reached.`
     );
   }
-  return { action: "continue", taskId: task.id, text: continueText(task) };
+  return granted ?? { action: "continue", taskId: task.id, text: continueText(task) };
 }
 
 /**

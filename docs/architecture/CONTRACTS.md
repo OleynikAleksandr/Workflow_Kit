@@ -96,7 +96,11 @@ Kit 2.2.6 ставится в проект бандлом (`install --host harne
 пользователь действительно написал сессии (`agent-channel userWords`). Полный режим (T006):
 предложение → ревью, согласованное на digest `scope:proposal --digest` (`cross-review`
 `reviewedProposal`), → автоматический `scope:choose --expected-digest` и старт тем же
-действием, что кнопки; изменённая после согласия спецификация отменяет допуск — контракт
+действием, что кнопки; изменённая после согласия спецификация отменяет допуск. Выполнение
+(T007): начатый запуск решает ходы владельца (без предела 40, три хода без прогресса —
+блокировка, ожидания CI и вопроса без попыток, барьеры паузы и остановки, одно сообщение на
+Stop + resume, восстановление после перезапуска), CI проверяется независимо (`git-publish`
+`GitHubCi`, `gh`), красный CI начатой поставки — `task:defer-delivery` — контракт
 [autopilot/autopiloting.md](../../product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md),
 маршруты — [HTTP-CONTRACTS.md](HTTP-CONTRACTS.md#автопилотирование-m39). Раздел `workflow` даёт модели
 карточек плана и выбора пути (`plan-view`). Хук вопроса Claude `wfk hook question`

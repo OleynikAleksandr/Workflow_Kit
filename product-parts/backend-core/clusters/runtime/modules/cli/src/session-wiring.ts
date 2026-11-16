@@ -22,11 +22,13 @@ import { createDirectMessage, ledOutside } from './direct-message.ts';
 import { lateReviewDecider, toggleLock, wireCrossReview } from './review-wiring.ts';
 import { wireAutopiloting } from './autopiloting-wiring.ts';
 import type { AutopilotingWiring } from './autopiloting-wiring.ts';
-import { proposalDigest, reviewFact } from './autopiloting-links.ts';
+import { locateSession, ownerUnreachable, proposalDigest, reviewFact } from './autopiloting-links.ts';
 
 /** How often a turn ended without a Stop hook is looked for (M28). */
 export const TURN_RECONCILE_MS = 2000;
 export const TURN_SETTLE_MS = 1500;
+/** How often the runs that wait for CI read GitHub (M39 T007). */
+export const AUTOPILOT_TICK_MS = 15_000;
 /**
  * Claude sends no Stop hook after an interruption (M28 3.2): a working turn whose provider turn state
  * says idle later than the turn started (and not just now, when a Stop hook may be in flight) is
@@ -163,6 +165,7 @@ export function wireSessions(options: SessionWiringOptions): SessionWiring {
   } });
   const autopilot = createAutopilot({
     authority: autopiloting.authority,
+    runs: autopiloting.turns,
     runner: kit,
     workflow,
     channel: wakingChannel,
@@ -273,7 +276,16 @@ export function wireSessions(options: SessionWiringOptions): SessionWiring {
   });
   reviewDecider.attach(crossReview);
   // M39 T006: a full run goes from its proposal to the started plan; every finished turn asks again.
-  autopiloting.attach({ actions: autopilot, review: (id, key) => reviewFact(crossReview.get(id, key), key), reviewOn: (id, key) => review.get(id, key), orchestration: (client) => providerCapability(providers.get(client), 'orchestration') });
+  autopiloting.attach({
+    actions: autopilot,
+    review: (id, key) => reviewFact(crossReview.get(id, key), key),
+    reviewOn: (id, key) => review.get(id, key),
+    orchestration: (client) => providerCapability(providers.get(client), 'orchestration'),
+    locate: (input) => locateSession(input, { resolveFolderProject, isClient, running: (id) => titles.running(id) }),
+    activity: (key) => channel.get(key),
+    unreachable: async (id, key) => ownerUnreachable(providers.get(clientOf(key)), titles.excluded(id, key)),
+    send: (id, key, text) => void wakingChannel.enqueue(key, text, 'panel', id),
+  });
   channel.onStop((event) => void (event.projectId && autopiloting.reconcile(event.projectId)));
   // The session leaves at once: out of the channel (a held Stop is released) and out of a running
   // review, as main or as reviewer; nothing waits for its next hook.
@@ -295,6 +307,9 @@ export function wireSessions(options: SessionWiringOptions): SessionWiring {
     reconcile().catch(() => undefined).finally(() => { reconciling = false; });
   }, TURN_RECONCILE_MS);
   reconciler.unref?.();
+  // M39 T007: runs that wait for CI are checked on GitHub (a pending CI is a wait, never a result).
+  const runTicker = setInterval(() => void autopiloting.tick().catch(() => undefined), AUTOPILOT_TICK_MS);
+  runTicker.unref?.();
   const interruptions = createTurnInterruption({ channel, providers, projects, autopilot, reviews: crossReview, wake: (key) => { void wakeIdle(key); } });
   // The question hook (spec M33 section 2.3): the provider of the client holds it for the project of
   // its folder; an unknown project or a provider without questionHook releases the native dialog.
@@ -304,7 +319,12 @@ export function wireSessions(options: SessionWiringOptions): SessionWiring {
     const ref = provider?.questionHook && folder ? await resolveFolderProject(folder) : undefined;
     const project = ref ? await projects.get(ref.id) : undefined;
     if (!provider?.questionHook || !project) return { release: true };
-    return provider.questionHook(project, request, signal);
+    // M39 T007: the run of the asking owner waits (no attempt spent); an expired hook needs data.
+    const asking = `${request.client}:${request.sessionId}`;
+    await autopiloting.waits.questionStarted(project.id, asking).catch(() => undefined);
+    const reply = await provider.questionHook(project, request, signal);
+    if ('decision' in reply || 'release' in reply) void autopiloting.waits.questionEnded(project.id, asking, 'decision' in reply ? 'answered' : 'expired').catch(() => undefined);
+    return reply;
   };
   registerChannelRoutes({ router, state, channel: observedChannel, messages: wakingChannel, owns: ownsSession, dialects, direct, interrupt: interruptions.interrupt, interruptions: interruptions.section, question });
   return { channel, autopilot, review, titles, crossReview, autopiloting };

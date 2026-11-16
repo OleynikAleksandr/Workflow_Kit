@@ -141,7 +141,11 @@
   запуски `createRuns`, тексты `POLICY_TEXTS`/`preparationText`, маршруты
   `registerAutopilotingRoutes` и разделение исходников — в [autopiloting.md](autopiloting.md);
   там же T006 — подготовка полного запуска `createPreparation` (`PREPARE_TEXTS`, `ReviewFact`,
-  `PrepareActions`), `grantNote` и `ChooseRequest.expectedDigest`/`automatic`.
+  `PrepareActions`), `grantNote` и `ChooseRequest.expectedDigest`/`automatic`; T007 —
+  перенесённый решатель с разрешением (`liveGrant`, `grantedDelivery`, `host-transition`),
+  `createRunTurns` (опция `runs`), `createRunControl`, `createRunWaits`,
+  `registerRunControlRoutes`, `registerSessionRunRoutes`, `runHttp`, `Autopilot.halt`,
+  `authority.onPause`, `WorkflowActionError.details`.
 
 ## Инварианты
 

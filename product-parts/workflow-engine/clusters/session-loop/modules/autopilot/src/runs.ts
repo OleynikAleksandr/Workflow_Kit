@@ -81,7 +81,10 @@ export interface Runs {
    * plans. Called under the project lock of the panel action (it takes no lock itself), as resume.
    */
   beginExecution(projectId: string, key: string): Promise<RunRecord | null>;
-  /** «Продолжить» of a run paused by Settings off: a new grant revision in the old boundaries. */
+  /**
+   * «Продолжить»: a run paused by Settings off gets a new grant revision in the old boundaries; a
+   * run paused by the user or blocked goes on from the phase it stopped in (T007).
+   */
   resume(projectId: string, key: string): Promise<RunRecord | null>;
   settingsChanged(change: SettingsChange): Promise<void>;
   section(): Promise<{ projects: Record<string, RunBrief> }>;
@@ -313,7 +316,12 @@ export function createRuns(options: RunsOptions): Runs {
     async resume(projectId, key) {
       const folder = await root(projectId);
       const run = await options.journal.active(folder);
-      if (!run || run.phase !== 'paused' || !run.authority?.revocation?.resumable) return null;
+      if (!run || (run.phase !== 'paused' && run.phase !== 'blocked')) return null;
+      if (!run.authority?.revocation) {
+        // A pause of the user or of the M24 stop, or a removed obstacle: the run goes on where it stopped.
+        return remember(await options.journal.update(folder, run.runId, (r) => ({ ...r, phase: r.pausedFrom ?? 'executing', pausedFrom: null, reason: null, nextAction: null, noProgress: 0 })));
+      }
+      if (!run.authority.revocation.resumable) return null;
       const status = await options.kit.status(folder);
       const scope = await options.kit.scope(folder);
       if (!status?.proposal || !scope?.automation || scope.id !== run.scopeId) {

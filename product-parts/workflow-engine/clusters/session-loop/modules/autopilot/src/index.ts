@@ -1,6 +1,7 @@
 // Public interface of autopilot.
 export type {
   AutopilotAssignment,
+  AutopilotAuthority,
   AutopilotDecision,
   AutopilotOrchestration,
   AutopilotProjectStatus,
@@ -32,7 +33,15 @@ export { createRunKit } from './run-kit.ts';
 export type { PreparationResult, RunBrief, Runs, RunsOptions, StartPolicy, StartPolicyKind } from './runs.ts';
 export { createRuns } from './runs.ts';
 export { POLICY_TEXTS, preparationText } from './run-texts.ts';
-export { registerAutopilotingRoutes } from './runs-routes.ts';
+export { registerAutopilotingRoutes, registerRunControlRoutes, registerSessionRunRoutes, runHttp } from './runs-routes.ts';
 export type { PrepareActions, Preparation, PreparationDeps, ReviewFact } from './run-prepare.ts';
 export { PREPARE_TEXTS, createPreparation } from './run-prepare.ts';
 export { grantNote } from './run-texts.ts';
+export type { LiveRun, RunTurnDecision, RunTurns } from './run-turns.ts';
+export { NO_PROGRESS_LIMIT, TURN_TEXTS, createRunTurns } from './run-turns.ts';
+export type { ControlActions, RunControl, RunControlDeps } from './run-control.ts';
+export { CONTROL_TEXTS, createRunControl } from './run-control.ts';
+export type { CiPolicyLike, CiReadVerdict, RunWaits, RunWaitsDeps } from './run-waits.ts';
+export { RETRY_DELAYS_MS, WAIT_TEXTS, createRunWaits } from './run-waits.ts';
+export type { RunWait } from './run-journal.ts';
+export { grantedDelivery, liveGrant } from './decide-orchestration.ts';

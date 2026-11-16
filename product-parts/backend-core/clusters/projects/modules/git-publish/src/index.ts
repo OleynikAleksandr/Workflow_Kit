@@ -5,3 +5,5 @@ export type { PublicationState, PublicationStatus, PublishRefusal } from './publ
 export { PublishError, REFUSALS, publish, readPublication, refusal } from './publication.ts';
 export type { Publication, PublicationOptions } from './routes.ts';
 export { registerPublicationRoutes } from './routes.ts';
+export type { CiJob, CiPolicy, CiVerdict, GhRunner, GitHubCi } from './github-ci.ts';
+export { createGitHubCi, githubRepo, runGh } from './github-ci.ts';

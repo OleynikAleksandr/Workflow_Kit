@@ -322,7 +322,7 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
       await crossReview.load().catch(() => undefined);
       await titles.load().catch(() => undefined);
       await autopiloting.runs.load().catch(() => undefined);
-      void autopiloting.reconcileAll().catch(() => undefined);
+      void autopiloting.reconcileAll().then(() => autopiloting.recoverAll()).catch(() => undefined);
       return { ...bound, urls: panelUrls(bound.port, getInterfaces()) };
     },
     async stop() {

@@ -6,6 +6,7 @@ import type { StopDecision } from '#agent-channel';
 import type { KitOutcome } from '#kit-runner';
 import type { KitChoiceOption } from '#plan-view';
 import { DEFAULT_MAX_CONTINUES, decideAutopilot, nextAutopilotState } from './decide.ts';
+import { grantedDelivery, liveGrant } from './decide-orchestration.ts';
 import type { AutopilotProjectStatus } from './decide.ts';
 import { CHOICE_NOTES, CHOSEN_WAIT, EXECUTOR_HOWTO, PREFIX, REFINE_MESSAGE, RESUME_MESSAGE, START_MESSAGES, STOP_LABELS } from './texts.ts';
 import { deliveryMessage, executorHowto, fixesMessage, sequentialOnlyNote } from './texts.ts';
@@ -167,24 +168,27 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
         owners.set(context.projectId, context.key);
         return hold('waiting-for-plan-start', 'План готов: нажмите «Начать выполнение плана»');
       }
+      // M39 T007: a started run of this owner keeps its barrier and survives a restart of the service.
+      const live = (await options.runs?.live(context.projectId, context.key)) ?? null;
+      if (live?.barrier) {
+        entry.origin = null;
+        note(entry, 'release', live.barrier, live.run.reason ?? STOP_LABELS[live.barrier] ?? live.barrier);
+        return { kind: 'release' };
+      }
+      if (live) entry.enabled = true;
       if (!entry.enabled) {
         entry.origin = null;
         planEnd.settle(entry, status);
         return { kind: 'release' };
       }
-      const turn = {
-        before: entry.before ?? { head: null, revision: -1 },
-        outcome: 'completed' as const,
-        userMessage: entry.origin === 'user' && !context.woken,
-      };
-      const decision = decideAutopilot(
-        { enabled: entry.enabled, continues: entry.continues, maxContinues: entry.maxContinues, orchestrationKey: entry.orchestrationKey },
-        status,
-        turn,
-      );
-      const next = nextAutopilotState({ enabled: entry.enabled, continues: entry.continues, maxContinues: entry.maxContinues, orchestrationKey: entry.orchestrationKey }, decision);
+      const userMessage = entry.origin === 'user' && !context.woken;
+      const turn = { before: entry.before ?? { head: null, revision: -1 }, outcome: 'completed' as const, userMessage: userMessage && !live };
+      const decisionState = { enabled: entry.enabled, continues: entry.continues, maxContinues: live ? Number.POSITIVE_INFINITY : entry.maxContinues, orchestrationKey: entry.orchestrationKey };
+      const shared = decideAutopilot(decisionState, status, turn);
+      const next = nextAutopilotState(decisionState, shared);
       entry.continues = next.continues;
       entry.orchestrationKey = next.orchestrationKey;
+      const decision = live ? await options.runs!.turn(live, shared, status, userMessage) : shared;
       if (decision.action === 'continue') {
         entry.before = { head: status.head, revision: status.revision };
         entry.origin = 'kit';
@@ -273,10 +277,15 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
 
     async interrupt(projectId, key) {
       state(key, projectId).enabled = false;
+      await options.authority?.onPause?.(projectId, 'interrupted');
       await pauseInterruptedOwner({ workflow: options.workflow, projectId, key, pause: () => kit(projectId, ['pause:set', '--on', '--note', 'Пользователь остановил ответ в панели Workflow Kit']) });
     },
     async pause(projectId) {
+      await options.authority?.onPause?.(projectId, 'user-pause');
       await kit(projectId, ['pause:set', '--on', '--note', 'Пользователь поставил план на паузу в панели Workflow Kit']);
+    },
+    halt(projectId) {
+      for (const entry of states.values()) if (entry.projectId === projectId) entry.enabled = false;
     },
 
     async resume(projectId, session) {
@@ -285,6 +294,8 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
       const key = await owner(projectId, session);
       const runId = (await options.authority?.beforeResume(projectId, key)) ?? null;
       options.channel.resumeDelivery?.(key);
+      // M39: one sender — a run whose owner already works gets no second message (Stop + resume).
+      if (runId && options.channel.get(key)?.state === 'working') return { owner: key, runId };
       await enable(projectId, key, RESUME_MESSAGE);
       return { owner: key, ...(runId ? { runId } : {}) };
     },
@@ -296,6 +307,12 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
     async fixes(projectId, text, session) {
       if (!text.trim()) throw new WorkflowActionError('bad-request', 'Опишите, что исправить', 400);
       const key = await owner(projectId, session);
+      // M39: a started delivery of a live run is deferred first (Kit rules), then the fixes round.
+      const status = await autopilotStatus(projectId);
+      const task = status?.nextTask;
+      if (status && liveGrant(status) && task?.kind === 'delivery' && task.status === 'IN_PROGRESS') {
+        await kit(projectId, ['task:defer-delivery', task.id, '--reason', `The user asked for fixes in the panel: ${text.trim().slice(0, 300)}`, '--expected-revision', String(status.revision)]);
+      }
       await enable(projectId, key, fixesMessage(text.trim()));
       return { owner: key };
     },
@@ -306,6 +323,8 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
       if (!task || task.kind !== 'delivery') throw new WorkflowActionError('no-delivery', 'Нет задачи выпуска, ждущей подтверждения', 409);
       if (words.trim().length < 3) throw new WorkflowActionError('bad-request', 'Напишите подтверждение своими словами', 400);
       const key = await owner(projectId, session);
+      // M39: a delivery the live run confirmed in advance gets no second message; the run sends it.
+      if (task.status === 'TODO' && grantedDelivery(status!, task)) return { owner: key, taskId: task.id };
       await enable(projectId, key, deliveryMessage(task.id, words.trim()));
       return { owner: key, taskId: task.id };
     },

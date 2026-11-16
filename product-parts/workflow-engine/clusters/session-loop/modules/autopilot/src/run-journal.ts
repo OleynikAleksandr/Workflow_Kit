@@ -59,6 +59,16 @@ export interface RunAuthority {
   revocation: { at: string; reason: 'settings-off' | 'user-stop'; resumable: boolean } | null;
 }
 
+export interface RunWait {
+  reason: 'ci' | 'question';
+  since: string;
+  /** CI: the SHA, the action and the policy digest the agent reported (`wfk session progress`). */
+  sha?: string;
+  actionId?: string;
+  stage?: string;
+  detail: string;
+}
+
 export interface RunReceipt {
   /** Stable id of the action; a repeat finds it and adds nothing. */
   actionId: string;
@@ -90,6 +100,12 @@ export interface RunRecord {
   receipts: RunReceipt[];
   /** Ids of the host tickets this run redeemed; restored after a restart. */
   tickets: string[];
+  /** Finished turns in a row without progress (T007); absent in older files. */
+  noProgress?: number;
+  /** What the run waits for without spending attempts (T007): CI of a SHA, an agent's question. */
+  wait?: RunWait | null;
+  /** Failed attempts per action id and the time of the next one (T007, backoff 5/15/45 s). */
+  retries?: Record<string, { count: number; nextAt: string; error: string }>;
   createdAt: string;
   updatedAt: string;
 }

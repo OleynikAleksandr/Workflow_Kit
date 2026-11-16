@@ -5,9 +5,22 @@ import type { AgentChannel } from '#agent-channel';
 import type { KitChoiceOption } from '#plan-view';
 import type { StopReason } from './decide.ts';
 import type { PlanStart } from './start.ts';
+import type { RunTurns } from './run-turns.ts';
 
 /** `accepted` and `closed` label a plan the user accepted or closed (spec M37 2.2). */
-export type AutopilotReason = StopReason | 'waiting-for-plan-start' | 'waiting-for-review' | 'waiting-for-main' | 'waiting-for-plan-decision' | 'accepted' | 'closed';
+export type AutopilotReason =
+  | StopReason
+  | 'waiting-for-plan-start'
+  | 'waiting-for-review'
+  | 'waiting-for-main'
+  | 'waiting-for-plan-decision'
+  | 'accepted'
+  | 'closed'
+  // M39 T007: a run waits (not counted as no progress) or keeps its barrier.
+  | 'waiting-for-ci'
+  | 'waiting-for-question'
+  | 'run-paused'
+  | 'run-blocked';
 
 /**
  * The cross review (M4): its Stop decision comes before the autopilot's. canStart — the session
@@ -42,12 +55,15 @@ export class WorkflowActionError extends Error {
   readonly code: string;
   readonly status: number;
   readonly nextAction: string | null;
-  constructor(code: string, message: string, status = 409, nextAction: string | null = null) {
+  /** Extra fields of the HTTP error (M39: the current run of a stale request). */
+  readonly details: Record<string, unknown> | undefined;
+  constructor(code: string, message: string, status = 409, nextAction: string | null = null, details?: Record<string, unknown>) {
     super(message);
     this.name = 'WorkflowActionError';
     this.code = code;
     this.status = status;
     this.nextAction = nextAction;
+    this.details = details;
   }
 }
 
@@ -65,6 +81,8 @@ export interface AutopilotOptions {
   /** Whether the project lists the session (its provider knows it); absent — every session counts. */
   owns?: (projectId: string, key: string) => Promise<boolean>;
   maxContinues?: number;
+  /** M39 T007: the started run of the owner decides its turns (no limit of 40, waits, barriers). */
+  runs?: Pick<RunTurns, 'live' | 'turn'>;
   /**
    * M39 autopiloting runs: the grant of a manual start is recorded before the first work message;
    * «Продолжить» of a run paused by Settings off records a new grant revision. Both return the
@@ -73,6 +91,8 @@ export interface AutopilotOptions {
   authority?: {
     beforeStart(projectId: string, key: string): Promise<string | null>;
     beforeResume(projectId: string, key: string): Promise<string | null>;
+    /** M39 T007: the plan was paused in the panel or by the M24 stop: the run keeps the barrier. */
+    onPause?(projectId: string, reason: 'user-pause' | 'interrupted'): Promise<void>;
   };
   now?: () => Date;
   log?: (line: string) => void;
@@ -100,6 +120,8 @@ export interface Autopilot {
   /** `already` — a start runs without a problem: nothing was sent again (spec M11 2.3). */
   start(projectId: string, session?: string): Promise<{ owner: string; already?: boolean; runId?: string }>;
   pause(projectId: string): Promise<void>;
+  /** M39 T007: no automatic continuation in the project any more (a stopped run); manual work goes on. */
+  halt(projectId: string): void;
   interrupt(projectId: string, key: string): Promise<void>;
   resume(projectId: string, session?: string): Promise<{ owner: string; runId?: string }>;
   /** Runs the Kit command and tells the owner session (spec M37 2.2); `session` — the session of the request. */

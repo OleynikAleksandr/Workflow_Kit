@@ -9,7 +9,9 @@ import { createStubProvider } from '#provider-registry';
 import { createApp } from '../src/index.ts';
 import type { App } from '../src/index.ts';
 import { SESSION_USAGE, preparedText, runSessionCommand, sessionFlags } from '../src/session-command.ts';
-import { proposalDigest, reviewFact } from '../src/autopiloting-links.ts';
+import { locateSession, ownerUnreachable, proposalDigest, reviewFact } from '../src/autopiloting-links.ts';
+import { RUN_USAGE, inputFlag } from '../src/session-run-command.ts';
+import { writeFile } from 'node:fs/promises';
 import type { Review } from '#cross-review';
 import type { KitRunner } from '#kit-runner';
 
@@ -114,4 +116,59 @@ test('T006 links: the proposal version for the review and the review fact of the
   assert.deepEqual(reviewFact(review, 'claude:a'), { status: 'agreed', scopeId: 's', reason: null, reviewedProposal: { scopeId: 's', generation: 2, digest: 'd' } });
   assert.equal(reviewFact(review, 'codex:reviewer'), null, 'the reviewer\'s side is not its own proposal');
   assert.equal(reviewFact({ ...review, reviewedProposal: undefined } as Review, 'claude:a')?.reviewedProposal, null, 'an older review file');
+});
+
+test('T007: wfk session progress sends the JSON as a wait; wfk session run pause|stop; usage errors', async () => {
+  assert.deepEqual(inputFlag(['--input', 'p.json', '--client', 'claude']), { input: 'p.json', rest: ['--client', 'claude'] });
+  assert.equal(inputFlag(['--input']), null);
+  const file = path.join(tmp, 'progress.json');
+  await writeFile(file, JSON.stringify({ runId: 'run-abcdef', actionId: 'ci:x' }));
+  const calls: Array<{ url: string; body: unknown }> = [];
+  const out: string[] = [];
+  const err: string[] = [];
+  const deps = (reply: { status: number; body: unknown }) => ({
+    stdout: (t: string) => void out.push(t),
+    stderr: (t: string) => void err.push(t),
+    env: { WFK_DATA_DIR: path.join(tmp, 'data'), CLAUDE_CODE_SESSION_ID: 'c1' },
+    cwd: tmp,
+    homedir: tmp,
+    request: async (url: string, body: unknown) => (calls.push({ url, body }), reply),
+  });
+  assert.equal(await runSessionCommand(['progress', '--input', 'progress.json'], deps({ status: 200, body: { runId: 'run-abcdef', note: 'A wait is no CI result' } })), 0);
+  assert.match(calls[0]!.url, /\/api\/sessions\/progress$/u);
+  assert.deepEqual(calls[0]!.body, { progress: { runId: 'run-abcdef', actionId: 'ci:x' }, cwd: tmp, projectDir: null, client: 'claude', sessionId: 'c1' });
+  assert.match(out.join(''), /recorded: wait for CI \(run run-abcdef\)/u);
+  assert.equal(await runSessionCommand(['run', 'stop'], deps({ status: 200, body: { runId: 'run-abcdef', phase: 'stopped' } })), 0);
+  assert.deepEqual((calls[1]!.body as { action: string }).action, 'stop');
+  for (const args of [['progress'], ['progress', '--input', 'progress.json', 'extra'], ['run', 'later'], ['run', 'pause', '--input', 'x.json']]) {
+    err.length = 0;
+    assert.equal(await runSessionCommand(args, deps({ status: 200, body: {} })), 64, args.join(' '));
+    assert.equal(err.join(''), RUN_USAGE);
+  }
+  err.length = 0;
+  assert.equal(await runSessionCommand(['run', 'pause'], deps({ status: 403, body: { error: { code: 'not-owner', message: 'Управляет запуском только сессия-владелец' } } })), 1);
+  assert.match(err.join(''), /только сессия-владелец/u);
+});
+
+test('T007: the service routes of the agent are loopback commands of the calling session', async () => {
+  const post = async (url: string, body: object) => {
+    const reply = await fetch(`${base}${url}`, { method: 'POST', headers: H(), body: JSON.stringify({ cwd: folder, client: 'claude', sessionId: 's-auth', ...body }) });
+    return { status: reply.status, body: (await reply.json()) as { error?: { code?: string } } };
+  };
+  assert.deepEqual([(await post('/api/sessions/run', { action: 'later' })).status], [400]);
+  assert.equal((await post('/api/sessions/run', { action: 'pause' })).body.error?.code, 'run-not-found');
+  assert.equal((await post('/api/sessions/progress', { progress: {} })).body.error?.code, 'bad-request');
+  const control = await fetch(`${base}/api/projects/nope/autopiloting/pause`, { method: 'POST', headers: H(), body: JSON.stringify({ runId: 'run-abcdef', expectedRevision: 1 }) });
+  assert.equal(control.status, 404);
+});
+
+test('T007 links: the calling session of a command and an unreachable owner', async () => {
+  const deps = { resolveFolderProject: async (f: string) => (f === '/p' ? { id: 'p1' } : undefined), isClient: (id: string) => id === 'claude', running: async () => 'codex:run' };
+  assert.deepEqual(await locateSession({ cwd: '/p', client: 'claude', sessionId: 's1' }, deps), { projectId: 'p1', key: 'claude:s1' });
+  assert.deepEqual(await locateSession({ cwd: '/p' }, deps), { projectId: 'p1', key: 'codex:run' });
+  await assert.rejects(locateSession({ cwd: '/x' }, deps), { code: 'project-not-found' });
+  assert.equal(ownerUnreachable(undefined, false), 'провайдер сессии не подключён');
+  assert.equal(ownerUnreachable({ wakeSession: async () => true } as never, true), 'сессия в архиве или убрана из списка');
+  assert.match(ownerUnreachable({} as never, false) ?? '', /не умеет будить/u);
+  assert.equal(ownerUnreachable({ sendMessage: async () => true } as never, false), null);
 });

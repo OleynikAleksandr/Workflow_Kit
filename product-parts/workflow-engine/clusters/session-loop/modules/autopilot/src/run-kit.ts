@@ -16,7 +16,9 @@ export interface RunKitStatus {
   head: string | null;
   capability?: unknown;
   proposal?: { digest: string; generation: number } | null;
-  authorization?: { runId: string; revision: number; revoked: unknown; delivery: Array<{ taskId: string }>; accept: boolean; close: boolean } | null;
+  authorization?: { runId: string; revision: number; revoked: unknown; delivery: Array<{ taskId: string }>; accept: boolean; close: boolean; ci?: unknown } | null;
+  /** The next task of the plan (T007: a started delivery deferred after a red CI). */
+  nextTask?: { id: string; kind: string; status: string } | null;
   acceptance?: Array<{ criterion: number; kind: 'automatic' | 'manual' }> | null;
 }
 
@@ -62,6 +64,8 @@ export function createRunKit(options: { runner: KitRunner; tickets: HostTickets 
 
   return {
     status: (root: string) => read<RunKitStatus>(root, ['autopilot:status']),
+    /** A public Kit command of the run (T007: `task:defer-delivery`); the Kit outcome as it is. */
+    command: <T>(root: string, args: string[]): Promise<KitOutcome<T>> => options.runner.run<T>(root, args),
     /** The open proposal (`scope:proposal`): recommended mode and options; null without one. */
     proposal: async (root: string): Promise<KitProposal | null> => {
       if (!options.runner.installed(root)) return null;

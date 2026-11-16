@@ -7,11 +7,13 @@ import os from 'node:os';
 import { requestJson, serviceUrl } from './hook-service.ts';
 import type { RequestJson } from './hook-service.ts';
 import { SESSION_ENV } from './provider-list.ts';
+import { runSessionRunCommand } from './session-run-command.ts';
 
 export const SESSION_USAGE =
   'Использование: wfk session title "<коротко о задаче>" | wfk session plan "<что собираемся сделать>" [--authorized "<точные слова пользователя>"]\n' +
   '  Сессию можно назвать явно: --client <id провайдера> --session <id сессии>\n' +
-  '  --authorized: пользователь прямо поручил составить спецификацию и план (M39); без вопроса в панели\n';
+  '  --authorized: пользователь прямо поручил составить спецификацию и план (M39); без вопроса в панели\n' +
+  '  wfk session progress --input <файл.json> | wfk session run pause|stop — запуск автопилота (M39)\n';
 
 /** What the agent reads after `wfk session plan`. */
 export const PLAN_ASKED = 'Вопрос о спецификации и плане показан пользователю в панели Workflow Kit. Закончи ход, ничего не создавая: ответ придёт сообщением «Workflow Kit:».\n';
@@ -85,6 +87,7 @@ export function candidateLines(candidates: unknown): string {
 /** Runs `wfk session …`; 0 on success, 1 on a refusal, 64 on bad usage. */
 export async function runSessionCommand(args: readonly string[], deps: SessionCommandDeps): Promise<number> {
   const [sub, ...rest] = args;
+  if (sub === 'progress' || sub === 'run') return runSessionRunCommand(sub, rest, deps);
   const parsed = sessionFlags(rest);
   const text = parsed?.text ?? '';
   // A named session takes both flags; one of them alone is a usage error.

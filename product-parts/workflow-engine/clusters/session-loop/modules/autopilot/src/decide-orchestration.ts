@@ -1,6 +1,6 @@
 // The orchestrated branch of the autopilot decision (spec 10.3), split from decide.ts (M39 T005)
 // with the helpers both branches share.
-import type { AutopilotDecision, AutopilotOrchestration, AutopilotProjectStatus, AutopilotState, AutopilotTurn, StopReason } from './decide-model.ts';
+import type { AutopilotAuthority, AutopilotDecision, AutopilotOrchestration, AutopilotProjectStatus, AutopilotState, AutopilotTurn, StopReason } from './decide-model.ts';
 
 export const KIT_COMMAND = "scripts/workflow";
 
@@ -17,6 +17,35 @@ export function continueText(
     return `Continue the workflow: task ${task.id} is in progress; implement it and commit with \`${KIT_COMMAND} commit --task ${task.id}\`.`;
   }
   return `Continue the workflow: run \`${KIT_COMMAND} task:start ${task.id}\` if it is not started, then implement it and commit.`;
+}
+
+/**
+ * The live grant of the status (spec M39): present, not revoked and given
+ * for the reviewed proposal the scope still has. Otherwise null: the
+ * manual barriers of a scope without a run apply.
+ */
+export function liveGrant(status: AutopilotProjectStatus): AutopilotAuthority | null {
+  const grant = status.authorization;
+  if (!grant || grant.revoked) {
+    return null;
+  }
+  return status.proposal?.digest === grant.proposalDigest ? grant : null;
+}
+
+/** A TODO delivery task the live grant confirms in advance. */
+export function grantedDelivery(
+  status: AutopilotProjectStatus,
+  task: NonNullable<AutopilotProjectStatus["nextTask"]>
+): AutopilotDecision | null {
+  const grant = liveGrant(status);
+  if (!grant?.delivery.some((entry) => entry.taskId === task.id)) {
+    return null;
+  }
+  return {
+    action: "continue",
+    taskId: task.id,
+    text: `Continue the workflow: autopilot run ${grant.runId} confirmed delivery task ${task.id} in advance; run \`${KIT_COMMAND} task:start ${task.id} --autopilot-run ${grant.runId}\` if it is not started, perform only its reviewed effects and commit.`,
+  };
 }
 
 /** Executors are working: the orchestrator has nothing to do until they report. */
@@ -118,7 +147,21 @@ export function decideOrchestration(
     ...decision,
     orchestrationKey: key,
   });
-  const step = orchestratorStep(status, orchestration);
+  const next = status.nextTask;
+  const granted =
+    next?.kind === "delivery" && next.status === "TODO"
+      ? grantedDelivery(status, next)
+      : null;
+  const ready =
+    orchestration.integration === null &&
+    !orchestration.assignments.some(
+      (item) => WORKING.has(item.status) || item.status === "READY_FOR_INTEGRATION"
+    );
+  const step =
+    orchestratorStep(status, orchestration) ??
+    (granted?.action === "continue" && ready && !status.paused
+      ? { taskId: granted.taskId, text: granted.text }
+      : null);
   if (!step) {
     if (status.paused) {
       return keyed(stop("paused", PAUSED_DETAIL));

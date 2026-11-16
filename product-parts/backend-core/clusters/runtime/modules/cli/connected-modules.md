@@ -96,7 +96,14 @@
   (`onReviewFinished` у `wireCrossReview`) и для всех проектов после загрузки при старте
   службы; `wireCrossReview` получает `digest` (`proposalDigest` — `scope:proposal --digest`
   проекта и пути документов). `decideReview` возвращает действующее решение ревью сессии.
-  Тест — `test/autopiloting.test.ts`;
+  T007: опция `runs` автопилота — `turns`, `authority.onPause` — барьер запуска;
+  `createRunControl` и `createRunWaits` с `send` (очередь и пробуждение владельца),
+  `activity` (канал), `unreachable` (`ownerUnreachable`: провайдер не подключён, сессия в
+  архиве, будить нечем) и `locate` (`locateSession`, как у `wfk session plan`); маршруты
+  `autopiloting/pause|resume|stop`, `/api/sessions/progress|run`; хук вопроса отмечает
+  ожидание вопроса владельца (`decision` — ответ, `release` — истёк); таймер
+  `AUTOPILOT_TICK_MS` (15 с) проверяет CI ждущих запусков (`GitHubCi` из `#git-publish`);
+  при старте после `reconcileAll` — `recoverAll`. Тест — `test/autopiloting.test.ts`;
 - перекрёстное ревью плана (M4) собрано в `src/review-wiring.ts`:
   `lateReviewDecider()` — решатель ревью для автопилота (подключается после
   создания; передаёт и `choiceBlocked`), `wireCrossReview({ router, state, channel, messages, projects,

@@ -29,6 +29,20 @@
     409 `publishing` — публикация проекта уже идёт; после попытки кэш проекта обновляется.
 - `runGit` — `execFile('git')` с `gitExecOptions`: `GIT_TERMINAL_PROMPT=0`, предел 60 с и `windowsHide` (M14: на Windows без этого каждый вызов открывал окно консоли, и Windows Terminal мелькал); `GitRunner` для тестов.
 
+- CI автопилотирования (M39 T007, `src/github-ci.ts`): `createGitHubCi({ gh?, git? }) →
+  GitHubCi`, `read(root, sha, policy)` — `CiPolicy` (`remote`, `branch`, `requiredChecks`,
+  `exactSha`) из разрешения запуска. Репозиторий — `githubRepo(git remote get-url <remote>)`
+  (https, ssh, scp); затем `gh api --method GET repos/<o>/<r>/commits/<sha>/check-runs -f
+  per_page=100`. Для каждой обязательной проверки берётся последний запуск с тем же именем
+  и (при `exactSha`) тем же `head_sha`: другой SHA не считается. `CiVerdict`: `success`
+  (все `completed`/`success`), `pending` (`missing`, `running`), `failed` (любое иное
+  завершение — failure, cancelled, timed_out…), `unavailable` (`reason`; `transient` — сбой
+  GitHub или ответа, иначе блокер возможности: нет `gh` — код 127, нет входа, не GitHub,
+  неполный SHA, пустой список проверок). `runGh` — `execFile('gh')` без shell, 30 с,
+  `windowsHide`, `GH_PROMPT_DISABLED=1`; `gh` не устанавливается и не настраивается;
+  `GhRunner` для тестов. `gh` — кроссплатформенная программа, не программа ОС: одинаково на
+  macOS, Linux и Windows x64/ARM64 (на Windows `execFile` находит `gh.exe` по `PATH`).
+
 ## Инварианты
 
 - Раздел состояния только читает кэш (D11); git запускается в `refresh()`: при старте, раз в
@@ -38,5 +52,6 @@
 
 ## Зависимости
 
-`http-server` (маршруты, раздел состояния), `project-registry` (типы проектов). Служба (`cli`)
+`http-server` (маршруты, раздел состояния), `project-registry` (типы проектов). Тест M39 —
+`test/github-ci.test.ts`. Служба (`cli`)
 передаёт `scopeOpen` — у проекта есть scope в состоянии `workflow`.

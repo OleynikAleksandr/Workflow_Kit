@@ -3,10 +3,11 @@
 // user wrote to the session, kept by the agent channel). The manual start records the grant of
 // its run before the first work message; Settings off pauses the active runs.
 import type { AgentChannel } from '#agent-channel';
-import { WorkflowActionError, createHostTickets, createPreparation, createRunJournal, createRunKit, createRuns, createSettingsStore, registerAutopilotingRoutes } from '#autopilot';
-import type { PrepareActions, ReviewFact, Runs, SettingsStore } from '#autopilot';
+import { createHostTickets, createPreparation, createRunControl, createRunJournal, createRunKit, createRunTurns, createRunWaits, createRuns, createSettingsStore, registerAutopilotingRoutes, registerRunControlRoutes, registerSessionRunRoutes, runHttp } from '#autopilot';
+import type { ControlActions, PrepareActions, ReviewFact, RunControl, RunTurns, RunWaits, Runs, SettingsStore } from '#autopilot';
+import { createGitHubCi } from '#git-publish';
+import type { GitHubCi } from '#git-publish';
 import type { KeyedMutex } from '#data-store';
-import { HttpError } from '#http-server';
 import type { Router, StateRegistry } from '#http-server';
 import type { KitRunner } from '#kit-runner';
 import type { ProjectRegistry } from '#project-registry';
@@ -15,7 +16,18 @@ export interface AutopilotingWiring {
   settings: SettingsStore;
   runs: Runs;
   /** The `authority` option of the autopilot. */
-  authority: { beforeStart(projectId: string, key: string): Promise<string | null>; beforeResume(projectId: string, key: string): Promise<string | null> };
+  authority: {
+    beforeStart(projectId: string, key: string): Promise<string | null>;
+    beforeResume(projectId: string, key: string): Promise<string | null>;
+    onPause(projectId: string, reason: 'user-pause' | 'interrupted'): Promise<void>;
+  };
+  /** The `runs` option of the autopilot: the started run decides its owner's turns (T007). */
+  turns: RunTurns;
+  control: RunControl;
+  waits: RunWaits;
+  /** One CI check of the waiting runs and, at the service start, the recovery of started runs. */
+  tick(): Promise<void>;
+  recoverAll(): Promise<void>;
   /** The `authorize` option of the plan question route (`wfk session plan --authorized`). */
   authorize(projectId: string, key: string, summary: string, quote: string): Promise<Record<string, unknown>>;
   /** Late links of the full-run preparation (T006): the autopilot actions and the review facts. */
@@ -27,20 +39,15 @@ export interface AutopilotingWiring {
 }
 
 export interface PreparationLinks {
-  actions: PrepareActions;
+  actions: PrepareActions & ControlActions;
+  /** The calling session of an agent's command (`wfk session progress|run`), like `wfk session plan`. */
+  locate(input: Record<string, unknown>): Promise<{ projectId: string; key: string }>;
+  activity(key: string): { state: string } | undefined;
+  unreachable?(projectId: string, key: string): Promise<string | null>;
+  send(projectId: string, key: string, text: string): void;
   review(projectId: string, key: string): ReviewFact | null;
   reviewOn(projectId: string, key: string): boolean;
   orchestration?(client: string): Promise<{ available: boolean; reason?: string }>;
-}
-
-/** A refusal of the runs as the HTTP answer the panel and `wfk` read. */
-async function http<T>(action: () => Promise<T>): Promise<T> {
-  try {
-    return await action();
-  } catch (error) {
-    if (error instanceof WorkflowActionError) throw new HttpError(error.status, error.code, error.message, error.nextAction ? { nextAction: error.nextAction } : undefined);
-    throw error;
-  }
 }
 
 export function wireAutopiloting(options: {
@@ -54,6 +61,8 @@ export function wireAutopiloting(options: {
   platform?: NodeJS.Platform;
   /** Stores the review decision of a session (plan-review) and closes its open plan question. */
   decideReview: (projectId: string, key: string, on: boolean) => Promise<boolean | void>;
+  /** The independent CI reader (default: `gh` of the machine). */
+  ci?: GitHubCi;
   log?: (line: string) => void;
 }): AutopilotingWiring {
   const settings = createSettingsStore({ configDir: options.configDir, ...(options.platform ? { platform: options.platform } : {}) });
@@ -87,14 +96,33 @@ export function wireAutopiloting(options: {
   });
   settings.onChange((change) => runs.settingsChanged(change));
   registerAutopilotingRoutes({ router: options.router, state: options.state, settings, runs });
+  const listProjects = async () => (await options.projects.list()).map((project) => ({ id: project.id, path: project.path }));
+  const send = (projectId: string, key: string, text: string): void => links?.send(projectId, key, text);
+  const turns = createRunTurns({ journal, projectPath, ...(options.log ? { log: options.log } : {}) });
+  const control = createRunControl({
+    journal, kit: runKit, projectPath, listProjects, send, mutex: options.mutex,
+    actions: () => links?.actions ?? null,
+    activity: (key) => links?.activity(key),
+    unreachable: (projectId, key) => links?.unreachable?.(projectId, key) ?? Promise.resolve(null),
+    ...(options.log ? { log: options.log } : {}),
+  });
+  const waits = createRunWaits({ journal, kit: runKit, ci: options.ci ?? createGitHubCi(), projectPath, listProjects, send, mutex: options.mutex, ...(options.log ? { log: options.log } : {}) });
+  registerRunControlRoutes({ router: options.router, control });
+  registerSessionRunRoutes({ router: options.router, waits, control, locate: (input) => (links ? links.locate(input) : Promise.reject(new Error('service is starting'))) });
   return {
     settings,
     runs,
     authority: {
       beforeStart: async (projectId, key) => (await runs.beginExecution(projectId, key))?.runId ?? null,
       beforeResume: async (projectId, key) => (await runs.resume(projectId, key))?.runId ?? null,
+      onPause: (projectId, reason) => control.onPause(projectId, reason),
     },
-    authorize: (projectId, key, summary, quote) => http(async () => ({ ...(await runs.authorizePreparation(projectId, key, summary, quote)) })),
+    turns,
+    control,
+    waits,
+    tick: () => waits.pollAll(),
+    recoverAll: () => control.recoverAll(),
+    authorize: (projectId, key, summary, quote) => runHttp(async () => ({ ...(await runs.authorizePreparation(projectId, key, summary, quote)) })),
     attach(next) {
       links = next;
     },

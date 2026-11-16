@@ -30,6 +30,11 @@
   `authorization-source-missing`, `authorization-quote-mismatch`, `run-active` с
   `nextAction`. `POST /api/projects/:id/workflow/start|resume` отвечают и `runId`, когда
   старт записал разрешение запуска; 409 `run-paused`, `run-active`, `scope-changed`.
+- T007: `POST /api/projects/:id/autopiloting/pause|resume|stop { runId, expectedRevision }` —
+  только этот запуск (404 `run-not-found`, 409 `run-stale` с `current`); только loopback —
+  `POST /api/sessions/progress { cwd, projectDir?, client?, sessionId?, progress }` (ожидание
+  CI владельца: 400 `bad-request`, 403 `not-owner`, 409 `ci-policy-mismatch`, `action-done`,
+  `no-ci-policy`) и `POST /api/sessions/run { …, action: pause | stop }`.
 - Раздел `reviews` (T006): у ревью есть `approvedDigest`, `versioned` и `reviewedProposal`
   (`{ scopeId, generation, digest }` согласованной версии предложения).
 - Контракт — [autopilot/autopiloting.md](../../product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md).

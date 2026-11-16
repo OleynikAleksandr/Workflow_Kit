@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1115,
+  "revision": 1116,
   "rounds": [
     {
       "digest": {
@@ -50,7 +50,10 @@
       "Контракты plan-review, cross-review, agent-channel и cli согласованы с кодом; typecheck, platform-guard и все тесты проходят.",
       "0.14.3 установлена на macOS, CI точного SHA поставки зелёная на macOS, Linux, Windows x64 и ARM64; пользовательская приёмка отдельно."
     ],
-    "acceptanceNote": null,
+    "acceptanceNote": {
+      "at": "2026-11-16T08:55:07.652Z",
+      "text": "Пользователь принял план в панели Workflow Kit"
+    },
     "approval": {
       "at": "2026-11-16T01:55:53.896Z",
       "text": "Пользователь, 16.11.2026: на предложение исправить незакрывающийся вопрос о плане и пустые пробуждения — «Исправь». Workflow Kit: пользователь выбрал спецификацию и план без ревью. | Execution mode chosen by the user: sequential: Выбор пользователя в панели Workflow Kit: выполнить самому, последовательно"
@@ -94,7 +97,7 @@
         "text": "Рекомендован sequential: две небольшие задачи в разных модулях (обе parallelSafe), живая проверка требует участия пользователя."
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "ACCEPTED",
     "execution": {
       "maxWorkers": 2,
       "ownerSession": "e93021a5-9717-4ec2-833d-db51b48373f3",
@@ -305,11 +308,11 @@
 ## State
 
 - Scope: M36-plan-question-stale (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: ACCEPTED
 - Execution: sequential
 - Current task: none
 - Progress: 5/5
-- Revision: 1115
+- Revision: 1116
 
 ## Objective
 

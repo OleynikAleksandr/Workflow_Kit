@@ -28,3 +28,28 @@
 | Source digest (PROVENANCE) | `80690a4bcc99051ecde008ad372c64cd0a7a5501bafe465d547f10be262840e7` |
 | Исходный коммит ядра | `5d678c8` (T004) |
 | Разрешение на следующие версии ядра в M39 | да, той же процедурой §3–4 |
+
+## Результат установки 2.3.3
+
+Записан отдельно от согласия, после установки и сверки.
+
+- Бандл получен через публичный `ensureKitBundle` (`#kit-bundle`) во временном каталоге; его
+  SHA-256 перед запуском: `f7ca59a807a5702130a286e8c9bb3c98c300cfa3aa682081bc6c65091bfb1418`.
+- Команда: `node <бандл>/workflow-kit-2.3.3.mjs install <Workflow_Kit> --update --host harness`
+  на чистом дереве, без текущей задачи, транзакций и назначений. Ответ: `ok`, версия 2.3.3,
+  `previousState: KIT_OUTDATED`, `migrationRequired: false`; записаны
+  `.harness/workflow/runtime/workflow.mjs`, `AGENTS.md` (управляемый раздел Kit),
+  `.harness/workflow/manifest.json`; коммит `3d24005` (`chore: update workflow kit to 2.3.3`,
+  роль `kit-update`).
+- Сверка после установки:
+  - `inspect`: `KIT_OK`, версия 2.3.3, повреждённых файлов нет;
+  - SHA-256 закоммиченного `workflow.mjs` равен выбранному бандлу;
+  - `validate`: «Plan and history are consistent.»;
+  - `autopilot:status`: `capability` полный (`automation`, `authorization`, `deferDelivery`,
+    `instructions`, `complete` — `true`, `hostProtocol` `wfk-host/1`), разрешения запуска нет
+    (M39 остаётся в режиме off);
+  - `recover`: scope `M39-autopiloting` ACTIVE, ревизия 1176 не изменилась, следующая
+    задача T005, транзакций нет;
+  - рабочее дерево чистое.
+- Управляемый раздел wfk (структура 5) обновится штатно вместе с приложением; для команд
+  Kit он не нужен.

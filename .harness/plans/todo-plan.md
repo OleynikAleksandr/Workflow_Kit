@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1134,
+  "revision": 1135,
   "rounds": [
     {
       "digest": null,
@@ -71,6 +71,38 @@
   "tasks": [
     {
       "acceptance": [
+        "after() теста flow.test.ts удаляет временную папку с повторами (rm с maxRetries и retryDelay, как в тестах cli и project-setup) и не оставляет её при занятой папке на Windows; код службы не меняется.",
+        "Все тесты autopilot проходят локально; module.md (раздел ОС M37) и OS-MATRIX называют исправление для macOS, Linux и Windows x64/ARM64.",
+        "typecheck, platform-guard и npm test проходят."
+      ],
+      "checks": [],
+      "commitMessage": "test(autopilot): remove the flow test project with retries on Windows",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M37-plan-close-flow.md",
+          "required": true,
+          "heading": "4. Проверка"
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/flow.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md",
+        "docs/architecture/OS-MATRIX.md"
+      ],
+      "fixes": null,
+      "id": "F001",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R1",
+      "status": "TODO",
+      "title": "Уборка временного проекта теста flow.test.ts на Windows",
+      "why": "CI 43859413953 на 2b0bd0d: на Windows x64 и ARM64 after() теста autopilot/test/flow.test.ts падает с EBUSY при rmdir …\\demo — команда Kit, запущенная оставшимся таймером канала, ещё работает в папке проекта; все тесты файла прошли, macOS и Linux зелёные (дефект теста T002)"
+    },
+    {
+      "acceptance": [
         "Project-wide documents describe the round result",
         "The round digest records result, decisions, contracts and references"
       ],
@@ -78,12 +110,16 @@
       "commitMessage": "docs: reconcile documentation for R1",
       "confirmation": null,
       "context": [],
-      "dependencies": [],
+      "dependencies": [
+        "F001"
+      ],
       "docsWaiver": null,
       "files": [
         "README.md",
         "docs/architecture/OVERVIEW.md",
-        "docs/planning/M37-plan-close-flow.md"
+        "docs/planning/M37-plan-close-flow.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md",
+        "docs/architecture/OS-MATRIX.md"
       ],
       "fixes": null,
       "id": "DOCS-R1",
@@ -137,8 +173,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 0/2
-- Revision: 1134
+- Progress: 0/3
+- Revision: 1135
 
 ## Objective
 
@@ -157,9 +193,13 @@
 
 ### R1 — Carried over (implementation, OPEN)
 
+- [TODO] F001 — Уборка временного проекта теста flow.test.ts на Windows (work)
+  - Commit: test(autopilot): remove the flow test project with retries on Windows
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/flow.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, docs/architecture/OS-MATRIX.md
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
-  - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M37-plan-close-flow.md
+  - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M37-plan-close-flow.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, docs/architecture/OS-MATRIX.md
+  - Depends on: F001
 - [TODO] T005 — CI точного SHA поставки на четырёх платформах (delivery)
   - Commit: docs: record plan closing flow cross-platform CI
   - Files: docs/evidence/M37-acceptance.md

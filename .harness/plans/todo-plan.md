@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T004",
   "lastClosed": {
     "closedAt": "2026-11-16T08:55:12.078Z",
     "scopeId": "M36-plan-question-stale"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1127,
+  "revision": 1129,
   "rounds": [
     {
       "digest": {
@@ -356,7 +356,7 @@
         "installed-service"
       ],
       "commitMessage": "chore: deliver the plan acceptance and closing flow",
-      "confirmation": null,
+      "confirmation": "Подтверждаю",
       "context": [
         {
           "path": "docs/planning/M37-plan-close-flow.md",
@@ -375,14 +375,15 @@
         "package.json",
         "package-lock.json",
         "CHANGELOG.md",
-        "docs/evidence/M37-acceptance.md"
+        "docs/evidence/M37-acceptance.md",
+        "README.md"
       ],
       "fixes": null,
       "id": "T004",
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "Поставка 0.14.4, установка и живая проверка установленной версии",
       "why": "Исправления проверяются на настоящей панели и тестовых проектах Codex_01 и Claude_01"
     },
@@ -429,9 +430,9 @@
 - Scope: M37-plan-close-flow (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: none
+- Current task: T004
 - Progress: 4/6
-- Revision: 1127
+- Revision: 1129
 
 ## Objective
 
@@ -465,9 +466,9 @@
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M37-plan-close-flow.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/tests.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md, product-parts/backend-core/clusters/projects/cluster.md, product-parts/backend-core/clusters/projects/modules/project-setup/module.md, product-parts/backend-core/clusters/runtime/modules/cli/connected-modules.md, docs/architecture/workflow-kit/WorkflowKitInstallation.md, docs/architecture/workflow-kit/WorkflowKitCommands.md, docs/architecture/workflow-kit/WorkflowKitRecovery.md, docs/architecture/OS-MATRIX.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, design-qa.md, docs/usage.md, docs/architecture/CONTRACTS.md
   - Depends on: T001, T002, T003
-- [TODO] T004 — Поставка 0.14.4, установка и живая проверка установленной версии (delivery)
+- [IN_PROGRESS] T004 — Поставка 0.14.4, установка и живая проверка установленной версии (delivery)
   - Commit: chore: deliver the plan acceptance and closing flow
-  - Files: package.json, package-lock.json, CHANGELOG.md, docs/evidence/M37-acceptance.md
+  - Files: package.json, package-lock.json, CHANGELOG.md, docs/evidence/M37-acceptance.md, README.md
   - Depends on: T001, T002, T003, DOCS-R1
 - [TODO] T005 — CI точного SHA поставки на четырёх платформах (delivery)
   - Commit: docs: record plan closing flow cross-platform CI

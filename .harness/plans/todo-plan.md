@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1147,
+  "revision": 1148,
   "rounds": [
     {
       "digest": null,
@@ -110,6 +110,37 @@
     },
     {
       "acceptance": [
+        "Коммит, сделанный commit --task F001 с явным --files, содержит три файла, записанные installStructure 16.11: группы PreToolUse и PermissionRequest с matcher AskUserQuestion в .claude/settings.json, строку управляемого раздела wfk в AGENTS.md и записи версии 4 в .workflow-kit/manifest.json; других правок нет.",
+        "После коммита GET /api/projects/<id Workflow_Kit>/structure — status ok, installedVersion 4; эти три файла больше не числятся вне коммитов."
+      ],
+      "checks": [],
+      "commitMessage": "chore: commit the Workflow Kit structure 4 of this repository",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M38-kit-structure-update.md",
+          "required": true,
+          "heading": "1. Факты"
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": "Файлы управляемой структуры wfk этого репозитория, записанные службой; кода модулей и их контрактов задача не меняет.",
+      "files": [
+        ".claude/settings.json",
+        ".workflow-kit/manifest.json",
+        "AGENTS.md"
+      ],
+      "fixes": "T001",
+      "id": "F001",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R1",
+      "status": "TODO",
+      "title": "Коммит структуры Kit 4 этого репозитория (исправление T001)",
+      "why": "Коммит T001 4cdfcad содержит только план: три файла были изменены до task:start, и Kit без --files оставил их вне коммита"
+    },
+    {
+      "acceptance": [
         "install --update --with <json|a,b> коммитит файлы Kit и пути --with одной транзакцией роли kit-update; хук pre-commit проекта её пропускает (тест на временном git-репозитории с настоящим Kit).",
         "Записаны только пути --with — сообщение «chore: update the Workflow Kit structure»; Kit записал свои файлы — «chore: update workflow kit to 2.2.7»; нечего коммитить — commit: null.",
         "Путь не из .workflow-kit/manifest.json (сам манифест или fragments.*.path), отсутствующий или нечитаемый манифест — отказ WITH_NOT_MANAGED с именем пути, ничего не записано; --with без --update — USAGE «--with needs --update.»; путь без изменений выпадает; excluded без путей --with; итог содержит with.",
@@ -127,7 +158,8 @@
         }
       ],
       "dependencies": [
-        "T001"
+        "T001",
+        "F001"
       ],
       "docsWaiver": null,
       "files": [
@@ -258,6 +290,7 @@
       "context": [],
       "dependencies": [
         "T001",
+        "F001",
         "T002",
         "T003",
         "T004"
@@ -382,8 +415,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 1/7
-- Revision: 1147
+- Progress: 1/8
+- Revision: 1148
 
 ## Objective
 
@@ -405,10 +438,14 @@
 - [DONE] T001 — Коммит структуры Kit 4 этого репозитория (work)
   - Commit: chore: commit the Workflow Kit structure 4 of this repository
   - Files: .claude/settings.json, .workflow-kit/manifest.json, AGENTS.md
+- [TODO] F001 — Коммит структуры Kit 4 этого репозитория (исправление T001) (work)
+  - Commit: chore: commit the Workflow Kit structure 4 of this repository
+  - Files: .claude/settings.json, .workflow-kit/manifest.json, AGENTS.md
+  - Fixes: T001
 - [TODO] T002 — Kit 2.2.7: install --update --with для файлов структуры (work)
   - Commit: feat(kit): commit the app's managed structure files with the Kit update
   - Files: product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/test, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/tests.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/src/bundle-meta.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/test, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/test/kit-update.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/kit-card.test.ts, product-parts/backend-core/clusters/projects/cluster.md, product-parts/backend-core/clusters/projects/modules/project-setup/module.md, product-parts/backend-core/clusters/runtime/modules/cli/connected-modules.md, docs/architecture/workflow-kit/WorkflowKitInstallation.md, docs/architecture/workflow-kit/WorkflowKitCommands.md, docs/architecture/workflow-kit/WorkflowKitRecovery.md, docs/architecture/OS-MATRIX.md
-  - Depends on: T001
+  - Depends on: T001, F001
 - [TODO] T003 — Служба: структура Kit в kitUpdate и обновление одним коммитом (work)
   - Commit: feat(kit-update): update the Kit structure together with the Kit
   - Files: product-parts/workflow-engine/clusters/kit-host/modules/kit-update/src, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/test, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/src, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/test, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/module.md, product-parts/workflow-engine/clusters/kit-host/cluster.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/connected-modules.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/test, product-parts/backend-core/clusters/projects/modules/kit-structure/src/index.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/module.md, docs/architecture/CONTRACTS.md, docs/architecture/OS-MATRIX.md
@@ -420,7 +457,7 @@
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M38-kit-structure-update.md, AGENTS.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/tests.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md, product-parts/backend-core/clusters/projects/cluster.md, product-parts/backend-core/clusters/projects/modules/project-setup/module.md, product-parts/backend-core/clusters/runtime/modules/cli/connected-modules.md, docs/architecture/workflow-kit/WorkflowKitInstallation.md, docs/architecture/workflow-kit/WorkflowKitCommands.md, docs/architecture/workflow-kit/WorkflowKitRecovery.md, docs/architecture/OS-MATRIX.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/module.md, product-parts/workflow-engine/clusters/kit-host/cluster.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/projects/modules/kit-structure/module.md, docs/architecture/CONTRACTS.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, docs/usage.md, design-qa.md
-  - Depends on: T001, T002, T003, T004
+  - Depends on: T001, F001, T002, T003, T004
 - [TODO] T005 — Поставка 0.14.5, установка и живая проверка установленной версии (delivery)
   - Commit: chore: deliver the Kit structure update
   - Files: package.json, package-lock.json, CHANGELOG.md, docs/evidence/M38-acceptance.md, README.md

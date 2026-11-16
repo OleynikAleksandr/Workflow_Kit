@@ -81,8 +81,8 @@ Claude Desktop показал в сессии проекта Workflow_Kit, в д
 - `kit-runner`: `install(root, { update, name, with })` передаёт `--with` JSON-массивом;
   `KitInstall` получает `with?: string[]`.
 - `kit-update` получает от `cli` зависимость `structure: { check(root), install(root) }`
-  (`checkStructure` и `installStructure` из `#kit-structure`) и `kit.run` (команда `status`
-  Kit проекта).
+  (`checkStructure` и `installStructure` из `#kit-structure`) и `kit.status` (команда
+  `status` Kit проекта; в реализации — готовый метод `KitRunner.status`).
 - Раздел `kitUpdate`, запись проекта: новое поле `structure` — `{ status, installed,
   version, installable, kept }` для проекта с установленным Kit (`KIT_INSTALLED_STATES`), где
   `kept` — пути фрагментов `modified` и `newer`. Если проверка структуры не удалась или Kit не
@@ -92,7 +92,7 @@ Claude Desktop показал в сессии проекта Workflow_Kit, в д
 - `action: 'update'` — если `kitAction` даёт `update` или если у установленного Kit
   `structure.installable`.
 - Порядок `update(project)`:
-  1. Если `structure.installable`: `kit.run(path, ['status'])` проекта, поле `changes`.
+  1. Если `structure.installable`: `kit.status(path)` проекта, поле `changes`.
      Ошибка команды или нет поля — структура пропускается с причиной «Kit не сообщил файлы
      вне коммитов», Kit обновляется дальше.
   2. Пути к записи — фрагменты `missing` и `outdated` и манифест. Если какой-то из них есть
@@ -130,7 +130,9 @@ Claude Desktop показал в сессии проекта Workflow_Kit, в д
   - текст «Коммит abc1234. Сессии, начатые до обновления, получат новые хуки и пакет со
     следующей сессии.»;
   - строки: строки хуков провайдеров, как сейчас, затем «Структура Kit 3 → 4: <файлы>» или
-    «Структура Kit не обновлена: <причина>».
+    «Структура Kit не обновлена: <причина>»;
+  - если Kit не изменился, а структура пропущена, — карточка-предупреждение «Структура Kit не
+    обновлена» с причиной и кнопкой «Обновить Kit» для повтора (уточнено в T004).
 - `docs/usage.md`, раздел «Версия Kit проекта»: что обновляет кнопка, когда карточка
   появляется ради одной структуры, что хуки получают только новые сессии, и что вопрос Claude
   в сессии без хуков вопроса виден в панели только закрытым.
@@ -201,3 +203,8 @@ Claude Desktop показал в сессии проекта Workflow_Kit, в д
 
 Задачи идут по порядку: T003 опирается на опцию Kit из T002, T004 — на поля раздела из
 T003; T002–T004 дополняют `docs/architecture/OS-MATRIX.md`.
+
+Исполнение: коммит T001 (`4cdfcad`) вышел без трёх файлов — они были изменены до
+`task:start`, а Kit без явного `--files` такие файлы не берёт. Исправление F001 (`6b30010`)
+закоммитило их через `commit --task F001 --files …`. Опция `--with` вынесена в
+`workflow-installer/src/installer-with.ts` (лимит 400 строк на файл).

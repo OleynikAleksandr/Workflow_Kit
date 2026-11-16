@@ -10,10 +10,32 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1156,
+  "revision": 1158,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "workflow-installer: install(path, {update, with}) — USAGE без update, WITH_NOT_MANAGED, итог with; сообщение chore: update the Workflow Kit structure.",
+          "kit-runner: install(root, {with}) → --with <JSON>; KitInstall.with.",
+          "kit-update: опции structure и kit.status; kitUpdate.structure, structureNote; last.structure, last.structureNote; журнал kit: structure …",
+          "panel-shell kit-card: заголовки со структурой, kept, итог и карточка «Структура Kit не обновлена».",
+          "KIT_VERSION 2.2.7."
+        ],
+        "decisions": [
+          "Файлы структуры коммитит Kit (install --update --with) в той же транзакции kit-update; служба сама git не вызывает.",
+          "Пути --with — только .workflow-kit/manifest.json и его fragments.*.path, иначе WITH_NOT_MANAGED до любой записи.",
+          "Файлы структуры с изменениями вне коммитов (status.changes) не перезаписываются: структура пропускается, Kit обновляется.",
+          "Отказ или исключение Kit возвращает прежний текст файлов структуры; после успеха Kit возврата нет.",
+          "Kit Workflow_Kit обновляется до 2.2.7 кнопкой после закрытия scope."
+        ],
+        "references": [
+          "docs/planning/M38-kit-structure-update.md",
+          "product-parts/workflow-engine/clusters/kit-host/modules/kit-update/module.md",
+          "product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/module.md",
+          "docs/usage.md"
+        ],
+        "result": "«Обновить Kit» обновляет и структуру Kit (wfk) одним коммитом: kit-update пишет устаревшие фрагменты и передаёт их Kit 2.2.7 опцией install --update --with; карточка Kit показывает «Структура Kit 3 → 4», изменённые вручную файлы и итог; docs/usage.md исправлен. Структура 4 этого репозитория закоммичена (F001)."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -346,7 +368,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -434,8 +456,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 5/8
-- Revision: 1156
+- Progress: 6/8
+- Revision: 1158
 
 ## Objective
 
@@ -473,7 +495,7 @@
   - Commit: feat(panel): show the Kit structure on the Kit card
   - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/kit-card.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/screens.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/kit-card.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, docs/usage.md, design-qa.md, docs/architecture/OS-MATRIX.md
   - Depends on: T003
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M38-kit-structure-update.md, AGENTS.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/tests.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md, product-parts/backend-core/clusters/projects/cluster.md, product-parts/backend-core/clusters/projects/modules/project-setup/module.md, product-parts/backend-core/clusters/runtime/modules/cli/connected-modules.md, docs/architecture/workflow-kit/WorkflowKitInstallation.md, docs/architecture/workflow-kit/WorkflowKitCommands.md, docs/architecture/workflow-kit/WorkflowKitRecovery.md, docs/architecture/OS-MATRIX.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/module.md, product-parts/workflow-engine/clusters/kit-host/cluster.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/projects/modules/kit-structure/module.md, docs/architecture/CONTRACTS.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, docs/usage.md, design-qa.md
   - Depends on: T001, F001, T002, T003, T004
@@ -485,5 +507,7 @@
   - Commit: docs: record the Kit structure update cross-platform CI
   - Files: docs/evidence/M38-acceptance.md
   - Depends on: T005, DOCS-R1
+
+Digest: «Обновить Kit» обновляет и структуру Kit (wfk) одним коммитом: kit-update пишет устаревшие фрагменты и передаёт их Kit 2.2.7 опцией install --update --with; карточка Kit показывает «Структура Kit 3 → 4», изменённые вручную файлы и итог; docs/usage.md исправлен. Структура 4 этого репозитория закоммичена (F001).
 
 State changes only through `scripts/workflow` commands. History lives in Git.

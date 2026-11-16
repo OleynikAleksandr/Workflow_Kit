@@ -10,10 +10,25 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1138,
+  "revision": 1140,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "autopilot module.md, раздел «Конец плана и ОС (M37)»: тест flow.test.ts удаляет временный проект с maxRetries; OS-MATRIX — строка M37 F001."
+        ],
+        "decisions": [
+          "Красная CI в начатой delivery-задаче обойдена carryover T005 в scope M37-plan-close-flow-fix и задачей F001 (тупик plan:extend ROUND_OPEN).",
+          "Повторная CI идёт для головы после DOCS этого scope в ту же ветку ci/M37-plan-close-flow без --force; пересборка и переустановка 0.14.4 не нужны: изменён только тест."
+        ],
+        "references": [
+          "docs/planning/M37-plan-close-flow.md",
+          "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md",
+          "docs/architecture/OS-MATRIX.md",
+          "docs/evidence/M37-acceptance.md"
+        ],
+        "result": "Тест autopilot/test/flow.test.ts удаляет временный проект с повторами: на Windows x64 и ARM64 CI 43859413953 падал с EBUSY в after(), потому что команда Kit от оставшегося таймера канала ещё работала в папке. Код службы и версия 0.14.4 не меняются."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -126,7 +141,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -174,8 +189,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 1/3
-- Revision: 1138
+- Progress: 2/3
+- Revision: 1140
 
 ## Objective
 
@@ -197,7 +212,7 @@
 - [DONE] F001 — Уборка временного проекта теста flow.test.ts на Windows (work)
   - Commit: test(autopilot): remove the flow test project with retries on Windows
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/flow.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, docs/architecture/OS-MATRIX.md
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M37-plan-close-flow.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, docs/architecture/OS-MATRIX.md
   - Depends on: F001
@@ -205,5 +220,7 @@
   - Commit: docs: record plan closing flow cross-platform CI
   - Files: docs/evidence/M37-acceptance.md
   - Depends on: F001, DOCS-R1
+
+Digest: Тест autopilot/test/flow.test.ts удаляет временный проект с повторами: на Windows x64 и ARM64 CI 43859413953 падал с EBUSY в after(), потому что команда Kit от оставшегося таймера канала ещё работала в папке. Код службы и версия 0.14.4 не меняются.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

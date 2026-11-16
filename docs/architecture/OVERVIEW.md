@@ -1,6 +1,6 @@
 # Workflow Kit — обзор архитектуры
 
-Состояние: вехи M1–M34 приняты (приёмки — [docs/evidence/](../evidence/)), версия 0.14.2. Документ
+Состояние: вехи M1–M35 приняты (приёмки — [docs/evidence/](../evidence/)), версия 0.14.3. Документ
 ведёт задача DOCS каждого раунда; подробности — в `module.md` модулей, спецификации вех и
 факты о провайдерах — в `docs/planning/`. M24 включена в поставку 0.10.0.
 
@@ -24,6 +24,13 @@ M32: лента Codex читается порциями (`thread/turns/list`, `t
 снимком или 503); Stop и `thread/resume` не читают историю —
 [доказательства M32](../evidence/M32-codex-history-recovery.md). WebSocket-клиент декодирует байты из
 ответа рукопожатия и следующие куски сокета строго по порядку прихода (F001, дефект найден CI Linux).
+
+M36: вопрос о плане помнит активный scope (`scopeId`); устаревший вопрос (`agent` — открыто
+предложение новее вопроса или активен другой scope, `proposal` — открытого предложения нет)
+`cross-review` закрывает `dismiss` при `Stop` сессии или выборе пути, без решения о ревью и без
+сообщения агенту. Освобождённое (M29) и detached (M8) удержание после хода, начатого только
+напоминанием, идёт без второго напоминания; удерживаемый хук `Stop` напоминает к каждому сроку —
+[спецификация M36](../planning/M36-plan-question-stale.md).
 
 ## Что это
 
@@ -80,10 +87,10 @@ runtime-зависимостей) и веб-панель для Mac и iPad. С�
 | | | [kit-runner](../../product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/module.md) | команды Kit проекта, установка, слежение за планом, раздел `workflow` |
 | | | [plan-view](../../product-parts/workflow-engine/clusters/kit-host/modules/plan-view/module.md) | модели карточек плана и выбора пути (порт правил Harness) |
 | | | [kit-update](../../product-parts/workflow-engine/clusters/kit-host/modules/kit-update/module.md) | версия Kit проекта (раздел `kitUpdate`), «Обновить Kit», одобрение хуков Kit Codex после обновления (M22) |
-| | [session-loop](../../product-parts/workflow-engine/clusters/session-loop/cluster.md) | [agent-channel](../../product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md) | хуки `Stop`/`UserPromptSubmit`, маршрут хука вопроса (M33), очередь сообщений агенту (или `direct`), удержание и конец хода, активность |
+| | [session-loop](../../product-parts/workflow-engine/clusters/session-loop/cluster.md) | [agent-channel](../../product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md) | хуки `Stop`/`UserPromptSubmit`, маршрут хука вопроса (M33), очередь сообщений агенту (или `direct`), удержание и конец хода (одно напоминание подряд, M36), активность |
 | | | [autopilot](../../product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md) | «продолжать, держать или отпустить» после хода; действия с планом из панели |
-| | | [plan-review](../../product-parts/workflow-engine/clusters/session-loop/modules/plan-review/module.md) | решение о ревью и вопрос о плане |
-| | | [cross-review](../../product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md) | ревью плана сессией другого провайдера (M4) |
+| | | [plan-review](../../product-parts/workflow-engine/clusters/session-loop/modules/plan-review/module.md) | решение о ревью и вопрос о плане (scope вопроса, закрытие без решения, M36) |
+| | | [cross-review](../../product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md) | ревью плана сессией другого провайдера (M4), закрытие устаревшего вопроса о плане (M36) |
 | | | [session-titles](../../product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md) | имена сессий, синхронизация с ChatGPT, архив сессий |
 | [control-panel](../../product-parts/control-panel/product-part.md) | [web-panel](../../product-parts/control-panel/clusters/web-panel/cluster.md) | [panel-shell](../../product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md) | раскладка M24, маршруты, опрос, дерево проектов и сессий, «Настройки», слоты расширений, экран «Домой» iPad |
 | | | [project-wizard](../../product-parts/control-panel/clusters/web-panel/modules/project-wizard/module.md) | мастер проекта в панели: предпросмотр, кнопки первой сессии, шаги подготовки, открытие чата |
@@ -175,6 +182,8 @@ T001–T006 и fixes T008/T009 завершены; последний функц
 - Параметры Claude (M29) меняются только в сессиях хоста 0.13.3+; старые сессии — до
   возобновления панелью. В режиме plan Claude показывает в statusline свою модель плана,
   и панель показывает её же, хотя выбранная модель применена.
+- Вопрос о плане, на который ответили в чате, закрывается при следующем `Stop` сессии или
+  выборе пути, а не в момент изменения плана Kit; ответ в чате не становится решением о ревью (M36).
 - iPad может не открыть чат сам: щёлкните карточку сессии.
 - «Перезапустить службу» и «Диагностика» в панели нет — `wfk service`, `wfk doctor`.
   Операции в памяти пропадают при перезапуске; остановка службы процессы провайдеров не

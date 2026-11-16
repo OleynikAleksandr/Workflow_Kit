@@ -10,10 +10,31 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1109,
+  "revision": 1111,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "plan-review: PlanQuestion.scopeId, опция scopeOf, questions(projectId), dismiss(projectId, key).",
+          "cross-review: question() возвращает OpenQuestion или null; новые deps questions, dismissQuestion, scope; src/question-stale.ts staleReason и createQuestionGate.",
+          "agent-channel: src/reminder.ts (REMINDER_SOURCE, remindedTurn, reminderOf), Slot.afterReminder.",
+          "cli: questionDeps(toggles, workflow) в review-wiring.ts, scopeOf в session-wiring.ts."
+        ],
+        "decisions": [
+          "Вопрос хранит scopeId активного scope на момент вопроса; старый файл без поля читается с null.",
+          "dismiss закрывает вопрос без решения о ревью и без слушателей onAnswer: агенту ничего не уходит.",
+          "Ход, начатый только напоминанием (origin reminder или все сообщения reminder), помечает слот afterReminder; освобождённое и detached удержание после него идёт без напоминания.",
+          "Удерживаемый хук Stop напоминает к каждому сроку: иначе хук закончился бы без доставки.",
+          "README и OVERVIEW: версия 0.14.3, статус M1–M35, абзац и ограничение M36."
+        ],
+        "references": [
+          "docs/planning/M36-plan-question-stale.md",
+          "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md",
+          "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md",
+          "docs/planning/M4-plan-review.md"
+        ],
+        "result": "Устаревший вопрос о плане закрывается сам при Stop или выборе пути (agent: предложение новее или другой scope; proposal: нет предложения), без решения о ревью. Сессия, которую служба может разбудить, получает одно напоминание подряд; удерживаемый хук Stop — как раньше."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -200,7 +221,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -287,8 +308,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 2/5
-- Revision: 1109
+- Progress: 3/5
+- Revision: 1111
 
 ## Objective
 
@@ -312,7 +333,7 @@
 - [DONE] T002 — Одно напоминание удержания подряд для сессий, которые служба может разбудить (work, parallel-safe)
   - Commit: fix(channel): remind a wakeable held session once in a row
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/channel.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/release.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/detached.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/slots.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/reminder.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/release.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/detached.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/channel.test.ts
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M36-plan-question-stale.md, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/module.md, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md
   - Depends on: T001, T002
@@ -324,5 +345,7 @@
   - Commit: docs: record stale plan question fix cross-platform CI
   - Files: docs/evidence/M36-acceptance.md
   - Depends on: T003, DOCS-R1
+
+Digest: Устаревший вопрос о плане закрывается сам при Stop или выборе пути (agent: предложение новее или другой scope; proposal: нет предложения), без решения о ревью. Сессия, которую служба может разбудить, получает одно напоминание подряд; удерживаемый хук Stop — как раньше.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

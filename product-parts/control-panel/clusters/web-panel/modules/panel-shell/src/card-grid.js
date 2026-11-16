@@ -3,6 +3,24 @@
 import { expandCards } from './cards.js';
 import { h } from './dom.js';
 
+/**
+ * A collapsible service card (spec M39 ui section 2): native details/summary in the shape of
+ * `.panel`, closed when created; the node lives as long as the panel, so polls and screens keep
+ * it open, a full reload closes it. A closed card keeps its controls out of the Tab order.
+ * @param {{ id: string, title: string, wide?: boolean }} card
+ * @param {string} domId
+ * @returns {HTMLElement}
+ */
+function collapsibleCard(card, domId) {
+  const summary = h('summary', { class: 'service-summary', 'aria-expanded': 'false', 'aria-controls': `${domId}-body` }, [h('h2', { id: `${domId}-title` }, [card.title])]);
+  const details = h('details', { class: card.wide ? 'panel service-card card-wide' : 'panel service-card', id: domId, 'data-card': card.id }, [
+    summary,
+    h('div', { class: 'card-body', id: `${domId}-body`, role: 'region', 'aria-labelledby': `${domId}-title` }),
+  ]);
+  details.addEventListener('toggle', () => summary.setAttribute('aria-expanded', String(/** @type {HTMLDetailsElement} */ (details).open)));
+  return details;
+}
+
 /** @type {Map<string, string>} Last rendered selection per card, to skip unchanged cards. */
 const rendered = new Map();
 
@@ -18,6 +36,7 @@ export function renderCards(container, current) {
   for (const card of expandCards(current)) {
     const domId = `card-${card.id}`;
     let section = document.getElementById(domId);
+    if (!section && card.collapsible) section = collapsibleCard(card, domId);
     if (!section) {
       section = h('section', { class: card.wide ? 'card card-wide' : 'card', id: domId, 'data-card': card.id, 'aria-labelledby': `${domId}-title` }, [
         h('h2', { id: `${domId}-title` }, [card.title]),
@@ -49,11 +68,11 @@ export function renderCards(container, current) {
     }
   }
   const wanted = new Set(sections);
-  for (const node of Array.from(container.querySelectorAll(':scope > section[data-card]'))) {
+  for (const node of Array.from(container.querySelectorAll(':scope > [data-card]'))) {
     if (wanted.has(/** @type {HTMLElement} */ (node))) continue;
     rendered.delete(/** @type {HTMLElement} */ (node).dataset['card'] ?? '');
     node.remove();
   }
-  const current2 = Array.from(container.querySelectorAll(':scope > section[data-card]'));
+  const current2 = Array.from(container.querySelectorAll(':scope > [data-card]'));
   if (current2.length !== sections.length || current2.some((node, i) => node !== sections[i])) container.append(...sections);
 }

@@ -215,6 +215,20 @@ unreachable?, send, mutex?, log? })` (`src/run-control.ts`): `pause|resume|stop(
 `COMPLETE_TEXTS`, снимок `RunRecord.completion`, ожидания `stage: 'service'`,
 `HostStep.details`).
 
+## Сводка для панели (T009, `src/run-brief.ts`)
+
+`RunJournal.onChange(listener)` вызывается после каждой записи журнала, кто бы ни писал (ходы,
+управление, ожидания, завершение). `createRuns` обновляет по нему сводку проекта: запись
+старого законченного запуска не прячет новый. `brief(run)` (экспорт `runBrief`) → `RunBrief`:
+- `runId`, `revision` (для `expectedRevision` кнопок), `owner`, `mode`, `phase`, `pausedFrom`;
+- `reason`, `nextAction`, `source`, `scopeId`, `review`;
+- `wait { reason, detail, sha, since }`;
+- `publication { upstream, finalSha, published, commits, already, detail }`. `commits` и
+  `already` берутся из `RunCompletion.published`, его записывает завершение при публикации.
+Цитат пользователя в сводке нет.
+`GET /api/projects/:id/autopiloting/policy` → `StartPolicy` (`runs.policy`) — политика старта
+до нажатия.
+
 ## Маршруты (`src/runs-routes.ts`)
 
 `registerAutopilotingRoutes({ router, state, settings, runs })`:

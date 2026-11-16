@@ -147,7 +147,9 @@
   `registerRunControlRoutes`, `registerSessionRunRoutes`, `runHttp`, `Autopilot.halt`,
   `authority.onPause`, `WorkflowActionError.details`; T008 — сервис завершения
   `createRunCompletion` (`COMPLETE_TEXTS`, `PublisherLike`, `GitRead`, `RunCompleter`,
-  снимок `RunCompletion`) в [autopiloting-completion.md](autopiloting-completion.md).
+  снимок `RunCompletion`) в [autopiloting-completion.md](autopiloting-completion.md); T009 —
+  `RunJournal.onChange`, полная сводка `RunBrief`/`runBrief` (`src/run-brief.ts`) и `GET
+  …/autopiloting/policy` — в [autopiloting.md](autopiloting.md).
 
 ## Инварианты
 

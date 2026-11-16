@@ -122,6 +122,7 @@ export function choiceView(state, projectId, key) {
  * @property {boolean} delivery the autopilot waits for «Подтвердить выпуск»
  * @property {StartingView | null} starting the press of «Начать выполнение плана» Kit has not seen yet (spec M11)
  * @property {string[]} dirty paths outside commits that keep the plan from closing (spec M37 2.4)
+ * @property {string | null} autopilotingMode the mode of «Автопилотирование» while the plan waits for its start (M39)
  */
 
 /**
@@ -202,6 +203,8 @@ export function planView(state, projectId, key) {
     starting,
     // M37 2.4: paths outside commits while the plan waits for acceptance or closing.
     dirty: array(plan['dirty']).map(String),
+    // M39: the effective policy is shown before the start, for the mode of the settings.
+    autopilotingMode: shown.includes('start') ? (record(record(state['autopiloting'])['settings'])['mode'] ?? null) : null,
   };
 }
 

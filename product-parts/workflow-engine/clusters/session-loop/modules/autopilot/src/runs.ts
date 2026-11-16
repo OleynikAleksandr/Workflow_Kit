@@ -11,6 +11,8 @@ import { UPDATE_KIT_TEXT } from '#plan-view';
 import { WorkflowActionError } from './autopilot-types.ts';
 import type { HostTickets } from './host-ticket.ts';
 import { FINAL_PHASES } from './run-journal.ts';
+import { brief } from './run-brief.ts';
+import type { RunBrief } from './run-brief.ts';
 import type { RunJournal, RunRecord, RunSource } from './run-journal.ts';
 import type { RunKit, RunKitStatus, RunScope } from './run-kit.ts';
 import type { AutopilotingMode, SettingsChange, SettingsStore } from './settings.ts';
@@ -38,16 +40,6 @@ export interface PreparationResult {
 }
 
 /** A run as the panel state shows it: no quotes of the user's words. */
-export interface RunBrief {
-  runId: string;
-  mode: RunRecord['mode'];
-  phase: RunRecord['phase'];
-  reason: string | null;
-  source: RunRecord['request']['source'];
-  scopeId: string | null;
-  review: boolean;
-  updatedAt: string;
-}
 
 export interface RunsOptions {
   settings: SettingsStore;
@@ -97,9 +89,6 @@ const fail = (code: string, message: string, status = 409, nextAction: string | 
   throw new WorkflowActionError(code, message, status, nextAction);
 };
 
-function brief(run: RunRecord): RunBrief {
-  return { runId: run.runId, mode: run.mode, phase: run.phase, reason: run.reason, source: run.request.source, scopeId: run.scopeId, review: run.review, updatedAt: run.updatedAt };
-}
 
 function live(status: RunKitStatus | null, run: RunRecord): boolean {
   const grant = status?.authorization;
@@ -110,6 +99,12 @@ export function createRuns(options: RunsOptions): Runs {
   const log = options.log ?? (() => undefined);
   const briefs = new Map<string, RunBrief>();
   const remember = (run: RunRecord): RunRecord => (briefs.set(run.projectId, brief(run)), run);
+  // T009: every write of the journal (turns, control, waits, completion) refreshes the panel's brief;
+  // a write of an older run never hides the newer one.
+  options.journal.onChange((run) => {
+    const known = briefs.get(run.projectId);
+    if (!known || known.runId === run.runId || !FINAL_PHASES.has(run.phase)) remember(run);
+  });
   const serial = <T>(projectId: string, action: () => Promise<T>): Promise<T> => (options.mutex ? options.mutex.run(`project:${projectId}`, action) : action());
 
   async function root(projectId: string): Promise<string> {

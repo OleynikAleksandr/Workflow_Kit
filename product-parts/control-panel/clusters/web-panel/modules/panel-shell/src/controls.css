@@ -286,3 +286,101 @@ input[type='text']:focus {
   font-weight: 600;
   border-color: currentColor;
 }
+
+/* M39: «Автопилотирование» — the modes as native radio buttons, the review switch. */
+.ap-options {
+  display: grid;
+  gap: 6px;
+  margin: 8px 0;
+  padding: 0;
+  border: 0;
+}
+
+.ap-options legend {
+  padding: 0;
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.ap-option {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid var(--card-line);
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.ap-option:has(input:checked) {
+  border-color: var(--teal);
+}
+
+.ap-option input {
+  margin-top: 3px;
+  accent-color: var(--teal);
+}
+
+.ap-option b {
+  display: block;
+  font-weight: 600;
+}
+
+.ap-option small {
+  color: var(--muted);
+}
+
+.ap-review {
+  margin-bottom: 8px;
+}
+
+/* M39: collapsible service cards («Система», «Общий доступ к чатам …»): one heading row in the
+   shape of .panel, closed on load. */
+.cards > .service-card {
+  grid-column: 1 / -1;
+  max-width: 570px;
+  padding: 0;
+}
+
+.service-card > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 15px;
+  border-radius: 12px;
+  list-style: none;
+  cursor: pointer;
+}
+
+.service-card > summary::-webkit-details-marker {
+  display: none;
+}
+
+.service-card > summary::after {
+  content: '▸';
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 16px;
+  transition: transform 0.15s;
+}
+
+.service-card[open] > summary::after {
+  transform: rotate(90deg);
+}
+
+.service-card > summary h2 {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.service-card > summary:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: -2px;
+}
+
+.service-card > .card-body {
+  padding: 0 15px 15px;
+}

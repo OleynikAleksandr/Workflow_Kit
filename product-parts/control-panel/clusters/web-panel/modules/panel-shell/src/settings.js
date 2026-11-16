@@ -1,8 +1,9 @@
 // @ts-check
-// «Настройки»: appearance (theme, folder for projects) and the service cards that used to fill the
-// main screen (the «Архив» card, the «Система» card). The screen stays in the DOM, hidden when not shown,
+// «Настройки»: appearance (theme, folder for projects), «Автопилотирование» (M39), «Архив» and the
+// service cards that used to fill the main screen («Система», «Общий доступ к чатам», collapsed). The screen stays in the DOM, hidden when not shown,
 // so cards keep their state between visits.
 import { api } from './api.js';
+import { createAutopilotingCard } from './autopiloting-card.js';
 import { code, h, notice } from './dom.js';
 import { createFolderPicker, showError } from './folder-picker.js';
 import { THEMES, themeAttribute } from './view-model.js';
@@ -31,7 +32,7 @@ export function applyTheme() {
 
 /**
  * @param {{ onRootChanged: () => void, onClose?: () => void, onArchive?: () => void }} options
- * @returns {{ element: HTMLElement, cards: HTMLElement, render: (root: string) => void }}
+ * @returns {{ element: HTMLElement, cards: HTMLElement, render: (root: string) => void, renderState: (state: Record<string, unknown>) => void }}
  */
 export function createSettings(options) {
   const themeRow = h('div', { class: 'segmented', role: 'radiogroup', 'aria-label': 'Тема' });
@@ -91,6 +92,7 @@ export function createSettings(options) {
     message,
   ]);
   const cards = h('div', { class: 'cards', id: 'cards', 'aria-live': 'polite' });
+  const autopiloting = createAutopilotingCard();
   const openArchive = h('button', { type: 'button', class: 'btn' }, ['Архив']);
   openArchive.addEventListener('click', () => options.onArchive?.());
   const archiveCard = h('div', { class: 'panel' }, [
@@ -106,6 +108,7 @@ export function createSettings(options) {
       closeButton,
     ]),
     appearance,
+    autopiloting.element,
     archiveCard,
     cards,
   ]);
@@ -115,5 +118,6 @@ export function createSettings(options) {
     render(root) {
       rootLine.replaceChildren(root ? code(root) : '—');
     },
+    renderState: (state) => autopiloting.render(state),
   };
 }

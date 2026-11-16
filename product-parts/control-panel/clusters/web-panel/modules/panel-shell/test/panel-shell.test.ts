@@ -31,6 +31,8 @@ test('the panel files live in the module src directory', async () => {
     'menus.js',
     'screens.js',
     'settings.js',
+    'autopiloting-card.js',
+    'autopiloting-model.js',
     'card-grid.js',
     'slots.js',
     'session-screen.js',

@@ -1,11 +1,13 @@
 // @ts-check
-// The sidebar workflow cards (activity, path choice, plan, delivery confirmation) and
-// «Ревью плана» in the sidebar. Panel extension: install(shell) fills the "sessionSidebar" and
-// "sessionReview" slots of panel-shell. Typed text lives in inputs kept per session.
+// The sidebar workflow cards (activity, path choice, plan, delivery confirmation, the autopiloting
+// run) and «Ревью плана» in the sidebar. Panel extension: install(shell) fills the "sessionSidebar"
+// slot of panel-shell (M39: the review switch moved to «Настройки»; the "sessionReview" slot stays
+// empty). Typed text lives in inputs kept per session.
 import { foreignPlanCard } from './foreign-card.js';
 import { dirtyBlock } from './plan-dirty.js';
 import { installSidebarSlot } from './sidebar-view.js';
-import { START_SLOW_TEXT, START_STEPS, activityView, choiceView, crossReviewView, planQuestionView, planView, reviewView, timer } from './session-model.js';
+import { policyLine, runCard } from './run-card.js';
+import { START_SLOW_TEXT, START_STEPS, activityView, choiceView, crossReviewView, planQuestionView, planView, timer } from './session-model.js';
 
 /**
  * Helpers the panel shell gives to extensions (see panel-shell app.js).
@@ -165,6 +167,7 @@ export function install(shell) {
         ]),
       ),
       h('p', { class: 'sv-muted sv-gap' }, ['Агент ждёт ответа: ответ уйдёт ему сообщением Workflow Kit.']),
+      h('p', { class: 'sv-muted' }, ['Ответ — решение для этого задания. Общая настройка ревью — в «Настройки → Автопилотирование».']),
     ].filter((n) => n !== null));
   }
 
@@ -272,6 +275,10 @@ export function install(shell) {
       dirtyBlock(h, plan.dirty, button('Попросить агента убрать', () => void send(ctx, projectId, 'tidy', { session: key }, 'Не удалось попросить агента'))),
       h('hr'),
       plan.starting?.problem ? h('p', { class: 'sv-warn' }, [plan.starting.problem]) : null,
+      policyLine(shell, projectId, plan, () => {
+        fields.version += 1;
+        ctx.requestRefresh();
+      }),
       row,
       fixesForm,
     ].filter((n) => n !== null));
@@ -368,19 +375,14 @@ export function install(shell) {
     delivery: (_data, session, ctx) => deliveryCard(session, ctx),
     choice: choiceCard,
     plan: planCard,
+    run: (data, session, ctx) => runCard(shell, data, session.project.id, ctx),
     foreign: (data, session, ctx) => foreignPlanCard(h, data, (key) => (ctx.openSession ? ctx.openSession(session.project.id, key) : ctx.navigate({ screen: 'session', projectId: session.project.id, key }))),
     activity: activityBlock,
     empty: () => h('p', { class: 'sv-empty sv-muted' }, ['План появится, когда агент его предложит.']),
   }, (session) => inputsOf(`${session.project.id}\n${session.session.key}`).version);
 
-  // M4 12.3: the review decision is read-only; the answer to the plan question sets it.
-  shell.registerSlot('sessionReview', {
-    select: (state, session) => reviewView(state, session.project.id, session.session.key),
-    render(data) {
-      if (!data) return null;
-      return h('div', { class: 'review' }, [h('div', { class: 'toggle' }, [`Ревью плана: ${data.on ? 'да' : 'нет'}`]), h('small', {}, [data.hint])]);
-    },
-  });
+  // M39: the review switch of the sidebar moved to «Настройки → Автопилотирование»; the
+  // "sessionReview" slot is not registered. The answer to the plan question still decides the task.
 
   // Timers of the activity line tick between polls.
   setInterval(() => {

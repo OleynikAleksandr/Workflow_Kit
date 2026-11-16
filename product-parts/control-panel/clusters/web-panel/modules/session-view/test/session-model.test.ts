@@ -62,7 +62,9 @@ test('the mount serves the session view under /session-view/', async () => {
   assert.match(source, /installSidebarSlot\(shell/);
   const sidebar = await readFile(path.join(SESSION_VIEW_ASSETS_DIR, 'sidebar-view.js'), 'utf8');
   assert.match(sidebar, /registerSlot\('sessionSidebar'/);
-  assert.match(source, /registerSlot\('sessionReview'/);
+  // M39: the review switch moved to «Настройки → Автопилотирование».
+  assert.doesNotMatch(source, /registerSlot\('sessionReview'/);
+  assert.match(source, /Общая настройка ревью — в «Настройки → Автопилотирование»/);
   assert.match(source, /\/workflow\/\$\{route\}/);
   assert.match(source, /\/plan-decision`/);
   assert.doesNotMatch(source, /innerHTML/);

@@ -39,6 +39,10 @@
   сервисом git-publish, что публикация запуска; отказ учётных данных — 502 `push-auth`
   (прочие сбои push — 502 `push-failed`). Раздел `autopiloting` показывает фазы
   `accepting`, `closing`, `publishing` и после закрытия scope до проверенной публикации.
+- T009: раздел `autopiloting.projects[id]` — `{ runId, revision, owner, mode, phase,
+  pausedFrom, reason, nextAction, source, scopeId, review, wait, publication, updatedAt }`
+  после любой записи журнала; `GET /api/projects/:id/autopiloting/policy` → `{ mode, policy,
+  text, manualCriteria }`.
 - Раздел `reviews` (T006): у ревью есть `approvedDigest`, `versioned` и `reviewedProposal`
   (`{ scopeId, generation, digest }` согласованной версии предложения).
 - Контракт — [autopilot/autopiloting.md](../../product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md).

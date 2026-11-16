@@ -19,6 +19,8 @@ export class ApiError extends Error {
     this.hint = typeof details['hint'] === 'string' ? details['hint'] : undefined;
     /** @type {string[]} */
     this.blockers = Array.isArray(details['blockers']) ? details['blockers'].map(String) : [];
+    /** Every field of the error answer (e.g. `current` of a stale write, M39). */
+    this.details = details;
   }
 }
 

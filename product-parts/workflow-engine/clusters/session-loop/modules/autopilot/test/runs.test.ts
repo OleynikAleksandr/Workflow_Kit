@@ -5,9 +5,10 @@ import { mkdir, mkdtemp, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { after, test } from 'node:test';
+import { createRouter, createStateRegistry } from '#http-server';
 import type { UserWords } from '#agent-channel';
 import { SUPPORTED_HOST_PROTOCOL } from '#plan-view';
-import { POLICY_TEXTS, createHostTickets, createRunJournal, createRuns, createSettingsStore } from '../src/index.ts';
+import { POLICY_TEXTS, createHostTickets, createRunJournal, createRuns, createSettingsStore, registerAutopilotingRoutes } from '../src/index.ts';
 import type { AutopilotingMode, RunKit, RunKitStatus } from '../src/index.ts';
 
 const tmp = await mkdtemp(path.join(os.tmpdir(), 'wfk-runs-'));
@@ -29,9 +30,10 @@ async function setup(mode: AutopilotingMode, status: Partial<RunKitStatus> | nul
     scope: async () => null,
     host: async () => assert.fail('no host step expected'),
   } as unknown as RunKit;
+  const journal = createRunJournal();
   const runs = createRuns({
     settings,
-    journal: createRunJournal(),
+    journal,
     kit,
     tickets: createHostTickets(),
     words: (key) => words.get(key) ?? [],
@@ -43,7 +45,7 @@ async function setup(mode: AutopilotingMode, status: Partial<RunKitStatus> | nul
     },
   });
   const say = (key: string, text: string, at = '2026-11-16T10:00:00.000Z') => words.set(key, [...(words.get(key) ?? []), { text, at, via: 'prompt', turnId: 't-1' }]);
-  return { runs, say, decided, dir, settings };
+  return { runs, say, decided, dir, settings, journal };
 }
 
 test('no user words: authorization-source-missing; words not in the last message: mismatch', async () => {
@@ -130,4 +132,30 @@ test('T006: a review decision the session already has wins over the Settings def
   const result = await runs.authorizePreparation('p1', KEY, 'Docs', 'составляй спецификацию и план');
   assert.equal(result.review, false);
   assert.match(result.instruction, /without a cross review/u);
+});
+
+test('T009: the panel brief follows every write of the journal and never quotes the user', async () => {
+  const { runs, journal, dir } = await setup('after-start', { scope: 'ACTIVE' } as Partial<RunKitStatus>);
+  const run = await journal.create(dir, {
+    projectId: 'p1', owner: { key: KEY, client: 'claude', sessionId: 's-1' }, mode: 'after-start', review: false,
+    request: { source: 'panel-start', quote: 'secret words of the user', at: 'x', turnId: null, goal: 'g' }, proposal: null, scopeId: 'auto',
+    authority: { grantRevision: 1, deliveryTaskIds: [], accept: true, close: true, publication: { branch: 'main', upstream: 'origin/main' }, acceptancePolicy: 'automatic', baseHead: null, revocation: null },
+    phase: 'executing', pausedFrom: null, reason: null, nextAction: null,
+  });
+  // A write of another part of the service (waits, completion) reaches the section at once.
+  await journal.update(dir, run.runId, (r) => ({ ...r, phase: 'waiting', pausedFrom: 'publishing', wait: { reason: 'ci', since: 's', sha: 'f'.repeat(40), detail: 'Ждёт CI' }, completion: { ci: null, publication: { branch: 'main', upstream: 'origin/main' }, finalSha: 'f'.repeat(40) } }));
+  const brief = (await runs.section()).projects['p1']!;
+  assert.deepEqual([brief.phase, brief.pausedFrom, brief.owner, brief.revision, brief.wait?.reason, brief.publication?.finalSha], ['waiting', 'publishing', KEY, 2, 'ci', 'f'.repeat(40)]);
+  assert.doesNotMatch(JSON.stringify(brief), /secret words/u);
+  await journal.update(dir, run.runId, (r) => ({ ...r, phase: 'completed', wait: null, completion: { ...r.completion!, published: { sha: 'f'.repeat(40), upstream: 'origin/main', commits: 2, already: false, at: 'x' } }, receipts: [...r.receipts, { actionId: 'publish:f', type: 'publish', at: 'x', commit: 'f'.repeat(40), detail: 'pushed' }] }));
+  assert.deepEqual((await runs.section()).projects['p1']!.publication, { upstream: 'origin/main', finalSha: 'f'.repeat(40), published: 'f'.repeat(40), commits: 2, already: false, detail: 'pushed' });
+});
+
+test('T009: GET /api/projects/:id/autopiloting/policy tells the effective policy before the start', async () => {
+  const { runs, settings } = await setup('after-start', { acceptance: [{ criterion: 0, kind: 'manual' }] });
+  const router = createRouter();
+  registerAutopilotingRoutes({ router, state: createStateRegistry(), settings, runs });
+  const route = router.match('GET', '/api/projects/p1/autopiloting/policy') as unknown as { handler(input: unknown): Promise<{ policy: string; text: string }>; params: unknown };
+  const answer = await route.handler({ params: route.params, body: {} });
+  assert.deepEqual([answer.policy, answer.text], ['manual-acceptance', POLICY_TEXTS.manual([1])]);
 });

@@ -255,6 +255,7 @@ async function refresh() {
     linked = true;
     reloadOnNewVersion(/** @type {{ version?: string }} */ (state['system'] ?? {}).version);
     renderCards(settings.cards, state);
+    settings.renderState(state);
   } catch {
     linked = false;
   } finally {

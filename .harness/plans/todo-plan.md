@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": "T009",
+  "currentTaskId": null,
   "lastClosed": {
     "closedAt": "2026-11-16T17:16:45.868Z",
     "scopeId": "M38-kit-structure-update"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1186,
+  "revision": 1187,
   "rounds": [
     {
       "digest": null,
@@ -874,14 +874,47 @@
         "docs/usage.md",
         "design-qa.md",
         "docs/architecture/OS-MATRIX.md",
-        "docs/architecture/HTTP-CONTRACTS.md"
+        "docs/architecture/HTTP-CONTRACTS.md",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/files.md",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/api.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/autopiloting-card.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/autopiloting-model.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/card-grid.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/cards.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/controls.css",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/index.html",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/settings.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/shared-access-card.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/system-card.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/autopiloting-model.test.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/panel-shell.test.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/plan-cards.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/run-card.css",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/run-card.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/run-model.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/sidebar-view.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/test/run-model.test.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/index.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-brief.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-complete.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-journal.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/runs-routes.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/runs.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/runs.test.ts"
       ],
       "fixes": null,
       "id": "T009",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "title": "Settings: режимы, перенос ревью и свёрнутые служебные карточки",
       "why": "Settings: режимы, перенос ревью и свёрнутые служебные карточки"
     },
@@ -1089,9 +1122,9 @@
 - Scope: M39-autopiloting (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: T009
-- Progress: 8/13
-- Revision: 1186
+- Current task: none
+- Progress: 9/13
+- Revision: 1187
 
 ## Objective
 
@@ -1142,9 +1175,9 @@
   - Commit: feat: finish authorized runs through verified publication
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/backend-core/clusters/projects/modules/git-publish, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner, product-parts/workflow-engine/clusters/kit-host/modules/plan-view, docs/architecture/OS-MATRIX.md, docs/architecture/CONTRACTS.md, docs/architecture/HTTP-CONTRACTS.md, product-parts/backend-core/clusters/projects/modules/git-publish/module.md, product-parts/backend-core/clusters/projects/modules/git-publish/src/index.ts, product-parts/backend-core/clusters/projects/modules/git-publish/src/publication.ts, product-parts/backend-core/clusters/projects/modules/git-publish/src/routes.ts, product-parts/backend-core/clusters/projects/modules/git-publish/test/publish-expected.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/connected-modules.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/autopiloting-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting-completion.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-complete.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-journal.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-kit.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-waits.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/complete-real.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/complete.test.ts
   - Depends on: T007
-- [IN_PROGRESS] T009 — Settings: режимы, перенос ревью и свёрнутые служебные карточки (work)
+- [DONE] T009 — Settings: режимы, перенос ревью и свёрнутые служебные карточки (work)
   - Commit: feat: add autopiloting settings and collapsible service cards
-  - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/workflow-engine/clusters/session-loop/modules/autopilot, docs/usage.md, design-qa.md, docs/architecture/OS-MATRIX.md, docs/architecture/HTTP-CONTRACTS.md
+  - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/workflow-engine/clusters/session-loop/modules/autopilot, docs/usage.md, design-qa.md, docs/architecture/OS-MATRIX.md, docs/architecture/HTTP-CONTRACTS.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/files.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/api.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/autopiloting-card.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/autopiloting-model.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/card-grid.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/cards.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/controls.css, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/index.html, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/settings.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/shared-access-card.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/system-card.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/autopiloting-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/panel-shell.test.ts, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/plan-cards.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/run-card.css, product-parts/control-panel/clusters/web-panel/modules/session-view/src/run-card.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/run-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/sidebar-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/test/run-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-brief.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-complete.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-journal.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/runs-routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/runs.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/runs.test.ts
   - Depends on: T008
 - [TODO] T010 — Сквозные проверки полной связки и регрессии управления (work)
   - Commit: test: cover complete autopiloting lifecycle and controls

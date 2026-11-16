@@ -1,0 +1,44 @@
+/* M39: the autopiloting run of the session — mode, stage, wait or stop reason, publication. */
+.sv-run {
+  max-width: 570px;
+  padding: 12px 15px;
+  border: 1px solid var(--card-line);
+  border-radius: 12px;
+  background: var(--card);
+}
+
+.sv-run-warn {
+  border-color: var(--warn);
+}
+
+.sv-run-done {
+  border-color: var(--ok);
+}
+
+.sv-run .eyebrow {
+  margin: 0 0 6px;
+}
+
+.sv-run-stage {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sv-run p {
+  margin: 6px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.sv-run .row {
+  margin-top: 10px;
+}
+
+.sv-done,
+.sv-run-pub {
+  color: var(--ok);
+}
+
+.sv-policy {
+  margin: 8px 0 0;
+}

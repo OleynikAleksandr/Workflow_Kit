@@ -74,6 +74,8 @@ export interface RunCompletion {
   publication: { branch: string; upstream: string } | null;
   /** HEAD after the close commit of the run; null before the close. */
   finalSha: string | null;
+  /** T009: the verified publication (commits pushed; `already` — the remote had the SHA). */
+  published?: { sha: string; upstream: string; commits: number; already: boolean; at: string } | null;
 }
 
 export interface RunReceipt {
@@ -152,6 +154,8 @@ export interface RunJournal {
   update(root: string, runId: string, change: (run: RunRecord) => RunRecord | null): Promise<RunRecord>;
   /** Serializes work on one project (the same lock the journal writes take). */
   locked<T>(root: string, action: () => Promise<T>): Promise<T>;
+  /** T009: called after every write, whoever wrote (turns, control, waits, completion). */
+  onChange(listener: (run: RunRecord) => void): void;
 }
 
 export function createRunJournal(options: { now?: () => Date; platform?: NodeJS.Platform } = {}): RunJournal {
@@ -160,6 +164,17 @@ export function createRunJournal(options: { now?: () => Date; platform?: NodeJS.
   const writeOptions = { mode: 0o600, dirMode: 0o700, ...(options.platform ? { platform: options.platform } : {}) };
   // Locks are re-entrant within one call chain: an update inside `locked` must not wait for itself.
   const held = new AsyncLocalStorage<ReadonlySet<string>>();
+  const listeners: Array<(run: RunRecord) => void> = [];
+  const notify = (run: RunRecord): RunRecord => {
+    for (const listener of listeners) {
+      try {
+        listener(run);
+      } catch {
+        // A listener never breaks a write.
+      }
+    }
+    return run;
+  };
   const withLock = async <T>(root: string, action: () => Promise<T>): Promise<T> => {
     const mine = held.getStore();
     if (mine?.has(root)) return action();
@@ -197,7 +212,7 @@ export function createRunJournal(options: { now?: () => Date; platform?: NodeJS.
         const at = now().toISOString();
         const record: RunRecord = { ...run, version: 1, runId: newRunId(), revision: 1, pendingAction: null, receipts: [], tickets: [], createdAt: at, updatedAt: at };
         await writeJsonAtomic(runFile(root, record.runId), record, writeOptions);
-        return record;
+        return notify(record);
       });
     },
     update(root, runId, change) {
@@ -208,9 +223,12 @@ export function createRunJournal(options: { now?: () => Date; platform?: NodeJS.
         if (!next) return current;
         const record: RunRecord = { ...next, version: 1, runId, revision: current.revision + 1, updatedAt: now().toISOString() };
         await writeJsonAtomic(runFile(root, runId), record, writeOptions);
-        return record;
+        return notify(record);
       });
     },
     locked: withLock,
+    onChange(listener) {
+      listeners.push(listener);
+    },
   };
 }

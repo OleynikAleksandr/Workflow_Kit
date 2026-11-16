@@ -12,6 +12,8 @@
  * @property {string} title Card heading.
  * @property {number} order Sort key; smaller cards come first.
  * @property {boolean} [wide] Spans the full width of the grid.
+ * @property {boolean} [collapsible] A heading row that opens on a press (M39): closed on load,
+ *   kept open across polls and screens of this panel instance.
  * @property {(state: PanelState) => unknown} select Picks the part of the state the card shows;
  *   the card is re-rendered only when this value changes.
  * @property {(data: any, state: PanelState) => Node} render Builds the card body. A card with its
@@ -31,6 +33,7 @@
  * @property {string} id Unique group id; an item card gets the id "<group>-<item>".
  * @property {number} order Sort key of every card of the group.
  * @property {boolean} [wide]
+ * @property {boolean} [collapsible]
  * @property {(state: PanelState) => CardGroupItem[]} items Cards to draw for this state, in order.
  * @property {(state: PanelState, itemId: string) => unknown} select Data of one item card.
  * @property {(data: any, state: PanelState, itemId: string) => Node} render Body of one item card.
@@ -94,6 +97,7 @@ export function expandCards(state) {
         title: item.title,
         order: group.order,
         wide: group.wide,
+        collapsible: group.collapsible,
         select: (s) => group.select(s, item.id),
         render: (data, s) => group.render(data, s, item.id),
       });

@@ -168,7 +168,8 @@ function view(provider) {
 registerCardGroup({
   id: 'shared-access',
   order: 5,
-  items: (state) => sharedAccessProviders(state).map((p) => ({ id: p.id, title: `Общий доступ к чатам · ${p.label}` })),
+  collapsible: true,
+  items: (state) => sharedAccessProviders(state).map((p) => ({ id: p.id, title: `Общий доступ к чатам ${p.label}` })),
   select: (state, provider) => ({ shared: sharedAccessOf(state, provider), op: sharedOperation(state, provider) }),
   render(data, _state, provider) {
     const entry = view(provider);

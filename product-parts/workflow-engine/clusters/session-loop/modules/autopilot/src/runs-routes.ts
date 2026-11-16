@@ -24,6 +24,8 @@ export function registerAutopilotingRoutes(options: { router: Router; state: Sta
       throw error;
     }
   });
+  // T009: the effective policy of a start before the user presses it (legacy, manual acceptance, …).
+  router.get('/api/projects/:id/autopiloting/policy', ({ params }) => runHttp(() => runs.policy(params['id']!)));
   options.state.add('autopiloting', async () => {
     const view = await settings.read();
     return { settings: view.settings, error: view.error, ...(await runs.section()) };

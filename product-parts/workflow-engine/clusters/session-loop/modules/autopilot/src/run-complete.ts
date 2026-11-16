@@ -11,7 +11,7 @@ import type { RunKit, RunKitStatus } from './run-kit.ts';
 import { RETRY_DELAYS_MS, WAIT_TEXTS } from './run-waits.ts';
 
 export interface PublisherLike {
-  publish(folder: string, scopeOpen: boolean, expected: { sha: string; branch: string; upstream: string }): Promise<{ sha: string; already: boolean }>;
+  publish(folder: string, scopeOpen: boolean, expected: { sha: string; branch: string; upstream: string }): Promise<{ sha: string; already: boolean; commits?: number }>;
   stageCi(folder: string, target: { sha: string; remote: string; branch: string }): Promise<{ sha: string; already: boolean }>;
 }
 
@@ -198,6 +198,7 @@ export function createRunCompletion(deps: RunCompletionDeps) {
       log(`autopiloting: ${run.runId} published ${sha} to ${completion.publication.upstream}`);
       return update(folder, run, (r) => ({
         ...r, phase: 'completed', pausedFrom: null, reason: null, nextAction: null, retries: {},
+        completion: { ...r.completion!, published: { sha, upstream: completion.publication!.upstream, commits: done.commits ?? 0, already: done.already, at: now().toISOString() } },
         receipts: [...r.receipts, receipt(actionId, 'publish', sha, done.already ? `${completion.publication!.upstream} already had ${sha} (verified after fetch)` : `pushed to ${completion.publication!.upstream}, verified after fetch`)],
       }));
     } catch (error) {

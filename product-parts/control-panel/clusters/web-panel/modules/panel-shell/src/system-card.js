@@ -132,6 +132,7 @@ registerCard({
   id: 'system',
   title: 'Система',
   order: 0,
+  collapsible: true,
   select: (state) => state['system'],
   /** @param {SystemSection | undefined} system */
   render(system) {

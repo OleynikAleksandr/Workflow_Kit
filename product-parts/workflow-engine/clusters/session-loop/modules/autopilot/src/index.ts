@@ -30,7 +30,9 @@ export type { NewRun, RunAuthority, RunJournal, RunPhase, RunReceipt, RunRecord,
 export { FINAL_PHASES, RUNS_DIR, createRunJournal, newRunId } from './run-journal.ts';
 export type { HostStep, RunAutomation, RunKit, RunKitStatus, RunScope } from './run-kit.ts';
 export { createRunKit } from './run-kit.ts';
-export type { PreparationResult, RunBrief, Runs, RunsOptions, StartPolicy, StartPolicyKind } from './runs.ts';
+export type { PreparationResult, Runs, RunsOptions, StartPolicy, StartPolicyKind } from './runs.ts';
+export type { RunBrief } from './run-brief.ts';
+export { brief as runBrief } from './run-brief.ts';
 export { createRuns } from './runs.ts';
 export { POLICY_TEXTS, preparationText } from './run-texts.ts';
 export { registerAutopilotingRoutes, registerRunControlRoutes, registerSessionRunRoutes, runHttp } from './runs-routes.ts';

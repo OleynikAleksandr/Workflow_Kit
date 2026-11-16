@@ -100,7 +100,8 @@ function ensureMainMayStart(
 export function startTask(
   context: KitContext,
   taskId: string,
-  confirmation: string | null
+  confirmation: string | null,
+  autopilotRun: string | null = null
 ): TaskStart {
   return locked(context, () => {
     ensureNoTransaction(context);
@@ -108,6 +109,19 @@ export function startTask(
     const current = readPlan(context);
     const config = readConfig(context);
     const task = workflowPlanFacade.task(current, taskId);
+    if (autopilotRun !== null) {
+      ensure(
+        confirmation === null && task.kind === "delivery",
+        "USAGE",
+        "--autopilot-run starts a delivery task instead of --confirmed; it takes no --confirmed."
+      );
+      // The grant of the run is the user's advance confirmation (spec M39).
+      confirmation = workflowPlanFacade.deliveryConfirmation(
+        current,
+        autopilotRun,
+        taskId
+      );
+    }
     ensureMainMayStart(context, current, task);
     ensureAssignmentReady(context);
     workflowQualityFacade.selectChecks({

@@ -1,4 +1,6 @@
+import type { AutopilotGrant } from "./plan-authorization.js";
 import type { ScopeAutomation } from "./plan-automation.js";
+import type { AcceptanceEvidence } from "./plan-autopilot-completion.js";
 
 export const PLAN_SCHEMA = "harness-workflow-plan/1";
 export const PLAN_PATH = ".harness/plans/todo-plan.md";
@@ -86,8 +88,12 @@ export interface ScopeProposalRef {
 
 export interface WorkflowScope {
   acceptance: string[];
+  /** Present when an autopilot run accepted the result (M39). */
+  acceptanceEvidence?: AcceptanceEvidence;
   acceptanceNote: UserDecision | null;
   approval: UserDecision;
+  /** The autopilot grant of the current run (M39); absent without one. */
+  authorization?: AutopilotGrant;
   /** M39 automation block; absent on legacy plans. */
   automation?: ScopeAutomation;
   baselineCommit: string;
@@ -105,7 +111,11 @@ export interface WorkflowScope {
 }
 
 export interface ClosedScopeRef {
+  /** The autopilot run that closed the scope (M39). */
+  autopilotRun?: string;
   closedAt: string;
+  /** HEAD when an autopilot run closed the scope. */
+  finalCommit?: string;
   scopeId: string;
 }
 

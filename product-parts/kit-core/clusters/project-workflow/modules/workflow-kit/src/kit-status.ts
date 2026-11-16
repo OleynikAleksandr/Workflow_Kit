@@ -3,10 +3,6 @@ import {
   type AssignmentStatus,
   workflowAssignmentFacade,
 } from "../../workflow-assignment/src/workflow-assignment-facade.js";
-import type {
-  AutopilotOrchestration,
-  AutopilotProjectStatus,
-} from "../../workflow-autopilot/src/workflow-autopilot-facade.js";
 import {
   type ExecutionModeOption,
   workflowExecutionModeFacade,
@@ -26,7 +22,7 @@ import {
   workflowQualityFacade,
 } from "../../workflow-quality/src/workflow-quality-facade.js";
 import type { TransactionSummary } from "../../workflow-recovery/src/workflow-recovery-facade.js";
-import { activeRecords, INTEGRATION_FILE } from "./kit-assignment.js";
+import { INTEGRATION_FILE } from "./kit-assignment.js";
 import type { KitContext } from "./kit-context.js";
 import { executorAssignment } from "./kit-executor.js";
 import { readPause } from "./kit-pause.js";
@@ -276,66 +272,6 @@ export function readStatus(context: KitContext): KitStatus {
     scopeProposal: proposalOf(context),
     tasks: tasks.map(statusTask),
     transaction: repository ? transactionOf(context) : null,
-  };
-}
-
-/**
- * What the orchestrator of an orchestrated scope may act on (spec 10.3):
- * the active and pending-cleanup assignments, the integration and the tasks
- * the scheduler hands out now. Null in a sequential scope and outside main.
- */
-function orchestrationOf(
-  context: KitContext,
-  status: KitStatus
-): AutopilotOrchestration | null {
-  if (status.execution?.strategy !== "orchestrated" || status.executor) {
-    return null;
-  }
-  const plan = workflowPlanFacade.read(context.root);
-  if (!plan) {
-    return null;
-  }
-  const schedule = workflowAssignmentFacade.schedule(
-    plan,
-    activeRecords(plan, context.root)
-  );
-  return {
-    assignments: status.assignments
-      .filter(
-        (item) =>
-          item.status !== "INTEGRATED" || item.cleanup?.status === "PENDING"
-      )
-      .map(({ id, sourceCommit, status: state, taskId }) => ({
-        cleanupPending: state === "INTEGRATED",
-        id,
-        sourceCommit,
-        status: state,
-        taskId,
-      })),
-    integration: status.integration,
-    readyTasks: schedule.ready,
-  };
-}
-
-/** The autopilot decision input plus the user's pause. */
-export type KitAutopilotStatus = AutopilotProjectStatus & { paused: boolean };
-
-/** The status shape the autopilot decision reads. */
-export function autopilotStatus(context: KitContext): KitAutopilotStatus {
-  const status = readStatus(context);
-  return {
-    blockedReason: status.scope?.blockedReason ?? null,
-    delivery: (status.scope?.delivery ??
-      null) as AutopilotProjectStatus["delivery"],
-    head: status.head,
-    nextTask: status.nextTask,
-    orchestration: orchestrationOf(context, status),
-    paused: status.paused,
-    proposalPending:
-      status.scopeProposal !== null && !status.scopeProposal.refining,
-    revision: status.revision,
-    scope: (status.scope?.status ?? "NONE") as AutopilotProjectStatus["scope"],
-    transactionPending: status.transaction !== null,
   };
 }
 

@@ -58,7 +58,9 @@ it runs.
   `transaction`, `changes`. JSON `scope` carries `automation` and
   `proposal` (Kit 2.3.0, spec M39; `null` on a legacy scope).
 - `autopilot:status` — the status the Harness Core autopilot decides on.
-  JSON only.
+  JSON only. Kit 2.3.1 (spec M39) adds `capability`, `proposal`,
+  `authorization` and `acceptance` (criteria with `evidenceMissing`);
+  contract in `workflow-kit/autopilot.md`.
 - `validate` — `{ok, errors[]}` for the plan, its projection, the
   configuration and the task-to-commit mapping. Text: `Plan and history
   are consistent.` or one `CODE: message` line per error.
@@ -206,13 +208,47 @@ name). Nothing is written then.
   `DIRTY_TREE` (Kit 2.2.6, spec M37: the message names up to five paths
   outside commits, `details.paths` all of them, `nextAction` — delete
   temporary files or commit documents with `docs:commit`, then repeat).
+- Host-only autopilot forms (Kit 2.3.1, spec M39; contract in
+  `workflow-kit/autopilot.md`). They write only after the direct parent
+  confirmed the one-time ticket over the Node IPC channel (`fork`, protocol
+  `wfk-host/1`); a process without it gets `HOST_AUTH_REQUIRED`, a refused,
+  disconnected or silent parent `HOST_AUTH_INVALID`; nothing is written
+  then. `--expected-revision N` is required (`USAGE`, `REVISION_MISMATCH`).
+  The agent never runs them: the Workflow Kit app performs the step.
+  - `autopilot:authorize --input <file.json> --expected-revision N` — the
+    grant `{runId, scopeId, ownerSession, mode, source, note,
+    proposalDigest, deliveryTaskIds, accept, close, ci, publication,
+    acceptancePolicy}`; JSON `{changed, commit, grant, revision}`, commit
+    `chore: authorize autopilot run <id>` (role `authorization`; saved
+    without a commit while a task is in progress). Refusals:
+    `AUTOPILOT_UNAUTHORIZED`, `AUTOPILOT_REVOKED`,
+    `AUTOPILOT_SCOPE_MISMATCH`, `AUTOPILOT_PLAN_CHANGED`,
+    `AUTOPILOT_MANUAL_REQUIRED`, `PLAN_SCHEMA`.
+  - `autopilot:revoke --run <id> --reason settings-off|user-stop --note
+    "<why>" --expected-revision N` — settings-off is resumable by a new
+    authorize with `source: panel-resume`, user-stop is final; a repeat
+    changes nothing.
+  - `accept --autopilot-run <id> --input <evidence.json>
+    --expected-revision N` — the evidence `{head, criteria [{criterion,
+    checks [{id, commit}], evidence}], ci {sha, checks} | null}` is checked
+    against HEAD, the Kit verification records and the tracked files
+    (`AUTOPILOT_EVIDENCE_REQUIRED`); `AUTOPILOT_MANUAL_REQUIRED` for a
+    manual criterion or a grant without accept. Not together with `--note`
+    (`USAGE`).
+  - `close --scope <id> --autopilot-run <id> --expected-revision N` — the
+    grant with close, an accepted scope (automatic or by the user) and a
+    clean tree; `lastClosed` keeps the run and the final commit.
 - `carryover --input <file.json>` — closes the scope and opens a new one
   with the unfinished tasks; input: `schema carryover`. Refusals:
   `NO_SCOPE`, `NO_BASELINE`, `NOTHING_TO_CARRY`, `SCOPE_APPROVAL`.
 
 ## Tasks
 
-- `task:start <ID> [--confirmed "<user confirmation>"]` — starts a task.
+- `task:start <ID> [--confirmed "<user confirmation>" | --autopilot-run
+  <id>]` — starts a task. `--autopilot-run` (Kit 2.3.1, spec M39) starts a
+  delivery task with the confirmation of the live grant of that run
+  (`AUTOPILOT_UNAUTHORIZED`, `AUTOPILOT_REVOKED`, `AUTOPILOT_PLAN_CHANGED`);
+  with `--confirmed` or for another kind it is `USAGE`.
   Refusals: `WORKFLOW_PAUSED` (main), `ORCHESTRATED_MAIN_READ_ONLY`,
   `DELIVERY_NOT_READY`, `CHECK_UNKNOWN`, `SCOPE_NOT_ACTIVE`,
   `TASK_ALREADY_ACTIVE`, `TASK_NOT_TODO`, `DEPENDENCY_PENDING`,

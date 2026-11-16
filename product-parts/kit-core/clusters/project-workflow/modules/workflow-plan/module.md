@@ -39,7 +39,11 @@ transitions below it exposes `inputSchema(command)` and
   - `automation` (optional, M39): how each acceptance criterion is proven,
     delivery effects, required CI and publication; `proposal` (optional):
     `{digest, generation}` of the reviewed proposal the scope was chosen
-    from. Both are described in [automation.md](automation.md).
+    from. Both are described in [automation.md](automation.md);
+  - `authorization` (optional, M39): the autopilot grant of the current
+    run; `acceptanceEvidence` (optional): the acceptance recorded by a run.
+    Both, and `lastClosed.autopilotRun`/`finalCommit`, are described in
+    [authorization.md](authorization.md).
 - `WorkflowRound` has `id` (`R1`, `R2`, `R0-legacy`), `kind`
   (`implementation`, `fixes`, `legacy`), `status` (`OPEN`, `CLOSED`) and
   `digest`.
@@ -66,7 +70,8 @@ Errors are `WorkflowError` codes: `PLAN_SCHEMA`, `TASK_ORDER`, `DOCS_TASK`,
 `DELIVERY_ORDER`, `ROUND_DIGEST_REQUIRED`, `ROUND_DIGEST_TOO_LARGE`,
 `UNSAFE_PATH`, `PLAN_EXECUTION`, `PARALLEL_KIND`, `PARALLEL_FILES`,
 `PLAN_AUTOMATION` (the automation block, last step of `validatePlan`; see
-[automation.md](automation.md)).
+[automation.md](automation.md)); the autopilot records are checked after it
+([authorization.md](authorization.md#validation)).
 
 Field refusals carry `details.field` with the plan path of the field:
 `scope.objective`, `scope.spec`, `tasks.<ID>.commitMessage`,
@@ -360,7 +365,8 @@ functions; the facade exposes them as methods.
   - every unfinished non-`DOCS` task moves into round `R1` and is reset to
     `TODO`, keeping its `parallelSafe` label;
   - the new scope keeps the execution block of the old one and drops
-    `automation` and `proposal` (a new agreement);
+    `automation`, `proposal`, `authorization` and `acceptanceEvidence` (a
+    new agreement);
   - dependencies and `fixes` links that point to finished or dropped tasks
     are removed;
   - `QUALITY` and `DOCS` are rebuilt.
@@ -379,10 +385,13 @@ functions; the facade exposes them as methods.
   digest keeps its plan path.
 - `test/workflow-plan-automation.test.mjs` — the automation block and
   `scope.proposal` ([automation.md](automation.md#tests)).
+- `test/workflow-plan-authorization.test.mjs` — the autopilot grant
+  ([authorization.md](authorization.md#tests)).
 
 ## Owned Paths
 
 - `module.md`
 - `automation.md`
+- `authorization.md`
 - `src/**`
 - `test/**`

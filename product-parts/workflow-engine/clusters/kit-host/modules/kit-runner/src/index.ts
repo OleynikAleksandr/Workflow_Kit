@@ -10,6 +10,8 @@ export type {
   KitSuccess,
   RunKitOptions,
 } from './runner.ts';
+export type { HostPayload, HostRunOptions, HostRunResult, HostVerdict, HostVerifier } from './host-run.ts';
+export { HOST_PROTOCOL, runHostProcess } from './host-run.ts';
 export { KIT_INSTALL_TIMEOUT_MS, KIT_TIMEOUT_MS, createKitRunner, parseEnvelope, projectBundlePath, readEnv } from './runner.ts';
 export type {
   ProjectWorkflow,

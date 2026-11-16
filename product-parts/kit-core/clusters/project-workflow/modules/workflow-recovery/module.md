@@ -44,7 +44,9 @@ environment.
      `[manual]`, then `Automation:` lists `automationSummary` of
      `workflow-plan` (acceptance counts, delivery effects, CI, publication),
      and a chosen scope adds `Reviewed proposal: generation <N>, digest
-     <sha256>`; a legacy scope prints the section unchanged;
+     <sha256>`; a grant adds `Autopilot: <authorizationSummary>` and an
+     acceptance by a run `Accepted automatically by run <id> at <short
+     head>` (Kit 2.3.1); a legacy scope prints the section unchanged;
   4. `task`* — the current task, or the next ready one, in full; a `fixes`
      task shows the original task and its short SHA;
   5. `schema`* — present only when the next step takes a JSON input (see

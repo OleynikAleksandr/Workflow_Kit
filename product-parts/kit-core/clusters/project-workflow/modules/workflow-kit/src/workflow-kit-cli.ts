@@ -14,6 +14,7 @@ import {
   readJsonFile,
   requiredFlag,
 } from "./kit-cli-args.js";
+import { AUTOPILOT_COMMANDS, type HostedRun } from "./kit-cli-autopilot.js";
 import {
   ASSIGNMENT_COMMANDS,
   ensureExecutorCommand,
@@ -21,17 +22,24 @@ import {
 import { CONTEXT_COMMANDS } from "./kit-cli-context.js";
 import { EXECUTION_COMMANDS } from "./kit-cli-execution.js";
 import { runHook } from "./kit-cli-hook.js";
+import {
+  type HostChannel,
+  processHostChannel,
+  verifyHost,
+} from "./kit-host-auth.js";
 import { IDENTITY_COMMANDS } from "./kit-cli-identity.js";
 import { INTEGRATION_COMMANDS } from "./kit-cli-integration.js";
 import { PAUSE_COMMANDS } from "./kit-cli-pause.js";
 import { SCHEMA_COMMANDS } from "./kit-cli-schema.js";
 import { SCOPE_COMMANDS } from "./kit-cli-scope.js";
-import { renderText } from "./kit-cli-text.js";
+import { renderText, writeFailure } from "./kit-cli-text.js";
 import { WorkflowKitFacade } from "./workflow-kit-facade.js";
 
 export interface CliIo {
   cwd: string;
   env: NodeJS.ProcessEnv;
+  /** The parent IPC channel of a forked Kit (spec M39); absent otherwise. */
+  host?: HostChannel | null;
   readStdin: () => string;
   stderr: (text: string) => void;
   stdout: (text: string) => void;
@@ -47,6 +55,8 @@ interface CommandContext {
 interface CommandSpec {
   /** The format without `--format`; json when absent. */
   defaultFormat?: "text";
+  /** A host-only form: the ticket binding and the write after verification. */
+  host?: (context: CommandContext) => HostedRun | null;
   run: (context: CommandContext) => unknown;
   /** `--format text` output; `renderText` when absent. */
   text?: (result: unknown) => string;
@@ -88,6 +98,7 @@ const COMMANDS: Readonly<Record<string, CommandSpec>> = {
   ...SCHEMA_COMMANDS,
   ...CONTEXT_COMMANDS,
   ...SCOPE_COMMANDS,
+  ...AUTOPILOT_COMMANDS,
   "autopilot:status": {
     run: ({ kit, root }) => kit.autopilotStatus(root),
     usage: "autopilot:status",
@@ -209,9 +220,11 @@ const COMMANDS: Readonly<Record<string, CommandSpec>> = {
       kit.startTask(
         root,
         positional(args, 0, "Task id"),
-        flag(args, "confirmed") ?? null
+        flag(args, "confirmed") ?? null,
+        flag(args, "autopilot-run") ?? null
       ),
-    usage: 'task:start <ID> [--confirmed "<user confirmation>"]',
+    usage:
+      'task:start <ID> [--confirmed "<user confirmation>" | --autopilot-run <run id>]',
   },
   validate: {
     run: ({ kit, root }) => kit.validate(root),
@@ -249,30 +262,12 @@ function projectRoot(
   return kit.git.isRepository(io.cwd) ? kit.git.topLevel(io.cwd) : io.cwd;
 }
 
-function errorEnvelope(error: unknown): Record<string, unknown> {
-  if (error instanceof WorkflowError) {
-    return {
-      code: error.code,
-      details: error.details,
-      message: error.message,
-      nextAction: error.nextAction ?? null,
-      ok: false,
-    };
-  }
-  return {
-    code: "INTERNAL",
-    message: (error as Error)?.message ?? String(error),
-    nextAction: null,
-    ok: false,
-  };
-}
-
 function dispatch(
   args: ParsedArgs,
   io: CliIo,
   kit: WorkflowKitFacade,
   format: string
-): number {
+): number | Promise<number> {
   const command = args.command ?? "help";
   const root = projectRoot(args, io, kit);
   if (command === "hook" || command === "git-hook") {
@@ -288,32 +283,33 @@ function dispatch(
     );
   }
   ensureExecutorCommand(kit, root, command);
-  const result = spec.run({ args, io, kit, root });
-  let text = `${JSON.stringify({ command, ok: true, result }, null, 2)}\n`;
-  if (format === "text") {
-    text = spec.text ? spec.text(result) : renderText(command, result);
-  }
-  io.stdout(text);
-  return 0;
-}
-
-function writeFailure(io: CliIo, error: unknown, format: string): void {
-  const envelope = errorEnvelope(error);
-  if (format === "text") {
-    io.stderr(
-      `${envelope.code}: ${envelope.message}${envelope.nextAction ? `\nNext: ${envelope.nextAction}` : ""}\n`
+  const print = (result: unknown): number => {
+    let text = `${JSON.stringify({ command, ok: true, result }, null, 2)}\n`;
+    if (format === "text") {
+      text = spec.text ? spec.text(result) : renderText(command, result);
+    }
+    io.stdout(text);
+    return 0;
+  };
+  const hosted = spec.host?.({ args, io, kit, root }) ?? null;
+  if (hosted) {
+    // Nothing is written before the parent confirms the ticket (spec M39).
+    return verifyHost(io.host ?? null, hosted.request).then(() =>
+      print(hosted.run())
     );
-  } else {
-    io.stdout(`${JSON.stringify(envelope, null, 2)}\n`);
   }
+  return print(spec.run({ args, io, kit, root }));
 }
 
-/** Runs one Kit command; returns the process exit code. */
+/**
+ * Runs one Kit command; returns the process exit code, or a promise of it
+ * for a host-only operation that waits for the parent's verdict.
+ */
 export function runCli(
   argv: readonly string[],
   io: CliIo,
   kit?: WorkflowKitFacade
-): number {
+): number | Promise<number> {
   const facade = kit ?? new WorkflowKitFacade({ env: io.env });
   let format = "json";
   try {
@@ -328,7 +324,13 @@ export function runCli(
       io.stdout(helpText());
       return wantsHelp ? 0 : 1;
     }
-    return dispatch(args, io, facade, format);
+    const code = dispatch(args, io, facade, format);
+    return typeof code === "number"
+      ? code
+      : code.catch((error: unknown) => {
+          writeFailure(io, error, format);
+          return 1;
+        });
   } catch (error) {
     writeFailure(io, error, format);
     return 1;
@@ -359,11 +361,19 @@ function invokedDirectly(): boolean {
 }
 
 if (invokedDirectly()) {
-  process.exitCode = runCli(process.argv.slice(2), {
+  const code = runCli(process.argv.slice(2), {
     cwd: process.cwd(),
     env: process.env,
+    host: processHostChannel(),
     readStdin: readProcessStdin,
     stderr: (text) => process.stderr.write(text),
     stdout: (text) => process.stdout.write(text),
+  });
+  // A forked Kit releases its IPC channel so the process can exit.
+  Promise.resolve(code).then((exit) => {
+    process.exitCode = exit;
+    if (process.connected) {
+      process.disconnect?.();
+    }
   });
 }

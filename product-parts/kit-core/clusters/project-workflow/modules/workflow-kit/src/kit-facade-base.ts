@@ -20,10 +20,25 @@ import {
   type RecoveryPacket,
   WorkflowRecoveryFacade,
 } from "../../workflow-recovery/src/workflow-recovery-facade.js";
-import type { KitContext } from "./kit-context.js";
+import type {
+  AuthorizeInput,
+  RevokeInput,
+} from "../../workflow-plan/src/workflow-plan-facade.js";
+import {
+  type AcceptanceInput,
+  acceptRun,
+  authorizeRun,
+  closeRun,
+  type GrantResult,
+  revokeRun,
+} from "./kit-autopilot.js";
 import {
   autopilotStatus,
   type KitAutopilotStatus,
+} from "./kit-autopilot-status.js";
+import type { KitContext } from "./kit-context.js";
+import type { PlanChange } from "./kit-scope-create.js";
+import {
   type KitStatus,
   readStatus,
   type ValidationReport,
@@ -96,6 +111,44 @@ export class WorkflowKitBase {
 
   autopilotStatus(root: string): KitAutopilotStatus {
     return autopilotStatus(this.context(root));
+  }
+
+  /** `autopilot:authorize` (host only in the CLI, spec M39). */
+  authorize(
+    root: string,
+    input: AuthorizeInput,
+    expectedRevision: number
+  ): GrantResult {
+    return authorizeRun(this.context(root), input, expectedRevision);
+  }
+
+  /** `autopilot:revoke` (host only in the CLI, spec M39). */
+  revoke(
+    root: string,
+    input: RevokeInput,
+    expectedRevision: number
+  ): GrantResult {
+    return revokeRun(this.context(root), input, expectedRevision);
+  }
+
+  /** `accept --autopilot-run` (host only in the CLI, spec M39). */
+  acceptRun(
+    root: string,
+    runId: string,
+    input: AcceptanceInput,
+    expectedRevision: number
+  ): PlanChange {
+    return acceptRun(this.context(root), runId, input, expectedRevision);
+  }
+
+  /** `close --autopilot-run` (host only in the CLI, spec M39). */
+  closeRun(
+    root: string,
+    scopeId: string,
+    runId: string,
+    expectedRevision: number
+  ): PlanChange {
+    return closeRun(this.context(root), scopeId, runId, expectedRevision);
   }
 
   recover(root: string, event: RecoveryEvent = "startup"): RecoveryPacket {

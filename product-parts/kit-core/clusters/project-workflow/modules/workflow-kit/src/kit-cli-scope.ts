@@ -1,3 +1,4 @@
+import { acceptHost, closeHost, type HostedRun } from "./kit-cli-autopilot.js";
 import {
   integerFlag,
   type ParsedArgs,
@@ -21,6 +22,8 @@ interface ScopeCommandContext {
 }
 
 interface ScopeCommandSpec {
+  /** The host-only form (`--autopilot-run`), or null for the manual one. */
+  host?: (context: ScopeCommandContext) => HostedRun | null;
   run: (context: ScopeCommandContext) => unknown;
   usage: string;
 }
@@ -32,8 +35,10 @@ interface ScopeCommandSpec {
  */
 export const SCOPE_COMMANDS: Readonly<Record<string, ScopeCommandSpec>> = {
   accept: {
+    host: acceptHost,
     run: ({ args, kit, root }) => kit.accept(root, requiredFlag(args, "note")),
-    usage: 'accept --note "<the user\'s words>"',
+    usage:
+      'accept --note "<the user\'s words>" | accept --autopilot-run <id> --input <evidence.json> --expected-revision N (host only)',
   },
   carryover: {
     run: ({ args, io, kit, root }) =>
@@ -44,9 +49,11 @@ export const SCOPE_COMMANDS: Readonly<Record<string, ScopeCommandSpec>> = {
     usage: "carryover --input <file.json>",
   },
   close: {
+    host: closeHost,
     run: ({ args, kit, root }) =>
       kit.close(root, requiredFlag(args, "scope"), requiredFlag(args, "note")),
-    usage: 'close --scope <id> --note "<direct user command>"',
+    usage:
+      'close --scope <id> --note "<direct user command>" | close --scope <id> --autopilot-run <id> --expected-revision N (host only)',
   },
   "plan:extend": {
     run: ({ args, io, kit, root }) =>

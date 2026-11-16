@@ -19,6 +19,20 @@
     приложения (`appBundle()`); `install` всегда с `--host harness`; непустой
     `with` (файлы структуры приложения, M38) уходит одним аргументом
     `--with <JSON-массив>`.
+  - `runHost(root, args, verifier)` (M39, `src/host-run.ts`
+    `runHostProcess`) — host-only команды Kit (`autopilot:authorize`,
+    `autopilot:revoke`, `accept`/`close --autopilot-run`) бандлом проекта
+    через `child_process.fork` с каналом `ipc` (stdout/stderr — отдельные
+    pipe, сериализация JSON, `execPath` — `nodePath`). Обработчик канала
+    создаётся вместе с процессом: на первое `wfk-host-hello` отвечает
+    `wfk-host-ticket` с `verifier.ticket`, на `wfk-host-verify` того же
+    `requestId` — один раз `wfk-host-verdict` по `verifier.verify(...)`;
+    другие `requestId`, второй hello и чужой протокол без ответа. Тикет не
+    попадает в окружение, аргументы и вывод. Конец — по `exit` и концу
+    stdout/stderr (после отключения канала событие `close` бывает не всегда);
+    тайм-аут — `KIT_TIMEOUT`. Протокол одинаков на macOS, Linux и Windows
+    x64/ARM64, без shell, сокетов и программ ОС. Типы `HostVerifier`,
+    `HostVerdict`, `HostPayload`, константа `HOST_PROTOCOL` (`wfk-host/1`).
   - `run(root, args)`, `status(root)`, `proposal(root)` (`scope:proposal`) —
     бандлом проекта `.harness/workflow/runtime/workflow.mjs`
     (`projectBundlePath`); `installed(root)` — есть ли он. Чтения службы
@@ -72,3 +86,6 @@
 (тип `CommandRunner`). Тесты используют `#kit-bundle` и настоящий бандл на
 временных git-репозиториях (HOME и глобальный git-конфиг — во временной
 папке).
+`test/host-run.test.ts` — `runHostProcess` с маленьким дочерним скриптом: тикет на первый
+hello, вердикт на его verify, отказ, verify чужого `requestId` без ответа, остановка зависшего
+процесса по тайм-ауту.

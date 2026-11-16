@@ -23,6 +23,21 @@ import {
   type WorkflowPlan,
   type WorkflowTask,
 } from "./plan-model.js";
+import {
+  type AuthorizeInput,
+  type AutopilotGrant,
+  authorizeScope,
+  deliveryConfirmation,
+  type GrantChange,
+  liveGrant,
+  type RevokeInput,
+  revokeScope,
+} from "./plan-authorization.js";
+import {
+  type AcceptanceEvidence,
+  acceptByAutopilot,
+  closeByAutopilot,
+} from "./plan-autopilot-completion.js";
 import { moveOwner, type OwnerMove } from "./plan-owner.js";
 import {
   acceptScope,
@@ -48,6 +63,24 @@ import {
 } from "./plan-transitions.js";
 import { validateDigest, validatePlan } from "./plan-validation.js";
 
+export type {
+  AcceptancePolicy,
+  AuthorizeInput,
+  AutopilotGrant,
+  AutopilotMode,
+  AutopilotRevocation,
+  GrantChange,
+  RevokeInput,
+  RevokeReason,
+} from "./plan-authorization.js";
+export {
+  authorizationSummary,
+  RESUME_SOURCE,
+} from "./plan-authorization.js";
+export type {
+  AcceptanceEvidence,
+  CriterionEvidence,
+} from "./plan-autopilot-completion.js";
 export type {
   AcceptanceAutomation,
   AutomationInput,
@@ -205,6 +238,48 @@ export class WorkflowPlanFacade {
 
   deferDocs(plan: WorkflowPlan): WorkflowPlan {
     return deferDocs(plan);
+  }
+
+  /** `autopilot:authorize` (M39): a new run, a resume or a checked change. */
+  authorize(plan: WorkflowPlan, input: AuthorizeInput, now: string): GrantChange {
+    return authorizeScope(plan, input, now);
+  }
+
+  /** `autopilot:revoke` (M39): settings-off pauses, user-stop ends the run. */
+  revoke(plan: WorkflowPlan, input: RevokeInput, now: string): GrantChange {
+    return revokeScope(plan, input, now);
+  }
+
+  /** The live grant of a run, or the AUTOPILOT_* refusal. */
+  grant(plan: WorkflowPlan, runId: string): AutopilotGrant {
+    return liveGrant(plan, runId);
+  }
+
+  /** The delivery confirmation recorded when the grant starts `taskId`. */
+  deliveryConfirmation(
+    plan: WorkflowPlan,
+    runId: string,
+    taskId: string
+  ): string {
+    return deliveryConfirmation(plan, runId, taskId);
+  }
+
+  /** `accept --autopilot-run`: the verified evidence of the run. */
+  acceptByAutopilot(
+    plan: WorkflowPlan,
+    evidence: Omit<AcceptanceEvidence, "at" | "authorizationRevision" | "source">,
+    now: string
+  ): WorkflowPlan {
+    return acceptByAutopilot(plan, evidence, now);
+  }
+
+  /** `close --autopilot-run`: closes for the run and keeps the final commit. */
+  closeByAutopilot(
+    plan: WorkflowPlan,
+    request: { head: string; runId: string; scopeId: string },
+    now: string
+  ): WorkflowPlan {
+    return closeByAutopilot(plan, request, now);
   }
 
   accept(plan: WorkflowPlan, note: string, now: string): WorkflowPlan {

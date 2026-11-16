@@ -9,6 +9,7 @@ export const LOCAL_DIR = ".harness/workflow/local";
 export type CommitRole =
   | "acceptance"
   | "assignment-plan"
+  | "authorization"
   | "bootstrap"
   | "carryover"
   | "close"

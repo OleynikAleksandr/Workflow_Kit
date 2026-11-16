@@ -21,3 +21,5 @@ export { ACCEPT_NOTE, CLOSE_NOTE, createPlanEnd } from './acceptance.ts';
 export type { PlanEnd, PlanEndDeps } from './acceptance.ts';
 export { KIT_OUTDATED_NEXT, KIT_OUTDATED_TEXT, OWNER_NOTE, moveOwner, wakeHolders } from './owner.ts';
 export type { OwnerDeps, OwnerMove } from './owner.ts';
+export type { HostBinding, HostOperation, HostRedemption, HostTickets, HostTicketsOptions } from './host-ticket.ts';
+export { HOST_TICKET_TTL_MS, createHostTickets, hostInputDigest } from './host-ticket.ts';

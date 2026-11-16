@@ -54,6 +54,7 @@ export function recomputeDelivery(plan: WorkflowPlan): void {
   if (!allDone) {
     plan.scope.delivery = "IN_PROGRESS";
     plan.scope.acceptanceNote = null;
+    delete plan.scope.acceptanceEvidence;
   } else if (plan.scope.delivery === "IN_PROGRESS") {
     plan.scope.delivery = "READY_FOR_ACCEPTANCE";
   }

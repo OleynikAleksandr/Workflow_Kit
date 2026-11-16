@@ -1,4 +1,5 @@
 import type { InspectResult } from "../../workflow-installer/src/workflow-installer-facade.js";
+import { WorkflowError } from "../../workflow-platform/src/workflow-platform-facade.js";
 import type { KitStatus, ValidationReport } from "./workflow-kit-facade.js";
 
 /** One line: the execution mode, assignment counts by status, the integration. */
@@ -99,5 +100,39 @@ export function renderText(command: string, result: unknown): string {
       return String(value.text ?? "");
     default:
       return `${JSON.stringify(result, null, 2)}\n`;
+  }
+}
+
+function errorEnvelope(error: unknown): Record<string, unknown> {
+  if (error instanceof WorkflowError) {
+    return {
+      code: error.code,
+      details: error.details,
+      message: error.message,
+      nextAction: error.nextAction ?? null,
+      ok: false,
+    };
+  }
+  return {
+    code: "INTERNAL",
+    message: (error as Error)?.message ?? String(error),
+    nextAction: null,
+    ok: false,
+  };
+}
+
+/** Prints the failure envelope: JSON on stdout, or one line on stderr with --format text. */
+export function writeFailure(
+  io: { stderr: (text: string) => void; stdout: (text: string) => void },
+  error: unknown,
+  format: string
+): void {
+  const envelope = errorEnvelope(error);
+  if (format === "text") {
+    io.stderr(
+      `${envelope.code}: ${envelope.message}${envelope.nextAction ? `\nNext: ${envelope.nextAction}` : ""}\n`
+    );
+  } else {
+    io.stdout(`${JSON.stringify(envelope, null, 2)}\n`);
   }
 }

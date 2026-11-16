@@ -324,12 +324,14 @@ export class WorkflowKitFacade extends WorkflowKitBase {
     return setBlocked(this.context(root), null);
   }
 
+  /** `autopilotRun`: a delivery task started by an authorized run (M39). */
   startTask(
     root: string,
     taskId: string,
-    confirmation: string | null = null
+    confirmation: string | null = null,
+    autopilotRun: string | null = null
   ): TaskStart {
-    return startTask(this.context(root), taskId, confirmation);
+    return startTask(this.context(root), taskId, confirmation, autopilotRun);
   }
 
   commitTask(

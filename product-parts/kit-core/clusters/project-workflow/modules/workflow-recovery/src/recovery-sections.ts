@@ -1,4 +1,5 @@
 import {
+  authorizationSummary,
   automationSummary,
   type WorkflowPlan,
   type WorkflowTask,
@@ -152,6 +153,14 @@ export function objectiveSection(input: RecoveryInput): string {
   if (scope.proposal) {
     lines.push(
       `Reviewed proposal: generation ${scope.proposal.generation}, digest ${scope.proposal.digest}`
+    );
+  }
+  if (scope.authorization) {
+    lines.push(`Autopilot: ${authorizationSummary(scope.authorization)}`);
+  }
+  if (scope.acceptanceEvidence) {
+    lines.push(
+      `Accepted automatically by run ${scope.acceptanceEvidence.runId} at ${shortSha(scope.acceptanceEvidence.head)}`
     );
   }
   return lines.join("\n");

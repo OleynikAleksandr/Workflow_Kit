@@ -23,6 +23,9 @@ worktrees where noted):
 - `test/workflow-kit-execution-mode.test.mjs` — propose/choose/refine, the
   automatic sequential scope, `NO_PARALLEL_WORK`, `PROPOSAL_CHANGED`,
   `SCOPE_EXISTS`, the card view, `EXECUTION_MODE_REQUIRED`, the CLI.
+- `test/workflow-kit-autopilot-grant.test.mjs` and
+  `test/workflow-kit-host-ipc.test.mjs` — spec M39 T002, see
+  [autopilot.md](autopilot.md#tests).
 - `test/workflow-kit-automation.test.mjs` — spec M39 T001: `NO_PROPOSAL`;
   `CI_CHECK_UNKNOWN` without a CI configuration and for unknown jobs (step
   names are not checks, matrix names and literal job names are);

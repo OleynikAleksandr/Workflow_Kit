@@ -85,7 +85,10 @@ Kit коммитит её файлы опцией `install --update --with`. `wf
 
 Kit 2.2.6 ставится в проект бандлом (`install --host harness`; бандл собирается из `kit-core`
 `npm run build:kit`, M22), команды — отдельным процессом
-с JSON-ответом (`kit-runner`); `.harness/**` служба не читает и не пишет. Раздел `workflow` даёт модели
+с JSON-ответом (`kit-runner`); `.harness/**` служба не читает и не пишет. Host-only переходы
+автопилота M39 (`autopilot:authorize`/`revoke`, `accept`/`close --autopilot-run`) служба запускает
+только `KitRunner.runHost`: `fork` с IPC, одноразовый тикет `createHostTickets` (`#autopilot`)
+проверяется обработчиком канала до записи; обычный запуск получает `HOST_AUTH_REQUIRED`. Раздел `workflow` даёт модели
 карточек плана и выбора пути (`plan-view`). Хук вопроса Claude `wfk hook question`
 (`PermissionRequest` вопроса `AskUserQuestion`, структура v4, M33; та же команда в хуке `PreToolUse`
 выходит сразу — Claude пишет вызов в транскрипт перед ним, T011) держит

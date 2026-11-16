@@ -122,6 +122,17 @@
   `acceptedMessage`, `closedMessage`, `tidyMessage`, `tidyNote`, `dirtyTreeText`, `CLEAN_TEXTS`.
 - `createPlanEnd(deps) → PlanEnd` (`src/acceptance.ts`), `ACCEPT_NOTE`, `CLOSE_NOTE` — конец
   плана, раздел ниже; автопилот создаёт его сам.
+- Тикеты хоста (M39, `src/host-ticket.ts`): `createHostTickets({ now?, ttlMs?, onRedeem? })`
+  → `{ issue(binding), redeemed(), restore(ids) }`. `issue` после проверки настоящего источника
+  шага выдаёт `HostVerifier` для одного дочернего процесса `KitRunner.runHost`: случайный тикет
+  (`<ticketId>.<секрет>`, 32 байта), срок `HOST_TICKET_TTL_MS` (60 с). `verify` сравнивает тикет
+  за постоянное время, отказывает после погашения (`ticket already used`) и срока
+  (`ticket expired`), проверяет `payloadDigest` и каждое поле привязки (`operation`, `root` по
+  `realpath`, `runId`, `scopeId`, `ownerSession`, `expectedRevision`, `inputDigest`) и гасит
+  тикет до ответа, вызывая `onRedeem` для журнала запуска (журнал — T005; `restore` возвращает
+  погашенные id после перезапуска). `hostInputDigest(value)` — тот же sha256 канонического JSON,
+  что `hostDigest` Kit. Подключение к решению автопилота и журналу — T005–T008; `autopilot.ts`
+  и `decide.ts` в T002 не меняются.
 
 ## Инварианты
 
@@ -140,7 +151,12 @@
 
 `#agent-channel`, `#kit-runner`, `#plan-view` (типы), `#http-server`,
 `#data-store` (тип мьютекса). Тесты используют `#kit-bundle`,
-`#process-supervisor` и настоящий бандл Kit на временном git-репозитории.
+`#process-supervisor` и настоящий бандл Kit на временном git-репозитории;
+`test/host-ticket.test.ts` — тикеты (одноразовость, срок, digest, каждое поле, восстановление) и
+настоящий `runHost`: без канала и с `WFK_HOST` в окружении — `HOST_AUTH_REQUIRED`, чужие ревизия,
+операция и вход — `HOST_AUTH_INVALID` без записи, верный тикет — grant и коммит, повтор того же
+тикета отклонён, revoke `settings-off`, `task:start --autopilot-run` после revoke —
+`AUTOPILOT_REVOKED`.
 
 ## Прерывание ответа и ОС (M24)
 

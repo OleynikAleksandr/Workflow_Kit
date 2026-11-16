@@ -6,6 +6,7 @@ import { existsSync } from 'node:fs';
 import path from 'node:path';
 import type { CommandRunner } from '#process-supervisor';
 import type { KitProposal, KitStatus } from '#plan-view';
+import { type HostVerifier, runHostProcess } from './host-run.ts';
 
 /** Codes the runner adds to Kit's own error codes. */
 export type KitRunnerCode = 'KIT_NO_BUNDLE' | 'KIT_NOT_INSTALLED' | 'KIT_SPAWN' | 'KIT_TIMEOUT' | 'KIT_OUTPUT';
@@ -71,6 +72,11 @@ export interface KitRunner {
   installed(root: string): boolean;
   /** Any command with the project's bundle. */
   run<T>(root: string, args: readonly string[], options?: RunKitOptions): Promise<KitOutcome<T>>;
+  /**
+   * A host-only command (M39: autopilot:authorize/revoke, accept/close --autopilot-run) with the
+   * project's bundle, forked with an IPC channel whose handler answers the Kit's ticket request.
+   */
+  runHost<T>(root: string, args: readonly string[], verifier: HostVerifier, options?: RunKitOptions): Promise<KitOutcome<T>>;
   inspect(root: string): Promise<KitOutcome<KitInspect>>;
   /** `with`: files of the app's managed structure for the same commit (`--with`, spec M38). */
   install(root: string, options?: { update?: boolean; name?: string; with?: readonly string[] }): Promise<KitOutcome<KitInstall>>;
@@ -167,10 +173,36 @@ export function createKitRunner(options: KitRunnerOptions): KitRunner {
     return exec<T>(projectBundlePath(root), root, args, timeoutMs, read);
   }
 
+  async function hostInProject<T>(root: string, args: readonly string[], verifier: HostVerifier, timeoutMs: number): Promise<KitOutcome<T>> {
+    if (!runner.installed(root)) {
+      return failure('KIT_NOT_INSTALLED', 'В проекте нет процесса Kit.', { root }, 'Установите процесс Kit в мастере проекта.');
+    }
+    const label = args[0] ?? '';
+    const result = await runHostProcess({
+      args,
+      bundle: projectBundlePath(root),
+      cwd: root,
+      env: options.env,
+      maxBytes: MAX_OUTPUT_BYTES,
+      nodePath,
+      timeoutMs,
+      verifier,
+    });
+    if (result.startError) {
+      return failure('KIT_SPAWN', `Не удалось запустить Kit (${result.startError}).`, { command: label, startError: result.startError });
+    }
+    if (result.timedOut) {
+      return failure('KIT_TIMEOUT', `Kit не ответил за ${Math.round(timeoutMs / 1000)} с (${label}).`, { command: label });
+    }
+    return parseEnvelope<T>(result.stdout, result.stderr);
+  }
+
   const runner: KitRunner = {
     projectBundle: projectBundlePath,
     installed: (root) => existsSync(projectBundlePath(root)),
     run: <T>(root: string, args: readonly string[], runOptions: RunKitOptions = {}) => inProject<T>(root, args, runOptions.timeoutMs ?? defaultTimeout, false),
+    runHost: <T>(root: string, args: readonly string[], verifier: HostVerifier, runOptions: RunKitOptions = {}) =>
+      hostInProject<T>(root, args, verifier, runOptions.timeoutMs ?? defaultTimeout),
     inspect: (root) => withAppBundle<KitInspect>(root, ['inspect', root], defaultTimeout),
     install(root, installOptions = {}) {
       const args = ['install', root, '--host', 'harness'];

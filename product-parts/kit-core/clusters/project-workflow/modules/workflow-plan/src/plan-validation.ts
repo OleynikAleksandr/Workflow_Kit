@@ -3,6 +3,7 @@ import {
   workflowPlatformFacade,
 } from "../../workflow-platform/src/workflow-platform-facade.js";
 import { validatePlanAutomation } from "./plan-automation.js";
+import { validateAutopilotRecords } from "./plan-autopilot-completion.js";
 import { validatePlanExecution } from "./plan-execution.js";
 import {
   byteLength,
@@ -371,6 +372,7 @@ export function validatePlan(plan: WorkflowPlan): WorkflowPlan {
     identifier(plan.lastClosed.scopeId, "lastClosed.scopeId");
     text(plan.lastClosed.closedAt, "lastClosed.closedAt");
   }
+  validateAutopilotRecords(plan);
   if (plan.scope === null) {
     ensure(
       plan.rounds.length === 0 &&

@@ -13,6 +13,10 @@ included). `repair` stays available. A project without a plan
 file fails with `NOT_INSTALLED`.
 
 State (`kit-status.ts`):
+Autopilot authority (spec M39, Kit 2.3.1): `authorize`, `revoke`,
+`acceptRun`, `closeRun`, `startTask` with a run and the extended
+`autopilotStatus` are described in [autopilot.md](autopilot.md).
+
 - `status(root)` — project, scope (status, result, blocked reason,
   objective, `automation` and `proposal` of spec M39, `null` on a legacy
   scope), revision, current and next task, progress, rounds, quality
@@ -33,7 +37,9 @@ State (`kit-status.ts`):
     refining}` or `null`;
   - `executor` — `{assignmentId, taskId}` in an executor worktree, else
     `null`; `paused` — the user's pause of this checkout.
-- `autopilotStatus(root)` — the autopilot decision input: scope, blocked
+- `autopilotStatus(root)` (`kit-autopilot-status.ts`) — the autopilot
+  decision input plus the M39 facts of [autopilot.md](autopilot.md#status-kit-autopilot-statusts):
+  scope, blocked
   reason, delivery, next task, revision, HEAD, pending transaction, `paused`,
   `proposalPending` (a proposal not in refinement) and `orchestration`
   (`null` unless orchestrated in main): active assignments plus

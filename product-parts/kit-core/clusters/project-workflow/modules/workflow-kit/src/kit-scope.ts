@@ -193,6 +193,20 @@ function namedPaths(paths: readonly string[]): string {
   return more > 0 ? `${named} (and ${more} more)` : named;
 }
 
+/** DIRTY_TREE when files outside Kit-managed paths are not committed. */
+export function ensureCleanTree(context: KitContext): void {
+  const dirty = context.git
+    .changes(context.root)
+    .all.filter((file) => !context.git.isKitManagedPath(file));
+  ensure(
+    dirty.length === 0,
+    "DIRTY_TREE",
+    `Close the scope on a clean working tree; not committed: ${namedPaths(dirty)}.`,
+    { paths: dirty },
+    "Delete temporary files or commit documents with `scripts/workflow docs:commit --files <paths>`, then repeat close."
+  );
+}
+
 /** `close`: only from ACCEPTED, on a clean tree, by a direct user command. */
 export function closeScope(
   context: KitContext,
@@ -201,16 +215,7 @@ export function closeScope(
 ): PlanChange {
   return locked(context, () => {
     ensureNoTransaction(context);
-    const dirty = context.git
-      .changes(context.root)
-      .all.filter((file) => !context.git.isKitManagedPath(file));
-    ensure(
-      dirty.length === 0,
-      "DIRTY_TREE",
-      `Close the scope on a clean working tree; not committed: ${namedPaths(dirty)}.`,
-      { paths: dirty },
-      "Delete temporary files or commit documents with `scripts/workflow docs:commit --files <paths>`, then repeat close."
-    );
+    ensureCleanTree(context);
     const plan = workflowPlanFacade.close(
       readPlan(context),
       scopeId,

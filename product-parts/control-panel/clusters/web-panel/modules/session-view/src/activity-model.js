@@ -5,7 +5,9 @@ import { crossReviewView, sessionId } from './session-model.js';
 
 /** Why a Stop is held or the autopilot stopped, for the user (autopilot STOP_LABELS). */
 export const REASON_LABELS = Object.freeze({
+  accepted: 'План принят',
   blocked: 'План остановлен',
+  closed: 'План закрыт',
   'delivery-confirmation': 'Ждёт подтверждения выпуска',
   disabled: 'Автопилот выключен',
   limit: 'Достигнут предел в 40 продолжений подряд',

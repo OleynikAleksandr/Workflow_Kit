@@ -121,6 +121,7 @@ export function choiceView(state, projectId, key) {
  * @property {Array<{ action: string, label: string, route: string, primary: boolean }>} buttons
  * @property {boolean} delivery the autopilot waits for «Подтвердить выпуск»
  * @property {StartingView | null} starting the press of «Начать выполнение плана» Kit has not seen yet (spec M11)
+ * @property {string[]} dirty paths outside commits that keep the plan from closing (spec M37 2.4)
  */
 
 /**
@@ -199,6 +200,8 @@ export function planView(state, projectId, key) {
       .map(([action, b]) => ({ action, label: action === 'start' && starting?.problem ? START_AGAIN_LABEL : b.label, route: b.route, primary: b.primary })),
     delivery,
     starting,
+    // M37 2.4: paths outside commits while the plan waits for acceptance or closing.
+    dirty: array(plan['dirty']).map(String),
   };
 }
 

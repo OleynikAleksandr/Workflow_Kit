@@ -4,6 +4,18 @@ import { activityView, choiceView, crossReviewView, foreignPlanView, planQuestio
 /** @typedef {import('../../panel-shell/src/slots.js').SessionContext} SessionContext */
 /** @typedef {import('../../panel-shell/src/slots.js').SlotContext} SlotContext */
 
+/**
+ * Whether «Ревью плана» shows in the sidebar: a running review and the reviewer's own card always;
+ * a finished review of the main session only without a plan card and while its scope is still
+ * proposed or active (spec M37 2.4: not after the plan is closed or another one is proposed).
+ * @param {{ review: import('./session-model.js').CrossReviewView | null, plan: unknown }} data
+ */
+export function showsReview(data) {
+  const review = data.review;
+  if (!review) return false;
+  return review.active || review.role === 'reviewer' || (!data.plan && review.current);
+}
+
 /** Keep independent cards stable: a timer or plan progress must not rebuild a question/journal.
  * @param {import('./session-view.js').Shell} shell
  * @param {Record<string, (data: any, session: SessionContext, ctx: SlotContext) => HTMLElement>} renderers
@@ -28,12 +40,12 @@ export function installSidebarSlot(shell, renderers, version = () => 0) {
       }
       const descriptions = [
         ['question', data.question],
-        ['review', data.review && (data.review.active || data.review.role === 'reviewer' || !data.plan) ? data.review : null],
+        ['review', showsReview(data) ? data.review : null],
         ['delivery', data.plan?.delivery ? true : null],
         ['choice', data.choice],
         ['plan', data.plan ? { ...data.plan, name: data.name, version: data.version } : null],
         ['foreign', data.foreign],
-        ['empty', !data.plan && !data.foreign && !data.question && !data.choice && !data.review ? true : null],
+        ['empty', !data.plan && !data.foreign && !data.question && !data.choice && !showsReview(data) ? true : null],
         ['activity', data.activity],
       ];
       const keep = new Set();

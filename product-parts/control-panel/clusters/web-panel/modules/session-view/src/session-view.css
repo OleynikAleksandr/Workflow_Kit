@@ -165,6 +165,19 @@
   font-size: 14px;
 }
 
+/* M37: paths outside commits keep the plan from closing. */
+.sv-dirty {
+  margin: 8px 0 2px;
+}
+
+.sv-dirty p {
+  margin: 0 0 8px;
+}
+
+.sv-dirty code {
+  overflow-wrap: anywhere;
+}
+
 .plan-card hr {
   margin: 6px 0 12px;
   border: 0;

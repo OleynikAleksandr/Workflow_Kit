@@ -85,7 +85,7 @@ export function reviewView(state, projectId, key) {
   return {
     on: value,
     hint: value
-      ? 'Решено ответом на вопрос о плане: спецификацию и план проверит ревьюер.'
+      ? 'Следующий план этой сессии проверит ревьюер — так решено ответом на вопрос о плане.'
       : 'Решено ответом на вопрос о плане: без ревью. Агент спросит снова перед следующим планом.',
   };
 }
@@ -134,6 +134,8 @@ export function reviewerChatLinks(state, projectId, reviewerKey) {
  * @property {string} mainKey
  * @property {string} mainTitle
  * @property {string | null} scopeId
+ * @property {boolean} current the reviewed scope is still the open proposal or the active scope
+ *   of the project (spec M37 2.4); false once the plan is closed or another one is proposed
  * @property {string | null} reason
  * @property {Array<{ from: string, who: string, round: number, text: string, at: string }>} entries newest first
  */
@@ -161,6 +163,12 @@ export function crossReviewView(state, projectId, key) {
   const turn = { preparing: `агент (${mainName}) описывает план`, starting: `${reviewerName} запускается`, reviewing: `отвечает ревьюер (${reviewerName})`, answering: `отвечает агент (${mainName})` };
   const role = found.mainKey === key ? 'main' : 'reviewer';
   const active = found.active === true;
+  const scopeId = typeof found.scopeId === 'string' ? found.scopeId : null;
+  const project = record(record(record(state['workflow'])['projects'])[projectId]);
+  const proposal = project['proposal'];
+  // The open proposal counts even without an id; the active scope by its id.
+  const current = (typeof proposal === 'object' && proposal !== null && (record(proposal)['scopeId'] ?? null) === scopeId)
+    || (scopeId !== null && (record(project['scope'])['id'] === scopeId || record(project['plan'])['scopeId'] === scopeId));
   return {
     role,
     active,
@@ -179,7 +187,8 @@ export function crossReviewView(state, projectId, key) {
     reviewerLinks: role === 'main' && typeof found.reviewerKey === 'string' ? reviewerChatLinks(state, projectId, found.reviewerKey) : null,
     mainKey: String(found.mainKey),
     mainTitle: String(found.mainTitle ?? ''),
-    scopeId: typeof found.scopeId === 'string' ? found.scopeId : null,
+    scopeId,
+    current,
     reason: typeof found.reason === 'string' ? found.reason : null,
     entries: array(found.entries)
       .map((e) => ({ from: String(e.from), who: who(String(e.from)), round: Number(e.round) || 0, text: String(e.text ?? ''), at: String(e.at ?? '') }))

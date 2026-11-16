@@ -3,6 +3,7 @@
 // «Ревью плана» in the sidebar. Panel extension: install(shell) fills the "sessionSidebar" and
 // "sessionReview" slots of panel-shell. Typed text lives in inputs kept per session.
 import { foreignPlanCard } from './foreign-card.js';
+import { dirtyBlock } from './plan-dirty.js';
 import { installSidebarSlot } from './sidebar-view.js';
 import { START_SLOW_TEXT, START_STEPS, activityView, choiceView, crossReviewView, planQuestionView, planView, reviewView, timer } from './session-model.js';
 
@@ -268,6 +269,7 @@ export function install(shell) {
       h('div', { class: 'count' }, [plan.progressLabel]),
       plan.blockedReason ? h('p', { class: 'sv-warn' }, [plan.blockedReason]) : null,
       tasks,
+      dirtyBlock(h, plan.dirty, button('Попросить агента убрать', () => void send(ctx, projectId, 'tidy', { session: key }, 'Не удалось попросить агента'))),
       h('hr'),
       plan.starting?.problem ? h('p', { class: 'sv-warn' }, [plan.starting.problem]) : null,
       row,

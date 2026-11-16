@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1165,
+  "revision": 1166,
   "rounds": [
     {
       "digest": null,
@@ -120,12 +120,16 @@
       {
         "at": "2026-11-16T18:08:07.036Z",
         "text": "Исправление поставленного приложения — новая delivery в том же fixes round со следующей свободной patch-версией (обычно 0.15.1), затем CI; DONE T011/T012 не меняются."
+      },
+      {
+        "at": "2026-11-16T18:08:56.790Z",
+        "text": "Owner session moved from 01a1e55e-7184-7ab3-a3ff-d5e3a7e77b2a to 25cedd72-7908-49d9-9f21-79cfca178443: The user started the plan from this session in the Workflow Kit panel"
       }
     ],
     "delivery": "IN_PROGRESS",
     "execution": {
       "maxWorkers": 1,
-      "ownerSession": "01a1e55e-7184-7ab3-a3ff-d5e3a7e77b2a",
+      "ownerSession": "25cedd72-7908-49d9-9f21-79cfca178443",
       "strategy": "sequential"
     },
     "id": "M39-autopiloting",
@@ -812,7 +816,7 @@
 - Execution: sequential
 - Current task: none
 - Progress: 0/13
-- Revision: 1165
+- Revision: 1166
 
 ## Objective
 

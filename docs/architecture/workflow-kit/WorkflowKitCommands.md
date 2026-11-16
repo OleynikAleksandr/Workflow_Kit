@@ -301,9 +301,17 @@ preconditions and their order are in `workflow-kit/module.md`
 - `inspect [<path>]` — folder classification. Text: `path`, `state`,
   `action`, `kit version`, `git` (repository and short head), `identity`,
   `stacks`, `transaction`, plus `nested in` and `damaged` when present.
-- `install [<path>] [--name <project name>] [--update] [--host harness]
-  [--bundle <workflow.mjs>]` — installs or updates the Kit. Another
-  `--host` is `USAGE`; `NOT_INSTALLED` for `--update` without the Kit.
+- `install [<path>] [--name <project name>] [--update [--with <json|a,b>]]
+  [--host harness] [--bundle <workflow.mjs>]` — installs or updates the
+  Kit. Another `--host` is `USAGE`; `NOT_INSTALLED` for `--update` without
+  the Kit.
+- `--with` (Kit 2.2.7, spec M38) — files of the app's managed structure
+  (`.workflow-kit/manifest.json` and the paths it lists) that the app wrote
+  just before the update; the changed ones go into the same `kit-update`
+  commit (only they changed — `chore: update the Workflow Kit structure`).
+  `USAGE` without `--update` (`--with needs --update.`); any other path, a
+  path outside the project or a missing or unreadable manifest is
+  `WITH_NOT_MANAGED`, checked before anything is written.
 - `doctor [<path>] [--fix] [--bundle <workflow.mjs>]` — checks and, with
   `--fix`, repairs the installation.
 - `install` and `doctor --fix` copy their own bundle file unless

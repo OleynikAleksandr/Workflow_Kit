@@ -20,7 +20,7 @@ try {
   const byPath = Object.fromEntries(
     entries.map((entry) => [entry.path, entry])
   );
-  assert.equal(installer.version, "2.2.6");
+  assert.equal(installer.version, "2.2.7");
   assert.deepEqual(Object.keys(byPath), [
     ".harness/workflow/runtime/workflow.mjs",
     "scripts/workflow",
@@ -248,7 +248,7 @@ try {
     manifest.files.find((file) => file.path === "README.md").sha256,
     null
   );
-  assert.equal(JSON.parse(installer.renderManifest(manifest)).version, "2.2.6");
+  assert.equal(JSON.parse(installer.renderManifest(manifest)).version, "2.2.7");
 } finally {
   await build.cleanup();
 }

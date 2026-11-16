@@ -63,7 +63,7 @@ Writing rules:
 
 `manifest(entries)` → `{schema "harness-workflow-manifest/1", version,
 files: [{path, kind, executable, sha256}]}`; `sha256` hashes the managed
-part (`null` for `create`). `version` is `KIT_VERSION` (`2.2.6`: the input folder `.harness/inputs/`, spec M37; 2.2.5 added `scope:owner`, spec M31; 2.2.4 was the first Kit built in
+part (`null` for `create`). `version` is `KIT_VERSION` (`2.2.7`: `install --update --with`, spec M38; 2.2.6: the input folder `.harness/inputs/`, spec M37; 2.2.5 added `scope:owner`, spec M31; 2.2.4 was the first Kit built in
 Workflow Kit; Kit 1.x was Workflow Pilot). A change of a managed text or of the runtime raises the version, so
 older installations read as `KIT_OUTDATED` and the update rewrites them
 (2.1.0 added `.harness/sessions/` and `.claude/worktrees/` to `.gitignore`
@@ -140,12 +140,21 @@ path) reports `nestedIn` and action `unsupported`.
 
 ## Install And Update (`installer-install.ts`)
 
-`install(path, {bundle, name?, update?, runtime?, host?, platform?})` (CLI
-`install [<path>] [--name] [--update] [--host harness] [--bundle]`):
-1. refuses `NESTED_REPOSITORY`, `PILOT_KIT_UNSUPPORTED`,
+`install(path, {bundle, name?, update?, with?, runtime?, host?, platform?})` (CLI
+`install [<path>] [--name] [--update [--with <json|a,b>]] [--host harness] [--bundle]`):
+1. refuses `USAGE` for `with` without `update` (`--with needs --update.`),
+   then `NESTED_REPOSITORY`, `PILOT_KIT_UNSUPPORTED`,
    `TRANSACTION_PENDING`, `ALREADY_INSTALLED` (without `update`),
    `NOT_INSTALLED` (with `update`) and `USAGE` for a `host` other than
-   `harness`;
+   `harness`. Before anything is written, every `with` path (spec M38, the
+   files of the app's managed structure) must be `APP_STRUCTURE_MANIFEST`
+   (`.workflow-kit/manifest.json`) or a `fragments.*.path` of that manifest
+   as it is on disk; any other path, a path outside the project and a
+   missing or unreadable manifest give `WITH_NOT_MANAGED`
+   (`--with takes only the files of .workflow-kit/manifest.json: <path>`,
+   `details.path`). The check and the choice of the commit files and message
+   live in `installer-with.ts` (`APP_STRUCTURE_MANIFEST`, `checkWith`,
+   `installCommitFiles`);
 2. resolves the git identity before writing anything: the real
    repository-local one of an existing repository, else the real global one
    (`isUsableIdentity` of `workflow-git` skips placeholders and invalid
@@ -175,14 +184,18 @@ path) reports `nestedIn` and action `unsupported`.
    marker is kept;
 6. records `runtime` (`.harness/workflow/local/runtime`) so the launchers
    and hooks find Node or Electron;
-7. commits the written files through a Kit transaction: role `bootstrap`
-   (`chore: install workflow kit <version>`) or `kit-update`
-   (`chore: update workflow kit to <version>`). The installed hooks already
-   run for this commit. Nothing to commit gives `commit: null`.
+7. commits the written files and the `with` paths that have uncommitted
+   changes (the others drop out) through one Kit transaction: role
+   `bootstrap` (`chore: install workflow kit <version>`) or `kit-update`
+   (`chore: update workflow kit to <version>`; when no file of the Kit
+   changed and only `with` paths go in, `chore: update the Workflow Kit
+   structure`). The installed hooks already run for this commit. Nothing to
+   commit gives `commit: null`.
 
 The result is `{root, previousState, version, hooksPath, written, excluded,
-migrationRequired, commit}`; `excluded` lists earlier changes left out of
-the commit. A legacy Harness plan is kept unchanged with
+with, migrationRequired, commit}`; `excluded` lists earlier changes left out
+of the commit (never a committed `with` path); `with` lists the committed
+`with` paths, sorted. A legacy Harness plan is kept unchanged with
 `migrationRequired: true`. Plan and configuration of an installed project
 are never overwritten.
 
@@ -286,6 +299,7 @@ legacyDone, migrated, converted, commit}`.
 | Режим запускателей и хуков | `install` ставит 0755 | `install` ставит 0755 | битов исполнения нет: режим не ставится |
 | Проверка `executable` доктора | есть | есть | нет |
 | Папка входных JSON `.harness/inputs/` в `.gitignore` и в секции `AGENTS.md` (M37) | одинаково | одинаково | одинаково, x64/ARM64 |
+| `install --update --with` (M38): пути структуры приложения — канонические с `/`, проверка по `.workflow-kit/manifest.json` | одинаково | одинаково | одинаково, x64/ARM64 |
 
 ## Dependencies
 
@@ -313,7 +327,7 @@ Node built-ins only.
   integration commands, the identity rule, under 1800 bytes), the Inputs and
   documents block (`schema`, the input folder `.harness/inputs/`, `context`,
   files never to read), the Harness
-  note on proposing the scope and `KIT_VERSION` 2.2.6; the six Claude
+  note on proposing the scope and `KIT_VERSION` 2.2.7; the six Claude
   groups with `--part K/6`, the replaced 2.2.2 group, a changed part read
   as a difference, the Codex entry with `additionalContextLimit`.
 - `test/workflow-installer-install.test.mjs` (with
@@ -333,6 +347,14 @@ Node built-ins only.
   files without git kept and left out of the commit (`NOT_GIT`), a husky
   hooks path (`GIT_NO_KIT`) getting managed sections after the shebang, a
   legacy Harness plan (`LEGACY_HARNESS_PLAN`) kept for migration.
+- `test/workflow-installer-with.test.mjs` — `--with` (spec M38): `USAGE`
+  without `update`; `WITH_NOT_MANAGED` for a path the structure manifest
+  does not list, a path outside the project, a missing and an unreadable
+  manifest, with no commit made; only structure files — one `kit-update`
+  commit `chore: update the Workflow Kit structure` that the project hooks
+  pass, an unrelated change left in `excluded`, unchanged paths dropped;
+  nothing to commit — `commit: null`; Kit and structure files — one commit
+  with the Kit's message and both files.
 - `test/workflow-installer-doctor.test.mjs` — a healthy installation, fixable
   breakage (mode, section, hook, hooks path) repaired without touching the
   plan; `git-identity` with a placeholder (fixable), without any real

@@ -406,6 +406,12 @@ it changes in the same commit as the commands. Summary:
   `assignment:status`, `assignment:setup`, `assignment:attach`, `help`,
   `hook` and `git-hook` run; every other known command fails with
   `ASSIGNMENT_READ_ONLY` (`details.allowed`) before it runs.
+- `install [<path>] [--name] [--update [--with <json|a,b>]] [--host
+  harness] [--bundle]` passes `--with` (a JSON or comma list, as `--files`)
+  to `workflow-installer` as `with`: the files of the app's managed
+  structure for the same `kit-update` commit (Kit 2.2.7, spec M38); the
+  installer refuses it without `--update` (`USAGE`) and for paths outside
+  `.workflow-kit/manifest.json` (`WITH_NOT_MANAGED`).
 - `hook session-start --client claude|codex [--part K/N]`
   (`kit-cli-hook.ts`) prints the raw SessionStart JSON;
   `git-hook <name> [args]` prints the hook message on stderr and exits with

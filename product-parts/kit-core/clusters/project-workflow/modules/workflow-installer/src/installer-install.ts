@@ -22,6 +22,11 @@ import {
 } from "../../workflow-quality/src/workflow-quality-facade.js";
 import { type FolderState, inspectFolder } from "./installer-inspect.js";
 import {
+  checkWith,
+  type InstallCommitMode,
+  installCommitFiles,
+} from "./installer-with.js";
+import {
   buildManifest,
   buildPayload,
   KIT_VERSION,
@@ -40,6 +45,8 @@ export interface InstallOptions {
   /** Runtime recorded for the launchers (Electron inside Harness). */
   runtime?: { executable: string; mode: "electron" | "node" } | null;
   update?: boolean;
+  /** Files of the app's managed structure for the same commit (spec M38, `update` only). */
+  with?: readonly string[];
   /** OS whose rules apply (default: this process); win32 has no executable bits. */
   platform?: WorkflowPlatform;
 }
@@ -48,6 +55,8 @@ export interface InstallOutcome {
   commit: CommitResult | null;
   /** Changes that existed before and stay out of the commit. */
   excluded: string[];
+  /** Paths of `with` that went into the commit (changed ones only), sorted. */
+  with: string[];
   hooksPath: string;
   migrationRequired: boolean;
   previousState: FolderState;
@@ -274,18 +283,21 @@ function commitInstall(
   root: string,
   files: string[],
   planText: string,
-  update: boolean,
+  mode: InstallCommitMode,
   scopeId: string | null
 ): CommitResult | null {
+  const messages = {
+    install: `chore: install workflow kit ${KIT_VERSION}`,
+    structure: "chore: update the Workflow Kit structure",
+    update: `chore: update workflow kit to ${KIT_VERSION}`,
+  };
   try {
     return git.transactions.commit(root, {
       files,
-      message: update
-        ? `chore: update workflow kit to ${KIT_VERSION}`
-        : `chore: install workflow kit ${KIT_VERSION}`,
+      message: messages[mode],
       planPath: PLAN_PATH,
       planText,
-      role: update ? "kit-update" : "bootstrap",
+      role: mode === "install" ? "bootstrap" : "kit-update",
       scopeId,
       taskId: null,
     });
@@ -306,6 +318,7 @@ export function installKit(
   const inspected = inspectFolder(git, folder);
   const root = inspected.path;
   const update = options.update === true;
+  const structure = checkWith(root, update, options.with);
   checkPreconditions(
     inspected.state,
     update,
@@ -357,22 +370,31 @@ export function installKit(
   if (hooksPath === null) {
     git.setConfig(root, "core.hooksPath", OWN_HOOKS_DIR);
   }
+  const chosen = installCommitFiles(
+    new Set(git.changes(root).all),
+    written,
+    structure,
+    update
+  );
   const commit = commitInstall(
     git,
     root,
-    written,
+    chosen.files,
     planText,
-    update,
+    chosen.mode,
     scopeOf(planText, migrationRequired || existingPlan === null)
   );
   return {
     commit,
-    excluded: [...before].filter((item) => !written.includes(item)).sort(),
+    excluded: [...before]
+      .filter((item) => !chosen.files.includes(item))
+      .sort(),
     hooksPath: hooksPath ?? OWN_HOOKS_DIR,
     migrationRequired,
     previousState: inspected.state,
     root,
     version: KIT_VERSION,
+    with: chosen.with,
     written,
   };
 }

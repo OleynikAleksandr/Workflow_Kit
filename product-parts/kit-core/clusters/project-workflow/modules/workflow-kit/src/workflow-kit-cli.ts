@@ -132,9 +132,10 @@ const COMMANDS: Readonly<Record<string, CommandSpec>> = {
         host: flag(args, "host") as "harness" | undefined,
         name: flag(args, "name"),
         update: args.flags.get("update") === true,
+        with: listFlag(args, "with"),
       }),
     usage:
-      "install [<path>] [--name <project name>] [--update] [--host harness] [--bundle <workflow.mjs>]",
+      "install [<path>] [--name <project name>] [--update [--with <json|a,b>]] [--host harness] [--bundle <workflow.mjs>]",
   },
   history: {
     run: ({ args, kit, root }) =>

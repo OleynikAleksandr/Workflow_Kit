@@ -80,7 +80,8 @@ identity (`user.name`, `user.email`), а также незавершённую �
 `"additionalContextLimit": 65536` и правило о неполном пакете в
 `AGENTS.md` (`KitRecoveryParts-2026-11-12.md`); 2.2.6 — `.harness/inputs/`
 в `.gitignore` и пункт о папке входных JSON в блоке «Inputs and documents»
-(M37). Поэтому более ранние
+(M37); 2.2.7 — только среда выполнения (`install --update --with`, M38).
+Поэтому более ранние
 установки читаются как `KIT_OUTDATED`.
 План, конфигурация и пользовательский текст остаются нетронутыми. Коммит
 делается с ролью `kit-update`.

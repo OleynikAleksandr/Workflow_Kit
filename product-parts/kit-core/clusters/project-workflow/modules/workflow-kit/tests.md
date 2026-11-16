@@ -57,7 +57,7 @@ worktrees where noted):
   projects with a bootstrap commit, the command line with captured output,
   real hooks, the orchestrated proposal and choice, and plan fixtures.
 - `test/workflow-kit-cli.test.mjs` — envelopes, inspection, `install
-  --host`, text output, recovery events, SessionStart and git-hook
+  --host`, `install --with` without `--update` (`USAGE`), text output, recovery events, SessionStart and git-hook
   dispatch, the compiled program, and `identity:set` outside a project
   (its refusals and the write to a temporary `GIT_CONFIG_GLOBAL`).
 - The integration commands, busy refusals and the merge-aware hook are

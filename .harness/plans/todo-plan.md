@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1135,
+  "revision": 1136,
   "rounds": [
     {
       "digest": null,
@@ -132,8 +132,8 @@
     },
     {
       "acceptance": [
-        "По правилу проекта «Three operating systems» (AGENTS.md) точный SHA задачи T004 отправлен в служебную ветку: git push origin <sha>:refs/heads/ci/M37-plan-close-flow, без --force; задача начата с подтверждения пользователя (task:start --confirmed).",
-        "CI зелёная на macOS, Linux, Windows x64 и ARM64; ссылка на прогон и SHA записаны в docs/evidence/M37-acceptance.md; при красной CI задача блокируется (task:block) и решение принимает пользователь.",
+        "По правилу проекта «Three operating systems» (AGENTS.md) точный SHA последнего коммита перед T005 (DOCS-R1 этого scope, включает исправление F001 поверх поставки T004 2b0bd0d) отправлен в служебную ветку: git push origin <sha>:refs/heads/ci/M37-plan-close-flow, без --force; задача начата с подтверждения пользователя (task:start --confirmed).",
+        "CI зелёная на macOS, Linux, Windows x64 и ARM64; в docs/evidence/M37-acceptance.md записаны красный прогон 43859413953 для 2b0bd0d с причиной, исправление F001 и ссылка на зелёный прогон с его SHA; при красной CI задача блокируется (task:block) и решение принимает пользователь.",
         "Ветка main не отправляется и релиз не публикуется: публикация — после приёмки и закрытия scope по команде пользователя (правило «GitHub publication»)."
       ],
       "checks": [],
@@ -147,6 +147,7 @@
         }
       ],
       "dependencies": [
+        "F001",
         "DOCS-R1"
       ],
       "docsWaiver": null,
@@ -174,7 +175,7 @@
 - Execution: sequential
 - Current task: none
 - Progress: 0/3
-- Revision: 1135
+- Revision: 1136
 
 ## Objective
 
@@ -203,6 +204,6 @@
 - [TODO] T005 — CI точного SHA поставки на четырёх платформах (delivery)
   - Commit: docs: record plan closing flow cross-platform CI
   - Files: docs/evidence/M37-acceptance.md
-  - Depends on: DOCS-R1
+  - Depends on: F001, DOCS-R1
 
 State changes only through `scripts/workflow` commands. History lives in Git.

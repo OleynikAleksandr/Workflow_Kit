@@ -149,7 +149,11 @@
   `createRunCompletion` (`COMPLETE_TEXTS`, `PublisherLike`, `GitRead`, `RunCompleter`,
   снимок `RunCompletion`) в [autopiloting-completion.md](autopiloting-completion.md); T009 —
   `RunJournal.onChange`, полная сводка `RunBrief`/`runBrief` (`src/run-brief.ts`) и `GET
-  …/autopiloting/policy` — в [autopiloting.md](autopiloting.md).
+  …/autopiloting/policy` — в [autopiloting.md](autopiloting.md). Сквозные проверки T010 на
+  настоящем бандле, канале и bare-репозитории — `test/lifecycle-real.test.ts` (после ручного
+  запуска до проверенного SHA, перезапуск, вопрос, остановка во время CI) и
+  `test/orchestrated-real.test.ts`; доказательства —
+  [M39-acceptance.md](../../../../../../docs/evidence/M39-acceptance.md).
 
 ## Инварианты
 

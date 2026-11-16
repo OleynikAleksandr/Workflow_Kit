@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1154,
+  "revision": 1156,
   "rounds": [
     {
       "digest": null,
@@ -294,7 +294,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Панель: карточка Kit со структурой, docs/usage.md",
       "why": "Пользователь должен видеть устаревшую структуру и знать, что обновит кнопка"
     },
@@ -434,8 +434,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 4/8
-- Revision: 1154
+- Progress: 5/8
+- Revision: 1156
 
 ## Objective
 
@@ -469,7 +469,7 @@
   - Commit: feat(kit-update): update the Kit structure together with the Kit
   - Files: product-parts/workflow-engine/clusters/kit-host/modules/kit-update/src, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/test, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/src, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/test, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/module.md, product-parts/workflow-engine/clusters/kit-host/cluster.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/connected-modules.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/test, product-parts/backend-core/clusters/projects/modules/kit-structure/src/index.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/module.md, docs/architecture/CONTRACTS.md, docs/architecture/OS-MATRIX.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/src/runner.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/test/runner.test.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/src/index.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/src/routes.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/src/structure.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/src/update.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/test/kit-update-real.test.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/test/kit-update-structure.test.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/test/kit-update.test.ts
   - Depends on: T002
-- [TODO] T004 — Панель: карточка Kit со структурой, docs/usage.md (work)
+- [DONE] T004 — Панель: карточка Kit со структурой, docs/usage.md (work)
   - Commit: feat(panel): show the Kit structure on the Kit card
   - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/kit-card.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/screens.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/kit-card.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, docs/usage.md, design-qa.md, docs/architecture/OS-MATRIX.md
   - Depends on: T003

@@ -160,6 +160,7 @@ export const STOP_LABELS: Readonly<Record<string, string>> = {
   blocked: 'План остановлен',
   closed: 'План закрыт',
   'delivery-confirmation': 'Ждёт подтверждения выпуска',
+  'host-transition': 'Автопилот выполняет приёмку или закрытие',
   disabled: 'Автопилот выключен',
   limit: 'Достигнут предел в 40 продолжений подряд',
   'no-progress': 'Ход не изменил ни план, ни историю',

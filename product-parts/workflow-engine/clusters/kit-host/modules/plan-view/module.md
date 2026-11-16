@@ -43,6 +43,15 @@
   раунд 7); без неё вариант `orchestrated` не показывается (M8, раздел 5). С M10
   возможность есть у всех провайдеров Kit, Kimi Code тоже.
 - Константы подписей `PHASE_LABELS`, `TASK_STATE_LABELS`, `MODE_LABELS`.
+- `autopilotSupport(status) → { ready: true } | { ready: false, missing, text }`
+  (`src/autopilot-support.ts`, M39 T004): поддерживает ли Kit проекта автопилотирование — по
+  `capability` его `autopilot:status` (`automation`, `authorization`, `deferDelivery`,
+  `instructions`, `complete` равны `true`, `hostProtocol` = `SUPPORTED_HOST_PROTOCOL`
+  `wfk-host/1`), а не по номеру версии. Нет поля (Kit 2.2.x, 2.3.0) или признак не `true` —
+  `missing` с их именами и `text` = `UPDATE_KIT_TEXT` («Обновите Kit проекта: …»); ручной и
+  legacy-путь при этом остаются. Тип `KitAutopilotCapability`. Тест
+  `test/autopilot-support.test.ts`; совпадение протокола с `kit-runner` `HOST_PROTOCOL` проверяет
+  `kit-runner/test/host-run.test.ts`.
 
 ## Инварианты
 

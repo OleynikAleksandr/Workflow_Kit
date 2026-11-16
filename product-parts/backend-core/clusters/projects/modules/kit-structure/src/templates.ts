@@ -3,7 +3,7 @@
 // They are read by agents of any project, so they are written in English.
 
 /** Version of the Kit structure; bump it whenever a managed text below changes. */
-export const STRUCTURE_VERSION = 4;
+export const STRUCTURE_VERSION = 5;
 
 /** Markers of the Kit section in AGENTS.md. */
 export const AGENTS_BEGIN = '<!-- wfk:begin -->';
@@ -87,11 +87,22 @@ only in this chat.
   talk; the answer reaches you as a \`Workflow Kit:\` message. Do not run it
   for discussion, research, explanations or everyday questions, and do not
   run it again for the same task unless the user asks for a plan anew.
-- GitHub publication: \`git push\` is not a plan task, not even a delivery
-  task. Publish only when the user asks and only after the scope is accepted
-  and closed (each by the user's command): the panel button «Опубликовать на
-  GitHub» or \`wfk project publish\`. If the user asks while a scope is open,
-  say that publishing comes after its acceptance and closing.
+- GitHub publication: \`git push\` of the main branch is not a plan task,
+  not even a delivery task. It comes only after the scope is accepted and
+  closed: when the user asks (the panel button «Опубликовать на GitHub» or
+  \`wfk project publish\`), or done by the Workflow Kit app itself when the
+  live autopilot run of the scope includes the publication. A delivery task
+  pushes only a CI branch its plan names. If the user asks while a scope is
+  open, say that publishing comes after its acceptance and closing.
+- Autopilot (Settings «Автопилотирование»): while the \`next\` section of
+  the recovery packet names a live autopilot run, end each turn with a short
+  report and do not ask whether to continue; the app starts the next step,
+  confirms the delivery tasks of the run, accepts by the recorded evidence,
+  closes and publishes. Only the app does these host steps: never run
+  \`autopilot:*\`, \`accept --autopilot-run\` or \`close --autopilot-run\`
+  yourself. A status question of the user gets an answer and the run goes
+  on; «стоп», «пауза» or switching the mode off stop it. Without a live run
+  every manual barrier stays.
 - Execution mode and plan start: after \`scripts/workflow scope:propose\` the
   user chooses the mode and starts the plan with buttons in the panel. End
   your turn and wait; the choice reaches you as a message from Workflow Kit.

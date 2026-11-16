@@ -21,3 +21,5 @@ export {
   buildPlanView,
   choiceOptionsFor,
 } from './plan-view.ts';
+export type { AutopilotSupport, KitAutopilotCapability } from './autopilot-support.ts';
+export { SUPPORTED_HOST_PROTOCOL, UPDATE_KIT_TEXT, autopilotSupport } from './autopilot-support.ts';

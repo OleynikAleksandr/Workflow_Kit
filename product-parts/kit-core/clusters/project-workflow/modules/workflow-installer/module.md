@@ -63,7 +63,7 @@ Writing rules:
 
 `manifest(entries)` → `{schema "harness-workflow-manifest/1", version,
 files: [{path, kind, executable, sha256}]}`; `sha256` hashes the managed
-part (`null` for `create`). `version` is `KIT_VERSION` (`2.3.2`: `task:defer-delivery`, spec M39 T003; 2.3.1: the autopilot grant with host-only `autopilot:authorize`/`autopilot:revoke` and `accept`/`close --autopilot-run` over the parent IPC ticket, `task:start --autopilot-run`, spec M39 T002; 2.3.0: the scope `automation` block, `scope:proposal --digest` and `scope:choose --expected-digest`, spec M39 T001; 2.2.7: `install --update --with`, spec M38; 2.2.6: the input folder `.harness/inputs/`, spec M37; 2.2.5 added `scope:owner`, spec M31; 2.2.4 was the first Kit built in
+part (`null` for `create`). `version` is `KIT_VERSION` (`2.3.3`: agent rules and `next` texts that know the autopilot grant, one publication rule, the complete M39 capability, spec M39 T004; 2.3.2: `task:defer-delivery`, spec M39 T003; 2.3.1: the autopilot grant with host-only `autopilot:authorize`/`autopilot:revoke` and `accept`/`close --autopilot-run` over the parent IPC ticket, `task:start --autopilot-run`, spec M39 T002; 2.3.0: the scope `automation` block, `scope:proposal --digest` and `scope:choose --expected-digest`, spec M39 T001; 2.2.7: `install --update --with`, spec M38; 2.2.6: the input folder `.harness/inputs/`, spec M37; 2.2.5 added `scope:owner`, spec M31; 2.2.4 was the first Kit built in
 Workflow Kit; Kit 1.x was Workflow Pilot). A change of a managed text or of the runtime raises the version, so
 older installations read as `KIT_OUTDATED` and the update rewrites them
 (2.1.0 added `.harness/sessions/` and `.claude/worktrees/` to `.gitignore`
@@ -79,6 +79,28 @@ session-start rule about an incomplete packet in `AGENTS.md`, spec
 (`manifestPath`).
 
 ## Agent Rules (`installer-texts.ts`)
+
+Since Kit 2.3.3 (spec M39 T004) the rules carry the autopilot boundary and
+one publication rule shared with the wfk section of `kit-structure`:
+- a delivery task starts with `--confirmed "<the user's confirmation>"`, or
+  with `--autopilot-run <run>` when `next` names a live run that confirmed
+  it; under a live run ending the turn hands control to Kit, without asking
+  whether to continue;
+- only the Workflow Kit app grants, revokes, accepts and closes
+  automatically: `autopilot:authorize`, `autopilot:revoke`,
+  `accept --autopilot-run` and `close --autopilot-run` refuse an agent
+  (`HOST_AUTH_REQUIRED`); without a live run every manual confirmation stays;
+- release build, packaging and installation and a push of a CI branch a
+  delivery task names are delivery work; rebuilding a tracked file a
+  commit check requires from the sources (a vendored bundle) belongs to the
+  work task that changes those sources;
+- publishing (`git push` of the main branch) is no task: only after the
+  scope is accepted and closed, on the user's direct request or by the live
+  run of the scope (this replaced "Build, packaging, publishing and push
+  happen only in delivery tasks");
+- a failed external check of a started delivery task goes through
+  `task:defer-delivery` and a fixes round;
+- an executor has no push, acceptance, close or publication.
 
 `agentRules()` is the managed `AGENTS.md` section: the plan and commands,
 session start (the packet arrives at session start, for Claude in parts
@@ -327,7 +349,7 @@ Node built-ins only.
   integration commands, the identity rule, under 1800 bytes), the Inputs and
   documents block (`schema`, the input folder `.harness/inputs/`, `context`,
   files never to read), the Harness
-  note on proposing the scope and `KIT_VERSION` 2.3.2; the six Claude
+  note on proposing the scope and `KIT_VERSION` 2.3.3; the six Claude
   groups with `--part K/6`, the replaced 2.2.2 group, a changed part read
   as a difference, the Codex entry with `additionalContextLimit`.
 - `test/workflow-installer-install.test.mjs` (with

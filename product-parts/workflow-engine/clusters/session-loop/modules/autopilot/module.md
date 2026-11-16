@@ -122,6 +122,8 @@
   `acceptedMessage`, `closedMessage`, `tidyMessage`, `tidyNote`, `dirtyTreeText`, `CLEAN_TEXTS`.
 - `createPlanEnd(deps) → PlanEnd` (`src/acceptance.ts`), `ACCEPT_NOTE`, `CLOSE_NOTE` — конец
   плана, раздел ниже; автопилот создаёт его сам.
+- `STOP_LABELS['host-transition']` — «Автопилот выполняет приёмку или закрытие» (причина
+  решателя ядра Kit 2.3.3 при живом разрешении; порт `decide.ts` получит её в задачах службы M39).
 - Тикеты хоста (M39, `src/host-ticket.ts`): `createHostTickets({ now?, ttlMs?, onRedeem? })`
   → `{ issue(binding), redeemed(), restore(ids) }`. `issue` после проверки настоящего источника
   шага выдаёт `HostVerifier` для одного дочернего процесса `KitRunner.runHost`: случайный тикет

@@ -30,6 +30,14 @@ SessionStart, Stop и UserPromptSubmit, приём хука SessionStart.
 Управляемый текст хуков файла — нормализованный объект
 `{ SessionStart, Stop, UserPromptSubmit, PreToolUse, PermissionRequest }` найденных записей Kit (события
 клиента — `kitHookEvents(client)`: Claude — `CLAUDE_HOOK_EVENTS`, Codex — `KIT_HOOK_EVENTS`;
+`STRUCTURE_VERSION` 5 (M39 T004) меняет только текст раздела `AGENTS.md`: публикация `git push`
+основной ветки — не задача плана, только после приёмки и закрытия по просьбе пользователя или
+живым запуском автопилота этого scope; поставка пушит только CI-ветку, названную планом; при живом
+запуске агент заканчивает ход без вопроса «продолжать?», а приёмку, закрытие, публикацию и команды
+`autopilot:*`, `accept`/`close --autopilot-run` выполняет только приложение; вопрос о статусе не
+останавливает запуск, «стоп», «пауза» и выключение режима — останавливают. Проект версии 4 получает
+`outdated` по `agents-section`. Тот же текст правила публикации — в управляемом разделе Kit
+(`workflow-installer`), согласованность проверяет `kit-update/test/kit-update-instructions.test.ts`.
 `STRUCTURE_VERSION` 4: проект версии 3 получает `outdated` по `claude-hook`, обновление
 дописывает группы `PreToolUse` и `PermissionRequest` в конец их списков, `.codex/hooks.json` не
 меняется; проект v4 без `PreToolUse`, записанный до поправки T008, тоже получает `outdated`); если

@@ -16,12 +16,19 @@ import type { KitContext } from "./kit-context.js";
 import { HOST_PROTOCOL } from "./kit-host-auth.js";
 import { type KitStatus, readStatus } from "./kit-status.js";
 
-/** What this Kit supports of spec M39; `complete` arrives with T004. */
+/**
+ * What this Kit supports of spec M39, by feature rather than by version
+ * number: the automation block, the host-only grant, the deferral of a
+ * started delivery and the agent instructions and recovery texts that know
+ * the grant. `complete` is true when all of them are present (Kit 2.3.3).
+ */
 export interface AutopilotCapability {
   authorization: boolean;
   automation: boolean;
   complete: boolean;
+  deferDelivery: boolean;
   hostProtocol: string;
+  instructions: boolean;
 }
 
 /** One acceptance criterion of the automation block and its evidence state. */
@@ -47,8 +54,10 @@ export type KitAutopilotStatus = AutopilotProjectStatus & {
 export const AUTOPILOT_CAPABILITY: AutopilotCapability = {
   authorization: true,
   automation: true,
-  complete: false,
+  complete: true,
+  deferDelivery: true,
   hostProtocol: HOST_PROTOCOL,
+  instructions: true,
 };
 
 /**

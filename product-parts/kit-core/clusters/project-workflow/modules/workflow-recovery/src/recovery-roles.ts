@@ -1,3 +1,4 @@
+import { deliveryStep } from "./recovery-autopilot.js";
 import {
   type AssignmentStatus,
   workflowAssignmentFacade,
@@ -55,7 +56,7 @@ const INTEGRATION_JOURNAL = "integration.json";
 
 const ROLE_RULES: Readonly<Record<AgentRole, string>> = {
   executor:
-    "Role executor: work only in this worktree and only on paths equal to or nested in the task files. Never touch main, the plan or other tasks; no nested executors; no push.",
+    "Role executor: work only in this worktree and only on paths equal to or nested in the task files. Never touch main, the plan or other tasks; no nested executors; no push, acceptance, close or publication, even under an autopilot run.",
   orchestrator:
     'Role orchestrator: work and DOCS tasks go to executors (`assignment:create`, a Claude subagent with isolation: "worktree"), their SHAs to `integration:start`; never implement them in main. Run QUALITY and delivery yourself in main. On CONFLICT or CHECKS_FAILED fix within the task files, then `integration:continue --id <id>`.',
   planning:
@@ -314,9 +315,7 @@ function ownStep(plan: WorkflowPlan, facts: RoleFacts): string | null {
   const active = facts.assignments.some((record) =>
     workflowAssignmentFacade.isActive(record)
   );
-  return pending || active
-    ? null
-    : `Next task ${own.id} is delivery: ask the user to confirm it, then \`${KIT_COMMAND} task:start ${own.id} --confirmed "<user confirmation>"\`.`;
+  return pending || active ? null : deliveryStep(plan, own);
 }
 
 /**

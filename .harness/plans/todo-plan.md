@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": "T004",
+  "currentTaskId": null,
   "lastClosed": {
     "closedAt": "2026-11-16T17:16:45.868Z",
     "scopeId": "M38-kit-structure-update"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1175,
+  "revision": 1176,
   "rounds": [
     {
       "digest": null,
@@ -459,14 +459,46 @@
         "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-autopilot-status.ts",
         "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/autopilot.md",
         "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-autopilot-grant.test.mjs",
-        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/module.md"
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/module.md",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/module.md",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/src/templates.ts",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/test/question-hook.test.ts",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-autopilot/module.md",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-autopilot/src/autopilot-decision.ts",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-autopilot/src/autopilot-model.ts",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-autopilot/test/workflow-autopilot-authority.test.mjs",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/module.md",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-payload.ts",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-texts.ts",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/test/workflow-installer-payload.test.mjs",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery/module.md",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery/src/recovery-autopilot.ts",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery/src/recovery-roles.ts",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery/src/recovery-sections.ts",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery/test/workflow-recovery-autopilot.test.mjs",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery/test/workflow-recovery-roles.test.mjs",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/src/bundle-meta.ts",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/PROVENANCE",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/workflow-kit-2.3.2.mjs.gz",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/workflow-kit-2.3.3.mjs.gz",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/module.md",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/test/host-run.test.ts",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-update/module.md",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-update/test/kit-update-instructions.test.ts",
+        "product-parts/workflow-engine/clusters/kit-host/modules/plan-view/module.md",
+        "product-parts/workflow-engine/clusters/kit-host/modules/plan-view/src/autopilot-support.ts",
+        "product-parts/workflow-engine/clusters/kit-host/modules/plan-view/src/index.ts",
+        "product-parts/workflow-engine/clusters/kit-host/modules/plan-view/test/autopilot-support.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/texts.ts"
       ],
       "fixes": null,
       "id": "T004",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "title": "Единые инструкции Kit и wfk, capability и обновление проекта",
       "why": "Единые инструкции Kit и wfk, capability и обновление проекта"
     },
@@ -933,9 +965,9 @@
 - Scope: M39-autopiloting (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: T004
-- Progress: 3/13
-- Revision: 1175
+- Current task: none
+- Progress: 4/13
+- Revision: 1176
 
 ## Objective
 
@@ -966,9 +998,9 @@
   - Commit: feat: defer unfinished delivery for fixes rounds
   - Files: product-parts/kit-core/clusters/project-workflow/modules/workflow-plan, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit, product-parts/kit-core/clusters/project-workflow/modules/workflow-git, product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle, docs/architecture/workflow-kit/WorkflowKitCommands.md, docs/architecture/workflow-kit/WorkflowKitProcess.md, docs/architecture/OS-MATRIX.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-git/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-git/src/git-journal.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-payload.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/test/workflow-installer-payload.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/operations.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-cli-scope.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-delivery-defer.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-facade-base.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-delivery-defer.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/tests.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/src/plan-delivery-defer.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/src/plan-model.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/src/plan-validation.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/src/workflow-plan-facade.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/test/workflow-plan-delivery-defer.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery/src/recovery-sections.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/src/bundle-meta.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/test/delivery-defer.test.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/PROVENANCE, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/workflow-kit-2.3.1.mjs.gz, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/workflow-kit-2.3.2.mjs.gz
   - Depends on: T002
-- [IN_PROGRESS] T004 — Единые инструкции Kit и wfk, capability и обновление проекта (work)
+- [DONE] T004 — Единые инструкции Kit и wfk, capability и обновление проекта (work)
   - Commit: feat: align Kit instructions with authorized autopiloting
-  - Files: product-parts/kit-core/clusters/project-workflow/modules/workflow-installer, product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery, product-parts/kit-core/clusters/project-workflow/modules/workflow-autopilot, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner, product-parts/workflow-engine/clusters/kit-host/modules/kit-update, product-parts/workflow-engine/clusters/kit-host/modules/plan-view, product-parts/backend-core/clusters/projects/modules/kit-structure, product-parts/workflow-engine/clusters/session-loop/modules/autopilot, docs/architecture/workflow-kit/WorkflowKitProcess.md, docs/architecture/workflow-kit/WorkflowKitExecutionModes.md, docs/architecture/workflow-kit/WorkflowKitInstallation.md, docs/architecture/workflow-kit/WorkflowKitHost.md, docs/architecture/workflow-kit/WorkflowKitHostInstallation.md, docs/architecture/OS-MATRIX.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-autopilot-status.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/autopilot.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-autopilot-grant.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/module.md
+  - Files: product-parts/kit-core/clusters/project-workflow/modules/workflow-installer, product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery, product-parts/kit-core/clusters/project-workflow/modules/workflow-autopilot, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner, product-parts/workflow-engine/clusters/kit-host/modules/kit-update, product-parts/workflow-engine/clusters/kit-host/modules/plan-view, product-parts/backend-core/clusters/projects/modules/kit-structure, product-parts/workflow-engine/clusters/session-loop/modules/autopilot, docs/architecture/workflow-kit/WorkflowKitProcess.md, docs/architecture/workflow-kit/WorkflowKitExecutionModes.md, docs/architecture/workflow-kit/WorkflowKitInstallation.md, docs/architecture/workflow-kit/WorkflowKitHost.md, docs/architecture/workflow-kit/WorkflowKitHostInstallation.md, docs/architecture/OS-MATRIX.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-autopilot-status.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/autopilot.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-autopilot-grant.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/module.md, product-parts/backend-core/clusters/projects/modules/kit-structure/module.md, product-parts/backend-core/clusters/projects/modules/kit-structure/src/templates.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/test/question-hook.test.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-autopilot/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-autopilot/src/autopilot-decision.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-autopilot/src/autopilot-model.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-autopilot/test/workflow-autopilot-authority.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-payload.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-texts.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/test/workflow-installer-payload.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery/src/recovery-autopilot.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery/src/recovery-roles.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery/src/recovery-sections.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery/test/workflow-recovery-autopilot.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery/test/workflow-recovery-roles.test.mjs, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/src/bundle-meta.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/PROVENANCE, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/workflow-kit-2.3.2.mjs.gz, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/workflow-kit-2.3.3.mjs.gz, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/test/host-run.test.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/test/kit-update-instructions.test.ts, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/module.md, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/src/autopilot-support.ts, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/src/index.ts, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/test/autopilot-support.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/texts.ts
   - Depends on: T003
 - [TODO] T005 — Разделение autopilot, настройки, журнал запусков и источник команды (work)
   - Commit: feat: persist autopiloting settings and authorized runs

@@ -26,8 +26,10 @@ try {
   assert.deepEqual(status.capability, {
     authorization: true,
     automation: true,
-    complete: false,
+    complete: true,
+    deferDelivery: true,
     hostProtocol: "wfk-host/1",
+    instructions: true,
   });
   assert.equal(status.authorization, null);
   assert.deepEqual(status.proposal, { digest, generation: 1 });

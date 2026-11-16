@@ -4,6 +4,7 @@ export type StopReason =
   | "blocked"
   | "delivery-confirmation"
   | "disabled"
+  | "host-transition"
   | "limit"
   | "no-progress"
   | "no-scope"
@@ -54,8 +55,24 @@ export interface AutopilotOrchestration {
   readyTasks: string[];
 }
 
+/**
+ * The autopilot grant of the scope as `autopilot:status` reports it (spec
+ * M39, Kit 2.3.1+); a legacy Kit or plan has none. Only the fields the
+ * decision reads.
+ */
+export interface AutopilotAuthority {
+  accept: boolean;
+  close: boolean;
+  delivery: Array<{ taskId: string }>;
+  proposalDigest: string;
+  revoked: unknown;
+  runId: string;
+}
+
 /** The project status after the turn, as reported by the Workflow Kit. */
 export interface AutopilotProjectStatus {
+  /** The grant of an autopilot run (M39); absent or null: manual barriers. */
+  authorization?: AutopilotAuthority | null;
   blockedReason: string | null;
   delivery: "ACCEPTED" | "IN_PROGRESS" | "READY_FOR_ACCEPTANCE" | null;
   head: string | null;
@@ -76,6 +93,8 @@ export interface AutopilotProjectStatus {
    * pause, which decides as not paused.
    */
   paused?: boolean;
+  /** The reviewed proposal of the scope (M39); the grant is live only for its digest. */
+  proposal?: { digest: string } | null;
   /** A scope proposal waits for the user's execution mode choice. */
   proposalPending?: boolean;
   revision: number;

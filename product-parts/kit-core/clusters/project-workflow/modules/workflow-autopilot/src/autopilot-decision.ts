@@ -1,4 +1,5 @@
 import type {
+  AutopilotAuthority,
   AutopilotDecision,
   AutopilotOrchestration,
   AutopilotProjectStatus,
@@ -9,6 +10,7 @@ import type {
 
 export type {
   AutopilotAssignment,
+  AutopilotAuthority,
   AutopilotDecision,
   AutopilotOrchestration,
   AutopilotProjectStatus,
@@ -33,6 +35,35 @@ function continueText(
     return `Continue the workflow: task ${task.id} is in progress; implement it and commit with \`${KIT_COMMAND} commit --task ${task.id}\`.`;
   }
   return `Continue the workflow: run \`${KIT_COMMAND} task:start ${task.id}\` if it is not started, then implement it and commit.`;
+}
+
+/**
+ * The live grant of the status (spec M39): present, not revoked and given
+ * for the reviewed proposal the scope still has. Otherwise null: the
+ * manual barriers of a scope without a run apply.
+ */
+function liveGrant(status: AutopilotProjectStatus): AutopilotAuthority | null {
+  const grant = status.authorization;
+  if (!grant || grant.revoked) {
+    return null;
+  }
+  return status.proposal?.digest === grant.proposalDigest ? grant : null;
+}
+
+/** A TODO delivery task the live grant confirms in advance. */
+function grantedDelivery(
+  status: AutopilotProjectStatus,
+  task: NonNullable<AutopilotProjectStatus["nextTask"]>
+): AutopilotDecision | null {
+  const grant = liveGrant(status);
+  if (!grant?.delivery.some((entry) => entry.taskId === task.id)) {
+    return null;
+  }
+  return {
+    action: "continue",
+    taskId: task.id,
+    text: `Continue the workflow: autopilot run ${grant.runId} confirmed delivery task ${task.id} in advance; run \`${KIT_COMMAND} task:start ${task.id} --autopilot-run ${grant.runId}\` if it is not started, perform only its reviewed effects and commit.`,
+  };
 }
 
 /** Executors are working: the orchestrator has nothing to do until they report. */
@@ -134,7 +165,21 @@ function decideOrchestration(
     ...decision,
     orchestrationKey: key,
   });
-  const step = orchestratorStep(status, orchestration);
+  const next = status.nextTask;
+  const granted =
+    next?.kind === "delivery" && next.status === "TODO"
+      ? grantedDelivery(status, next)
+      : null;
+  const ready =
+    orchestration.integration === null &&
+    !orchestration.assignments.some(
+      (item) => WORKING.has(item.status) || item.status === "READY_FOR_INTEGRATION"
+    );
+  const step =
+    orchestratorStep(status, orchestration) ??
+    (granted?.action === "continue" && ready && !status.paused
+      ? { taskId: granted.taskId, text: granted.text }
+      : null);
   if (!step) {
     if (status.paused) {
       return keyed(stop("paused", PAUSED_DETAIL));
@@ -232,6 +277,19 @@ function commonStop(
       `A commit transaction or check failed; run \`${KIT_COMMAND} repair\` or fix the check.`
     );
   }
+  const grant = liveGrant(status);
+  if (status.delivery === "READY_FOR_ACCEPTANCE" && grant?.accept) {
+    return stop(
+      "host-transition",
+      `Autopilot run ${grant.runId} accepts the result automatically from the evidence; the host runs the acceptance.`
+    );
+  }
+  if (status.delivery === "ACCEPTED" && grant?.close) {
+    return stop(
+      "host-transition",
+      `Autopilot run ${grant.runId} closes the scope; the host runs the close and the publication.`
+    );
+  }
   if (
     status.delivery === "READY_FOR_ACCEPTANCE" ||
     status.delivery === "ACCEPTED"
@@ -266,7 +324,11 @@ export function decideAutopilot(
   if (!task) {
     return stop("blocked", "No task is ready to start.");
   }
-  if (task.kind === "delivery" && task.status === "TODO") {
+  const granted =
+    task.kind === "delivery" && task.status === "TODO"
+      ? grantedDelivery(status, task)
+      : null;
+  if (task.kind === "delivery" && task.status === "TODO" && !granted) {
     return stop(
       "delivery-confirmation",
       `Task ${task.id} is a delivery task and needs the user's confirmation.`
@@ -284,7 +346,7 @@ export function decideAutopilot(
       `The limit of ${state.maxContinues} consecutive continues is reached.`
     );
   }
-  return { action: "continue", taskId: task.id, text: continueText(task) };
+  return granted ?? { action: "continue", taskId: task.id, text: continueText(task) };
 }
 
 /**

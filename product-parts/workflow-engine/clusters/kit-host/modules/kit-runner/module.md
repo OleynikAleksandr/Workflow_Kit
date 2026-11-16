@@ -86,6 +86,7 @@
 (тип `CommandRunner`). Тесты используют `#kit-bundle` и настоящий бандл на
 временных git-репозиториях (HOME и глобальный git-конфиг — во временной
 папке).
-`test/host-run.test.ts` — `runHostProcess` с маленьким дочерним скриптом: тикет на первый
+`test/host-run.test.ts` — `SUPPORTED_HOST_PROTOCOL` панели (`plan-view`) равен `HOST_PROTOCOL`;
+`runHostProcess` с маленьким дочерним скриптом: тикет на первый
 hello, вердикт на его verify, отказ, verify чужого `requestId` без ответа, остановка зависшего
 процесса по тайм-ауту.

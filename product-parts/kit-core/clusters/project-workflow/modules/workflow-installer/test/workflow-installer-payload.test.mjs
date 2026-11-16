@@ -20,7 +20,7 @@ try {
   const byPath = Object.fromEntries(
     entries.map((entry) => [entry.path, entry])
   );
-  assert.equal(installer.version, "2.3.2");
+  assert.equal(installer.version, "2.3.3");
   assert.deepEqual(Object.keys(byPath), [
     ".harness/workflow/runtime/workflow.mjs",
     "scripts/workflow",
@@ -89,7 +89,7 @@ try {
     /`integration:start --id <id> --source <sha>`/u,
     /`integration:continue --id <id>`/u,
     /never implement work or DOCS tasks in main/u,
-    /\*\*executor\*\* \(assignment worktree\): `assignment:attach <id>`, then\n {2}`task:start`, work only within the task files, `commit --task`, reply\n {2}with the SHA\. Never touch main, the plan or other tasks; no nested\n {2}executors, no push\./u,
+    /\*\*executor\*\* \(assignment worktree\): `assignment:attach <id>`, then\n {2}`task:start`, work only within the task files, `commit --task`, reply\n {2}with the SHA\. Never touch main, the plan or other tasks; no nested\n {2}executors, no push, acceptance, close or publication\./u,
     /Never set the git identity \(`git config user\.\*`\)\. If a command refuses\n {2}with `GIT_IDENTITY_REQUIRED`, report it to the user with the command it\n {2}prints\./u,
   ]) {
     assert.match(modes, pattern);
@@ -248,7 +248,7 @@ try {
     manifest.files.find((file) => file.path === "README.md").sha256,
     null
   );
-  assert.equal(JSON.parse(installer.renderManifest(manifest)).version, "2.3.2");
+  assert.equal(JSON.parse(installer.renderManifest(manifest)).version, "2.3.3");
 } finally {
   await build.cleanup();
 }

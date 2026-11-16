@@ -322,7 +322,7 @@ try {
   assert.doesNotMatch(sectionOf(ready, "state"), /assignments:/u);
   assert.match(
     sectionOf(ready, "next"),
-    /^Start A via `scripts\/workflow task:start A`: Task A\. Then commit with `scripts\/workflow commit --task A` and report the SHA\.\nRole executor: work only in this worktree and only on paths equal to or nested in the task files\. Never touch main, the plan or other tasks; no nested executors; no push\./u
+    /^Start A via `scripts\/workflow task:start A`: Task A\. Then commit with `scripts\/workflow commit --task A` and report the SHA\.\nRole executor: work only in this worktree and only on paths equal to or nested in the task files\. Never touch main, the plan or other tasks; no nested executors; no push, acceptance, close or publication, even under an autopilot run\./u
   );
   assert.match(
     sectionOf(executor("NEEDS_SETUP", "TODO"), "next"),

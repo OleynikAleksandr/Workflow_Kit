@@ -118,7 +118,7 @@ test('a structure v3 project is "outdated"; the update adds the question hook an
   assert.equal(updated.hooks['PreToolUse']?.[0]?.matcher, 'AskUserQuestion');
   assert.equal(await read(root, '.codex/hooks.json'), codexBefore, '.codex/hooks.json is not touched');
   assert.equal((JSON.parse(await read(root, MANIFEST_PATH)) as { version: number }).version, STRUCTURE_VERSION);
-  assert.equal(STRUCTURE_VERSION, 4);
+  assert.equal(STRUCTURE_VERSION, 5);
 });
 
 test('a v4 project written before the PreToolUse hook is "outdated"; the update adds it', async () => {

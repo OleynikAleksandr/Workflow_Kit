@@ -92,12 +92,17 @@ they keep the manual form.
 ## Status (`kit-autopilot-status.ts`)
 
 `autopilotStatus(root)` (`autopilot:status`) is the decision input plus:
-`capability {automation, authorization, complete: false, hostProtocol
-"wfk-host/1"}` (`complete` arrives with T004), `proposal` (the reviewed
+`capability {automation, authorization, deferDelivery, instructions,
+complete, hostProtocol "wfk-host/1"}` — features, not a version number:
+`deferDelivery` since Kit 2.3.2, `instructions` (agent texts and recovery
+that know the grant) and `complete: true` since Kit 2.3.3 (spec M39 T004);
+a Kit without the field or with `complete` false gets «Обновите Kit
+проекта» from the app (`plan-view` `autopilotSupport`), `proposal` (the reviewed
 proposal reference or `null`), `authorization` (the grant or `null`) and
 `acceptance` (`null` on a legacy plan, else every criterion with `kind`,
 `checks`, `evidence` and `evidenceMissing` — evidence not tracked at HEAD).
-The decision of `workflow-autopilot` is unchanged in T002.
+The decision of `workflow-autopilot` reads `authorization` and `proposal`
+of this status since Kit 2.3.3 (its module contract).
 
 ## Tests
 

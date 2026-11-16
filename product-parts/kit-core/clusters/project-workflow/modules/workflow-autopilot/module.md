@@ -24,6 +24,12 @@ decision (state per session, sending turns, events) belongs to Core.
     - `paused` — the user paused the workflow (Kit `pause:set --on`): the
       current micro-task finishes, the next one does not start;
     - `proposalPending` — a scope proposal waits for the mode choice;
+    - `authorization` and `proposal` (spec M39, Kit 2.3.3) — the grant of
+      an autopilot run (`{runId, accept, close, delivery [{taskId}],
+      proposalDigest, revoked}`) and the reviewed proposal `{digest}` of
+      `autopilot:status`. The grant is live when it is not revoked and its
+      `proposalDigest` equals `proposal.digest`; absent fields, a revoked
+      grant or another digest keep every manual barrier;
     - `orchestration` — `null`/absent in a sequential scope, else the
       orchestrated scope seen from main: `assignments` (active ones and
       `INTEGRATED` ones whose cleanup is pending: `{id, taskId, status,
@@ -81,6 +87,21 @@ decision (state per session, sending turns, events) belongs to Core.
   text of the assignments (id, status, source, cleanup), the integration
   and the ready tasks; `advance` stores it in the state (a decision without
   it clears it), so a turn that only creates assignments counts as progress.
+- Under a live grant (spec M39):
+  - a `TODO` delivery task the grant names is no `delivery-confirmation`:
+    the decision continues with `Continue the workflow: autopilot run <run>
+    confirmed delivery task <ID> in advance; run \`scripts/workflow
+    task:start <ID> --autopilot-run <run>\` if it is not started, perform
+    only its reviewed effects and commit.` after the same `no-progress` and
+    `limit` checks; in an orchestrated scope only without an integration,
+    working or `READY_FOR_INTEGRATION` assignments and without a pause;
+  - `READY_FOR_ACCEPTANCE` with `accept` and `ACCEPTED` with `close` stop
+    with the new reason `host-transition`: the host performs the automatic
+    acceptance or the close and publication, not the agent; a grant with
+    `accept: false` (a manual criterion) keeps `ready-for-acceptance` until
+    the user accepts.
+  The service port (`session-loop/autopilot` `decide.ts`) gets the same
+  matrix with the M39 service tasks.
 - Continue text: `Continue the workflow: run \`scripts/workflow task:start
   <ID>\` if it is not started, then implement it and commit.`; for a task in
   progress it names `scripts/workflow commit --task <ID>`.
@@ -94,6 +115,13 @@ decision (state per session, sending turns, events) belongs to Core.
 None. Node built-ins only.
 
 ## Tests
+
+`test/workflow-autopilot-authority.test.mjs` — spec M39: a granted
+delivery continues with `--autopilot-run` (sequential and orchestrated),
+another task, a revoked grant, another digest, no grant and a legacy status
+keep `delivery-confirmation`; `no-progress`, `limit`, a user message, a
+pause and a block keep their priority; `host-transition` for acceptance and
+close, `ready-for-acceptance` for a grant without accept or close.
 
 `test/workflow-autopilot-pause.test.mjs` — the pause: after the turn
 reasons and before the scope reasons when nothing is in progress, a task in

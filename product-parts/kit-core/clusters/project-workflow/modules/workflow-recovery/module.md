@@ -103,6 +103,31 @@ environment.
   `{entries, shown, text}` (see Documents Map) for the packet, the
   `context` command and the executor brief.
 
+## Autopilot Steps (`recovery-autopilot.ts`, Kit 2.3.3, spec M39)
+
+`liveRun(plan)` is the grant of the scope when `workflow-plan` `grant`
+accepts it (not revoked, the reviewed digest, CI policy and publication
+unchanged), else null. The `next` section then reads:
+- a `TODO` delivery task the run names: `Next task <ID> is delivery,
+  confirmed in advance by autopilot run <run>: \`scripts/workflow task:start
+  <ID> --autopilot-run <run>\`. Do not ask the user again; perform only the
+  reviewed effects of the task.` (the orchestrator's own delivery step too);
+  any other delivery task keeps the user's confirmation;
+- `READY_FOR_ACCEPTANCE` with `accept`: end the turn, the run accepts from
+  the recorded evidence and closes, never `accept`/`close` yourself; with
+  `accept: false`: ask the user to accept (manual criteria), the run then
+  closes and publishes; `ACCEPTED` with `close`: end the turn, the run
+  closes and publishes, never `close` or `git push` yourself. Untidy paths
+  come first as before;
+- no scope after a close by a run (`lastClosed.autopilotRun`): the app
+  publishes the scope, do not push, new work only on a new task of the user;
+- under the role rule one more line, `Autopilot run <run> (<mode>): report
+  the result of the turn briefly and end it; the Workflow Kit app continues
+  the run — do not ask whether to continue. …`, never for an executor.
+Without a live run every text is the one before M39. The executor rule
+adds "no push, acceptance, close or publication, even under an autopilot
+run".
+
 ## Documents Map (`recovery-documents.ts`, spec 3.2)
 
 - Files: `git ls-files -z --cached --others --exclude-standard -- '*.md'
@@ -295,6 +320,11 @@ context, so the Claude SessionStart hook asks for the packet in parts
 Node built-ins only.
 
 ## Tests
+
+- `test/workflow-recovery-autopilot.test.mjs` — the `next` texts without a
+  grant, with a live run (delivery, acceptance, untidy acceptance, close,
+  run rule), after-start with a manual criterion, a revoked grant, a
+  changed reviewed digest and the close by a run.
 
 - `test/workflow-recovery-packet.test.mjs` — full packet, tight and tiny
   budgets, heading sections inline, a required whole document over the

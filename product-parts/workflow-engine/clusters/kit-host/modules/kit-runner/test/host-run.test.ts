@@ -4,6 +4,7 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { after, before, test } from 'node:test';
+import { SUPPORTED_HOST_PROTOCOL } from '#plan-view';
 import { HOST_PROTOCOL, type HostVerifier, runHostProcess } from '../src/index.ts';
 
 let tmp = '';
@@ -44,6 +45,10 @@ function verifier(verdict: ReturnType<HostVerifier['verify']>, seen: unknown[]):
 
 const run = (args: string[], host: HostVerifier, timeoutMs = 10_000) =>
   runHostProcess({ args, bundle: path.join(tmp, 'child.mjs'), cwd: tmp, env: { PATH: process.env['PATH'] }, maxBytes: 4096, nodePath: process.execPath, timeoutMs, verifier: host });
+
+test('the panel checks the same protocol the runner speaks', () => {
+  assert.equal(SUPPORTED_HOST_PROTOCOL, HOST_PROTOCOL);
+});
 
 test('the parent sends the ticket to the first hello and the verdict to its verify', async () => {
   const seen: unknown[] = [];

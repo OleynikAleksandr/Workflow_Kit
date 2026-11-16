@@ -11,6 +11,12 @@ import {
   shortSha,
 } from "./recovery-model.js";
 import {
+  closedByRunStep,
+  completionStep,
+  deliveryStep,
+  runRule,
+} from "./recovery-autopilot.js";
+import {
   type AgentRole,
   agentRole,
   executorStep,
@@ -86,7 +92,7 @@ function nextStep(input: RecoveryInput, role: AgentRole): string {
   const { plan } = input;
   const scope = plan.scope;
   if (!scope) {
-    return planningStep(input);
+    return closedByRunStep(plan) ?? planningStep(input);
   }
   if (input.transaction) {
     return `A commit transaction is unfinished: run \`${KIT_COMMAND} repair\` before anything else.`;
@@ -99,15 +105,11 @@ function nextStep(input: RecoveryInput, role: AgentRole): string {
   }
   // `close` needs a clean tree: paths outside commits are named before the user closes.
   const untidy = input.changes.length > 0;
-  if (scope.delivery === "READY_FOR_ACCEPTANCE") {
-    return untidy
-      ? `Scope is READY_FOR_ACCEPTANCE: first tidy the paths outside commits (see changes) — delete your temporary files, commit documents with \`${KIT_COMMAND} docs:commit\`; \`close\` needs a clean tree. Then ask the user to accept the result or report defects.`
-      : "Scope is READY_FOR_ACCEPTANCE: ask the user to accept the result or report defects.";
-  }
-  if (scope.delivery === "ACCEPTED") {
-    return untidy
-      ? "Scope is ACCEPTED: the user decides when to close it. `close` needs a clean tree: tidy the paths outside commits (see changes)."
-      : "Scope is ACCEPTED: the user decides when to close it.";
+  if (
+    scope.delivery === "READY_FOR_ACCEPTANCE" ||
+    scope.delivery === "ACCEPTED"
+  ) {
+    return completionStep(plan, untidy);
   }
   if (role === "orchestrator") {
     return orchestratorStep(input);
@@ -120,7 +122,7 @@ function nextStep(input: RecoveryInput, role: AgentRole): string {
     return `Continue ${task.id}: ${task.title}`;
   }
   if (task.kind === "delivery") {
-    return `Next task ${task.id} is delivery: ask the user to confirm it, then \`${KIT_COMMAND} task:start ${task.id} --confirmed "<user confirmation>"\`.`;
+    return deliveryStep(plan, task);
   }
   return `Start ${task.id} via \`${KIT_COMMAND} task:start ${task.id}\`: ${task.title}`;
 }
@@ -128,7 +130,8 @@ function nextStep(input: RecoveryInput, role: AgentRole): string {
 /** The next step for the session's role, followed by the role rule. */
 export function nextSection(input: RecoveryInput): string {
   const role = agentRole(input);
-  return `${nextStep(input, role)}\n${roleRule(role)}`;
+  const run = role === "executor" ? null : runRule(input.plan);
+  return [nextStep(input, role), roleRule(role), ...(run ? [run] : [])].join("\n");
 }
 
 export function objectiveSection(input: RecoveryInput): string {

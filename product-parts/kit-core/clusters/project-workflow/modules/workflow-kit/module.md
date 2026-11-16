@@ -23,6 +23,10 @@ facade bound to the same git facade.
 ## Operations
 
 The operations of the facade are listed in [operations.md](operations.md).
+The M39 autopilot authority and the `autopilot:status` capability
+(`kit-autopilot-status.ts`: `automation`, `authorization`, `deferDelivery`,
+`instructions`, `complete` — true since Kit 2.3.3) are described in
+[autopilot.md](autopilot.md#status-kit-autopilot-statusts).
 
 ## Git Hooks (`kit-hooks.ts`)
 

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1113,
+  "revision": 1115,
   "rounds": [
     {
       "digest": {
@@ -37,7 +37,7 @@
       },
       "id": "R1",
       "kind": "implementation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Implementation"
     }
   ],
@@ -94,7 +94,7 @@
         "text": "Рекомендован sequential: две небольшие задачи в разных модулях (обе parallelSafe), живая проверка требует участия пользователя."
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 2,
       "ownerSession": "e93021a5-9717-4ec2-833d-db51b48373f3",
@@ -272,7 +272,7 @@
       ],
       "checks": [],
       "commitMessage": "docs: record stale plan question fix cross-platform CI",
-      "confirmation": null,
+      "confirmation": "Я подтверждаю заранее все следующие шаги включая T004",
       "context": [
         {
           "path": "docs/planning/M36-plan-question-stale.md",
@@ -293,7 +293,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "CI точного SHA поставки на четырёх платформах",
       "why": "Поставка не готова, пока CI не зелёная на всех ОС"
     }
@@ -305,11 +305,11 @@
 ## State
 
 - Scope: M36-plan-question-stale (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 4/5
-- Revision: 1113
+- Progress: 5/5
+- Revision: 1115
 
 ## Objective
 
@@ -325,7 +325,7 @@
 
 ## Rounds
 
-### R1 — Implementation (implementation, OPEN)
+### R1 — Implementation (implementation, CLOSED)
 
 - [DONE] T001 — Устаревший вопрос о плане закрывается сам (work, parallel-safe)
   - Commit: fix(review): close a plan question the plan has already answered
@@ -341,7 +341,7 @@
   - Commit: chore: deliver the stale plan question fix
   - Files: package.json, package-lock.json, CHANGELOG.md, docs/evidence/M36-acceptance.md
   - Depends on: T001, T002, DOCS-R1
-- [TODO] T004 — CI точного SHA поставки на четырёх платформах (delivery)
+- [DONE] T004 — CI точного SHA поставки на четырёх платформах (delivery)
   - Commit: docs: record stale plan question fix cross-platform CI
   - Files: docs/evidence/M36-acceptance.md
   - Depends on: T003, DOCS-R1

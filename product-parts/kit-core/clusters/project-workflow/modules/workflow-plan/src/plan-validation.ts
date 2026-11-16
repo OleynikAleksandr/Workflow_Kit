@@ -2,6 +2,7 @@ import {
   ensure,
   workflowPlatformFacade,
 } from "../../workflow-platform/src/workflow-platform-facade.js";
+import { validatePlanAutomation } from "./plan-automation.js";
 import { validatePlanExecution } from "./plan-execution.js";
 import {
   byteLength,
@@ -389,5 +390,6 @@ export function validatePlan(plan: WorkflowPlan): WorkflowPlan {
   validateTaskGraph(plan);
   validateServiceTasks(plan);
   validateProgress(plan, plan.scope);
+  validatePlanAutomation(plan);
   return plan;
 }

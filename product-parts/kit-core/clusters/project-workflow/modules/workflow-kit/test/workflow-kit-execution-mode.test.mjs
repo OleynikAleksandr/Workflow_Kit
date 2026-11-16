@@ -116,7 +116,12 @@ try {
   assert.equal(readFileSync(proposalFile(plain), "utf8"), snapshot);
 
   // Refine drops the plan and keeps the cycle in refinement.
-  const refined = choose(plain, 1, "refine");
+  const { proposalDigest: refinedDigest, ...refined } = choose(
+    plain,
+    1,
+    "refine"
+  );
+  assert.match(refinedDigest, /^[0-9a-f]{64}$/u);
   assert.deepEqual(refined, {
     execution: null,
     generation: 1,

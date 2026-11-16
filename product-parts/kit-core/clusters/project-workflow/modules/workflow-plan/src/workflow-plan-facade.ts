@@ -48,6 +48,16 @@ import {
 } from "./plan-transitions.js";
 import { validateDigest, validatePlan } from "./plan-validation.js";
 
+export type {
+  AcceptanceAutomation,
+  AutomationInput,
+  CiPolicy,
+  CriterionKind,
+  DeliveryAutomation,
+  PublicationPolicy,
+  ScopeAutomation,
+} from "./plan-automation.js";
+export { automationSummary } from "./plan-automation.js";
 export type { ExecutionInput } from "./plan-execution.js";
 export type { OwnerMove } from "./plan-owner.js";
 export type { FieldSpec, InputSchema } from "./plan-input-schema.js";
@@ -57,6 +67,7 @@ export type {
   ExecutionStrategy,
   RoundDigest,
   RoundKind,
+  ScopeProposalRef,
   ScopeStatus,
   TaskIntegration,
   TaskKind,

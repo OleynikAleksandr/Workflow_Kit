@@ -1,6 +1,7 @@
-import type {
-  WorkflowPlan,
-  WorkflowTask,
+import {
+  automationSummary,
+  type WorkflowPlan,
+  type WorkflowTask,
 } from "../../workflow-plan/src/workflow-plan-facade.js";
 import {
   cutBytes,
@@ -134,9 +135,26 @@ export function objectiveSection(input: RecoveryInput): string {
   if (!scope) {
     return "none";
   }
-  return [scope.objective, "", "Acceptance:", bullets(scope.acceptance)].join(
-    "\n"
+  const kinds = new Map(
+    (scope.automation?.acceptance ?? []).map((entry) => [
+      entry.criterion,
+      entry.kind,
+    ])
   );
+  const criteria = scope.acceptance.map((item, index) =>
+    kinds.has(index) ? `${item} [${kinds.get(index)}]` : item
+  );
+  const lines = [scope.objective, "", "Acceptance:", bullets(criteria)];
+  // Legacy plans without automation keep the old section unchanged.
+  if (scope.automation) {
+    lines.push("", "Automation:", bullets(automationSummary(scope.automation)));
+  }
+  if (scope.proposal) {
+    lines.push(
+      `Reviewed proposal: generation ${scope.proposal.generation}, digest ${scope.proposal.digest}`
+    );
+  }
+  return lines.join("\n");
 }
 
 function field(

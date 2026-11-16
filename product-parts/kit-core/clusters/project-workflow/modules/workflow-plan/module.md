@@ -35,7 +35,11 @@ transitions below it exposes `inputSchema(command)` and
   - `delivery`: `IN_PROGRESS`, `READY_FOR_ACCEPTANCE` or `ACCEPTED`, with
     `acceptanceNote`;
   - `execution` (optional): `{strategy, maxWorkers, ownerSession}`, see
-    "Execution" below. An absent block means `sequential`.
+    "Execution" below. An absent block means `sequential`;
+  - `automation` (optional, M39): how each acceptance criterion is proven,
+    delivery effects, required CI and publication; `proposal` (optional):
+    `{digest, generation}` of the reviewed proposal the scope was chosen
+    from. Both are described in [automation.md](automation.md).
 - `WorkflowRound` has `id` (`R1`, `R2`, `R0-legacy`), `kind`
   (`implementation`, `fixes`, `legacy`), `status` (`OPEN`, `CLOSED`) and
   `digest`.
@@ -60,7 +64,9 @@ transitions below it exposes `inputSchema(command)` and
 
 Errors are `WorkflowError` codes: `PLAN_SCHEMA`, `TASK_ORDER`, `DOCS_TASK`,
 `DELIVERY_ORDER`, `ROUND_DIGEST_REQUIRED`, `ROUND_DIGEST_TOO_LARGE`,
-`UNSAFE_PATH`, `PLAN_EXECUTION`, `PARALLEL_KIND`, `PARALLEL_FILES`.
+`UNSAFE_PATH`, `PLAN_EXECUTION`, `PARALLEL_KIND`, `PARALLEL_FILES`,
+`PLAN_AUTOMATION` (the automation block, last step of `validatePlan`; see
+[automation.md](automation.md)).
 
 Field refusals carry `details.field` with the plan path of the field:
 `scope.objective`, `scope.spec`, `tasks.<ID>.commitMessage`,
@@ -133,8 +139,10 @@ paths together (canonical, unique).
   - the state shows `- Execution: sequential` or `- Execution: orchestrated
     (max <n> workers, owner <session>)` only when the scope has an
     execution block, and a `parallelSafe` task line reads `(work,
-    parallel-safe)`. Plans without these fields render as before, so
-    existing plan documents keep their projection.
+    parallel-safe)`; the automation line `- Automation: …` follows the
+    execution line when the scope has an automation block
+    ([automation.md](automation.md)). Plans without these fields render as
+    before, so existing plan documents keep their projection.
 - `parse(text, {projection})` checks the markers (`PLAN_MARKERS`) and the
   JSON (`PLAN_JSON`), then validates the plan. With `projection` (the
   default) the whole text must equal `render(plan)`. A manual edit fails
@@ -172,7 +180,7 @@ validation then runs on the normalized plan as before.
 - `checkCarryoverInput`: `approval` (`SCOPE_APPROVAL`), `id` identifier,
   `objective` text when given.
 
-## Input Schemas (`plan-input-schema.ts`, `plan-input-schema-fields.ts`)
+## Input Schemas (`plan-input-schema.ts`, `plan-input-schema-fields.ts`, `plan-input-schema-automation.ts`)
 
 Plain data descriptors of the JSON inputs; the Kit prints them (`schema`
 command, recovery packet). `inputSchemaCommands()` returns, in this order,
@@ -216,6 +224,10 @@ by several descriptors live in `plan-input-schema-fields.ts`;
 - `scope:propose` has the `scope:create` fields; its rules name the
   `--recommended`/`--reason` flags, and its example carries
   `execution.maxWorkers`.
+- Both scope descriptors describe the optional `automation` block (code
+  `PLAN_AUTOMATION`, fields in `plan-input-schema-automation.ts`) and carry
+  it in their example
+  ([automation.md](automation.md#input-schema)).
 
 ## Transitions (`plan-transitions.ts`, `plan-service-tasks.ts`)
 
@@ -347,7 +359,8 @@ functions; the facade exposes them as methods.
   current scope and opens a new one:
   - every unfinished non-`DOCS` task moves into round `R1` and is reset to
     `TODO`, keeping its `parallelSafe` label;
-  - the new scope keeps the execution block of the old one;
+  - the new scope keeps the execution block of the old one and drops
+    `automation` and `proposal` (a new agreement);
   - dependencies and `fixes` links that point to finished or dropped tasks
     are removed;
   - `QUALITY` and `DOCS` are rebuilt.
@@ -364,9 +377,12 @@ functions; the facade exposes them as methods.
   required field and breaking each limit, enum and pattern give the
   descriptor code and `details.field`; descriptors are copies; a stored
   digest keeps its plan path.
+- `test/workflow-plan-automation.test.mjs` — the automation block and
+  `scope.proposal` ([automation.md](automation.md#tests)).
 
 ## Owned Paths
 
 - `module.md`
+- `automation.md`
 - `src/**`
 - `test/**`

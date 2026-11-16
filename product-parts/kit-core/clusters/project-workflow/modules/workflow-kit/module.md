@@ -83,7 +83,8 @@ it changes in the same commit as the commands. Summary:
   `kit-cli-schema.ts` (`schema`), `kit-cli-context.ts` (`context`) and
   `kit-cli-scope.ts` (`scope:create`, `plan:extend`, `task:update`,
   `task:block`, `task:unblock`, `accept`, `close`, `carryover`); boolean
-  flags include `--force`; the other commands are defined in
+  flags include `--force`, and `--digest` is boolean only for
+  `scope:proposal` (`commit --digest <file>` keeps its value); the other commands are defined in
   `workflow-kit-cli.ts`, the default texts in `kit-cli-text.ts`. `help`
   lists every usage line.
 - `schema [<command>]` (`kit-cli-schema.ts`) prints the JSON input

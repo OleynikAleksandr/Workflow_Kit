@@ -5,6 +5,7 @@ import {
 import type { CommitResult } from "../../workflow-git/src/workflow-git-facade.js";
 import {
   type ExecutionStrategy,
+  type ScopeProposalRef,
   type WorkflowExecution,
   type WorkflowPlan,
   type WorkflowPlanFacade,
@@ -22,6 +23,7 @@ import {
   readPlan,
   requireHead,
 } from "./kit-context.js";
+import { ensureAutomationInput } from "./kit-automation.js";
 import { ensureContextBudget } from "./kit-context-budget.js";
 
 export type ScopeInput = Parameters<WorkflowPlanFacade["createScope"]>[1];
@@ -72,15 +74,26 @@ export function change(
   return { commit, revision: plan.revision, scopeId: plan.scope?.id ?? null };
 }
 
-/** Creates and commits the scope; every creation path clears the proposal. */
-function commitScope(context: KitContext, input: ScopeInput): PlanChange {
+/**
+ * Creates and commits the scope; every creation path clears the proposal.
+ * A scope chosen from a stored proposal records its reviewed digest.
+ */
+function commitScope(
+  context: KitContext,
+  input: ScopeInput,
+  proposal: ScopeProposalRef | null = null
+): PlanChange {
   ensureNoTransaction(context);
   const plan = workflowPlanFacade.createScope(
     readPlan(context),
     input,
     transition(context)
   );
+  if (proposal && plan.scope) {
+    plan.scope.proposal = { ...proposal };
+  }
   ensureInputChecks(context, input.tasks);
+  ensureAutomationInput(context, input.automation);
   ensureContextBudget(context, plan, plan.tasks);
   const documents = changedDocuments(context, [
     input.spec,
@@ -134,6 +147,8 @@ export interface ScopeChoiceResult {
   execution: WorkflowExecution | null;
   generation: number;
   option: ExecutionModeOption;
+  /** The digest of the answered proposal (`scope:proposal --digest`). */
+  proposalDigest: string;
   refining: boolean;
   scope: PlanChange | null;
 }
@@ -175,6 +190,7 @@ export function proposeScope(
       transition(context)
     );
     ensureInputChecks(context, request.input.tasks);
+    ensureAutomationInput(context, request.input.automation);
     ensureContextBudget(context, candidate, candidate.tasks);
     const proposal = workflowExecutionModeFacade.nextProposal(context.root, {
       hasParallelWork: workflowPlanFacade.hasParallelWork(candidate),
@@ -199,7 +215,14 @@ export function proposeScope(
           "sequential",
           null,
           "Execution mode chosen automatically: sequential (no parallel work after the specification was refined)"
-        )
+        ),
+        {
+          digest: workflowExecutionModeFacade.proposalDigest(
+            context.root,
+            proposal
+          ).proposalDigest,
+          generation: proposal.generation,
+        }
       );
       return { ...answer, autoChosen: true, scope };
     }
@@ -212,11 +235,14 @@ export function proposeScope(
  * `scope:choose`: records the user's answer to the current proposal.
  * `sequential`/`orchestrated` create the scope from the stored plan,
  * `refine` drops the plan and keeps the cycle in refinement. A stale
- * choice fails with PROPOSAL_CHANGED before anything is written.
+ * choice, or an `expectedDigest` (the reviewed `scope:proposal --digest`)
+ * that no longer matches the proposal and its documents, fails with
+ * PROPOSAL_CHANGED before anything is written.
  */
 export function chooseScope(
   context: KitContext,
   request: {
+    expectedDigest?: string | null;
     generation: number;
     note: string;
     option: ExecutionModeOption;
@@ -225,10 +251,28 @@ export function chooseScope(
 ): ScopeChoiceResult {
   return locked(context, () => {
     ensureNoTransaction(context);
-    const choice = { ...request, now: context.now() };
+    const choice = {
+      generation: request.generation,
+      note: request.note,
+      now: context.now(),
+      option: request.option,
+      session: request.session,
+    };
     const proposal = workflowExecutionModeFacade.verifyChoice(
       context.root,
       choice
+    );
+    const digest = workflowExecutionModeFacade.proposalDigest(
+      context.root,
+      proposal
+    ).proposalDigest;
+    const expected = request.expectedDigest ?? null;
+    ensure(
+      expected === null || expected === digest,
+      "PROPOSAL_CHANGED",
+      "The proposal or its documents changed after the reviewed digest.",
+      { current: digest, expected, generation: proposal.generation },
+      "Read `scope:proposal --digest`, review the current proposal again and choose with its digest."
     );
     if (request.option === "refine") {
       workflowExecutionModeFacade.refine(context.root, proposal, choice);
@@ -236,6 +280,7 @@ export function chooseScope(
         execution: null,
         generation: proposal.generation,
         option: "refine",
+        proposalDigest: digest,
         refining: true,
         scope: null,
       };
@@ -247,12 +292,14 @@ export function chooseScope(
         request.option,
         request.session.trim(),
         `Execution mode chosen by the user: ${request.option}: ${request.note.trim()}`
-      )
+      ),
+      { digest, generation: proposal.generation }
     );
     return {
       execution: workflowPlanFacade.execution(readPlan(context)),
       generation: proposal.generation,
       option: request.option,
+      proposalDigest: digest,
       refining: false,
       scope,
     };

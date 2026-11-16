@@ -4,6 +4,7 @@ import type {
 } from "../../workflow-assignment/src/workflow-assignment-facade.js";
 import {
   type ExecutionModeOption,
+  type ProposalDigest,
   type ScopeProposal,
   workflowExecutionModeFacade,
 } from "../../workflow-execution-mode/src/workflow-execution-mode-facade.js";
@@ -91,6 +92,7 @@ export type {
 } from "../../workflow-assignment/src/workflow-assignment-facade.js";
 export type {
   ExecutionModeOption,
+  ProposalDigest,
   ScopeProposal,
 } from "../../workflow-execution-mode/src/workflow-execution-mode-facade.js";
 export type {
@@ -169,6 +171,7 @@ export class WorkflowKitFacade extends WorkflowKitBase {
   chooseScope(
     root: string,
     choice: {
+      expectedDigest?: string | null;
       generation: number;
       note: string;
       option: ExecutionModeOption;
@@ -199,6 +202,15 @@ export class WorkflowKitFacade extends WorkflowKitBase {
   /** `assignment:create --task`: a new assignment record and the executor brief. */
   createAssignment(root: string, taskId: string): AssignmentCreated {
     return createAssignment(this.context(root), taskId);
+  }
+
+  /**
+   * `scope:proposal --digest`: the digest a review agrees on, with the
+   * digest of every spec/context document; NO_PROPOSAL without an open
+   * proposal.
+   */
+  proposalDigest(root: string): ProposalDigest {
+    return workflowExecutionModeFacade.proposalDigest(root);
   }
 
   /** `scope:proposal`: the read-only card view of the stored proposal, or `null`. */

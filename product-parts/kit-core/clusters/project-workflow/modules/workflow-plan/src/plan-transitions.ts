@@ -1,4 +1,8 @@
 import { ensure } from "../../workflow-platform/src/workflow-platform-facade.js";
+import {
+  type AutomationInput,
+  normalizeAutomation,
+} from "./plan-automation.js";
 import { type ExecutionInput, normalizeExecution } from "./plan-execution.js";
 import { checkScopeInput } from "./plan-input-checks.js";
 import type {
@@ -18,6 +22,7 @@ import { validateDigest, validatePlan } from "./plan-validation.js";
 export interface ScopeInput {
   acceptance: string[];
   approval: string;
+  automation?: AutomationInput | null;
   context?: DocumentRef[];
   decisions?: string[];
   execution?: ExecutionInput | null;
@@ -82,10 +87,15 @@ export function createScope(
     normalizeTaskInput(task, "R1", ids, `tasks[${index}]`)
   );
   const execution = normalizeExecution(input.execution);
+  const automation = normalizeAutomation(input.automation, {
+    acceptance: input.acceptance,
+    tasks,
+  });
   next.scope = {
     acceptance: input.acceptance,
     acceptanceNote: null,
     approval: decision(input.approval, context.now),
+    ...(automation ? { automation } : {}),
     baselineCommit: context.baselineCommit,
     blockedReason: null,
     context: input.context ?? [],

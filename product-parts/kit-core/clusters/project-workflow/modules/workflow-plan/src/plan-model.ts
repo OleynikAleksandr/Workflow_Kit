@@ -1,3 +1,5 @@
+import type { ScopeAutomation } from "./plan-automation.js";
+
 export const PLAN_SCHEMA = "harness-workflow-plan/1";
 export const PLAN_PATH = ".harness/plans/todo-plan.md";
 
@@ -76,10 +78,18 @@ export interface WorkflowExecution {
   strategy: ExecutionStrategy;
 }
 
+/** The reviewed proposal a chosen scope was created from (`scope:choose`). */
+export interface ScopeProposalRef {
+  digest: string;
+  generation: number;
+}
+
 export interface WorkflowScope {
   acceptance: string[];
   acceptanceNote: UserDecision | null;
   approval: UserDecision;
+  /** M39 automation block; absent on legacy plans. */
+  automation?: ScopeAutomation;
   baselineCommit: string;
   blockedReason: string | null;
   context: DocumentRef[];
@@ -88,6 +98,8 @@ export interface WorkflowScope {
   execution?: WorkflowExecution;
   id: string;
   objective: string;
+  /** Present when the scope was created by choosing a stored proposal. */
+  proposal?: ScopeProposalRef;
   spec: string | null;
   status: ScopeStatus;
 }

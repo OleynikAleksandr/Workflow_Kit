@@ -1,7 +1,13 @@
 import { ensure } from "../../workflow-platform/src/workflow-platform-facade.js";
-import { type ParsedArgs, readJsonFile, requiredFlag } from "./kit-cli-args.js";
+import {
+  flag,
+  type ParsedArgs,
+  readJsonFile,
+  requiredFlag,
+} from "./kit-cli-args.js";
 import type {
   ExecutionModeOption,
+  ProposalDigest,
   ScopeChoiceResult,
   ScopeInput,
   ScopeProposalResult,
@@ -26,6 +32,20 @@ interface ExecutionCommandSpec {
 const STRATEGIES = new Set(["orchestrated", "sequential"]);
 const OPTIONS = new Set(["orchestrated", "refine", "sequential"]);
 const GENERATION_PATTERN = /^[1-9]\d*$/u;
+const DIGEST_PATTERN = /^[0-9a-f]{64}$/u;
+
+function expectedDigest(args: ParsedArgs): string | null {
+  const value = flag(args, "expected-digest");
+  if (value === undefined) {
+    return null;
+  }
+  ensure(
+    DIGEST_PATTERN.test(value),
+    "USAGE",
+    "--expected-digest is the sha256 hex of `scope:proposal --digest`."
+  );
+  return value;
+}
 
 function choice<T extends string>(
   args: ParsedArgs,
@@ -71,7 +91,7 @@ function choiceText(value: unknown): string {
   if (result.option === "refine") {
     return `choice: refine (generation ${result.generation}); refine the specification with the user, then run scope:propose again.\n`;
   }
-  return `choice: ${result.option} (generation ${result.generation}); scope ${result.scope?.scopeId ?? "NONE"} created at revision ${result.scope?.revision ?? 0}.\n`;
+  return `choice: ${result.option} (generation ${result.generation}, digest ${result.proposalDigest.slice(0, 12)}); scope ${result.scope?.scopeId ?? "NONE"} created at revision ${result.scope?.revision ?? 0}.\n`;
 }
 
 function ownerText(value: unknown): string {
@@ -80,6 +100,19 @@ function ownerText(value: unknown): string {
   return result.changed
     ? `owner: ${result.previous ?? "none"} → ${owner} (revision ${result.revision})\n`
     : `owner: ${owner} (unchanged)\n`;
+}
+
+function digestText(value: unknown): string {
+  const result = value as ProposalDigest;
+  const documents = Object.entries(result.documentDigests).map(
+    ([file, digest]) => `- ${file}: ${digest ?? "missing"}`
+  );
+  return `${[
+    `proposal: generation ${result.generation}, scope ${result.scopeId ?? "NONE"}`,
+    `digest: ${result.proposalDigest}`,
+    documents.length === 0 ? "documents: none" : "documents:",
+    ...documents,
+  ].join("\n")}\n`;
 }
 
 function proposalViewText(value: unknown): string {
@@ -107,6 +140,7 @@ export const EXECUTION_COMMANDS: Readonly<
   "scope:choose": {
     run: ({ args, kit, root }) =>
       kit.chooseScope(root, {
+        expectedDigest: expectedDigest(args),
         generation: generation(args),
         note: requiredFlag(args, "note"),
         option: choice<ExecutionModeOption>(args, "option", OPTIONS),
@@ -114,7 +148,7 @@ export const EXECUTION_COMMANDS: Readonly<
       }),
     text: choiceText,
     usage:
-      'scope:choose --generation <N> --option sequential|orchestrated|refine --session <id> --note "<the user\'s choice>"',
+      'scope:choose --generation <N> --option sequential|orchestrated|refine --session <id> --note "<the user\'s choice>" [--expected-digest <sha256>]',
   },
   "scope:owner": {
     run: ({ args, kit, root }) =>
@@ -126,9 +160,17 @@ export const EXECUTION_COMMANDS: Readonly<
     usage: 'scope:owner --session <id> --note "<why>"',
   },
   "scope:proposal": {
-    run: ({ kit, root }) => kit.proposalView(root),
-    text: proposalViewText,
-    usage: "scope:proposal",
+    run: ({ args, kit, root }) =>
+      args.flags.get("digest") === true
+        ? kit.proposalDigest(root)
+        : kit.proposalView(root),
+    text: (value) =>
+      value !== null &&
+      typeof value === "object" &&
+      "proposalDigest" in (value as object)
+        ? digestText(value)
+        : proposalViewText(value),
+    usage: "scope:proposal [--digest]",
   },
   "scope:propose": {
     run: ({ args, io, kit, root }) =>

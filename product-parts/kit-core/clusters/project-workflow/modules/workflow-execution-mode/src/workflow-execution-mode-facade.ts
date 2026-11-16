@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
-import { rmSync } from "node:fs";
+import { readFileSync, rmSync } from "node:fs";
+import path from "node:path";
 import { workflowGitFacade } from "../../workflow-git/src/workflow-git-facade.js";
 import type { ExecutionStrategy } from "../../workflow-plan/src/workflow-plan-facade.js";
 import {
@@ -78,6 +79,48 @@ function planDigest(input: unknown): string {
   return createHash("sha256")
     .update(JSON.stringify(canonical(input)))
     .digest("hex");
+}
+
+/** The read-only answer of `scope:proposal --digest`. */
+export interface ProposalDigest {
+  /** sha256 of every spec/context document by path; `null` for a missing file. */
+  documentDigests: Record<string, string | null>;
+  generation: number;
+  proposalDigest: string;
+  scopeId: string | null;
+}
+
+interface DocumentInput {
+  context?: { path?: unknown }[];
+  spec?: unknown;
+  tasks?: { context?: { path?: unknown }[] }[];
+}
+
+/** The spec, the scope context and every task context path, sorted and unique. */
+function documentPaths(input: unknown): string[] {
+  const body = (input ?? {}) as DocumentInput;
+  const refs = (list: unknown): unknown[] =>
+    Array.isArray(list)
+      ? list.map((ref) => (ref as { path?: unknown } | null)?.path)
+      : [];
+  const paths = [
+    body.spec,
+    ...refs(body.context),
+    ...(Array.isArray(body.tasks)
+      ? body.tasks.flatMap((task) => refs(task?.context))
+      : []),
+  ].filter((item): item is string => typeof item === "string" && item !== "");
+  return [...new Set(paths)].sort();
+}
+
+function fileDigest(root: string, relative: string): string | null {
+  try {
+    return createHash("sha256")
+      .update(readFileSync(path.join(root, ...relative.split("/"))))
+      .digest("hex");
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -272,6 +315,49 @@ export class WorkflowExecutionModeFacade {
     };
     this.writeProposal(root, refined);
     return refined;
+  }
+
+  /**
+   * The digest a review agrees on: the canonical proposal body (plan input
+   * with automation and CI, recommendation, reason, options) and the bytes
+   * of every spec/context document it names. Times, the generation, the
+   * choice and the stored plan digest are left out. A missing record or a
+   * record in refinement fails with NO_PROPOSAL.
+   */
+  proposalDigest(
+    root: string,
+    proposal: ScopeProposal | null = this.readProposal(root)
+  ): ProposalDigest {
+    ensure(
+      proposal !== null && proposal.input !== null,
+      "NO_PROPOSAL",
+      "There is no open scope proposal to review.",
+      { refining: proposal?.refining ?? false },
+      "Propose the scope with `scope:propose` first."
+    );
+    const documentDigests = Object.fromEntries(
+      documentPaths(proposal.input).map((file) => [
+        file,
+        fileDigest(root, file),
+      ])
+    );
+    const body = {
+      documents: documentDigests,
+      proposal: {
+        hasParallelWork: proposal.hasParallelWork,
+        input: proposal.input,
+        options: proposal.options,
+        reason: proposal.reason,
+        recommended: proposal.recommended,
+      },
+    };
+    const scopeId = (proposal.input as { id?: unknown }).id;
+    return {
+      documentDigests,
+      generation: proposal.generation,
+      proposalDigest: planDigest(body),
+      scopeId: typeof scopeId === "string" ? scopeId : null,
+    };
   }
 
   /** Removes the proposal record: a scope was created or closed. */

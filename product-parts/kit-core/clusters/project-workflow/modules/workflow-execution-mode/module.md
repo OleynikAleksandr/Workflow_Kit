@@ -17,7 +17,7 @@ the proposal.
 `WorkflowExecutionModeFacade` (class, singleton
 `workflowExecutionModeFacade`) in `src/workflow-execution-mode-facade.ts`.
 Types: `ExecutionModeOption` (`sequential`, `orchestrated`, `refine`),
-`ScopeProposal`.
+`ScopeProposal`, `ProposalDigest`.
 
 ## Contract
 
@@ -59,6 +59,19 @@ Types: `ExecutionModeOption` (`sequential`, `orchestrated`, `refine`),
 - `refine(root, proposal, choice)` writes the record with `input: null`,
   `planDigest: null`, `refining: true` and `choice {option: "refine",
   generation, session, note, at}`; the generation stays.
+- `proposalDigest(root, proposal = readProposal(root))` (spec M39) returns
+  `{generation, scopeId, proposalDigest, documentDigests}`, the digest a
+  review agrees on; it never writes:
+  - `NO_PROPOSAL` without a record or for a record in refinement
+    (`input: null`);
+  - `documentDigests` maps every document path of the input — `spec`,
+    `context[].path`, `tasks[].context[].path`, unique and sorted — to the
+    sha256 of its bytes, `null` for a missing file (the whole file, also
+    for a reference with a heading);
+  - `proposalDigest` is `digest({documents, proposal: {input, recommended,
+    reason, options, hasParallelWork}})`: the plan input with automation
+    and CI and the document bytes count; `createdAt`, `generation`,
+    `choice`, `planDigest` and `refining` do not.
 - `clear(root)` removes the record (a scope was created or closed).
 
 ## Dependencies
@@ -71,7 +84,9 @@ Types: `ExecutionModeOption` (`sequential`, `orchestrated`, `refine`),
 `test/workflow-execution-mode-facade.test.mjs` — options with and without
 parallel work, `NO_PARALLEL_WORK`, the canonical digest, reason bounds,
 growing generations, every `verifyChoice` failure, refine, clear and an
-unreadable record.
+unreadable record; `proposalDigest`: `NO_PROPOSAL` in refinement, sorted
+document paths with `null` for a missing file, the same digest for other
+times and generations, a new digest for another reason or changed bytes.
 
 ## Owned Paths
 

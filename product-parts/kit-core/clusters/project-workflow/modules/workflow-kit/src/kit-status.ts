@@ -14,6 +14,8 @@ import {
 import {
   type ExecutionStrategy,
   PLAN_PATH,
+  type ScopeAutomation,
+  type ScopeProposalRef,
   type WorkflowPlan,
   type WorkflowTask,
   workflowPlanFacade,
@@ -91,10 +93,14 @@ export interface KitStatus {
   revision: number;
   rounds: { id: string; kind: string; status: string }[];
   scope: {
+    /** The M39 automation block; null on a legacy (manual) plan. */
+    automation: ScopeAutomation | null;
     blockedReason: string | null;
     delivery: string;
     id: string;
     objective: string;
+    /** The reviewed proposal the scope was chosen from; null otherwise. */
+    proposal: ScopeProposalRef | null;
     status: string;
   } | null;
   /** The stored scope proposal (mode choice), without the plan input. */
@@ -258,10 +264,12 @@ export function readStatus(context: KitContext): KitStatus {
     })),
     scope: plan?.scope
       ? {
+          automation: structuredClone(plan.scope.automation ?? null),
           blockedReason: plan.scope.blockedReason,
           delivery: plan.scope.delivery,
           id: plan.scope.id,
           objective: plan.scope.objective,
+          proposal: structuredClone(plan.scope.proposal ?? null),
           status: plan.scope.status,
         }
       : null,

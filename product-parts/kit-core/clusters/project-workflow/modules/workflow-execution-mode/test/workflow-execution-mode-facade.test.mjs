@@ -142,6 +142,48 @@ try {
   const next = modes.nextProposal(root, request);
   assert.equal(next.generation, 3);
   assert.equal(next.refining, false);
+  // A proposal in refinement has nothing to review.
+  assert.equal(code(() => modes.proposalDigest(root)), "NO_PROPOSAL");
+
+  // The review digest: body plus document bytes, without times or generation.
+  mkdirSync(path.join(root, "docs"), { recursive: true });
+  writeFileSync(path.join(root, "docs", "spec.md"), "# Spec\n");
+  const documented = {
+    ...next,
+    input: {
+      context: [{ path: "docs/spec.md", required: true }],
+      id: "demo",
+      spec: "docs/spec.md",
+      tasks: [{ context: [{ path: "docs/missing.md", required: false }] }],
+    },
+  };
+  const reviewed = modes.proposalDigest(root, documented);
+  assert.deepEqual(Object.keys(reviewed.documentDigests), [
+    "docs/missing.md",
+    "docs/spec.md",
+  ]);
+  assert.equal(reviewed.documentDigests["docs/missing.md"], null);
+  assert.equal(reviewed.scopeId, "demo");
+  assert.equal(reviewed.generation, 3);
+  assert.equal(
+    modes.proposalDigest(root, {
+      ...documented,
+      choice: null,
+      createdAt: "2026-11-05T00:00:00Z",
+      generation: 9,
+    }).proposalDigest,
+    reviewed.proposalDigest
+  );
+  assert.notEqual(
+    modes.proposalDigest(root, { ...documented, reason: "Another reason here" })
+      .proposalDigest,
+    reviewed.proposalDigest
+  );
+  writeFileSync(path.join(root, "docs", "spec.md"), "# Spec v2\n");
+  assert.notEqual(
+    modes.proposalDigest(root, documented).proposalDigest,
+    reviewed.proposalDigest
+  );
 
   // Clear removes the record; an unreadable record reads as none.
   modes.clear(root);

@@ -55,7 +55,8 @@ it runs.
   <count>, ...|none[, integration <task> <phase>]`, `executor: assignment
   <id>, task <ID>` in an executor worktree, `paused: true|false`,
   `progress`, `current`, `next`, `quality` (status, stacks, drift), `head`,
-  `transaction`, `changes`.
+  `transaction`, `changes`. JSON `scope` carries `automation` and
+  `proposal` (Kit 2.3.0, spec M39; `null` on a legacy scope).
 - `autopilot:status` — the status the Harness Core autopilot decides on.
   JSON only.
 - `validate` — `{ok, errors[]}` for the plan, its projection, the
@@ -137,9 +138,19 @@ names an id that is not a quality check: the profile's checks and implicit
 guards when `CONFIGURED`, before QUALITY an id without spaces (`kit:*` only
 for Kit builtins). Manual checks belong in `acceptance`.
 
+Automation (Kit 2.3.0, spec M39 T001): the optional `automation` block of
+`scope:create`/`scope:propose` (`schema scope:propose`; contract in
+`workflow-plan/automation.md`) is refused with `PLAN_AUTOMATION` for its
+structure, `CHECK_UNKNOWN` (field `automation.acceptance[<i>].checks`) for
+an unknown quality check and `CI_CHECK_UNKNOWN` (`details {field, known,
+unknown}`) for a required CI check that no job of
+`.github/workflows/*.yml` reports (job id, literal job name or matrix
+name). Nothing is written then.
+
 - `scope:create --input <file.json>` — the agreed scope; input:
   `schema scope:create`. Refusals: `SCOPE_EXISTS`, `NO_BASELINE`,
-  `SPEC_REQUIRED`, `SCOPE_APPROVAL`, `PLAN_SCHEMA`, `PLAN_EXECUTION`;
+  `SPEC_REQUIRED`, `SCOPE_APPROVAL`, `PLAN_SCHEMA`, `PLAN_EXECUTION`,
+  `PLAN_AUTOMATION`, `CI_CHECK_UNKNOWN`;
   `EXECUTION_MODE_REQUIRED` with config `host: "harness"` (next action
   `scope:propose`), `CONTEXT_MISSING`, `CONTEXT_TOO_LARGE`.
 - `scope:propose --input <file.json> --recommended sequential|orchestrated
@@ -149,13 +160,26 @@ for Kit builtins). Manual checks belong in `acceptance`.
   validation refusals. Text: the generation, recommendation, reason,
   options and the next step.
 - `scope:choose --generation <N> --option sequential|orchestrated|refine
-  --session <id> --note "<the user's choice>"` (`kit-cli-execution.ts`) —
-  the user's choice on the card. An invalid `--option` or a non-positive
-  `--generation` is `USAGE`; `PROPOSAL_CHANGED`, `NO_PARALLEL_WORK`. Text:
-  the choice and the created scope.
-- `scope:proposal` (`kit-cli-execution.ts`) — the card view of the stored
-  proposal or `null`. Text: the generation and state, the scope, reason
-  and options, or `proposal: none`.
+  --session <id> --note "<the user's choice>" [--expected-digest <sha256>]`
+  (`kit-cli-execution.ts`) — the user's choice on the card. An invalid
+  `--option`, a non-positive `--generation` or an `--expected-digest` that
+  is not 64 hex characters is `USAGE`; `PROPOSAL_CHANGED` (also when the
+  current proposal digest differs from `--expected-digest`, details
+  `{expected, current, generation}`; nothing is written),
+  `NO_PARALLEL_WORK`. The created scope records `proposal {digest,
+  generation}`. JSON adds `proposalDigest`. Text: the choice with the short
+  digest and the created scope.
+- `scope:proposal [--digest]` (`kit-cli-execution.ts`) — the card view of
+  the stored proposal or `null`. Text: the generation and state, the scope,
+  reason and options, or `proposal: none`. With `--digest` (Kit 2.3.0, spec
+  M39; boolean only for this command) the read-only review digest
+  `{generation, scopeId, proposalDigest, documentDigests}`: the canonical
+  proposal body (plan input with automation and CI, recommendation,
+  reason, options) and the sha256 of every spec/context document; times
+  and the generation are left out. No open proposal (none or in
+  refinement) is `NO_PROPOSAL`. Text: `proposal: generation <N>, scope
+  <id>`, `digest: <sha256>`, `documents:` and one `- <path>: <sha256 |
+  missing>` line per document.
 - `scope:owner --session <id> --note "<why>"` (`kit-cli-execution.ts`,
   Kit 2.2.5, spec M31) — moves `execution.ownerSession` of the open scope to
   another session before its work starts; the panel calls it when the user

@@ -14,7 +14,8 @@ file fails with `NOT_INSTALLED`.
 
 State (`kit-status.ts`):
 - `status(root)` — project, scope (status, result, blocked reason,
-  objective), revision, current and next task, progress, rounds, quality
+  objective, `automation` and `proposal` of spec M39, `null` on a legacy
+  scope), revision, current and next task, progress, rounds, quality
   (status, stacks, drift), HEAD, pending transaction, changes outside
   Kit-managed paths, `installed`, and (spec 10.1):
   - `tasks` — plan order, `{id, kind, roundId, status, title, parallelSafe,
@@ -56,6 +57,17 @@ every change is a Kit commit unless noted:
   `scope:propose`); without a host it works as before (no execution block,
   `sequential`). Every scope creation (here, `chooseScope` and an automatic
   choice of `proposeScope`) clears the scope proposal record.
+- Every scope creation and `proposeScope` check the optional `automation`
+  block (`kit-automation.ts`, spec M39) before anything is written: the
+  plan validates its structure (`PLAN_AUTOMATION`), the Kit checks
+  `automation.acceptance[i].checks` with `workflow-quality`
+  (`CHECK_UNKNOWN`, field `automation.acceptance[i].checks`) and
+  `automation.ci.requiredChecks` against the project CI configuration
+  (`CI_CHECK_UNKNOWN`, details `{field, known, unknown}`). The check names
+  come from `kit-ci-config.ts`: every `.github/workflows/*.yml|yaml`, job
+  ids, literal job names and the matrix values of a job named
+  `${{ matrix.<key> }}`; step names do not count. Without a workflow file
+  any required check is unknown.
 - `proposeScope(root, input, recommended, reason)` — `scope:propose`
   (section 4.1 of `WorkflowKitExecutionModes.md`); the record and its rules
   belong to `workflow-execution-mode`:
@@ -71,17 +83,28 @@ every change is a Kit commit unless noted:
     plan has no parallel work, it creates the scope as `sequential` at once
     (approval suffix `| Execution mode chosen automatically: sequential
     ...`, `ownerSession: null`) and returns `autoChosen: true` with the
-    `PlanChange` in `scope`.
-- `chooseScope(root, {generation, option, session, note})` —
-  `scope:choose`: the proposal verification of `workflow-execution-mode`
+    `PlanChange` in `scope`; that scope records `proposal {digest,
+    generation}` of the new proposal.
+- `proposalDigest(root)` — `scope:proposal --digest` (spec M39): the
+  read-only `ProposalDigest {generation, scopeId, proposalDigest,
+  documentDigests}` of `workflow-execution-mode`; `NO_PROPOSAL` without an
+  open proposal (none, or in refinement).
+- `chooseScope(root, {generation, option, session, note, expectedDigest?})`
+  — `scope:choose`: the proposal verification of `workflow-execution-mode`
   runs first (`PROPOSAL_CHANGED` for a stale choice, `NO_PARALLEL_WORK`
-  for `orchestrated` without parallel work; nothing is written).
+  for `orchestrated` without parallel work; nothing is written). Under the
+  same lock the current proposal digest is computed; an `expectedDigest`
+  (`--expected-digest`, the reviewed digest) that differs fails with
+  `PROPOSAL_CHANGED` (details `{expected, current, generation}`) before
+  anything is written, so a review of an older body or older documents
+  never chooses the new one.
   - `sequential`/`orchestrated` create the scope from the stored input with
     `execution {strategy: option, maxWorkers: input value or 3,
     ownerSession: session}` and the approval
     `<approval> | Execution mode chosen by the user: <option>: <note>`;
   - `refine` drops the stored plan and keeps `refining: true`.
-  Returns `{option, generation, refining, execution, scope}`.
+  The created scope records `proposal {digest, generation}`. Returns
+  `{option, generation, proposalDigest, refining, execution, scope}`.
 - `moveOwner(root, {session, note})` — `scope:owner` (`kit-scope-owner.ts`,
   spec M31 3.1): moves `execution.ownerSession` of the open scope to
   `session` before its work starts. `NO_SCOPE` without a scope, `USAGE` for

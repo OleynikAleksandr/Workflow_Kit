@@ -101,8 +101,10 @@ export function carryoverScope(
     status: "TODO" as const,
   }));
   next.lastClosed = { closedAt: context.now, scopeId: scope.id };
+  // The automation block and the reviewed proposal belong to the old scope's agreement.
+  const { automation: _automation, proposal: _proposal, ...kept } = scope;
   next.scope = {
-    ...structuredClone(scope),
+    ...structuredClone(kept),
     acceptanceNote: null,
     approval: { at: context.now, text: input.approval.trim() },
     baselineCommit: context.baselineCommit,

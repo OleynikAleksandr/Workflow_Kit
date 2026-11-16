@@ -2,6 +2,7 @@ import {
   ensure,
   WorkflowError,
 } from "../../workflow-platform/src/workflow-platform-facade.js";
+import type { ScopeAutomation } from "./plan-automation.js";
 import type {
   WorkflowExecution,
   WorkflowPlan,
@@ -63,6 +64,26 @@ function executionLines(execution: WorkflowExecution | undefined): string[] {
   ];
 }
 
+/** Plans without an automation block (legacy, manual) render without this line. */
+function automationLines(automation: ScopeAutomation | undefined): string[] {
+  if (!automation) {
+    return [];
+  }
+  const manual = automation.acceptance.filter(
+    (entry) => entry.kind === "manual"
+  ).length;
+  const automatic = automation.acceptance.length - manual;
+  const ci = automation.ci
+    ? `CI ${automation.ci.remote} ${automation.ci.branch} (${automation.ci.requiredChecks.length} checks)`
+    : "no CI";
+  const publication = automation.publication
+    ? `publication ${automation.publication.branch} → ${automation.publication.upstream}`
+    : "no publication";
+  return [
+    `- Automation: ${automatic} automatic, ${manual} manual criteria; ${ci}; ${publication}`,
+  ];
+}
+
 function scopeLines(plan: WorkflowPlan): string[] {
   const scope = plan.scope;
   if (!scope) {
@@ -78,6 +99,7 @@ function scopeLines(plan: WorkflowPlan): string[] {
     `- Scope: ${scope.id} (${scope.status}${scope.blockedReason ? `: ${scope.blockedReason}` : ""})`,
     `- Delivery: ${scope.delivery}`,
     ...executionLines(scope.execution),
+    ...automationLines(scope.automation),
     `- Current task: ${plan.currentTaskId ?? "none"}`,
     `- Progress: ${done}/${plan.tasks.length}`,
     `- Revision: ${plan.revision}`,

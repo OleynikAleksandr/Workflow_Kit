@@ -19,6 +19,7 @@ import {
   TASK_RULES,
   taskFields,
 } from "./plan-input-schema-fields.js";
+import { AUTOMATION_FIELDS } from "./plan-input-schema-automation.js";
 import {
   DIGEST_ITEM_MAX_BYTES,
   DIGEST_MAX_ITEMS,
@@ -109,12 +110,15 @@ const SCOPE_FIELDS: FieldSpec[] = [
     required: false,
     type: "string|null",
   },
+  ...AUTOMATION_FIELDS,
   ...taskFields("tasks"),
 ];
 
 const SCOPE_RULES = [
   "A scope is created only when no scope is open (SCOPE_EXISTS) and the repository has a commit (NO_BASELINE).",
   "A scope with several tasks needs `spec` (SPEC_REQUIRED).",
+  "`automation` is optional; when present it describes every acceptance criterion once, names only delivery tasks of the scope, quality check ids known to the profile (CHECK_UNKNOWN) and CI jobs of the project CI configuration (CI_CHECK_UNKNOWN); other refusals are PLAN_AUTOMATION.",
+  "The proposal digest (`scope:proposal --digest`) covers the whole body, automation and CI included, and the bytes of the spec and context documents.",
   ...TASK_RULES,
 ];
 
@@ -131,6 +135,24 @@ const TASK_EXAMPLE = {
 const SCOPE_EXAMPLE = {
   acceptance: ["An empty list explains what to do"],
   approval: "User: implement the empty list hint from docs/spec.md",
+  automation: {
+    acceptance: [
+      {
+        checks: ["unit-tests"],
+        criterion: 0,
+        evidence: ["docs/evidence/empty-list.md"],
+        kind: "automatic",
+      },
+    ],
+    ci: {
+      branch: "ci/empty-list-hint",
+      exactSha: true,
+      remote: "origin",
+      requiredChecks: ["test"],
+    },
+    delivery: [{ effects: ["npm run package"], taskId: "T002" }],
+    publication: { branch: "main", upstream: "origin/main" },
+  },
   context: [{ path: "docs/spec.md", required: true }],
   decisions: ["The hint text comes from the specification"],
   id: "empty-list-hint",

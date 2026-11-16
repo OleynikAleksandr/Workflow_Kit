@@ -22,6 +22,10 @@ const BOOLEAN_FLAGS = new Set([
   "on",
   "update",
 ]);
+/** Flags that are boolean only for one command (`commit --digest <file>` takes a value). */
+const COMMAND_BOOLEAN_FLAGS: Readonly<Record<string, ReadonlySet<string>>> = {
+  "scope:proposal": new Set(["digest"]),
+};
 
 /** Splits `command positional… --flag value --flag=value --bool`. */
 export function parseArgs(argv: readonly string[]): ParsedArgs {
@@ -40,7 +44,10 @@ export function parseArgs(argv: readonly string[]): ParsedArgs {
       const equals = body.indexOf("=");
       if (equals !== -1) {
         flags.set(body.slice(0, equals), body.slice(equals + 1));
-      } else if (BOOLEAN_FLAGS.has(body)) {
+      } else if (
+        BOOLEAN_FLAGS.has(body) ||
+        COMMAND_BOOLEAN_FLAGS[positionals[0] ?? ""]?.has(body)
+      ) {
         flags.set(body, true);
       } else {
         const value = argv[index + 1];

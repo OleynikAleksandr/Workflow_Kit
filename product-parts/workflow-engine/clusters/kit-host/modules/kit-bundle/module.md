@@ -15,7 +15,7 @@ M22 2.5). В модуле лежат gzip (`vendor/workflow-kit-<версия>.m
 
 ## Публичный интерфейс (`src/index.ts`)
 
-- `KIT_VERSION` (`2.2.7`, M38: `install --update --with` для файлов структуры приложения; 2.2.6, M37: папка входных файлов `.harness/inputs/`, подсказка `next` и отказ `close` с путями; 2.2.5, M31: `scope:owner`), `KIT_SHA256`, `KIT_SOURCE_DIGEST` — из
+- `KIT_VERSION` (`2.3.0`, M39 T001: блок `automation` scope, `scope:proposal --digest` и `scope:choose --expected-digest`; 2.2.7, M38: `install --update --with` для файлов структуры приложения; 2.2.6, M37: папка входных файлов `.harness/inputs/`, подсказка `next` и отказ `close` с путями; 2.2.5, M31: `scope:owner`), `KIT_SHA256`, `KIT_SOURCE_DIGEST` — из
   `src/bundle-meta.ts`; `KIT_SOURCE_DIGEST` — дайджест исходников Kit
   (`kitSourceDigest` сборки).
 - `vendorBundleFile()` — путь gzip в модуле; `unpackedBundleFile(appDir)` —

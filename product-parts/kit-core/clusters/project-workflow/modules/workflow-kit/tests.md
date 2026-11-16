@@ -23,6 +23,18 @@ worktrees where noted):
 - `test/workflow-kit-execution-mode.test.mjs` — propose/choose/refine, the
   automatic sequential scope, `NO_PARALLEL_WORK`, `PROPOSAL_CHANGED`,
   `SCOPE_EXISTS`, the card view, `EXECUTION_MODE_REQUIRED`, the CLI.
+- `test/workflow-kit-automation.test.mjs` — spec M39 T001: `NO_PROPOSAL`;
+  `CI_CHECK_UNKNOWN` without a CI configuration and for unknown jobs (step
+  names are not checks, matrix names and literal job names are);
+  `CHECK_UNKNOWN` and `PLAN_AUTOMATION` before a proposal is stored; the
+  proposal digest stays the same for a new generation and changes with a
+  task, the CI policy and the bytes of the spec, a scope context and a task
+  context document (a missing one is `null`); `scope:proposal --digest`
+  JSON and text; a stale `--expected-digest` refuses the choice with
+  nothing written, a bad one is `USAGE`; the current digest creates the
+  scope with `proposal` and `automation` in the plan and in `status`;
+  recovery shows the criterion kinds, the automation lines and the
+  reviewed digest; a legacy scope answers as before.
 - `test/workflow-kit-owner.test.mjs` — `scope:owner` (M31): `NO_SCOPE`,
   `USAGE`, the same owner unchanged, the move (revision + 1, the decision,
   no commit, status), the text form, `help`, `OWNER_BUSY` for a started task

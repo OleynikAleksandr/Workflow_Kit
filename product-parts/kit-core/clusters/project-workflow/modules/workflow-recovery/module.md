@@ -39,7 +39,12 @@ environment.
      (orchestrated main), otherwise (role self) continue the task in
      progress, start the next ready task, or confirm a `delivery` task with
      the user first (`task:start <ID> --confirmed "…"`);
-  3. `objective`* — scope objective and acceptance criteria;
+  3. `objective`* — scope objective and acceptance criteria; with an
+     automation block (spec M39) each criterion ends with `[automatic]` or
+     `[manual]`, then `Automation:` lists `automationSummary` of
+     `workflow-plan` (acceptance counts, delivery effects, CI, publication),
+     and a chosen scope adds `Reviewed proposal: generation <N>, digest
+     <sha256>`; a legacy scope prints the section unchanged;
   4. `task`* — the current task, or the next ready one, in full; a `fixes`
      task shows the original task and its short SHA;
   5. `schema`* — present only when the next step takes a JSON input (see
@@ -294,6 +299,9 @@ Node built-ins only.
   heading, the `documents` section kept longest among optional ones, task
   truncation, every `next` variant (`READY_FOR_ACCEPTANCE` and `ACCEPTED`
   with and without paths outside commits), heading extraction.
+- `test/workflow-recovery-objective.test.mjs` — the `objective` section of
+  a legacy scope (unchanged) and of a scope with automation and a reviewed
+  proposal (spec M39).
 - `test/workflow-recovery-documents.test.mjs` — the documents map of a git
   project: outside a repository, tracked and untracked files, ignored,
   deleted and excluded paths, the specification folder first, `##`

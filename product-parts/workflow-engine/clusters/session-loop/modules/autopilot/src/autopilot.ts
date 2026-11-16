@@ -7,20 +7,9 @@ import type { KitOutcome, KitRunner, WorkflowState } from '#kit-runner';
 import type { KitChoiceOption } from '#plan-view';
 import { DEFAULT_MAX_CONTINUES, decideAutopilot, nextAutopilotState } from './decide.ts';
 import type { AutopilotProjectStatus, StopReason } from './decide.ts';
-import {
-  CHOICE_NOTES,
-  CHOSEN_WAIT,
-  PREFIX,
-  REFINE_MESSAGE,
-  RESUME_MESSAGE,
-  EXECUTOR_HOWTO,
-  START_MESSAGES,
-  executorHowto,
-  sequentialOnlyNote,
-  STOP_LABELS,
-  deliveryMessage,
-  fixesMessage,
-} from './texts.ts';
+import { CHOICE_NOTES, CHOSEN_WAIT, EXECUTOR_HOWTO, PREFIX, REFINE_MESSAGE, RESUME_MESSAGE, START_MESSAGES, STOP_LABELS } from './texts.ts';
+import { deliveryMessage, executorHowto, fixesMessage, sequentialOnlyNote } from './texts.ts';
+import { createPlanEnd } from './acceptance.ts';
 import { createPlanStarts } from './start.ts';
 import { blockedByInterruption, pauseInterruptedOwner } from './interrupt.ts';
 import { moveOwner, wakeHolders } from './owner.ts';
@@ -29,7 +18,8 @@ import type { PlanStart } from './start.ts';
 /** Stops that wait for a user decision in the panel: the Stop hook is held. */
 const HOLDING: ReadonlySet<string> = new Set(['waiting-for-mode-choice', 'waiting-for-plan-start', 'delivery-confirmation', 'ready-for-acceptance']);
 
-export type AutopilotReason = StopReason | 'waiting-for-plan-start' | 'waiting-for-review' | 'waiting-for-main' | 'waiting-for-plan-decision';
+/** `accepted` and `closed` label a plan the user accepted or closed (spec M37 2.2). */
+export type AutopilotReason = StopReason | 'waiting-for-plan-start' | 'waiting-for-review' | 'waiting-for-main' | 'waiting-for-plan-decision' | 'accepted' | 'closed';
 
 /**
  * The cross review (M4): its Stop decision comes before the autopilot's. canStart — the session
@@ -108,8 +98,11 @@ export interface Autopilot {
   pause(projectId: string): Promise<void>;
   interrupt(projectId: string, key: string): Promise<void>;
   resume(projectId: string, session?: string): Promise<{ owner: string }>;
-  accept(projectId: string, note?: string): Promise<void>;
-  close(projectId: string, note?: string): Promise<void>;
+  /** Runs the Kit command and tells the owner session (spec M37 2.2); `session` — the session of the request. */
+  accept(projectId: string, note?: string, session?: string): Promise<void>;
+  close(projectId: string, note?: string, session?: string): Promise<void>;
+  /** Asks the owner session to tidy the paths outside commits (spec M37 2.3). */
+  tidy(projectId: string, session?: string): Promise<{ owner: string; paths: string[] }>;
   fixes(projectId: string, text: string, session?: string): Promise<{ owner: string }>;
   confirmDelivery(projectId: string, words: string, session?: string): Promise<{ owner: string; taskId: string }>;
   get(key: string): SessionAutopilot | undefined;
@@ -202,6 +195,22 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
     return options.channel.enqueue(key, text, 'panel', projectId).id;
   }
 
+  const planEnd = createPlanEnd({
+    runner: options.runner,
+    workflow: options.workflow,
+    channel: options.channel,
+    root,
+    owners,
+    entries: () => states.values(),
+    entry: state,
+    note,
+    forget: (projectId) => starts.forgetProject(projectId),
+    fail: (code, message, nextAction = null) => {
+      throw new WorkflowActionError(code, message, 409, nextAction);
+    },
+    log,
+  });
+
   async function strategy(projectId: string): Promise<'sequential' | 'orchestrated'> {
     const status = options.workflow.status(projectId) ?? undefined;
     const execution = status?.execution ?? (await options.workflow.refresh(projectId))?.execution;
@@ -247,6 +256,7 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
       }
       if (!entry.enabled) {
         entry.origin = null;
+        planEnd.settle(entry, status);
         return { kind: 'release' };
       }
       const turn = {
@@ -275,7 +285,7 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
       // An accepted result waits only for «Закрыть»: nothing to deliver, the Stop is not held.
       const accepted = decision.reason === 'ready-for-acceptance' && status.delivery === 'ACCEPTED';
       if (HOLDING.has(decision.reason) && !accepted) return hold(decision.reason, decision.detail);
-      note(entry, 'release', decision.reason, decision.detail);
+      note(entry, 'release', planEnd.endReason(entry.last?.reason ?? null, decision.reason, status), decision.detail);
       return { kind: 'release' };
     },
 
@@ -360,19 +370,9 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
       return { owner: key };
     },
 
-    async accept(projectId, words) {
-      await kit(projectId, ['accept', '--note', words && words.trim().length >= 3 ? words.trim() : 'Пользователь принял план в панели Workflow Kit']);
-      starts.forgetProject(projectId);
-      for (const entry of states.values()) if (entry.projectId === projectId) entry.enabled = false;
-    },
-
-    async close(projectId, words) {
-      const scope = options.workflow.status(projectId)?.scope ?? (await options.workflow.refresh(projectId))?.scope;
-      if (!scope) throw new WorkflowActionError('no-scope', 'Нет активного плана', 409);
-      await kit(projectId, ['close', '--scope', scope.id, '--note', words && words.trim().length >= 10 ? words.trim() : 'Пользователь закрыл план в панели Workflow Kit']);
-      owners.delete(projectId);
-      starts.forgetProject(projectId);
-    },
+    accept: (projectId, words, session) => planEnd.accept(projectId, words, session),
+    close: (projectId, words, session) => planEnd.close(projectId, words, session),
+    tidy: (projectId, session) => planEnd.tidy(projectId, session),
 
     async fixes(projectId, text, session) {
       if (!text.trim()) throw new WorkflowActionError('bad-request', 'Опишите, что исправить', 400);

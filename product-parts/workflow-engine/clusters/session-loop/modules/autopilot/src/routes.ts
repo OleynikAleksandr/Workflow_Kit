@@ -48,12 +48,16 @@ export function registerAutopilotRoutes(options: AutopilotRoutesOptions): void {
   router.post('/api/projects/:id/workflow/start', ({ params, body }) => run(params['id']!, () => autopilot.start(params['id']!, text(fields(body)['session']))));
   router.post('/api/projects/:id/workflow/pause', ({ params }) => run(params['id']!, async () => (await autopilot.pause(params['id']!), { paused: true })));
   router.post('/api/projects/:id/workflow/resume', ({ params, body }) => run(params['id']!, () => autopilot.resume(params['id']!, text(fields(body)['session']))));
-  router.post('/api/projects/:id/workflow/accept', ({ params, body }) =>
-    run(params['id']!, async () => (await autopilot.accept(params['id']!, text(fields(body)['note'])), { accepted: true })),
-  );
-  router.post('/api/projects/:id/workflow/close', ({ params, body }) =>
-    run(params['id']!, async () => (await autopilot.close(params['id']!, text(fields(body)['note'])), { closed: true })),
-  );
+  // M37 2.2: the session of the request is the last resort to find the owner to tell.
+  router.post('/api/projects/:id/workflow/accept', ({ params, body }) => {
+    const input = fields(body);
+    return run(params['id']!, async () => (await autopilot.accept(params['id']!, text(input['note']), text(input['session'])), { accepted: true }));
+  });
+  router.post('/api/projects/:id/workflow/close', ({ params, body }) => {
+    const input = fields(body);
+    return run(params['id']!, async () => (await autopilot.close(params['id']!, text(input['note']), text(input['session'])), { closed: true }));
+  });
+  router.post('/api/projects/:id/workflow/tidy', ({ params, body }) => run(params['id']!, () => autopilot.tidy(params['id']!, text(fields(body)['session']))));
   router.post('/api/projects/:id/workflow/fixes', ({ params, body }) => {
     const input = fields(body);
     return run(params['id']!, () => autopilot.fixes(params['id']!, text(input['text']) ?? '', text(input['session'])));

@@ -121,3 +121,23 @@ test('choice card: recommended first, refine last, orchestration only for a prov
   const sequential = buildChoiceCard({ ...proposal, recommended: 'sequential' })!;
   assert.deepEqual(sequential.options.map((o) => o.option), ['sequential', 'orchestrated', 'refine']);
 });
+
+test('dirty (M37 2.3): paths outside commits only while the plan waits for acceptance or closing', () => {
+  const done = { tasks: [task('T001', 'DONE')], progress: { done: 1, total: 1 } };
+  const scope = (delivery: 'IN_PROGRESS' | 'READY_FOR_ACCEPTANCE' | 'ACCEPTED') => ({ id: 'demo', objective: 'Склад', status: 'ACTIVE' as const, delivery, blockedReason: null });
+  const changes = ['docs/plans/a.scope.json', 'notes.txt'];
+  // acceptance / accepted × dirty / clean
+  const ready = buildPlanView(status({ ...done, scope: scope('READY_FOR_ACCEPTANCE'), changes }))!;
+  assert.equal(ready.phase, 'acceptance');
+  assert.deepEqual(ready.dirty, changes);
+  assert.deepEqual(buildPlanView(status({ ...done, scope: scope('READY_FOR_ACCEPTANCE'), changes: [] }))!.dirty, []);
+  const accepted = buildPlanView(status({ ...done, scope: scope('ACCEPTED'), changes }))!;
+  assert.equal(accepted.phase, 'accepted');
+  assert.deepEqual(accepted.dirty, changes);
+  assert.deepEqual(buildPlanView(status({ ...done, scope: scope('ACCEPTED'), changes: [] }))!.dirty, []);
+  // A Kit status without `changes` and the working phases give no paths.
+  assert.deepEqual(buildPlanView(status({ ...done, scope: scope('ACCEPTED') }))!.dirty, []);
+  assert.deepEqual(buildPlanView(status({ changes }))!.dirty, [], 'ready');
+  assert.deepEqual(buildPlanView(status({ tasks: [task('T001', 'IN_PROGRESS')], changes }))!.dirty, [], 'running');
+  assert.deepEqual(buildPlanView(status({ tasks: [task('T001', 'DONE'), task('T002')], paused: true, changes }))!.dirty, [], 'paused');
+});

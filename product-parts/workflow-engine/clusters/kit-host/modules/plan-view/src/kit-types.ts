@@ -74,6 +74,8 @@ export interface KitStatus {
   assignments: KitAssignment[];
   scopeProposal: KitScopeProposalMarker | null;
   transaction: unknown;
+  /** Changed paths outside commits, without Kit-managed state; absent in an old Kit. */
+  changes?: string[];
 }
 
 /** Result of `scope:proposal` (null when no proposal is open). */

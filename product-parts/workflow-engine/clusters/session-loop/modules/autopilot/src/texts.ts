@@ -94,9 +94,71 @@ export function deliveryMessage(taskId: string, words: string): string {
   return `${PREFIX} the user confirms the delivery task ${taskId}: "${words}". Run \`scripts/workflow task:start ${taskId} --confirmed "${words.replace(/"/g, "'")}"\` and carry it out.`;
 }
 
+/** Paths an agent message names; the rest goes as "and N more". */
+const MESSAGE_PATHS = 10;
+/** Paths a panel text names; the rest goes as «и ещё N». */
+const PANEL_PATHS = 5;
+
+function quoted(paths: readonly string[], limit: number, more: (rest: number) => string): string {
+  const named = paths.slice(0, limit).map((file) => `\`${file}\``).join(', ');
+  return paths.length > limit ? `${named} ${more(paths.length - limit)}` : named;
+}
+
+/** What to do with the paths outside commits before the plan can be closed (spec M37 2.2). */
+export function tidyNote(paths: readonly string[]): string {
+  return (
+    ` Closing needs a clean working tree, and these paths are not committed: ${quoted(paths, MESSAGE_PATHS, (rest) => `(and ${rest} more)`)}. ` +
+    'Tidy them now: delete temporary files you created (for example `--input` or `--digest` JSON), commit documents worth keeping with ' +
+    '`scripts/workflow docs:commit --files <paths>`; leave functional code and files you did not create untouched and name them to the user.'
+  );
+}
+
+/** «Принять план» in the panel: the owner session hears about it (spec M37 2.2). */
+export function acceptedMessage(scopeId: string, paths: readonly string[]): string {
+  return (
+    `${PREFIX} the user accepted the result of scope \`${scopeId}\` in the panel; Kit recorded it. ` +
+    'Do not run `accept` or `close`: the user closes the plan with the "Закрыть план" button.' +
+    (paths.length > 0 ? tidyNote(paths) : '') +
+    ' Tell the user in one or two sentences that the result is accepted and whether the plan can be closed now, then end your turn.'
+  );
+}
+
+/** «Закрыть план» in the panel: the owner session hears about it (spec M37 2.2). */
+export function closedMessage(scopeId: string): string {
+  return (
+    `${PREFIX} the user closed the plan (scope \`${scopeId}\`) in the panel; Kit recorded it and no scope is active now. ` +
+    'Do not run Kit commands for it. Tell the user in one or two sentences that the plan is closed and you are ready for the next task, then end your turn.'
+  );
+}
+
+/** «Попросить агента убрать» in the panel (spec M37 2.3); it promises no closing. */
+export function tidyMessage(paths: readonly string[]): string {
+  return (
+    `${PREFIX} the user asks you to tidy the working tree: closing the plan needs it clean.` +
+    tidyNote(paths) +
+    ' Then tell the user in one or two sentences what you did and whether the working tree is clean now, and end your turn.'
+  );
+}
+
+/** Why «Закрыть план» was refused: the paths outside commits (spec M37 2.3). */
+export function dirtyTreeText(paths: readonly string[]): string {
+  return (
+    `в папке проекта есть файлы вне коммитов: ${quoted(paths, PANEL_PATHS, (rest) => `(и ещё ${rest})`)}. ` +
+    'Пока они есть, план не закроется: нажмите «Попросить агента убрать» на карточке плана или уберите их сами.'
+  );
+}
+
+/** The answer of tidy on a clean tree, by the phase of the plan (spec M37 2.3). */
+export const CLEAN_TEXTS: Readonly<Record<'acceptance' | 'accepted', string>> = {
+  acceptance: 'Файлов вне коммитов нет: можно принимать результат',
+  accepted: 'Файлов вне коммитов нет: план можно закрыть',
+};
+
 /** Russian labels of stop reasons for the panel. */
 export const STOP_LABELS: Readonly<Record<string, string>> = {
+  accepted: 'План принят',
   blocked: 'План остановлен',
+  closed: 'План закрыт',
   'delivery-confirmation': 'Ждёт подтверждения выпуска',
   disabled: 'Автопилот выключен',
   limit: 'Достигнут предел в 40 продолжений подряд',

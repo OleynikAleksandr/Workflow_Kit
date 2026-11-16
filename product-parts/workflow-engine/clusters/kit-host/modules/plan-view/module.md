@@ -18,7 +18,9 @@
   `PlanView`: `scopeId`, `objective`, `mode` (`sequential` без
   `execution`), `ownerSession`, `phase` и `phaseLabel`, `blockedReason`,
   `progress`, `progressLabel` («в main N из M»), `revision`, `tasks`,
-  `actions`.
+  `actions`, `dirty` (M37 2.3: пути вне коммитов — `status.changes` — в фазах
+  `acceptance` и `accepted`, иначе пустой список; `close` требует чистого
+  дерева, а во время работы незакоммиченные файлы — норма).
   - Фазы: `accepted` («План принят»; `delivery` ACCEPTED) →
     `acceptance` («План выполнен — проверьте результат»;
     READY_FOR_ACCEPTANCE) → `blocked` («План остановлен») → `paused`
@@ -45,9 +47,15 @@
 ## Инварианты
 
 - Метка параллельности показывается только в режиме `orchestrated`.
-- Неизвестные поля результатов Kit игнорируются; `assignments` может
-  отсутствовать.
+- Неизвестные поля результатов Kit игнорируются; `assignments` и `changes`
+  (`KitStatus.changes?`, пути вне коммитов без путей Kit) могут
+  отсутствовать — тогда `dirty` пуст.
 
 ## Зависимости
 
 Нет.
+
+## Поведение на ОС
+
+Чистые функции над JSON Kit; одинаково на macOS, Linux и Windows x64/ARM64. Пути `dirty`
+приходят от Kit через `/` на всех ОС (M37).

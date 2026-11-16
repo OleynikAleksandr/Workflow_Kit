@@ -1,4 +1,4 @@
-// The autopilot with the real Kit bundle (2.2.3) on a temporary git repository and a channel fed
+// The autopilot with the real Kit bundle on a temporary git repository and a channel fed
 // with hook inputs as Claude and Codex send them: choice, start, tasks, pause, acceptance.
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
@@ -150,15 +150,52 @@ test('sequential: proposal → choice → start → tasks → ready for acceptan
   await kit('task:start', 'DOCS-R1');
   await writeFile(path.join(tmp, 'dg.json'), JSON.stringify({ result: 'Файл добавлен', decisions: [], contracts: [], references: ['docs/spec.md'] }));
   await kit('commit', '--task', 'DOCS-R1', '--digest', path.join(tmp, 'dg.json'));
-  assert.equal(await settle(channel.stop(stopInput())), null);
+  stop = channel.stop(stopInput());
+  await holding('ready-for-acceptance');
   assert.equal(autopilot.get(KEY)?.last?.reason, 'ready-for-acceptance');
   assert.equal(autopilot.get(KEY)?.last?.action, 'hold', 'the Stop waits for «Принять» or «Нужны исправления»');
   assert.equal((await workflow.refresh('p'))?.plan?.phase, 'acceptance');
+  assert.deepEqual(workflow.get('p')?.plan?.dirty, []);
 
-  await autopilot.accept('p', 'Проверил, принимаю');
+  // M37 2.3: a file outside commits shows on the plan; tidy asks the held owner to clean up.
+  await assert.rejects(autopilot.tidy('p', KEY), (error: { code?: string; message?: string }) => error.code === 'clean' && error.message === 'Файлов вне коммитов нет: можно принимать результат');
+  await writeFile(path.join(root, 'stray.json'), '{}\n');
+  assert.deepEqual(await autopilot.tidy('p', KEY), { owner: KEY, paths: ['stray.json'] });
+  assert.deepEqual(workflow.get('p')?.plan?.dirty, ['stray.json']);
+  const tidy = (await settle(stop)) ?? '';
+  assert.match(tidy, /^Workflow Kit: the user asks you to tidy the working tree: closing the plan needs it clean\. Closing needs a clean working tree, and these paths are not committed: `stray\.json`\./);
+  assert.match(tidy, /whether the working tree is clean now, and end your turn\.$/);
+
+  // M37 2.2: «Принять план» tells the held owner; the message names the paths outside commits.
+  stop = channel.stop(stopInput());
+  await holding('ready-for-acceptance');
+  await autopilot.accept('p', 'Проверил, принимаю', KEY);
+  const accepted = (await settle(stop)) ?? '';
+  assert.match(accepted, /^Workflow Kit: the user accepted the result of scope `demo` in the panel; Kit recorded it\. Do not run `accept` or `close`/);
+  assert.match(accepted, /these paths are not committed: `stray\.json`\./);
   assert.equal((await workflow.refresh('p'))?.plan?.phase, 'accepted');
-  await autopilot.close('p');
+  assert.equal(autopilot.get(KEY)?.last?.label, 'План принят');
+  // The agent answers and ends the turn: nothing continues it, the label stays.
+  assert.equal(await settle(channel.stop(stopInput())), null);
+  assert.equal(autopilot.get(KEY)?.last?.label, 'План принят');
+
+  // «Закрыть план» on a dirty tree: a Russian refusal with the path; nothing is told.
+  await assert.rejects(autopilot.close('p', undefined, KEY), (error: { code?: string; message?: string; status?: number }) =>
+    error.code === 'dirty-tree' && error.status === 409 && error.message === 'в папке проекта есть файлы вне коммитов: `stray.json`. Пока они есть, план не закроется: нажмите «Попросить агента убрать» на карточке плана или уберите их сами.');
+  assert.equal(channel.queued(KEY).length, 0);
+  await rm(path.join(root, 'stray.json'));
+  await assert.rejects(autopilot.tidy('p', KEY), (error: { code?: string; message?: string }) => error.code === 'clean' && error.message === 'Файлов вне коммитов нет: план можно закрыть');
+
+  await autopilot.close('p', undefined, KEY);
   assert.equal((await workflow.refresh('p'))?.plan, null);
+  assert.equal(autopilot.get(KEY)?.last?.label, 'План закрыт');
+  // The idle owner gets the message with its next turn (a session the service wakes gets it at once).
+  assert.match(channel.queued(KEY).map((message) => message.text).join('\n'), /^Workflow Kit: the user closed the plan \(scope `demo`\) in the panel; Kit recorded it and no scope is active now\./);
+  await settle(channel.prompt(stopInput()));
+  assert.equal(channel.queued(KEY).length, 0);
+  assert.equal(await settle(channel.stop(stopInput())), null);
+  assert.equal(autopilot.get(KEY)?.last?.label, 'План закрыт');
+  await assert.rejects(autopilot.tidy('p', KEY), (error: { code?: string }) => error.code === 'no-scope');
 });
 
 test('a cross review holds the proposing session first; a reviewer session is decided by the review only', async () => {

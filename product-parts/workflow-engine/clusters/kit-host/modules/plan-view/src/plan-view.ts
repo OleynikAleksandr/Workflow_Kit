@@ -73,6 +73,11 @@ export interface PlanView {
   revision: number;
   tasks: PlanTaskView[];
   actions: PlanAction[];
+  /**
+   * Paths outside commits while the plan waits for acceptance or closing (spec M37 2.3): `close`
+   * needs a clean tree. Empty in the other phases, where uncommitted work is normal.
+   */
+  dirty: string[];
 }
 
 function taskState(status: KitTaskStatus, current: boolean): TaskState {
@@ -141,6 +146,7 @@ export function buildPlanView(status: KitStatus | null): PlanView | null {
     revision: status.revision,
     tasks,
     actions: [...PHASE_ACTIONS[phase]],
+    dirty: phase === 'acceptance' || phase === 'accepted' ? [...(status.changes ?? [])] : [],
   };
 }
 

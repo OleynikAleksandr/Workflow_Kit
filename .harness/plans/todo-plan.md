@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1190,
+  "revision": 1192,
   "rounds": [
     {
       "digest": null,
@@ -992,14 +992,21 @@
       "docsWaiver": null,
       "files": [
         "product-parts/workflow-engine/clusters/session-loop/modules/autopilot",
-        "docs/architecture/OS-MATRIX.md"
+        "docs/architecture/OS-MATRIX.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/autopilot.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/runs.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/lifecycle-real.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/run-turns.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/runs.test.ts"
       ],
       "fixes": "T007",
       "id": "F001",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "«Продолжить» идущего запуска без второго сообщения",
       "why": "T010 нашёл на настоящем бандле: runs.resume возвращает null для идущего запуска, поэтому autopilot.resume не видит запуск и ставит второе сообщение (RESUME_MESSAGE) рядом с продолжением после перезапуска или ходом владельца; повторный старт отвечает без runId"
     },
@@ -1184,8 +1191,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 10/14
-- Revision: 1190
+- Progress: 11/14
+- Revision: 1192
 
 ## Objective
 
@@ -1244,9 +1251,9 @@
   - Commit: test: cover complete autopiloting lifecycle and controls
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/backend-core/clusters/runtime/modules/cli/test, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/projects/modules/git-publish/test, product-parts/backend-core/clusters/projects/modules/git-publish/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/test, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, docs/evidence/M39-acceptance.md, docs/architecture/OS-MATRIX.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/lifecycle-real.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/orchestrated-real.test.ts
   - Depends on: T009
-- [TODO] F001 — «Продолжить» идущего запуска без второго сообщения (work)
+- [DONE] F001 — «Продолжить» идущего запуска без второго сообщения (work)
   - Commit: fix: keep one message when a running autopilot run is resumed
-  - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, docs/architecture/OS-MATRIX.md
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, docs/architecture/OS-MATRIX.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/autopilot.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/runs.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/lifecycle-real.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/run-turns.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/runs.test.ts
   - Depends on: T010
   - Fixes: T007
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)

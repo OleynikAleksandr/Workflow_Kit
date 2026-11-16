@@ -259,7 +259,11 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
       for (const previous of moved?.ok ? moved.previousKeys : []) state(previous).enabled = false;
       const entry = state(key, projectId);
       const current = starts.view(key);
-      if (current && !current.problem) return { owner: key, already: true };
+      if (current && !current.problem) {
+        // F001: a repeated press names the run it joins.
+        const live = await options.runs?.live(projectId, key).catch(() => null);
+        return { owner: key, already: true, ...(live ? { runId: live.run.runId } : {}) };
+      }
       const mode = await strategy(projectId);
       if (mode === 'orchestrated') await requireOrchestration(key);
       const runId = (await options.authority?.beforeStart(projectId, key)) ?? null;
@@ -294,8 +298,9 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
       const key = await owner(projectId, session);
       const runId = (await options.authority?.beforeResume(projectId, key)) ?? null;
       options.channel.resumeDelivery?.(key);
-      // M39: one sender — a run whose owner already works gets no second message (Stop + resume).
-      if (runId && options.channel.get(key)?.state === 'working') return { owner: key, runId };
+      // M39: one sender — a run whose owner already works, or already has a message waiting for
+      // it (the continuation after a restart), gets no second message (Stop + resume, F001).
+      if (runId && (options.channel.get(key)?.state === 'working' || options.channel.queued(key).length > 0)) return { owner: key, runId };
       await enable(projectId, key, RESUME_MESSAGE);
       return { owner: key, ...(runId ? { runId } : {}) };
     },

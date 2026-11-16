@@ -2,7 +2,7 @@
 // the run journal, the waits, the control and the completion, on a temporary project with a bare
 // upstream. A scripted agent does only what the messages of the service tell it. Checked:
 // - the source → the grant → each real transition → the remote SHA;
-// - one message per turn: Stop + «Продолжить» of a working owner give no second one;
+// - one message per turn: Stop, a restart and «Продолжить» give no second one (F001);
 // - a restart of the service in the middle sends one continuation and repeats nothing;
 // - a question of the owner waits without an attempt; CI after the close; late callbacks after a
 //   stop change nothing.
@@ -207,7 +207,8 @@ test('after-start, sequential: one press → tasks → delivery with CI → acce
   const runId = started.runId!;
   assert.equal((await kit<{ authorization: { runId: string } }>('life', 'autopilot:status')).authorization.runId, runId);
   // A second press and «Продолжить» while the start is on its way add nothing.
-  assert.equal((await svc.autopilot.start('life', KEY)).already, true);
+  const again = await svc.autopilot.start('life', KEY);
+  assert.deepEqual([again.already, again.runId], [true, runId], 'a second press names the same run (F001)');
   assert.equal((await svc.journal.list(roots['life']!)).length, 1, 'a second press makes no second run');
   let restarted = false;
   let asked = false;
@@ -231,6 +232,9 @@ test('after-start, sequential: one press → tasks → delivery with CI → acce
         await svc.control.recoverAll();
         await svc.control.recoverAll();
         assert.equal(svc.channel.queued(KEY).length, 1, 'one continuation after the restart');
+        // F001: «Продолжить» joins the same run and adds no second message.
+        assert.equal((await svc.autopilot.resume('life', KEY)).runId, runId, '«Продолжить» joins the same run');
+        assert.equal(svc.channel.queued(KEY).length, 1, 'and sends no second message');
       }
       continue;
     }

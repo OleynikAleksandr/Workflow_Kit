@@ -123,3 +123,10 @@ test('a delivery continuation tells how to report the wait for CI with the diges
   assert.ok(decision.action === 'continue' && decision.text.includes(TURN_TEXTS.ciWait(t.run.runId, hostInputDigest(ci))));
   assert.equal((await t.read()).phase, 'delivering');
 });
+
+test('F001: «Продолжить» of an idle owner with a continuation already queued adds no second message', async () => {
+  const t = await setup();
+  t.channel.enqueue(KEY, 'Workflow Kit: autopilot run goes on after a restart of the service.', 'panel', 'p');
+  assert.deepEqual(await t.autopilot.resume('p', KEY), { owner: KEY, runId: t.run.runId });
+  assert.equal(t.channel.queued(KEY).length, 1, 'the run is the only sender');
+});

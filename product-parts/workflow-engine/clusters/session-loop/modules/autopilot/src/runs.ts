@@ -82,6 +82,9 @@ export interface Runs {
   section(): Promise<{ projects: Record<string, RunBrief> }>;
 }
 
+/** Phases of a started run that is going on (not paused, blocked or final). */
+const RUNNING: ReadonlySet<RunRecord['phase']> = new Set(['executing', 'delivering', 'verifying', 'accepting', 'closing', 'publishing', 'waiting']);
+
 const normalize = (text: string): string => text.replace(/\s+/gu, ' ').trim().toLowerCase();
 const idOf = (key: string): string => key.slice(key.indexOf(':') + 1);
 const clientOf = (key: string): string => key.slice(0, key.indexOf(':'));
@@ -311,7 +314,10 @@ export function createRuns(options: RunsOptions): Runs {
     async resume(projectId, key) {
       const folder = await root(projectId);
       const run = await options.journal.active(folder);
-      if (!run || (run.phase !== 'paused' && run.phase !== 'blocked')) return null;
+      if (!run) return null;
+      // F001: «Продолжить» of a run that is going on joins it unchanged (one sender, no second message).
+      if (RUNNING.has(run.phase)) return run;
+      if (run.phase !== 'paused' && run.phase !== 'blocked') return null;
       if (!run.authority?.revocation) {
         // A pause of the user or of the M24 stop, or a removed obstacle: the run goes on where it stopped.
         return remember(await options.journal.update(folder, run.runId, (r) => ({ ...r, phase: r.pausedFrom ?? 'executing', pausedFrom: null, reason: null, nextAction: null, noProgress: 0 })));

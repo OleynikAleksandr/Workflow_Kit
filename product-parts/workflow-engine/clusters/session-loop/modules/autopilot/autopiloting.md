@@ -165,8 +165,12 @@ mutex?, log?, now? })` → `{ reconcile(projectId) }`. Один шаг под м
   pause|stop`); продолжение поставки с политикой CI — с `TURN_TEXTS.ciWait` (готовый JSON
   `wfk session progress` с `ciPolicyDigest` = `hostInputDigest(grant.ci)`).
 
-Единственный отправитель: `autopilot.resume` при работающей сессии-владельце запуска
-сообщения не ставит (совпавшие `Stop` и resume дают один ход); `confirm-delivery` для
+Единственный отправитель: `autopilot.resume` не ставит сообщение, если сессия-владелец запуска
+работает или у неё в очереди уже есть сообщение (продолжение после перезапуска). Совпавшие
+`Stop`, перезапуск и resume дают один ход (F001). `runs.resume` идущего запуска (`executing`,
+`delivering`, `verifying`, `accepting`, `closing`, `publishing`, `waiting`) возвращает его без
+записи, поэтому `beforeResume` называет `runId`. Повторное нажатие старта во время отправки
+отвечает `{ already: true, runId }` того же запуска; `confirm-delivery` для
 поставки, подтверждённой разрешением, — факт без сообщения; `fixes` при начатой поставке
 живого запуска сначала `task:defer-delivery`. `workflow/pause` и остановка ответа (M24)
 вызывают `authority.onPause` — барьер запуска до команды Kit; `autopilot.halt(projectId)`

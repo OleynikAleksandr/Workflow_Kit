@@ -134,6 +134,23 @@ test('T006: a review decision the session already has wins over the Settings def
   assert.match(result.instruction, /without a cross review/u);
 });
 
+test('F001: «Продолжить» of a run that is going on joins it unchanged; a final run is not resumed', async () => {
+  const { runs, journal, dir } = await setup('after-start');
+  const run = await journal.create(dir, {
+    projectId: 'p1', owner: { key: KEY, client: 'claude', sessionId: 's-1' }, mode: 'after-start', review: false,
+    request: { source: 'panel-start', quote: 'start', at: 'x', turnId: null, goal: 'g' }, proposal: null, scopeId: 'auto',
+    authority: null, phase: 'executing', pausedFrom: null, reason: null, nextAction: null,
+  });
+  for (const phase of ['executing', 'delivering', 'waiting', 'publishing'] as const) {
+    await journal.update(dir, run.runId, (r) => ({ ...r, phase }));
+    const before = (await journal.read(dir, run.runId))!;
+    const joined = await runs.resume('p1', KEY);
+    assert.deepEqual([joined?.runId, joined?.phase, joined?.revision], [run.runId, phase, before.revision], phase);
+  }
+  await journal.update(dir, run.runId, (r) => ({ ...r, phase: 'stopped' }));
+  assert.equal(await runs.resume('p1', KEY), null);
+});
+
 test('T009: the panel brief follows every write of the journal and never quotes the user', async () => {
   const { runs, journal, dir } = await setup('after-start', { scope: 'ACTIVE' } as Partial<RunKitStatus>);
   const run = await journal.create(dir, {

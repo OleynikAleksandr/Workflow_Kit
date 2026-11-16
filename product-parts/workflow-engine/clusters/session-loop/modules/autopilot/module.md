@@ -152,7 +152,8 @@
   …/autopiloting/policy` — в [autopiloting.md](autopiloting.md). Сквозные проверки T010 на
   настоящем бандле, канале и bare-репозитории — `test/lifecycle-real.test.ts` (после ручного
   запуска до проверенного SHA, перезапуск, вопрос, остановка во время CI) и
-  `test/orchestrated-real.test.ts`; доказательства —
+  `test/orchestrated-real.test.ts`; F001 — «Продолжить» идущего запуска без второго сообщения
+  (`autopiloting.md`, раздел T007); доказательства —
   [M39-acceptance.md](../../../../../../docs/evidence/M39-acceptance.md).
 
 ## Инварианты

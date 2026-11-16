@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1148,
+  "revision": 1150,
   "rounds": [
     {
       "digest": null,
@@ -135,7 +135,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Коммит структуры Kit 4 этого репозитория (исправление T001)",
       "why": "Коммит T001 4cdfcad содержит только план: три файла были изменены до task:start, и Kit без --files оставил их вне коммита"
     },
@@ -415,8 +415,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 1/8
-- Revision: 1148
+- Progress: 2/8
+- Revision: 1150
 
 ## Objective
 
@@ -438,7 +438,7 @@
 - [DONE] T001 — Коммит структуры Kit 4 этого репозитория (work)
   - Commit: chore: commit the Workflow Kit structure 4 of this repository
   - Files: .claude/settings.json, .workflow-kit/manifest.json, AGENTS.md
-- [TODO] F001 — Коммит структуры Kit 4 этого репозитория (исправление T001) (work)
+- [DONE] F001 — Коммит структуры Kit 4 этого репозитория (исправление T001) (work)
   - Commit: chore: commit the Workflow Kit structure 4 of this repository
   - Files: .claude/settings.json, .workflow-kit/manifest.json, AGENTS.md
   - Fixes: T001

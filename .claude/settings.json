@@ -79,6 +79,30 @@
           }
         ]
       }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "AskUserQuestion",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -x \"$HOME/.local/bin/wfk\" ] && \"$HOME/.local/bin/wfk\" hook question --client claude; exit 0",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "matcher": "AskUserQuestion",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -x \"$HOME/.local/bin/wfk\" ] && \"$HOME/.local/bin/wfk\" hook question --client claude; exit 0",
+            "timeout": 43200
+          }
+        ]
+      }
     ]
   }
 }

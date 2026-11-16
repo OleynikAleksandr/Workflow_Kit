@@ -153,7 +153,8 @@ gets it whole with one `scripts/workflow context` call.
 ## Workflow Kit (managed section, do not edit by hand)
 
 Workflow Kit (`wfk`) manages this section, its SessionStart, Stop and
-UserPromptSubmit hook entries in `.claude/settings.json` and `.codex/hooks.json`, the `.gitignore` block between
+UserPromptSubmit hook entries in `.claude/settings.json` and `.codex/hooks.json`, its
+PreToolUse and PermissionRequest entries for AskUserQuestion in `.claude/settings.json`, the `.gitignore` block between
 `# wfk:begin` and `# wfk:end` and the files listed in
 `.workflow-kit/manifest.json`. Write project instructions outside the
 `wfk:begin`/`wfk:end` markers; Kit never changes text outside them.

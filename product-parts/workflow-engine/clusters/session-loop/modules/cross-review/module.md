@@ -21,8 +21,10 @@
   (переспросить удержанный `Stop`), `toggle(projectId, key)`, `proposal(projectId)` (открытое
   предложение `{ generation, scopeId, createdAt? }` или `null`), необязательная
   `turnStartedAt(key)` (начало текущего хода работающей сессии, M31), `sessionTitle`, вопрос о плане (M4,
-  раздел 12, необязательные) — `question(projectId, key)`, `asking(projectId)`,
-  `decided(projectId, key)`, `askProposal(projectId, key)`, `deliver(key, text, projectId)`
+  раздел 12, необязательные) — `question(projectId, key)` (вопрос `OpenQuestion`
+  `{ kind, askedAt, scopeId? }` или `null`), `asking(projectId)`, `decided(projectId, key)`,
+  `askProposal(projectId, key)`, с M36 — `questions(projectId)`, `dismissQuestion(projectId, key)`,
+  `scope(projectId)` (id активного scope или `null`), `deliver(key, text, projectId)`
   (необязательная: очередь и немедленное пробуждение сессии без первого `Stop`; по умолчанию
   `enqueue`), `findReviewer` (`{ pollMs, timeoutMs }`, по умолчанию `FIND_REVIEWER` — 2 с и 3 мин),
   `now`, `log`. Типы — в `src/contract.ts`.
@@ -50,13 +52,21 @@
     (`waiting-for-main`); после создания она переспрашивается (`wake`).
     Открытый вопрос о плане (не у ревьюера) — держать `waiting-for-plan-decision` с
     `QUESTION_REMINDER`; `canStart` без решения о ревью — `askProposal` и то же удержание.
+    Устаревший вопрос (M36, `src/question-stale.ts`, `staleReason`) сначала закрывается
+    `dismissQuestion`, и `decide` продолжает как без вопроса: вопрос `agent` устарел при
+    открытом предложении с `createdAt` позже `askedAt` (`a newer proposal`) или при активном
+    scope (`scope(projectId)`), отличном от `scopeId` вопроса (`another scope`); вопрос
+    `proposal` — без открытого предложения (`no open proposal`). В журнал —
+    `review: plan question of <key> closed: <причина>`. Без `dismissQuestion` вопрос ждёт, как
+    до M36.
     Автор предложения (M31, раздел 3.2, `src/author.ts`, `isAuthor`) — сессия, чей ход
     (`StopContext.turnStartedAt`) начался не позже `createdAt` предложения; неизвестное время —
     автор. Не автор при `canStart` не получает ни вопроса о ревью, ни нового ревью — `null`.
     Остальное — `null` (решает автопилот).
   - `toggled(projectId, key, on)` — включение будит удержанный `Stop` (старт), выключение
     отменяет; `choiceBlocked(projectId, working)` — почему выбор пути ждёт ревью
-    (`CHOICE_WAITS_QUESTION` — открыт вопрос о плане; `CHOICE_WAITS_REVIEW` — ревью идёт; `CHOICE_WAITS_TURN` — работающая сессия с включённым
+    (`CHOICE_WAITS_QUESTION` — открыт неустаревший вопрос о плане, устаревшие вопросы проекта
+    из `questions(projectId)` сначала закрываются, M36; `CHOICE_WAITS_REVIEW` — ревью идёт; `CHOICE_WAITS_TURN` — работающая сессия с включённым
     переключателем или без решения ещё не проходила ревью открытого предложения и её текущий ход
     начался не позже предложения — автор, M31; раздел 11.3) или `null`;
     `cancel(projectId, key, reason)`; `retry(projectId, key)` — «Повторить ревью»: последнее

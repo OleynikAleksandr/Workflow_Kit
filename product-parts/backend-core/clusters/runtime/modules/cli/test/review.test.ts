@@ -10,7 +10,7 @@ import type { WorkflowState } from '#kit-runner';
 import { createStubProvider } from '#provider-registry';
 import { createApp } from '../src/index.ts';
 import type { App } from '../src/index.ts';
-import { briefByQueue, deliverToSession, lateReviewDecider, toggleLock } from '../src/review-wiring.ts';
+import { briefByQueue, deliverToSession, lateReviewDecider, questionDeps, toggleLock } from '../src/review-wiring.ts';
 import { PLAN_ASKED, SESSION_USAGE, callingSession, runSessionCommand, sessionFlags } from '../src/session-command.ts';
 
 let tmp = '';
@@ -215,4 +215,33 @@ test('a reviewer session led outside the panel keeps its brief in the queue with
   assert.equal(await deliverToSession(deps, 'claude:fresh', 'Задание', 'p1'), true, 'no hooks yet: as in 0.9.0');
   assert.equal(await deliverToSession(deps, 'codex:outside', 'Задание', 'p1'), true, 'a provider without the mark is woken as before');
   assert.deepEqual(woken, ['claude:panel', 'claude:fresh', 'codex:outside']);
+});
+
+test('M36: the cross review gets the questions, their dismissal and the active scope; a new question stores the scope', async () => {
+  const dismissed: string[] = [];
+  const question = { kind: 'agent' as const, summary: 'x', askedAt: '2026-11-16T10:00:00.000Z', scopeId: 'S1' };
+  const toggles = {
+    question: (_p: string, key: string) => (key === 'claude:q' ? question : null),
+    asking: () => true,
+    questions: () => [{ key: 'claude:q', question }],
+    dismiss: async (_p: string, key: string) => (dismissed.push(key), question),
+  };
+  let scope: { id: string } | null = { id: 'S2' };
+  const deps = questionDeps(toggles, { get: () => ({ scope }) as never });
+  assert.equal(deps.question!('p', 'claude:q'), question);
+  assert.equal(deps.question!('p', 'claude:other'), null);
+  assert.deepEqual(deps.questions!('p'), [{ key: 'claude:q', question }]);
+  await deps.dismissQuestion!('p', 'claude:q');
+  assert.deepEqual(dismissed, ['claude:q']);
+  assert.equal(deps.scope!('p'), 'S2');
+  scope = null;
+  assert.equal(deps.scope!('p'), null);
+
+  // The service asks with the scope of its Kit state (none here: the project has no Kit plan).
+  const projectId = (await app.projects.list())[0]!.id;
+  const asked = await app.review.ask(projectId, 'claude:m36', 'agent', 'проба');
+  assert.equal(asked.scopeId, null);
+  assert.ok(app.review.questions(projectId).some((q) => q.key === 'claude:m36'));
+  assert.equal((await app.review.dismiss(projectId, 'claude:m36'))?.kind, 'agent');
+  assert.equal(app.review.question(projectId, 'claude:m36'), null);
 });

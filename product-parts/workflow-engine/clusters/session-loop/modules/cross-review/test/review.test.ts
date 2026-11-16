@@ -324,7 +324,7 @@ test('an open plan question holds the Stop; a proposal without a decision asks i
   const questions = new Set<string>();
   const decided = new Set<string>();
   const t = await setup({
-    question: (_p, key) => questions.has(key),
+    question: (_p, key) => (questions.has(key) ? { kind: 'agent', askedAt: '2026-11-16T10:00:00.000Z', scopeId: null } : null),
     asking: () => questions.size > 0,
     decided: (_p, key) => decided.has(key),
     askProposal: async (_p, key) => void questions.add(key),

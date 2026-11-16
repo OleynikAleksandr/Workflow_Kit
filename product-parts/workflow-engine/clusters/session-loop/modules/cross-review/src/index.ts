@@ -1,5 +1,5 @@
 // Public interface of cross-review (spec M4).
-export type { CrossReview, CrossReviewDeps, ReviewSummary } from './review.ts';
+export type { CrossReview, CrossReviewDeps, OpenQuestion, ReviewSummary } from './review.ts';
 export { CHOICE_WAITS_QUESTION, CHOICE_WAITS_REVIEW, CHOICE_WAITS_TURN, NO_REVIEWER, REVIEW_STALL_MS, createCrossReview } from './review.ts';
 export type { Review, ReviewEntry, ReviewStatus } from './store.ts';
 export { FINISHED, REVIEWS_DIR, readReviews, reviewFile } from './store.ts';

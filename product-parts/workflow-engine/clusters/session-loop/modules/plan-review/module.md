@@ -15,7 +15,7 @@
 
 ## Публичный интерфейс (`src/index.ts`)
 
-- `createReviewToggles({ listProjects, pathChosen, locked?, onChange? }) →
+- `createReviewToggles({ listProjects, pathChosen, locked?, onChange?, scopeOf? }) →
   ReviewToggles` (`locked(projectId, key)` — причина, по которой значение
   больше не меняется: ревью идёт или этот план уже прошёл ревью;
   `onChange` — после записи, служба запускает или отменяет ревью):
@@ -30,8 +30,14 @@
     `bad-session` (400); нет проекта — `project-not-found` (404);
   - `decided(projectId, key)` — у сессии есть решение (значение записано);
   - `ask(projectId, key, kind, summary)` — открывает (или заменяет) вопрос
-    `{ kind: 'agent' | 'proposal', summary (до 500 знаков), askedAt }` в поле
-    `question` файла сессии; `question(projectId, key)`, `asking(projectId)`;
+    `{ kind: 'agent' | 'proposal', summary (до 500 знаков), askedAt, scopeId }` в поле
+    `question` файла сессии; `scopeId` — активный scope проекта из необязательного
+    `scopeOf(projectId)` или `null` (M36; вопрос старого файла без поля читается с `null`);
+    `question(projectId, key)`, `asking(projectId)`, `questions(projectId)` — открытые
+    вопросы проекта `[{ key, question }]` (M36);
+  - `dismiss(projectId, key)` — закрывает устаревший вопрос (M36): убирает `question` из файла
+    и памяти, решение о ревью не меняет, слушателей `onAnswer` не зовёт; возвращает закрытый
+    вопрос или `null`;
   - `answer(projectId, key, choice)` — `review | plan | talk`: закрывает
     вопрос; `review`/`plan` пишут `review: true|false` (если путь ещё не
     выбран), `talk` — ничего; `talk` на вопрос `proposal` и неизвестный

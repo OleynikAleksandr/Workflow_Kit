@@ -209,6 +209,7 @@ export function wireSessions(options: SessionWiringOptions): SessionWiring {
     pathChosen: (id) => Boolean(workflow.get(id)?.execution),
     locked: (id, key) => toggleLock(crossReview, workflow, id, key),
     onChange: (id, key, on) => crossReview.toggled(id, key, on),
+    scopeOf: (id) => workflow.get(id)?.scope?.id ?? null,
   });
   registerReviewRoutes({ router, state, toggles: review });
 

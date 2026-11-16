@@ -4,7 +4,7 @@
 import type { AgentChannel } from '#agent-channel';
 import type { ReviewDecider } from '#autopilot';
 import { FINISHED, createCrossReview, registerCrossReviewRoutes } from '#cross-review';
-import type { CrossReview } from '#cross-review';
+import type { CrossReview, CrossReviewDeps } from '#cross-review';
 import type { WorkflowState } from '#kit-runner';
 import { HttpError } from '#http-server';
 import type { Router, StateRegistry } from '#http-server';
@@ -38,6 +38,20 @@ export function toggleLock(review: CrossReview, workflow: WorkflowState, project
   if (!FINISHED.has(found.status)) return 'Ревью плана этой сессии идёт: его можно прервать на карточке ревью';
   const open = workflow.get(projectId)?.proposal?.scopeId ?? null;
   return open !== null && found.scopeId === open ? 'Этот план уже прошёл ревью' : null;
+}
+
+/**
+ * The plan questions for the cross review (spec M4 12): the open question of a session, and since
+ * M36 the questions of a project, their dismissal and the active scope that makes one stale.
+ */
+export function questionDeps(toggles: Pick<ReviewToggles, 'question' | 'asking' | 'questions' | 'dismiss'>, workflow: Pick<WorkflowState, 'get'>): Pick<CrossReviewDeps, 'question' | 'asking' | 'questions' | 'dismissQuestion' | 'scope'> {
+  return {
+    question: (projectId, key) => toggles.question(projectId, key),
+    asking: (projectId) => toggles.asking(projectId),
+    questions: (projectId) => toggles.questions(projectId),
+    dismissQuestion: async (projectId, key) => void (await toggles.dismiss(projectId, key)),
+    scope: (projectId) => workflow.get(projectId)?.scope?.id ?? null,
+  };
 }
 
 /**
@@ -133,8 +147,7 @@ export function wireCrossReview(options: {
     },
     turnStartedAt: (key) => options.channel.get(key)?.turnStartedAt ?? null,
     sessionTitle: (projectId, key) => options.titles.name(projectId, key).name || null,
-    question: (projectId, key) => options.toggles.question(projectId, key) !== null,
-    asking: (projectId) => options.toggles.asking(projectId),
+    ...questionDeps(options.toggles, options.workflow),
     decided: (projectId, key) => options.toggles.decided(projectId, key),
     askProposal: async (projectId, key) => void (await options.toggles.ask(projectId, key, 'proposal', '')),
     providerTitle: (id) => {

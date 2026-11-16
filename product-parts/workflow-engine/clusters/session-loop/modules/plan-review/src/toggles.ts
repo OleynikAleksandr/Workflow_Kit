@@ -28,6 +28,8 @@ export interface PlanQuestion {
   kind: QuestionKind;
   summary: string;
   askedAt: string;
+  /** The project's active Kit scope when the question was asked (M36); null without one or in older files. */
+  scopeId: string | null;
 }
 
 export const SUMMARY_MAX_CHARS = 500;
@@ -58,6 +60,8 @@ export interface ReviewTogglesOptions {
   locked?: (projectId: string, key: string) => string | null;
   /** After a stored change: the cross review starts or stops (M4 section 10). */
   onChange?: (projectId: string, key: string, on: boolean) => Promise<void>;
+  /** Id of the project's active Kit scope, stored with a new question (M36). */
+  scopeOf?: (projectId: string) => string | null;
   now?: () => Date;
 }
 
@@ -73,6 +77,10 @@ export interface ReviewToggles {
   question(projectId: string, key: string): PlanQuestion | null;
   /** Any open question in the project. */
   asking(projectId: string): boolean;
+  /** The open questions of the project (M36). */
+  questions(projectId: string): Array<{ key: string; question: PlanQuestion }>;
+  /** Closes a stale question without a decision and without the answer listeners (M36). */
+  dismiss(projectId: string, key: string): Promise<PlanQuestion | null>;
   /** Closes the question with the user's choice; review/plan store the decision. */
   answer(projectId: string, key: string, choice: PlanChoice): Promise<ProjectReview>;
   /** Listener of answers: the agent gets its message and is woken (spec M4 12.1). */
@@ -98,7 +106,7 @@ function parseQuestion(value: unknown): PlanQuestion | null {
   if (typeof value !== 'object' || value === null) return null;
   const q = value as Record<string, unknown>;
   if ((q['kind'] !== 'agent' && q['kind'] !== 'proposal') || typeof q['summary'] !== 'string' || typeof q['askedAt'] !== 'string') return null;
-  return { kind: q['kind'], summary: q['summary'], askedAt: q['askedAt'] };
+  return { kind: q['kind'], summary: q['summary'], askedAt: q['askedAt'], scopeId: typeof q['scopeId'] === 'string' ? q['scopeId'] : null };
 }
 
 export function createReviewToggles(options: ReviewTogglesOptions): ReviewToggles {
@@ -168,9 +176,23 @@ export function createReviewToggles(options: ReviewTogglesOptions): ReviewToggle
     decided: (projectId, key) => values.get(projectId)?.has(key) ?? false,
     question: (projectId, key) => questions.get(projectId)?.get(key) ?? null,
     asking: (projectId) => (questions.get(projectId)?.size ?? 0) > 0,
+    questions: (projectId) => [...(questions.get(projectId) ?? [])].map(([key, question]) => ({ key, question })),
+    async dismiss(projectId, key) {
+      const question = questions.get(projectId)?.get(key) ?? null;
+      if (!question) return null;
+      await write(await target(projectId, key), (current) => {
+        const rest = { ...current };
+        delete rest['question'];
+        return rest;
+      });
+      questions.get(projectId)?.delete(key);
+      return question;
+    },
     async ask(projectId, key, kind, summary) {
       const file = await target(projectId, key);
-      const question: PlanQuestion = { kind, summary: summary.trim().slice(0, SUMMARY_MAX_CHARS), askedAt: now().toISOString() };
+      const question: PlanQuestion = {
+        kind, summary: summary.trim().slice(0, SUMMARY_MAX_CHARS), askedAt: now().toISOString(), scopeId: options.scopeOf?.(projectId) ?? null,
+      };
       await write(file, (current) => ({ ...current, question }));
       const map = questions.get(projectId) ?? new Map<string, PlanQuestion>();
       map.set(key, question);

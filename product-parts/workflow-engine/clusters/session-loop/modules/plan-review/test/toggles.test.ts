@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdir, mkdtemp, readFile, rm } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { after, before, test } from 'node:test';
@@ -112,4 +112,40 @@ test('talk records no decision; a proposal question refuses talk', async () => {
   await toggles.answer('p', 'codex:q2', 'plan');
   assert.equal(toggles.decided('p', 'codex:q2'), true);
   assert.equal(toggles.get('p', 'codex:q2'), false);
+});
+
+test('M36: a question remembers the active scope; dismiss closes it without a decision or a callback', async () => {
+  let scope: string | null = 'S1';
+  const answers: string[] = [];
+  const toggles = createReviewToggles({ ...options(), scopeOf: () => scope });
+  toggles.onAnswer((_p, key) => void answers.push(key));
+  await toggles.load();
+  await toggles.set('p', 'claude:d1', true);
+  await toggles.ask('p', 'claude:d1', 'agent', 'task');
+  assert.equal(toggles.question('p', 'claude:d1')!.scopeId, 'S1');
+  scope = null;
+  await toggles.ask('p', 'claude:d2', 'proposal', '');
+  assert.equal(toggles.question('p', 'claude:d2')!.scopeId, null);
+  assert.deepEqual(toggles.questions('p').map((q) => q.key).sort(), ['claude:d1', 'claude:d2']);
+
+  const closed = await toggles.dismiss('p', 'claude:d1');
+  assert.equal(closed!.kind, 'agent');
+  assert.equal(toggles.question('p', 'claude:d1'), null);
+  assert.equal(await toggles.dismiss('p', 'claude:d1'), null, 'nothing to close twice');
+  assert.deepEqual(answers, [], 'the answer listeners are not called');
+  assert.equal(toggles.get('p', 'claude:d1'), true, 'the decision stays as it was');
+  assert.deepEqual(JSON.parse(await readFile(path.join(folder, SESSIONS_DIR, 'claude.d1.json'), 'utf8')), { review: true });
+
+  const restarted = createReviewToggles(options());
+  await restarted.load();
+  assert.equal(restarted.question('p', 'claude:d1'), null);
+  assert.equal(restarted.question('p', 'claude:d2')!.kind, 'proposal');
+});
+
+test('M36: a question of an older file without scopeId reads as asked without a scope', async () => {
+  await mkdir(path.join(folder, SESSIONS_DIR), { recursive: true });
+  await writeFile(path.join(folder, SESSIONS_DIR, 'codex.old1.json'), JSON.stringify({ question: { kind: 'agent', summary: 'old', askedAt: '2026-11-08T12:00:00.000Z' } }));
+  const toggles = createReviewToggles(options());
+  await toggles.load();
+  assert.deepEqual(toggles.question('p', 'codex:old1'), { kind: 'agent', summary: 'old', askedAt: '2026-11-08T12:00:00.000Z', scopeId: null });
 });

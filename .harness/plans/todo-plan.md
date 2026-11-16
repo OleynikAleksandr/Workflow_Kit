@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1105,
+  "revision": 1107,
   "rounds": [
     {
       "digest": null,
@@ -128,7 +128,7 @@
       "kind": "work",
       "parallelSafe": true,
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Устаревший вопрос о плане закрывается сам",
       "why": "Вопрос, на который ответили в чате, висит до конца scope и блокирует выбор пути"
     },
@@ -287,8 +287,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 0/5
-- Revision: 1105
+- Progress: 1/5
+- Revision: 1107
 
 ## Objective
 
@@ -306,7 +306,7 @@
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T001 — Устаревший вопрос о плане закрывается сам (work, parallel-safe)
+- [DONE] T001 — Устаревший вопрос о плане закрывается сам (work, parallel-safe)
   - Commit: fix(review): close a plan question the plan has already answered
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/plan-review/src/toggles.ts, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/module.md, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/test/toggles.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/question-stale.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/review.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/contract.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test/question-stale.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test/review.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/review-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/test/review.test.ts
 - [TODO] T002 — Одно напоминание удержания подряд для сессий, которые служба может разбудить (work, parallel-safe)

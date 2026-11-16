@@ -64,7 +64,9 @@ stripping).
   различия — из реестра: `hookDialect`, `wakeSession`, `sendDirect`, `promptTitle`, возможности
   `orchestration` и `reviewer` (`providerCapability`). Перекрёстное ревью (`src/review-wiring.ts`)
   получает `createdAt` открытого предложения и `turnStartedAt(key)` из канала (автор
-  предложения, M31). Путь без удержания `Stop` (`detached`)
+  предложения, M31), а вопросы о плане — через `questionDeps(toggles, workflow)`: вопрос
+  сессии, вопросы проекта, `dismissQuestion` и id активного scope (M36). Переключатели ревью
+  получают `scopeOf` — id активного scope из состояния Kit — для `scopeId` нового вопроса. Путь без удержания `Stop` (`detached`)
   и прямой путь сообщения панели (`createDirectMessage`, `src/direct-message.ts`, опция
   `direct` маршрутов канала; `sendDirect` только для `waiting` и неизвестной каналу сессии,
   не `ledOutside`) и сессии вне процесса Kit — в [session-chat.md](session-chat.md).

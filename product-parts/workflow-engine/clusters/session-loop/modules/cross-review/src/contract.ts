@@ -3,6 +3,13 @@ import type { StopContext, StopDecision, StopEvent } from '#agent-channel';
 import type { Review } from './store.ts';
 import type { ReviewProvider } from './texts.ts';
 
+/** An open plan question (spec M4 12): who asked it, when, and the active scope at that time (M36). */
+export interface OpenQuestion {
+  kind: 'agent' | 'proposal';
+  askedAt: string;
+  scopeId?: string | null;
+}
+
 export interface CrossReviewDeps {
   listProjects(): Promise<Array<{ id: string; name: string; path: string }>>;
   /** Title of a provider for the texts (default: its id). */
@@ -42,10 +49,16 @@ export interface CrossReviewDeps {
   /** Start of the current turn of a working session, or null (M31: the proposal author). */
   turnStartedAt?(key: string): string | null;
   sessionTitle(projectId: string, key: string): string | null;
-  /** The session has an open plan question (spec M4 12): its Stop waits for the answer. */
-  question?(projectId: string, key: string): boolean;
+  /** The open plan question of the session (spec M4 12), or null: its Stop waits for the answer. */
+  question?(projectId: string, key: string): OpenQuestion | null;
   /** Any open plan question in the project. */
   asking?(projectId: string): boolean;
+  /** The open plan questions of the project (M36: stale ones are closed before a choice). */
+  questions?(projectId: string): Array<{ key: string; question: OpenQuestion }>;
+  /** Closes a stale question without a decision and without a message to the agent (M36). */
+  dismissQuestion?(projectId: string, key: string): Promise<void>;
+  /** Id of the project's active Kit scope, or null (M36). */
+  scope?(projectId: string): string | null;
   /** The session has a review decision (an answer to the question). */
   decided?(projectId: string, key: string): boolean;
   /** Asks the proposal question of a session without a decision (spec M4 12.2). */

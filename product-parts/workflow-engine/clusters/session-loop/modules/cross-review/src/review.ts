@@ -26,8 +26,9 @@ import {
 } from './texts.ts';
 import type { CrossReview, CrossReviewDeps, ReviewSummary } from './contract.ts';
 import { FIND_REVIEWER, findReviewer } from './find-reviewer.ts';
+import { createQuestionGate } from './question-stale.ts';
 
-export type { CrossReview, CrossReviewDeps, ReviewSummary } from './contract.ts';
+export type { CrossReview, CrossReviewDeps, OpenQuestion, ReviewSummary } from './contract.ts';
 
 export const CHOICE_WAITS_REVIEW = 'Идёт ревью плана: путь выбирается после согласия ревьюера и агента';
 export const CHOICE_WAITS_TURN = 'Сначала ревью плана: оно (или вопрос о нём) появится, когда агент закончит ход';
@@ -44,6 +45,7 @@ export function createCrossReview(deps: CrossReviewDeps): CrossReview {
   const log = deps.log ?? (() => undefined);
   const iso = (): string => now().toISOString();
   const titleOf = (provider: string): string => deps.providerTitle?.(provider) ?? provider;
+  const questions = createQuestionGate(deps, log);
   /** mainKey → review (the latest of the session). */
   const reviews = new Map<string, Review>();
   /** reviewerKey → mainKey. */
@@ -282,7 +284,7 @@ export function createCrossReview(deps: CrossReviewDeps): CrossReview {
         await work.get(mainKey);
         return active(reviews.get(mainKey)) ? hold('waiting-for-main') : { kind: 'release' };
       }
-      if (deps.question?.(context.projectId, context.key)) return { kind: 'hold', reason: 'waiting-for-plan-decision', timeoutAnswer: QUESTION_REMINDER };
+      if (await questions.open(context.projectId, context.key)) return { kind: 'hold', reason: 'waiting-for-plan-decision', timeoutAnswer: QUESTION_REMINDER };
       const own = reviews.get(context.key);
       if (own) await work.get(context.key);
       if (own && active(own)) {
@@ -322,7 +324,7 @@ export function createCrossReview(deps: CrossReviewDeps): CrossReview {
       return (await start(context.projectId, context.key, proposal)) ? { kind: 'continue', text: PLAN_REQUEST } : null;
     },
     async choiceBlocked(projectId, working) {
-      if (deps.asking?.(projectId)) return CHOICE_WAITS_QUESTION;
+      if (await questions.asking(projectId)) return CHOICE_WAITS_QUESTION;
       if ([...reviews.values()].some((r) => r.projectId === projectId && active(r))) return CHOICE_WAITS_REVIEW;
       const undecided = (key: string): boolean => (deps.decided ? !deps.decided(projectId, key) : false);
       const candidates = working.filter((key) => !reviewers.has(key) && (deps.toggle(projectId, key) || undecided(key)));

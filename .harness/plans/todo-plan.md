@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1111,
+  "revision": 1113,
   "rounds": [
     {
       "digest": {
@@ -236,7 +236,7 @@
         "installed-service"
       ],
       "commitMessage": "chore: deliver the stale plan question fix",
-      "confirmation": null,
+      "confirmation": "Я подтверждаю заранее все следующие шаги включая T004",
       "context": [
         {
           "path": "docs/planning/M36-plan-question-stale.md",
@@ -261,7 +261,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Поставка 0.14.3, установка и живая проверка установленной версии",
       "why": "Исправление проверяется на настоящей панели и сессии Claude"
     },
@@ -308,8 +308,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 3/5
-- Revision: 1111
+- Progress: 4/5
+- Revision: 1113
 
 ## Objective
 
@@ -337,7 +337,7 @@
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M36-plan-question-stale.md, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/module.md, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md
   - Depends on: T001, T002
-- [TODO] T003 — Поставка 0.14.3, установка и живая проверка установленной версии (delivery)
+- [DONE] T003 — Поставка 0.14.3, установка и живая проверка установленной версии (delivery)
   - Commit: chore: deliver the stale plan question fix
   - Files: package.json, package-lock.json, CHANGELOG.md, docs/evidence/M36-acceptance.md
   - Depends on: T001, T002, DOCS-R1

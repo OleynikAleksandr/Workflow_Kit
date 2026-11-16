@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1145,
+  "revision": 1147,
   "rounds": [
     {
       "digest": null,
@@ -104,7 +104,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Коммит структуры Kit 4 этого репозитория",
       "why": "Обход 16.11: структура 4 записана маршрутом службы, а вне задачи её не закоммитить (docs:commit берёт только Markdown)"
     },
@@ -382,8 +382,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 0/7
-- Revision: 1145
+- Progress: 1/7
+- Revision: 1147
 
 ## Objective
 
@@ -402,7 +402,7 @@
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T001 — Коммит структуры Kit 4 этого репозитория (work)
+- [DONE] T001 — Коммит структуры Kit 4 этого репозитория (work)
   - Commit: chore: commit the Workflow Kit structure 4 of this repository
   - Files: .claude/settings.json, .workflow-kit/manifest.json, AGENTS.md
 - [TODO] T002 — Kit 2.2.7: install --update --with для файлов структуры (work)

@@ -56,8 +56,10 @@ Kit выведен из двух систем:
 | `WorkflowKitProcess.md` | алгоритм: scope, задачи, коммит, раунды, приёмка, закрытие, документация, выпуск |
 | `WorkflowKitRecovery.md` | ограниченный контекст восстановления, карта документов, схема следующего шага, сводки раундов, автопилот и пауза |
 | `WorkflowKitQuality.md` | профиль качества: определение стека, каталог, этапы проверок |
-| `WorkflowKitInstallation.md` | файлы в проекте, установщик, Доктор, интеграция с Harness, провайдеры, Windows/Linux, перевод репозитория Harness; миграция плана — `WorkflowKitPlanMigration.md` |
-| `WorkflowKitExecutionModes.md` | режимы `sequential`/`orchestrated`, метки `parallelSafe`, карточка выбора режима, Git-идентичность, роли агента, план в сайдбаре Harness |
+| `WorkflowKitInstallation.md` | файлы в проекте, установщик, Доктор, провайдеры, Windows/Linux; миграция плана — `WorkflowKitPlanMigration.md` |
+| `WorkflowKitHostInstallation.md` | интеграция с Harness (сборка и поставка, `workflow-host`, Core RPC, контекст восстановления, автопилот в Core, интерфейс), перевод репозитория Harness |
+| `WorkflowKitExecutionModes.md` | режимы `sequential`/`orchestrated`, метки `parallelSafe`, карточка выбора режима, Git-идентичность, роли агента |
+| `WorkflowKitHost.md` | режимы в Harness: статус, план в сайдбаре, автопилот, каталог субагента Claude; мелкие исправления того же релиза |
 | `WorkflowKitOrchestration.md` | назначения исполнителям в worktree, порядок работы оркестратора, интеграция результатов в main |
 | `WorkflowKitCommands.md` | справочник команд `scripts/workflow`: использование, поведение, текстовый вывод и отказы |
 | `WorkflowKitCoreRpc.md` | маршруты Core для проекта: подготовка, статус, автопилот, пауза, карточка режима, наблюдатель, модель плана |

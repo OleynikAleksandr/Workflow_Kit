@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1162,
+  "revision": 1163,
   "rounds": [
     {
       "digest": {
@@ -52,7 +52,10 @@
       "Контракты модулей, OS-MATRIX и документы Kit согласованы с кодом; typecheck, platform-guard и все тесты проходят.",
       "0.14.5 установлена на macOS, CI точного SHA поставки зелёная на macOS, Linux, Windows x64 и ARM64; живая проверка Windows записана за проверяющим на Windows (до проведения — «не проверено вживую на Windows»); пользовательская приёмка отдельно."
     ],
-    "acceptanceNote": null,
+    "acceptanceNote": {
+      "at": "2026-11-16T17:16:41.564Z",
+      "text": "Пользователь принял план в панели Workflow Kit"
+    },
     "approval": {
       "at": "2026-11-16T16:20:34.435Z",
       "text": "Пользователь 16.11.2026: «Делай и 1 и 2.» — на предложение: 1) обход: структура 4 в Workflow_Kit; 2) «Обновить Kit» обновляет и структуру wfk одним коммитом, панель показывает устаревшую структуру, исправление docs/usage.md, коммит структуры 4 этого репозитория. В панели выбраны спецификация и план без ревью. | Execution mode chosen by the user: sequential: Выбор пользователя в панели Workflow Kit: выполнить самому, последовательно"
@@ -87,7 +90,7 @@
         "text": "Ревью плана не проводится (выбор пользователя в панели 16.11.2026)."
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "ACCEPTED",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "44f051db-d949-42ed-9d82-7c6737f9a848",
@@ -453,11 +456,11 @@
 ## State
 
 - Scope: M38-kit-structure-update (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: ACCEPTED
 - Execution: sequential
 - Current task: none
 - Progress: 8/8
-- Revision: 1162
+- Revision: 1163
 
 ## Objective
 

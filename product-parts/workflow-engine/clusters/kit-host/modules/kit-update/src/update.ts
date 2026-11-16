@@ -4,8 +4,9 @@
 // the project; this module only runs its commands and keeps their outcome.
 import type { KitInspect } from '#kit-runner';
 import type { Project, Provider } from '#provider-registry';
+import type { KitStructureLast, KitStructureState } from './structure.ts';
 
-/** What the panel offers: `update` when the project's Kit is older than the app's bundle. */
+/** What the panel offers: `update` when the project's Kit or its structure is older than the app's. */
 export type KitUpdateAction = 'update' | 'none';
 
 /** A Kit failure of the last update, shown on the card with Kit's next step. */
@@ -24,6 +25,10 @@ export interface KitUpdateLast {
   commit: string | null;
   /** What happened to the hooks of each provider that approves them (one line per provider). */
   hooks: string[];
+  /** The structure files committed with the Kit (spec M38), or null. */
+  structure: KitStructureLast | null;
+  /** Why the outdated structure was not updated, or null. */
+  structureNote: string | null;
   at: string;
 }
 
@@ -36,6 +41,10 @@ export interface KitUpdateState {
   /** Folder state from `inspect` (KIT_OK, KIT_OUTDATED, GIT_NO_KIT…), or null when inspect failed. */
   state: string | null;
   action: KitUpdateAction;
+  /** The Kit structure (wfk) of a project with an installed Kit, or null (spec M38). */
+  structure: KitStructureState | null;
+  /** Why the structure could not be checked, or absent. */
+  structureNote?: string;
   running: boolean;
   error?: KitUpdateError;
   last?: KitUpdateLast;

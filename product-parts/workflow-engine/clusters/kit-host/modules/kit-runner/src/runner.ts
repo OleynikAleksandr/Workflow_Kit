@@ -43,6 +43,8 @@ export interface KitInstall {
   version: string;
   previousState: string;
   written: string[];
+  /** The `with` paths that went into the commit (Kit 2.2.7, spec M38); absent in an older Kit. */
+  with?: string[];
   commit: { sha: string; role: string } | null;
   migrationRequired: boolean;
 }
@@ -70,7 +72,8 @@ export interface KitRunner {
   /** Any command with the project's bundle. */
   run<T>(root: string, args: readonly string[], options?: RunKitOptions): Promise<KitOutcome<T>>;
   inspect(root: string): Promise<KitOutcome<KitInspect>>;
-  install(root: string, options?: { update?: boolean; name?: string }): Promise<KitOutcome<KitInstall>>;
+  /** `with`: files of the app's managed structure for the same commit (`--with`, spec M38). */
+  install(root: string, options?: { update?: boolean; name?: string; with?: readonly string[] }): Promise<KitOutcome<KitInstall>>;
   status(root: string): Promise<KitOutcome<KitStatus>>;
   proposal(root: string): Promise<KitOutcome<KitProposal | null>>;
 }
@@ -173,6 +176,7 @@ export function createKitRunner(options: KitRunnerOptions): KitRunner {
       const args = ['install', root, '--host', 'harness'];
       if (installOptions.update) args.push('--update');
       if (installOptions.name) args.push('--name', installOptions.name);
+      if (installOptions.with && installOptions.with.length > 0) args.push('--with', JSON.stringify(installOptions.with));
       return withAppBundle<KitInstall>(root, args, Math.max(defaultTimeout, KIT_INSTALL_TIMEOUT_MS));
     },
     status: (root) => inProject<KitStatus>(root, ['status'], defaultTimeout, true),

@@ -47,9 +47,14 @@ test('runner failures: spawn, timeout, missing bundles', async () => {
   assert.equal(((await runner.install('/p', { update: true, name: 'P' })) as { code: string }).code, 'KIT_TIMEOUT');
   assert.deepEqual(calls[0], ['/node', '/app/kit.mjs', 'inspect', '/p']);
   assert.deepEqual(calls[1], ['/node', '/app/kit.mjs', 'install', '/p', '--host', 'harness', '--update', '--name', 'P']);
+  // The files of the app's structure go to Kit as one JSON list (spec M38); an empty list adds nothing.
+  await runner.install('/p', { update: true, with: ['.claude/settings.json', '.workflow-kit/manifest.json'] });
+  assert.deepEqual(calls[2], ['/node', '/app/kit.mjs', 'install', '/p', '--host', 'harness', '--update', '--with', '[".claude/settings.json",".workflow-kit/manifest.json"]']);
+  await runner.install('/p', { update: true, with: [] });
+  assert.deepEqual(calls[3], ['/node', '/app/kit.mjs', 'install', '/p', '--host', 'harness', '--update']);
   const status = await runner.status('/definitely/not/a/project');
   assert.equal((status as { code: string }).code, 'KIT_NOT_INSTALLED');
-  assert.equal(calls.length, 2);
+  assert.equal(calls.length, 4);
 
   const noBundle = createKitRunner({
     appBundle: async () => {

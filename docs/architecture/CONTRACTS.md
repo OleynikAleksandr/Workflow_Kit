@@ -86,8 +86,9 @@ operation, existing }`, ход и итог — в разделе `operations`, �
 `checkStructure`/`installStructure` — управляемые фрагменты (раздел `AGENTS.md` между
 `<!-- wfk:begin -->` и `<!-- wfk:end -->`, хуки SessionStart Claude и Codex, блок `.gitignore`,
 шаблоны, `.workflow-kit/manifest.json`) со статусами `ok`, `missing`, `modified`, `outdated`,
-`newer`. `wfk hook session-start` (`recordSessionStart`) дописывает строку в журнал хука, код
-выхода всегда 0.
+`newer`. В проекте с Kit устаревшую структуру обновляет «Обновить Kit» (`kit-update`, M38):
+Kit коммитит её файлы опцией `install --update --with`. `wfk hook session-start`
+(`recordSessionStart`) дописывает строку в журнал хука, код выхода всегда 0.
 
 ## Процесс Kit в проекте (`workflow-engine`, веха 2)
 
@@ -116,9 +117,11 @@ Kit 2.2.6 ставится в проект бандлом (`install --host harne
 убрать пути вне коммитов; `workflow.projects[id].plan.dirty` — эти пути в фазах `acceptance` и
 `accepted`. Имена, архив и ревью сессий — в папке проекта (раздел «Данные на диске»).
 Версия Kit проекта — раздел `kitUpdate` (`kit-update`, M22: `inspect` при старте, после
-изменения плана и раз в 60 с); `POST /api/projects/:id/kit/update` (202, 409 `busy`) —
-`install --update`, затем одобрение хуков Kit Codex в доверенной папке; новый Kit старым не
-заменяется. Архивные и убранные сессии в процессе Kit не участвуют (M22 2.8).
+изменения плана и раз в 60 с; с M38 и поле `structure` — структура Kit проекта с Kit);
+`POST /api/projects/:id/kit/update` (202, 409 `busy`) — устаревшая структура записывается и
+`install --update --with <её файлы>` коммитит её вместе с Kit одной транзакцией `kit-update`
+(файлы с изменениями вне коммитов не трогаются, отказ Kit возвращает их), затем одобрение
+хуков Kit Codex в доверенной папке; новый Kit старым не заменяется. Архивные и убранные сессии в процессе Kit не участвуют (M22 2.8).
 Контракты — `module.md` модулей части
 [workflow-engine](../../product-parts/workflow-engine/product-part.md).
 

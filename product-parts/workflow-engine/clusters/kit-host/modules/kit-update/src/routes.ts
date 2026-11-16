@@ -1,20 +1,27 @@
 // The "kitUpdate" section of /api/state and POST /api/projects/:id/kit/update (spec M22 section
-// 2.6). The section only reads a cache (D11): inspect runs in refresh(), on start, every interval,
-// after a plan change and after an update. The update runs in the background (202).
+// 2.6, the structure: M38 section 2.2). The section only reads a cache (D11): inspect and the
+// structure check run in refresh(), on start, every interval, after a plan change and after an
+// update. The update runs in the background (202): the outdated structure is written first and
+// Kit commits it together with its own files (`install --update --with`).
 import { HttpError, jsonResult } from '#http-server';
 import type { Router, StateRegistry } from '#http-server';
 import { KIT_VERSION } from '#kit-bundle';
 import type { KitRunner } from '#kit-runner';
 import type { Project, ProviderRegistry } from '#provider-registry';
-import { approveKitHooks, kitAction } from './update.ts';
+import { STRUCTURE_NO_CHANGES, dirtyNote, pendingPaths, restore, snapshot, structureState, writtenPaths } from './structure.ts';
+import type { KitStructureLast, StructureAccess, StructureSnapshot } from './structure.ts';
+import { KIT_INSTALLED_STATES, approveKitHooks, kitAction } from './update.ts';
 import type { HookApprovalOptions, KitUpdateState } from './update.ts';
 
 export interface KitUpdateOptions {
   router: Router;
   state: StateRegistry;
   projects: { get(id: string): Promise<Project | undefined>; list(): Promise<Project[]> };
-  kit: Pick<KitRunner, 'inspect' | 'install'>;
+  /** `status` lists the files outside commits before the structure is written (spec M38). */
+  kit: Pick<KitRunner, 'inspect' | 'install'> & Partial<Pick<KitRunner, 'status'>>;
   providers: Pick<ProviderRegistry, 'list'>;
+  /** kit-structure's check and install; without it the structure is not looked at. */
+  structure?: StructureAccess;
   /** Kit version of the app's bundle (default KIT_VERSION of kit-bundle). */
   bundled?: string;
   /** Background refresh period; 0 turns it off (tests). Default 60 s. */
@@ -39,6 +46,17 @@ export interface KitUpdate {
   stop(): void;
 }
 
+/** The structure written for the update, or why it was not. */
+interface PreparedStructure {
+  with: string[];
+  saved: StructureSnapshot | null;
+  last: KitStructureLast | null;
+  note: string | null;
+}
+
+const NO_STRUCTURE: PreparedStructure = { with: [], saved: null, last: null, note: null };
+const message = (error: unknown): string => (error instanceof Error ? error.message : String(error));
+
 export function registerKitUpdateRoutes(options: KitUpdateOptions): KitUpdate {
   const bundled = options.bundled ?? KIT_VERSION;
   const now = options.now ?? (() => new Date());
@@ -48,7 +66,7 @@ export function registerKitUpdateRoutes(options: KitUpdateOptions): KitUpdate {
   function entry(id: string): KitUpdateState {
     let found = cache.get(id);
     if (!found) {
-      found = { installed: null, bundled, state: null, action: 'none', running: false, checkedAt: null };
+      found = { installed: null, bundled, state: null, action: 'none', structure: null, running: false, checkedAt: null };
       cache.set(id, found);
     }
     return found;
@@ -58,6 +76,8 @@ export function registerKitUpdateRoutes(options: KitUpdateOptions): KitUpdate {
     const outcome = await options.kit.inspect(project.path);
     const current = entry(project.id);
     current.checkedAt = now().toISOString();
+    delete current.structureNote;
+    current.structure = null;
     if (!outcome.ok) {
       Object.assign(current, { installed: null, state: null, action: 'none', note: `Kit: ${outcome.message}` });
       return;
@@ -65,7 +85,15 @@ export function registerKitUpdateRoutes(options: KitUpdateOptions): KitUpdate {
     delete current.note;
     current.state = outcome.result.state;
     current.installed = outcome.result.version;
-    current.action = kitAction(outcome.result, bundled);
+    const installed = KIT_INSTALLED_STATES.has(outcome.result.state);
+    if (installed && options.structure) {
+      try {
+        current.structure = structureState(await options.structure.check(project.path));
+      } catch (error) {
+        current.structureNote = `Структура Kit: ${message(error)}`;
+      }
+    }
+    current.action = kitAction(outcome.result, bundled) === 'update' || (installed && current.structure?.installable) ? 'update' : 'none';
   }
 
   async function refresh(projectId?: string): Promise<void> {
@@ -82,27 +110,65 @@ export function registerKitUpdateRoutes(options: KitUpdateOptions): KitUpdate {
     }
   }
 
+  /**
+   * Writes the missing and outdated structure fragments unless one of their files has changes
+   * outside commits; the old texts are kept so that a Kit failure can put them back.
+   */
+  async function prepareStructure(project: Project): Promise<PreparedStructure> {
+    const access = options.structure;
+    if (!access) return NO_STRUCTURE;
+    const skipped = (note: string): PreparedStructure => ({ ...NO_STRUCTURE, note });
+    try {
+      const report = await access.check(project.path);
+      if (!report.installable) return NO_STRUCTURE;
+      const status = options.kit.status ? await options.kit.status(project.path) : null;
+      const changes = status?.ok ? status.result.changes : undefined;
+      if (!Array.isArray(changes)) return skipped(STRUCTURE_NO_CHANGES);
+      const paths = pendingPaths(report);
+      const dirty = paths.filter((p) => changes.includes(p));
+      if (dirty.length > 0) return skipped(dirtyNote(dirty));
+      const saved = await snapshot(project.path, paths);
+      const result = await access.install(project.path);
+      const files = writtenPaths(report, result.written);
+      return { with: files, saved, last: { from: report.installedVersion, to: report.version, files }, note: null };
+    } catch (error) {
+      // kit-structure refuses before it writes anything (invalid JSON, broken markers).
+      return skipped(message(error));
+    }
+  }
+
   async function update(project: Project): Promise<void> {
     const current = entry(project.id);
     const from = current.installed;
+    let prepared = NO_STRUCTURE;
+    const putBack = async (): Promise<void> => {
+      if (prepared.saved) await restore(project.path, prepared.saved).catch(() => undefined);
+    };
     try {
-      const outcome = await options.kit.install(project.path, { update: true });
+      prepared = await prepareStructure(project);
+      const outcome = await options.kit.install(project.path, { update: true, ...(prepared.with.length > 0 ? { with: prepared.with } : {}) });
       if (!outcome.ok) {
+        await putBack();
         current.error = { code: outcome.code, message: outcome.message, nextAction: outcome.nextAction, at: now().toISOString() };
         options.log?.(`kit: update failed ${project.name}: ${outcome.code}`);
         return;
       }
+      // Kit committed the structure: it is never put back after this point.
+      prepared = { ...prepared, saved: null };
       const hooks: string[] = [];
       for (const provider of options.providers.list()) {
         const line = await approveKitHooks(provider, project, options.hooks);
         if (line) hooks.push(line);
       }
       const to = outcome.result.version;
-      current.last = { from, to, commit: outcome.result.commit?.sha ?? null, hooks, at: now().toISOString() };
+      const structureNote = prepared.note ? `Структура Kit не обновлена: ${prepared.note}` : null;
+      current.last = { from, to, commit: outcome.result.commit?.sha ?? null, hooks, structure: prepared.last, structureNote, at: now().toISOString() };
       options.log?.(`kit: updated ${project.name} ${from ?? '—'} → ${to}`);
+      if (prepared.last) options.log?.(`kit: structure ${project.name} ${prepared.last.from ?? '—'} → ${prepared.last.to}`);
+      if (prepared.note) options.log?.(`kit: structure skipped ${project.name}: ${prepared.note}`);
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      current.error = { code: 'KIT_UPDATE_FAILED', message, nextAction: null, at: now().toISOString() };
+      await putBack();
+      current.error = { code: 'KIT_UPDATE_FAILED', message: message(error), nextAction: null, at: now().toISOString() };
     } finally {
       await refreshOne(project).catch(() => undefined);
       current.running = false;

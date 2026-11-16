@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1152,
+  "revision": 1154,
   "rounds": [
     {
       "digest": null,
@@ -240,14 +240,23 @@
         "product-parts/backend-core/clusters/projects/modules/kit-structure/src/index.ts",
         "product-parts/backend-core/clusters/projects/modules/kit-structure/module.md",
         "docs/architecture/CONTRACTS.md",
-        "docs/architecture/OS-MATRIX.md"
+        "docs/architecture/OS-MATRIX.md",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/src/runner.ts",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/test/runner.test.ts",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-update/src/index.ts",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-update/src/routes.ts",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-update/src/structure.ts",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-update/src/update.ts",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-update/test/kit-update-real.test.ts",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-update/test/kit-update-structure.test.ts",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-update/test/kit-update.test.ts"
       ],
       "fixes": null,
       "id": "T003",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Служба: структура Kit в kitUpdate и обновление одним коммитом",
       "why": "Кнопка «Обновить Kit» должна обновлять и структуру wfk, а служба — видеть её устаревание"
     },
@@ -425,8 +434,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 3/8
-- Revision: 1152
+- Progress: 4/8
+- Revision: 1154
 
 ## Objective
 
@@ -456,9 +465,9 @@
   - Commit: feat(kit): commit the app's managed structure files with the Kit update
   - Files: product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/test, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/tests.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/src/bundle-meta.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/test, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/test/kit-update.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/kit-card.test.ts, product-parts/backend-core/clusters/projects/cluster.md, product-parts/backend-core/clusters/projects/modules/project-setup/module.md, product-parts/backend-core/clusters/runtime/modules/cli/connected-modules.md, docs/architecture/workflow-kit/WorkflowKitInstallation.md, docs/architecture/workflow-kit/WorkflowKitCommands.md, docs/architecture/workflow-kit/WorkflowKitRecovery.md, docs/architecture/OS-MATRIX.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-install.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-payload.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-with.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/test/workflow-installer-payload.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/test/workflow-installer-with.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/workflow-kit-cli.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-cli.test.mjs, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/PROVENANCE, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/workflow-kit-2.2.6.mjs.gz, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/workflow-kit-2.2.7.mjs.gz
   - Depends on: T001, F001
-- [TODO] T003 — Служба: структура Kit в kitUpdate и обновление одним коммитом (work)
+- [DONE] T003 — Служба: структура Kit в kitUpdate и обновление одним коммитом (work)
   - Commit: feat(kit-update): update the Kit structure together with the Kit
-  - Files: product-parts/workflow-engine/clusters/kit-host/modules/kit-update/src, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/test, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/src, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/test, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/module.md, product-parts/workflow-engine/clusters/kit-host/cluster.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/connected-modules.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/test, product-parts/backend-core/clusters/projects/modules/kit-structure/src/index.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/module.md, docs/architecture/CONTRACTS.md, docs/architecture/OS-MATRIX.md
+  - Files: product-parts/workflow-engine/clusters/kit-host/modules/kit-update/src, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/test, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/src, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/test, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/module.md, product-parts/workflow-engine/clusters/kit-host/cluster.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/connected-modules.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/test, product-parts/backend-core/clusters/projects/modules/kit-structure/src/index.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/module.md, docs/architecture/CONTRACTS.md, docs/architecture/OS-MATRIX.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/src/runner.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/test/runner.test.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/src/index.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/src/routes.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/src/structure.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/src/update.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/test/kit-update-real.test.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/test/kit-update-structure.test.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/test/kit-update.test.ts
   - Depends on: T002
 - [TODO] T004 — Панель: карточка Kit со структурой, docs/usage.md (work)
   - Commit: feat(panel): show the Kit structure on the Kit card

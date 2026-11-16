@@ -103,7 +103,7 @@ test('the section reads inspect, the route updates in the background and approve
   await kitUpdate.refresh();
   const before = kitUpdate.section().projects;
   assert.deepEqual(Object.keys(before), ['p1'], 'an archived project has no entry');
-  assert.deepEqual(before['p1'], { installed: '2.2.3', bundled: '2.2.4', state: 'KIT_OUTDATED', action: 'update', running: false, checkedAt: '2026-11-12T12:00:00.000Z' });
+  assert.deepEqual(before['p1'], { installed: '2.2.3', bundled: '2.2.4', state: 'KIT_OUTDATED', action: 'update', structure: null, running: false, checkedAt: '2026-11-12T12:00:00.000Z' });
   assert.deepEqual((await state.collect())['kitUpdate'], { projects: before });
 
   const route = router.match('POST', '/api/projects/p1/kit/update');
@@ -123,7 +123,7 @@ test('the section reads inspect, the route updates in the background and approve
   assert.equal(after.installed, '2.2.4');
   assert.equal(after.action, 'none');
   assert.equal(after.error, undefined);
-  assert.deepEqual(after.last, { from: '2.2.3', to: '2.2.4', commit: 'c0ffee', hooks: ['ChatGPT: хуки Kit одобрены'], at: '2026-11-12T12:00:00.000Z' });
+  assert.deepEqual(after.last, { from: '2.2.3', to: '2.2.4', commit: 'c0ffee', hooks: ['ChatGPT: хуки Kit одобрены'], structure: null, structureNote: null, at: '2026-11-12T12:00:00.000Z' });
   assert.deepEqual(lines, ['kit: updated Demo 2.2.3 → 2.2.4']);
   assert.deepEqual(updated, ['p1']);
   kitUpdate.stop();

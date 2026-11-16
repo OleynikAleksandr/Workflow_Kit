@@ -131,7 +131,9 @@
   `projects.list()` и раздел `workflow` (`workflow.section()`; опрос панели
   команд Kit не запускает).
 - `kit-update` (M22, T003): `registerKitUpdateRoutes` (те же `kit`, `providers` и `projects`;
-  журнал — `log`) — `POST /api/projects/:id/kit/update` и раздел `kitUpdate` (версия Kit
-  проекта, `action: update` для устаревшего); `onChange` состояния `workflow` обновляет и его
+  журнал — `log`; `structure` — `checkStructure` и `installStructure` из `kit-structure`, M38)
+  — `POST /api/projects/:id/kit/update` и раздел `kitUpdate` (версия Kit проекта и его
+  структура, `action: update` для устаревшего Kit или структуры; структура коммитится вместе с
+  Kit); `onChange` состояния `workflow` обновляет и его
   кэш, а после обновления Kit (`onUpdated`) служба перечитывает `workflow.refresh(id)`
   проекта; `app.stop()` снимает его интервал.

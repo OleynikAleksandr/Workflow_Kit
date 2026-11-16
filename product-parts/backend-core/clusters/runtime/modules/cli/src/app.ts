@@ -17,7 +17,7 @@ import { nativeStatuslineCommand } from './native-statusline.ts';
 import { resolveAutoCompactWindow } from './auto-compact-window.ts';
 import { createKitRunner, createWorkflowState } from '#kit-runner';
 import type { KitRunner, WorkflowState } from '#kit-runner';
-import { registerStructureRoutes } from '#kit-structure';
+import { checkStructure, installStructure, registerStructureRoutes } from '#kit-structure';
 import { registerPublicationRoutes } from '#git-publish';
 import { registerKitUpdateRoutes } from '#kit-update';
 import { panelShellMount } from '#panel-shell';
@@ -247,6 +247,8 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
     projects,
     kit,
     providers,
+    // «Обновить Kit» also brings the outdated Kit structure, in the same commit (spec M38).
+    structure: { check: checkStructure, install: (root) => installStructure(root) },
     log: options.log,
     onUpdated: (projectId) => void workflow.refresh(projectId).catch(() => undefined),
   });

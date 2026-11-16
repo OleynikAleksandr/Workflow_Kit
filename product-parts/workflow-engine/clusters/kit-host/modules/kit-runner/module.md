@@ -15,8 +15,10 @@
   → KitRunner`. Каждая команда — `node <bundle> <аргументы>` с `cwd` = папка
   проекта, без оболочки, тайм-аут 60 с (`KIT_TIMEOUT_MS`; `install` —
   180 с, `KIT_INSTALL_TIMEOUT_MS`), до 8 МиБ вывода.
-  - `inspect(root)` и `install(root, { update?, name? })` — бандлом
-    приложения (`appBundle()`); `install` всегда с `--host harness`.
+  - `inspect(root)` и `install(root, { update?, name?, with? })` — бандлом
+    приложения (`appBundle()`); `install` всегда с `--host harness`; непустой
+    `with` (файлы структуры приложения, M38) уходит одним аргументом
+    `--with <JSON-массив>`.
   - `run(root, args)`, `status(root)`, `proposal(root)` (`scope:proposal`) —
     бандлом проекта `.harness/workflow/runtime/workflow.mjs`
     (`projectBundlePath`); `installed(root)` — есть ли он. Чтения службы
@@ -30,7 +32,8 @@
   `KIT_SPAWN` (node не запустился), `KIT_TIMEOUT`, `KIT_OUTPUT` (не JSON
   или конверт без `ok`).
 - `parseEnvelope(stdout, stderr)` — разбор конверта.
-- Типы `KitInspect`, `KitInstall` (поля, которые читает служба).
+- Типы `KitInspect`, `KitInstall` (поля, которые читает служба; `with?` —
+  пути `--with`, вошедшие в коммит, Kit 2.2.7).
 
 ### Состояние
 

@@ -13,11 +13,12 @@ Kit как внешний процесс: бандл приложения (Kit 2
 | [kit-bundle](modules/kit-bundle/module.md) | сжатый бандл Kit 2.2.4 и его происхождение, распаковка в каталог данных с проверкой SHA-256 |
 | [kit-runner](modules/kit-runner/module.md) | команды Kit (`inspect`/`install` бандлом приложения, остальные — бандлом проекта), слежение за файлами плана, раздел `workflow` |
 | [plan-view](modules/plan-view/module.md) | модель карточки плана из `status` и карточки выбора из `scope:proposal` |
-| [kit-update](modules/kit-update/module.md) | версия Kit проекта (раздел `kitUpdate`), `POST /api/projects/:id/kit/update` и одобрение хуков Kit Codex после обновления (M22) |
+| [kit-update](modules/kit-update/module.md) | версия Kit и структуры Kit проекта (раздел `kitUpdate`), `POST /api/projects/:id/kit/update` — Kit и устаревшая структура одним коммитом (M22, M38) — и одобрение хуков Kit Codex после обновления |
 
 Зависимости внутри кластера: `kit-runner` → `plan-view` (модели и типы
-результатов Kit); `kit-update` → `kit-runner` (типы) и `kit-bundle`
-(`KIT_VERSION`); `kit-bundle` подключается в `cli`, бандл передаётся в
+результатов Kit); `kit-update` → `kit-runner` (типы), `kit-bundle`
+(`KIT_VERSION`) и `kit-structure` (кластер `projects`: `MANIFEST_PATH` и типы; функции
+передаёт `cli`); `kit-bundle` подключается в `cli`, бандл передаётся в
 `kit-runner` функцией `appBundle`.
 
 ## Границы

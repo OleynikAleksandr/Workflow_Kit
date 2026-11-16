@@ -37,8 +37,8 @@ stripping).
   `/project-wizard/`, `sessionViewMount()` под `/session-view/`, `sessionChatMount()` под `/session-chat/`), журнал событий, мьютекс, реестр
   проектов, операции, учёт процессов и реестр провайдеров, публикация в git (`registerPublicationRoutes`
   из `git-publish`: `scopeOpen` — у проекта есть scope в `workflow`, обновление после `onChange`
-  состояния плана), версия и обновление Kit проектов (`registerKitUpdateRoutes` из
-  `kit-update`, M22). `App`: `dirs`,
+  состояния плана), версия и обновление Kit и его структуры (`registerKitUpdateRoutes` из
+  `kit-update`, M22, M38: `structure` — `checkStructure`, `installStructure`). `App`: `dirs`,
   `config`, `version`, `os`, `router`, `state`, `server`, `events`
   (`events.jsonl`), `mutex` (D10), `projects` (`ProjectRegistry`),
   `operations` (`Operations`, D10), `providers` (`ProviderRegistry`),

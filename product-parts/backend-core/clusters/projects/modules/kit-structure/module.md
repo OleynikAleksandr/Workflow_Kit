@@ -63,7 +63,9 @@ UserPromptSubmit в конец их списков.
   повреждённые маркеры, неожиданная форма — `StructureError`
   (`code`: `invalid-json` | `bad-markers` | `bad-shape`, `files`) до любой
   записи. Запись атомарная (`writeFileAtomic`), права существующего файла
-  сохраняются (новые — 0644, каталоги — 0755). Повтор ничего не пишет.
+  сохраняются (новые — 0644, каталоги — 0755). Повтор ничего не пишет. В
+  проекте с Kit обе функции вызывает и «Обновить Kit» (`kit-update`, M38):
+  записанные файлы коммитит Kit (`install --update --with`).
 - `recordSessionStart({ client, clients?, stdin, env, cwd, now? }) →
   SessionStartResult` — `client` не из `clients` (id провайдеров вызывающего; по
   умолчанию `HOOK_CLIENTS`) — ничего не пишет; проект: первая папка с `.workflow-kit/manifest.json`

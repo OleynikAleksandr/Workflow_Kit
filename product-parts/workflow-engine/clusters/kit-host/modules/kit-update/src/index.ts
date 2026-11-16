@@ -3,3 +3,4 @@ export type { HookApprovalOptions, KitUpdateAction, KitUpdateError, KitUpdateLas
 export { KIT_INSTALLED_STATES, approveKitHooks, compareVersions, kitAction, providerLabel } from './update.ts';
 export type { KitUpdate, KitUpdateOptions, KitUpdateSection } from './routes.ts';
 export { registerKitUpdateRoutes } from './routes.ts';
+export type { KitStructureLast, KitStructureState, StructureAccess } from './structure.ts';

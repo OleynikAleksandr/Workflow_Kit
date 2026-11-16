@@ -208,6 +208,13 @@ unreachable?, send, mutex?, log? })` (`src/run-control.ts`): `pause|resume|stop(
   прежнюю фазу (тот же ход), истёкший хук — `blocked`, `question-expired`, «Нужны данные:
   ожидание ответа у провайдера завершилось». Поздний ответ после stop запуск не продолжает.
 
+## Завершение запуска (T008)
+
+Приёмка, закрытие, CI финального SHA и проверенная публикация — в
+[autopiloting-completion.md](autopiloting-completion.md) (`createRunCompletion`,
+`COMPLETE_TEXTS`, снимок `RunRecord.completion`, ожидания `stage: 'service'`,
+`HostStep.details`).
+
 ## Маршруты (`src/runs-routes.ts`)
 
 `registerAutopilotingRoutes({ router, state, settings, runs })`:

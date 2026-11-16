@@ -69,6 +69,13 @@ export interface RunWait {
   detail: string;
 }
 
+export interface RunCompletion {
+  ci: { remote: string; branch: string; requiredChecks: string[]; exactSha: boolean } | null;
+  publication: { branch: string; upstream: string } | null;
+  /** HEAD after the close commit of the run; null before the close. */
+  finalSha: string | null;
+}
+
 export interface RunReceipt {
   /** Stable id of the action; a repeat finds it and adds nothing. */
   actionId: string;
@@ -106,6 +113,11 @@ export interface RunRecord {
   wait?: RunWait | null;
   /** Failed attempts per action id and the time of the next one (T007, backoff 5/15/45 s). */
   retries?: Record<string, { count: number; nextAt: string; error: string }>;
+  /**
+   * T008: what the run finishes with, frozen at its acceptance — the CI policy and the target of
+   * the grant (the grant disappears with the closed scope) and the final SHA of the close.
+   */
+  completion?: RunCompletion | null;
   createdAt: string;
   updatedAt: string;
 }

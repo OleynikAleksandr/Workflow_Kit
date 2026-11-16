@@ -35,6 +35,10 @@
   `POST /api/sessions/progress { cwd, projectDir?, client?, sessionId?, progress }` (ожидание
   CI владельца: 400 `bad-request`, 403 `not-owner`, 409 `ci-policy-mismatch`, `action-done`,
   `no-ci-policy`) и `POST /api/sessions/run { …, action: pause | stop }`.
+- T008: `POST /api/projects/:id/publish` выполняется под мьютексом `project:<id>` тем же
+  сервисом git-publish, что публикация запуска; отказ учётных данных — 502 `push-auth`
+  (прочие сбои push — 502 `push-failed`). Раздел `autopiloting` показывает фазы
+  `accepting`, `closing`, `publishing` и после закрытия scope до проверенной публикации.
 - Раздел `reviews` (T006): у ревью есть `approvedDigest`, `versioned` и `reviewedProposal`
   (`{ scopeId, generation, digest }` согласованной версии предложения).
 - Контракт — [autopilot/autopiloting.md](../../product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md).

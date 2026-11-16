@@ -3,10 +3,10 @@
 // user wrote to the session, kept by the agent channel). The manual start records the grant of
 // its run before the first work message; Settings off pauses the active runs.
 import type { AgentChannel } from '#agent-channel';
-import { createHostTickets, createPreparation, createRunControl, createRunJournal, createRunKit, createRunTurns, createRunWaits, createRuns, createSettingsStore, registerAutopilotingRoutes, registerRunControlRoutes, registerSessionRunRoutes, runHttp } from '#autopilot';
-import type { ControlActions, PrepareActions, ReviewFact, RunControl, RunTurns, RunWaits, Runs, SettingsStore } from '#autopilot';
-import { createGitHubCi } from '#git-publish';
-import type { GitHubCi } from '#git-publish';
+import { createHostTickets, createPreparation, createRunCompletion, createRunControl, createRunJournal, createRunKit, createRunTurns, createRunWaits, createRuns, createSettingsStore, registerAutopilotingRoutes, registerRunControlRoutes, registerSessionRunRoutes, runHttp } from '#autopilot';
+import type { RunCompleter, ControlActions, PrepareActions, ReviewFact, RunControl, RunTurns, RunWaits, Runs, SettingsStore } from '#autopilot';
+import { createGitHubCi, createPublisher, runGit } from '#git-publish';
+import type { GitHubCi, GitRunner, Publisher } from '#git-publish';
 import type { KeyedMutex } from '#data-store';
 import type { Router, StateRegistry } from '#http-server';
 import type { KitRunner } from '#kit-runner';
@@ -26,6 +26,8 @@ export interface AutopilotingWiring {
   control: RunControl;
   waits: RunWaits;
   /** One CI check of the waiting runs and, at the service start, the recovery of started runs. */
+  /** T008: accept, close and publish of an authorized run (the service, no turn of the agent). */
+  completion: RunCompleter;
   tick(): Promise<void>;
   recoverAll(): Promise<void>;
   /** The `authorize` option of the plan question route (`wfk session plan --authorized`). */
@@ -63,6 +65,9 @@ export function wireAutopiloting(options: {
   decideReview: (projectId: string, key: string, on: boolean) => Promise<boolean | void>;
   /** The independent CI reader (default: `gh` of the machine). */
   ci?: GitHubCi;
+  /** T008: the publisher the publish button uses too, and git of the service. */
+  publisher?: Publisher;
+  git?: GitRunner;
   log?: (line: string) => void;
 }): AutopilotingWiring {
   const settings = createSettingsStore({ configDir: options.configDir, ...(options.platform ? { platform: options.platform } : {}) });
@@ -107,6 +112,8 @@ export function wireAutopiloting(options: {
     ...(options.log ? { log: options.log } : {}),
   });
   const waits = createRunWaits({ journal, kit: runKit, ci: options.ci ?? createGitHubCi(), projectPath, listProjects, send, mutex: options.mutex, ...(options.log ? { log: options.log } : {}) });
+  const git = options.git ?? runGit;
+  const completion = createRunCompletion({ journal, kit: runKit, publisher: options.publisher ?? createPublisher({ git }), git, projectPath, listProjects, mutex: options.mutex, ...(options.log ? { log: options.log } : {}) });
   registerRunControlRoutes({ router: options.router, control });
   registerSessionRunRoutes({ router: options.router, waits, control, locate: (input) => (links ? links.locate(input) : Promise.reject(new Error('service is starting'))) });
   return {
@@ -120,13 +127,23 @@ export function wireAutopiloting(options: {
     turns,
     control,
     waits,
-    tick: () => waits.pollAll(),
-    recoverAll: () => control.recoverAll(),
+    completion,
+    tick: async () => {
+      await waits.pollAll();
+      await completion.advanceAll();
+    },
+    recoverAll: async () => {
+      await control.recoverAll();
+      await completion.advanceAll();
+    },
     authorize: (projectId, key, summary, quote) => runHttp(async () => ({ ...(await runs.authorizePreparation(projectId, key, summary, quote)) })),
     attach(next) {
       links = next;
     },
-    reconcile: async (projectId) => void (await preparation.reconcile(projectId)),
+    reconcile: async (projectId) => {
+      await preparation.reconcile(projectId);
+      await completion.advance(projectId);
+    },
     async reconcileAll() {
       for (const project of await options.projects.list()) await preparation.reconcile(project.id);
     },

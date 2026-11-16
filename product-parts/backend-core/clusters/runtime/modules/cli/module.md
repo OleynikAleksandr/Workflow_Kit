@@ -99,7 +99,8 @@ stripping).
 Что `createApp` подключает и с какими опциями (реестры, Kit, сессии, публикация, обновление
 Kit, ссылки и остановка службы, журнал попыток ответа на вопросы агента M33, автопилотирование
 M39 — `src/autopiloting-wiring.ts`, `src/autopiloting-links.ts`, `wfk session plan
---authorized`, `wfk session progress|run` в `src/session-run-command.ts`) — в
+--authorized`, `wfk session progress|run` в `src/session-run-command.ts`, T008 — общий
+`createPublisher` кнопки и запусков, сервис завершения) — в
 [connected-modules.md](connected-modules.md) и [commands.md](commands.md).
 
 ## Инварианты

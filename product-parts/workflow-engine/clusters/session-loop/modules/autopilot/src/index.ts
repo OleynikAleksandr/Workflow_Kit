@@ -45,3 +45,6 @@ export type { CiPolicyLike, CiReadVerdict, RunWaits, RunWaitsDeps } from './run-
 export { RETRY_DELAYS_MS, WAIT_TEXTS, createRunWaits } from './run-waits.ts';
 export type { RunWait } from './run-journal.ts';
 export { grantedDelivery, liveGrant } from './decide-orchestration.ts';
+export type { GitRead, PublisherLike, RunCompleter, RunCompletionDeps } from './run-complete.ts';
+export { COMPLETE_TEXTS, createRunCompletion } from './run-complete.ts';
+export type { RunCompletion } from './run-journal.ts';

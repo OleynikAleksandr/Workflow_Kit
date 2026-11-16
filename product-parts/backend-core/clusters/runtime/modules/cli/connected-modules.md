@@ -103,7 +103,11 @@
   `autopiloting/pause|resume|stop`, `/api/sessions/progress|run`; хук вопроса отмечает
   ожидание вопроса владельца (`decision` — ответ, `release` — истёк); таймер
   `AUTOPILOT_TICK_MS` (15 с) проверяет CI ждущих запусков (`GitHubCi` из `#git-publish`);
-  при старте после `reconcileAll` — `recoverAll`. Тест — `test/autopiloting.test.ts`;
+  при старте после `reconcileAll` — `recoverAll`. T008: `completion`
+  (`createRunCompletion` с publisher и `runGit`): `tick` — `pollAll`, затем `advanceAll`;
+  `reconcile` (Stop, конец ревью) — подготовка, затем `advance`; `recoverAll` — затем
+  `advanceAll`; `app.ts` создаёт один `createPublisher` для маршрута публикации (под
+  `mutex`) и запусков (опция `publisher` у `wireSessions`). Тест — `test/autopiloting.test.ts`;
 - перекрёстное ревью плана (M4) собрано в `src/review-wiring.ts`:
   `lateReviewDecider()` — решатель ревью для автопилота (подключается после
   создания; передаёт и `choiceBlocked`), `wireCrossReview({ router, state, channel, messages, projects,

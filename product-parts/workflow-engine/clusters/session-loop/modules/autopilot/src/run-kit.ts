@@ -19,7 +19,12 @@ export interface RunKitStatus {
   authorization?: { runId: string; revision: number; revoked: unknown; delivery: Array<{ taskId: string }>; accept: boolean; close: boolean; ci?: unknown } | null;
   /** The next task of the plan (T007: a started delivery deferred after a red CI). */
   nextTask?: { id: string; kind: string; status: string } | null;
-  acceptance?: Array<{ criterion: number; kind: 'automatic' | 'manual' }> | null;
+  acceptance?: Array<{ criterion: number; kind: 'automatic' | 'manual'; checks?: string[]; evidence?: string[]; evidenceMissing?: string[] }> | null;
+  /** T008: the scope state and the result of the delivery. */
+  scope?: 'ACTIVE' | 'BLOCKED' | 'NONE';
+  delivery?: 'IN_PROGRESS' | 'READY_FOR_ACCEPTANCE' | 'ACCEPTED' | null;
+  transactionPending?: boolean;
+  orchestration?: { integration: unknown; assignments: unknown[] } | null;
 }
 
 /** The automation block of the scope as `status` shows it (Kit 2.3.0+). */
@@ -41,6 +46,8 @@ export interface HostStep {
   code: string | null;
   message: string | null;
   result: Record<string, unknown> | null;
+  /** The Kit `details` of a refusal (T008: which evidence is missing). */
+  details?: Record<string, unknown> | null;
   ticketId: string;
   redeemed: boolean;
 }
@@ -118,7 +125,7 @@ export function createRunKit(options: { runner: KitRunner; tickets: HostTickets 
         const redeemed = options.tickets.redeemed().includes(verifier.ticketId);
         last = outcome.ok
           ? { ok: true, code: null, message: null, result: outcome.result, ticketId: verifier.ticketId, redeemed }
-          : { ok: false, code: outcome.code, message: outcome.message, result: null, ticketId: verifier.ticketId, redeemed };
+          : { ok: false, code: outcome.code, message: outcome.message, result: null, details: (outcome.details ?? null) as Record<string, unknown> | null, ticketId: verifier.ticketId, redeemed };
         if (outcome.ok || outcome.code !== 'REVISION_MISMATCH') return last;
       }
       return last!;

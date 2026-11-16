@@ -18,7 +18,7 @@ import { resolveAutoCompactWindow } from './auto-compact-window.ts';
 import { createKitRunner, createWorkflowState } from '#kit-runner';
 import type { KitRunner, WorkflowState } from '#kit-runner';
 import { checkStructure, installStructure, registerStructureRoutes } from '#kit-structure';
-import { registerPublicationRoutes } from '#git-publish';
+import { createPublisher, registerPublicationRoutes, runGit } from '#git-publish';
 import { registerKitUpdateRoutes } from '#kit-update';
 import { panelShellMount } from '#panel-shell';
 import { projectWizardMount } from '#project-wizard';
@@ -239,7 +239,9 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
   // Windows keeps a watched folder busy: the project's watchers are released before its folder is deleted.
   projects.addBeforeDeleteHook(async (project) => workflow.release(project.id));
   // GitHub publication is not a plan task: only with no open scope (spec publication-order).
-  const publication = registerPublicationRoutes({ router, state, projects, scopeOpen: (id) => workflow.get(id)?.scope != null, log: options.log });
+  // One publisher for the button and the autopiloting runs (M39 T008), under the project lock.
+  const publisher = createPublisher({ git: runGit });
+  const publication = registerPublicationRoutes({ router, state, projects, publisher, mutex, scopeOpen: (id) => workflow.get(id)?.scope != null, log: options.log });
   // Kit version of each project and «Обновить Kit» (spec M22 section 2.6).
   const kitUpdate = registerKitUpdateRoutes({
     router,
@@ -271,6 +273,7 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
     kit,
     configDir: dirs.configDir,
     platform,
+    publisher,
     resolveFolderProject,
     sessionArchived: (id, key, archived) => lifecycle.sessionArchived(id, key, archived),
     log: options.log,

@@ -5,6 +5,9 @@
 // report is no result: the service reads GitHub itself (`ci.read`, the policy from the grant).
 // Green — the owner goes on; red on a started delivery — Kit `task:defer-delivery`, then the
 // owner adds a fixes round; no access — a capability blocker; a GitHub failure — retries 5/15/45 s.
+// T008: a SHA the service itself sent to the CI branch (`stage: 'service'`, before the acceptance
+// or after the close) is checked with the policy frozen in the run — the grant disappears with
+// the closed scope; green sends no message (the completion goes on), red blocks the run.
 // A question of the owner holds the run in `waiting` until it is answered; an expired hook blocks
 // the run with «Нужны данные».
 import type { KeyedMutex } from '#data-store';
@@ -79,10 +82,13 @@ export function createRunWaits(deps: RunWaitsDeps) {
     const actionId = wait.actionId ?? `ci:${wait.sha}`;
     const due = run.retries?.[actionId]?.nextAt;
     if (due && Date.parse(due) > now().getTime()) return run;
-    const status = await deps.kit.status(folder);
+    const service = wait.stage === 'service';
+    let status = service ? null : await deps.kit.status(folder);
     const grant = status?.authorization;
-    if (!grant || grant.runId !== run.runId || grant.revoked || !grant.ci) return run;
-    const verdict = await deps.ci.read(folder, wait.sha!, grant.ci as CiPolicyLike);
+    if (!service && (!grant || grant.runId !== run.runId || grant.revoked || !grant.ci)) return run;
+    const policy = service ? run.completion?.ci : (grant!.ci as CiPolicyLike);
+    if (!policy) return run;
+    const verdict = await deps.ci.read(folder, wait.sha!, policy);
     if (verdict.state === 'pending') return run;
     if (verdict.state === 'unavailable') {
       if (verdict.transient) await retry(folder, run, actionId, verdict.reason);
@@ -92,13 +98,15 @@ export function createRunWaits(deps: RunWaitsDeps) {
     const at = now().toISOString();
     if (verdict.state === 'success') {
       const done = await deps.journal.update(folder, run.runId, (r) => ({ ...r, wait: null, phase: resume(r), pausedFrom: null, receipts: [...r.receipts, { actionId, type: 'ci', at, commit: verdict.sha, detail: verdict.jobs.map((j) => j.name).join(', ') }] }));
-      deps.send(projectId, run.owner.key, WAIT_TEXTS.green(run.runId, verdict.sha, verdict.jobs.map((j) => j.name)));
+      if (!service) deps.send(projectId, run.owner.key, WAIT_TEXTS.green(run.runId, verdict.sha, verdict.jobs.map((j) => j.name)));
       return done;
     }
     const failed = verdict.failed.map((job) => `${job.name}: ${job.conclusion ?? 'unknown'}`).join(', ');
+    if (service) status = null;
     const task = status?.nextTask;
     if (task?.kind !== 'delivery' || task.status !== 'IN_PROGRESS') {
-      return deps.journal.update(folder, run.runId, (r) => ({ ...r, wait: null, phase: 'blocked', pausedFrom: resume(r), reason: WAIT_TEXTS.red(failed), nextAction: 'Исправьте причину и нажмите «Продолжить».' }));
+      const closed = run.pausedFrom === 'publishing';
+      return deps.journal.update(folder, run.runId, (r) => ({ ...r, wait: null, phase: 'blocked', pausedFrom: resume(r), reason: WAIT_TEXTS.red(failed), receipts: [...r.receipts, { actionId, type: 'ci-failed', at, commit: verdict.sha, detail: failed }], nextAction: closed ? 'Scope уже закрыт: исправление требует отдельного согласованного scope.' : 'Исправьте причину и нажмите «Продолжить».' }));
     }
     const reason = `CI failed for ${verdict.sha}: ${failed}`;
     const deferred = await deps.kit.command(folder, ['task:defer-delivery', task.id, '--reason', reason, '--outcome', 'red CI of the pushed commit', '--expected-revision', String(status!.revision)]);

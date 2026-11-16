@@ -20,6 +20,7 @@ import type { SessionTitles, SessionTitlesOptions } from '#session-titles';
 import { createTurnInterruption, deliverAfterInterruption } from './turn-interruption.ts';
 import { createDirectMessage, ledOutside } from './direct-message.ts';
 import { lateReviewDecider, toggleLock, wireCrossReview } from './review-wiring.ts';
+import type { Publisher } from '#git-publish';
 import { wireAutopiloting } from './autopiloting-wiring.ts';
 import type { AutopilotingWiring } from './autopiloting-wiring.ts';
 import { locateSession, ownerUnreachable, proposalDigest, reviewFact } from './autopiloting-links.ts';
@@ -65,6 +66,8 @@ export interface SessionWiringOptions {
   kit: KitRunner;
   /** The configuration folder of the service (M39: `autopiloting.json`). */
   configDir: string;
+  /** T008: the publisher of the publish button, shared with the autopiloting runs. */
+  publisher?: Publisher;
   platform?: NodeJS.Platform;
   /** The deepest registered project that contains a folder. */
   resolveFolderProject: (folder: string) => Promise<{ id: string } | undefined>;
@@ -158,7 +161,7 @@ export function wireSessions(options: SessionWiringOptions): SessionWiring {
   };
   const reviewDecider = lateReviewDecider();
   // M39: an instruction keeps a review decision the session already has; it closes its plan question.
-  const autopiloting = wireAutopiloting({ router, state, mutex, projects, kit, channel, configDir: options.configDir, platform: options.platform, log: options.log, decideReview: async (id, key, on) => {
+  const autopiloting = wireAutopiloting({ router, state, mutex, projects, kit, channel, configDir: options.configDir, platform: options.platform, log: options.log, ...(options.publisher ? { publisher: options.publisher } : {}), decideReview: async (id, key, on) => {
     await review.dismiss(id, key);
     if (!review.decided(id, key)) await review.set(id, key, on);
     return review.get(id, key);

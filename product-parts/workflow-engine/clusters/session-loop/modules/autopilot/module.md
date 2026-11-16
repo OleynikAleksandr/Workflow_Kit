@@ -145,7 +145,9 @@
   перенесённый решатель с разрешением (`liveGrant`, `grantedDelivery`, `host-transition`),
   `createRunTurns` (опция `runs`), `createRunControl`, `createRunWaits`,
   `registerRunControlRoutes`, `registerSessionRunRoutes`, `runHttp`, `Autopilot.halt`,
-  `authority.onPause`, `WorkflowActionError.details`.
+  `authority.onPause`, `WorkflowActionError.details`; T008 — сервис завершения
+  `createRunCompletion` (`COMPLETE_TEXTS`, `PublisherLike`, `GitRead`, `RunCompleter`,
+  снимок `RunCompletion`) в [autopiloting-completion.md](autopiloting-completion.md).
 
 ## Инварианты
 

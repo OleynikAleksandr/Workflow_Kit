@@ -29,6 +29,22 @@
     409 `publishing` — публикация проекта уже идёт; после попытки кэш проекта обновляется.
 - `runGit` — `execFile('git')` с `gitExecOptions`: `GIT_TERMINAL_PROMPT=0`, предел 60 с и `windowsHide` (M14: на Windows без этого каждый вызов открывал окно консоли, и Windows Terminal мелькал); `GitRunner` для тестов.
 
+- Публикация запуска автопилотирования (M39 T008, `src/publication.ts`):
+  `publish(git, folder, scopeOpen, expected?)` → `Published { from, to, sha, commits,
+  already }`. С `ExpectedPublication { sha, branch, upstream }`:
+  - ветка и upstream должны совпасть (`publication-target-changed`), HEAD — равняться `sha`
+    (`head-changed`);
+  - после `fetch` удалённая ветка, уже равная `sha`, — проверенный успех без push
+    (`already: true`; грязное дерево всё равно `worktree-dirty`);
+  - после push всегда `fetch`: ошибка push при SHA на удалённой ветке — успех, иначе ошибка.
+  Без `expected` поведение кнопки прежнее. Ошибка push — `push-auth` (отказ учётных данных)
+  или `push-failed` (`PushFailure`; маршрут отвечает 502 на оба).
+  `stageCi(git, folder, { sha, remote, branch })` отправляет точный SHA на
+  `refs/heads/<branch>` без `--force` и читает его обратно через `ls-remote`: SHA уже там —
+  `already`, отказ fast-forward — `remote-ahead`, неполный SHA — `head-changed`.
+  `createPublisher({ git }) → Publisher { publish, stageCi }` — один сервис на кнопку и
+  запуски; вызывающий держит мьютекс проекта. `registerPublicationRoutes` принимает
+  `publisher?` и `mutex?`: кнопка выполняется под `project:<id>`, как шаги запуска.
 - CI автопилотирования (M39 T007, `src/github-ci.ts`): `createGitHubCi({ gh?, git? }) →
   GitHubCi`, `read(root, sha, policy)` — `CiPolicy` (`remote`, `branch`, `requiredChecks`,
   `exactSha`) из разрешения запуска. Репозиторий — `githubRepo(git remote get-url <remote>)`
@@ -53,5 +69,6 @@
 ## Зависимости
 
 `http-server` (маршруты, раздел состояния), `project-registry` (типы проектов). Тест M39 —
-`test/github-ci.test.ts`. Служба (`cli`)
+`test/github-ci.test.ts`, `test/publish-expected.test.ts` (T008: ожидаемый SHA, восстановление
+после push, учётные данные, `stageCi`, кнопка и запуск под одним мьютексом). Служба (`cli`)
 передаёт `scopeOpen` — у проекта есть scope в состоянии `workflow`.

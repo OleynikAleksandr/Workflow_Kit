@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1182,
+  "revision": 1184,
   "rounds": [
     {
       "digest": null,
@@ -804,14 +804,34 @@
         "product-parts/workflow-engine/clusters/kit-host/modules/plan-view",
         "docs/architecture/OS-MATRIX.md",
         "docs/architecture/CONTRACTS.md",
-        "docs/architecture/HTTP-CONTRACTS.md"
+        "docs/architecture/HTTP-CONTRACTS.md",
+        "product-parts/backend-core/clusters/projects/modules/git-publish/module.md",
+        "product-parts/backend-core/clusters/projects/modules/git-publish/src/index.ts",
+        "product-parts/backend-core/clusters/projects/modules/git-publish/src/publication.ts",
+        "product-parts/backend-core/clusters/projects/modules/git-publish/src/routes.ts",
+        "product-parts/backend-core/clusters/projects/modules/git-publish/test/publish-expected.test.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/connected-modules.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/autopiloting-wiring.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting-completion.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/index.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-complete.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-journal.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-kit.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-waits.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/complete-real.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/complete.test.ts"
       ],
       "fixes": null,
       "id": "T008",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Автоматическая приёмка, закрытие и проверенная публикация",
       "why": "Автоматическая приёмка, закрытие и проверенная публикация"
     },
@@ -1068,8 +1088,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 7/13
-- Revision: 1182
+- Progress: 8/13
+- Revision: 1184
 
 ## Objective
 
@@ -1116,9 +1136,9 @@
   - Commit: feat: reconcile autopilot progress across pauses and restarts
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/backend-core/clusters/projects/modules/git-publish, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner, product-parts/workflow-engine/clusters/kit-host/modules/plan-view, docs/architecture/OS-MATRIX.md, docs/architecture/CONTRACTS.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, docs/architecture/HTTP-CONTRACTS.md, product-parts/backend-core/clusters/projects/modules/git-publish/module.md, product-parts/backend-core/clusters/projects/modules/git-publish/src/github-ci.ts, product-parts/backend-core/clusters/projects/modules/git-publish/src/index.ts, product-parts/backend-core/clusters/projects/modules/git-publish/test/github-ci.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/commands.md, product-parts/backend-core/clusters/runtime/modules/cli/connected-modules.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/autopiloting-links.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/autopiloting-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/session-command.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/session-run-command.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/autopiloting.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/autopilot-types.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/autopilot.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/decide-model.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/decide-orchestration.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/decide.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-control.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-journal.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-kit.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-turns.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-waits.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/runs-routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/runs.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/texts.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/decide-matrix.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/run-control.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/run-turns.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/runs-ci-real.test.ts
   - Depends on: T006
-- [TODO] T008 — Автоматическая приёмка, закрытие и проверенная публикация (work)
+- [DONE] T008 — Автоматическая приёмка, закрытие и проверенная публикация (work)
   - Commit: feat: finish authorized runs through verified publication
-  - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/backend-core/clusters/projects/modules/git-publish, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner, product-parts/workflow-engine/clusters/kit-host/modules/plan-view, docs/architecture/OS-MATRIX.md, docs/architecture/CONTRACTS.md, docs/architecture/HTTP-CONTRACTS.md
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/backend-core/clusters/projects/modules/git-publish, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner, product-parts/workflow-engine/clusters/kit-host/modules/plan-view, docs/architecture/OS-MATRIX.md, docs/architecture/CONTRACTS.md, docs/architecture/HTTP-CONTRACTS.md, product-parts/backend-core/clusters/projects/modules/git-publish/module.md, product-parts/backend-core/clusters/projects/modules/git-publish/src/index.ts, product-parts/backend-core/clusters/projects/modules/git-publish/src/publication.ts, product-parts/backend-core/clusters/projects/modules/git-publish/src/routes.ts, product-parts/backend-core/clusters/projects/modules/git-publish/test/publish-expected.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/connected-modules.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/autopiloting-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting-completion.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-complete.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-journal.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-kit.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-waits.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/complete-real.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/complete.test.ts
   - Depends on: T007
 - [TODO] T009 — Settings: режимы, перенос ревью и свёрнутые служебные карточки (work)
   - Commit: feat: add autopiloting settings and collapsible service cards

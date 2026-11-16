@@ -1,5 +1,7 @@
 import { acceptHost, closeHost, type HostedRun } from "./kit-cli-autopilot.js";
+import { ensure } from "../../workflow-platform/src/workflow-platform-facade.js";
 import {
+  flag,
   integerFlag,
   type ParsedArgs,
   positional,
@@ -30,8 +32,8 @@ interface ScopeCommandSpec {
 
 /**
  * The scope and plan commands: `scope:create`, `plan:extend`,
- * `task:update`, `task:block`, `task:unblock`, `accept`, `close` and
- * `carryover` (text output by `renderText`).
+ * `task:update`, `task:block`, `task:unblock`, `task:defer-delivery`,
+ * `accept`, `close` and `carryover` (text output by `renderText`).
  */
 export const SCOPE_COMMANDS: Readonly<Record<string, ScopeCommandSpec>> = {
   accept: {
@@ -79,6 +81,24 @@ export const SCOPE_COMMANDS: Readonly<Record<string, ScopeCommandSpec>> = {
   "task:unblock": {
     run: ({ kit, root }) => kit.unblock(root),
     usage: "task:unblock",
+  },
+  "task:defer-delivery": {
+    run: ({ args, kit, root }) => {
+      const expectedRevision = integerFlag(args, "expected-revision");
+      ensure(
+        expectedRevision !== undefined,
+        "USAGE",
+        "task:defer-delivery needs --expected-revision N (from `scripts/workflow status`)."
+      );
+      return kit.deferDelivery(root, {
+        expectedRevision,
+        outcome: flag(args, "outcome") ?? null,
+        reason: requiredFlag(args, "reason"),
+        taskId: positional(args, 0, "Task id"),
+      });
+    },
+    usage:
+      'task:defer-delivery <ID> --reason "<failure and where it is seen>" [--outcome "<result of the external step>"] --expected-revision N',
   },
   "task:update": {
     run: ({ args, io, kit, root }) =>

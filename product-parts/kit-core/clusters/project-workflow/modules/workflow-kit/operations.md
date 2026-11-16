@@ -317,6 +317,28 @@ Tasks (`kit-task.ts`):
   only — Markdown and `.harness/product-tree/**` (`DOCS_ONLY`), never while a task is in progress (`TASK_IN_PROGRESS`);
   role `docs`.
 
+Deferred delivery (`kit-delivery-defer.ts`, Kit 2.3.2, spec M39):
+- `deferDelivery(root, {taskId, reason, outcome, expectedRevision})` —
+  `task:defer-delivery <ID> --reason "<failure and link>" [--outcome
+  "<result of the external step>"] --expected-revision N`. Under the
+  project lock, in this order: no transaction or integration
+  (`TRANSACTION_PENDING`, `INTEGRATION_ACTIVE`), the revision
+  (`REVISION_MISMATCH`), main rather than an executor worktree and no
+  active assignment (`DELIVERY_DEFER_NOT_ALLOWED`), a clean tree apart from
+  Kit-managed files (`DIRTY_TREE`, `details.paths`), then the plan
+  transition `deferDelivery` (`DELIVERY_DEFER_NOT_ALLOWED` for another
+  task, kind or status, `UNKNOWN_TASK`). The result is a Kit commit with
+  the role `deferral` (`chore: defer delivery <ID> (attempt N)`) and
+  `{taskId, deferredIteration, nextIteration, revision, commit}`. A
+  started delivery has no commit of its attempt (its commit makes it
+  DONE); an unfinished commit is a pending transaction, so `repair` comes
+  first. Results of the external check stay outside git until the next
+  attempt; the command never touches other files. Then `plan:extend` with
+  `round: "new"` adds the fixes round, and `task:update` can make the
+  deferred task depend on a new delivery (for example D002 before T012).
+  The next start needs a confirmation again (the user's, or a live grant
+  with `--autopilot-run`).
+
 Quality and repair (`kit-quality.ts`):
 - `qualityDetect(root, stacks?)` — the proposal of `workflow-quality`.
 - `qualityApply(root, input)` — installs approved tools, writes the

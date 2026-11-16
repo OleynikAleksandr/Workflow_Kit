@@ -129,7 +129,8 @@ through install) get it from `identityTemplate(folder)`, passed as
 holds:
 - `role` (`bootstrap`, `kit-update`, `scope-plan`, `quality`,
   `implementation`, `docs`, `acceptance`, `close`, `carryover`, `repair`,
-  `authorization` for an autopilot grant or revoke (spec M39),
+  `authorization` for an autopilot grant or revoke (spec M39), `deferral`
+  for `task:defer-delivery` (spec M39),
   `assignment-plan` for the executor plan of an assignment, or
   `integration` for the merge of an executor source in main), `scopeId`,
   `taskId`, `iteration`;

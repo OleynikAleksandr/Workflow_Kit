@@ -1,6 +1,7 @@
 import type { AutopilotGrant } from "./plan-authorization.js";
 import type { ScopeAutomation } from "./plan-automation.js";
 import type { AcceptanceEvidence } from "./plan-autopilot-completion.js";
+import type { TaskDeferral } from "./plan-delivery-defer.js";
 
 export const PLAN_SCHEMA = "harness-workflow-plan/1";
 export const PLAN_PATH = ".harness/plans/todo-plan.md";
@@ -56,6 +57,8 @@ export interface WorkflowTask {
   commitMessage: string;
   confirmation: string | null;
   context: DocumentRef[];
+  /** Deferred attempts of a delivery task (M39 `task:defer-delivery`). */
+  deferrals?: TaskDeferral[];
   dependencies: string[];
   docsWaiver: string | null;
   files: string[];

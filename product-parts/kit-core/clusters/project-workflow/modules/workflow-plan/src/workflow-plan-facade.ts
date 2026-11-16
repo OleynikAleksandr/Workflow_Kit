@@ -38,6 +38,7 @@ import {
   acceptByAutopilot,
   closeByAutopilot,
 } from "./plan-autopilot-completion.js";
+import { deferDeliveryTask } from "./plan-delivery-defer.js";
 import { moveOwner, type OwnerMove } from "./plan-owner.js";
 import {
   acceptScope,
@@ -91,6 +92,7 @@ export type {
   ScopeAutomation,
 } from "./plan-automation.js";
 export { automationSummary } from "./plan-automation.js";
+export type { TaskDeferral } from "./plan-delivery-defer.js";
 export type { ExecutionInput } from "./plan-execution.js";
 export type { OwnerMove } from "./plan-owner.js";
 export type { FieldSpec, InputSchema } from "./plan-input-schema.js";
@@ -234,6 +236,15 @@ export class WorkflowPlanFacade {
     context: TransitionContext
   ): ExtendResult {
     return extendPlan(plan, input, context);
+  }
+
+  /** `task:defer-delivery` (M39): the current delivery back to TODO as a new attempt. */
+  deferDelivery(
+    plan: WorkflowPlan,
+    taskId: string,
+    request: { now: string; outcome?: string | null; reason: string }
+  ): WorkflowPlan {
+    return deferDeliveryTask(plan, taskId, request);
   }
 
   deferDocs(plan: WorkflowPlan): WorkflowPlan {

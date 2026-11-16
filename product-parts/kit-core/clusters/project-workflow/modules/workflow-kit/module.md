@@ -82,7 +82,8 @@ it changes in the same commit as the commands. Summary:
   `kit-cli-identity.ts` (`identity:set`), `kit-cli-pause.ts` (`pause:set`),
   `kit-cli-schema.ts` (`schema`), `kit-cli-context.ts` (`context`) and
   `kit-cli-scope.ts` (`scope:create`, `plan:extend`, `task:update`,
-  `task:block`, `task:unblock`, `accept`, `close`, `carryover`; `accept` and
+  `task:block`, `task:unblock`, `task:defer-delivery` (M39, see
+  [operations.md](operations.md)), `accept`, `close`, `carryover`; `accept` and
   `close` take the host-only `--autopilot-run` form), `kit-cli-autopilot.ts`
   (`autopilot:authorize`, `autopilot:revoke`, host only, see
   [autopilot.md](autopilot.md)); boolean

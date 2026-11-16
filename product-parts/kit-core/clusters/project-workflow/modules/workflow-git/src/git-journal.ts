@@ -13,6 +13,7 @@ export type CommitRole =
   | "bootstrap"
   | "carryover"
   | "close"
+  | "deferral"
   | "docs"
   | "implementation"
   | "integration"

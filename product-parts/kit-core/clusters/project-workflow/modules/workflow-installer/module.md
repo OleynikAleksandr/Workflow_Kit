@@ -63,7 +63,7 @@ Writing rules:
 
 `manifest(entries)` → `{schema "harness-workflow-manifest/1", version,
 files: [{path, kind, executable, sha256}]}`; `sha256` hashes the managed
-part (`null` for `create`). `version` is `KIT_VERSION` (`2.3.1`: the autopilot grant with host-only `autopilot:authorize`/`autopilot:revoke` and `accept`/`close --autopilot-run` over the parent IPC ticket, `task:start --autopilot-run`, spec M39 T002; 2.3.0: the scope `automation` block, `scope:proposal --digest` and `scope:choose --expected-digest`, spec M39 T001; 2.2.7: `install --update --with`, spec M38; 2.2.6: the input folder `.harness/inputs/`, spec M37; 2.2.5 added `scope:owner`, spec M31; 2.2.4 was the first Kit built in
+part (`null` for `create`). `version` is `KIT_VERSION` (`2.3.2`: `task:defer-delivery`, spec M39 T003; 2.3.1: the autopilot grant with host-only `autopilot:authorize`/`autopilot:revoke` and `accept`/`close --autopilot-run` over the parent IPC ticket, `task:start --autopilot-run`, spec M39 T002; 2.3.0: the scope `automation` block, `scope:proposal --digest` and `scope:choose --expected-digest`, spec M39 T001; 2.2.7: `install --update --with`, spec M38; 2.2.6: the input folder `.harness/inputs/`, spec M37; 2.2.5 added `scope:owner`, spec M31; 2.2.4 was the first Kit built in
 Workflow Kit; Kit 1.x was Workflow Pilot). A change of a managed text or of the runtime raises the version, so
 older installations read as `KIT_OUTDATED` and the update rewrites them
 (2.1.0 added `.harness/sessions/` and `.claude/worktrees/` to `.gitignore`
@@ -327,7 +327,7 @@ Node built-ins only.
   integration commands, the identity rule, under 1800 bytes), the Inputs and
   documents block (`schema`, the input folder `.harness/inputs/`, `context`,
   files never to read), the Harness
-  note on proposing the scope and `KIT_VERSION` 2.3.1; the six Claude
+  note on proposing the scope and `KIT_VERSION` 2.3.2; the six Claude
   groups with `--part K/6`, the replaced 2.2.2 group, a changed part read
   as a difference, the Codex entry with `additionalContextLimit`.
 - `test/workflow-installer-install.test.mjs` (with

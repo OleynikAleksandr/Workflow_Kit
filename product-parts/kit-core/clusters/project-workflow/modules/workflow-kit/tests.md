@@ -23,6 +23,13 @@ worktrees where noted):
 - `test/workflow-kit-execution-mode.test.mjs` — propose/choose/refine, the
   automatic sequential scope, `NO_PARALLEL_WORK`, `PROPOSAL_CHANGED`,
   `SCOPE_EXISTS`, the card view, `EXECUTION_MODE_REQUIRED`, the CLI.
+- `test/workflow-kit-delivery-defer.test.mjs` — spec M39 T003: refusals
+  without a write (`USAGE`, a short reason, a stale revision, a DONE or
+  work task, an unknown task, a dirty tree, an unfinished integration,
+  `ROUND_OPEN` of `plan:extend` while the delivery runs), the deferral
+  commit and record in `show-task`, a fixes round with D002, `task:update`
+  making T012 wait for D002, `DEPENDENCY_PENDING` before D002, the second
+  attempt, unchanged commits of DONE tasks and a valid history.
 - `test/workflow-kit-autopilot-grant.test.mjs` and
   `test/workflow-kit-host-ipc.test.mjs` — spec M39 T002, see
   [autopilot.md](autopilot.md#tests).

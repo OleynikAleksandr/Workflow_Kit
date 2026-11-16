@@ -15,7 +15,7 @@ M22 2.5). В модуле лежат gzip (`vendor/workflow-kit-<версия>.m
 
 ## Публичный интерфейс (`src/index.ts`)
 
-- `KIT_VERSION` (`2.3.1`, M39 T002: разрешение автопилота, host-only команды через IPC-тикет родителя, `task:start --autopilot-run`; 2.3.0, M39 T001: блок `automation` scope, `scope:proposal --digest` и `scope:choose --expected-digest`; 2.2.7, M38: `install --update --with` для файлов структуры приложения; 2.2.6, M37: папка входных файлов `.harness/inputs/`, подсказка `next` и отказ `close` с путями; 2.2.5, M31: `scope:owner`), `KIT_SHA256`, `KIT_SOURCE_DIGEST` — из
+- `KIT_VERSION` (`2.3.2`, M39 T003: `task:defer-delivery` — начатая поставка возвращается в TODO для раунда исправлений; 2.3.1, M39 T002: разрешение автопилота, host-only команды через IPC-тикет родителя, `task:start --autopilot-run`; 2.3.0, M39 T001: блок `automation` scope, `scope:proposal --digest` и `scope:choose --expected-digest`; 2.2.7, M38: `install --update --with` для файлов структуры приложения; 2.2.6, M37: папка входных файлов `.harness/inputs/`, подсказка `next` и отказ `close` с путями; 2.2.5, M31: `scope:owner`), `KIT_SHA256`, `KIT_SOURCE_DIGEST` — из
   `src/bundle-meta.ts`; `KIT_SOURCE_DIGEST` — дайджест исходников Kit
   (`kitSourceDigest` сборки).
 - `vendorBundleFile()` — путь gzip в модуле; `unpackedBundleFile(appDir)` —
@@ -39,3 +39,15 @@ M22 2.5). В модуле лежат gzip (`vendor/workflow-kit-<версия>.m
 ## Зависимости
 
 `#data-store` (`writeFileAtomic`).
+
+## Тесты
+
+- `test/bundle.test.ts` — распаковка vendor-бандла и его хеш.
+- `test/delivery-defer.test.ts` (M39 T003) — настоящий бандл на временном git-проекте: красный CI
+  начатой поставки T012 → `task:defer-delivery` (до него безопасные отказы для DONE-задачи,
+  устаревшей ревизии и грязного дерева) → `plan:extend` с `round: "new"`, fixes и новой поставкой
+  D002 → `task:update` делает T012 зависимой от D002; порядок `fixes → DOCS-R2 → D002 → T012`, без
+  `TASK_ORDER`/`ROUND_OPEN`, T012 не стартует до D002, коммиты DONE-задач неизменны. Второй сценарий:
+  установка с активным scope, помеченная в манифесте как Kit 2.3.1 (`KIT_OUTDATED`), штатно
+  обновляется `install --update`: задачи, владелец и история сохраняются, новая команда работает.
+  Прежний бандл в CI недоступен (клон глубины 1), поэтому старая версия задаётся манифестом.

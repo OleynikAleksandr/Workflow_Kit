@@ -260,6 +260,18 @@ name). Nothing is written then.
   `COMMIT_FAILED`, `ASSIGNMENT_CONTRACT`, `ASSIGNMENT_SCOPE` (executor).
 - `task:block --reason "<text>"` / `task:unblock` — write the plan only.
   Refusals: `SCOPE_NOT_ACTIVE`, `BLOCK_REASON`, `SCOPE_NOT_BLOCKED`.
+- `task:defer-delivery <ID> --reason "<failure and link>" [--outcome
+  "<result of the external step>"] --expected-revision N` (Kit 2.3.2, spec
+  M39) — the current IN_PROGRESS delivery task returns to TODO as a new
+  attempt (iteration + 1, confirmation cleared); the attempt, reason and
+  outcome stay in the plan and in `show-task`. A Kit commit with role
+  `deferral`; JSON `{taskId, deferredIteration, nextIteration, revision,
+  commit}`. Then `plan:extend` with `round: "new"` works without
+  `ROUND_OPEN`. Refusals without a write: `USAGE` (no revision, reason
+  under 10 characters), `REVISION_MISMATCH`, `TRANSACTION_PENDING`,
+  `INTEGRATION_ACTIVE`, `DIRTY_TREE`, `UNKNOWN_TASK`,
+  `DELIVERY_DEFER_NOT_ALLOWED` (another task, a DONE or work task, an
+  executor worktree, active assignments).
 - `docs:commit --files <json|a,b> [--message "docs: ..."]` — a
   documentation-only commit (Markdown and `.harness/product-tree/**`).
   `USAGE` without `--files`; `DOCS_ONLY`, `TASK_IN_PROGRESS`.

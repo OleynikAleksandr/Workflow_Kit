@@ -88,6 +88,8 @@ environment.
     long task fields (`why`, `files`, `acceptance`, `context`) are capped
     step by step (2000 … 60 bytes) with `[truncated: N bytes, run:
     scripts/workflow show-task ID]`; documents alone never cap task fields;
+    a deferred delivery adds one line per attempt, `deferred attempt <N>:
+    <at>: <reason>[; outcome: <outcome>]` (Kit 2.3.2, spec M39);
   - the header states `bytes` (of the whole text, header included),
     `budget`, `included`, `omitted` and `(over budget)` when the packet
     still does not fit.

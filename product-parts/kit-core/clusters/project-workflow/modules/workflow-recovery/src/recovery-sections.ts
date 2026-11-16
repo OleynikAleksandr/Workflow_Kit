@@ -212,6 +212,18 @@ export function describeTask(
   if (task.confirmation) {
     lines.push(`confirmation: ${task.confirmation}`);
   }
+  for (const deferral of task.deferrals ?? []) {
+    // A deferred delivery attempt (M39 task:defer-delivery): reason and outcome stay visible.
+    const outcome = deferral.outcome ? `; outcome: ${deferral.outcome}` : "";
+    lines.push(
+      field(
+        `deferred attempt ${deferral.iteration}`,
+        `${deferral.at}: ${deferral.reason}${outcome}`,
+        cap,
+        task.id
+      )
+    );
+  }
   if (task.fixes) {
     const original = plan.tasks.find((item) => item.id === task.fixes);
     lines.push(

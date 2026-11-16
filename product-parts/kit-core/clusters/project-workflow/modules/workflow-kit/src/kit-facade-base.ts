@@ -37,6 +37,11 @@ import {
   type KitAutopilotStatus,
 } from "./kit-autopilot-status.js";
 import type { KitContext } from "./kit-context.js";
+import {
+  type DeferRequest,
+  deferDelivery,
+  type DeliveryDeferral,
+} from "./kit-delivery-defer.js";
 import type { PlanChange } from "./kit-scope-create.js";
 import {
   type KitStatus,
@@ -139,6 +144,11 @@ export class WorkflowKitBase {
     expectedRevision: number
   ): PlanChange {
     return acceptRun(this.context(root), runId, input, expectedRevision);
+  }
+
+  /** `task:defer-delivery` (spec M39): the current delivery back to TODO. */
+  deferDelivery(root: string, request: DeferRequest): DeliveryDeferral {
+    return deferDelivery(this.context(root), request);
   }
 
   /** `close --autopilot-run` (host only in the CLI, spec M39). */

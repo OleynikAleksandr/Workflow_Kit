@@ -58,6 +58,9 @@ transitions below it exposes `inputSchema(command)` and
   - `dependencies`, `acceptance`, `checks`, `context`;
   - `commitMessage`, `fixes`, `docsWaiver`;
   - `confirmation`: user confirmation of a delivery task;
+  - `deferrals` (optional, M39, delivery tasks only): the deferred
+    attempts `{iteration, at, reason, outcome, confirmation}` of
+    `deferDelivery`; every `iteration` is below the task's iteration;
   - `parallelSafe` (optional): stored only when `true`; absent means
     `false`;
   - `integration` (optional): `{operationId, sourceCommit}` of the
@@ -270,6 +273,19 @@ quality-profile state.
     - the task is not `TODO` (`TASK_NOT_TODO`);
     - dependencies are unfinished (`DEPENDENCY_PENDING`);
     - a delivery task has no user confirmation (`DELIVERY_CONFIRMATION`).
+- **`deferDelivery(plan, id, {now, reason, outcome?})`**
+  (`plan-delivery-defer.ts`, Kit 2.3.2, spec M39 `task:defer-delivery`) —
+  the current `IN_PROGRESS` delivery task of an `ACTIVE` scope returns to
+  `TODO` as a new attempt: `iteration + 1`, `confirmation` cleared,
+  `currentTaskId` null, the attempt (with its old confirmation, the reason
+  and the outcome, blank → null) appended to `deferrals`. `USAGE` for a
+  reason shorter than 10 characters; any other task, kind or status is
+  `DELIVERY_DEFER_NOT_ALLOWED` (a DONE task never changes). The other
+  tasks are untouched, so `extendPlan` with `round: "new"` then carries
+  the TODO delivery behind the new round's work, `DOCS` and delivery
+  tasks without `ROUND_OPEN`. `validateDeferrals` (part of `validatePlan`)
+  refuses records on other kinds, malformed entries and attempts not
+  below the current iteration (`PLAN_SCHEMA`).
 - **`completeTask(plan, id, digest)`**
   - Works only on the current task (`TASK_NOT_ACTIVE`).
   - A `DOCS` task needs a valid digest and stores it on its round.

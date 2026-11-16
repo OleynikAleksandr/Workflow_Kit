@@ -4,6 +4,7 @@ import {
 } from "../../workflow-platform/src/workflow-platform-facade.js";
 import { validatePlanAutomation } from "./plan-automation.js";
 import { validateAutopilotRecords } from "./plan-autopilot-completion.js";
+import { validateDeferrals } from "./plan-delivery-defer.js";
 import { validatePlanExecution } from "./plan-execution.js";
 import {
   byteLength,
@@ -373,6 +374,7 @@ export function validatePlan(plan: WorkflowPlan): WorkflowPlan {
     text(plan.lastClosed.closedAt, "lastClosed.closedAt");
   }
   validateAutopilotRecords(plan);
+  validateDeferrals(plan);
   if (plan.scope === null) {
     ensure(
       plan.rounds.length === 0 &&

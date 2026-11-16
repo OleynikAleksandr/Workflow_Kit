@@ -21,6 +21,10 @@
 - T003: delivery IN_PROGRESS с failed CI без коммита → defer → fixes round → DOCS →
   повторная delivery. DONE/dirty/wrong-kind/stale-revision/pending transaction не
   меняют план. История попытки сохраняется, старые DONE SHA не меняются.
+  Отдельный сценарий: defer T012 → plan:extend round=new с fixes и новой D002 →
+  task:update зависимости T012 от D002. Проверить порядок fixes → DOCS → D002 → T012,
+  отсутствие TASK_ORDER/ROUND_OPEN, запрет старта T012 до завершения D002 и неизменность
+  DONE SHA. Сценарий проходит настоящим бандлом уже в T003, до проверки поставки T012.
 - T004: все фактически генерируемые инструкции/recovery/host texts согласованы;
   агенту не предлагается выдать себе grant; source tasks и DOCS не ждут повторного
   согласия при разрешённом M39-переходе. Обновление старого активного scope штатным

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1142,
+  "revision": 1143,
   "rounds": [
     {
       "digest": {
@@ -45,7 +45,10 @@
       "Контракты модулей, OS-MATRIX и документы Kit согласованы с кодом; typecheck, platform-guard и все тесты проходят.",
       "0.14.4 установлена на macOS, CI точного SHA поставки зелёная на macOS, Linux, Windows x64 и ARM64; живая проверка Windows записана за проверяющим на Windows (до проведения — «не проверено вживую на Windows»); пользовательская приёмка отдельно."
     ],
-    "acceptanceNote": null,
+    "acceptanceNote": {
+      "at": "2026-11-16T15:16:00.453Z",
+      "text": "Выполняю все без остановки, вплоть до публикации на GitHub."
+    },
     "approval": {
       "at": "2026-11-16T14:59:04.142Z",
       "text": "Пользователь 16.11.2026 на предложение исправить красную CI 43859413953 (Windows x64 и ARM64: EBUSY при удалении временной папки в after() теста autopilot/test/flow.test.ts) через carryover T005 в новый scope, задачу исправления теста и повторный CI без force: «Да, проведи исправление.» Подтверждение поставки T005: «Подтверждаю.»"
@@ -72,7 +75,7 @@
         "text": "Carried over unfinished tasks from scope M37-plan-close-flow."
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "ACCEPTED",
     "execution": {
       "maxWorkers": 2,
       "ownerSession": "da6065c6-a99c-4b9f-bd95-2a6d6be687dc",
@@ -186,11 +189,11 @@
 ## State
 
 - Scope: M37-plan-close-flow-fix (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: ACCEPTED
 - Execution: sequential
 - Current task: none
 - Progress: 3/3
-- Revision: 1142
+- Revision: 1143
 
 ## Objective
 

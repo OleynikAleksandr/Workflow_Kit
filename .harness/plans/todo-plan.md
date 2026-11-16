@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T011",
   "lastClosed": {
     "closedAt": "2026-11-16T17:16:45.868Z",
     "scopeId": "M38-kit-structure-update"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1194,
+  "revision": 1196,
   "rounds": [
     {
       "digest": {
@@ -1130,7 +1130,7 @@
         "installed-service"
       ],
       "commitMessage": "chore: deliver Workflow Kit 0.15.0 autopiloting",
-      "confirmation": null,
+      "confirmation": "Подтверждаю",
       "context": [
         {
           "path": "docs/planning/M39-autopiloting-validation.md",
@@ -1156,6 +1156,7 @@
         "package.json",
         "package-lock.json",
         "CHANGELOG.md",
+        "README.md",
         "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
         "docs/evidence/M39-acceptance.md",
         "docs/architecture/OS-MATRIX.md"
@@ -1165,7 +1166,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "Поставка Workflow Kit 0.15.0 и проверка установленной службы",
       "why": "Поставка Workflow Kit 0.15.0 и проверка установленной службы"
     },
@@ -1219,9 +1220,9 @@
 - Scope: M39-autopiloting (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: none
+- Current task: T011
 - Progress: 12/14
-- Revision: 1194
+- Revision: 1196
 
 ## Objective
 
@@ -1289,9 +1290,9 @@
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M39-autopiloting.md, docs/architecture/workflow-kit/WorkflowKitCommands.md, docs/architecture/workflow-kit/WorkflowKitRecovery.md, docs/architecture/OS-MATRIX.md, docs/architecture/CONTRACTS.md, docs/architecture/HTTP-CONTRACTS.md, docs/architecture/workflow-kit/WorkflowKitProcess.md, docs/architecture/workflow-kit/WorkflowKitExecutionModes.md, docs/architecture/workflow-kit/WorkflowKitInstallation.md, docs/architecture/workflow-kit/WorkflowKitHost.md, docs/architecture/workflow-kit/WorkflowKitHostInstallation.md, docs/usage.md, design-qa.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/projects/modules/git-publish/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, docs/evidence/M39-acceptance.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-execution-mode/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/operations.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/tests.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/automation.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-git/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/autopilot.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/authorization.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/module.md, product-parts/backend-core/clusters/projects/modules/kit-structure/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-autopilot/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/module.md, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/module.md, product-parts/backend-core/clusters/runtime/modules/cli/commands.md, product-parts/backend-core/clusters/runtime/modules/cli/connected-modules.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting-completion.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/files.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md
   - Depends on: T001, T002, T003, T004, T005, T006, T007, T008, T009, T010, F001
-- [TODO] T011 — Поставка Workflow Kit 0.15.0 и проверка установленной службы (delivery)
+- [IN_PROGRESS] T011 — Поставка Workflow Kit 0.15.0 и проверка установленной службы (delivery)
   - Commit: chore: deliver Workflow Kit 0.15.0 autopiloting
-  - Files: package.json, package-lock.json, CHANGELOG.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, docs/evidence/M39-acceptance.md, docs/architecture/OS-MATRIX.md
+  - Files: package.json, package-lock.json, CHANGELOG.md, README.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, docs/evidence/M39-acceptance.md, docs/architecture/OS-MATRIX.md
   - Depends on: T010, DOCS-R1
 - [TODO] T012 — Четыре платформы CI и факты сквозных прогонов (delivery)
   - Commit: test: verify M39 cross-platform delivery and live evidence

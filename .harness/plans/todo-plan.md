@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T010",
   "lastClosed": {
     "closedAt": "2026-11-16T17:16:45.868Z",
     "scopeId": "M38-kit-structure-update"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1187,
+  "revision": 1189,
   "rounds": [
     {
       "digest": null,
@@ -963,9 +963,43 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "Сквозные проверки полной связки и регрессии управления",
       "why": "Сквозные проверки полной связки и регрессии управления"
+    },
+    {
+      "acceptance": [
+        "«Продолжить» идущего (не приостановленного) запуска возвращает его runId и не меняет запуск",
+        "Пока владелец работает или у него в очереди уже есть продолжение запуска, «Продолжить» не ставит второе сообщение",
+        "Повторный старт во время отправки возвращает runId того же запуска",
+        "Сквозной тест на настоящем бандле проверяет: перезапуск службы и «Продолжить» дают одно сообщение"
+      ],
+      "checks": [],
+      "commitMessage": "fix: keep one message when a running autopilot run is resumed",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M39-autopiloting-validation.md",
+          "required": true,
+          "heading": "1.3. Выполнение и восстановление — T007"
+        }
+      ],
+      "dependencies": [
+        "T010"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot",
+        "docs/architecture/OS-MATRIX.md"
+      ],
+      "fixes": "T007",
+      "id": "F001",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R1",
+      "status": "TODO",
+      "title": "«Продолжить» идущего запуска без второго сообщения",
+      "why": "T010 нашёл на настоящем бандле: runs.resume возвращает null для идущего запуска, поэтому autopilot.resume не видит запуск и ставит второе сообщение (RESUME_MESSAGE) рядом с продолжением после перезапуска или ходом владельца; повторный старт отвечает без runId"
     },
     {
       "acceptance": [
@@ -986,7 +1020,8 @@
         "T007",
         "T008",
         "T009",
-        "T010"
+        "T010",
+        "F001"
       ],
       "docsWaiver": null,
       "files": [
@@ -1011,7 +1046,31 @@
         "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
         "product-parts/backend-core/clusters/projects/modules/git-publish/module.md",
         "product-parts/control-panel/clusters/web-panel/modules/session-view/module.md",
-        "docs/evidence/M39-acceptance.md"
+        "docs/evidence/M39-acceptance.md",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-execution-mode/module.md",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/module.md",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/module.md",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/operations.md",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/tests.md",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/automation.md",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/module.md",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery/module.md",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-git/module.md",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/autopilot.md",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/authorization.md",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/module.md",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/module.md",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-autopilot/module.md",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-update/module.md",
+        "product-parts/workflow-engine/clusters/kit-host/modules/plan-view/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/commands.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/connected-modules.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/plan-review/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting-completion.md",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/files.md",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md"
       ],
       "fixes": null,
       "id": "DOCS-R1",
@@ -1122,9 +1181,9 @@
 - Scope: M39-autopiloting (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: none
-- Progress: 9/13
-- Revision: 1187
+- Current task: T010
+- Progress: 9/14
+- Revision: 1189
 
 ## Objective
 
@@ -1179,14 +1238,19 @@
   - Commit: feat: add autopiloting settings and collapsible service cards
   - Files: product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/workflow-engine/clusters/session-loop/modules/autopilot, docs/usage.md, design-qa.md, docs/architecture/OS-MATRIX.md, docs/architecture/HTTP-CONTRACTS.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/files.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/api.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/app.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/autopiloting-card.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/autopiloting-model.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/card-grid.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/cards.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/controls.css, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/index.html, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/settings.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/shared-access-card.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/system-card.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/autopiloting-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/panel-shell.test.ts, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/plan-cards.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/run-card.css, product-parts/control-panel/clusters/web-panel/modules/session-view/src/run-card.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/run-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/sidebar-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/test/run-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/session-view/test/session-model.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-brief.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-complete.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-journal.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/runs-routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/runs.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/runs.test.ts
   - Depends on: T008
-- [TODO] T010 — Сквозные проверки полной связки и регрессии управления (work)
+- [IN_PROGRESS] T010 — Сквозные проверки полной связки и регрессии управления (work)
   - Commit: test: cover complete autopiloting lifecycle and controls
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/backend-core/clusters/runtime/modules/cli/test, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/projects/modules/git-publish/test, product-parts/backend-core/clusters/projects/modules/git-publish/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/test, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, docs/evidence/M39-acceptance.md, docs/architecture/OS-MATRIX.md
   - Depends on: T009
+- [TODO] F001 — «Продолжить» идущего запуска без второго сообщения (work)
+  - Commit: fix: keep one message when a running autopilot run is resumed
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, docs/architecture/OS-MATRIX.md
+  - Depends on: T010
+  - Fixes: T007
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
-  - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M39-autopiloting.md, docs/architecture/workflow-kit/WorkflowKitCommands.md, docs/architecture/workflow-kit/WorkflowKitRecovery.md, docs/architecture/OS-MATRIX.md, docs/architecture/CONTRACTS.md, docs/architecture/HTTP-CONTRACTS.md, docs/architecture/workflow-kit/WorkflowKitProcess.md, docs/architecture/workflow-kit/WorkflowKitExecutionModes.md, docs/architecture/workflow-kit/WorkflowKitInstallation.md, docs/architecture/workflow-kit/WorkflowKitHost.md, docs/architecture/workflow-kit/WorkflowKitHostInstallation.md, docs/usage.md, design-qa.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/projects/modules/git-publish/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, docs/evidence/M39-acceptance.md
-  - Depends on: T001, T002, T003, T004, T005, T006, T007, T008, T009, T010
+  - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M39-autopiloting.md, docs/architecture/workflow-kit/WorkflowKitCommands.md, docs/architecture/workflow-kit/WorkflowKitRecovery.md, docs/architecture/OS-MATRIX.md, docs/architecture/CONTRACTS.md, docs/architecture/HTTP-CONTRACTS.md, docs/architecture/workflow-kit/WorkflowKitProcess.md, docs/architecture/workflow-kit/WorkflowKitExecutionModes.md, docs/architecture/workflow-kit/WorkflowKitInstallation.md, docs/architecture/workflow-kit/WorkflowKitHost.md, docs/architecture/workflow-kit/WorkflowKitHostInstallation.md, docs/usage.md, design-qa.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/projects/modules/git-publish/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, docs/evidence/M39-acceptance.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-execution-mode/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/operations.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/tests.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/automation.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-git/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/autopilot.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/authorization.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/module.md, product-parts/backend-core/clusters/projects/modules/kit-structure/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-autopilot/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/module.md, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/module.md, product-parts/backend-core/clusters/runtime/modules/cli/commands.md, product-parts/backend-core/clusters/runtime/modules/cli/connected-modules.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting-completion.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/files.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md
+  - Depends on: T001, T002, T003, T004, T005, T006, T007, T008, T009, T010, F001
 - [TODO] T011 — Поставка Workflow Kit 0.15.0 и проверка установленной службы (delivery)
   - Commit: chore: deliver Workflow Kit 0.15.0 autopiloting
   - Files: package.json, package-lock.json, CHANGELOG.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, docs/evidence/M39-acceptance.md, docs/architecture/OS-MATRIX.md

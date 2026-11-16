@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T006",
   "lastClosed": {
     "closedAt": "2026-11-16T15:16:10.108Z",
     "scopeId": "M37-plan-close-flow-fix"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1160,
+  "revision": 1161,
   "rounds": [
     {
       "digest": {
@@ -420,7 +420,7 @@
       ],
       "checks": [],
       "commitMessage": "docs: record the Kit structure update cross-platform CI",
-      "confirmation": null,
+      "confirmation": "Выполняй весь план задача за задачей без пауз - даю тебе на это своё согласие.",
       "context": [
         {
           "path": "docs/planning/M38-kit-structure-update.md",
@@ -441,7 +441,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "CI точного SHA поставки на четырёх платформах",
       "why": "Поставка не готова, пока CI не зелёная на всех ОС"
     }
@@ -455,9 +455,9 @@
 - Scope: M38-kit-structure-update (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: none
+- Current task: T006
 - Progress: 7/8
-- Revision: 1160
+- Revision: 1161
 
 ## Objective
 
@@ -503,7 +503,7 @@
   - Commit: chore: deliver the Kit structure update
   - Files: package.json, package-lock.json, CHANGELOG.md, docs/evidence/M38-acceptance.md, README.md
   - Depends on: T004, DOCS-R1
-- [TODO] T006 — CI точного SHA поставки на четырёх платформах (delivery)
+- [IN_PROGRESS] T006 — CI точного SHA поставки на четырёх платформах (delivery)
   - Commit: docs: record the Kit structure update cross-platform CI
   - Files: docs/evidence/M38-acceptance.md
   - Depends on: T005, DOCS-R1

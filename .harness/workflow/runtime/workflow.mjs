@@ -1,6 +1,6 @@
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/workflow-kit-cli.ts
 import { readFileSync as readFileSync11, realpathSync as realpathSync4 } from "node:fs";
-import path25 from "node:path";
+import path26 from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-platform/src/platform-fs.ts
@@ -4354,11 +4354,11 @@ var WorkflowGitFacade = class {
     this.platform = platform;
     this.git = new GitRunner(platform, env);
   }
-  isRepository(path26) {
-    return this.git.succeeds(path26, ["rev-parse", "--is-inside-work-tree"]);
+  isRepository(path27) {
+    return this.git.succeeds(path27, ["rev-parse", "--is-inside-work-tree"]);
   }
-  topLevel(path26) {
-    return this.git.text(path26, ["rev-parse", "--show-toplevel"]);
+  topLevel(path27) {
+    return this.git.text(path27, ["rev-parse", "--show-toplevel"]);
   }
   init(root, branch = "main") {
     this.git.run(root, ["init", "-q", `--initial-branch=${branch}`]);
@@ -4424,8 +4424,8 @@ var WorkflowGitFacade = class {
     ]);
   }
   /** File content at a revision (`:path` reads the index); null when absent. */
-  show(root, revision, path26) {
-    const output = this.git.run(root, ["show", `${revision}:${path26}`], {
+  show(root, revision, path27) {
+    const output = this.git.run(root, ["show", `${revision}:${path27}`], {
       allowFailure: true
     });
     return output.status === 0 ? output.stdout : null;
@@ -10378,7 +10378,7 @@ function guardExecutorCandidate(context, journal) {
 }
 
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-doctor.ts
-import path22 from "node:path";
+import path23 from "node:path";
 
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-doctor-checks.ts
 import { accessSync as accessSync2, constants as constants2, existsSync as existsSync13 } from "node:fs";
@@ -10677,7 +10677,7 @@ in line with the code.
 }
 
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-payload.ts
-var KIT_VERSION = "2.2.6";
+var KIT_VERSION = "2.2.7";
 var MANIFEST_PATH = ".harness/workflow/manifest.json";
 var MANIFEST_SCHEMA = "harness-workflow-manifest/1";
 var OWN_HOOKS_DIR = ".harness/workflow/hooks";
@@ -10694,7 +10694,7 @@ function sha2562(text3) {
 function hasClaudeLine(text3) {
   return text3.split(LINE_BREAK).some((line) => line.trim() === CLAUDE_IMPORT_LINE);
 }
-function readManaged(kind, path26, current) {
+function readManaged(kind, path27, current) {
   if (current === null) {
     return null;
   }
@@ -10702,7 +10702,7 @@ function readManaged(kind, path26, current) {
     case "owned":
       return current;
     case "section":
-      return extractSection(current, path26.endsWith(".md") ? "html" : "hash");
+      return extractSection(current, path27.endsWith(".md") ? "html" : "hash");
     case "json":
       return extractSessionStartHook(current);
     case "line":
@@ -10711,32 +10711,32 @@ function readManaged(kind, path26, current) {
       return null;
   }
 }
-function owned(path26, content, executable = false) {
+function owned(path27, content, executable = false) {
   return {
     executable,
     kind: "owned",
     managed: content,
-    path: path26,
+    path: path27,
     read: (current) => current,
     render: () => content
   };
 }
-function section(path26, style, body, placement = "bottom", prefix = "") {
+function section(path27, style, body, placement = "bottom", prefix = "") {
   return {
     executable: false,
     kind: "section",
     managed: sectionBlock(style, body),
-    path: path26,
+    path: path27,
     read: (current) => current === null ? null : extractSection(current, style),
     render: (current) => upsertSection(current ?? (prefix || null), style, body, placement)
   };
 }
-function created(path26, content) {
+function created(path27, content) {
   return {
     executable: false,
     kind: "create",
     managed: null,
-    path: path26,
+    path: path27,
     read: () => null,
     render: (current) => current ?? content
   };
@@ -10762,14 +10762,14 @@ ${CLAUDE_IMPORT_LINE}
     }
   };
 }
-function providerHook(path26, client) {
+function providerHook(path27, client) {
   return {
     executable: false,
     kind: "json",
     managed: expectedSessionStartHook(client),
-    path: path26,
-    read: (current) => readManaged("json", path26, current),
-    render: (current) => mergeSessionStartHook(current, client, path26)
+    path: path27,
+    read: (current) => readManaged("json", path27, current),
+    render: (current) => mergeSessionStartHook(current, client, path27)
   };
 }
 function hookEntries(hooksPath) {
@@ -11101,7 +11101,85 @@ function planChecks(git, root) {
 
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-install.ts
 import { chmodSync, existsSync as existsSync14, mkdirSync as mkdirSync3 } from "node:fs";
+import path22 from "node:path";
+
+// product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-with.ts
 import path21 from "node:path";
+var APP_STRUCTURE_MANIFEST = ".workflow-kit/manifest.json";
+var notManaged = (item) => new WorkflowError(
+  "WITH_NOT_MANAGED",
+  `--with takes only the files of ${APP_STRUCTURE_MANIFEST}: ${item}`,
+  { path: item }
+);
+function structurePaths(root) {
+  const text3 = workflowPlatformFacade.readTextIfExists(
+    path21.join(root, ...APP_STRUCTURE_MANIFEST.split("/"))
+  );
+  if (text3 === null) {
+    return null;
+  }
+  try {
+    const fragments = JSON.parse(text3).fragments;
+    if (!fragments || typeof fragments !== "object") {
+      return null;
+    }
+    const paths = /* @__PURE__ */ new Set([APP_STRUCTURE_MANIFEST]);
+    for (const fragment of Object.values(fragments)) {
+      const item = fragment?.path;
+      if (typeof item === "string") {
+        paths.add(workflowPlatformFacade.normalizeRelative(item));
+      }
+    }
+    return paths;
+  } catch {
+    return null;
+  }
+}
+function checkWith(root, update, paths) {
+  if (paths === void 0) {
+    return [];
+  }
+  ensure(update, "USAGE", "--with needs --update.");
+  const normalized = [
+    ...new Set(
+      paths.map((item) => {
+        try {
+          return workflowPlatformFacade.normalizeRelative(item);
+        } catch {
+          throw notManaged(item);
+        }
+      })
+    )
+  ];
+  if (normalized.length === 0) {
+    return [];
+  }
+  const allowed = structurePaths(root);
+  ensure(
+    allowed !== null,
+    "WITH_NOT_MANAGED",
+    `--with takes only the files of ${APP_STRUCTURE_MANIFEST}, which is missing or unreadable.`,
+    { path: APP_STRUCTURE_MANIFEST }
+  );
+  for (const item of normalized) {
+    if (!allowed.has(item)) {
+      throw notManaged(item);
+    }
+  }
+  return normalized;
+}
+function installCommitFiles(changed, written, structure, update) {
+  const withFiles = structure.filter((item) => changed.has(item)).sort();
+  const kitChanged = written.some((item) => changed.has(item));
+  const mode = !update ? "install" : kitChanged || withFiles.length === 0 ? "update" : "structure";
+  return {
+    files: [.../* @__PURE__ */ new Set([...written, ...withFiles])],
+    mode,
+    with: withFiles
+  };
+}
+
+// product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-install.ts
 var KIT_STATES = /* @__PURE__ */ new Set([
   "KIT_DAMAGED",
   "KIT_OK",
@@ -11113,7 +11191,7 @@ function projectSlug(name) {
   return name.toLowerCase().replace(SLUG_DROP2, "-").replace(SLUG_TRIM, "") || "project";
 }
 function file3(root, relative) {
-  return path21.join(root, ...relative.split("/"));
+  return path22.join(root, ...relative.split("/"));
 }
 function localHooksPath(git, root) {
   const value = git.git.run(root, ["config", "--local", "--get", "core.hooksPath"], {
@@ -11126,7 +11204,7 @@ function localHooksPath(git, root) {
   try {
     relative = workflowPlatformFacade.relativeFromRoot(
       root,
-      path21.resolve(root, value)
+      path22.resolve(root, value)
     );
   } catch {
     throw new WorkflowError(
@@ -11256,14 +11334,19 @@ function scopeOf(planText2, legacy) {
     return null;
   }
 }
-function commitInstall(git, root, files, planText2, update, scopeId) {
+function commitInstall(git, root, files, planText2, mode, scopeId) {
+  const messages = {
+    install: `chore: install workflow kit ${KIT_VERSION}`,
+    structure: "chore: update the Workflow Kit structure",
+    update: `chore: update workflow kit to ${KIT_VERSION}`
+  };
   try {
     return git.transactions.commit(root, {
       files,
-      message: update ? `chore: update workflow kit to ${KIT_VERSION}` : `chore: install workflow kit ${KIT_VERSION}`,
+      message: messages[mode],
       planPath: PLAN_PATH,
       planText: planText2,
-      role: update ? "kit-update" : "bootstrap",
+      role: mode === "install" ? "bootstrap" : "kit-update",
       scopeId,
       taskId: null
     });
@@ -11278,6 +11361,7 @@ function installKit(git, folder, options) {
   const inspected = inspectFolder(git, folder);
   const root = inspected.path;
   const update = options.update === true;
+  const structure = checkWith(root, update, options.with);
   checkPreconditions(
     inspected.state,
     update,
@@ -11300,7 +11384,7 @@ function installKit(git, folder, options) {
   }
   const hooksPath = localHooksPath(git, root);
   const before = new Set(git.changes(root).all);
-  const name = options.name?.trim() || path21.basename(root);
+  const name = options.name?.trim() || path22.basename(root);
   const entries2 = buildPayload({
     bundle: options.bundle,
     hooksPath,
@@ -11324,22 +11408,29 @@ function installKit(git, folder, options) {
   if (hooksPath === null) {
     git.setConfig(root, "core.hooksPath", OWN_HOOKS_DIR);
   }
+  const chosen = installCommitFiles(
+    new Set(git.changes(root).all),
+    written,
+    structure,
+    update
+  );
   const commit2 = commitInstall(
     git,
     root,
-    written,
+    chosen.files,
     planText2,
-    update,
+    chosen.mode,
     scopeOf(planText2, migrationRequired || existingPlan === null)
   );
   return {
     commit: commit2,
-    excluded: [...before].filter((item) => !written.includes(item)).sort(),
+    excluded: [...before].filter((item) => !chosen.files.includes(item)).sort(),
     hooksPath: hooksPath ?? OWN_HOOKS_DIR,
     migrationRequired,
     previousState: inspected.state,
     root,
     version: KIT_VERSION,
+    with: chosen.with,
     written
   };
 }
@@ -11452,7 +11543,7 @@ function inspectProject(git, root, options) {
   ];
 }
 function runDoctor(git, folder, options = {}) {
-  const root = path22.resolve(folder);
+  const root = path23.resolve(folder);
   let checks = inspectProject(git, root, options);
   let fix = null;
   let identityFix = null;
@@ -11488,7 +11579,7 @@ function runDoctor(git, folder, options = {}) {
 
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-migrate.ts
 import { existsSync as existsSync15 } from "node:fs";
-import path23 from "node:path";
+import path24 from "node:path";
 
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-legacy-plan.ts
 var LEGACY_SCHEMA = "harness-ai-plan-v1";
@@ -11720,7 +11811,7 @@ function buildMigratedPlan(legacy, base, options, existing) {
   };
 }
 function migrateHarnessPlan(git, folder, options) {
-  const root = path23.resolve(folder);
+  const root = path24.resolve(folder);
   ensure(
     readManifest(root),
     "NOT_INSTALLED",
@@ -11729,18 +11820,18 @@ function migrateHarnessPlan(git, folder, options) {
     "Run `scripts/workflow install`."
   );
   const text3 = workflowPlatformFacade.readTextIfExists(
-    path23.join(root, ...PLAN_PATH.split("/"))
+    path24.join(root, ...PLAN_PATH.split("/"))
   );
   ensure(text3, "NOT_LEGACY_PLAN", `${PLAN_PATH} does not exist.`);
   const legacy = parseLegacyPlan(text3);
   const baselineCommit = git.head(root);
   ensure(baselineCommit, "NO_COMMITS", "The repository has no commits yet.");
-  const name = options.name?.trim() || path23.basename(root);
+  const name = options.name?.trim() || path24.basename(root);
   const result2 = buildMigratedPlan(
     legacy,
     { baselineCommit, projectId: projectSlug(name), projectName: name },
     options,
-    (relative) => existsSync15(path23.join(root, ...relative.split("/")))
+    (relative) => existsSync15(path24.join(root, ...relative.split("/")))
   );
   ensure(
     git.transactions.journal(root) === null,
@@ -12071,7 +12162,7 @@ var WorkflowKitBase = class {
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-hooks.ts
 import { createHash as createHash7 } from "node:crypto";
 import { existsSync as existsSync16, readFileSync as readFileSync10 } from "node:fs";
-import path24 from "node:path";
+import path25 from "node:path";
 var MANAGED_HINT = "Commit through the Workflow Kit: `scripts/workflow commit --task <ID>` or `scripts/workflow docs:commit`.";
 var OUTPUT_TAIL4 = 1500;
 var pass = (message = "") => ({
@@ -12086,7 +12177,7 @@ var fail = (code, message) => ({
 });
 function fingerprints(root, files) {
   return files.map((file4) => {
-    const absolute2 = path24.join(root, ...file4.split("/"));
+    const absolute2 = path25.join(root, ...file4.split("/"));
     const digest = existsSync16(absolute2) ? createHash7("sha256").update(readFileSync10(absolute2)).digest("hex") : "deleted";
     return `${file4}:${digest}`;
   }).join("\n");
@@ -12170,7 +12261,7 @@ ${failedSummary(report)}`
 }
 function commitMessage(context, args) {
   const journal = context.git.transactions.journal(context.root);
-  const file4 = args[0] ? path24.resolve(context.root, args[0]) : "";
+  const file4 = args[0] ? path25.resolve(context.root, args[0]) : "";
   const message = file4 && existsSync16(file4) ? readFileSync10(file4, "utf8") : "";
   if (!(journal && message.includes(`Workflow-Transaction: ${journal.id}`))) {
     return fail("MANAGED_COMMIT_REQUIRED", MANAGED_HINT);
@@ -13071,7 +13162,7 @@ var workflowKitFacade = new WorkflowKitFacade();
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/workflow-kit-cli.ts
 var EVENTS2 = /* @__PURE__ */ new Set(["startup", "resume", "clear", "compact"]);
 function resolvePath(io, value) {
-  return path25.resolve(io.cwd, value ?? ".");
+  return path26.resolve(io.cwd, value ?? ".");
 }
 function ownBundle(args, io) {
   return {
@@ -13134,9 +13225,10 @@ var COMMANDS = {
       // The installer refuses any other value with USAGE.
       host: flag(args, "host"),
       name: flag(args, "name"),
-      update: args.flags.get("update") === true
+      update: args.flags.get("update") === true,
+      with: listFlag(args, "with")
     }),
-    usage: "install [<path>] [--name <project name>] [--update] [--host harness] [--bundle <workflow.mjs>]"
+    usage: "install [<path>] [--name <project name>] [--update [--with <json|a,b>]] [--host harness] [--bundle <workflow.mjs>]"
   },
   history: {
     run: ({ args, kit, root }) => kit.history(root, {

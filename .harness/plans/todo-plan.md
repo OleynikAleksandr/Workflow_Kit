@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1158,
+  "revision": 1160,
   "rounds": [
     {
       "digest": {
@@ -383,7 +383,7 @@
         "installed-service"
       ],
       "commitMessage": "chore: deliver the Kit structure update",
-      "confirmation": null,
+      "confirmation": "Выполняй весь план задача за задачей без пауз - даю тебе на это своё согласие.",
       "context": [
         {
           "path": "docs/planning/M38-kit-structure-update.md",
@@ -408,7 +408,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Поставка 0.14.5, установка и живая проверка установленной версии",
       "why": "Исправление должно дойти до установленного приложения и быть проверено вживую"
     },
@@ -456,8 +456,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 6/8
-- Revision: 1158
+- Progress: 7/8
+- Revision: 1160
 
 ## Objective
 
@@ -499,7 +499,7 @@
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M38-kit-structure-update.md, AGENTS.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/tests.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md, product-parts/backend-core/clusters/projects/cluster.md, product-parts/backend-core/clusters/projects/modules/project-setup/module.md, product-parts/backend-core/clusters/runtime/modules/cli/connected-modules.md, docs/architecture/workflow-kit/WorkflowKitInstallation.md, docs/architecture/workflow-kit/WorkflowKitCommands.md, docs/architecture/workflow-kit/WorkflowKitRecovery.md, docs/architecture/OS-MATRIX.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/module.md, product-parts/workflow-engine/clusters/kit-host/cluster.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/projects/modules/kit-structure/module.md, docs/architecture/CONTRACTS.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, docs/usage.md, design-qa.md
   - Depends on: T001, F001, T002, T003, T004
-- [TODO] T005 — Поставка 0.14.5, установка и живая проверка установленной версии (delivery)
+- [DONE] T005 — Поставка 0.14.5, установка и живая проверка установленной версии (delivery)
   - Commit: chore: deliver the Kit structure update
   - Files: package.json, package-lock.json, CHANGELOG.md, docs/evidence/M38-acceptance.md, README.md
   - Depends on: T004, DOCS-R1

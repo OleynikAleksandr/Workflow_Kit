@@ -20,6 +20,8 @@ import type { SessionTitles, SessionTitlesOptions } from '#session-titles';
 import { createTurnInterruption, deliverAfterInterruption } from './turn-interruption.ts';
 import { createDirectMessage, ledOutside } from './direct-message.ts';
 import { lateReviewDecider, toggleLock, wireCrossReview } from './review-wiring.ts';
+import { wireAutopiloting } from './autopiloting-wiring.ts';
+import type { AutopilotingWiring } from './autopiloting-wiring.ts';
 
 /** How often a turn ended without a Stop hook is looked for (M28). */
 export const TURN_RECONCILE_MS = 2000;
@@ -58,6 +60,9 @@ export interface SessionWiringOptions {
   providers: ProviderRegistry;
   workflow: WorkflowState;
   kit: KitRunner;
+  /** The configuration folder of the service (M39: `autopiloting.json`). */
+  configDir: string;
+  platform?: NodeJS.Platform;
   /** The deepest registered project that contains a folder. */
   resolveFolderProject: (folder: string) => Promise<{ id: string } | undefined>;
   /** Tells the provider that a session was archived or returned in the panel. */
@@ -71,6 +76,7 @@ export interface SessionWiring {
   review: ReviewToggles;
   titles: SessionTitles;
   crossReview: CrossReview;
+  autopiloting: AutopilotingWiring;
 }
 
 /**
@@ -148,7 +154,13 @@ export function wireSessions(options: SessionWiringOptions): SessionWiring {
     },
   };
   const reviewDecider = lateReviewDecider();
+  // M39: an instruction keeps a review decision the session already has; it closes its plan question.
+  const autopiloting = wireAutopiloting({ router, state, mutex, projects, kit, channel, configDir: options.configDir, platform: options.platform, log: options.log, decideReview: async (id, key, on) => {
+    await review.dismiss(id, key);
+    if (!review.decided(id, key)) await review.set(id, key, on);
+  } });
   const autopilot = createAutopilot({
+    authority: autopiloting.authority,
     runner: kit,
     workflow,
     channel: wakingChannel,
@@ -212,6 +224,9 @@ export function wireSessions(options: SessionWiringOptions): SessionWiring {
     scopeOf: (id) => workflow.get(id)?.scope?.id ?? null,
   });
   registerReviewRoutes({ router, state, toggles: review });
+  review.onAnswer((id, key, choice, question) => {
+    if (question.kind === 'agent') void autopiloting.runs.planDecision(id, key, choice, question.summary).catch((error: unknown) => options.log?.(`autopiloting: ${key}: ${error instanceof Error ? error.message : String(error)}`));
+  });
 
   // Keys of the sessions the providers list for a project, filtered by their state.
   const listedKeys = async (id: string, keep: (info: SessionInfo) => boolean): Promise<Set<string>> => {
@@ -249,7 +264,7 @@ export function wireSessions(options: SessionWiringOptions): SessionWiring {
   channel.onIdle((key) => titles.onStop(key));
   const isClient = (id: string): boolean => providers.get(id) !== undefined;
   registerTitleRoutes({ router, state, titles, isClient });
-  const crossReview = wireCrossReview({ router, state, channel, messages: wakingChannel, projects, providers, workflow, toggles: review, titles, resolveFolderProject, isClient, log: options.log });
+  const crossReview = wireCrossReview({ router, state, channel, messages: wakingChannel, projects, providers, workflow, toggles: review, titles, resolveFolderProject, isClient, authorize: autopiloting.authorize, log: options.log });
   reviewDecider.attach(crossReview);
   // The session leaves at once: out of the channel (a held Stop is released) and out of a running
   // review, as main or as reviewer; nothing waits for its next hook.
@@ -283,5 +298,5 @@ export function wireSessions(options: SessionWiringOptions): SessionWiring {
     return provider.questionHook(project, request, signal);
   };
   registerChannelRoutes({ router, state, channel: observedChannel, messages: wakingChannel, owns: ownsSession, dialects, direct, interrupt: interruptions.interrupt, interruptions: interruptions.section, question });
-  return { channel, autopilot, review, titles, crossReview };
+  return { channel, autopilot, review, titles, crossReview, autopiloting };
 }

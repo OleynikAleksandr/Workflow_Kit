@@ -19,6 +19,7 @@ export type {
   TurnEndEvent,
   TurnEndNotice,
   TurnOrigin,
+  UserWords,
 } from './types.ts';
 export { QUEUED_TEXT_MAX, QUEUED_VIEW_MAX, STOP_HOLD_MS, TURN_END_EVENTS, USER_MESSAGE_SOURCE } from './types.ts';
 export { createAgentChannel } from './channel.ts';

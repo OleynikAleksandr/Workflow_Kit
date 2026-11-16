@@ -135,6 +135,11 @@
   погашенные id после перезапуска). `hostInputDigest(value)` — тот же sha256 канонического JSON,
   что `hostDigest` Kit. Подключение к решению автопилота и журналу — T005–T008; `autopilot.ts`
   и `decide.ts` в T002 не меняются.
+- Автопилотирование M39 (T005): опция `authority` автопилота
+  (`beforeStart`/`beforeResume` → `runId | null`; `start`/`resume` отвечают и `runId`),
+  настройки `createSettingsStore`, журнал `createRunJournal`, Kit запуска `createRunKit`,
+  запуски `createRuns`, тексты `POLICY_TEXTS`/`preparationText`, маршруты
+  `registerAutopilotingRoutes` и разделение исходников — в [autopiloting.md](autopiloting.md).
 
 ## Инварианты
 

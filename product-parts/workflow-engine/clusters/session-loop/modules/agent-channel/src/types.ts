@@ -74,6 +74,15 @@ export type StopDecision =
 /** How the turn that just ended began. */
 export type TurnOrigin = 'delivery' | 'decider' | 'reminder' | 'user' | 'unknown';
 
+/** A text the user wrote to the session: a prompt typed in the app or a message typed in the panel (M39). */
+export interface UserWords {
+  text: string;
+  at: string;
+  via: 'prompt' | 'panel';
+  /** The provider's turn id of a prompt, when its hook gave one. */
+  turnId: string | null;
+}
+
 /** A finished turn: what the agent said last and what started the turn (spec M4 section 7). */
 export interface StopEvent {
   key: string;
@@ -241,4 +250,8 @@ export interface AgentChannel extends TurnControl {
   forget(key: string): void;
   /** Releases every held Stop and stops the watchers (service shutdown). */
   close(): void;
+  /** The recent texts the user wrote to the session, oldest first (M39: the source of an authorization). */
+  userWords(key: string): UserWords[];
+  /** Records a panel message the direct path gave to the agent (it never passes the queue). */
+  noteUserWords(key: string, text: string): void;
 }

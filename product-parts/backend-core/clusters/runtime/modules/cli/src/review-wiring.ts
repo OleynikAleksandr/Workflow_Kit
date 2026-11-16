@@ -111,6 +111,8 @@ export function wireCrossReview(options: {
   resolveFolderProject: (folder: string) => Promise<{ id: string } | undefined>;
   /** True for the id of a registered provider. */
   isClient: (client: string) => boolean;
+  /** M39: `wfk session plan --authorized` (the autopiloting runs). */
+  authorize?: (projectId: string, key: string, summary: string, quote: string) => Promise<Record<string, unknown>>;
   log?: (line: string) => void;
 }): CrossReview {
   const { projects, providers } = options;
@@ -169,6 +171,7 @@ export function wireCrossReview(options: {
     router: options.router,
     toggles: options.toggles,
     resolveProject: options.resolveFolderProject,
+    ...(options.authorize ? { authorize: options.authorize } : {}),
     sessionKey: async (input, projectId) => {
       const named = namedSession(input, options.isClient);
       if (named) return `${named.client}:${named.id}`;

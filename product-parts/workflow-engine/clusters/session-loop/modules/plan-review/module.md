@@ -54,6 +54,11 @@
   `sessionKey(input, projectId)` от `cli`: названная пара клиента реестра и id, иначе
   единственная сессия проекта с идущим ходом; отказы — 400 `bad-session` и 409
   `session-ambiguous` с кандидатами (M8, раздел 5). Имён провайдеров модуль не знает.
+  M39: поле `authorized` (точные слова прямого поручения пользователя, `wfk session plan
+  --authorized`) вопроса не открывает — маршрут вызывает опцию `authorize(projectId, key,
+  summary, quote)` (запуски `#autopilot` через `cli`) и отвечает `{ projectId, key, … }` с
+  её результатом (`action`, `runId`, `policy`, `instruction`); её отказы — `HttpError`.
+  Пустое `authorized` — 400 `bad-request`, без опции — 400 `authorization-unsupported`.
 - `sessionFileName(key)` — имя файла по ключу `<id провайдера>:<id сессии>`
   (`[A-Za-z0-9._-]`), иначе `null`; `SESSIONS_DIR`.
 - `registerReviewRoutes({ router, state, toggles })` —

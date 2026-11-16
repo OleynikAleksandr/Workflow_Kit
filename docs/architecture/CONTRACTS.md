@@ -88,7 +88,14 @@ Kit 2.2.6 ставится в проект бандлом (`install --host harne
 с JSON-ответом (`kit-runner`); `.harness/**` служба не читает и не пишет. Host-only переходы
 автопилота M39 (`autopilot:authorize`/`revoke`, `accept`/`close --autopilot-run`) служба запускает
 только `KitRunner.runHost`: `fork` с IPC, одноразовый тикет `createHostTickets` (`#autopilot`)
-проверяется обработчиком канала до записи; обычный запуск получает `HOST_AUTH_REQUIRED`. Раздел `workflow` даёт модели
+проверяется обработчиком канала до записи; обычный запуск получает `HOST_AUTH_REQUIRED`.
+Автопилотирование M39 (T005): настройки `autopiloting.json` в каталоге конфигурации службы
+(`off`/`after-start`/`full` и ревью, с ревизией), журнал запусков проекта
+`.workflow-kit/local/autopiloting/<runId>.json`; ручной старт пишет разрешение запуска до
+первого рабочего сообщения, `wfk session plan --authorized` сверяет слова с текстом, который
+пользователь действительно написал сессии (`agent-channel userWords`) — контракт
+[autopilot/autopiloting.md](../../product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md),
+маршруты — [HTTP-CONTRACTS.md](HTTP-CONTRACTS.md#автопилотирование-m39). Раздел `workflow` даёт модели
 карточек плана и выбора пути (`plan-view`). Хук вопроса Claude `wfk hook question`
 (`PermissionRequest` вопроса `AskUserQuestion`, структура v4, M33; та же команда в хуке `PreToolUse`
 выходит сразу — Claude пишет вызов в транскрипт перед ним, T011) держит

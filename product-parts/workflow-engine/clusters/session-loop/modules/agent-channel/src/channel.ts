@@ -13,8 +13,9 @@ import { blockAnswer, promptAnswer, sessionKey } from './hook-input.ts';
 import { activityOf, newSlot, pendingOf } from './slots.ts';
 import type { ChannelCore, Slot } from './slots.ts';
 import { createRelease } from './release.ts';
+import { createUserWords } from './user-words.ts';
 import { remindedTurn } from './reminder.ts';
-import { LAST_MESSAGE_CHARS, STOP_HOLD_MS } from './types.ts';
+import { LAST_MESSAGE_CHARS, STOP_HOLD_MS, USER_MESSAGE_SOURCE } from './types.ts';
 import type { ActivityState, AgentChannel, AgentChannelOptions, HookReply, IdleListener, QueuedMessage, SessionActivity, StopContext, StopDecider, StopDecision, StopEvent, StopListener, TurnOrigin } from './types.ts';
 
 const RELEASE: StopDecision = { kind: 'release' };
@@ -30,8 +31,8 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
   let closed = false;
 
   const iso = (): string => now().toISOString();
+  const words = createUserWords();
   const changed = (key: string): void => options.onChange?.(key);
-
   /** The slot of a hook; every hook tells whether the session runs outside the panel (external). */
   async function slotOf(input: { client: string; sessionId: string; cwd: string | null; projectDir?: string | null; panelProcess?: boolean }): Promise<Slot> {
     const key = sessionKey(input.client, input.sessionId);
@@ -292,6 +293,7 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
         if (!automaticWake) slot.turn.barrier = false;
         beginTurn(slot, automaticWake ? 'delivery' : 'user', input.turnId, automaticWake ? slot.queue.map((m) => m.source) : []);
         slot.turn.lastPrompt = input.prompt;
+        if (!automaticWake && input.prompt) words.record(slot.activity.key, { text: input.prompt, at: iso(), via: 'prompt', turnId: input.turnId });
       }
       if (duplicate) return empty();
       if (detached?.supports(slot)) {
@@ -313,6 +315,7 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
     },
     enqueue(key, text, source = 'panel', projectId) {
       const message: QueuedMessage = { id: randomUUID(), text, source, createdAt: iso() };
+      if (source === USER_MESSAGE_SOURCE) words.record(key, { text, at: message.createdAt, via: 'panel', turnId: null });
       // A session out of the Kit process gets nothing: the message is dropped, not kept.
       if (excludedKey(key, projectId ?? slots.get(key)?.activity.projectId ?? null)) {
         const known = slots.get(key);
@@ -381,7 +384,9 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
     },
     section: () => ({ sessions: visible().map(activityOf) }),
     excluded: (key, projectId) => excludedKey(key, projectId ?? slots.get(key)?.activity.projectId ?? null),
+    ...words.api(iso),
     forget(key) {
+      words.forget(key);
       const slot = slots.get(key);
       if (slot) drop(slot);
     },

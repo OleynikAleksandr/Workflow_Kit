@@ -151,3 +151,27 @@ test('a turn begun by the start that ends without started work holds the Stop; t
     channel.close();
   }
 });
+
+test('M39: the grant of the run is recorded before the start message; a refused grant sends nothing', async () => {
+  const { runner, workflow } = fakeKit({ value: 'ready' });
+  const { fake, channel } = fakeChannel();
+  const order: string[] = [];
+  let refuse = true;
+  const authority = {
+    beforeStart: async () => {
+      order.push(`grant:${fake.sent.length}`);
+      if (refuse) throw new Error('grant refused');
+      return 'run-abcdef';
+    },
+    beforeResume: async () => null,
+  };
+  const autopilot = createAutopilot({ runner, workflow, channel, projectPath: async () => '/p', authority });
+  await assert.rejects(autopilot.start('p', KEY), /grant refused/);
+  assert.equal(fake.sent.length, 0);
+  refuse = false;
+  assert.deepEqual(await autopilot.start('p', KEY), { owner: KEY, runId: 'run-abcdef' });
+  assert.deepEqual(order, ['grant:0', 'grant:0']);
+  assert.equal(fake.sent.length, 1);
+  assert.deepEqual(await autopilot.start('p', KEY), { owner: KEY, already: true });
+  assert.equal(order.length, 2, 'a repeated start asks for no grant again');
+});

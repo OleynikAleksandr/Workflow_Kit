@@ -174,7 +174,10 @@ export function registerChannelRoutes(options: ChannelRoutesOptions): void {
     const clean = checkSessionMessage(messages, projectId, key, text, owned);
     channel.resumeDelivery(key); // Only a validated, explicit user message releases the barrier.
     // The direct path gives the text to the agent as a user's message; any refusal queues it.
-    if (await sendDirect(options.direct, projectId, key, clean)) return { sent: true };
+    if (await sendDirect(options.direct, projectId, key, clean)) {
+      channel.noteUserWords(key, clean);
+      return { sent: true };
+    }
     const message = messages.enqueue(key, clean, USER_MESSAGE_SOURCE, projectId);
     return { queued: message.id };
   });

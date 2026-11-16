@@ -2,112 +2,25 @@
 // (section 8.3): after a Stop of a session the decider reads `autopilot:status` and either
 // continues the agent, holds the Stop until the user decides, or releases it; the panel actions
 // run Kit commands and tell the agent through the channel.
-import type { AgentChannel, StopContext, StopDecision } from '#agent-channel';
-import type { KitOutcome, KitRunner, WorkflowState } from '#kit-runner';
+import type { StopDecision } from '#agent-channel';
+import type { KitOutcome } from '#kit-runner';
 import type { KitChoiceOption } from '#plan-view';
 import { DEFAULT_MAX_CONTINUES, decideAutopilot, nextAutopilotState } from './decide.ts';
-import type { AutopilotProjectStatus, StopReason } from './decide.ts';
+import type { AutopilotProjectStatus } from './decide.ts';
 import { CHOICE_NOTES, CHOSEN_WAIT, EXECUTOR_HOWTO, PREFIX, REFINE_MESSAGE, RESUME_MESSAGE, START_MESSAGES, STOP_LABELS } from './texts.ts';
 import { deliveryMessage, executorHowto, fixesMessage, sequentialOnlyNote } from './texts.ts';
 import { createPlanEnd } from './acceptance.ts';
 import { createPlanStarts } from './start.ts';
 import { blockedByInterruption, pauseInterruptedOwner } from './interrupt.ts';
 import { moveOwner, wakeHolders } from './owner.ts';
-import type { PlanStart } from './start.ts';
+import { WorkflowActionError } from './autopilot-types.ts';
+import type { Autopilot, AutopilotOptions, AutopilotReason, SessionAutopilot } from './autopilot-types.ts';
+
+export type { Autopilot, AutopilotOptions, AutopilotReason, ChooseRequest, ReviewDecider, SessionAutopilot } from './autopilot-types.ts';
+export { WorkflowActionError } from './autopilot-types.ts';
 
 /** Stops that wait for a user decision in the panel: the Stop hook is held. */
 const HOLDING: ReadonlySet<string> = new Set(['waiting-for-mode-choice', 'waiting-for-plan-start', 'delivery-confirmation', 'ready-for-acceptance']);
-
-/** `accepted` and `closed` label a plan the user accepted or closed (spec M37 2.2). */
-export type AutopilotReason = StopReason | 'waiting-for-plan-start' | 'waiting-for-review' | 'waiting-for-main' | 'waiting-for-plan-decision' | 'accepted' | 'closed';
-
-/**
- * The cross review (M4): its Stop decision comes before the autopilot's. canStart — the session
- * would now wait for the mode choice of an open proposal.
- */
-export interface ReviewDecider {
-  decide(context: StopContext, canStart?: boolean): Promise<StopDecision | null>;
-  isReviewer(key: string): boolean;
-  /** Why sequential/orchestrated must wait for the plan review (spec M4 11.3), or null. */
-  choiceBlocked?(projectId: string, working: readonly string[]): Promise<string | null>;
-}
-
-/** Autopilot state of one session, shown in the panel. */
-export interface SessionAutopilot {
-  key: string;
-  projectId: string | null;
-  enabled: boolean;
-  continues: number;
-  maxContinues: number;
-  orchestrationKey: string | null;
-  /** Plan revision and HEAD when the current turn started (progress check). */
-  before: { head: string | null; revision: number } | null;
-  /** Who started the current turn: the user typing in the chat or a panel message. */
-  origin: 'user' | 'kit' | null;
-  last: { action: 'continue' | 'hold' | 'release'; reason: AutopilotReason | null; label: string | null; detail: string; at: string } | null;
-  /** The plan start under way (spec M11), or null. */
-  start: PlanStart | null;
-}
-
-/** A Kit refusal of a panel action. */
-export class WorkflowActionError extends Error {
-  readonly code: string;
-  readonly status: number;
-  readonly nextAction: string | null;
-  constructor(code: string, message: string, status = 409, nextAction: string | null = null) {
-    super(message);
-    this.name = 'WorkflowActionError';
-    this.code = code;
-    this.status = status;
-    this.nextAction = nextAction;
-  }
-}
-
-export interface AutopilotOptions {
-  runner: KitRunner;
-  workflow: WorkflowState;
-  channel: AgentChannel;
-  projectPath: (projectId: string) => Promise<string | undefined>;
-  review?: ReviewDecider;
-  /**
-   * Whether sessions of a provider may run a scope with executors (the provider's orchestration
-   * capability). Default: every provider may.
-   */
-  orchestration?: (client: string) => Promise<{ available: boolean; reason?: string }>;
-  /** Whether the project lists the session (its provider knows it); absent — every session counts. */
-  owns?: (projectId: string, key: string) => Promise<boolean>;
-  maxContinues?: number;
-  now?: () => Date;
-  log?: (line: string) => void;
-}
-
-export interface ChooseRequest {
-  session: string;
-  generation: number;
-  option: KitChoiceOption;
-}
-
-export interface Autopilot {
-  /** The channel's Stop decider. */
-  decide(context: StopContext): Promise<StopDecision>;
-  /** A UserPromptSubmit of a session: `delivered` when it carried panel messages. */
-  onPrompt(key: string, delivered: boolean): void;
-  choose(projectId: string, request: ChooseRequest): Promise<{ option: KitChoiceOption; owner: string }>;
-  /** `already` — a start runs without a problem: nothing was sent again (spec M11 2.3). */
-  start(projectId: string, session?: string): Promise<{ owner: string; already?: boolean }>;
-  pause(projectId: string): Promise<void>;
-  interrupt(projectId: string, key: string): Promise<void>;
-  resume(projectId: string, session?: string): Promise<{ owner: string }>;
-  /** Runs the Kit command and tells the owner session (spec M37 2.2); `session` — the session of the request. */
-  accept(projectId: string, note?: string, session?: string): Promise<void>;
-  close(projectId: string, note?: string, session?: string): Promise<void>;
-  /** Asks the owner session to tidy the paths outside commits (spec M37 2.3). */
-  tidy(projectId: string, session?: string): Promise<{ owner: string; paths: string[] }>;
-  fixes(projectId: string, text: string, session?: string): Promise<{ owner: string }>;
-  confirmDelivery(projectId: string, words: string, session?: string): Promise<{ owner: string; taskId: string }>;
-  get(key: string): SessionAutopilot | undefined;
-  section(): { sessions: SessionAutopilot[] };
-}
 
 const clientOf = (key: string): string => key.split(':')[0] ?? '';
 const idOf = (key: string): string => key.slice(key.indexOf(':') + 1);
@@ -341,16 +254,17 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
       if (current && !current.problem) return { owner: key, already: true };
       const mode = await strategy(projectId);
       if (mode === 'orchestrated') await requireOrchestration(key);
+      const runId = (await options.authority?.beforeStart(projectId, key)) ?? null;
       if (starts.restart(key)) {
         // The old message still waits: no duplicate, the wait starts anew and the channel retries.
         entry.enabled = true;
         note(entry, 'continue', null, 'Запуск плана повторён: команда ждёт отправки агенту');
         await options.channel.flush(key);
-        return { owner: key };
+        return { owner: key, ...(runId ? { runId } : {}) };
       }
       const messageId = await enable(projectId, key, mode === 'orchestrated' ? `${START_MESSAGES.orchestrated} ${executorHowto(key)}` : `${START_MESSAGES[mode]}${await sequentialOnly(key)}`);
       starts.begin(key, projectId, messageId);
-      return { owner: key };
+      return { owner: key, ...(runId ? { runId } : {}) };
     },
 
     async interrupt(projectId, key) {
@@ -365,9 +279,10 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
       const status = await autopilotStatus(projectId);
       if (status?.paused) await kit(projectId, ['pause:set', '--off', '--note', 'Пользователь продолжил план в панели Workflow Kit']);
       const key = await owner(projectId, session);
+      const runId = (await options.authority?.beforeResume(projectId, key)) ?? null;
       options.channel.resumeDelivery?.(key);
       await enable(projectId, key, RESUME_MESSAGE);
-      return { owner: key };
+      return { owner: key, ...(runId ? { runId } : {}) };
     },
 
     accept: (projectId, words, session) => planEnd.accept(projectId, words, session),

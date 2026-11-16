@@ -23,3 +23,13 @@ export { KIT_OUTDATED_NEXT, KIT_OUTDATED_TEXT, OWNER_NOTE, moveOwner, wakeHolder
 export type { OwnerDeps, OwnerMove } from './owner.ts';
 export type { HostBinding, HostOperation, HostRedemption, HostTickets, HostTicketsOptions } from './host-ticket.ts';
 export { HOST_TICKET_TTL_MS, createHostTickets, hostInputDigest } from './host-ticket.ts';
+export type { AutopilotingMode, AutopilotingSettings, SettingsChange, SettingsStore, SettingsView } from './settings.ts';
+export { AUTOPILOTING_MODES, DEFAULT_SETTINGS, SETTINGS_FILE, SettingsError, createSettingsStore } from './settings.ts';
+export type { NewRun, RunAuthority, RunJournal, RunPhase, RunReceipt, RunRecord, RunRequest, RunSource } from './run-journal.ts';
+export { FINAL_PHASES, RUNS_DIR, createRunJournal, newRunId } from './run-journal.ts';
+export type { HostStep, RunAutomation, RunKit, RunKitStatus, RunScope } from './run-kit.ts';
+export { createRunKit } from './run-kit.ts';
+export type { PreparationResult, RunBrief, Runs, RunsOptions, StartPolicy, StartPolicyKind } from './runs.ts';
+export { createRuns } from './runs.ts';
+export { POLICY_TEXTS, preparationText } from './run-texts.ts';
+export { registerAutopilotingRoutes } from './runs-routes.ts';

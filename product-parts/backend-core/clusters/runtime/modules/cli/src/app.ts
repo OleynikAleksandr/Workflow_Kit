@@ -261,7 +261,7 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
       .sort((a, b) => b.path.length - a.path.length)[0];
     return found ? { id: found.id } : undefined;
   };
-  const { channel, autopilot, review, titles, crossReview } = wireSessions({
+  const { channel, autopilot, review, titles, crossReview, autopiloting } = wireSessions({
     router,
     state,
     mutex,
@@ -269,6 +269,8 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
     providers,
     workflow,
     kit,
+    configDir: dirs.configDir,
+    platform,
     resolveFolderProject,
     sessionArchived: (id, key, archived) => lifecycle.sessionArchived(id, key, archived),
     log: options.log,
@@ -319,6 +321,7 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
       await review.load().catch(() => undefined);
       await crossReview.load().catch(() => undefined);
       await titles.load().catch(() => undefined);
+      await autopiloting.runs.load().catch(() => undefined);
       return { ...bound, urls: panelUrls(bound.port, getInterfaces()) };
     },
     async stop() {

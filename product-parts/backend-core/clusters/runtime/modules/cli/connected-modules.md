@@ -81,6 +81,16 @@
   `wfk serve` останавливается так же, как по SIGTERM (на Windows сигналов нет; так службу
   останавливает установщик). Панель зовёт его для
   новой сессии: окно без щелчка пользователя ссылку приложения может не открыть;
+- автопилотирование M39 (`src/autopiloting-wiring.ts`, `wireAutopiloting`, вызывается из
+  `wireSessions` с `configDir` и `platform` из `createApp`): настройки `autopiloting.json` в
+  `DataDirs.configDir`, журнал запусков проектов, один `createHostTickets` службы, слова
+  пользователя канала (`userWords`) как источник поручения; опция `authority` автопилота
+  (разрешение до первого сообщения старта и при «Продолжить»), `authorize` маршрута
+  `/api/sessions/plan` (отказы `WorkflowActionError` → `HttpError` с `nextAction`),
+  `decideReview` — решение ревью сессии по Settings, если его ещё нет, и закрытие её
+  вопроса о плане; ответ `review`/`plan` на карточке в режиме `full` регистрирует запуск
+  (`runs.planDecision`); переход Settings в `off` ставит запуски на паузу; при старте
+  службы `runs.load()`. Тест — `test/autopiloting.test.ts`;
 - перекрёстное ревью плана (M4) собрано в `src/review-wiring.ts`:
   `lateReviewDecider()` — решатель ревью для автопилота (подключается после
   создания; передаёт и `choiceBlocked`), `wireCrossReview({ router, state, channel, messages, projects,

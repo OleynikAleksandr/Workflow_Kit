@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1176,
+  "revision": 1178,
   "rounds": [
     {
       "digest": null,
@@ -544,14 +544,50 @@
         "product-parts/workflow-engine/clusters/kit-host/modules/kit-runner",
         "docs/architecture/OS-MATRIX.md",
         "docs/architecture/CONTRACTS.md",
-        "docs/architecture/HTTP-CONTRACTS.md"
+        "docs/architecture/HTTP-CONTRACTS.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/commands.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/connected-modules.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/autopiloting-wiring.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/review-wiring.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/session-command.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/autopiloting.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/channel.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/index.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/routes.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/types.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/user-words.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/user-words.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/autopilot-types.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/autopilot.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/decide-model.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/decide-orchestration.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/decide.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/index.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-journal.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-kit.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-texts.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/runs-routes.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/runs.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/settings.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/runs-real.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/runs.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/settings.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/start.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/plan-review/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/plan-review/src/routes.ts"
       ],
       "fixes": null,
       "id": "T005",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Разделение autopilot, настройки, журнал запусков и источник команды",
       "why": "Настройки автопилотирования, журнал запусков и источник разрешения"
     },
@@ -966,8 +1002,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 4/13
-- Revision: 1176
+- Progress: 5/13
+- Revision: 1178
 
 ## Objective
 
@@ -1002,9 +1038,9 @@
   - Commit: feat: align Kit instructions with authorized autopiloting
   - Files: product-parts/kit-core/clusters/project-workflow/modules/workflow-installer, product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery, product-parts/kit-core/clusters/project-workflow/modules/workflow-autopilot, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner, product-parts/workflow-engine/clusters/kit-host/modules/kit-update, product-parts/workflow-engine/clusters/kit-host/modules/plan-view, product-parts/backend-core/clusters/projects/modules/kit-structure, product-parts/workflow-engine/clusters/session-loop/modules/autopilot, docs/architecture/workflow-kit/WorkflowKitProcess.md, docs/architecture/workflow-kit/WorkflowKitExecutionModes.md, docs/architecture/workflow-kit/WorkflowKitInstallation.md, docs/architecture/workflow-kit/WorkflowKitHost.md, docs/architecture/workflow-kit/WorkflowKitHostInstallation.md, docs/architecture/OS-MATRIX.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-autopilot-status.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/autopilot.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-autopilot-grant.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/module.md, product-parts/backend-core/clusters/projects/modules/kit-structure/module.md, product-parts/backend-core/clusters/projects/modules/kit-structure/src/templates.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/test/question-hook.test.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-autopilot/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-autopilot/src/autopilot-decision.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-autopilot/src/autopilot-model.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-autopilot/test/workflow-autopilot-authority.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-payload.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-texts.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/test/workflow-installer-payload.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery/src/recovery-autopilot.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery/src/recovery-roles.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery/src/recovery-sections.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery/test/workflow-recovery-autopilot.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery/test/workflow-recovery-roles.test.mjs, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/src/bundle-meta.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/PROVENANCE, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/workflow-kit-2.3.2.mjs.gz, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/workflow-kit-2.3.3.mjs.gz, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/test/host-run.test.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/test/kit-update-instructions.test.ts, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/module.md, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/src/autopilot-support.ts, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/src/index.ts, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/test/autopilot-support.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/texts.ts
   - Depends on: T003
-- [TODO] T005 — Разделение autopilot, настройки, журнал запусков и источник команды (work)
+- [DONE] T005 — Разделение autopilot, настройки, журнал запусков и источник команды (work)
   - Commit: feat: persist autopiloting settings and authorized runs
-  - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel, product-parts/workflow-engine/clusters/session-loop/modules/plan-review, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/backend-core/clusters/runtime/modules/data-store, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner, docs/architecture/OS-MATRIX.md, docs/architecture/CONTRACTS.md, docs/architecture/HTTP-CONTRACTS.md
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel, product-parts/workflow-engine/clusters/session-loop/modules/plan-review, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/backend-core/clusters/runtime/modules/data-store, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner, docs/architecture/OS-MATRIX.md, docs/architecture/CONTRACTS.md, docs/architecture/HTTP-CONTRACTS.md, product-parts/backend-core/clusters/runtime/modules/cli/commands.md, product-parts/backend-core/clusters/runtime/modules/cli/connected-modules.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/autopiloting-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/review-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/session-command.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/autopiloting.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/channel.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/types.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/user-words.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/user-words.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/autopilot-types.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/autopilot.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/decide-model.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/decide-orchestration.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/decide.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-journal.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-kit.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-texts.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/runs-routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/runs.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/settings.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/runs-real.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/runs.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/settings.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/start.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/module.md, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/src/routes.ts
   - Depends on: T004
 - [TODO] T006 — Полный цикл подготовки, ревью окончательной версии и автоматический старт (work)
   - Commit: feat: start fully automatic plans after version-bound review

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1174,
+  "revision": 1175,
   "rounds": [
     {
       "digest": null,
@@ -458,7 +458,8 @@
         "docs/architecture/OS-MATRIX.md",
         "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-autopilot-status.ts",
         "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/autopilot.md",
-        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-autopilot-grant.test.mjs"
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-autopilot-grant.test.mjs",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/module.md"
       ],
       "fixes": null,
       "id": "T004",
@@ -934,7 +935,7 @@
 - Execution: sequential
 - Current task: T004
 - Progress: 3/13
-- Revision: 1174
+- Revision: 1175
 
 ## Objective
 
@@ -967,7 +968,7 @@
   - Depends on: T002
 - [IN_PROGRESS] T004 — Единые инструкции Kit и wfk, capability и обновление проекта (work)
   - Commit: feat: align Kit instructions with authorized autopiloting
-  - Files: product-parts/kit-core/clusters/project-workflow/modules/workflow-installer, product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery, product-parts/kit-core/clusters/project-workflow/modules/workflow-autopilot, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner, product-parts/workflow-engine/clusters/kit-host/modules/kit-update, product-parts/workflow-engine/clusters/kit-host/modules/plan-view, product-parts/backend-core/clusters/projects/modules/kit-structure, product-parts/workflow-engine/clusters/session-loop/modules/autopilot, docs/architecture/workflow-kit/WorkflowKitProcess.md, docs/architecture/workflow-kit/WorkflowKitExecutionModes.md, docs/architecture/workflow-kit/WorkflowKitInstallation.md, docs/architecture/workflow-kit/WorkflowKitHost.md, docs/architecture/workflow-kit/WorkflowKitHostInstallation.md, docs/architecture/OS-MATRIX.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-autopilot-status.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/autopilot.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-autopilot-grant.test.mjs
+  - Files: product-parts/kit-core/clusters/project-workflow/modules/workflow-installer, product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery, product-parts/kit-core/clusters/project-workflow/modules/workflow-autopilot, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner, product-parts/workflow-engine/clusters/kit-host/modules/kit-update, product-parts/workflow-engine/clusters/kit-host/modules/plan-view, product-parts/backend-core/clusters/projects/modules/kit-structure, product-parts/workflow-engine/clusters/session-loop/modules/autopilot, docs/architecture/workflow-kit/WorkflowKitProcess.md, docs/architecture/workflow-kit/WorkflowKitExecutionModes.md, docs/architecture/workflow-kit/WorkflowKitInstallation.md, docs/architecture/workflow-kit/WorkflowKitHost.md, docs/architecture/workflow-kit/WorkflowKitHostInstallation.md, docs/architecture/OS-MATRIX.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-autopilot-status.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/autopilot.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-autopilot-grant.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/module.md
   - Depends on: T003
 - [TODO] T005 — Разделение autopilot, настройки, журнал запусков и источник команды (work)
   - Commit: feat: persist autopiloting settings and authorized runs

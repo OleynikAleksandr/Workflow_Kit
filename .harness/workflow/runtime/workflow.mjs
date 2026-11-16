@@ -7781,11 +7781,12 @@ function nextStep(input, role) {
   if (role === "executor") {
     return executorStep(input);
   }
+  const untidy = input.changes.length > 0;
   if (scope.delivery === "READY_FOR_ACCEPTANCE") {
-    return "Scope is READY_FOR_ACCEPTANCE: ask the user to accept the result or report defects.";
+    return untidy ? `Scope is READY_FOR_ACCEPTANCE: first tidy the paths outside commits (see changes) \u2014 delete your temporary files, commit documents with \`${KIT_COMMAND} docs:commit\`; \`close\` needs a clean tree. Then ask the user to accept the result or report defects.` : "Scope is READY_FOR_ACCEPTANCE: ask the user to accept the result or report defects.";
   }
   if (scope.delivery === "ACCEPTED") {
-    return "Scope is ACCEPTED: the user decides when to close it.";
+    return untidy ? "Scope is ACCEPTED: the user decides when to close it. `close` needs a clean tree: tidy the paths outside commits (see changes)." : "Scope is ACCEPTED: the user decides when to close it.";
   }
   if (role === "orchestrator") {
     return orchestratorStep(input);
@@ -7987,6 +7988,7 @@ function limits(spec) {
 function fieldLine(spec) {
   return `- ${spec.name} ${spec.type} ${spec.required ? "required" : "optional"} [${limits(spec).join(", ")}] \u2014 ${spec.description}`;
 }
+var INPUT_FOLDER_RULE = "Write the input file to .harness/inputs/ (git-ignored), not among the project files.";
 function schemaText(schema) {
   return [
     `${schema.command}: ${schema.description}`,
@@ -7994,6 +7996,7 @@ function schemaText(schema) {
     ...schema.fields.map(fieldLine),
     "rules:",
     ...schema.rules.map((rule) => `- ${rule}`),
+    `- ${INPUT_FOLDER_RULE}`,
     "example:",
     JSON.stringify(schema.example)
   ].join("\n");
@@ -10548,6 +10551,9 @@ add \`--format text\` for a readable answer.
 ### Inputs and documents
 - Before writing a \`--input\` JSON, run \`scripts/workflow schema <command>\`
   for its fields, limits and an example.
+- Write \`--input\` and \`--digest\` JSON files to \`.harness/inputs/\`
+  (git-ignored): a file left elsewhere in the project is an uncommitted
+  change and blocks \`close\`.
 - Get documents with \`scripts/workflow context <path>[#Heading]\` (one call,
   marked text) instead of reading large files piecewise;
   \`context --list\` prints the documents map.
@@ -10631,6 +10637,7 @@ function gitignoreSection() {
     ".harness/workflow/local/",
     ".harness/runtime/",
     ".harness/sessions/",
+    ".harness/inputs/",
     ".claude/worktrees/",
     ".DS_Store",
     "# Dependency folders: installed by quality:apply, never committed",
@@ -10670,7 +10677,7 @@ in line with the code.
 }
 
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-payload.ts
-var KIT_VERSION = "2.2.5";
+var KIT_VERSION = "2.2.6";
 var MANIFEST_PATH = ".harness/workflow/manifest.json";
 var MANIFEST_SCHEMA = "harness-workflow-manifest/1";
 var OWN_HOOKS_DIR = ".harness/workflow/hooks";
@@ -12611,6 +12618,12 @@ function acceptScope2(context, note) {
     return change(plan, commit2);
   });
 }
+var NAMED_PATHS = 5;
+function namedPaths(paths) {
+  const named = paths.slice(0, NAMED_PATHS).join(", ");
+  const more = paths.length - NAMED_PATHS;
+  return more > 0 ? `${named} (and ${more} more)` : named;
+}
 function closeScope2(context, scopeId, note) {
   return locked(context, () => {
     ensureNoTransaction(context);
@@ -12618,8 +12631,9 @@ function closeScope2(context, scopeId, note) {
     ensure(
       dirty.length === 0,
       "DIRTY_TREE",
-      "Close the scope on a clean working tree.",
-      { paths: dirty }
+      `Close the scope on a clean working tree; not committed: ${namedPaths(dirty)}.`,
+      { paths: dirty },
+      "Delete temporary files or commit documents with `scripts/workflow docs:commit --files <paths>`, then repeat close."
     );
     const plan = workflowPlanFacade.close(
       readPlan(context),

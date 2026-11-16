@@ -16,6 +16,9 @@ add `--format text` for a readable answer.
 ### Inputs and documents
 - Before writing a `--input` JSON, run `scripts/workflow schema <command>`
   for its fields, limits and an example.
+- Write `--input` and `--digest` JSON files to `.harness/inputs/`
+  (git-ignored): a file left elsewhere in the project is an uncommitted
+  change and blocks `close`.
 - Get documents with `scripts/workflow context <path>[#Heading]` (one call,
   marked text) instead of reading large files piecewise;
   `context --list` prints the documents map.

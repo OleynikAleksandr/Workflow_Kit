@@ -3,6 +3,7 @@
 .harness/workflow/local/
 .harness/runtime/
 .harness/sessions/
+.harness/inputs/
 .claude/worktrees/
 .DS_Store
 # Dependency folders: installed by quality:apply, never committed

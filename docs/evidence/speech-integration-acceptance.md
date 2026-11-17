@@ -79,3 +79,32 @@ macOS. Текст должен появляться во время речи, а
 - Intel macOS — unavailable; полная объединённая память/GPU — не измерена.
 - Установленное приложение — T003 (доставка) и T005 (выпуск); проверка исходников его не
   заменяет.
+
+## T003: CLI без `ws` и доставка установщиком
+
+Коммит `68d99b3`. Тесты установщика и `cli` (197 из 198, один пропущен по своему условию):
+копия с пакетами lock без `dev`, lock и notices, без Cargo `target`; `DEPENDENCY_MISSING` без
+побочных изменений на трёх ОС; замена helper, политика версии, ошибка замены, повторная
+установка из копии, `uninstall`; `doctor --installed`. Отдельными процессами в копии без
+`node_modules`: `--version` работает, `install` отказывает и не создаёт каталог данных, `serve`
+объясняет причину без трассировки, `doctor --installed` сообщает `[ошибка] зависимости копии`.
+Проверочный прогон `installed-browser.smoke.mjs` на экземпляре из исходников (отдельный
+`WFK_DATA_DIR`, свободный порт, debug helper через `WFK_SPEECH_HELPER`, Q8): первый текст
+2022 мс, Stop до поля 1069 мс, отправок 0, ошибок браузера 0. Установленный release helper —
+T005.
+
+## T004: CI объединённого кода
+
+Ветка `ci/speech-integration`, SHA `02ab4c985676061b87839e21db6f977f8a7402db` (после DOCS-R1),
+[run 44125301305](https://github.com/OleynikAleksandr/Workflow_Kit/actions/runs/44125301305):
+
+| Задание | Результат | Время |
+| --- | --- | --- |
+| macOS ARM64 | success | 6 мин |
+| Linux x64 | success | 4 мин |
+| Windows x64 | success | 11 мин |
+| Windows ARM64 | success | 19 мин (`npm test` ≈ 18 мин; в M40 задание шло 18 мин 20 с) |
+
+Каждое задание прошло `npm ci`, Rust 1.88.0 и `npm run test:speech-native`, typecheck,
+`npm test` и `check:platforms`. Windows и Linux проверены только CI; Windows-проверяющий — не
+проверено.

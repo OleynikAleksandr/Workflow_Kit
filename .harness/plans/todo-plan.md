@@ -12,7 +12,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1273,
+  "revision": 1275,
   "rounds": [
     {
       "digest": {
@@ -497,7 +497,7 @@
       ],
       "checks": [],
       "commitMessage": "test: verify the speech integration on four CI platforms",
-      "confirmation": null,
+      "confirmation": "Autopilot run run-E4-rDe1mHCmk (authorization 1, user-command, 2026-11-17T15:58:01.392Z): Full autopilot run run-E4-rDe1mHCmk: the user's direct instruction «После завершения своего текущего плана интегрируй Speech в main через merge ветки feature/speech-input.\n\nДерево Speech: /Users/oleksandroliinyk/VSCODE/Workflow_Kit_Speech\nБаза: bbab32d72f8a899cc6a01a0» (2026-11-17T15:44:42.033Z) to prepare and carry out the plan | effects: push ci/speech-integration в origin и ожидание CI четырёх платформ",
       "context": [
         {
           "path": "docs/planning/speech-integration.md",
@@ -518,7 +518,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "CI объединённого кода",
       "why": "Изменения должны работать на macOS, Linux и Windows до выпуска"
     },
@@ -604,8 +604,8 @@
 - Execution: sequential
 - Automation: 4 automatic, 0 manual criteria; CI origin ci/speech-integration (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 4/7
-- Revision: 1273
+- Progress: 5/7
+- Revision: 1275
 
 ## Objective
 
@@ -637,7 +637,7 @@
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/speech-integration.md, THIRD_PARTY_NOTICES.md, docs/architecture/OS-MATRIX.md, docs/evidence/speech-input-acceptance.md, docs/planning/speech-input-integration.md, docs/planning/speech-input-macos.md, docs/planning/speech-input/handoff-1.md, docs/planning/speech-input/handoff-2.md, docs/planning/speech-input/handoff-3.md, docs/planning/speech-input/handoff-4.md, product-parts/backend-core/clusters/http-api/modules/http-server/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/speech.md, tools/speech-checks/README.md, docs/evidence/speech-integration-acceptance.md, product-parts/backend-core/clusters/runtime/modules/cli/commands.md, product-parts/speech-input/clusters/browser-input/modules/speech-input/module.md, docs/architecture/HTTP-CONTRACTS.md, docs/installation.md, docs/setup.md
   - Depends on: T001, T002, T003
-- [TODO] T004 — CI объединённого кода (delivery)
+- [DONE] T004 — CI объединённого кода (delivery)
   - Commit: test: verify the speech integration on four CI platforms
   - Files: docs/evidence/speech-integration-acceptance.md
   - Depends on: T003, DOCS-R1

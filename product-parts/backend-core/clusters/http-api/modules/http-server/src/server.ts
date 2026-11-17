@@ -1,6 +1,7 @@
 import http from 'node:http';
 import type { AddressInfo } from 'node:net';
 import os from 'node:os';
+import type { Duplex } from 'node:stream';
 import { MUTATING_METHODS, checkAccess } from './access.ts';
 import { tailscaleAddresses } from './address.ts';
 import type { InterfaceMap } from './address.ts';
@@ -26,6 +27,8 @@ export interface HttpServerOptions {
 export interface HttpServerHandle {
   readonly server: http.Server;
   addStatic(mount: StaticMount): void;
+  /** Upgrade handlers own their access policy and connection shutdown. */
+  addUpgrade(path: string, handler: (req: http.IncomingMessage, socket: Duplex, head: Buffer) => void): () => void;
   /** Listens on all interfaces: "::" dual-stack, falling back to "0.0.0.0" without IPv6. */
   listen(port: number): Promise<{ host: string; port: number }>;
   /** Port actually bound (after listen). */
@@ -93,6 +96,7 @@ export function createHttpServer(options: HttpServerOptions): HttpServerHandle {
   const log = options.log ?? (() => undefined);
   const maxBody = options.maxBodyBytes ?? 1024 * 1024;
   let boundPort = 0;
+  const upgrades = new Map<string, (req: http.IncomingMessage, socket: Duplex, head: Buffer) => void>();
 
   async function handle(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
     const method = (req.method ?? 'GET').toUpperCase();
@@ -188,6 +192,14 @@ export function createHttpServer(options: HttpServerOptions): HttpServerHandle {
     });
   });
 
+  server.on('upgrade', (req, socket, head) => {
+    try {
+      const handler = upgrades.get(new URL(req.url ?? '/', 'http://localhost').pathname);
+      if (!handler) { socket.end('HTTP/1.1 404 Not Found\r\nConnection: close\r\n\r\n'); return; }
+      handler(req, socket, head);
+    } catch { socket.destroy(); }
+  });
+
   function listenOn(port: number, host: string): Promise<void> {
     return new Promise((resolve, reject) => {
       const onError = (error: Error): void => {
@@ -206,6 +218,11 @@ export function createHttpServer(options: HttpServerOptions): HttpServerHandle {
 
   return {
     server,
+    addUpgrade(path, handler) {
+      if (!path.startsWith('/') || upgrades.has(path)) throw new Error('Duplicate or invalid upgrade route');
+      upgrades.set(path, handler);
+      return () => { if (upgrades.get(path) === handler) upgrades.delete(path); };
+    },
     addStatic(mount) {
       mounts.push(normalizeMount(mount));
     },

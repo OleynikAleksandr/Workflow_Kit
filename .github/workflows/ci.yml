@@ -38,6 +38,10 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      - uses: dtolnay/rust-toolchain@df2a88e9fe4098bad09cb42c3dec7187f15861fc
+        with:
+          toolchain: 1.88.0
+      - run: npm run test:speech-native
       - run: npm run typecheck
       - run: npm test
       - run: npm run check:platforms

@@ -1,3 +1,5 @@
+import { speechInputMount } from '#speech-input';
+import { createSpeechService, registerSpeechRoutes } from '#speech-service';
 import { realpath } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -147,7 +149,9 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
 
   const router = createRouter();
   const state = createStateRegistry();
-  const server = createHttpServer({ router, staticMounts: [panelShellMount(), projectWizardMount(), sessionViewMount(), sessionChatMount()], getInterfaces, log: options.log });
+  const server = createHttpServer({ router, staticMounts: [speechInputMount(), panelShellMount(), projectWizardMount(), sessionViewMount(), sessionChatMount()], getInterfaces, log: options.log });
+  const speech = await createSpeechService({ root: path.join(dirs.stateDir, 'speech', 'models'), settingsFile: path.join(dirs.configDir, 'speech.json'), appDir: dirs.appDir, platform, helperPath: env['WFK_SPEECH_HELPER'] });
+  const stopSpeech = registerSpeechRoutes({ router, server, speech });
   const events = createEventLog({ file: eventsFile(dirs) });
   const mutex = createKeyedMutex();
   const homeScope = { homedir, platform };
@@ -330,6 +334,7 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
     },
     async stop() {
       workflow.stop(), publication.stop(), kitUpdate.stop(), channel.close(), lifecycle.stop();
+      await stopSpeech();
       await server.close();
     },
   };

@@ -1,0 +1,19 @@
+[package]
+name = "wfk-speech-helper"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+
+[dependencies]
+serde_json = "1"
+
+[target.'cfg(all(target_os = "macos", target_arch = "aarch64"))'.dependencies]
+transcribe-cpp = { version = "=0.4.2", default-features = false, features = ["metal"] }
+libc = "0.2"
+
+# Pin the matching native implementation as well as its Rust bindings.
+[target.'cfg(all(target_os = "macos", target_arch = "aarch64"))'.dependencies.transcribe-cpp-sys]
+version = "=0.4.2"
+default-features = false
+features = ["metal"]

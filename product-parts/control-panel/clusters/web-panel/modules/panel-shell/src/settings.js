@@ -1,3 +1,4 @@
+import { createSpeechSettings } from './speech-settings.js';
 // @ts-check
 // «Настройки»: appearance (theme, folder for projects), «Автопилотирование» (M39), «Архив» and the
 // service cards that used to fill the main screen («Система», «Общий доступ к чатам», collapsed). The screen stays in the DOM, hidden when not shown,
@@ -93,6 +94,7 @@ export function createSettings(options) {
   ]);
   const cards = h('div', { class: 'cards', id: 'cards', 'aria-live': 'polite' });
   const autopiloting = createAutopilotingCard();
+  const speech = createSpeechSettings();
   const openArchive = h('button', { type: 'button', class: 'btn' }, ['Архив']);
   openArchive.addEventListener('click', () => options.onArchive?.());
   const archiveCard = h('div', { class: 'panel' }, [
@@ -109,6 +111,7 @@ export function createSettings(options) {
     ]),
     appearance,
     autopiloting.element,
+    speech.element,
     archiveCard,
     cards,
   ]);
@@ -118,6 +121,6 @@ export function createSettings(options) {
     render(root) {
       rootLine.replaceChildren(root ? code(root) : '—');
     },
-    renderState: (state) => autopiloting.render(state),
+    renderState: (state) => { autopiloting.render(state); void speech.refresh(); },
   };
 }

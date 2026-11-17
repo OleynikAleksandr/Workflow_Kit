@@ -78,3 +78,44 @@
 | M38 T004: карточка «Обновить Kit» показывает структуру Kit («Структура Kit 3 → 4», изменённые вручную файлы, итог и пропуск структуры); `docs/usage.md` | общий ES-код панели (`panel-shell`), пути от службы через `/` | то же | то же, x64/ARM64 |
 | M39: автопилотирование (Kit 2.3.0–2.3.3, приложение 0.15.0–0.15.1; T001–T012, F001–F005, D002) | [матрица M39](OS-MATRIX-M39.md) | то же | то же |
 | M40: решения пользователя (Kit 2.4.0–2.4.4, приложение 0.16.0; T001–T009) | [матрица M40](OS-MATRIX-M40.md) | то же | то же |
+
+## Speech Input — native helper
+
+| Область | macOS | Linux | Windows |
+| --- | --- | --- | --- |
+| speech-helper | ARM64 Metal; Intel unavailable | unavailable | unavailable x64/ARM64 |
+| Протокол и EOF | Общий Rust код | То же | То же |
+
+Служба и browser capture подключаются следующими задачами.
+
+Speech Input T002: каталог/sha256/скачивание/выбор — общая Node-логика macOS,
+Linux, Windows x64/ARM64; rename с внедрённой платформой, тесты трёх ОС.
+
+Speech Input T003: Node WebSocket/Origin/loopback checks shared on all ОС; native
+worker starts only on macOS ARM64. Linux/win32 injected unavailable tests pass.
+
+Speech Input T004: browser field/resampler logic shared and platform-injected
+capability tests cover Mac loopback, Linux, Windows, mobile and remote unavailability.
+
+Speech Input T005: composer/send guards and draft revisions are shared UI logic;
+only eligible local macOS clients enable capture, other platforms keep the mic disabled.
+
+Speech Input T006: keyed model settings shared across ОС/themes; server capability
+disables controls outside supported local macOS. No OS programs called.
+
+Speech Input T007: question-card uses shared field adapter and writeOther on all
+ОС; Linux/Windows/mobile keep capture unavailable without changing answer submission.
+
+Speech Input T008: CI now provisions pinned Rust 1.88.0 and runs protocol tests on
+macOS/Linux/Windows x64/Windows ARM64; native engine compiles only on macOS ARM64.
+Hosted CI was not run in this worktree. Real App/native/browser tests run on macOS;
+physical microphone, Safari and other OS live acceptance remain unverified.
+
+Speech T009: ошибки pipe/EOF helper изолированы общей Node-логикой на всех ОС.
+Unit-тесты используют внедрённый дочерний процесс; настоящее закрытие pipe проверено
+на macOS. Запуск inference на Linux/Windows по-прежнему запрещён availability guard.
+
+Speech T010: browser MessagePort bounded to 8 packets (1.6 s), explicit overload,
+port/track/context cleanup and Russian microphone errors. Shared browser logic is
+unit-tested; real worklet negative scenarios run on macOS Chromium. Linux/Windows
+and mobile remain unavailable; real permissions/Safari require separate live checks.

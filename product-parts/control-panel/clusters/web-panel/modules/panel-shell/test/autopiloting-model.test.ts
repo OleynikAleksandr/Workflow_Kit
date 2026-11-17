@@ -34,7 +34,7 @@ test('a refused write shows the actual value and a short reason', () => {
 test('order of «Настройки» and the collapsible «Система» and «Общий доступ к чатам ChatGPT»', async () => {
   const read = (name: string) => readFile(path.join(PANEL_ASSETS_DIR, name), 'utf8');
   const settings = await read('settings.js');
-  assert.match(settings, /appearance,\s+autopiloting\.element,\s+archiveCard,\s+cards,/u);
+  assert.match(settings, /appearance,\s+autopiloting\.element,[\s\S]*?\barchiveCard,\s+cards,/u);
   assert.match(await read('system-card.js'), /title: 'Система',\s+order: 0,\s+collapsible: true,/u);
   const shared = await read('shared-access-card.js');
   assert.match(shared, /collapsible: true,/u);

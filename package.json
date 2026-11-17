@@ -37,7 +37,9 @@
     "#provider-kimi": "./product-parts/provider-runtime/clusters/provider-adapters/modules/provider-kimi/src/index.ts",
     "#provider-registry": "./product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts",
     "#service-installer": "./product-parts/system-service/clusters/deployment/modules/service-installer/src/index.ts",
-    "#session-titles": "./product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/index.ts"
+    "#session-titles": "./product-parts/workflow-engine/clusters/session-loop/modules/session-titles/src/index.ts",
+    "#speech-service": "./product-parts/speech-input/clusters/local-recognition/modules/speech-service/src/index.ts",
+    "#speech-input": "./product-parts/speech-input/clusters/browser-input/modules/speech-input/src/index.ts"
   },
   "scripts": {
     "start": "node bin/wfk.mjs serve",
@@ -46,11 +48,16 @@
     "test:app": "node --test --test-concurrency=4 \"product-parts/**/test/*.test.ts\" \"tools/platform-guard/test/*.test.ts\"",
     "test:kit": "node --test --test-concurrency=4 \"product-parts/**/test/*.test.mjs\" \"tools/kit-build/test/*.test.ts\"",
     "check:platforms": "node tools/platform-guard/check.ts",
-    "build:kit": "node tools/kit-build/build.ts"
+    "build:kit": "node tools/kit-build/build.ts",
+    "test:speech-native": "cargo test --locked --manifest-path product-parts/speech-input/clusters/local-recognition/modules/speech-helper/Cargo.toml"
   },
   "devDependencies": {
     "@types/node": "24.19.2",
+    "@types/ws": "8.18.2",
     "esbuild": "0.25.12",
     "typescript": "5.9.3"
+  },
+  "dependencies": {
+    "ws": "8.23.0"
   }
 }

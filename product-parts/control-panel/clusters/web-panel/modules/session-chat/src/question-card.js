@@ -12,6 +12,7 @@ import {
 /** @typedef {import('./question-model.js').Question} Question */
 /** @typedef {import('./question-model.js').Choice} Choice */
 /** @typedef {import('./question-model.js').Attempt} Attempt */
+/** @typedef {{blockingSend: boolean, cancel: () => void, sync: () => void, setVisible: (visible: boolean) => void, dispose: () => void}} SpeechOwner */
 
 /** How long one POST of an answer may take (the route waits up to 10 s for the outcome). */
 const ANSWER_TIMEOUT_MS = 20_000;
@@ -35,6 +36,17 @@ export function createQuestionCards(deps) {
   const cards = new Map();
   /** @type {Map<string, HTMLElement>} */
   const closed = new Map();
+  /** @type {Map<string, SpeechOwner[]>} */
+  const speechOwners = new Map();
+  /** @type {Map<string, Array<() => void>>} */
+  const speechVisibility = new Map();
+  let ownerVisible = true;
+  const speechBlocked = (/** @type {string} */ id) => speechOwners.get(id)?.some(owner => owner.blockingSend) === true;
+  const cancelSpeech = (/** @type {string} */ id) => speechOwners.get(id)?.forEach(owner => owner.cancel());
+  function disposeSpeech(/** @type {string} */ id) {
+    const owners = speechOwners.get(id); speechOwners.delete(id); speechVisibility.delete(id);
+    owners?.forEach(owner => owner.dispose());
+  }
 
   function openApp() {
     const link = deps.link();
@@ -46,7 +58,7 @@ export function createQuestionCards(deps) {
   /** @param {string} id */
   async function send(id) {
     const card = cards.get(id);
-    if (!card) return;
+    if (!card || speechBlocked(id)) return;
     const answers = answerOf(card.question, card.choice);
     if (!answers || card.attempt.phase === 'sending' || card.attempt.phase === 'waiting') return;
     const attemptId = newAttemptId();
@@ -76,7 +88,13 @@ export function createQuestionCards(deps) {
   /** @param {Question} question */
   function build(question) {
     const id = question.id;
-    /** @type {Array<{ part: import('./question-model.js').QuestionPart, inputs: HTMLInputElement[], other: HTMLInputElement | null, text: HTMLTextAreaElement | null }>} */
+    /** @type {SpeechOwner[]} */
+    const owners = [];
+    speechOwners.set(id, owners);
+    /** @type {Array<() => void>} */
+    const visibility = [];
+    speechVisibility.set(id, visibility);
+    /** @type {Array<{ part: import('./question-model.js').QuestionPart, inputs: HTMLInputElement[], other: HTMLInputElement | null, text: HTMLTextAreaElement | null, mic: HTMLButtonElement | null, controls: HTMLElement | null, speechStatus: HTMLElement | null, speech: SpeechOwner | null }>} */
     const rows = [];
     const parts = question.parts.map((part, index) => {
       const name = `sc-q-${id}-${index}`;
@@ -87,14 +105,17 @@ export function createQuestionCards(deps) {
         return h('label', { class: 'sc-q-option' }, [inputs[i], label]);
       });
       let other = null;
-      let text = null;
+      let text = null, mic = null, controls = null, speechStatus = null;
       if (part.allowOther) {
         other = /** @type {HTMLInputElement} */ (h('input', { type, name, value: '', class: 'sc-q-other-toggle' }));
         text = /** @type {HTMLTextAreaElement} */ (h('textarea', { class: 'sc-q-other-text', rows: '1', placeholder: OTHER_PLACEHOLDER, 'aria-label': OTHER_LABEL }));
         options.push(h('label', { class: 'sc-q-option sc-q-other' }, [other, h('span', { class: 'sc-q-label' }, [h('b', {}, [OTHER_LABEL])])]));
         options.push(text);
+        mic = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'sc-icon-button sc-q-mic', 'aria-label': 'Диктовка ответа', disabled: '' }, [h('span', { class: 'sc-icon sc-icon-mic', 'aria-hidden': 'true' })]));
+        speechStatus = h('span', { class: 'sc-speech-status', role: 'status', 'aria-live': 'polite' }); speechStatus.hidden = true;
+        controls = h('div', { class: 'sc-q-dictation', hidden: '' }, [mic, speechStatus]); options.push(controls);
       }
-      rows.push({ part, inputs, other, text });
+      rows.push({ part, inputs, other, text, mic, controls, speechStatus, speech: null });
       const legend = h('legend', {}, [...(part.header ? [h('span', { class: 'sc-q-header' }, [part.header])] : []), h('span', { class: 'sc-q-question' }, [part.question])]);
       return h('fieldset', { class: 'sc-q-part' }, [legend, ...options]);
     });
@@ -114,6 +135,8 @@ export function createQuestionCards(deps) {
           row.other.disabled = !view.choosable;
           row.text.disabled = !view.choosable;
           row.text.hidden = !(c?.otherOn === true);
+          if (row.controls) row.controls.hidden = !(c?.otherOn === true);
+          row.speech?.setVisible(ownerVisible && view.choosable && c?.otherOn === true); row.speech?.sync();
           if (row.text.value !== (c?.other ?? '')) row.text.value = c?.other ?? '';
         }
       }
@@ -121,7 +144,7 @@ export function createQuestionCards(deps) {
       status.hidden = view.text === '';
       status.dataset['tone'] = view.tone;
       button.hidden = !view.button;
-      button.disabled = !view.active;
+      button.disabled = !view.active || speechBlocked(id);
       open.hidden = !view.openApp || !deps.link();
       node.dataset['answerable'] = String(card.question.answerable);
       deps.changed();
@@ -130,14 +153,14 @@ export function createQuestionCards(deps) {
       row.inputs.forEach((input) => input.addEventListener('change', () => {
         const card = cards.get(id);
         if (!card) return;
-        card.choice = pick(card.choice, row.part, input.value);
+        cancelSpeech(id); card.choice = pick(card.choice, row.part, input.value);
         if (card.attempt.phase === 'refused') card.attempt = { phase: 'idle' };
         sync();
       }));
       row.other?.addEventListener('change', () => {
         const card = cards.get(id);
         if (!card) return;
-        card.choice = toggleOther(card.choice, row.part, row.part.multiSelect ? /** @type {HTMLInputElement} */ (row.other).checked : true);
+        cancelSpeech(id); card.choice = toggleOther(card.choice, row.part, row.part.multiSelect ? /** @type {HTMLInputElement} */ (row.other).checked : true);
         sync();
         if (card.choice[row.part.id]?.otherOn) row.text?.focus();
       });
@@ -148,6 +171,26 @@ export function createQuestionCards(deps) {
         if (card.attempt.phase === 'refused') card.attempt = { phase: 'idle' };
         sync();
       });
+    }
+    const speechEntry = '/speech-input/dictation.js';
+    for (const row of rows) {
+      if (!row.text || !row.mic || !row.speechStatus) continue;
+      const field = row.text, microphone = row.mic, status = row.speechStatus;
+      void import(speechEntry).then(({ attachDictation }) => {
+        if (speechOwners.get(id) !== owners || cards.get(id)?.node !== node) return;
+        const controller = /** @type {SpeechOwner} */ (attachDictation({ input: field, button: microphone,
+          canStart: () => { const card = cards.get(id); return !!card && cardView(card.question, card.choice, card.attempt).choosable; },
+          onText: (/** @type {string} */ value) => {
+            const card = cards.get(id); if (!card || card.node !== node || card.choice[row.part.id]?.other === value) return;
+            card.choice = writeOther(card.choice, row.part, value); sync();
+          },
+          onState: (/** @type {string} */ _state, /** @type {string} */ label) => { status.textContent = label; status.hidden = !label; status.dataset['tone'] = 'muted'; sync(); },
+          onError: (/** @type {string} */ message) => { status.textContent = message; status.hidden = false; status.dataset['tone'] = 'error'; sync(); },
+        }));
+        row.speech = controller; owners.push(controller);
+        const updateVisibility = () => { const card = cards.get(id); controller.setVisible(ownerVisible && !!card && cardView(card.question, card.choice, card.attempt).choosable && card.choice[row.part.id]?.otherOn === true); };
+        visibility.push(updateVisibility); updateVisibility(); sync();
+      }).catch(() => { microphone.title = 'Модуль диктовки недоступен'; microphone.setAttribute('aria-label', microphone.title); });
     }
     button.addEventListener('click', () => void send(id));
     open.addEventListener('click', openApp);
@@ -170,6 +213,7 @@ export function createQuestionCards(deps) {
       const shape = JSON.stringify(question.parts);
       let card = cards.get(question.id);
       if (!card || card.shape !== shape) {
+        disposeSpeech(question.id);
         const built = build(question);
         card = { question, shape, choice: card?.choice ?? emptyChoice(question), attempt: card?.attempt ?? { phase: 'idle' }, node: built.node, sync: built.sync };
         cards.set(question.id, card);
@@ -186,6 +230,7 @@ export function createQuestionCards(deps) {
      * @returns {HTMLElement}
      */
     closed(question) {
+      disposeSpeech(question.id);
       const card = cards.get(question.id);
       const view = closedView(question, card?.attempt);
       const shape = JSON.stringify([question.state, question.parts, view]);
@@ -201,9 +246,10 @@ export function createQuestionCards(deps) {
       closed.set(question.id, node);
       return node;
     },
+    setVisible(/** @type {boolean} */ visible) { ownerVisible = visible; for (const updates of speechVisibility.values()) updates.forEach(update => update()); },
     /** Forgets cards of questions no longer on the page. @param {ReadonlySet<string>} ids */
     keep(ids) {
-      for (const id of [...cards.keys()]) if (!ids.has(id)) cards.delete(id);
+      for (const id of [...cards.keys()]) if (!ids.has(id)) { disposeSpeech(id); cards.delete(id); }
       for (const id of [...closed.keys()]) if (!ids.has(id)) closed.delete(id);
     },
   };

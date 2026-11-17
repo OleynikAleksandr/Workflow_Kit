@@ -222,3 +222,11 @@ pre.path {
     margin-bottom: 8px;
   }
 }
+
+/* Speech model controls retain their nodes during progress polling. */
+.speech-model { padding: 16px 0; border-top: 1px solid var(--border); }
+.speech-model p { margin: 6px 0; }
+.speech-model-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+.speech-model-links { font-size: 12px; }
+.speech-progress { display: block; width: 100%; margin: 10px 0; accent-color: var(--accent); }
+.speech-progress[hidden], .speech-model-actions [hidden] { display: none; }

@@ -219,3 +219,17 @@
 Строка Kit и карточка «Обновить Kit» тоже одинаковы: различия команд хуков Codex на Windows
 (`commandWindows`) и хуков структуры Kit (exec-форма Claude, M33) знает служба (`kit-update`,
 `kit-structure`), панель показывает только её строки и пути через `/` (M38).
+
+## Speech Input — настройки
+
+createSettings включает createSpeechSettings (speech-settings.js): keyed rows,
+размер/язык/streaming/license/source, missing/downloading/installed/loading/ready/error,
+скачать/отменить/выбрать/удалить через публичный speech API. Прогресс не заменяет
+DOM/focus, старый GET после POST отбрасывается по revision. Опрос 1,5 с только
+у подключённой видимой карточки; выбранная модель хранится службой. Во время
+диктовки выбор/удаление запрещены; модель удаляется только из хранилища Kit.
+На Linux/Windows/мобильной или удалённой панели показана причина unavailable.
+
+Browser scenario test/speech-settings.browser.mjs uses the real model store/API
+with tiny pinned fixtures and a controlled download stream, checks both themes,
+progress focus, cancel, persisted selection, active barriers and actual file removal.

@@ -17,5 +17,6 @@
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true
   },
+  "exclude": ["**/node_modules/**", "**/target/**"],
   "include": ["bin/**/*.mjs", "product-parts/**/*.ts", "product-parts/**/src/**/*.js", "tools/**/*.ts"]
 }

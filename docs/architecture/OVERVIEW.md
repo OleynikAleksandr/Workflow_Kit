@@ -54,8 +54,8 @@ M36: вопрос о плане помнит активный scope (`scopeId`);
 
 ## Что это
 
-Бэкенд-служба пользователя (Node 24, TypeScript без сборки, без
-runtime-зависимостей) и веб-панель для Mac и iPad. Служба ведёт реестр
+Бэкенд-служба пользователя (Node 24, TypeScript без сборки;
+WebSocket speech использует ws) и веб-панель для Mac и iPad. Служба ведёт реестр
 проектов, ставит структуру Kit и процесс Harness Workflow Kit 2.4.4 (собирается здесь из
 `kit-core`, M22; с M40 — с `decisions: host`: решения пользователя пишут операции хоста) в папку проекта, показывает версию Kit проекта и обновляет устаревший Kit и
 устаревшую структуру Kit кнопкой «Обновить Kit» (M38), работает с Claude, ChatGPT/Codex и Kimi Code через общий контракт провайдера
@@ -183,3 +183,18 @@ T001–T006 и fixes T008/T009 завершены; последний функц
 - [README.md](../../README.md), [установка по ОС](../installation.md), [CHANGELOG.md](../../CHANGELOG.md).
 - Матрица ОС — [OS-MATRIX.md](OS-MATRIX.md). Основные контракты модулей — [CONTRACTS.md](CONTRACTS.md); процесс Kit —
   [workflow-kit/WorkflowKit.md](workflow-kit/WorkflowKit.md) и соседние документы.
+
+## Speech Input (исходники без поставки)
+
+Часть [speech-input](../../product-parts/speech-input/product-part.md) содержит
+speech-helper (Rust/transcribe-cpp 0.4.2, Metal), speech-service (store, supervisor,
+локальный API и ws) и browser speech-input (AudioWorklet, resampling, диапазон
+черновика). CLI подключает публичные фасады; composer и question-card используют
+attachDictation, Settings управляет проверенными моделями. Аудио не входит в
+provider channel; отправка — отдельная команда пользователя. Очереди ограничены
+от MessagePort до worker. Поддержка inference первой версии — macOS ARM64.
+
+[Evidence](../evidence/speech-input-acceptance.md) отделяет настоящий Voxtral от UI
+fixtures и живых непроверенных сценариев. [Передача основному агенту](../planning/speech-input-integration.md)
+описывает сохранение плана main, проверки объединённого SHA и отсутствующую пока
+поставку helper. Версия приложения и установленная служба этим scope не менялись.

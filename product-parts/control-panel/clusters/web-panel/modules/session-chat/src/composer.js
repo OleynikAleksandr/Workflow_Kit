@@ -13,6 +13,9 @@ export function createComposer({ shell, projectId, key, provider, onSent }) {
   let data = composerData({}, projectId, key, provider);
   let stateRevision = 0;
   let draftRevision = 0;
+  let currentVisible = true;
+  /** @type {{blockingSend: boolean, sync: () => void, cancel: () => void, setVisible: (visible: boolean) => void} | null} */
+  let speech = null;
   /** @type {'send' | 'stop' | null} */
   let busy = null;
   /** @type {string | null} */
@@ -24,7 +27,7 @@ export function createComposer({ shell, projectId, key, provider, onSent }) {
     return /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'sc-icon-button', 'aria-label': title, title }, [icon(name)]));
   }
   const plus = iconButton('plus', 'Вложения — позже');
-  const microphone = iconButton('mic', 'Микрофон — позже');
+  const microphone = iconButton('mic', 'Диктовка');
   plus.disabled = microphone.disabled = true;
   const action = iconButton('enter', 'Отправить сообщение');
   const input = /** @type {HTMLTextAreaElement} */ (h('textarea', {
@@ -51,7 +54,9 @@ export function createComposer({ shell, projectId, key, provider, onSent }) {
     if (native) { if (plus.parentElement !== details) { details.prepend(plus, parameterView.accessNode); details.append(microphone); } }
     else if (plus.parentElement !== editor) { editor.prepend(plus); editor.append(microphone); parameterView.accessNode.remove(); }
   }});
-  details.append(parameterView.node);
+  const speechStatus = h('span', { class: 'sc-speech-status', role: 'status', 'aria-live': 'polite' });
+  speechStatus.hidden = true;
+  details.append(parameterView.node, speechStatus);
   const node = h('div', { class: 'sc-compose' }, [
     editor, details, status,
   ]);
@@ -68,11 +73,12 @@ export function createComposer({ shell, projectId, key, provider, onSent }) {
     action.title = title;
     action.classList.toggle('sc-stop', working);
     action.firstElementChild?.setAttribute('class', `sc-icon sc-icon-${working ? 'stop' : 'enter'}`);
-    action.disabled = working ? pending || !current.turnRef : !canSend(input.value, pending);
+    action.disabled = working ? pending || !current.turnRef : speech?.blockingSend || !canSend(input.value, pending);
     action.setAttribute('aria-busy', String(stopping || busy === 'send'));
     input.title = working ? 'Enter — новая строка; Ctrl+Enter или ⌘+Enter — в очередь' : 'Enter — отправить; Shift+Enter — новая строка';
     queue.hidden = !working || !input.value.trim();
-    queue.disabled = !canSend(input.value, pending);
+    queue.disabled = speech?.blockingSend || !canSend(input.value, pending);
+    speech?.sync();
     model.textContent = data.model;
     model.title = data.model === '—' ? 'Модель: нет данных' : `Модель: ${data.model}`;
     model.setAttribute('aria-label', model.title);
@@ -90,7 +96,7 @@ export function createComposer({ shell, projectId, key, provider, onSent }) {
     input.style.height = `${Math.min(limit, Math.max(44, input.scrollHeight))}px`;
   }
   async function send() {
-    if (!canSend(input.value, busy !== null || turn().pending)) return;
+    if (speech?.blockingSend || !canSend(input.value, busy !== null || turn().pending)) return;
     const text = input.value;
     const revision = draftRevision;
     busy = 'send';
@@ -120,7 +126,7 @@ export function createComposer({ shell, projectId, key, provider, onSent }) {
     deliveryTimer = setTimeout(() => {
       deliveryTimer = null;
       if (!node.isConnected || !undelivered(data)) return;
-      if (input.value.trim() === '') { input.value = text; fit(); }
+      if (!speech?.blockingSend && input.value.trim() === '') { input.value = text; draftRevision += 1; fit(); }
       report(NOT_DELIVERED_TEXT, 'error');
     }, DELIVERY_CONFIRM_MS);
   }
@@ -174,6 +180,22 @@ export function createComposer({ shell, projectId, key, provider, onSent }) {
   });
   action.addEventListener('click', () => { if (turn().state === 'working') void stop(); else void send(); });
   queue.addEventListener('click', () => void send());
+  // Public browser facade is mounted independently; the URL is deliberately resolved at runtime.
+  const speechEntry = '/speech-input/dictation.js';
+  void import(speechEntry).then(({ attachDictation }) => {
+    speech = attachDictation({ input, button: microphone, canStart: () => busy !== 'send',
+      onText: (/** @type {string} */ value) => {
+        if (input.value !== value) { input.value = value; draftRevision += 1; fit(); refresh(); }
+      },
+      onState: (/** @type {string} */ _state, /** @type {string} */ label) => {
+        speechStatus.textContent = label; speechStatus.hidden = !label; speechStatus.dataset['tone'] = 'muted'; refresh();
+      },
+      onError: (/** @type {string} */ message) => {
+        speechStatus.textContent = message; speechStatus.hidden = false; speechStatus.dataset['tone'] = 'error'; refresh();
+      },
+    });
+    speech?.setVisible(currentVisible); refresh();
+  }).catch(() => { microphone.title = 'Модуль диктовки недоступен'; microphone.setAttribute('aria-label', microphone.title); });
   // Observe only the owning card while mounted; no per-session global resize handlers.
   const observer = new ResizeObserver(fit);
   let observed = false;
@@ -182,6 +204,7 @@ export function createComposer({ shell, projectId, key, provider, onSent }) {
     node,
     /** @param {boolean} visible */
     setVisible(visible) {
+      currentVisible = visible; speech?.setVisible(visible);
       parameterView.setVisible(visible);
       if (!visible && observed) { observer.disconnect(); observed = false; }
       const card = node.closest('.sc-card');

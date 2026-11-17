@@ -85,3 +85,10 @@ HTTP-сервер бэкенда: фильтр доступа (D8), реестр
 
 В вехе 1 изменений не запланировано. Авторизация панели вне Tailscale —
 веха 2 (спецификация, раздел 13).
+
+## Upgrade API (Speech Input)
+
+HttpServerHandle.addUpgrade(path, handler) registers one exact pathname and returns
+an unsubscribe function. Unknown upgrades return 404; handler owns access checks
+and upgraded connection shutdown. Existing JSON access/body rules unchanged.
+Same Node API on macOS, Linux, Windows x64/ARM64.

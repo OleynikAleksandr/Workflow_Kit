@@ -12,20 +12,23 @@ const require = createRequire(path.join(execSync('npm root -g').toString().trim(
 const { chromium } = require('playwright');
 const web = path.join(repo, 'product-parts/control-panel/clusters/web-panel/modules');
 const types = { '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.html': 'text/html' };
+const speech = path.join(repo, 'product-parts/speech-input/clusters/browser-input/modules/speech-input/src');
 const server = createServer(async (req, res) => {
   const url = decodeURIComponent(new URL(req.url, 'http://x').pathname);
-  const file = url.startsWith('/session-chat/') ? path.join(web, 'session-chat/src', url.slice(14)) : path.join(web, 'panel-shell/src', url.slice(1));
+  if (url === '/api/speech') { res.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify({ available: false, supported: false, reason: 'Speech disabled in legacy fixture', models: [] })); return; }
+  const file = url.startsWith('/speech-input/') ? path.join(speech, url.slice(14)) : url.startsWith('/session-chat/') ? path.join(web, 'session-chat/src', url.slice(14)) : path.join(web, 'panel-shell/src', url.slice(1));
   try { res.writeHead(200, { 'content-type': types[path.extname(file)] ?? 'application/octet-stream' }).end(await readFile(file)); }
   catch { res.writeHead(404).end(); }
 });
-await new Promise((r) => server.listen(48762, '127.0.0.1', r));
+await new Promise((r) => server.listen(0, '127.0.0.1', r));
+const baseUrl = `http://127.0.0.1:${server.address().port}`;
 const browser = await chromium.launch();
 const page = await browser.newPage();
 const results = [];
 let failed = 0;
 for (const spec of scenarios) {
   const [file, configJson] = spec.split('::');
-  const fn = (0, eval)(await readFile(file, 'utf8'));
+  const fn = (0, eval)((await readFile(file, 'utf8')).replaceAll('http://127.0.0.1:48762', baseUrl));
   for (const config of JSON.parse(configJson ?? '[{}]')) {
     try { results.push({ file: path.basename(file), ok: true, ...(await fn(page, config)) }); }
     catch (error) { failed += 1; results.push({ file: path.basename(file), ok: false, config, error: String(error.message ?? error).slice(0, 500) }); }

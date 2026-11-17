@@ -251,6 +251,7 @@ export function install(shell) {
    */
   function check(entry) {
     entry.composer.setVisible(visible(entry));
+    entry.cards.setVisible(visible(entry));
     if (!visible(entry)) {
       entry.shown = false;
       return;

@@ -212,3 +212,15 @@ M29/T001: `releasable(provider, activity)` (`session-wiring.ts`) — сесси�
 M28/T014: `app.ts` передаёт провайдерам `autoCompactWindow(modelId, cwd)` —
 `resolveAutoCompactWindow` без окружения службы (детям `CLAUDE*` не передаются); пути managed
 по подставленной платформе. Тест `auto-compact-context.test.ts` для darwin, linux и win32.
+
+## Speech Input
+
+createApp wires public #speech-service with models under stateDir/speech/models
+and atomic configDir/speech.json, installed helper at appDir/speech/wfk-speech-helper
+or source debug helper in development. WFK_SPEECH_HELPER overrides the executable
+for isolated testing. stop closes speech sockets, downloads and worker before HTTP.
+macOS ARM64 enables native recognition; Linux/Windows/Intel expose unavailable.
+The speech API never calls a provider, changes its turn or sends an agent message.
+
+Speech Input T004: createApp mounts public #speech-input at /speech-input/ for
+AudioWorklet and dictation.js. CSP remains self-only; no inline scripts added.

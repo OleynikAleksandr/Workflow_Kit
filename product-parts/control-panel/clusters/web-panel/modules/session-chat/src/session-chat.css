@@ -225,3 +225,11 @@
 .panel p.sc-q-note { margin: 0; color: var(--muted); font-size: 12px; }
 @media (pointer: coarse) { .sc-q-other-text { font-size: 16px; } }
 @media (max-width: 600px) { .sc-question-closed { max-width: 100%; } .sc-q-send { flex: 1 1 auto; } }
+
+/* Speech state follows the field; provider errors keep their separate status. */
+.sc-speech-status { font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+.sc-speech-status[data-tone='error'] { color: var(--error, #c34747); }
+.sc-icon-button[aria-pressed='true'] { color: var(--accent); background: var(--surface-2, transparent); }
+
+.sc-q-dictation { display: flex; align-items: center; gap: 8px; margin: 4px 0 8px; }
+.sc-q-dictation[hidden] { display: none; }

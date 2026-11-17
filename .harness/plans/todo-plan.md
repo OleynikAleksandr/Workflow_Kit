@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1226,
+  "revision": 1227,
   "rounds": [
     {
       "digest": {
@@ -118,7 +118,10 @@
       "Инструкции, recovery, проверки backend и оба решателя согласованы; старые проекты получают корректный upgrade path.",
       "Обязательные проверки и CI четырёх платформ пройдены; доказательства реальных прогонов и непроверенных live-сценариев явно разделены."
     ],
-    "acceptanceNote": null,
+    "acceptanceNote": {
+      "at": "2026-11-17T05:47:14.836Z",
+      "text": "Пользователь принял план в панели Workflow Kit"
+    },
     "approval": {
       "at": "2026-11-16T18:08:07.036Z",
       "text": "Пользователь: «Да, согласен» с режимами «После ручного запуска Плана» и «Полный автопилот», карточкой «Автопилотирование», переносом ревью и свёрнутыми карточками Settings. Workflow Kit: пользователь выбрал спецификацию и план с ревью. | Execution mode chosen by the user: sequential: Выбор пользователя в панели Workflow Kit: выполнить самому, последовательно"
@@ -213,7 +216,7 @@
         "text": "Owner session moved from 01a1e55e-7184-7ab3-a3ff-d5e3a7e77b2a to 25cedd72-7908-49d9-9f21-79cfca178443: The user started the plan from this session in the Workflow Kit panel"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "ACCEPTED",
     "execution": {
       "maxWorkers": 1,
       "ownerSession": "25cedd72-7908-49d9-9f21-79cfca178443",
@@ -1528,11 +1531,11 @@
 ## State
 
 - Scope: M39-autopiloting (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: ACCEPTED
 - Execution: sequential
 - Current task: none
 - Progress: 22/22
-- Revision: 1226
+- Revision: 1227
 
 ## Objective
 

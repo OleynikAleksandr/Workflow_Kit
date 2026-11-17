@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T004A",
   "lastClosed": {
     "closedAt": "2026-11-17T05:47:18.191Z",
     "scopeId": "M39-autopiloting"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1239,
+  "revision": 1241,
   "rounds": [
     {
       "digest": null,
@@ -588,14 +588,20 @@
         "product-parts/workflow-engine/clusters/session-loop/modules/autopilot",
         "product-parts/backend-core/clusters/runtime/modules/cli",
         "product-parts/control-panel",
-        "docs/architecture/OS-MATRIX.md"
+        "docs/architecture/OS-MATRIX.md",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-installer",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle",
+        "product-parts/workflow-engine/clusters/kit-host/modules/plan-view",
+        "docs/planning/M40-autopilot-run-end.md",
+        "docs/planning/M40-user-decisions.md"
       ],
       "fixes": null,
       "id": "T004A",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "Служба: полный автопилот и план без automation, один запуск плана, конец запуска",
       "why": "На тестовом проекте служба повторяла сообщение о запуске плана после каждого хода, а карточка автопилота не исчезала после ручного закрытия"
     },
@@ -954,9 +960,9 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Automation: 6 automatic, 0 manual criteria; CI origin ci/M40-user-decisions (4 checks); publication main → origin/main
-- Current task: none
+- Current task: T004A
 - Progress: 4/13
-- Revision: 1239
+- Revision: 1241
 
 ## Objective
 
@@ -990,9 +996,9 @@
   - Commit: feat: generate host-mode instructions without user-decision relays
   - Files: product-parts/kit-core, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle, docs/architecture/OS-MATRIX.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-autopilot/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-autopilot/src/autopilot-decision.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-autopilot/src/autopilot-model.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-autopilot/test/workflow-autopilot-authority.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/agent-rules-modes.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-config.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-install.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-payload.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-texts.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/workflow-installer-facade.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/test/workflow-installer-install.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/test/workflow-installer-payload.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/test/workflow-installer-texts.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/decisions.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-autopilot-status.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-scope.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-host-texts.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/tests.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery/src/recovery-autopilot.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery/src/recovery-gather.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery/src/recovery-model.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery/src/recovery-roles.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery/src/recovery-sections.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery/test/workflow-recovery-autopilot.test.mjs, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/src/bundle-meta.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/PROVENANCE, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/workflow-kit-2.4.2.mjs.gz, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/workflow-kit-2.4.3.mjs.gz
   - Depends on: T003
-- [TODO] T004A — Служба: полный автопилот и план без automation, один запуск плана, конец запуска (work)
+- [IN_PROGRESS] T004A — Служба: полный автопилот и план без automation, один запуск плана, конец запуска (work)
   - Commit: fix: start an autopilot plan once and end the run with its scope
-  - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/control-panel, docs/architecture/OS-MATRIX.md
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/control-panel, docs/architecture/OS-MATRIX.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle, product-parts/workflow-engine/clusters/kit-host/modules/plan-view, docs/planning/M40-autopilot-run-end.md, docs/planning/M40-user-decisions.md
   - Depends on: T004
 - [TODO] T005 — Служба: журнал решений, привязка к ходу, wfk decision и операции хоста (work)
   - Commit: feat: record user decisions from panel buttons and delivered user messages

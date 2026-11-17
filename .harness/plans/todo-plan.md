@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1295,
+  "revision": 1297,
   "rounds": [
     {
       "digest": {
@@ -193,6 +193,16 @@
           "authorization": null
         },
         "text": "choose: Автоматический выбор по поручению run-eX36hZQS5Jh3: sequential (recommended by the plan; ревью: agreed)"
+      },
+      {
+        "at": "2026-11-17T18:08:57.687Z",
+        "kind": "confirm-delivery",
+        "source": {
+          "authorization": "7141c48e462750bb3fd696490d5bf11f0ba46712f0a400e70fed9cd356ce7e64",
+          "kind": "grant",
+          "runId": "run-eX36hZQS5Jh3"
+        },
+        "text": "Delivery T005 started by the advance instruction of run run-eX36hZQS5Jh3"
       }
     ],
     "delivery": "IN_PROGRESS",
@@ -498,7 +508,7 @@
         "installed-service"
       ],
       "commitMessage": "chore: release Workflow Kit 0.18.0",
-      "confirmation": null,
+      "confirmation": "Autopilot run run-eX36hZQS5Jh3 (authorization 1, user-command, 2026-11-17T17:27:11.983Z): Full autopilot run run-eX36hZQS5Jh3: the user's direct instruction «Окей согласен подготовь новый (спецификацию todo Plan).» (2026-11-17T17:15:06.625Z) to prepare and carry out the plan | effects: npm ci; node bin/wfk.mjs install: установка Workflow Kit 0.18.0 в Application Support и перезапуск службы",
       "context": [
         {
           "path": "docs/planning/M41-autopilot-acceptance.md",
@@ -523,7 +533,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Поставка 0.18.0",
       "why": "Пользователь получает автоприёмку без тупиков"
     },
@@ -570,8 +580,8 @@
 - Execution: sequential
 - Automation: 4 automatic, 0 manual criteria; CI origin ci/M41-autopilot-acceptance (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 5/7
-- Revision: 1295
+- Progress: 6/7
+- Revision: 1297
 
 ## Objective
 
@@ -607,7 +617,7 @@
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M41-autopilot-acceptance.md, docs/architecture/OS-MATRIX.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting-completion.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/run-end.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, docs/architecture/HTTP-CONTRACTS.md, docs/evidence/M41-acceptance.md, docs/usage-autopiloting.md, docs/architecture/workflow-kit/WorkflowKitCommands.md
   - Depends on: T001, T002, T003, T004
-- [TODO] T005 — Поставка 0.18.0 (delivery)
+- [DONE] T005 — Поставка 0.18.0 (delivery)
   - Commit: chore: release Workflow Kit 0.18.0
   - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/evidence/M41-acceptance.md
   - Depends on: T004, DOCS-R1

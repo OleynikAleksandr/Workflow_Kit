@@ -8,6 +8,13 @@
 
 ## [Unreleased]
 
+## [0.15.1] - 2026-11-17
+
+### Fixed
+
+- Windows: Kit отвергал каждый шаг автопилота («ticket bound to another root») — служба и Kit
+  называли папку проекта по-разному (имя 8.3, регистр, слеши). [M39](docs/evidence/M39-acceptance.md).
+
 ## [0.15.0] - 2026-11-16
 
 ### Added

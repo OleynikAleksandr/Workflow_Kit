@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1205,
+  "revision": 1207,
   "rounds": [
     {
       "digest": {
@@ -1267,7 +1267,7 @@
         "installed-service"
       ],
       "commitMessage": "chore: deliver Workflow Kit 0.15.1",
-      "confirmation": null,
+      "confirmation": "я принимаю доп задачи - выполняй без пауз все",
       "context": [],
       "dependencies": [
         "F002",
@@ -1288,7 +1288,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Поставка Workflow Kit 0.15.1 и проверка установленной службы",
       "why": "Исправление F002 меняет приложение: нужна следующая patch-версия, штатная переустановка и installed-service"
     },
@@ -1353,8 +1353,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 15/17
-- Revision: 1205
+- Progress: 16/17
+- Revision: 1207
 
 ## Objective
 
@@ -1439,7 +1439,7 @@ Digest: M39 R1: Kit 2.3.3 (automation, host-тикеты, defer-delivery); сл�
   - Commit: docs: reconcile documentation for R2
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/architecture/OS-MATRIX.md
   - Depends on: F002
-- [TODO] D002 — Поставка Workflow Kit 0.15.1 и проверка установленной службы (delivery)
+- [DONE] D002 — Поставка Workflow Kit 0.15.1 и проверка установленной службы (delivery)
   - Commit: chore: deliver Workflow Kit 0.15.1
   - Files: package.json, package-lock.json, CHANGELOG.md, README.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, docs/evidence/M39-acceptance.md, docs/architecture/OS-MATRIX.md
   - Depends on: F002, DOCS-R2

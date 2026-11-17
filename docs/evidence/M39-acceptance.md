@@ -136,6 +136,36 @@ Doctor: все строки `ok`, «итог: всё в порядке», слу
 | Linux, Windows x64 и ARM64 | CI | typecheck, тесты, platform-guard для точного SHA (T012) | после T012 |
 | Windows x64 или ARM64 | проверяющий на Windows | Settings, свёрнутые карточки, запуск | не проверено |
 
+## Красный CI 0.15.0 и поставка 0.15.1 (D002)
+
+CI `d1ffd1b` (run 43996726304): macOS ARM64 и Linux x64 — success; Windows x64 и ARM64 —
+failure, 11 тестов на настоящем бандле. Каждая host-команда (`autopilot:authorize`, `revoke`,
+`accept`, `close`) получала `HOST_AUTH_INVALID` «ticket bound to another root»: служба
+привязывала тикет к зарегистрированной папке, Kit присылал найденный им корень. На Windows эти
+пути различаются коротким именем 8.3 (`RUNNER~1`), регистром и слешами, а обычный `realpath`
+имена 8.3 не раскрывает. T012 отложена (`d67199f`, попытка 1), добавлен fixes round R2:
+F002 (`133dd56`) сравнивает корень через `realpathSync.native` и с учётом платформы,
+DOCS-R2 (`458a17b`), D002 и T012 после неё. На macOS и Linux поведение то же; что исправление
+работает на Windows, покажет CI T012.
+
+Поставка 0.15.1, macOS, 17.11.2026: исходники `458a17b` и изменения D002 (версия, CHANGELOG,
+README). Номер 0.15.1 свободен.
+
+```sh
+npm run typecheck             # без ошибок
+npm run check:platforms       # platform-guard: ok
+npm test                      # test:app 1300 (1298 пройдено, 2 пропущено, 0 ошибок); test:kit 69 из 69
+npm run build:kit             # Kit 2.3.3, sha256 f7ca59a8…1bfb1418, бандл без изменений
+node bin/wfk.mjs install      # app/0.15.1 вместо 0.15.0, удалена старая 0.14.5
+~/.local/bin/wfk doctor --installed
+```
+
+`KIT_VERSION` по-прежнему 2.3.3, бандл тот же, ядро не менялось. Doctor: все строки `ok`,
+«итог: всё в порядке», служба 0.15.1 (pid 36891). `/api/health`:
+`{"ok":true,"version":"0.15.1","pid":36891,"startedAt":"2026-11-17T02:12:56.069Z"}`.
+Установленная копия содержит `sameRoot`; настройки — `off`, revision 0; маршрут политики
+Workflow_Kit отвечает `off`.
+
 ## Не проверено
 
 - Живые провайдеры (Claude, Codex, Kimi), настоящий `gh` и GitHub, публикация в настоящий

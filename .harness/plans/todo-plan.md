@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1224,
+  "revision": 1226,
   "rounds": [
     {
       "digest": {
@@ -103,7 +103,7 @@
       },
       "id": "R4",
       "kind": "fixes",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Тесты, скрытые прошлыми падениями CI"
     }
   ],
@@ -213,7 +213,7 @@
         "text": "Owner session moved from 01a1e55e-7184-7ab3-a3ff-d5e3a7e77b2a to 25cedd72-7908-49d9-9f21-79cfca178443: The user started the plan from this session in the Workflow Kit panel"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 1,
       "ownerSession": "25cedd72-7908-49d9-9f21-79cfca178443",
@@ -1466,7 +1466,7 @@
       ],
       "checks": [],
       "commitMessage": "test: verify M39 cross-platform delivery and live evidence",
-      "confirmation": null,
+      "confirmation": "я принимаю доп задачи - выполняй без пауз все",
       "context": [
         {
           "path": "docs/planning/M39-autopiloting-validation.md",
@@ -1493,7 +1493,7 @@
       "iteration": 4,
       "kind": "delivery",
       "roundId": "R4",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Четыре платформы CI и факты сквозных прогонов",
       "why": "Четыре платформы CI и факты сквозных прогонов",
       "deferrals": [
@@ -1528,11 +1528,11 @@
 ## State
 
 - Scope: M39-autopiloting (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Current task: none
-- Progress: 21/22
-- Revision: 1224
+- Progress: 22/22
+- Revision: 1226
 
 ## Objective
 
@@ -1637,7 +1637,7 @@ Digest: R2 исправил дефект Windows, найденный CI d1ffd1b:
 
 Digest: R3 исправил тест F002: проверки веток linux и darwin с переданной платформой больше не зависят от файловой системы хоста (на Windows `/` — корень диска). CI 4c56e26 показал, что само исправление F002 работает: все тесты на настоящем бандле прошли на Windows x64 и ARM64.
 
-### R4 — Тесты, скрытые прошлыми падениями CI (fixes, OPEN)
+### R4 — Тесты, скрытые прошлыми падениями CI (fixes, CLOSED)
 
 - [DONE] F004 — Тест host IPC ядра сравнивает корень так же, как служба (work)
   - Commit: test: compare the host root by the native realpath in the Kit IPC test
@@ -1650,7 +1650,7 @@ Digest: R3 исправил тест F002: проверки веток linux и 
   - Commit: docs: reconcile documentation for R4
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/architecture/OS-MATRIX.md
   - Depends on: F004, F005
-- [TODO] T012 — Четыре платформы CI и факты сквозных прогонов (delivery)
+- [DONE] T012 — Четыре платформы CI и факты сквозных прогонов (delivery)
   - Commit: test: verify M39 cross-platform delivery and live evidence
   - Files: docs/evidence/M39-acceptance.md, docs/architecture/OS-MATRIX.md
   - Depends on: T011, D002, DOCS-R4

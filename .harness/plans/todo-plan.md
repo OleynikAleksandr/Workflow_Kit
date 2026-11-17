@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1299,
+  "revision": 1300,
   "rounds": [
     {
       "digest": {
@@ -51,6 +51,13 @@
       "kind": "implementation",
       "status": "CLOSED",
       "title": "Implementation"
+    },
+    {
+      "digest": null,
+      "id": "R2",
+      "kind": "fixes",
+      "status": "OPEN",
+      "title": "CI limits"
     }
   ],
   "schema": "harness-workflow-plan/1",
@@ -215,7 +222,7 @@
         "text": "Delivery T006 started by the advance instruction of run run-eX36hZQS5Jh3"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "IN_PROGRESS",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "25cedd72-7908-49d9-9f21-79cfca178443",
@@ -577,6 +584,63 @@
       "status": "DONE",
       "title": "CI четырёх платформ",
       "why": "Изменения должны работать на macOS, Linux и Windows"
+    },
+    {
+      "acceptance": [
+        "timeout-minutes заданий CI позволяет Windows ARM64 пройти полный npm test с запасом",
+        "Причины красного CI 44145356489 и исправление записаны в docs/evidence/M41-acceptance.md"
+      ],
+      "checks": [],
+      "commitMessage": "ci: give the four-platform jobs room for the M41 end-to-end tests",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M41-autopilot-acceptance.md",
+          "required": true,
+          "heading": "4. Проверка"
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        ".github/workflows/ci.yml",
+        "docs/evidence/M41-acceptance.md"
+      ],
+      "fixes": "T004",
+      "id": "F001",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Лимит времени заданий CI",
+      "why": "CI кандидата M41: Windows ARM64 превысил timeout-minutes 20 (прошлый прогон 19 мин 22 с, сквозные тесты M41 добавили минуты); на macOS ARM64 один Kit-вызов теста M40 не ответил за 60 с под нагрузкой"
+    },
+    {
+      "acceptance": [
+        "Project-wide documents describe the round result",
+        "The round digest records result, decisions, contracts and references"
+      ],
+      "checks": [],
+      "commitMessage": "docs: reconcile documentation for R2",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "F001"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/architecture/OVERVIEW.md",
+        "docs/evidence/M41-acceptance.md"
+      ],
+      "fixes": null,
+      "id": "DOCS-R2",
+      "iteration": 1,
+      "kind": "docs",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Reconcile project documentation and write the round digest",
+      "why": "Keep the project context current for the next agent and close the round."
     }
   ]
 }
@@ -586,12 +650,12 @@
 ## State
 
 - Scope: M41-autopilot-acceptance (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: IN_PROGRESS
 - Execution: sequential
 - Automation: 4 automatic, 0 manual criteria; CI origin ci/M41-autopilot-acceptance (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 7/7
-- Revision: 1299
+- Progress: 7/9
+- Revision: 1300
 
 ## Objective
 
@@ -637,5 +701,16 @@
   - Depends on: T005, DOCS-R1
 
 Digest: M41 R1: Kit 2.4.5 records the delivery checks a delivery task names and refuses automation criteria no task can record (AUTOMATION_CHECK_UNRECORDED), autopilot:status reports checksPending/checksUnreachable; the service waits for the user's acceptance instead of stopping the run, then closes and publishes, and warns early; «Обновить Kit» waits for the close of the plan and the publication of the run (409 scope-open/run-active, re-checked under the project lock); end-to-end scenarios pass on the real bundle.
+
+### R2 — CI limits (fixes, OPEN)
+
+- [TODO] F001 — Лимит времени заданий CI (work)
+  - Commit: ci: give the four-platform jobs room for the M41 end-to-end tests
+  - Files: .github/workflows/ci.yml, docs/evidence/M41-acceptance.md
+  - Fixes: T004
+- [TODO] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
+  - Commit: docs: reconcile documentation for R2
+  - Files: README.md, docs/architecture/OVERVIEW.md, docs/evidence/M41-acceptance.md
+  - Depends on: F001
 
 State changes only through `scripts/workflow` commands. History lives in Git.

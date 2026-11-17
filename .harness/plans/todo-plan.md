@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1232,
+  "revision": 1233,
   "rounds": [
     {
       "digest": null,
@@ -464,6 +464,42 @@
     },
     {
       "acceptance": [
+        "Текст подготовки полного автопилота называет требование блока automation; тексты after-start и ручного режима не меняются",
+        "В режиме full предложение без automation возвращается автору одним сообщением с требованием; ревью, выбор режима и запуск плана не выполняются; после второго такого предложения запуск остановлен с причиной automation-missing, карточка называет причину",
+        "Сообщение о запуске плана отправляется один раз на scope: несколько сверок подряд не повторяют его; если разрешение получить нельзя, запуск остановлен с причиной без повторов",
+        "Запуск, чей scope принят и закрыт вручную, переходит в finished с причиной closed-manually: карточки автопилота в состоянии панели нет, публикация не выполняется; запуск без scope в подготовке ведёт себя как раньше",
+        "Тесты модуля autopilot на каждый пункт; module.md и OS-MATRIX обновлены"
+      ],
+      "checks": [],
+      "commitMessage": "fix: start an autopilot plan once and end the run with its scope",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M40-autopilot-run-end.md",
+          "required": true
+        }
+      ],
+      "dependencies": [
+        "T004"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot",
+        "product-parts/backend-core/clusters/runtime/modules/cli",
+        "product-parts/control-panel",
+        "docs/architecture/OS-MATRIX.md"
+      ],
+      "fixes": null,
+      "id": "T004A",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R1",
+      "status": "TODO",
+      "title": "Служба: полный автопилот и план без automation, один запуск плана, конец запуска",
+      "why": "На тестовом проекте служба повторяла сообщение о запуске плана после каждого хода, а карточка автопилота не исчезала после ручного закрытия"
+    },
+    {
+      "acceptance": [
         "Журнал сообщений пользователя привязан к поколению хода канала агента: только доставленные сообщения (хук UserPromptSubmit или подтверждённая доставка сообщения панели); источник годен, пока текущее поколение то же и происхождение хода user или delivery из сообщений пользователя; автоматическое продолжение (Stop с block), напоминание, доставка ревью, очередь, старый ход, служебное сообщение и отсутствие достоверной привязки дают decision-source-missing без записи; одно сообщение — одно решение",
         "wfk decision <kind> с параметрами выбора (--task, для choose --option) записывает решение операцией хоста с примечанием из сообщения; агент цитату не передаёт",
         "Журнал решений с ключом идемпотентности: двойной запрос и двойное нажатие дают одну запись в истории Kit; запись issued после сбоя или перезапуска службы сверяется с Kit по decisionId без второго решения",
@@ -493,7 +529,8 @@
         }
       ],
       "dependencies": [
-        "T004"
+        "T004",
+        "T004A"
       ],
       "docsWaiver": null,
       "files": [
@@ -704,6 +741,7 @@
         "T002",
         "T003",
         "T004",
+        "T004A",
         "T005",
         "T006",
         "T007",
@@ -716,7 +754,17 @@
         "docs/architecture/OVERVIEW.md",
         "docs/planning/M40-user-decisions.md",
         "docs/architecture/OS-MATRIX.md",
-        "docs/evidence/M40-acceptance.md"
+        "docs/evidence/M40-acceptance.md",
+        "docs/planning/M40-user-decisions-contract.md",
+        "docs/planning/M40-user-decisions-validation.md",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/module.md",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/decisions.md",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/module.md",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/operations.md",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/tests.md",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/module.md",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-quality/module.md",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md"
       ],
       "fixes": null,
       "id": "DOCS-R1",
@@ -806,8 +854,8 @@
 - Execution: sequential
 - Automation: 6 automatic, 0 manual criteria; CI origin ci/M40-user-decisions (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 1/12
-- Revision: 1232
+- Progress: 1/13
+- Revision: 1233
 
 ## Objective
 
@@ -841,10 +889,14 @@
   - Commit: feat: generate host-mode instructions without user-decision relays
   - Files: product-parts/kit-core, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle, docs/architecture/OS-MATRIX.md
   - Depends on: T003
+- [TODO] T004A — Служба: полный автопилот и план без automation, один запуск плана, конец запуска (work)
+  - Commit: fix: start an autopilot plan once and end the run with its scope
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/control-panel, docs/architecture/OS-MATRIX.md
+  - Depends on: T004
 - [TODO] T005 — Служба: журнал решений, привязка к ходу, wfk decision и операции хоста (work)
   - Commit: feat: record user decisions from panel buttons and delivered user messages
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/workflow-engine/clusters/kit-host/modules/kit-runner, product-parts/workflow-engine/clusters/kit-host/modules/plan-view, product-parts/workflow-engine/clusters/session-loop/modules/plan-review, docs/architecture/OS-MATRIX.md
-  - Depends on: T004
+  - Depends on: T004, T004A
 - [TODO] T006 — Служба: «стоп» и «пауза» распознаёт служба (work)
   - Commit: feat: stop or pause a live run by the user's word in the service
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel, product-parts/backend-core/clusters/runtime/modules/cli, docs/architecture/OS-MATRIX.md
@@ -863,8 +915,8 @@
   - Depends on: T006, T008
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
-  - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M40-user-decisions.md, docs/architecture/OS-MATRIX.md, docs/evidence/M40-acceptance.md
-  - Depends on: T001, T002, T003, T004, T005, T006, T007, T008, T009
+  - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M40-user-decisions.md, docs/architecture/OS-MATRIX.md, docs/evidence/M40-acceptance.md, docs/planning/M40-user-decisions-contract.md, docs/planning/M40-user-decisions-validation.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/decisions.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/operations.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/tests.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-quality/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md
+  - Depends on: T001, T002, T003, T004, T004A, T005, T006, T007, T008, T009
 - [TODO] T010 — Поставка 0.16.0 (delivery)
   - Commit: chore: release Workflow Kit 0.16.0
   - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/evidence/M40-acceptance.md

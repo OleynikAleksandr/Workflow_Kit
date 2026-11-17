@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1259,
+  "revision": 1261,
   "rounds": [
     {
       "digest": {
@@ -41,7 +41,7 @@
       },
       "id": "R1",
       "kind": "implementation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Implementation"
     }
   ],
@@ -216,7 +216,7 @@
         "text": "Решения по разрешению запуска автопилота имеют источник grant и не потребляют сообщение пользователя; стоп и пауза исполняются при получении сообщения"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "25cedd72-7908-49d9-9f21-79cfca178443",
@@ -1115,7 +1115,7 @@
       ],
       "checks": [],
       "commitMessage": "test: verify M40 on four CI platforms",
-      "confirmation": null,
+      "confirmation": "Autopilot run run-ccWhaP7vmQJZ (authorization 1, user-command, 2026-11-17T07:16:13.439Z): Full autopilot run run-ccWhaP7vmQJZ: the user's direct instruction «Сделай так, как предложил - разбей на два скопе» (2026-11-17T06:52:42.726Z) to prepare and carry out the plan | effects: push ci/M40-user-decisions в origin и ожидание CI четырёх платформ",
       "context": [
         {
           "path": "docs/planning/M40-user-decisions-validation.md",
@@ -1136,7 +1136,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "CI четырёх платформ",
       "why": "Изменения должны работать на macOS, Linux и Windows"
     }
@@ -1148,12 +1148,12 @@
 ## State
 
 - Scope: M40-user-decisions (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Automation: 6 automatic, 0 manual criteria; CI origin ci/M40-user-decisions (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 12/13
-- Revision: 1259
+- Progress: 13/13
+- Revision: 1261
 
 ## Objective
 
@@ -1170,7 +1170,7 @@
 
 ## Rounds
 
-### R1 — Implementation (implementation, OPEN)
+### R1 — Implementation (implementation, CLOSED)
 
 - [DONE] T001 — Ядро: режим decisions, запросы решений и операции хоста (Kit 2.4.0) (work)
   - Commit: feat: record user decisions only through host operations
@@ -1219,7 +1219,7 @@
   - Commit: chore: release Workflow Kit 0.16.0
   - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/evidence/M40-acceptance.md
   - Depends on: DOCS-R1
-- [TODO] T011 — CI четырёх платформ (delivery)
+- [DONE] T011 — CI четырёх платформ (delivery)
   - Commit: test: verify M40 on four CI platforms
   - Files: docs/evidence/M40-acceptance.md
   - Depends on: T010, DOCS-R1

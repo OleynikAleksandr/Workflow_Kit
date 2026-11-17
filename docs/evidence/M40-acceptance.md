@@ -74,6 +74,14 @@ Doctor: все строки `ok`, «итог: всё в порядке», слу
 служба продолжила живой запуск автопилота этого scope (сообщение «goes on after a restart»).
 Сам Workflow_Kit остаётся на Kit 2.3.3 до «Обновить Kit» после M40.
 
+## CI четырёх платформ (T011)
+
+`02d84432` (поставка 0.16.0) отправлен в `ci/M40-user-decisions`; run
+[44084244869](https://github.com/OleynikAleksandr/Workflow_Kit/actions/runs/44084244869),
+17.11.2026: macOS ARM64, Linux x64, Windows x64 и Windows ARM64 — success для точного SHA
+(typecheck, тесты, включая сквозные сценарии T009, и platform-guard). Ожидание CI записано
+`wfk session progress`, результат служба прочитала на GitHub сама.
+
 ## Не проверено
 
 - HTTP-маршруты службы и команда `wfk` в сквозных сценариях не вызываются (их проверяют тесты
@@ -82,4 +90,4 @@ Doctor: все строки `ok`, «итог: всё в порядке», слу
 - Потерянный ответ Kit и перезапуск службы с записью `issued` — только модульные тесты T005
   (`decisions.test.ts`, `decisions-real.test.ts`), не сквозные.
 - Провайдеры Claude, Codex и Kimi вживую не запускались; настоящий GitHub CI — задача T011.
-- Linux и Windows: сквозные сценарии запускаются в CI четырёх платформ (T011); здесь — только macOS.
+- Linux и Windows проверены только CI (T011): живых проверок на этих ОС не было.

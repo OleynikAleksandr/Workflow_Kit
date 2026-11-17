@@ -10,12 +10,15 @@ export const HOST_PROTOCOL = 'wfk-host/1';
 
 /** The binding the Kit sends; the verifier compares it with its ticket. */
 export interface HostPayload {
+  /** The decision request a user decision applies (M40); absent on the M39 run operations. */
+  decisionId?: string;
   expectedRevision: number;
   inputDigest: string;
   operation: string;
   ownerSession: string | null;
   root: string;
-  runId: string;
+  /** The autopilot run; null for a decision the user takes outside a run (M40). */
+  runId: string | null;
   scopeId: string;
 }
 

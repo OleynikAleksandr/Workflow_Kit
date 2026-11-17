@@ -81,6 +81,15 @@
   `wfk serve` останавливается так же, как по SIGTERM (на Windows сигналов нет; так службу
   останавливает установщик). Панель зовёт его для
   новой сессии: окно без щелчка пользователя ссылку приложения может не открыть;
+- решения пользователя M40 T005: `wireAutopiloting` создаёт сервис решений
+  (`createDecisions`: `KitRunner`, тот же `createHostTickets` службы, журнал решений проекта
+  `createDecisionJournal` с платформой службы, `userSource` канала агента, `runLive` —
+  `runMayDecide` по журналу запусков) и отдаёт его как `decisions`; `wireSessions` передаёт его
+  автопилоту (опция `decisions`) и подключает `registerDecisionRoutes` — `POST
+  /api/sessions/decision` (`wfk decision`, сессию находит `locateSession`) и `POST
+  /api/projects/:id/workflow/decision` (кнопка карточки) с общим замком проекта; сообщение
+  сессии по кнопке идёт через будящий канал. Контракт —
+  [autopilot/decisions.md](../../../../../workflow-engine/clusters/session-loop/modules/autopilot/decisions.md);
 - автопилотирование M39 (`src/autopiloting-wiring.ts`, `wireAutopiloting`, вызывается из
   `wireSessions` с `configDir` и `platform` из `createApp`): настройки `autopiloting.json` в
   `DataDirs.configDir`, журнал запусков проектов, один `createHostTickets` службы, слова

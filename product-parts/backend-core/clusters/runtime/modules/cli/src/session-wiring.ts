@@ -3,7 +3,7 @@
 // registry (hook dialect, wakeSession, sendMessage, sendDirect, promptTitle, capabilities).
 import { createAgentChannel, registerChannelRoutes, nativeControlHookReply } from '#agent-channel';
 import type { AgentChannel, SessionActivity, SessionRef } from '#agent-channel';
-import { createAutopilot, registerAutopilotRoutes } from '#autopilot';
+import { createAutopilot, createDecisionCommands, registerAutopilotRoutes, registerDecisionRoutes } from '#autopilot';
 import type { Autopilot } from '#autopilot';
 import type { CrossReview } from '#cross-review';
 import type { KeyedMutex } from '#data-store';
@@ -169,6 +169,7 @@ export function wireSessions(options: SessionWiringOptions): SessionWiring {
   const autopilot = createAutopilot({
     authority: autopiloting.authority,
     runs: autopiloting.turns,
+    decisions: autopiloting.decisions,
     runner: kit,
     workflow,
     channel: wakingChannel,
@@ -223,6 +224,19 @@ export function wireSessions(options: SessionWiringOptions): SessionWiring {
   // it (sendDirect); otherwise, and for the autopilot and the cross review, through the queue.
   const direct = createDirectMessage({ channel, activity: (key) => channel.get(key), provider: (id) => providers.get(id), project: (id) => projects.get(id), log: options.log });
   registerAutopilotRoutes({ router, state, autopilot, mutex });
+  // M40: `wfk decision <kind>` and the buttons of the decision cards (a `decisions: host` project).
+  registerDecisionRoutes({
+    router,
+    mutex,
+    commands: createDecisionCommands({
+      autopilot,
+      decisions: autopiloting.decisions,
+      workflow,
+      projectPath: async (id) => (await projects.get(id))?.path,
+      tell: (id, key, text) => void wakingChannel.enqueue(key, text, 'panel', id),
+    }),
+    locate: (input) => locateSession(input, { resolveFolderProject, isClient, running: (id) => titles.running(id) }),
+  });
 
   const review = createReviewToggles({
     listProjects: async () => (await projects.list()).map((project) => ({ id: project.id, path: project.path })),

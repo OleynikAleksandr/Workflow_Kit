@@ -1,4 +1,5 @@
 import type { ChannelCore, Slot } from './slots.ts';
+import { randomUUID } from 'node:crypto';
 import { acceptTurn, beginTurn, cancelTurnWork, reserveTurn } from './turn-state.ts';
 import type { TurnControl } from './turn-state.ts';
 
@@ -65,7 +66,8 @@ export function createTurnControl(core: ChannelCore, ensure: (key: string, proje
     async directTurn(key, projectId, text, send) {
       const slot = ensure(key, projectId);
       if (slot.turn.barrier || slot.sending || core.excluded(slot) || core.closed()) return false;
-      const reservation = reserveTurn(slot, text, 'user', [], core.now().getTime());
+      // M40: a panel message given directly is the user's delivered message of the turn it begins.
+      const reservation = reserveTurn(slot, text, 'user', [], core.now().getTime(), { id: randomUUID(), text: text.trim(), at: core.iso(), via: 'panel' });
       slot.sending = true;
       let sent = false;
       try { sent = await send(); }

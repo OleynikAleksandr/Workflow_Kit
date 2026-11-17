@@ -52,9 +52,12 @@ test('runner failures: spawn, timeout, missing bundles', async () => {
   assert.deepEqual(calls[2], ['/node', '/app/kit.mjs', 'install', '/p', '--host', 'harness', '--update', '--with', '[".claude/settings.json",".workflow-kit/manifest.json"]']);
   await runner.install('/p', { update: true, with: [] });
   assert.deepEqual(calls[3], ['/node', '/app/kit.mjs', 'install', '/p', '--host', 'harness', '--update']);
+  // M40: the app turns on host-only user decisions at the installation and at the update.
+  await runner.install('/p', { name: 'P', decisions: 'host' });
+  assert.deepEqual(calls[4], ['/node', '/app/kit.mjs', 'install', '/p', '--host', 'harness', '--name', 'P', '--decisions', 'host']);
   const status = await runner.status('/definitely/not/a/project');
   assert.equal((status as { code: string }).code, 'KIT_NOT_INSTALLED');
-  assert.equal(calls.length, 4);
+  assert.equal(calls.length, 5);
 
   const noBundle = createKitRunner({
     appBundle: async () => {

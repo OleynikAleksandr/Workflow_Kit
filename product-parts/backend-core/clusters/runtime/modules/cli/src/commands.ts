@@ -8,6 +8,7 @@ import { runStatusline } from './statusline.ts';
 import { readProcessStdin, runHook } from './hook.ts';
 import type { PostJson, RequestJson } from './hook-service.ts';
 import { runSessionCommand } from './session-command.ts';
+import { runDecisionCommand } from './decision-command.ts';
 import { runProjectCommand } from './project-command.ts';
 import { linkLauncher } from './link.ts';
 import { withLauncherDir } from './service-path.ts';
@@ -36,7 +37,7 @@ export interface CliDeps {
 }
 
 /** Top-level commands of wfk, in help order. */
-export const COMMANDS: readonly string[] = ['serve', 'open', 'install', 'uninstall', 'service', 'doctor', 'link', 'hook', 'session', 'project', 'statusline'];
+export const COMMANDS: readonly string[] = ['serve', 'open', 'install', 'uninstall', 'service', 'doctor', 'link', 'hook', 'session', 'decision', 'project', 'statusline'];
 
 /** Exit code for usage errors (unknown command or subcommand). */
 export const EXIT_USAGE = 64;
@@ -59,6 +60,8 @@ const USAGE = `Использование: wfk <команда>
                                 конец хода без удержания
   session title "<тема>"        имя сессии от агента (один раз, в идущем ходе)
   session plan "<что делаем>"   вопрос пользователю: спецификация и план (с ревью или без)
+  decision <вид> [--task <ID>] [--option <способ>]
+                                решение пользователя из чата: Kit сам берёт слова пользователя
   project publish               опубликовать проект папки в upstream git (только при закрытом scope)
   statusline --client <id>       снимок параметров и строка состояния пользователя
   --version                     версия
@@ -217,6 +220,16 @@ export async function main(argv: readonly string[], deps?: Partial<CliDeps>): Pr
       });
     case 'session':
       return runSessionCommand(rest, {
+        stdout: full.stdout,
+        stderr: full.stderr,
+        env: full.app?.env ?? process.env,
+        cwd: full.cwd ?? process.cwd(),
+        homedir: full.app?.homedir,
+        platform: full.app?.platform,
+        request: full.requestJson,
+      });
+    case 'decision':
+      return runDecisionCommand(rest, {
         stdout: full.stdout,
         stderr: full.stderr,
         env: full.app?.env ?? process.env,

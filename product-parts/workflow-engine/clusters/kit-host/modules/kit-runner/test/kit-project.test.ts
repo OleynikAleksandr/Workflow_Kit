@@ -217,3 +217,26 @@ test('release closes the watchers of a project so Windows can delete its folder;
   state.stop();
   assert.equal(open.size, 0);
 });
+
+test('M40: a decision request of a host project is published in the state; the agent mode has none', async () => {
+  const root = await copyOfBase('decisions');
+  const watch = manualWatch();
+  const state = createWorkflowState({ runner, listProjects: async () => [{ id: 'decisions', path: root }], watch: watch.factory, debounceMs: 20, syncMs: 0 });
+  await state.start();
+  assert.deepEqual([state.get('decisions')!.decisionsMode, state.get('decisions')!.decisions], ['agent', []]);
+  // «Обновить Kit» of the app turns the mode on; the Kit commits its configuration.
+  await ok(runner.install(root, { update: true, decisions: 'host' }));
+  await propose(root);
+  // An agent runs the Kit 2.3 form in its own terminal: Kit refuses and registers the request.
+  const refused = await runner.run(root, ['scope:choose', '--generation', '1', '--option', 'sequential', '--session', 's-1', '--note', 'The user chose']);
+  assert.deepEqual([refused.ok, (refused as { code: string }).code], [false, 'USER_DECISION_REQUIRED']);
+  // The registry lives in the watched local state of Kit: the card needs no word of the agent.
+  watch.fire('workflow/local/decisions.json');
+  const view = await until(state, 'decisions', (v) => v.decisions.length > 0);
+  assert.equal(view.decisionsMode, 'host');
+  assert.deepEqual(view.decisions.map((item) => [item.kind, item.state, item.scopeId, item.params['option']]), [['choose', 'pending', null, 'sequential']]);
+  assert.match(view.decisions[0]!.id, /^dec-[0-9a-f]{12}$/u);
+  assert.match(view.decisions[0]!.inputDigest, /^[0-9a-f]{64}$/u);
+  assert.equal(view.plan, null, 'nothing was chosen');
+  state.stop();
+});

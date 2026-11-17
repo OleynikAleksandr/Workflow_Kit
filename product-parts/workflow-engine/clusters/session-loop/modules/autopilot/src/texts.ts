@@ -94,6 +94,11 @@ export function deliveryMessage(taskId: string, words: string): string {
   return `${PREFIX} the user confirms the delivery task ${taskId}: "${words}". Run \`scripts/workflow task:start ${taskId} --confirmed "${words.replace(/"/g, "'")}"\` and carry it out.`;
 }
 
+/** M40, a `host` project: the service started the delivery task itself; the agent only carries it out. */
+export function deliveryStartedMessage(taskId: string): string {
+  return `${PREFIX} the user confirmed the delivery task ${taskId} and Workflow Kit started it (it is IN_PROGRESS; do not run \`task:start\` again). Carry it out and commit with \`scripts/workflow commit --task ${taskId}\`.`;
+}
+
 /** Paths an agent message names; the rest goes as "and N more". */
 const MESSAGE_PATHS = 10;
 /** Paths a panel text names; the rest goes as «и ещё N». */

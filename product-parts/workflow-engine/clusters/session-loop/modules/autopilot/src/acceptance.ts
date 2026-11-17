@@ -6,6 +6,9 @@ import type { AgentChannel } from '#agent-channel';
 import type { KitRunner, WorkflowState } from '#kit-runner';
 import type { AutopilotReason, SessionAutopilot } from './autopilot.ts';
 import type { AutopilotProjectStatus } from './decide.ts';
+import { WorkflowActionError } from './autopilot-types.ts';
+import { originOf } from './decisions.ts';
+import type { DecisionAsk, DecisionBy, DecisionDone, Decisions } from './decisions.ts';
 import { wakeHolders } from './owner.ts';
 import { CLEAN_TEXTS, acceptedMessage, closedMessage, dirtyTreeText, tidyMessage } from './texts.ts';
 
@@ -17,6 +20,8 @@ export interface PlanEndDeps {
   runner: KitRunner;
   workflow: WorkflowState;
   channel: AgentChannel;
+  /** M40: a project with `decisions: host` records the decision by a host operation. */
+  decisions?: Decisions;
   root(projectId: string): Promise<string>;
   /** Owner session key per project, remembered at the choice. */
   owners: Map<string, string>;
@@ -30,9 +35,15 @@ export interface PlanEndDeps {
   log(line: string): void;
 }
 
+/** What a recorded acceptance or closing gives: the text for the agent and the host decision. */
+export interface PlanEndResult {
+  text: string;
+  decision: DecisionDone | null;
+}
+
 export interface PlanEnd {
-  accept(projectId: string, words?: string, session?: string): Promise<void>;
-  close(projectId: string, words?: string, session?: string): Promise<void>;
+  accept(projectId: string, words?: string, session?: string, by?: DecisionBy): Promise<PlanEndResult>;
+  close(projectId: string, words?: string, session?: string, by?: DecisionBy): Promise<PlanEndResult>;
   /** Asks the owner session to tidy the paths outside commits; the autopilot stays as it is. */
   tidy(projectId: string, session?: string): Promise<{ owner: string; paths: string[] }>;
   /** The reason a release is noted with: an accepted or closed plan is not «Ждёт приёмки». */
@@ -66,6 +77,12 @@ export function createPlanEnd(deps: PlanEndDeps): PlanEnd {
     deps.channel.enqueue(key, text, 'panel', projectId);
   }
 
+  /** M40: the decision of a `host` project; null — the `agent` mode keeps the Kit 2.3 form. */
+  async function decided(projectId: string, ask: Omit<DecisionAsk, 'origin' | 'expected'>, session?: string, by?: DecisionBy): Promise<DecisionDone | null> {
+    if (!deps.decisions) return null;
+    return deps.decisions.apply(await deps.root(projectId), projectId, { ...ask, origin: originOf(session, by), expected: by?.expected ?? null });
+  }
+
   function disable(projectId: string): void {
     deps.forget(projectId);
     for (const entry of deps.entries()) if (entry.projectId === projectId) entry.enabled = false;
@@ -77,32 +94,51 @@ export function createPlanEnd(deps: PlanEndDeps): PlanEnd {
   }
 
   return {
-    async accept(projectId, words, session) {
+    async accept(projectId, words, session, by) {
       const scope = await activeScope(projectId);
       const key = await ownerKey(projectId, session);
-      const outcome = await deps.runner.run(await deps.root(projectId), ['accept', '--note', words && words.trim().length >= 3 ? words.trim() : ACCEPT_NOTE]);
-      if (!outcome.ok) deps.fail(outcome.code, outcome.message, outcome.nextAction);
+      const decision = await decided(projectId, { kind: 'accept', note: words ?? ACCEPT_NOTE }, session, by);
+      if (!decision) {
+        const outcome = await deps.runner.run(await deps.root(projectId), ['accept', '--note', words && words.trim().length >= 3 ? words.trim() : ACCEPT_NOTE]);
+        if (!outcome.ok) deps.fail(outcome.code, outcome.message, outcome.nextAction);
+      }
       disable(projectId);
       const view = await deps.workflow.refresh(projectId);
-      tell(projectId, key, acceptedMessage(scope.id, view?.plan?.dirty ?? []), 'accept');
+      const text = acceptedMessage(scope.id, view?.plan?.dirty ?? []);
+      // The session that ran `wfk decision` reads the answer of its command, not a queued message.
+      if (!by?.message && !decision?.already) tell(projectId, key, text, 'accept');
       wakeHolders(deps.channel, projectId, key ?? '', ['ready-for-acceptance']);
-      if (key) deps.note(deps.entry(key, projectId), 'release', 'accepted', 'Пользователь принял план в панели');
+      if (key) deps.note(deps.entry(key, projectId), 'release', 'accepted', by?.message ? 'Пользователь принял план в чате' : 'Пользователь принял план в панели');
+      return { text, decision };
     },
 
-    async close(projectId, words, session) {
+    async close(projectId, words, session, by) {
       const scope = await activeScope(projectId);
       const key = await ownerKey(projectId, session);
-      const outcome = await deps.runner.run(await deps.root(projectId), ['close', '--scope', scope.id, '--note', words && words.trim().length >= 10 ? words.trim() : CLOSE_NOTE]);
-      void deps.workflow.refresh(projectId);
-      if (!outcome.ok) {
-        const paths = outcome.code === 'DIRTY_TREE' ? pathsOf(outcome.details) : [];
+      const dirty = (details: unknown): void => {
+        const paths = pathsOf(details);
         if (paths.length > 0) deps.fail('dirty-tree', dirtyTreeText(paths));
-        deps.fail(outcome.code, outcome.message, outcome.nextAction);
+      };
+      const decision = await decided(projectId, { kind: 'close', scopeId: scope.id, note: words ?? CLOSE_NOTE }, session, by).catch((error: unknown) => {
+        void deps.workflow.refresh(projectId);
+        if (error instanceof WorkflowActionError && error.code === 'DIRTY_TREE') dirty(error.details);
+        throw error;
+      });
+      if (!decision) {
+        const outcome = await deps.runner.run(await deps.root(projectId), ['close', '--scope', scope.id, '--note', words && words.trim().length >= 10 ? words.trim() : CLOSE_NOTE]);
+        if (!outcome.ok) {
+          void deps.workflow.refresh(projectId);
+          if (outcome.code === 'DIRTY_TREE') dirty(outcome.details);
+          deps.fail(outcome.code, outcome.message, outcome.nextAction);
+        }
       }
+      void deps.workflow.refresh(projectId);
       deps.owners.delete(projectId);
       disable(projectId);
-      tell(projectId, key, closedMessage(scope.id), 'close');
-      if (key) deps.note(deps.entry(key, projectId), 'release', 'closed', 'Пользователь закрыл план в панели');
+      const text = closedMessage(scope.id);
+      if (!by?.message && !decision?.already) tell(projectId, key, text, 'close');
+      if (key) deps.note(deps.entry(key, projectId), 'release', 'closed', by?.message ? 'Пользователь закрыл план в чате' : 'Пользователь закрыл план в панели');
+      return { text, decision };
     },
 
     async tidy(projectId, session) {

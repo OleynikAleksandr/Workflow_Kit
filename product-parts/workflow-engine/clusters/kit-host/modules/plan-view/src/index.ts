@@ -7,6 +7,8 @@ export type {
   KitProposalDigest,
   KitScope,
   KitScopeProposalMarker,
+  KitDecision,
+  KitDecisionKind,
   KitStatus,
   KitStrategy,
   KitTask,

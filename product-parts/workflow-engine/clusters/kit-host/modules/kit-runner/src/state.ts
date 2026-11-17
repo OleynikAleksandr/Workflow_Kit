@@ -5,7 +5,7 @@
 import { watch as fsWatch } from 'node:fs';
 import path from 'node:path';
 import { buildChoiceCard, buildPlanView } from '#plan-view';
-import type { ChoiceCard, KitExecution, KitProposal, KitScope, KitStatus, PlanView } from '#plan-view';
+import type { ChoiceCard, KitDecision, KitExecution, KitProposal, KitScope, KitStatus, PlanView } from '#plan-view';
 import type { KitRunner } from './runner.ts';
 
 export const WORKFLOW_DEBOUNCE_MS = 300;
@@ -43,6 +43,13 @@ export interface ProjectWorkflow {
   scope: KitScope | null;
   execution: KitExecution | null;
   paused: boolean;
+  /**
+   * M40: who records the user's decisions in this project and the requests that wait for the
+   * user (`status.decisions`): a command an agent ran in its own terminal reaches the panel
+   * here, not through the agent's words. Empty for the `agent` mode and an older Kit.
+   */
+  decisionsMode: 'agent' | 'host';
+  decisions: KitDecision[];
   proposal: KitProposal | null;
   plan: PlanView | null;
   choice: ChoiceCard | null;
@@ -110,6 +117,8 @@ function emptyView(projectId: string): ProjectWorkflow {
     scope: null,
     execution: null,
     paused: false,
+    decisionsMode: 'agent',
+    decisions: [],
     proposal: null,
     plan: null,
     choice: null,
@@ -200,6 +209,8 @@ export function createWorkflowState(options: WorkflowStateOptions): WorkflowStat
       scope: kit.scope,
       execution: kit.execution,
       paused: kit.paused,
+      decisionsMode: kit.decisionsMode === 'host' ? 'host' : 'agent',
+      decisions: Array.isArray(kit.decisions) ? kit.decisions : [],
       proposal,
       plan: buildPlanView(kit),
       choice: buildChoiceCard(proposal),

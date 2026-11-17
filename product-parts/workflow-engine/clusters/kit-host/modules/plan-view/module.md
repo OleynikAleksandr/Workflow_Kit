@@ -56,6 +56,13 @@
   `test/autopilot-support.test.ts`; совпадение протокола с `kit-runner` `HOST_PROTOCOL` проверяет
   `kit-runner/test/host-run.test.ts`.
 
+- Решения пользователя (M40 T005): `KitStatus.decisionsMode?` (`host` | `agent`) и
+  `KitStatus.decisions?` — запросы решений Kit 2.4.0+ (`KitDecision`: `id`, `kind`
+  (`KitDecisionKind`: `accept`, `adopt-commits`, `approve-install`, `choose`, `close`,
+  `confirm-delivery`, `unblock`), `scopeId`, `taskId`, `proposal`, `params`, `inputDigest`,
+  `revision`, `createdAt`, `state`). Кнопка карточки возвращает `id` и `inputDigest`; в старом Kit
+  полей нет.
+
 ## Инварианты
 
 - Метка параллельности показывается только в режиме `orchestrated`.

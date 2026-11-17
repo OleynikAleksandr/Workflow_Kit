@@ -83,6 +83,20 @@ export interface UserWords {
   turnId: string | null;
 }
 
+/**
+ * The delivered message of the user that began the current turn (M40): the source of a decision
+ * the user takes in the chat. `turnRef` is the public generation of the turn it began.
+ */
+export interface UserSource {
+  /** Id of the message (a queued panel message keeps its id). */
+  id: string;
+  text: string;
+  at: string;
+  via: 'prompt' | 'panel';
+}
+
+export type TurnUserSource = UserSource & { turnRef: string };
+
 /** A finished turn: what the agent said last and what started the turn (spec M4 section 7). */
 export interface StopEvent {
   key: string;
@@ -254,4 +268,10 @@ export interface AgentChannel extends TurnControl {
   userWords(key: string): UserWords[];
   /** Records a panel message the direct path gave to the agent (it never passes the queue). */
   noteUserWords(key: string, text: string): void;
+  /**
+   * M40: the user's delivered message that began the current turn of the session, or null — the
+   * turn began with a continuation of the autopilot, a reminder, a review or another service
+   * message, its origin is unknown, or the service has not seen its start.
+   */
+  userSource(key: string): TurnUserSource | null;
 }

@@ -8,7 +8,7 @@ import { sameRoot } from './root-path.ts';
 import type { HostPayload, HostVerdict, HostVerifier } from '#kit-runner';
 
 /** The operations only the host performs (the Kit's `HostOperation`). */
-export type HostOperation = 'accept' | 'autopilot:authorize' | 'autopilot:revoke' | 'close';
+export type HostOperation = 'accept' | 'autopilot:authorize' | 'autopilot:revoke' | 'close' | 'commits:adopt' | 'quality:apply' | 'scope:choose' | 'task:start' | 'task:unblock';
 
 export type HostBinding = HostPayload & { operation: HostOperation };
 
@@ -73,6 +73,8 @@ function mismatch(binding: HostBinding, payload: unknown, platform: NodeJS.Platf
   for (const field of FIELDS) {
     if (given[field] !== binding[field]) return field;
   }
+  // M40: a ticket of a user decision is bound to its request; a run operation carries none.
+  if ((given['decisionId'] ?? null) !== (binding.decisionId ?? null)) return 'decisionId';
   return typeof given['root'] === 'string' && sameRoot(given['root'], binding.root, platform) ? null : 'root';
 }
 

@@ -79,7 +79,8 @@ export interface KitRunner {
   runHost<T>(root: string, args: readonly string[], verifier: HostVerifier, options?: RunKitOptions): Promise<KitOutcome<T>>;
   inspect(root: string): Promise<KitOutcome<KitInspect>>;
   /** `with`: files of the app's managed structure for the same commit (`--with`, spec M38). */
-  install(root: string, options?: { update?: boolean; name?: string; with?: readonly string[] }): Promise<KitOutcome<KitInstall>>;
+  /** `decisions: 'host'` (Kit 2.4.0+, M40): only the app records the user's decisions in the project. */
+  install(root: string, options?: { update?: boolean; name?: string; with?: readonly string[]; decisions?: 'host' }): Promise<KitOutcome<KitInstall>>;
   status(root: string): Promise<KitOutcome<KitStatus>>;
   proposal(root: string): Promise<KitOutcome<KitProposal | null>>;
   /** `scope:proposal --digest` (M39): the digest the review agrees on and `scope:choose --expected-digest` checks. */
@@ -211,6 +212,7 @@ export function createKitRunner(options: KitRunnerOptions): KitRunner {
       if (installOptions.update) args.push('--update');
       if (installOptions.name) args.push('--name', installOptions.name);
       if (installOptions.with && installOptions.with.length > 0) args.push('--with', JSON.stringify(installOptions.with));
+      if (installOptions.decisions) args.push('--decisions', installOptions.decisions);
       return withAppBundle<KitInstall>(root, args, Math.max(defaultTimeout, KIT_INSTALL_TIMEOUT_MS));
     },
     status: (root) => inProject<KitStatus>(root, ['status'], defaultTimeout, true),

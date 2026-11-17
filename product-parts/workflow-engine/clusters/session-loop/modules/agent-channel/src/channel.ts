@@ -8,15 +8,16 @@
 import { randomUUID } from 'node:crypto';
 import { createDetached } from './detached.ts';
 import { createTurnControl } from './turn-control.ts';
-import { acceptTurn, beginTurn, ownPrompt, reserveTurn } from './turn-state.ts';
+import { acceptTurn, beginTurn, ownPrompt, reserveTurn, userSourceOf } from './turn-state.ts';
 import { blockAnswer, promptAnswer, sessionKey } from './hook-input.ts';
 import { activityOf, newSlot, pendingOf } from './slots.ts';
 import type { ChannelCore, Slot } from './slots.ts';
 import { createRelease } from './release.ts';
 import { createUserWords } from './user-words.ts';
+import { deliverQueue, deliveredInPrompt, promptUserSource, turnUserSource } from './user-source.ts';
 import { remindedTurn } from './reminder.ts';
 import { LAST_MESSAGE_CHARS, STOP_HOLD_MS, USER_MESSAGE_SOURCE } from './types.ts';
-import type { ActivityState, AgentChannel, AgentChannelOptions, HookReply, IdleListener, QueuedMessage, SessionActivity, StopContext, StopDecider, StopDecision, StopEvent, StopListener, TurnOrigin } from './types.ts';
+import type { ActivityState, AgentChannel, AgentChannelOptions, HookReply, IdleListener, QueuedMessage, SessionActivity, StopContext, StopDecider, StopDecision, StopEvent, StopListener, TurnOrigin, UserSource } from './types.ts';
 
 const RELEASE: StopDecision = { kind: 'release' };
 const noop = (): void => undefined;
@@ -71,34 +72,13 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
   }
 
   /** Takes the whole queue as one delivery; ack drops it, nack puts it back in front. */
-  function deliver(slot: Slot, render: (text: string) => Record<string, unknown>): HookReply {
-    const taken = slot.queue.splice(0, slot.queue.length);
-    slot.sources = taken.map((message) => message.source);
-    slot.activity.pending = 0;
-    let settled = false;
-    const text = taken.map((message) => message.text).join('\n\n');
-    return {
-      answer: render(text),
-      ack: () => {
-        if (settled) return;
-        settled = true;
-        changed(slot.activity.key);
-      },
-      nack: () => {
-        if (settled) return;
-        settled = true;
-        slot.queue.unshift(...taken);
-        slot.activity.pending = slot.queue.length;
-        changed(slot.activity.key);
-      },
-    };
-  }
+  const deliver = (slot: Slot, render: (text: string) => Record<string, unknown>) => deliverQueue(slot, render, changed);
 
   const empty = (answer: Record<string, unknown> | null = null): HookReply => ({ answer, ack: noop, nack: noop });
 
   /** Only an acknowledged block starts a public generation; nack retains the queue. */
-  function blockReply(slot: Slot, reply: HookReply, text: string, origin: TurnOrigin): HookReply {
-    const reservation = reserveTurn(slot, text, origin, slot.sources, now().getTime());
+  function blockReply(slot: Slot, reply: HookReply, text: string, origin: TurnOrigin, user: UserSource | null = null): HookReply {
+    const reservation = reserveTurn(slot, text, origin, slot.sources, now().getTime(), user);
     const native = slot.turn.nativeTurnId; // A block may continue the same provider-native turn.
     return {
       ...reply,
@@ -238,7 +218,8 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
         if (slot.queue.length > 0) {
           const reply = deliver(slot, (text) => blockAnswer(text));
           setState(slot, 'working', { turnStartedAt: iso() });
-          return blockReply(slot, reply, String(reply.answer?.['reason'] ?? ''), 'delivery');
+          // M40: a delivery of the user's messages alone is the decision source of the turn it begins.
+          return blockReply(slot, reply, String(reply.answer?.['reason'] ?? ''), 'delivery', userSourceOf(reply.messages));
         }
         const context: StopContext = {
           key: slot.activity.key,
@@ -293,7 +274,10 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
         if (!automaticWake) slot.turn.barrier = false;
         beginTurn(slot, automaticWake ? 'delivery' : 'user', input.turnId, automaticWake ? slot.queue.map((m) => m.source) : []);
         slot.turn.lastPrompt = input.prompt;
-        if (!automaticWake && input.prompt) words.record(slot.activity.key, { text: input.prompt, at: iso(), via: 'prompt', turnId: input.turnId });
+        if (!automaticWake && input.prompt) {
+          words.record(slot.activity.key, { text: input.prompt, at: iso(), via: 'prompt', turnId: input.turnId });
+          promptUserSource(slot, input.prompt, iso()); // M40: the decision source of this generation
+        }
       }
       if (duplicate) return empty();
       if (detached?.supports(slot)) {
@@ -308,7 +292,7 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
         const reply = deliver(slot, (text) => promptAnswer(input.dialect, text));
         slot.origin = automaticWake ? 'delivery' : 'user';
         setState(slot, 'working', { turnStartedAt: iso() });
-        return reply;
+        return deliveredInPrompt(slot, reply); // M40: the user's messages alone are a decision source
       }
       setState(slot, 'working', { turnStartedAt: iso() });
       return own && slot.turn.origin !== 'user' ? { ...empty(), own: true } : empty();
@@ -385,6 +369,7 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
     section: () => ({ sessions: visible().map(activityOf) }),
     excluded: (key, projectId) => excludedKey(key, projectId ?? slots.get(key)?.activity.projectId ?? null),
     ...words.api(iso),
+    userSource: (key) => turnUserSource(slots.get(key)),
     forget(key) {
       words.forget(key);
       const slot = slots.get(key);

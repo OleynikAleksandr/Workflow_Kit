@@ -10,6 +10,7 @@ import type { RunJournal, RunRecord } from './run-journal.ts';
 import type { RunKit, RunKitStatus } from './run-kit.ts';
 import { RETRY_DELAYS_MS, WAIT_TEXTS } from './run-waits.ts';
 import { finishRun, settleRunEnd } from './run-end.ts';
+import { runMayDecide } from './decisions.ts';
 
 export interface PublisherLike {
   publish(folder: string, scopeOpen: boolean, expected: { sha: string; branch: string; upstream: string }): Promise<{ sha: string; already: boolean; commits?: number }>;
@@ -124,6 +125,7 @@ export function createRunCompletion(deps: RunCompletionDeps) {
     return update(folder, current, (r) => ({ ...r, phase: 'waiting', pausedFrom: r.phase, wait }));
   }
 
+  const mayDecide = runMayDecide(deps.journal);
   const greenFor = (run: RunRecord, sha: string) => run.receipts.some((r) => r.type === 'ci' && r.commit === sha);
 
   async function accept(folder: string, run: RunRecord, status: RunKitStatus): Promise<RunRecord | null> {
@@ -145,6 +147,8 @@ export function createRunCompletion(deps: RunCompletionDeps) {
       head: status.head!,
     };
     const scope = await deps.kit.scope(folder);
+    // M40: pause, stop and revocation are read again right before the ticket of the decision.
+    if (!(await mayDecide(folder, run.runId))) return null;
     const step = await deps.kit.host(folder, {
       operation: 'accept', runId: run.runId, scopeId: run.scopeId!, ownerSession: scope?.ownerSession ?? null, input, file: true,
       args: (file, revision) => ['accept', '--autopilot-run', run.runId, '--input', file!, '--expected-revision', String(revision)],
@@ -171,6 +175,7 @@ export function createRunCompletion(deps: RunCompletionDeps) {
     if (status.delivery !== 'ACCEPTED' || !live(status, run) || !status.authorization?.close) return block(folder, run, 'not-accepted: scope не принят или разрешение не включает закрытие');
     if (status.transactionPending) return null;
     const scope = await deps.kit.scope(folder);
+    if (!(await mayDecide(folder, run.runId))) return null;
     const step = await deps.kit.host(folder, {
       operation: 'close', runId: run.runId, scopeId: run.scopeId!, ownerSession: scope?.ownerSession ?? null, input: { runId: run.runId, scopeId: run.scopeId }, file: false,
       args: (_file, revision) => ['close', '--scope', run.scopeId!, '--autopilot-run', run.runId, '--expected-revision', String(revision)],

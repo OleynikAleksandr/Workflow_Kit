@@ -108,7 +108,9 @@ export function createPreparation(deps: PreparationDeps) {
     } catch (error) {
       const code = (error as { code?: string }).code ?? 'choose-failed';
       log(`autopiloting: ${run.runId} choose refused: ${code}`);
-      return block(folder, current, code === 'PROPOSAL_CHANGED' ? PREPARE_TEXTS.changed : `${code}: ${error instanceof Error ? error.message : String(error)}`);
+      // M40: the run was paused, stopped or revoked before the ticket — it keeps that state.
+      if (code === 'run-not-live') return null;
+      return block(folder, current, code === 'PROPOSAL_CHANGED' || code === 'DECISION_STALE' ? PREPARE_TEXTS.changed : `${code}: ${error instanceof Error ? error.message : String(error)}`);
     }
     const scope = await deps.kit.scope(folder);
     current = await deps.journal.update(folder, run.runId, (r) => ({

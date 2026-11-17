@@ -9,7 +9,8 @@ import { DEFAULT_MAX_CONTINUES, decideAutopilot, nextAutopilotState } from './de
 import { grantedDelivery, liveGrant } from './decide-orchestration.ts';
 import type { AutopilotProjectStatus } from './decide.ts';
 import { CHOICE_NOTES, CHOSEN_WAIT, EXECUTOR_HOWTO, PREFIX, REFINE_MESSAGE, RESUME_MESSAGE, START_MESSAGES, STOP_LABELS } from './texts.ts';
-import { deliveryMessage, executorHowto, fixesMessage, sequentialOnlyNote } from './texts.ts';
+import { deliveryMessage, deliveryStartedMessage, executorHowto, fixesMessage, sequentialOnlyNote } from './texts.ts';
+import { originOf } from './decisions.ts';
 import { createPlanEnd } from './acceptance.ts';
 import { createPlanStarts } from './start.ts';
 import { blockedByInterruption, pauseInterruptedOwner } from './interrupt.ts';
@@ -110,6 +111,7 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
   }
 
   const planEnd = createPlanEnd({
+    ...(options.decisions ? { decisions: options.decisions } : {}),
     runner: options.runner,
     workflow: options.workflow,
     channel: options.channel,
@@ -232,30 +234,42 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
         const blocked = await options.review.choiceBlocked(projectId, working);
         if (blocked) throw new WorkflowActionError('review-pending', blocked, 409, 'Дождитесь ревью плана: карточка выбора вернётся после него.');
       }
-      await kit(projectId, [
-        'scope:choose',
-        '--generation',
-        String(request.generation),
-        '--option',
-        request.option,
-        '--session',
-        idOf(request.session),
-        '--note',
-        request.automatic?.note ?? CHOICE_NOTES[request.option],
-        ...(request.expectedDigest ? ['--expected-digest', request.expectedDigest] : []),
-      ]);
+      const note = request.automatic?.note ?? CHOICE_NOTES[request.option];
+      const digest = request.expectedDigest ? ['--expected-digest', request.expectedDigest] : [];
+      // M40: a `host` project records the choice by a host operation — of the run's grant, of the
+      // button or of the user's message; the `agent` mode keeps the Kit 2.3 form.
+      const decision = await options.decisions?.apply(await root(projectId), projectId, {
+        kind: 'choose',
+        origin: request.automatic ? { kind: 'grant', runId: request.automatic.runId } : originOf(request.session, request.by),
+        note,
+        expected: request.by?.expected ?? null,
+        choice: { generation: request.generation, option: request.option, session: idOf(request.session), expectedDigest: request.expectedDigest ?? null },
+      });
+      if (decision?.already) {
+        // A second press of the same card: the choice is recorded, the agent heard of it.
+        owners.set(projectId, request.session);
+        return { option: request.option, owner: request.session };
+      }
+      if (decision) void options.workflow.refresh(projectId);
+      else await kit(projectId, ['scope:choose', '--generation', String(request.generation), '--option', request.option, '--session', idOf(request.session), '--note', note, ...digest]);
       wakeHolders(options.channel, projectId, request.session, ['waiting-for-mode-choice']); // M31 3.3: release the other holders
       const entry = state(request.session, projectId);
+      // The session that ran `wfk decision` reads the answer of its command, not a queued message.
+      const tell = (text: string): void => void (request.by?.message ? null : options.channel.enqueue(request.session, text, 'panel', projectId));
       if (request.option === 'refine') {
         entry.enabled = false;
-        options.channel.enqueue(request.session, REFINE_MESSAGE, 'panel', projectId);
-      } else if (request.automatic) {
+        tell(REFINE_MESSAGE);
+        return { option: request.option, owner: request.session, text: REFINE_MESSAGE };
+      }
+      if (request.automatic) {
         owners.set(projectId, request.session);
         await options.workflow.refresh(projectId); // the start that follows reads the chosen execution
       } else {
         owners.set(projectId, request.session);
         const only = request.option === 'sequential' ? await sequentialOnly(request.session) : '';
-        options.channel.enqueue(request.session, `${CHOSEN_WAIT[request.option]}${only}`, 'panel', projectId);
+        const text = `${CHOSEN_WAIT[request.option]}${only}`;
+        tell(text);
+        return { option: request.option, owner: request.session, text };
       }
       return { option: request.option, owner: request.session };
     },
@@ -314,8 +328,8 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
       return { owner: key, ...(runId ? { runId } : {}) };
     },
 
-    accept: (projectId, words, session) => planEnd.accept(projectId, words, session),
-    close: (projectId, words, session) => planEnd.close(projectId, words, session),
+    accept: (projectId, words, session, by) => planEnd.accept(projectId, words, session, by),
+    close: (projectId, words, session, by) => planEnd.close(projectId, words, session, by),
     tidy: (projectId, session) => planEnd.tidy(projectId, session),
 
     async fixes(projectId, text, session) {
@@ -331,14 +345,26 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
       return { owner: key };
     },
 
-    async confirmDelivery(projectId, words, session) {
+    async confirmDelivery(projectId, words, session, by) {
       const status = await autopilotStatus(projectId);
       const task = status?.nextTask;
       if (!task || task.kind !== 'delivery') throw new WorkflowActionError('no-delivery', 'Нет задачи выпуска, ждущей подтверждения', 409);
-      if (words.trim().length < 3) throw new WorkflowActionError('bad-request', 'Напишите подтверждение своими словами', 400);
+      if (by?.taskId && by.taskId !== task.id) throw new WorkflowActionError('task-mismatch', `Подтверждения ждёт задача ${task.id}, а не ${by.taskId}`, 409);
       const key = await owner(projectId, session);
       // M39: a delivery the live run confirmed in advance gets no second message; the run sends it.
       if (task.status === 'TODO' && grantedDelivery(status!, task)) return { owner: key, taskId: task.id };
+      // M40, a `host` project: the service starts the task itself, then tells the agent.
+      const folder = await root(projectId);
+      if (options.decisions && (await options.decisions.mode(folder)) === 'host') {
+        const decision = task.status === 'TODO' ? await options.decisions.apply(folder, projectId, { kind: 'confirm-delivery', taskId: task.id, origin: originOf(session, by), note: words, expected: by?.expected ?? null }) : null;
+        void options.workflow.refresh(projectId);
+        const text = deliveryStartedMessage(task.id);
+        // A second press (the task runs already) tells the agent nothing new; `wfk decision`
+        // answers its caller itself.
+        if (!by?.message && decision && !decision.already) await enable(projectId, key, text);
+        return { owner: key, taskId: task.id, started: true, text };
+      }
+      if (words.trim().length < 3) throw new WorkflowActionError('bad-request', 'Напишите подтверждение своими словами', 400);
       await enable(projectId, key, deliveryMessage(task.id, words.trim()));
       return { owner: key, taskId: task.id };
     },

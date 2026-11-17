@@ -6,6 +6,8 @@ import type { KitChoiceOption } from '#plan-view';
 import type { StopReason } from './decide.ts';
 import type { PlanStart } from './start.ts';
 import type { RunTurns } from './run-turns.ts';
+import type { DecisionBy, Decisions } from './decisions.ts';
+import type { PlanEndResult } from './acceptance.ts';
 
 /** `accepted` and `closed` label a plan the user accepted or closed (spec M37 2.2). */
 export type AutopilotReason =
@@ -81,6 +83,11 @@ export interface AutopilotOptions {
   /** Whether the project lists the session (its provider knows it); absent — every session counts. */
   owns?: (projectId: string, key: string) => Promise<boolean>;
   maxContinues?: number;
+  /**
+   * M40: the decisions of a `decisions: host` project go to Kit by host operations (the panel
+   * buttons, `wfk decision`, the grant of a run); absent — every project keeps the Kit 2.3 forms.
+   */
+  decisions?: Decisions;
   /** M39 T007: the started run of the owner decides its turns (no limit of 40, waits, barriers). */
   runs?: Pick<RunTurns, 'live' | 'turn'> & {
     /** M40: the text that returns a proposal without the `automation` block to its author, or null. */
@@ -112,6 +119,8 @@ export interface ChooseRequest {
    * button» message goes to the agent: the start follows at once.
    */
   automatic?: { runId: string; note: string };
+  /** M40: the request the card showed, the id of the press, or the session of `wfk decision`. */
+  by?: DecisionBy;
 }
 
 export interface Autopilot {
@@ -119,7 +128,8 @@ export interface Autopilot {
   decide(context: StopContext): Promise<StopDecision>;
   /** A UserPromptSubmit of a session: `delivered` when it carried panel messages. */
   onPrompt(key: string, delivered: boolean): void;
-  choose(projectId: string, request: ChooseRequest): Promise<{ option: KitChoiceOption; owner: string }>;
+  /** `text` — what the owner session is told (queued, or the answer of its `wfk decision`). */
+  choose(projectId: string, request: ChooseRequest): Promise<{ option: KitChoiceOption; owner: string; text?: string }>;
   /** `already` — a start runs without a problem: nothing was sent again (spec M11 2.3). */
   start(projectId: string, session?: string): Promise<{ owner: string; already?: boolean; runId?: string }>;
   pause(projectId: string): Promise<void>;
@@ -128,12 +138,17 @@ export interface Autopilot {
   interrupt(projectId: string, key: string): Promise<void>;
   resume(projectId: string, session?: string): Promise<{ owner: string; runId?: string }>;
   /** Runs the Kit command and tells the owner session (spec M37 2.2); `session` — the session of the request. */
-  accept(projectId: string, note?: string, session?: string): Promise<void>;
-  close(projectId: string, note?: string, session?: string): Promise<void>;
+  accept(projectId: string, note?: string, session?: string, by?: DecisionBy): Promise<PlanEndResult>;
+  close(projectId: string, note?: string, session?: string, by?: DecisionBy): Promise<PlanEndResult>;
   /** Asks the owner session to tidy the paths outside commits (spec M37 2.3). */
   tidy(projectId: string, session?: string): Promise<{ owner: string; paths: string[] }>;
   fixes(projectId: string, text: string, session?: string): Promise<{ owner: string }>;
-  confirmDelivery(projectId: string, words: string, session?: string): Promise<{ owner: string; taskId: string }>;
+  /**
+   * Confirms the next delivery task. M40, a `host` project: the service starts the task itself
+   * by a host operation (`started`) and only then tells the agent; the `agent` mode sends the
+   * Kit 2.3 message with the user's words.
+   */
+  confirmDelivery(projectId: string, words: string, session?: string, by?: DecisionBy): Promise<{ owner: string; taskId: string; started?: boolean; text?: string }>;
   get(key: string): SessionAutopilot | undefined;
   section(): { sessions: SessionAutopilot[] };
 }

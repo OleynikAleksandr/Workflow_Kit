@@ -139,10 +139,20 @@ test('tickets: one use, expiry, payload digest and every bound field', () => {
   const late = tickets.issue(bound);
   clock += 101;
   assert.deepEqual(late.verify({ payload: bound, payloadDigest: hostInputDigest(bound), ticket: late.ticket }), { ok: false, reason: 'ticket expired' });
+  // M40: the ticket of a user decision is bound to its request; a run operation carries none.
+  const decision: HostBinding = { ...bound, operation: 'accept', runId: null, decisionId: 'dec-0123456789ab' };
+  const decided = tickets.issue(decision);
+  const ask = (payload: unknown) => ({ payload, payloadDigest: hostInputDigest(payload), ticket: decided.ticket });
+  assert.deepEqual(decided.verify(ask({ ...decision, decisionId: 'dec-ffffffffffff' })), { ok: false, reason: 'ticket bound to another decisionId' });
+  assert.deepEqual(decided.verify(ask({ ...decision, decisionId: undefined })), { ok: false, reason: 'ticket bound to another decisionId' });
+  assert.deepEqual(decided.verify(ask({ ...decision, runId: 'r' })), { ok: false, reason: 'ticket bound to another runId' });
+  assert.deepEqual(decided.verify(ask(decision)), { ok: true });
+  const plain = tickets.issue(bound);
+  assert.deepEqual(plain.verify({ payload: { ...bound, decisionId: 'dec-0123456789ab' }, payloadDigest: hostInputDigest({ ...bound, decisionId: 'dec-0123456789ab' }), ticket: plain.ticket }), { ok: false, reason: 'ticket bound to another decisionId' });
   // A restart restores the redeemed ids from the journal.
   const restarted = createHostTickets({ now: () => clock });
   restarted.restore(tickets.redeemed());
-  assert.deepEqual(restarted.redeemed(), [verifier.ticketId]);
+  assert.deepEqual(restarted.redeemed(), [verifier.ticketId, decided.ticketId]);
   assert.ok(!verifier.ticket.includes('\n'));
 });
 

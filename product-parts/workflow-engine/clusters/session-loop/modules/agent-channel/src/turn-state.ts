@@ -1,7 +1,8 @@
 // One public generation for both delivery protocols. Watch generations remain private to Slot.
 import { randomUUID } from 'node:crypto';
 import type { Slot } from './slots.ts';
-import type { TurnOrigin } from './types.ts';
+import { USER_MESSAGE_SOURCE } from './types.ts';
+import type { QueuedMessage, TurnOrigin, UserSource } from './types.ts';
 
 export type InterruptionOutcome = 'interrupted' | 'already-idle' | 'stale' | 'failed' | null;
 export interface TurnSnapshot {
@@ -26,6 +27,8 @@ export interface Reservation {
   text: string;
   origin: TurnOrigin;
   sources: string[];
+  /** M40: the user's message this turn begins with; null for every service turn. */
+  user: UserSource | null;
   started: boolean;
   startedRef: string | null;
   createdAt: number;
@@ -35,23 +38,39 @@ export interface TurnState extends TurnSnapshot {
   operation: string | null;
   reservation: Reservation | null;
   lastPrompt: string | null;
+  /**
+   * M40: the delivered user message that began this generation (a typed prompt, or panel messages
+   * of the user alone); every new generation clears it.
+   */
+  userSource: UserSource | null;
   retired: Set<string>;
   wakingUntil: number;
 }
-export const newTurnState = (): TurnState => ({ turnRef: null, nativeTurnId: null, barrier: false, pending: false, result: null, origin: 'unknown', operation: null, reservation: null, lastPrompt: null, notifiedRef: null, retired: new Set(), wakingUntil: 0 });
+export const newTurnState = (): TurnState => ({ turnRef: null, nativeTurnId: null, barrier: false, pending: false, result: null, origin: 'unknown', operation: null, reservation: null, lastPrompt: null, userSource: null, notifiedRef: null, retired: new Set(), wakingUntil: 0 });
 
 export function beginTurn(slot: Slot, origin: TurnOrigin, native: string | null = null, sources: string[] = []): void {
   const previous = slot.turn.nativeTurnId;
   if (previous && native !== previous) slot.turn.retired.add(previous);
   if (slot.turn.retired.size > 64) slot.turn.retired.delete(slot.turn.retired.values().next().value!);
   slot.generation += 1;
-  Object.assign(slot.turn, { turnRef: randomUUID(), nativeTurnId: native, origin, pending: false, result: null, operation: null });
+  Object.assign(slot.turn, { turnRef: randomUUID(), nativeTurnId: native, origin, pending: false, result: null, operation: null, userSource: null });
   slot.origin = origin;
   slot.sources = sources;
 }
 
-export function reserveTurn(slot: Slot, text: string, origin: TurnOrigin, sources: string[], now: number): Reservation {
-  const reservation = { previousNative: slot.turn.nativeTurnId, text: text.trim(), origin, sources: [...sources], started: false, startedRef: null, createdAt: now };
+/**
+ * M40: the decision source of a delivery — the user's messages (the id of the last one) when
+ * every delivered message is the user's own; a delivery that carries a review, a reminder or
+ * another service message has none.
+ */
+export function userSourceOf(messages: readonly QueuedMessage[]): UserSource | null {
+  const last = messages.at(-1);
+  if (!last || messages.some((message) => message.source !== USER_MESSAGE_SOURCE)) return null;
+  return { id: last.id, text: messages.map((message) => message.text).join('\n\n'), at: last.createdAt, via: 'panel' };
+}
+
+export function reserveTurn(slot: Slot, text: string, origin: TurnOrigin, sources: string[], now: number, user: UserSource | null = null): Reservation {
+  const reservation = { previousNative: slot.turn.nativeTurnId, text: text.trim(), origin, sources: [...sources], user: origin === 'user' || origin === 'delivery' ? user : null, started: false, startedRef: null, createdAt: now };
   slot.turn.reservation = reservation;
   return reservation;
 }
@@ -61,6 +80,7 @@ export function acceptTurn(slot: Slot, reservation: Reservation, native: string 
   if (reservation.started || slot.turn.reservation !== reservation) return false;
   reservation.started = true;
   beginTurn(slot, reservation.origin, native, reservation.sources);
+  slot.turn.userSource = reservation.user;
   reservation.startedRef = slot.turn.turnRef;
   return true;
 }

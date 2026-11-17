@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import type { AgentChannel, SessionActivity, StopContext } from '#agent-channel';
 import type { KitRunner, WorkflowState } from '#kit-runner';
-import { KIT_OUTDATED_TEXT, OWNER_NOTE, WorkflowActionError, createAutopilot } from '../src/index.ts';
+import { CHOSEN_WAIT, KIT_OUTDATED_TEXT, OWNER_NOTE, WorkflowActionError, createAutopilot } from '../src/index.ts';
 
 const OLD = 'claude:old-1';
 const NEW = 'codex:new-1';
@@ -96,7 +96,8 @@ test('a Kit refusal of the owner move is the action error', async () => {
 test('a choice in another session wakes the session that held its Stop for it', async () => {
   const w = world();
   w.activity[0]!.holdReason = 'waiting-for-mode-choice';
-  assert.deepEqual(await w.autopilot.choose('p', { session: NEW, generation: 1, option: 'sequential' }), { option: 'sequential', owner: NEW });
+  // M40: `text` is what the owner session is told (queued here; the answer of `wfk decision`).
+  assert.deepEqual(await w.autopilot.choose('p', { session: NEW, generation: 1, option: 'sequential' }), { option: 'sequential', owner: NEW, text: CHOSEN_WAIT.sequential });
   assert.deepEqual(w.kit.calls.find((args) => args[0] === 'scope:choose')?.slice(5, 7), ['--session', 'new-1']);
   assert.deepEqual(w.woken, [OLD]);
   assert.deepEqual(w.sent.map((m) => m.key), [NEW], 'the choice message goes only to the choosing session');

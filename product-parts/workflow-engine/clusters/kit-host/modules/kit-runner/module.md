@@ -71,10 +71,28 @@
     `sync()`, где он есть в списке; Windows не даёт удалить папку, за которой
     следит `fs.watch`, поэтому служба вызывает его перед `deleteFolder`.
 - `ProjectWorkflow`: `projectId`, `installed`, `revision`, `scope`,
-  `execution`, `paused`, `proposal`, `plan`, `choice`, `error`
+  `execution`, `paused`, `decisionsMode`, `decisions`, `proposal`, `plan`, `choice`, `error`
   (`code`, `message`, `nextAction`), `updatedAt`, `refreshing`.
+- Решения пользователя (M40 T005): `decisionsMode` (`host` | `agent`; нет поля в Kit 2.3.x —
+  `agent`) и `decisions` — запросы решений `status.decisions` Kit (`KitDecision`). Запрос
+  регистрирует Kit, когда агент в своём терминале вызывает ручную форму команды решения; реестр
+  лежит в `.harness/workflow/local/`, за которой служба следит, поэтому карточка появляется в
+  состоянии панели без сообщения агента.
 - Раздел `workflow`: `{ projects: { <id>: ProjectWorkflow } }`.
 - `nodeWatch` — `fs.watch` (не держит процесс); `WatchFactory` для тестов.
+
+### Решения хоста (M40 T005)
+
+- `install(root, { decisions: 'host' })` добавляет `--decisions host`: только приложение записывает
+  решения пользователя в проекте (Kit 2.4.0+).
+- `HostPayload` (`src/host-run.ts`): необязательный `decisionId` — запрос, который применяет
+  решение пользователя; `runId` равен `null` у решения вне запуска автопилота.
+
+## Поведение на ОС
+
+Одинаково на macOS, Linux и Windows x64/ARM64: команды Kit запускает `node` с бандлом, операция
+хоста идёт по каналу Node IPC родителя, программы ОС не вызываются. Слежение — `fs.watch`;
+Windows не даёт удалить папку под наблюдением, поэтому перед удалением вызывается `release`.
 
 ## Инварианты
 

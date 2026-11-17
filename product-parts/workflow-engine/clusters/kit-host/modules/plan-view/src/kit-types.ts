@@ -76,6 +76,30 @@ export interface KitStatus {
   transaction: unknown;
   /** Changed paths outside commits, without Kit-managed state; absent in an old Kit. */
   changes?: string[];
+  /** Pending user decisions of a `decisions: host` project (Kit 2.4.0+, M40); absent in an older Kit. */
+  decisions?: KitDecision[];
+  /** Who records the user's decisions (Kit 2.4.0+): `host` — only the app; absent — `agent`. */
+  decisionsMode?: 'agent' | 'host';
+}
+
+export type KitDecisionKind = 'accept' | 'adopt-commits' | 'approve-install' | 'choose' | 'close' | 'confirm-delivery' | 'unblock';
+
+/**
+ * A decision request of Kit (M40): what exactly the user allows. The panel builds a card from
+ * it; the button returns `id` and `inputDigest`, so data changed after the card was shown is
+ * refused (`DECISION_STALE`).
+ */
+export interface KitDecision {
+  id: string;
+  kind: KitDecisionKind;
+  scopeId: string | null;
+  taskId: string | null;
+  proposal: { digest: string; generation: number } | null;
+  params: Record<string, unknown>;
+  inputDigest: string;
+  revision: number;
+  createdAt: string;
+  state: 'pending' | 'applied' | 'stale';
 }
 
 /**

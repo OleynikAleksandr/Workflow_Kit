@@ -162,6 +162,12 @@ M40 T004A — план без блока `automation` в полном автоп
   (`autopiloting.md`, раздел T007); доказательства —
   [M39-acceptance.md](../../../../../../docs/evidence/M39-acceptance.md).
 
+M40 T005 — решения пользователя операциями хоста: `createDecisions`, `createDecisionJournal`,
+`createDecisionCommands`, `registerDecisionRoutes`, опция автопилота `decisions`, `DecisionBy` у
+`choose`/`accept`/`close`/`confirmDelivery`, `PlanEndResult`, `deliveryStartedMessage`,
+`runMayDecide`, операции решений в `HostOperation` и `decisionId` в привязке билета —
+[decisions.md](decisions.md).
+
 ## Инварианты
 
 - Все сообщения автопилота в канал (`choose`, `start`, `enable`) передают `projectId`:

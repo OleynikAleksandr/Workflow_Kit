@@ -102,7 +102,8 @@ M39 — `src/autopiloting-wiring.ts`, `src/autopiloting-links.ts`, `wfk session 
 --authorized`, `wfk session progress|run` в `src/session-run-command.ts`, T008 — общий
 `createPublisher` кнопки и запусков, сервис завершения; M40 T004A — `createProposalGate`:
 опция `runs` автопилота получает `proposal`, возврат автору предложения без блока
-`automation`) — в
+`automation`; M40 T005 — команда `wfk decision` (`src/decision-command.ts`, `COMMANDS` получает
+`decision`), сервис решений `createDecisions` в `wireAutopiloting` и маршруты решений) — в
 [connected-modules.md](connected-modules.md) и [commands.md](commands.md).
 
 ## Инварианты

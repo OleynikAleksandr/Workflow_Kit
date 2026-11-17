@@ -4,7 +4,7 @@
 // queue, then the decider. What is to be said goes as a prompt with a stable id (the outbox), and
 // the UserPromptSubmit of that prompt is recognised by its text.
 import { randomUUID } from 'node:crypto';
-import { acceptTurn, reserveTurn } from './turn-state.ts';
+import { acceptTurn, reserveTurn, userSourceOf } from './turn-state.ts';
 import type { ChannelCore, Detached, Outbox, Slot } from './slots.ts';
 import { reminderOf, remindedTurn } from './reminder.ts';
 import { LAST_MESSAGE_CHARS } from './types.ts';
@@ -247,7 +247,7 @@ export function createDetached(core: ChannelCore, deps: DetachedDelivery): Detac
     slot.sending = true;
     // Remembered before the request: the hook of the prompt may come before the answer.
     slot.expected = outbox.text.trim();
-    const reservation = reserveTurn(slot, outbox.text, outbox.origin, outbox.sources, core.now().getTime());
+    const reservation = reserveTurn(slot, outbox.text, outbox.origin, outbox.sources, core.now().getTime(), outbox.origin === 'delivery' ? userSourceOf(outbox.messages) : null);
     let ok = false;
     let why = 'провайдер не принял сообщение';
     try {

@@ -3,8 +3,8 @@
 // user wrote to the session, kept by the agent channel). The manual start records the grant of
 // its run before the first work message; Settings off pauses the active runs.
 import type { AgentChannel } from '#agent-channel';
-import { createHostTickets, createPreparation, createProposalGate, createRunCompletion, createRunControl, createRunJournal, createRunKit, createRunTurns, createRunWaits, createRuns, createSettingsStore, registerAutopilotingRoutes, registerRunControlRoutes, registerSessionRunRoutes, runHttp } from '#autopilot';
-import type { RunCompleter, ControlActions, PrepareActions, ReviewFact, RunControl, RunTurns, RunWaits, Runs, SettingsStore } from '#autopilot';
+import { createDecisionJournal, createDecisions, createHostTickets, runMayDecide, createPreparation, createProposalGate, createRunCompletion, createRunControl, createRunJournal, createRunKit, createRunTurns, createRunWaits, createRuns, createSettingsStore, registerAutopilotingRoutes, registerRunControlRoutes, registerSessionRunRoutes, runHttp } from '#autopilot';
+import type { Decisions, RunCompleter, ControlActions, PrepareActions, ReviewFact, RunControl, RunTurns, RunWaits, Runs, SettingsStore } from '#autopilot';
 import { createGitHubCi, createPublisher, runGit } from '#git-publish';
 import type { GitHubCi, GitRunner, Publisher } from '#git-publish';
 import type { KeyedMutex } from '#data-store';
@@ -15,6 +15,11 @@ import type { ProjectRegistry } from '#project-registry';
 export interface AutopilotingWiring {
   settings: SettingsStore;
   runs: Runs;
+  /**
+   * M40: the user's decisions of a `decisions: host` project — host operations with the tickets
+   * of the service, the decision journal of the project and the user's message of the turn.
+   */
+  decisions: Decisions;
   /** The `authority` option of the autopilot. */
   authority: {
     beforeStart(projectId: string, key: string): Promise<string | null>;
@@ -61,7 +66,7 @@ export function wireAutopiloting(options: {
   mutex: KeyedMutex;
   projects: ProjectRegistry;
   kit: KitRunner;
-  channel: Pick<AgentChannel, 'userWords'>;
+  channel: Pick<AgentChannel, 'userSource' | 'userWords'>;
   configDir: string;
   platform?: NodeJS.Platform;
   /** Stores the review decision of a session (plan-review) and closes its open plan question. */
@@ -78,6 +83,15 @@ export function wireAutopiloting(options: {
   const journal = createRunJournal(options.platform ? { platform: options.platform } : {});
   const runKit = createRunKit({ runner: options.kit, tickets });
   const projectPath = async (id: string): Promise<string | undefined> => (await options.projects.get(id))?.path;
+  const decisions = createDecisions({
+    runner: options.kit,
+    tickets,
+    journal: createDecisionJournal(options.platform ? { platform: options.platform } : {}),
+    userSource: (key) => options.channel.userSource(key),
+    // A run that was paused, stopped or revoked decides nothing more (asked before every ticket).
+    runLive: runMayDecide(journal),
+    ...(options.log ? { log: options.log } : {}),
+  });
   let links: PreparationLinks | null = null;
   const preparation = createPreparation({
     journal,
@@ -123,6 +137,7 @@ export function wireAutopiloting(options: {
   return {
     settings,
     runs,
+    decisions,
     authority: {
       beforeStart: async (projectId, key) => (await runs.beginExecution(projectId, key))?.runId ?? null,
       beforeResume: async (projectId, key) => (await runs.resume(projectId, key))?.runId ?? null,

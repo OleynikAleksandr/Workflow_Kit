@@ -1,6 +1,6 @@
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/workflow-kit-cli.ts
-import { readFileSync as readFileSync13, realpathSync as realpathSync5 } from "node:fs";
-import path28 from "node:path";
+import { readFileSync as readFileSync13, realpathSync as realpathSync6 } from "node:fs";
+import path30 from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-platform/src/platform-fs.ts
@@ -478,8 +478,8 @@ function runtimeCandidates(projectRoot2, env, platform) {
       source: "env"
     });
   }
-  const recorded = projectRoot2 ? readTextIfExists(path4.join(projectRoot2, ...RUNTIME_FILE.split("/"))) : null;
-  const parsed = recorded ? parseRuntimeFile(recorded) : null;
+  const recorded2 = projectRoot2 ? readTextIfExists(path4.join(projectRoot2, ...RUNTIME_FILE.split("/"))) : null;
+  const parsed = recorded2 ? parseRuntimeFile(recorded2) : null;
   if (parsed) {
     candidates.push({ ...parsed, source: "runtime-file" });
   }
@@ -592,7 +592,56 @@ var workflowPlatformFacade = new WorkflowPlatformFacade();
 
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-cli-args.ts
 import { readFileSync as readFileSync2 } from "node:fs";
+import path6 from "node:path";
+
+// product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-input-location.ts
+import { realpathSync } from "node:fs";
 import path5 from "node:path";
+var INPUTS = [".harness", "inputs"];
+function realOf(file4, paths, realpath) {
+  const tail3 = [];
+  let current = file4;
+  for (; ; ) {
+    try {
+      return paths.join(realpath(current), ...tail3);
+    } catch {
+      const parent = paths.dirname(current);
+      if (parent === current) {
+        return file4;
+      }
+      tail3.unshift(paths.basename(current));
+      current = parent;
+    }
+  }
+}
+function insideProject(root, file4, options = {}) {
+  const platform = currentWorkflowPlatform(options.platform);
+  const paths = platform === "win32" ? path5.win32 : path5.posix;
+  const realpath = options.realpath ?? realpathSync.native;
+  const fold = (value) => platform === "linux" ? value : value.toLowerCase();
+  const relative = paths.relative(
+    fold(realOf(paths.resolve(root), paths, realpath)),
+    fold(realOf(paths.resolve(file4), paths, realpath))
+  );
+  if (relative === "" || relative === ".." || relative.startsWith(`..${paths.sep}`) || paths.isAbsolute(relative)) {
+    return null;
+  }
+  return relative.split(paths.sep);
+}
+function ensureInputLocation(root, cwd, file4, options = {}) {
+  const platform = currentWorkflowPlatform(options.platform);
+  const paths = platform === "win32" ? path5.win32 : path5.posix;
+  const segments = insideProject(root, paths.resolve(cwd, file4), options);
+  ensure(
+    segments === null || segments.length > INPUTS.length && INPUTS.every((name, index) => segments[index] === name),
+    "INPUT_LOCATION",
+    `Input files of the project live in .harness/inputs/ (git-ignored): ${file4} is elsewhere in the project and would land in a commit.`,
+    { path: file4 },
+    "Move the file to `.harness/inputs/` and pass that path."
+  );
+}
+
+// product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-cli-args.ts
 var BOOLEAN_FLAGS = /* @__PURE__ */ new Set([
   "help",
   "fix",
@@ -673,10 +722,11 @@ function integerFlag(args, name) {
   );
   return parsed;
 }
-function readJsonFile(cwd, file4) {
+function readJsonFile(root, cwd, file4) {
+  ensureInputLocation(root, cwd, file4);
   let text4;
   try {
-    text4 = readFileSync2(path5.resolve(cwd, file4), "utf8");
+    text4 = readFileSync2(path6.resolve(cwd, file4), "utf8");
   } catch (cause) {
     throw new WorkflowError(
       "INPUT_UNREADABLE",
@@ -717,10 +767,10 @@ function listFlag(args, name) {
 }
 
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-cli-autopilot.ts
-import { realpathSync } from "node:fs";
+import { realpathSync as realpathSync2 } from "node:fs";
 
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/src/workflow-plan-facade.ts
-import path6 from "node:path";
+import path7 from "node:path";
 
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/src/plan-automation.ts
 var AUTOMATION_ERROR = "PLAN_AUTOMATION";
@@ -732,7 +782,7 @@ var KINDS = new Set(CRITERION_KINDS);
 var AUTOMATION_KEYS = /* @__PURE__ */ new Set(["acceptance", "ci", "delivery", "publication"]);
 var ACCEPTANCE_KEYS = /* @__PURE__ */ new Set(["checks", "criterion", "evidence", "kind"]);
 var DELIVERY_KEYS = /* @__PURE__ */ new Set(["effects", "taskId"]);
-var CI_KEYS = /* @__PURE__ */ new Set(["branch", "exactSha", "remote", "requiredChecks"]);
+var CI_KEYS = /* @__PURE__ */ new Set(["branch", "exactSha", "remote", "requiredChecks", "task"]);
 var PUBLICATION_KEYS = /* @__PURE__ */ new Set(["branch", "upstream"]);
 var REF_PATTERN = /^(?!-)(?!.*\.\.)(?!.*\/\/)(?!.*\/$)[^\s~^:?*[\\\p{Cc}]+$/u;
 function object(value, field4, keys) {
@@ -805,12 +855,12 @@ function acceptanceEntry(entry, field4, count) {
   );
   const checks = textList(entry.checks, `${field4}.checks`, false);
   const evidence = textList(entry.evidence, `${field4}.evidence`, false);
-  for (const path29 of evidence) {
+  for (const path31 of evidence) {
     ensure(
-      workflowPlatformFacade.normalizeRelative(path29) === path29,
+      workflowPlatformFacade.normalizeRelative(path31) === path31,
       AUTOMATION_ERROR,
-      `Evidence path is not canonical in ${field4}.evidence: ${path29}`,
-      { field: `${field4}.evidence`, path: path29 }
+      `Evidence path is not canonical in ${field4}.evidence: ${path31}`,
+      { field: `${field4}.evidence`, path: path31 }
     );
   }
   ensure(
@@ -873,7 +923,7 @@ function validateDelivery(value, scope, prefix) {
     textList(entry.effects, `${item}.effects`, true);
   }
 }
-function validateCi(value, prefix) {
+function validateCi(value, scope, prefix) {
   const field4 = `${prefix}.ci`;
   if (value === null) {
     return;
@@ -888,6 +938,12 @@ function validateCi(value, prefix) {
     AUTOMATION_ERROR,
     `${field4}.exactSha must be boolean.`,
     { field: `${field4}.exactSha` }
+  );
+  ensure(
+    ci.task === void 0 || scope.tasks.some((task2) => task2.id === ci.task && task2.kind === "delivery"),
+    AUTOMATION_ERROR,
+    `${field4}.task must name a delivery task of the scope: ${String(ci.task)}`,
+    { field: `${field4}.task` }
   );
 }
 function validatePublication(value, prefix) {
@@ -919,7 +975,7 @@ function validateAutomation(automation, scope, prefix = "automation") {
   }
   validateAcceptance(block2.acceptance, scope, prefix);
   validateDelivery(block2.delivery, scope, prefix);
-  validateCi(block2.ci, prefix);
+  validateCi(block2.ci, scope, prefix);
   validatePublication(block2.publication, prefix);
 }
 function normalizeAutomation(input, scope) {
@@ -966,7 +1022,7 @@ function automationSummary(automation) {
     (entry) => entry.kind === "automatic"
   ).length;
   const manual = automation.acceptance.length - automatic;
-  const ci = automation.ci ? `${automation.ci.remote} ${automation.ci.branch}, checks ${automation.ci.requiredChecks.join(", ")}${automation.ci.exactSha ? ", exact SHA" : ""}` : "none";
+  const ci = automation.ci ? `${automation.ci.remote} ${automation.ci.branch}, checks ${automation.ci.requiredChecks.join(", ")}${automation.ci.exactSha ? ", exact SHA" : ""}${automation.ci.task ? `, pushed by ${automation.ci.task}` : ""}` : "none";
   const publication = automation.publication ? `${automation.publication.branch} \u2192 ${automation.publication.upstream}` : "none";
   const delivery = automation.delivery.length === 0 ? "none" : automation.delivery.map((entry) => `${entry.taskId} (${entry.effects.join("; ")})`).join(", ");
   return [
@@ -1334,6 +1390,33 @@ function decision(value, field4) {
   );
   text2(value.text, `${field4}.text`);
   text2(value.at, `${field4}.at`);
+  ensure(
+    value.source === void 0 || ["button", "grant", "message"].includes(value.source?.kind),
+    schemaError,
+    `Decision source is button, message or grant: ${field4}.source`,
+    { field: `${field4}.source` }
+  );
+}
+var COMMIT_PATTERN = /^[0-9a-f]{40,64}$/u;
+function scopeDecisions(scope) {
+  ensure(
+    Array.isArray(scope.decisions),
+    schemaError,
+    "scope.decisions must be a list.",
+    { field: "scope.decisions" }
+  );
+  for (const [index, item] of scope.decisions.entries()) {
+    decision(item, `scope.decisions[${index}]`);
+  }
+  const adopted = scope.adoptedCommits;
+  ensure(
+    adopted === void 0 || Array.isArray(adopted) && adopted.every(
+      (sha) => typeof sha === "string" && COMMIT_PATTERN.test(sha)
+    ),
+    schemaError,
+    "scope.adoptedCommits must be a list of full commit SHAs.",
+    { field: "scope.adoptedCommits" }
+  );
 }
 function relativePaths(values, field4) {
   textList2(values, field4);
@@ -2061,6 +2144,18 @@ function acceptScope(plan, note, now) {
   }
   return validatePlan(next);
 }
+function adoptCommits(plan, commits, decision3) {
+  ensure(plan.scope !== null, "NO_SCOPE", "There is no scope to adopt commits into.");
+  const next = nextRevision(plan);
+  if (next.scope) {
+    next.scope.adoptedCommits = [
+      ...next.scope.adoptedCommits ?? [],
+      ...commits
+    ];
+    next.scope.decisions.push({ ...decision3 });
+  }
+  return validatePlan(next);
+}
 function closeScope(plan, scopeId, note, now) {
   ensure(
     plan.scope && plan.scope.id === scopeId,
@@ -2402,15 +2497,7 @@ function validateScope(scope) {
   text2(scope.objective, "scope.objective");
   textList2(scope.acceptance, "scope.acceptance", { nonEmpty: true });
   decision(scope.approval, "scope.approval");
-  ensure(
-    Array.isArray(scope.decisions),
-    schemaError,
-    "scope.decisions must be a list.",
-    { field: "scope.decisions" }
-  );
-  for (const [index, item] of scope.decisions.entries()) {
-    decision(item, `scope.decisions[${index}]`);
-  }
+  scopeDecisions(scope);
   ensure(
     SHA_PATTERN2.test(scope.baselineCommit),
     schemaError,
@@ -3030,6 +3117,12 @@ var AUTOMATION_FIELDS = [
     "The checks must pass for the exact pushed SHA."
   ),
   automationField(
+    ".ci.task",
+    "string",
+    false,
+    "Delivery task that pushes the CI branch itself; the push is allowed once it is started. Without it the CI branch is pushed only after every task is DONE."
+  ),
+  automationField(
     ".publication",
     "object|null",
     true,
@@ -3616,7 +3709,7 @@ var WorkflowPlanFacade = class {
     return isWorkflowPlanDocument(text4);
   }
   planFile(root) {
-    return path6.join(root, ...PLAN_PATH.split("/"));
+    return path7.join(root, ...PLAN_PATH.split("/"));
   }
   /** Reads the project plan; returns null when the project has no plan file. */
   read(root, options) {
@@ -3679,6 +3772,10 @@ var WorkflowPlanFacade = class {
   /** `close --autopilot-run`: closes for the run and keeps the final commit. */
   closeByAutopilot(plan, request2, now) {
     return closeByAutopilot(plan, request2, now);
+  }
+  /** `commits:adopt`: the user adopts commits made past the Kit (M40). */
+  adopt(plan, commits, decision3) {
+    return adoptCommits(plan, commits, decision3);
   }
   accept(plan, note, now) {
     return acceptScope(plan, note, now);
@@ -3768,7 +3865,7 @@ function verifyHost(channel, request2, timeoutMs = HOST_TIMEOUT_MS) {
   ensure(
     channel !== null,
     "HOST_AUTH_REQUIRED",
-    `${request2.operation} with an autopilot run is performed only by the Workflow Kit app.`,
+    `${request2.operation} ${request2.decisionId ? "as a user decision" : "with an autopilot run"} is performed only by the Workflow Kit app.`,
     { operation: request2.operation },
     "Finish your task and end the turn; the app performs the authorized step."
   );
@@ -3834,7 +3931,7 @@ function verifyHost(channel, request2, timeoutMs = HOST_TIMEOUT_MS) {
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-cli-autopilot.ts
 function canonicalRoot(root) {
   try {
-    return realpathSync(root);
+    return realpathSync2(root);
   } catch {
     return root;
   }
@@ -3874,6 +3971,7 @@ function acceptHost({
     "accept takes --note (the user's words) or --autopilot-run, not both."
   );
   const input = readJsonFile(
+    root,
     io.cwd,
     requiredFlag(args, "input")
   );
@@ -3923,6 +4021,7 @@ var AUTOPILOT_COMMANDS = {
   "autopilot:authorize": {
     host: ({ args, io, kit, root }) => {
       const input = readJsonFile(
+        root,
         io.cwd,
         requiredFlag(args, "input")
       );
@@ -4138,8 +4237,8 @@ var ASSIGNMENT_COMMANDS = {
 };
 
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-cli-context.ts
-import { readFileSync as readFileSync3, realpathSync as realpathSync2, statSync as statSync3 } from "node:fs";
-import path7 from "node:path";
+import { readFileSync as readFileSync3, realpathSync as realpathSync3, statSync as statSync3 } from "node:fs";
+import path8 from "node:path";
 var CONTEXT_BUDGET = 28e3;
 var KIT_FOLDER = ".harness/workflow";
 var H2 = /^##\s+(.+?)\s*#*\s*$/u;
@@ -4157,17 +4256,17 @@ function forbidden(request2, reason) {
   );
 }
 function projectPath(root, request2) {
-  const relative = (base, target) => path7.relative(base, target).split(path7.sep).join("/");
-  const inside = (value) => value !== ".." && !value.startsWith("../") && !path7.isAbsolute(value);
+  const relative = (base, target) => path8.relative(base, target).split(path8.sep).join("/");
+  const inside = (value) => value !== ".." && !value.startsWith("../") && !path8.isAbsolute(value);
   const kitPath = (value) => {
     const lower = value.toLowerCase();
     return lower === KIT_FOLDER || lower.startsWith(`${KIT_FOLDER}/`);
   };
-  const absolute2 = path7.resolve(root, request2);
-  const lexical = relative(path7.resolve(root), absolute2);
+  const absolute2 = path8.resolve(root, request2);
+  const lexical = relative(path8.resolve(root), absolute2);
   let real2 = null;
   try {
-    real2 = relative(realpathSync2(root), realpathSync2(absolute2));
+    real2 = relative(realpathSync3(root), realpathSync3(absolute2));
   } catch {
   }
   const result2 = inside(lexical) ? lexical : real2;
@@ -4186,7 +4285,7 @@ function projectPath(root, request2) {
   return result2 === "" ? "." : result2;
 }
 function readProjectText(root, request2, file4) {
-  const absolute2 = path7.resolve(root, file4);
+  const absolute2 = path8.resolve(root, file4);
   let isFile = false;
   try {
     isFile = statSync3(absolute2).isFile();
@@ -4223,7 +4322,7 @@ function requested(recovery, root, requests) {
       "CONTEXT_MISSING",
       `${file4} has no heading "${heading}".`,
       { heading, path: file4 },
-      `Run \`scripts/workflow context --list ${path7.posix.dirname(file4)}\` for its headings.`
+      `Run \`scripts/workflow context --list ${path8.posix.dirname(file4)}\` for its headings.`
     );
     const body = section2.trimEnd();
     return {
@@ -4336,7 +4435,7 @@ function listDocuments(recovery, root, request2) {
     const relative = projectPath(root, request2);
     let isFolder = false;
     try {
-      isFolder = statSync3(path7.resolve(root, relative)).isDirectory();
+      isFolder = statSync3(path8.resolve(root, relative)).isDirectory();
     } catch {
       throw new WorkflowError(
         "CONTEXT_MISSING",
@@ -4478,7 +4577,8 @@ function proposalViewText(value) {
     `proposal: generation ${view.generation} (${state}), recommended ${view.recommended}, parallel work ${view.hasParallelWork ? "yes" : "no"}`,
     `scope: ${view.scopeId ?? "NONE"}${view.objective ? ` \u2014 ${view.objective}` : ""}`,
     `reason: ${view.reason}`,
-    `options: ${view.options.join(", ")}`
+    `options: ${view.options.join(", ")}`,
+    `automation: ${view.automation ? "yes" : "no"}`
   ].join("\n")}
 `;
 }
@@ -4510,7 +4610,7 @@ var EXECUTION_COMMANDS = {
   "scope:propose": {
     run: ({ args, io, kit, root }) => kit.proposeScope(
       root,
-      readJsonFile(io.cwd, requiredFlag(args, "input")),
+      readJsonFile(root, io.cwd, requiredFlag(args, "input")),
       choice(args, "recommended", STRATEGIES2),
       requiredFlag(args, "reason")
     ),
@@ -4518,6 +4618,123 @@ var EXECUTION_COMMANDS = {
     usage: 'scope:propose --input <file.json> --recommended sequential|orchestrated --reason "<why>"'
   }
 };
+
+// product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-cli-decisions.ts
+var KINDS2 = {
+  accept: "accept",
+  close: "close",
+  "commits:adopt": "adopt-commits",
+  "quality:apply": "approve-install",
+  "scope:choose": "choose",
+  "task:start": "confirm-delivery",
+  "task:unblock": "unblock"
+};
+var OPTIONS2 = /* @__PURE__ */ new Set(["orchestrated", "refine", "sequential"]);
+var SOURCES = /* @__PURE__ */ new Set(["button", "grant", "message"]);
+function sourceOf(args) {
+  const kind = requiredFlag(args, "source");
+  ensure(SOURCES.has(kind), "USAGE", "--source is button, message or grant.");
+  const runId = flag(args, "autopilot-run") ?? null;
+  ensure(
+    kind === "grant" === (runId !== null),
+    "USAGE",
+    "--autopilot-run goes with --source grant, and only with it."
+  );
+  return {
+    kind,
+    messageId: flag(args, "message-id") ?? null,
+    runId,
+    session: flag(args, "decision-session") ?? null
+  };
+}
+function hosted(command, id, context) {
+  const { args, kit, root } = context;
+  const request2 = kit.decisionRequest(root, id);
+  ensure(
+    request2.kind === KINDS2[command],
+    "USAGE",
+    `Decision ${id} is ${request2.kind}; it is not applied by ${command}.`
+  );
+  const revision = integerFlag(args, "expected-revision");
+  ensure(
+    revision !== void 0,
+    "USAGE",
+    "--expected-revision is required: the ticket is bound to the plan revision."
+  );
+  const note = requiredFlag(args, "note");
+  const source = sourceOf(args);
+  return {
+    request: {
+      decisionId: id,
+      expectedRevision: revision,
+      inputDigest: hostDigest({ decision: request2.inputDigest, note, source }),
+      operation: command,
+      ownerSession: kit.grantOwner(root),
+      root: canonicalRoot(root),
+      runId: source.runId ?? null,
+      scopeId: request2.scopeId ?? "NONE"
+    },
+    run: () => kit.applyDecision(root, id, { expectedRevision: revision, note, source })
+  };
+}
+function choiceOf(command, context) {
+  const { args, io, kit, root } = context;
+  if (flag(args, "autopilot-run") !== void 0) {
+    return null;
+  }
+  switch (command) {
+    case "commits:adopt":
+      return { kind: "adopt-commits" };
+    case "accept":
+      kit.externalGuard(root);
+      return { kind: "accept" };
+    case "close":
+      kit.externalGuard(root);
+      return { kind: "close", scopeId: requiredFlag(args, "scope") };
+    case "task:unblock":
+      return { kind: "unblock" };
+    case "scope:choose":
+      return {
+        expectedDigest: expectedDigest(args),
+        generation: generation(args),
+        kind: "choose",
+        option: choice(args, "option", OPTIONS2),
+        session: requiredFlag(args, "session")
+      };
+    case "task:start": {
+      const taskId = positional(args, 0, "Task id");
+      kit.externalGuard(root);
+      return kit.needsDeliveryDecision(root, taskId) ? { kind: "confirm-delivery", taskId } : null;
+    }
+    default: {
+      const input = readJsonFile(
+        root,
+        io.cwd,
+        requiredFlag(args, "input")
+      );
+      return Array.isArray(input?.install) && input.install.length > 0 ? { input, kind: "approve-install" } : null;
+    }
+  }
+}
+function decisionGate(command, context) {
+  if (KINDS2[command] === void 0) {
+    return null;
+  }
+  const id = flag(context.args, "decision");
+  if (context.kit.decisionsMode(context.root) !== "host") {
+    ensure(
+      id === void 0,
+      "USAGE",
+      "--decision applies only in a project with `decisions: host`."
+    );
+    return null;
+  }
+  if (id !== void 0) {
+    return hosted(command, id, context);
+  }
+  const asked = choiceOf(command, context);
+  return asked === null ? null : context.kit.requireDecision(context.root, asked);
+}
 
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-git/src/workflow-git-facade.ts
 import { randomUUID as randomUUID2 } from "node:crypto";
@@ -4763,13 +4980,13 @@ function identityArgs(identity) {
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-git/src/git-journal.ts
 import { createHash as createHash2 } from "node:crypto";
 import { existsSync as existsSync3, readFileSync as readFileSync4, rmSync as rmSync2 } from "node:fs";
-import path8 from "node:path";
+import path9 from "node:path";
 var LOCAL_DIR = ".harness/workflow/local";
 function sha256(value) {
   return createHash2("sha256").update(value).digest("hex");
 }
 function localPath(root, ...parts) {
-  return path8.join(root, ...LOCAL_DIR.split("/"), ...parts);
+  return path9.join(root, ...LOCAL_DIR.split("/"), ...parts);
 }
 function readJournal(root) {
   const file4 = localPath(root, "transaction.json");
@@ -4959,7 +5176,7 @@ function resolveTaskReferences(git, root, plan, planPath, pending) {
 
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-git/src/git-repair.ts
 import { readFileSync as readFileSync6 } from "node:fs";
-import path11 from "node:path";
+import path12 from "node:path";
 
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-git/src/git-transaction.ts
 import {
@@ -4969,11 +5186,11 @@ import {
   readFileSync as readFileSync5,
   rmSync as rmSync3
 } from "node:fs";
-import path10 from "node:path";
+import path11 from "node:path";
 
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-git/src/git-staging.ts
 import { existsSync as existsSync4 } from "node:fs";
-import path9 from "node:path";
+import path10 from "node:path";
 function ignoredPaths(git, root, files) {
   if (files.length === 0) {
     return /* @__PURE__ */ new Set();
@@ -4999,7 +5216,7 @@ function absentPaths(git, root, files) {
   );
   const untracked = files.filter((file4) => !tracked.has(file4));
   const existing = new Set(
-    untracked.filter((file4) => existsSync4(path9.join(root, ...file4.split("/"))))
+    untracked.filter((file4) => existsSync4(path10.join(root, ...file4.split("/"))))
   );
   const ignored = ignoredPaths(git, root, [...existing]);
   return new Set(
@@ -5032,7 +5249,7 @@ function mergeHead(git, root) {
   return output.status === 0 ? output.stdout.trim() : null;
 }
 function planAbsolute(root, planPath) {
-  return path10.join(root, ...planPath.split("/"));
+  return path11.join(root, ...planPath.split("/"));
 }
 function indexFile(git, root) {
   return git.text(root, [
@@ -5276,7 +5493,7 @@ function head2(git, root) {
 }
 function planText(root, planPath) {
   return workflowPlatformFacade.readTextIfExists(
-    path11.join(root, ...planPath.split("/"))
+    path12.join(root, ...planPath.split("/"))
   ) ?? "";
 }
 function detect(git, root, planPath) {
@@ -5362,7 +5579,7 @@ function applyRepair(git, root, planPath, repairId) {
       message: planned.message
     };
   }
-  const text4 = readFileSync6(path11.join(root, ...planPath.split("/")), "utf8");
+  const text4 = readFileSync6(path12.join(root, ...planPath.split("/")), "utf8");
   const plan = workflowPlanFacade.parse(text4, { projection: false });
   if (planned.kind === "projection") {
     workflowPlanFacade.write(root, plan);
@@ -5456,7 +5673,7 @@ var GitRunner = class {
 
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-git/src/git-task-files.ts
 import { existsSync as existsSync6, lstatSync, readFileSync as readFileSync7, readlinkSync } from "node:fs";
-import path12 from "node:path";
+import path13 from "node:path";
 var PRIVATE_PATTERNS = [
   /(?:^|\/)\.env(?:\.[^/]*)?$/u,
   /\.(?:pem|key|p12|pfx)$/iu,
@@ -5481,7 +5698,7 @@ function baselineFile(root, identity) {
   return localPath(root, "task-files", `${key}.json`);
 }
 function fingerprint(root, file4) {
-  const absolute2 = path12.join(root, ...file4.split("/"));
+  const absolute2 = path13.join(root, ...file4.split("/"));
   const stat = lstatSync(absolute2, { throwIfNoEntry: false });
   if (!stat) {
     return "deleted";
@@ -5569,11 +5786,11 @@ var WorkflowGitFacade = class {
     this.platform = platform;
     this.git = new GitRunner(platform, env);
   }
-  isRepository(path29) {
-    return this.git.succeeds(path29, ["rev-parse", "--is-inside-work-tree"]);
+  isRepository(path31) {
+    return this.git.succeeds(path31, ["rev-parse", "--is-inside-work-tree"]);
   }
-  topLevel(path29) {
-    return this.git.text(path29, ["rev-parse", "--show-toplevel"]);
+  topLevel(path31) {
+    return this.git.text(path31, ["rev-parse", "--show-toplevel"]);
   }
   init(root, branch = "main") {
     this.git.run(root, ["init", "-q", `--initial-branch=${branch}`]);
@@ -5639,8 +5856,8 @@ var WorkflowGitFacade = class {
     ]);
   }
   /** File content at a revision (`:path` reads the index); null when absent. */
-  show(root, revision, path29) {
-    const output = this.git.run(root, ["show", `${revision}:${path29}`], {
+  show(root, revision, path31) {
+    const output = this.git.run(root, ["show", `${revision}:${path31}`], {
       allowFailure: true
     });
     return output.status === 0 ? output.stdout : null;
@@ -5755,7 +5972,7 @@ function shortSha(sha) {
 }
 
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-quality/src/workflow-quality-facade.ts
-import path16 from "node:path";
+import path17 from "node:path";
 
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-quality/src/quality-config.ts
 var CONFIG_PATH = ".harness/workflow/config.json";
@@ -6027,12 +6244,17 @@ function validateConfig(input) {
     error,
     "host must be a non-empty string when present."
   );
+  ensure(
+    config.decisions === void 0 || config.decisions === "agent" || config.decisions === "host",
+    error,
+    "decisions is host or agent when present."
+  );
   return config;
 }
 
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-quality/src/quality-detect.ts
 import { readdirSync } from "node:fs";
-import path13 from "node:path";
+import path14 from "node:path";
 var STACK_ORDER = [
   "node",
   "python",
@@ -6088,7 +6310,7 @@ var PACKAGE_MANAGER_FIELD = /^(npm|pnpm|yarn|bun)@/u;
 function entries(root, directory) {
   try {
     const listed = readdirSync(
-      path13.join(root, ...directory.split("/").filter((part) => part !== ".")),
+      path14.join(root, ...directory.split("/").filter((part) => part !== ".")),
       { withFileTypes: true }
     );
     return {
@@ -6104,7 +6326,7 @@ function join(directory, name) {
 }
 function readJsonManifest(root, relative) {
   const text4 = workflowPlatformFacade.readTextIfExists(
-    path13.join(root, ...relative.split("/"))
+    path14.join(root, ...relative.split("/"))
   );
   if (text4 === null) {
     return null;
@@ -6145,7 +6367,7 @@ function packageManagerOf(root, stack, directories, markers, locks) {
   }
   if (stack === "jvm") {
     return markers.some(
-      (marker) => path13.posix.basename(marker).startsWith("build.gradle")
+      (marker) => path14.posix.basename(marker).startsWith("build.gradle")
     ) ? "gradle" : "maven";
   }
   return DEFAULT_MANAGER[stack];
@@ -6227,7 +6449,7 @@ function nodeManifest(root, directories) {
 function pythonManifestText(root, markers) {
   return markers.filter((marker) => !marker.endsWith("setup.py")).map(
     (marker) => workflowPlatformFacade.readTextIfExists(
-      path13.join(root, ...marker.split("/"))
+      path14.join(root, ...marker.split("/"))
     ) ?? ""
   ).join("\n").toLowerCase();
 }
@@ -6406,7 +6628,7 @@ function profileDrift(root, config) {
 
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-quality/src/quality-builtins.ts
 import { existsSync as existsSync7, readFileSync as readFileSync8, statSync as statSync4 } from "node:fs";
-import path14 from "node:path";
+import path15 from "node:path";
 
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-quality/src/quality-globs.ts
 var PLACEHOLDER_PATTERN = /\{([a-z]+)\}/gu;
@@ -6475,7 +6697,7 @@ var CONFLICT_OPEN = "<<<<<<< ";
 var CONFLICT_CLOSE = ">>>>>>> ";
 var CONFLICT_SEPARATOR = "=======";
 function absolute(root, file4) {
-  return path14.join(root, ...file4.split("/"));
+  return path15.join(root, ...file4.split("/"));
 }
 function existingFile(root, file4) {
   const target = absolute(root, file4);
@@ -6550,7 +6772,7 @@ function linkTargets(text4) {
   return targets;
 }
 function brokenLinks(root, file4) {
-  const directory = path14.dirname(absolute(root, file4));
+  const directory = path15.dirname(absolute(root, file4));
   const broken = [];
   for (const target of linkTargets(
     readFileSync8(absolute(root, file4), "utf8")
@@ -6567,8 +6789,8 @@ function brokenLinks(root, file4) {
     if (decoded === "") {
       continue;
     }
-    const resolved = decoded.startsWith("/") ? path14.join(root, decoded) : path14.resolve(directory, decoded);
-    const inside = !path14.relative(root, resolved).startsWith("..");
+    const resolved = decoded.startsWith("/") ? path15.join(root, decoded) : path15.resolve(directory, decoded);
+    const inside = !path15.relative(root, resolved).startsWith("..");
     if (!(inside && existsSync7(resolved))) {
       broken.push(`${file4}: ${target}`);
     }
@@ -7253,7 +7475,7 @@ function proposeQuality(root, options) {
 
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-quality/src/quality-runner.ts
 import { existsSync as existsSync8, statSync as statSync5 } from "node:fs";
-import path15 from "node:path";
+import path16 from "node:path";
 var OUTPUT_TAIL2 = 4e3;
 var FILES_ARGUMENT = "{files}";
 var IMPLICIT_BUILTINS = ["kit:conflict-markers"];
@@ -7345,7 +7567,7 @@ function result(check2, fields) {
   };
 }
 function isExistingFile(root, file4) {
-  const target = path15.join(root, ...file4.split("/"));
+  const target = path16.join(root, ...file4.split("/"));
   return existsSync8(target) && statSync5(target).isFile();
 }
 function runCommand(check2, request2, files) {
@@ -7371,7 +7593,7 @@ function runCommand(check2, request2, files) {
     (arg) => arg === FILES_ARGUMENT ? existing : [arg]
   );
   const hasDirectory = command.executable.includes("/") || command.executable.includes("\\");
-  const executable = hasDirectory && !path15.isAbsolute(command.executable) ? workflowPlatformFacade.resolveInside(request2.root, command.executable) : command.executable;
+  const executable = hasDirectory && !path16.isAbsolute(command.executable) ? workflowPlatformFacade.resolveInside(request2.root, command.executable) : command.executable;
   const cwd = command.cwd ? workflowPlatformFacade.resolveInside(request2.root, command.cwd) : request2.root;
   const started = Date.now();
   const outcome2 = workflowPlatformFacade.run({
@@ -7460,7 +7682,7 @@ var WorkflowQualityFacade = class {
     return check2;
   }
   configFile(root) {
-    return path16.join(root, ...CONFIG_PATH.split("/"));
+    return path17.join(root, ...CONFIG_PATH.split("/"));
   }
   /** Reads the project configuration; a missing file means the default DISCOVERY profile. */
   readConfig(root) {
@@ -7577,9 +7799,9 @@ var WorkflowQualityFacade = class {
    */
   applyProfile(root, input, env = process.env) {
     const config = this.previewProfile(root, input);
-    const installs = runInstalls(root, input, env);
+    const installs2 = runInstalls(root, input, env);
     this.writeConfig(root, config);
-    return { config, installs };
+    return { config, installs: installs2 };
   }
   drift(root, config = this.readConfig(root)) {
     return profileDrift(root, config);
@@ -7609,11 +7831,41 @@ function liveRun(plan) {
 function granted(grant, taskId) {
   return grant.delivery.some((entry) => entry.taskId === taskId);
 }
-function deliveryStep(plan, task2) {
+var DECIDE = "never pass the user's words yourself";
+function hostDeliveryStep(grant, task2) {
+  return grant && granted(grant, task2.id) ? `Next task ${task2.id} is delivery, covered by autopilot run ${grant.runId}: \`${KIT_COMMAND} task:start ${task2.id}\` without flags (Workflow Kit records the confirmation of the run itself). Do not ask the user again; perform only the reviewed effects of the task.` : `Next task ${task2.id} is delivery: starting it is the user's decision. Tell the user that the delivery waits for the confirmation in the Workflow Kit panel and end the turn; Workflow Kit starts the task after the confirmation and tells you. If the user confirmed in this chat, run \`wfk decision confirm-delivery --task ${task2.id}\`; ${DECIDE}.`;
+}
+function hostCompletionStep(plan, untidy) {
   const grant = liveRun(plan);
+  const tidy = untidy ? `${TIDY}. Then ` : "";
+  if (plan.scope?.delivery === "READY_FOR_ACCEPTANCE") {
+    if (grant?.accept) {
+      return `Scope is READY_FOR_ACCEPTANCE: ${tidy}end the turn. Autopilot run ${grant.runId} accepts the result automatically from the recorded evidence and closes the scope; the Workflow Kit app runs these steps. Never accept or close the scope yourself.`;
+    }
+    const after = grant ? ` The result has manual criteria; after the acceptance autopilot run ${grant.runId} closes and publishes the scope.` : "";
+    return `Scope is READY_FOR_ACCEPTANCE: ${tidy}report the result and end the turn. Acceptance is the user's decision: the user accepts in the Workflow Kit panel or reports defects.${after} If the user accepts in this chat, run \`wfk decision accept\`; ${DECIDE}.`;
+  }
+  if (grant?.close) {
+    return `Scope is ACCEPTED: ${tidy}end the turn. Autopilot run ${grant.runId} closes the scope and then publishes it; the Workflow Kit app runs these steps. Never close the scope or push yourself.`;
+  }
+  const clean = untidy ? " Closing needs a clean tree: tidy the paths outside commits (see changes)." : "";
+  return `Scope is ACCEPTED: closing it is the user's separate decision in the Workflow Kit panel. If the user tells you in this chat to close the plan, run \`wfk decision close\`; ${DECIDE}.${clean}`;
+}
+function blockedStep(reason, host) {
+  const why = reason ?? "no reason recorded";
+  return host ? `BLOCKED: ${why}. Only discuss and diagnose. Removing the block is the user's decision: it waits on a card in the Workflow Kit panel. If the user decides in this chat, run \`wfk decision unblock\`; ${DECIDE}.` : `BLOCKED: ${why}. Resolve it with the user, then unblock.`;
+}
+function deliveryStep(plan, task2, host = false) {
+  const grant = liveRun(plan);
+  if (host) {
+    return hostDeliveryStep(grant, task2);
+  }
   return grant && granted(grant, task2.id) ? `Next task ${task2.id} is delivery, confirmed in advance by autopilot run ${grant.runId}: \`${KIT_COMMAND} task:start ${task2.id} --autopilot-run ${grant.runId}\`. Do not ask the user again; perform only the reviewed effects of the task.` : `Next task ${task2.id} is delivery: ask the user to confirm it, then \`${KIT_COMMAND} task:start ${task2.id} --confirmed "<user confirmation>"\`.`;
 }
-function completionStep(plan, untidy) {
+function completionStep(plan, untidy, host = false) {
+  if (host) {
+    return hostCompletionStep(plan, untidy);
+  }
   const grant = liveRun(plan);
   const scope = plan.scope;
   const tidy = untidy ? `${TIDY}. Then ` : "";
@@ -7638,21 +7890,24 @@ function closedByRunStep(plan) {
   }
   return `Scope ${closed.scopeId} was closed by autopilot run ${closed.autopilotRun}; the Workflow Kit app publishes it to the reviewed upstream. Do not push yourself. Start new work only when the user gives a new task.`;
 }
-function runRule(plan) {
+function runRule(plan, host = false) {
   const grant = liveRun(plan);
+  if (grant && host) {
+    return `Autopilot run ${grant.runId} (${grant.mode}): report the result of the turn briefly and end it; the Workflow Kit app continues the run \u2014 do not ask whether to continue. Only the app grants and revokes the run, accepts, closes and publishes; never run \`autopilot:*\` and never accept or close the scope yourself.`;
+  }
   return grant ? `Autopilot run ${grant.runId} (${grant.mode}): report the result of the turn briefly and end it; the Workflow Kit app continues the run \u2014 do not ask whether to continue. Only the app grants, revokes, accepts and closes automatically and publishes; never run \`autopilot:*\`, \`accept --autopilot-run\` or \`close --autopilot-run\`.` : null;
 }
 
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-assignment/src/assignment-attach.ts
-import { realpathSync as realpathSync3 } from "node:fs";
-import path17 from "node:path";
+import { realpathSync as realpathSync4 } from "node:fs";
+import path18 from "node:path";
 var WORKTREE_RECORD_VERSION = 1;
 var WORKTREE_RECORD = "assignment.json";
 function executorScopeId(id) {
   return `assignment-${id}`;
 }
 function real(value) {
-  return realpathSync3(value);
+  return realpathSync4(value);
 }
 function revParse(git, root, flag2) {
   return git.git.text(root, ["rev-parse", "--path-format=absolute", flag2]);
@@ -7666,13 +7921,13 @@ function locateWorktree(git, root) {
   const bare = git.git.text(root, ["rev-parse", "--is-bare-repository"]);
   const commonDir = real(revParse(git, root, "--git-common-dir"));
   ensure(
-    bare !== "true" && path17.basename(commonDir) === ".git",
+    bare !== "true" && path18.basename(commonDir) === ".git",
     "ASSIGNMENT_LAYOUT",
     `The repository layout is not supported: the common git directory ${commonDir} is not the .git folder of a main checkout.`,
     { commonDir },
     "Use a normal (non-bare) repository whose worktrees are created with `git worktree add`."
   );
-  const mainRoot = path17.dirname(commonDir);
+  const mainRoot = path18.dirname(commonDir);
   const worktree = real(git.topLevel(root));
   const gitDir = real(revParse(git, root, "--git-dir"));
   ensure(
@@ -8062,14 +8317,14 @@ function contractError(message, paths) {
     "Revert these changes; the executor contract (plan, Kit configuration, launchers) is fixed by the assignment."
   );
 }
-function kitTransition(head3, candidate, task2) {
+function kitTransition(head4, candidate, task2) {
   const own = candidate.tasks.find((item) => item.id === task2.id);
   if (candidate.tasks.length !== 1 || !own || own.files.length < task2.files.length || task2.files.some((file4, index) => own.files[index] !== file4)) {
     return null;
   }
   try {
     const started = structuredClone(
-      workflowPlanFacade.startTask(head3, task2.id, task2.confirmation)
+      workflowPlanFacade.startTask(head4, task2.id, task2.confirmation)
     );
     workflowPlanFacade.task(started, task2.id).files = [...own.files];
     const digest = candidate.rounds.find((round) => round.id === task2.roundId)?.digest ?? null;
@@ -8079,9 +8334,9 @@ function kitTransition(head3, candidate, task2) {
   }
 }
 function checkExecutorChange(change2) {
-  const head3 = parse(change2.headPlan);
-  const task2 = head3?.tasks.length === 1 ? head3.tasks[0] : void 0;
-  if (!(head3 && task2)) {
+  const head4 = parse(change2.headPlan);
+  const task2 = head4?.tasks.length === 1 ? head4.tasks[0] : void 0;
+  if (!(head4 && task2)) {
     throw contractError("HEAD has no executor plan with one task.", [
       change2.planPath
     ]);
@@ -8106,7 +8361,7 @@ function checkExecutorChange(change2) {
   );
   if (change2.paths.includes(change2.planPath)) {
     const candidate = parse(change2.candidatePlan);
-    const expected = candidate && kitTransition(head3, candidate, task2);
+    const expected = candidate && kitTransition(head4, candidate, task2);
     const added = candidate ? (candidate.tasks[0]?.files ?? []).slice(task2.files.length) : [];
     if (!(candidate && expected) || workflowPlanFacade.render(expected) !== workflowPlanFacade.render(candidate) || added.some((file4) => !inTaskScope2(task2.files, file4))) {
       throw contractError(
@@ -8233,7 +8488,7 @@ function scheduleAssignments(plan, assignments) {
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-assignment/src/assignment-setup.ts
 import { createHash as createHash4 } from "node:crypto";
 import { existsSync as existsSync10, lstatSync as lstatSync2, readFileSync as readFileSync9 } from "node:fs";
-import path18 from "node:path";
+import path19 from "node:path";
 var NODE_SETUP = {
   bun: {
     args: ["install", "--frozen-lockfile"],
@@ -8274,7 +8529,7 @@ function hasEntry(file4) {
 }
 function declaresDependencies(worktree) {
   const text4 = workflowPlatformFacade.readTextIfExists(
-    path18.join(worktree, "package.json")
+    path19.join(worktree, "package.json")
   );
   if (text4 === null) {
     return false;
@@ -8298,7 +8553,7 @@ function stackSetup(worktree, config) {
     return configured;
   }
   return Object.values(NODE_SETUP).find(
-    (setup) => setup.locks.some((lock) => existsSync10(path18.join(worktree, lock)))
+    (setup) => setup.locks.some((lock) => existsSync10(path19.join(worktree, lock)))
   ) ?? NODE_SETUP.npm;
 }
 function needsSetup(worktree, task2) {
@@ -8310,11 +8565,11 @@ function needsSetup(worktree, task2) {
     service: task2.kind === "docs",
     stage: "commit"
   });
-  return checks.some((check2) => check2.command !== void 0) && stackSetup(worktree, config) !== null && !hasEntry(path18.join(worktree, DEPENDENCY_DIRECTORY));
+  return checks.some((check2) => check2.command !== void 0) && stackSetup(worktree, config) !== null && !hasEntry(path19.join(worktree, DEPENDENCY_DIRECTORY));
 }
 function lockFile(worktree, setup) {
   const lock = setup.locks.find(
-    (name) => existsSync10(path18.join(worktree, name))
+    (name) => existsSync10(path19.join(worktree, name))
   );
   ensure(
     lock,
@@ -8323,10 +8578,10 @@ function lockFile(worktree, setup) {
     { locks: setup.locks, worktree },
     "Commit the lock file in main, then create the assignment again."
   );
-  return path18.join(worktree, lock);
+  return path19.join(worktree, lock);
 }
 function ensureNotLinked(worktree) {
-  const dependencies = path18.join(worktree, DEPENDENCY_DIRECTORY);
+  const dependencies = path19.join(worktree, DEPENDENCY_DIRECTORY);
   let linked = false;
   try {
     linked = lstatSync2(dependencies).isSymbolicLink();
@@ -8552,13 +8807,13 @@ var workflowAssignmentFacade = new WorkflowAssignmentFacade();
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-execution-mode/src/workflow-execution-mode-facade.ts
 import { createHash as createHash5 } from "node:crypto";
 import { readFileSync as readFileSync10, rmSync as rmSync5 } from "node:fs";
-import path19 from "node:path";
+import path20 from "node:path";
 var PROPOSAL_FILE = "scope-proposal.json";
 var PROPOSAL_VERSION = 1;
 var REASON_MIN2 = 10;
 var REASON_MAX = 300;
 var STRATEGIES3 = /* @__PURE__ */ new Set(["orchestrated", "sequential"]);
-var OPTIONS2 = /* @__PURE__ */ new Set(["orchestrated", "refine", "sequential"]);
+var OPTIONS3 = /* @__PURE__ */ new Set(["orchestrated", "refine", "sequential"]);
 function canonical3(value) {
   if (Array.isArray(value)) {
     return value.map(canonical3);
@@ -8585,7 +8840,7 @@ function documentPaths(input) {
 }
 function fileDigest(root, relative) {
   try {
-    return createHash5("sha256").update(readFileSync10(path19.join(root, ...relative.split("/")))).digest("hex");
+    return createHash5("sha256").update(readFileSync10(path20.join(root, ...relative.split("/")))).digest("hex");
   } catch {
     return null;
   }
@@ -8691,7 +8946,7 @@ var WorkflowExecutionModeFacade = class {
    */
   verifyChoice(root, request2) {
     ensure(
-      OPTIONS2.has(request2.option),
+      OPTIONS3.has(request2.option),
       "PROPOSAL_OPTION",
       "The option is sequential, orchestrated or refine."
     );
@@ -8974,7 +9229,7 @@ function integrationStep(integration2) {
   }
   return `Integration of ${id} is ${integration2.phase}: finish it with ${resume2} before anything else (\`${KIT_COMMAND} integration:status\` shows it).`;
 }
-function ownStep(plan, facts) {
+function ownStep(plan, facts, host) {
   const done = new Set(
     plan.tasks.filter((task2) => task2.status === "DONE").map((task2) => task2.id)
   );
@@ -8993,7 +9248,7 @@ function ownStep(plan, facts) {
   const active = facts.assignments.some(
     (record) => workflowAssignmentFacade.isActive(record)
   );
-  return pending || active ? null : deliveryStep(plan, own);
+  return pending || active ? null : deliveryStep(plan, own, host);
 }
 function orchestratorStep(input) {
   const { plan } = input;
@@ -9016,7 +9271,7 @@ function orchestratorStep(input) {
     );
   }
   const current = plan.tasks.find((task2) => task2.id === plan.currentTaskId);
-  const own = current ? `Continue ${current.id} in main: ${current.title}` : ownStep(plan, facts);
+  const own = current ? `Continue ${current.id} in main: ${current.title}` : ownStep(plan, facts, input.decisions === "host");
   if (own) {
     lines.push(own);
   }
@@ -9090,6 +9345,7 @@ function stateSection(input) {
 }
 function nextStep(input, role) {
   const { plan } = input;
+  const host = input.decisions === "host";
   const scope = plan.scope;
   if (!scope) {
     return closedByRunStep(plan) ?? planningStep(input);
@@ -9098,14 +9354,14 @@ function nextStep(input, role) {
     return `A commit transaction is unfinished: run \`${KIT_COMMAND} repair\` before anything else.`;
   }
   if (scope.status === "BLOCKED") {
-    return `BLOCKED: ${scope.blockedReason ?? "no reason recorded"}. Resolve it with the user, then unblock.`;
+    return blockedStep(scope.blockedReason, host);
   }
   if (role === "executor") {
     return executorStep(input);
   }
   const untidy = input.changes.length > 0;
   if (scope.delivery === "READY_FOR_ACCEPTANCE" || scope.delivery === "ACCEPTED") {
-    return completionStep(plan, untidy);
+    return completionStep(plan, untidy, host);
   }
   if (role === "orchestrator") {
     return orchestratorStep(input);
@@ -9118,13 +9374,13 @@ function nextStep(input, role) {
     return `Continue ${task2.id}: ${task2.title}`;
   }
   if (task2.kind === "delivery") {
-    return deliveryStep(plan, task2);
+    return deliveryStep(plan, task2, host);
   }
   return `Start ${task2.id} via \`${KIT_COMMAND} task:start ${task2.id}\`: ${task2.title}`;
 }
 function nextSection(input) {
   const role = agentRole(input);
-  const run = role === "executor" ? null : runRule(input.plan);
+  const run = role === "executor" ? null : runRule(input.plan, input.decisions === "host");
   return [nextStep(input, role), roleRule(role), ...run ? [run] : []].join("\n");
 }
 function objectiveSection(input) {
@@ -9420,7 +9676,7 @@ function extractHeading(text4, heading) {
 }
 function render(input, parts, references, omitted, bytes) {
   const sorted = [...parts].sort((left, right) => left.order - right.order);
-  const head3 = [
+  const head4 = [
     "# Workflow recovery packet",
     `bytes: ${bytes} / budget: ${input.budgetBytes}${bytes > input.budgetBytes ? " (over budget)" : ""}`,
     `included: ${sorted.map((part) => part.name).join(", ")}`,
@@ -9431,7 +9687,7 @@ function render(input, parts, references, omitted, bytes) {
 ${part.text}`);
   const refs = `## references
 ${references.length > 0 ? references.map((line) => `- ${line}`).join("\n") : "- none"}`;
-  return `${[head3, ...body, refs].join("\n\n")}
+  return `${[head4, ...body, refs].join("\n\n")}
 `;
 }
 function settle(input, parts, references, omitted) {
@@ -9851,6 +10107,7 @@ function gatherRecovery(git, root, event, notes) {
   return {
     budgetBytes: config.budget.recoveryBytes,
     changes: repository ? outsideChanges(git, root, plan) : [],
+    decisions: config.decisions === "host" ? "host" : "agent",
     documents: repository ? documentsMap(git, root, { specPath: plan.scope?.spec ?? null }) : null,
     event,
     head: repository ? git.head(root) : null,
@@ -9943,13 +10200,13 @@ function packetParts(text4, count) {
   const full = pack2(pieces, body);
   let chunks = full;
   if (full.length > count) {
-    const head3 = full.slice(0, count - 1);
-    const used = head3.reduce((sum, chunk) => sum + chunk.length, 0);
+    const head4 = full.slice(0, count - 1);
+    const used = head4.reduce((sum, chunk) => sum + chunk.length, 0);
     const last = pack2(joinFrom(pieces, used), body - INCOMPLETE_RESERVE)[0] ?? "";
     const line = `
 Packet incomplete: it needs ${full.length} parts, ${count} delivered. Run \`scripts/workflow recover --format text\`.
 `;
-    chunks = [...head3, `${last}${line}`];
+    chunks = [...head4, `${last}${line}`];
   }
   const total = chunks.length;
   return {
@@ -10093,10 +10350,12 @@ function runHook(args, io, kit, root) {
     io.stdout(kit.sessionStart(root, client, io.readStdin(), part));
     return 0;
   }
+  const name = positional(args, 0, "Hook name");
   const result2 = kit.gitHook(
     root,
-    positional(args, 0, "Hook name"),
-    args.positionals.slice(1)
+    name,
+    args.positionals.slice(1),
+    name === "pre-push" ? io.readStdin() : ""
   );
   if (result2.message) {
     io.stderr(`${result2.message}
@@ -10279,10 +10538,22 @@ var SCOPE_COMMANDS = {
     run: ({ args, kit, root }) => kit.accept(root, requiredFlag(args, "note")),
     usage: `accept --note "<the user's words>" | accept --autopilot-run <id> --input <evidence.json> --expected-revision N (host only)`
   },
+  "commits:adopt": {
+    run: ({ args, kit, root }) => {
+      const commits = listFlag(args, "commits");
+      ensure(
+        commits !== void 0 && commits.length > 0,
+        "USAGE",
+        "commits:adopt needs --commits <sha,sha>: the exact list of the EXTERNAL_COMMITS refusal."
+      );
+      return kit.adoptCommits(root, commits, requiredFlag(args, "note"));
+    },
+    usage: `commits:adopt --commits <json|sha,sha> --note "<the user's words>"`
+  },
   carryover: {
     run: ({ args, io, kit, root }) => kit.carryover(
       root,
-      readJsonFile(io.cwd, requiredFlag(args, "input"))
+      readJsonFile(root, io.cwd, requiredFlag(args, "input"))
     ),
     usage: "carryover --input <file.json>"
   },
@@ -10294,7 +10565,7 @@ var SCOPE_COMMANDS = {
   "plan:extend": {
     run: ({ args, io, kit, root }) => kit.extend(
       root,
-      readJsonFile(io.cwd, requiredFlag(args, "input")),
+      readJsonFile(root, io.cwd, requiredFlag(args, "input")),
       integerFlag(args, "expected-revision")
     ),
     usage: "plan:extend --input <file.json> [--expected-revision N]"
@@ -10302,7 +10573,7 @@ var SCOPE_COMMANDS = {
   "scope:create": {
     run: ({ args, io, kit, root }) => kit.createScope(
       root,
-      readJsonFile(io.cwd, requiredFlag(args, "input"))
+      readJsonFile(root, io.cwd, requiredFlag(args, "input"))
     ),
     usage: "scope:create --input <file.json>"
   },
@@ -10335,7 +10606,7 @@ var SCOPE_COMMANDS = {
     run: ({ args, io, kit, root }) => kit.updateTask(
       root,
       positional(args, 0, "Task id"),
-      readJsonFile(io.cwd, requiredFlag(args, "input")),
+      readJsonFile(root, io.cwd, requiredFlag(args, "input")),
       integerFlag(args, "expected-revision")
     ),
     usage: "task:update <ID> --input <patch.json> [--expected-revision N]"
@@ -10933,8 +11204,8 @@ function mainPlan(git, root, journal) {
   const plan = workflowPlanFacade.parse(text4);
   return { plan, task: workflowPlanFacade.task(plan, journal.taskId), text: text4 };
 }
-function isIntegrationCommit(git, root, journal, head3) {
-  const commit2 = git.history(root, journal.mainHead, head3).find((item) => item.sha === head3);
+function isIntegrationCommit(git, root, journal, head4) {
+  const commit2 = git.history(root, journal.mainHead, head4).find((item) => item.sha === head4);
   return commit2 !== void 0 && commit2.parents.join(" ") === `${journal.mainHead} ${journal.source}` && commit2.trailers["Workflow-Role"]?.join() === "integration" && commit2.trailers["Workflow-Transaction"]?.join() === journal.operationId;
 }
 function resume(git, root, stored, now) {
@@ -10960,15 +11231,15 @@ function resume(git, root, stored, now) {
       );
     }
   }
-  const head3 = git.head(root);
-  if (head3 !== journal.mainHead) {
-    if (head3 && isIntegrationCommit(git, root, journal, head3)) {
-      return finish(git, root, journal, head3, now);
+  const head4 = git.head(root);
+  if (head4 !== journal.mainHead) {
+    if (head4 && isIntegrationCommit(git, root, journal, head4)) {
+      return finish(git, root, journal, head4, now);
     }
     unknown(
       root,
       journal,
-      `Main moved to ${head3 ?? "nothing"} outside the integration of ${journal.mainHead}.`
+      `Main moved to ${head4 ?? "nothing"} outside the integration of ${journal.mainHead}.`
     );
   }
   if (journal.phase === "UNKNOWN") {
@@ -11141,9 +11412,9 @@ function readConfig(context) {
   return workflowQualityFacade.readConfig(context.root);
 }
 function requireHead(context) {
-  const head3 = context.git.head(context.root);
-  ensure(head3, "NO_COMMITS", "The repository has no commits yet.");
-  return head3;
+  const head4 = context.git.head(context.root);
+  ensure(head4, "NO_COMMITS", "The repository has no commits yet.");
+  return head4;
 }
 function ensureNoIntegration(context) {
   ensure(
@@ -11188,6 +11459,14 @@ function commitPlan(context, plan, request2) {
 }
 function savePlan(context, plan) {
   workflowPlanFacade.write(context.root, plan);
+}
+function withDecision(plan, record) {
+  if (!(record && plan.scope)) {
+    return plan;
+  }
+  const next = structuredClone(plan);
+  next.scope?.decisions.push({ ...record });
+  return next;
 }
 function changedDocuments(context, paths) {
   const changed = new Set(context.git.changes(context.root).all);
@@ -11564,8 +11843,8 @@ function cancelAssignment2(context, id, force) {
 function executorAssignment(context) {
   return workflowAssignmentFacade.worktreeRecord(context.root);
 }
-function isPlanCommit(context, head3, record) {
-  const history = context.git.history(context.root, record.baseCommit, head3);
+function isPlanCommit(context, head4, record) {
+  const history = context.git.history(context.root, record.baseCommit, head4);
   const [commit2] = history;
   return history.length === 1 && commit2?.parents[0] === record.baseCommit && commit2.trailers["Workflow-Role"]?.[0] === "assignment-plan" && commit2.trailers["Workflow-Assignment"]?.[0] === record.id;
 }
@@ -11642,16 +11921,16 @@ function attachAssignment(context, id) {
       { paths: dirty },
       "Remove the changes, then repeat the attach command."
     );
-    const head3 = requireHead(context);
-    let planCommit = head3;
-    if (head3 === record.baseCommit) {
+    const head4 = requireHead(context);
+    let planCommit = head4;
+    if (head4 === record.baseCommit) {
       planCommit = commitExecutorPlan(context, record);
     } else {
       ensure(
-        isPlanCommit(context, head3, record),
+        isPlanCommit(context, head4, record),
         "ASSIGNMENT_BASE",
-        `HEAD ${head3} is not the base ${record.baseCommit} of ${id}.`,
-        { base: record.baseCommit, head: head3 },
+        `HEAD ${head4} is not the base ${record.baseCommit} of ${id}.`,
+        { base: record.baseCommit, head: head4 },
         "The worktree must start at the main HEAD the assignment was created on."
       );
     }
@@ -11781,15 +12060,15 @@ function guardExecutorCandidate(context, journal) {
 }
 
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-doctor.ts
-import path24 from "node:path";
+import path25 from "node:path";
 
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-doctor-checks.ts
 import { accessSync as accessSync2, constants as constants2, existsSync as existsSync13 } from "node:fs";
-import path21 from "node:path";
+import path22 from "node:path";
 
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-inspect.ts
-import { existsSync as existsSync12, readdirSync as readdirSync3, realpathSync as realpathSync4, statSync as statSync6 } from "node:fs";
-import path20 from "node:path";
+import { existsSync as existsSync12, readdirSync as readdirSync3, realpathSync as realpathSync5, statSync as statSync6 } from "node:fs";
+import path21 from "node:path";
 
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-payload.ts
 import { createHash as createHash7 } from "node:crypto";
@@ -11936,7 +12215,74 @@ function upsertSection(current, style, body, placement = "bottom") {
 }
 
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-texts.ts
-function agentRules() {
+var AGENT_TEXTS = {
+  adopt: `ask the user, then
+  \`scripts/workflow commits:adopt --commits <sha,sha> --note "<the user's words>"\`.`,
+  autopilot: `- Autopilot runs: only the Workflow Kit app grants and revokes a run and
+  accepts or closes a scope automatically. Never run \`autopilot:authorize\`,
+  \`autopilot:revoke\`, \`accept --autopilot-run\` or
+  \`close --autopilot-run\`; they refuse an agent (\`HOST_AUTH_REQUIRED\`).
+  Without a live run every manual confirmation above stays.`,
+  blocked: `- If the scope is BLOCKED, only discuss and diagnose; run \`task:unblock\`
+  after the user resolves the reason.`,
+  completion: `- Acceptance (\`accept --note "<the user's words>"\`) records the user's
+  decision. Closing the scope (\`close\`) needs a separate direct user command.
+`,
+  decisions: "",
+  plan: `- A clear user instruction to implement allows you to write the
+  specification and create the scope with
+  \`scripts/workflow scope:create --input <file.json>\` without asking again.
+  Record the agreement in \`approval\`. The plan never replaces the user's
+  current instruction. In a Harness project (\`"host": "harness"\`) propose
+  the scope instead (see Execution modes).`,
+  start: `1. \`scripts/workflow task:start <ID>\`; a delivery task needs
+   \`--confirmed "<the user's confirmation>"\`, or
+   \`--autopilot-run <run>\` when the \`next\` line names a live autopilot
+   run that confirmed this task in advance.`,
+  tools: "Installing tools needs the user's approval in `approval`."
+};
+var HOST_TEXTS = {
+  adopt: "the user adopts it (see User decisions).",
+  autopilot: `- Autopilot runs: only the Workflow Kit app grants and revokes a run and
+  accepts, closes and publishes automatically. Never run
+  \`autopilot:authorize\` or \`autopilot:revoke\`; they refuse an agent
+  (\`HOST_AUTH_REQUIRED\`). Without a live run every decision of the user
+  stays with the user.`,
+  blocked: `- If the scope is BLOCKED, only discuss and diagnose; removing the block is
+  the user's decision (see User decisions).`,
+  completion: "",
+  decisions: `
+### User decisions
+- The user's decisions \u2014 preparing a plan, the execution mode, a delivery,
+  acceptance, closing the scope, removing a block, installing tools and
+  adopting commits made past the Kit \u2014 are recorded by Workflow Kit itself
+  from the panel button or from the user's message, never from your words.
+- A command that needs such a decision changes nothing and refuses with
+  \`USER_DECISION_REQUIRED\`: the decision then waits on a card in the
+  Workflow Kit panel. Tell the user so and end the turn.
+- If the user decided in this chat, run \`wfk decision <kind>\`; the kinds
+  are choose (with \`--option <mode>\`), confirm-delivery (with
+  \`--task <ID>\`), accept, close, unblock, approve-install and
+  adopt-commits. Never pass the user's words yourself: Workflow Kit takes
+  them from the message it received. Acceptance and closing are two
+  separate decisions.
+`,
+  plan: `- A software development task (a new product or a change to this one)
+  starts with \`wfk session plan "<one line: what you are going to build>"\`:
+  Workflow Kit decides from the user's settings and message whether to
+  prepare the plan at once or to ask the user. End the turn and follow its
+  answer; then write the specification and propose the scope (see Execution
+  modes). The plan never replaces the user's current instruction.`,
+  start: `1. \`scripts/workflow task:start <ID>\`. A delivery task starts by the
+   user's decision: Workflow Kit starts it after the user's confirmation
+   and tells you. Under a live autopilot run that covers the task (the
+   \`next\` line says so) start it yourself with the same command, without
+   flags.`,
+  tools: `Installing tools is the user's decision: \`quality:apply\` with
+  \`install\` waits for it (see User decisions).`
+};
+function agentRules(mode = "agent") {
+  const texts = mode === "host" ? HOST_TEXTS : AGENT_TEXTS;
   return `## Workflow Kit (managed section \u2014 do not edit by hand)
 
 This project uses the Harness Workflow Kit. The plan lives in
@@ -11955,8 +12301,8 @@ add \`--format text\` for a readable answer.
 - Before writing a \`--input\` JSON, run \`scripts/workflow schema <command>\`
   for its fields, limits and an example.
 - Write \`--input\` and \`--digest\` JSON files to \`.harness/inputs/\`
-  (git-ignored): a file left elsewhere in the project is an uncommitted
-  change and blocks \`close\`.
+  (git-ignored): a file elsewhere in the project is refused
+  (\`INPUT_LOCATION\`).
 - Get documents with \`scripts/workflow context <path>[#Heading]\` (one call,
   marked text) instead of reading large files piecewise;
   \`context --list\` prints the documents map.
@@ -11968,12 +12314,7 @@ add \`--format text\` for a readable answer.
   no plan. Commit documents with \`scripts/workflow docs:commit --files <paths>\`.
 - Changing functional files is allowed only inside a started task of the
   active scope.
-- A clear user instruction to implement allows you to write the
-  specification and create the scope with
-  \`scripts/workflow scope:create --input <file.json>\` without asking again.
-  Record the agreement in \`approval\`. The plan never replaces the user's
-  current instruction. In a Harness project (\`"host": "harness"\`) propose
-  the scope instead (see Execution modes).
+${texts.plan}
 
 ### Execution modes
 The recovery packet names your \`role:\`; follow it.
@@ -11996,13 +12337,13 @@ The recovery packet names your \`role:\`; follow it.
 - Never set the git identity (\`git config user.*\`). If a command refuses
   with \`GIT_IDENTITY_REQUIRED\`, report it to the user with the command it
   prints.
-
+${texts.decisions}
 ### One task, one commit, one turn
-1. \`scripts/workflow task:start <ID>\`; a delivery task needs
-   \`--confirmed "<the user's confirmation>"\`, or
-   \`--autopilot-run <run>\` when the \`next\` line names a live autopilot
-   run that confirmed this task in advance.
-2. Implement the task within its files and acceptance criteria.
+${texts.start}
+2. Implement the task within its files and acceptance criteria. A changed
+   path outside the task files stops the commit (\`TASK_FILES_OUTSIDE\`):
+   revert it or extend the task with
+   \`scripts/workflow task:update <ID> --input <patch.json>\` (\`files\`).
 3. \`scripts/workflow commit --task <ID>\`. The DOCS task of a round
    reconciles shared documents and needs \`--digest <file.json>\`
    (\`result\`, \`decisions\`, \`contracts\`, \`references\`).
@@ -12019,25 +12360,22 @@ The recovery packet names your \`role:\`; follow it.
 
 ### Rules
 - Never commit with \`git commit\` directly and never use \`--no-verify\`.
+  A commit made past the Kit blocks the scope (\`EXTERNAL_COMMITS\`) until
+  ${texts.adopt}
 - Never edit the plan, \`.harness/workflow/**\` or the launchers by hand.
 - A finished task never changes. Defects found later become a fixes round:
   \`scripts/workflow plan:extend --input <file.json> --expected-revision <N>\`.
 - Before the first functional code, the QUALITY task chooses checks with
   \`quality:detect\` and applies them with \`quality:apply --input <file.json>\`.
-  Installing tools needs the user's approval in \`approval\`.
+  ${texts.tools}
 - Update the contract document of a module in the same commit as its code
   (\`docs.contracts\` in \`.harness/workflow/config.json\`).
-- Acceptance (\`accept --note "<the user's words>"\`) records the user's
-  decision. Closing the scope (\`close\`) needs a separate direct user command.
-- Autopilot runs: only the Workflow Kit app grants and revokes a run and
-  accepts or closes a scope automatically. Never run \`autopilot:authorize\`,
-  \`autopilot:revoke\`, \`accept --autopilot-run\` or
-  \`close --autopilot-run\`; they refuse an agent (\`HOST_AUTH_REQUIRED\`).
-  Without a live run every manual confirmation above stays.
+${texts.completion}${texts.autopilot}
 - Release build, packaging and installation, and a push of a CI branch a
-  delivery task names, happen only in delivery tasks. Rebuilding a tracked
-  file a commit check requires from the sources (for example a vendored
-  bundle) belongs to the work task that changes those sources.
+  delivery task names, happen only in delivery tasks; the plan names the
+  task that pushes the CI branch in \`automation.ci.task\`. Rebuilding a
+  tracked file a commit check requires from the sources (for example a
+  vendored bundle) belongs to the work task that changes those sources.
 - Publishing (\`git push\` of the main branch to its upstream) is no task:
   it comes only after the scope is accepted and closed, on the user's direct
   request or by the live autopilot run of this scope.
@@ -12045,8 +12383,7 @@ The recovery packet names your \`role:\`; follow it.
   CI), do not fix it inside the task: keep the results outside git, run
   \`scripts/workflow task:defer-delivery <ID> --reason "<failure and link>" --expected-revision <N>\`
   on a clean tree, then add a fixes round with \`plan:extend\`.
-- If the scope is BLOCKED, only discuss and diagnose; run \`task:unblock\`
-  after the user resolves the reason.
+${texts.blocked}
 - If a command reports an unfinished transaction, run
   \`scripts/workflow repair\` and follow it.
 - Use \`scripts/workflow show-task <ID>\` and \`scripts/workflow history\` for
@@ -12099,7 +12436,7 @@ in line with the code.
 }
 
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-payload.ts
-var KIT_VERSION = "2.3.3";
+var KIT_VERSION = "2.4.4";
 var MANIFEST_PATH = ".harness/workflow/manifest.json";
 var MANIFEST_SCHEMA = "harness-workflow-manifest/1";
 var OWN_HOOKS_DIR = ".harness/workflow/hooks";
@@ -12116,7 +12453,7 @@ function sha2562(text4) {
 function hasClaudeLine(text4) {
   return text4.split(LINE_BREAK).some((line) => line.trim() === CLAUDE_IMPORT_LINE);
 }
-function readManaged(kind, path29, current) {
+function readManaged(kind, path31, current) {
   if (current === null) {
     return null;
   }
@@ -12124,7 +12461,7 @@ function readManaged(kind, path29, current) {
     case "owned":
       return current;
     case "section":
-      return extractSection(current, path29.endsWith(".md") ? "html" : "hash");
+      return extractSection(current, path31.endsWith(".md") ? "html" : "hash");
     case "json":
       return extractSessionStartHook(current);
     case "line":
@@ -12133,32 +12470,32 @@ function readManaged(kind, path29, current) {
       return null;
   }
 }
-function owned(path29, content, executable = false) {
+function owned(path31, content, executable = false) {
   return {
     executable,
     kind: "owned",
     managed: content,
-    path: path29,
+    path: path31,
     read: (current) => current,
     render: () => content
   };
 }
-function section(path29, style, body, placement = "bottom", prefix = "") {
+function section(path31, style, body, placement = "bottom", prefix = "") {
   return {
     executable: false,
     kind: "section",
     managed: sectionBlock(style, body),
-    path: path29,
+    path: path31,
     read: (current) => current === null ? null : extractSection(current, style),
     render: (current) => upsertSection(current ?? (prefix || null), style, body, placement)
   };
 }
-function created(path29, content) {
+function created(path31, content) {
   return {
     executable: false,
     kind: "create",
     managed: null,
-    path: path29,
+    path: path31,
     read: () => null,
     render: (current) => current ?? content
   };
@@ -12184,14 +12521,14 @@ ${CLAUDE_IMPORT_LINE}
     }
   };
 }
-function providerHook(path29, client) {
+function providerHook(path31, client) {
   return {
     executable: false,
     kind: "json",
     managed: expectedSessionStartHook(client),
-    path: path29,
-    read: (current) => readManaged("json", path29, current),
-    render: (current) => mergeSessionStartHook(current, client, path29)
+    path: path31,
+    read: (current) => readManaged("json", path31, current),
+    render: (current) => mergeSessionStartHook(current, client, path31)
   };
 }
 function hookEntries(hooksPath) {
@@ -12222,7 +12559,7 @@ function buildPayload(options) {
     owned("scripts/workflow.cmd", launchers.cmd),
     owned("scripts/workflow.ps1", launchers.powershell),
     ...hookEntries(options.hooksPath),
-    section("AGENTS.md", "html", agentRules()),
+    section("AGENTS.md", "html", agentRules(options.decisions ?? "agent")),
     claudeLine(),
     providerHook(".codex/hooks.json", "codex"),
     providerHook(".claude/settings.json", "claude"),
@@ -12267,7 +12604,7 @@ var ACTIONS = {
   PILOT_KIT: "unsupported"
 };
 function file(root, relative) {
-  return path20.join(root, ...relative.split("/"));
+  return path21.join(root, ...relative.split("/"));
 }
 function compareVersions(left, right) {
   const a = left.split(".").map(Number);
@@ -12326,7 +12663,7 @@ function classify(root, repository) {
   return { damaged: [], state: repository ? "GIT_NO_KIT" : "NOT_GIT" };
 }
 function inspectFolder(git, folder) {
-  const root = path20.resolve(folder);
+  const root = path21.resolve(folder);
   const base = {
     damaged: [],
     nestedIn: null,
@@ -12336,7 +12673,7 @@ function inspectFolder(git, folder) {
     version: null
   };
   if (!existsSync12(root)) {
-    const parent = path20.dirname(root);
+    const parent = path21.dirname(root);
     return {
       ...base,
       action: "create",
@@ -12356,8 +12693,8 @@ function inspectFolder(git, folder) {
   const inside = git.isRepository(root);
   const top = inside ? git.topLevel(root) : null;
   const repository = top !== null && workflowPlatformFacade.samePath(
-    realpathSync4.native(path20.resolve(top)),
-    realpathSync4.native(root)
+    realpathSync5.native(path21.resolve(top)),
+    realpathSync5.native(root)
   );
   const nestedIn = inside && !repository ? top : null;
   const { damaged, state } = classify(root, repository);
@@ -12388,7 +12725,7 @@ var check = (id, status, message, fixable = false, nextAction = null) => ({
   status
 });
 function file2(root, relative) {
-  return path21.join(root, ...relative.split("/"));
+  return path22.join(root, ...relative.split("/"));
 }
 function manifestChecks(root, platform) {
   const manifest = readManifest(root);
@@ -12462,7 +12799,7 @@ function hooksCheck(git, root) {
   }
   const missing2 = MANAGED_GIT_HOOKS.filter((name) => {
     const text4 = workflowPlatformFacade.readTextIfExists(
-      path21.resolve(root, hooksPath, name)
+      path22.resolve(root, hooksPath, name)
     );
     return text4 === null || extractSection(text4, "hash") === null;
   });
@@ -12523,10 +12860,51 @@ function planChecks(git, root) {
 
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-install.ts
 import { chmodSync, existsSync as existsSync14, mkdirSync as mkdirSync3 } from "node:fs";
-import path23 from "node:path";
+import path24 from "node:path";
+
+// product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-config.ts
+function checkMarkers(markers) {
+  ensure(
+    markers.host === void 0 || markers.host === null || markers.host === "harness",
+    "USAGE",
+    "--host is harness."
+  );
+  ensure(
+    markers.decisions === void 0 || markers.decisions === null || markers.decisions === "host",
+    "USAGE",
+    "--decisions is host."
+  );
+}
+function decisionsOf(root, markers) {
+  if (markers.decisions === "host") {
+    return "host";
+  }
+  const exists = workflowPlatformFacade.readTextIfExists(
+    workflowQualityFacade.configFile(root)
+  ) !== null;
+  return exists && workflowQualityFacade.readConfig(root).decisions === "host" ? "host" : "agent";
+}
+function writeConfig(root, markers) {
+  const { decisions, host } = markers;
+  const exists = workflowPlatformFacade.readTextIfExists(
+    workflowQualityFacade.configFile(root)
+  ) !== null;
+  const config = exists ? workflowQualityFacade.readConfig(root) : workflowQualityFacade.defaultConfig();
+  const hostSame = !host || config.host === host;
+  const decisionsSame = !decisions || config.decisions === decisions;
+  if (exists && hostSame && decisionsSame) {
+    return false;
+  }
+  workflowQualityFacade.writeConfig(root, {
+    ...config,
+    ...host ? { host } : {},
+    ...decisions ? { decisions } : {}
+  });
+  return true;
+}
 
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-with.ts
-import path22 from "node:path";
+import path23 from "node:path";
 var APP_STRUCTURE_MANIFEST = ".workflow-kit/manifest.json";
 var notManaged = (item) => new WorkflowError(
   "WITH_NOT_MANAGED",
@@ -12535,7 +12913,7 @@ var notManaged = (item) => new WorkflowError(
 );
 function structurePaths(root) {
   const text4 = workflowPlatformFacade.readTextIfExists(
-    path22.join(root, ...APP_STRUCTURE_MANIFEST.split("/"))
+    path23.join(root, ...APP_STRUCTURE_MANIFEST.split("/"))
   );
   if (text4 === null) {
     return null;
@@ -12613,7 +12991,7 @@ function projectSlug(name) {
   return name.toLowerCase().replace(SLUG_DROP2, "-").replace(SLUG_TRIM, "") || "project";
 }
 function file3(root, relative) {
-  return path23.join(root, ...relative.split("/"));
+  return path24.join(root, ...relative.split("/"));
 }
 function localHooksPath(git, root) {
   const value = git.git.run(root, ["config", "--local", "--get", "core.hooksPath"], {
@@ -12626,7 +13004,7 @@ function localHooksPath(git, root) {
   try {
     relative = workflowPlatformFacade.relativeFromRoot(
       root,
-      path23.resolve(root, value)
+      path24.resolve(root, value)
     );
   } catch {
     throw new WorkflowError(
@@ -12699,20 +13077,9 @@ function writePayload(root, entries2, platform) {
   }
   return written;
 }
-function writeConfig(root, host) {
-  const exists = workflowPlatformFacade.readTextIfExists(
-    workflowQualityFacade.configFile(root)
-  ) !== null;
-  const config = exists ? workflowQualityFacade.readConfig(root) : workflowQualityFacade.defaultConfig();
-  if (exists && (!host || config.host === host)) {
-    return false;
-  }
-  workflowQualityFacade.writeConfig(root, host ? { ...config, host } : config);
-  return true;
-}
 function writeState(root, entries2, options) {
   const written = [];
-  if (writeConfig(root, options.host)) {
+  if (writeConfig(root, options)) {
     written.push(workflowQualityFacade.configPath);
   }
   if (writeIfChanged(
@@ -12790,11 +13157,7 @@ function installKit(git, folder, options) {
     inspected.nestedIn,
     inspected.transactionPending
   );
-  ensure(
-    options.host === void 0 || options.host === null || options.host === "harness",
-    "USAGE",
-    "--host is harness."
-  );
+  checkMarkers(options);
   const identity = requireInstallIdentity(git, root, inspected.git.repository);
   mkdirSync3(root, { recursive: true });
   if (!inspected.git.repository) {
@@ -12806,9 +13169,10 @@ function installKit(git, folder, options) {
   }
   const hooksPath = localHooksPath(git, root);
   const before = new Set(git.changes(root).all);
-  const name = options.name?.trim() || path23.basename(root);
+  const name = options.name?.trim() || path24.basename(root);
   const entries2 = buildPayload({
     bundle: options.bundle,
+    decisions: decisionsOf(root, options),
     hooksPath,
     projectName: name
   });
@@ -12965,7 +13329,7 @@ function inspectProject(git, root, options) {
   ];
 }
 function runDoctor(git, folder, options = {}) {
-  const root = path24.resolve(folder);
+  const root = path25.resolve(folder);
   let checks = inspectProject(git, root, options);
   let fix = null;
   let identityFix = null;
@@ -13001,7 +13365,7 @@ function runDoctor(git, folder, options = {}) {
 
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-migrate.ts
 import { existsSync as existsSync15 } from "node:fs";
-import path25 from "node:path";
+import path26 from "node:path";
 
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-legacy-plan.ts
 var LEGACY_SCHEMA = "harness-ai-plan-v1";
@@ -13233,7 +13597,7 @@ function buildMigratedPlan(legacy, base, options, existing) {
   };
 }
 function migrateHarnessPlan(git, folder, options) {
-  const root = path25.resolve(folder);
+  const root = path26.resolve(folder);
   ensure(
     readManifest(root),
     "NOT_INSTALLED",
@@ -13242,18 +13606,18 @@ function migrateHarnessPlan(git, folder, options) {
     "Run `scripts/workflow install`."
   );
   const text4 = workflowPlatformFacade.readTextIfExists(
-    path25.join(root, ...PLAN_PATH.split("/"))
+    path26.join(root, ...PLAN_PATH.split("/"))
   );
   ensure(text4, "NOT_LEGACY_PLAN", `${PLAN_PATH} does not exist.`);
   const legacy = parseLegacyPlan(text4);
   const baselineCommit = git.head(root);
   ensure(baselineCommit, "NO_COMMITS", "The repository has no commits yet.");
-  const name = options.name?.trim() || path25.basename(root);
+  const name = options.name?.trim() || path26.basename(root);
   const result2 = buildMigratedPlan(
     legacy,
     { baselineCommit, projectId: projectSlug(name), projectName: name },
     options,
-    (relative) => existsSync15(path25.join(root, ...relative.split("/")))
+    (relative) => existsSync15(path26.join(root, ...relative.split("/")))
   );
   ensure(
     git.transactions.journal(root) === null,
@@ -13312,16 +13676,64 @@ var WorkflowInstallerFacade = class {
   renderManifest(manifest) {
     return renderManifest(manifest);
   }
-  /** The English agent rules of the managed AGENTS.md section. */
-  agentRules() {
-    return agentRules();
+  /**
+   * The English agent rules of the managed AGENTS.md section; `host` gives
+   * the text without manual forms of user decisions (M40).
+   */
+  agentRules(mode = "agent") {
+    return agentRules(mode);
   }
 };
 var workflowInstallerFacade = new WorkflowInstallerFacade();
 
+// product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-decision-registry.ts
+import { mkdirSync as mkdirSync4 } from "node:fs";
+import path27 from "node:path";
+var FILE = "decisions.json";
+var KEPT = 50;
+function readRegistry(context) {
+  const text4 = workflowPlatformFacade.readTextIfExists(
+    context.git.localPath(context.root, FILE)
+  );
+  if (text4 === null) {
+    return { requests: [], version: 1 };
+  }
+  try {
+    const parsed = JSON.parse(text4);
+    return Array.isArray(parsed.requests) ? { requests: parsed.requests, version: 1 } : { requests: [], version: 1 };
+  } catch {
+    return { requests: [], version: 1 };
+  }
+}
+function writeRegistry(context, registry) {
+  const file4 = context.git.localPath(context.root, FILE);
+  const open = registry.requests.filter((item) => item.state === "pending");
+  const closed = registry.requests.filter((item) => item.state !== "pending").slice(-KEPT);
+  mkdirSync4(path27.dirname(file4), { recursive: true });
+  workflowPlatformFacade.writeFileAtomic(
+    file4,
+    `${JSON.stringify({ requests: [...closed, ...open], version: 1 }, null, 2)}
+`
+  );
+}
+function viewOf(request2, subject) {
+  const { createdAt, id, inputDigest, revision, state } = request2;
+  return { ...subject, createdAt, id, inputDigest, revision, state };
+}
+function markRequest(context, id, change2) {
+  locked(context, () => {
+    const registry = readRegistry(context);
+    const request2 = registry.requests.find((item) => item.id === id);
+    if (request2) {
+      change2(request2);
+      writeRegistry(context, registry);
+    }
+  });
+}
+
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-ci-config.ts
 import { readdirSync as readdirSync4, readFileSync as readFileSync11 } from "node:fs";
-import path26 from "node:path";
+import path28 from "node:path";
 var WORKFLOW_DIR = [".github", "workflows"];
 var WORKFLOW_FILE = /\.ya?ml$/u;
 var KEY_LINE = /^(\s*)(-\s+)?([A-Za-z0-9_.-]+):\s*(.*)$/u;
@@ -13418,7 +13830,7 @@ function workflowNames(text4) {
   return names;
 }
 function ciCheckNames(root) {
-  const dir = path26.join(root, ...WORKFLOW_DIR);
+  const dir = path28.join(root, ...WORKFLOW_DIR);
   let files;
   try {
     files = readdirSync4(dir).filter((file4) => WORKFLOW_FILE.test(file4));
@@ -13429,7 +13841,7 @@ function ciCheckNames(root) {
     return null;
   }
   const names = files.sort().flatMap(
-    (file4) => workflowNames(readFileSync11(path26.join(dir, file4), "utf8"))
+    (file4) => workflowNames(readFileSync11(path28.join(dir, file4), "utf8"))
   );
   return [...new Set(names)];
 }
@@ -13484,7 +13896,7 @@ function ensureInputChecks(context, tasks) {
 function change(plan, commit2) {
   return { commit: commit2, revision: plan.revision, scopeId: plan.scope?.id ?? null };
 }
-function commitScope(context, input, proposal = null) {
+function commitScope(context, input, proposal = null, decision3 = null) {
   ensureNoTransaction(context);
   const plan = workflowPlanFacade.createScope(
     readPlan(context),
@@ -13493,6 +13905,9 @@ function commitScope(context, input, proposal = null) {
   );
   if (proposal && plan.scope) {
     plan.scope.proposal = { ...proposal };
+  }
+  if (decision3 && plan.scope) {
+    plan.scope.decisions.push({ ...decision3 });
   }
   ensureInputChecks(context, input.tasks);
   ensureAutomationInput(context, input.automation);
@@ -13584,7 +13999,7 @@ function proposeScope(context, request2) {
     return { ...answer, autoChosen: false, scope: null };
   });
 }
-function chooseScope(context, request2) {
+function chooseScope(context, request2, decision3 = null) {
   return locked(context, () => {
     ensureNoTransaction(context);
     const choice2 = {
@@ -13629,7 +14044,8 @@ function chooseScope(context, request2) {
         request2.session.trim(),
         `Execution mode chosen by the user: ${request2.option}: ${request2.note.trim()}`
       ),
-      { digest, generation: proposal.generation }
+      { digest, generation: proposal.generation },
+      decision3
     );
     return {
       execution: workflowPlanFacade.execution(readPlan(context)),
@@ -13640,6 +14056,277 @@ function chooseScope(context, request2) {
       scope
     };
   });
+}
+
+// product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-external.ts
+function externalCommits(context, plan) {
+  const scope = plan?.scope;
+  if (!(scope && context.git.head(context.root))) {
+    return [];
+  }
+  const adopted = new Set(scope.adoptedCommits ?? []);
+  return context.git.history(context.root, scope.baselineCommit).filter(
+    (commit2) => !(commit2.trailers["Workflow-Transaction"]?.[0] || adopted.has(commit2.sha))
+  ).map((commit2) => commit2.sha);
+}
+function externalMessage(commits) {
+  return `Commits made past the Workflow Kit since the scope baseline: ${commits.map((sha) => sha.slice(0, 12)).join(", ")}.`;
+}
+function adoptCommits2(context, commits, note, decision3 = null) {
+  return locked(context, () => {
+    ensureNoTransaction(context);
+    const current = readPlan(context);
+    const external = externalCommits(context, current);
+    ensure(
+      external.length > 0,
+      "NO_EXTERNAL_COMMITS",
+      "There are no commits made past the Workflow Kit to adopt."
+    );
+    ensure(
+      typeof note === "string" && note.trim().length >= 3,
+      "ADOPT_NOTE",
+      "Record the user's words in --note."
+    );
+    ensure(
+      external.length === commits.length && external.every((sha, index) => sha === commits[index]),
+      "EXTERNAL_COMMITS",
+      `${externalMessage(external)} The list to adopt differs from it.`,
+      { commits: external },
+      'Adopt the exact current list: `scripts/workflow commits:adopt --commits <sha,sha> --note "<the user\'s words>"`.'
+    );
+    const plan = workflowPlanFacade.adopt(
+      current,
+      external,
+      decision3 ?? {
+        at: context.now(),
+        kind: "adopt-commits",
+        text: `adopt-commits (${external.map((sha) => sha.slice(0, 12)).join(", ")}): ${note.trim()}`
+      }
+    );
+    savePlan(context, plan);
+    return change(plan, null);
+  });
+}
+
+// product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-decisions.ts
+function decisionsMode(context) {
+  return readConfig(context).decisions === "host" ? "host" : "agent";
+}
+function head3(context) {
+  return context.git.head(context.root) ?? "";
+}
+function installs(input) {
+  const commands = input.install ?? [];
+  ensure(
+    Array.isArray(commands),
+    "QUALITY_INPUT",
+    "install must be a list of commands.",
+    { field: "install" }
+  );
+  return commands.map(
+    (command) => ({
+      args: Array.isArray(command?.args) ? command.args.map(String) : [],
+      executable: String(command?.executable ?? "")
+    })
+  );
+}
+function subjectOf(context, choice2) {
+  const now = context.now();
+  if (choice2.kind === "choose") {
+    const proposal = workflowExecutionModeFacade.verifyChoice(context.root, {
+      generation: choice2.generation,
+      note: "decision request",
+      now,
+      option: choice2.option,
+      session: choice2.session
+    });
+    const digest = workflowExecutionModeFacade.proposalDigest(
+      context.root,
+      proposal
+    ).proposalDigest;
+    const expected = choice2.expectedDigest ?? null;
+    ensure(
+      expected === null || expected === digest,
+      "PROPOSAL_CHANGED",
+      "The proposal or its documents changed after the reviewed digest.",
+      { current: digest, expected, generation: proposal.generation },
+      "Read `scope:proposal --digest`, review the current proposal again and choose with its digest."
+    );
+    return {
+      kind: "choose",
+      params: { option: choice2.option, session: choice2.session.trim() },
+      proposal: { digest, generation: proposal.generation },
+      scopeId: null,
+      taskId: null
+    };
+  }
+  const plan = readPlan(context);
+  const scopeId = plan.scope?.id ?? null;
+  if (choice2.kind === "approve-install") {
+    const { approval: _approval, ...profile } = choice2.input;
+    return {
+      kind: "approve-install",
+      params: {
+        configDigest: hostDigest(readConfig(context).quality),
+        install: installs(choice2.input),
+        profileDigest: hostDigest(profile)
+      },
+      proposal: null,
+      scopeId,
+      taskId: plan.currentTaskId
+    };
+  }
+  if (choice2.kind === "adopt-commits") {
+    const commits = externalCommits(context, plan);
+    ensure(
+      commits.length > 0,
+      "NO_EXTERNAL_COMMITS",
+      "There are no commits made past the Workflow Kit to adopt."
+    );
+    return {
+      kind: "adopt-commits",
+      params: { commits },
+      proposal: null,
+      scopeId,
+      taskId: null
+    };
+  }
+  if (choice2.kind === "accept") {
+    workflowPlanFacade.accept(plan, "decision request", now);
+    return {
+      kind: "accept",
+      params: { head: head3(context), result: plan.scope?.delivery ?? null },
+      proposal: null,
+      scopeId,
+      taskId: null
+    };
+  }
+  if (choice2.kind === "close") {
+    workflowPlanFacade.close(plan, choice2.scopeId, "decision request", now);
+    return {
+      kind: "close",
+      params: { head: head3(context) },
+      proposal: null,
+      scopeId,
+      taskId: null
+    };
+  }
+  if (choice2.kind === "unblock") {
+    workflowPlanFacade.unblock(plan);
+    return {
+      kind: "unblock",
+      params: { reasonDigest: hostDigest(plan.scope?.blockedReason ?? null) },
+      proposal: null,
+      scopeId,
+      taskId: plan.currentTaskId
+    };
+  }
+  const task2 = workflowPlanFacade.task(plan, choice2.taskId);
+  ensure(
+    task2.kind === "delivery",
+    "USAGE",
+    `${task2.id} is not a delivery task; it starts without a confirmation.`
+  );
+  ensure(
+    task2.status === "TODO",
+    "TASK_NOT_TODO",
+    `Task ${task2.id} is already ${task2.status}.`
+  );
+  workflowPlanFacade.startTask(plan, task2.id, "decision request");
+  return {
+    kind: "confirm-delivery",
+    params: {
+      taskDigest: hostDigest({
+        acceptance: task2.acceptance,
+        checks: task2.checks,
+        dependencies: task2.dependencies,
+        files: task2.files,
+        title: task2.title
+      })
+    },
+    proposal: null,
+    scopeId,
+    taskId: task2.id
+  };
+}
+function digestOf(subject) {
+  const { kind, params, proposal, scopeId, taskId } = subject;
+  return hostDigest({ kind, params, proposal, scopeId, taskId });
+}
+function sameTarget(left, right) {
+  return left.kind === right.kind && left.scopeId === right.scopeId && left.taskId === right.taskId;
+}
+function registerDecision(context, choice2) {
+  const subject = subjectOf(context, choice2);
+  const inputDigest = digestOf(subject);
+  const registry = readRegistry(context);
+  const same2 = registry.requests.find(
+    (item) => item.state === "pending" && item.inputDigest === inputDigest
+  );
+  if (same2) {
+    return viewOf(same2, subject);
+  }
+  for (const item of registry.requests) {
+    if (item.state === "pending" && sameTarget(item, subject)) {
+      item.state = "stale";
+    }
+  }
+  const request2 = {
+    ...subject,
+    choice: choice2,
+    createdAt: context.now(),
+    id: `dec-${hostDigest({ at: context.now(), inputDigest, n: registry.requests.length }).slice(0, 12)}`,
+    inputDigest,
+    revision: workflowPlanFacade.read(context.root)?.revision ?? 0,
+    state: "pending"
+  };
+  registry.requests.push(request2);
+  writeRegistry(context, registry);
+  return viewOf(request2, subject);
+}
+function requireDecision(context, choice2) {
+  const view = locked(context, () => registerDecision(context, choice2));
+  throw new WorkflowError(
+    "USER_DECISION_REQUIRED",
+    `This step (${view.kind}) is the user's decision: Workflow Kit records it from the panel button or from the user's message, not from this command.`,
+    { decision: view },
+    `Tell the user the decision waits in the Workflow Kit panel. If the user already decided in this chat, run \`wfk decision ${view.kind}\` (the app takes the user's words itself); never pass the user's words yourself.`
+  );
+}
+function ensureNoExternalCommits(context, plan) {
+  const commits = externalCommits(context, plan);
+  if (commits.length === 0) {
+    return;
+  }
+  const host = decisionsMode(context) === "host";
+  const decision3 = host ? registerDecision(context, { kind: "adopt-commits" }) : null;
+  throw new WorkflowError(
+    "EXTERNAL_COMMITS",
+    externalMessage(commits),
+    { commits, decision: decision3 },
+    host ? "Tell the user: the decision to adopt these commits waits in the Workflow Kit panel. Never commit with `git commit`." : 'Ask the user; then `scripts/workflow commits:adopt --commits <sha,sha> --note "<the user\'s words>"`. Never commit with `git commit`.'
+  );
+}
+function reproduced(context, request2) {
+  try {
+    const subject = subjectOf(context, request2.choice);
+    return digestOf(subject) === request2.inputDigest ? subject : null;
+  } catch {
+    return null;
+  }
+}
+function pendingDecisions(context) {
+  if (decisionsMode(context) !== "host") {
+    return [];
+  }
+  const views = [];
+  for (const item of readRegistry(context).requests) {
+    const subject = item.state === "pending" ? reproduced(context, item) : null;
+    if (subject) {
+      views.push(viewOf(item, subject));
+    }
+  }
+  return views;
 }
 
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-scope.ts
@@ -13730,13 +14417,14 @@ function updateTask(context, taskId, patch, expectedRevision2) {
     return change(plan, commit2);
   });
 }
-function acceptScope2(context, note) {
+function acceptScope2(context, note, decision3 = null) {
   return locked(context, () => {
     ensureNoTransaction(context);
-    const plan = workflowPlanFacade.accept(
-      readPlan(context),
-      note,
-      context.now()
+    const current = readPlan(context);
+    ensureNoExternalCommits(context, current);
+    const plan = withDecision(
+      workflowPlanFacade.accept(current, note, context.now()),
+      decision3
     );
     const commit2 = commitPlan(context, plan, {
       files: [],
@@ -13764,16 +14452,16 @@ function ensureCleanTree(context) {
     "Delete temporary files or commit documents with `scripts/workflow docs:commit --files <paths>`, then repeat close."
   );
 }
-function closeScope2(context, scopeId, note) {
+function closeScope2(context, scopeId, note, decision3 = null) {
   return locked(context, () => {
     ensureNoTransaction(context);
     ensureCleanTree(context);
-    const plan = workflowPlanFacade.close(
-      readPlan(context),
-      scopeId,
-      note,
-      context.now()
-    );
+    const current = readPlan(context);
+    ensureNoExternalCommits(context, current);
+    const plan = workflowPlanFacade.close(current, scopeId, note, context.now());
+    if (decision3 && plan.lastClosed) {
+      plan.lastClosed.decision = { ...decision3 };
+    }
     const commit2 = commitPlan(context, plan, {
       files: [],
       message: `chore: close scope ${scopeId}`,
@@ -13803,12 +14491,18 @@ function carryoverScope2(context, input) {
     return change(plan, commit2);
   });
 }
-function setBlocked(context, reason) {
+function setBlocked(context, reason, decision3 = null) {
   return locked(context, () => {
     ensureNoIntegration(context);
     const current = readPlan(context);
-    const plan = reason === null ? workflowPlanFacade.unblock(current) : workflowPlanFacade.block(current, reason);
+    const plan = withDecision(
+      reason === null ? workflowPlanFacade.unblock(current) : workflowPlanFacade.block(current, reason),
+      decision3
+    );
     savePlan(context, plan);
+    if (reason !== null && decisionsMode(context) === "host") {
+      registerDecision(context, { kind: "unblock" });
+    }
     return change(plan, null);
   });
 }
@@ -13876,8 +14570,8 @@ function evidenceError(message, details) {
   );
   throw new Error(message);
 }
-function passedAt(context, commit2, id, head3) {
-  if (!SHA_PATTERN3.test(commit2) || !context.git.isAncestor(context.root, commit2, head3)) {
+function passedAt(context, commit2, id, head4) {
+  if (!SHA_PATTERN3.test(commit2) || !context.git.isAncestor(context.root, commit2, head4)) {
     return false;
   }
   const record = workflowQualityFacade.readEvidence(context.root, commit2);
@@ -13885,19 +14579,19 @@ function passedAt(context, commit2, id, head3) {
     (report) => report.results.some((result2) => result2.id === id && result2.status === "passed")
   );
 }
-function documentationOnly(context, from, head3) {
-  return context.git.diffPaths(context.root, from, head3).every((file4) => file4 === PLAN_PATH || isDocumentationPath(file4));
+function documentationOnly(context, from, head4) {
+  return context.git.diffPaths(context.root, from, head4).every((file4) => file4 === PLAN_PATH || isDocumentationPath(file4));
 }
-function verifiedEvidence(context, plan, input, head3) {
+function verifiedEvidence(context, plan, input, head4) {
   const automation = plan.scope?.automation;
   ensure(
     automation !== void 0,
     "AUTOPILOT_UNAUTHORIZED",
     "The plan has no automation block; the user accepts the result."
   );
-  if (!input || typeof input !== "object" || input.head !== head3) {
+  if (!input || typeof input !== "object" || input.head !== head4) {
     evidenceError("The evidence was gathered for another HEAD.", {
-      head: head3,
+      head: head4,
       input: input?.head ?? null
     });
   }
@@ -13915,7 +14609,7 @@ function verifiedEvidence(context, plan, input, head3) {
     const proof = given.get(entry.criterion);
     const checks = entry.checks.map((id) => {
       const passed = (proof?.checks ?? []).find(
-        (item) => item?.id === id && passedAt(context, item.commit, id, head3)
+        (item) => item?.id === id && passedAt(context, item.commit, id, head4)
       );
       if (!passed) {
         evidenceError(`Criterion ${entry.criterion + 1}: check ${id} has no passed record on the history of HEAD.`, {
@@ -13926,7 +14620,7 @@ function verifiedEvidence(context, plan, input, head3) {
       return { commit: passed.commit, id };
     });
     const missing2 = entry.evidence.filter(
-      (file4) => !(proof?.evidence ?? []).includes(file4) || context.git.show(context.root, head3, file4) === null
+      (file4) => !(proof?.evidence ?? []).includes(file4) || context.git.show(context.root, head4, file4) === null
     );
     if (missing2.length > 0) {
       evidenceError(`Criterion ${entry.criterion + 1}: evidence files are not committed: ${missing2.join(", ")}.`, {
@@ -13942,7 +14636,7 @@ function verifiedEvidence(context, plan, input, head3) {
     const absent = automation.ci.requiredChecks.filter(
       (name) => !(result2?.checks ?? []).includes(name)
     );
-    const fresh = result2 !== null && result2 !== void 0 && SHA_PATTERN3.test(result2.sha) && context.git.isAncestor(context.root, result2.sha, head3) && (!automation.ci.exactSha || documentationOnly(context, result2.sha, head3));
+    const fresh = result2 !== null && result2 !== void 0 && SHA_PATTERN3.test(result2.sha) && context.git.isAncestor(context.root, result2.sha, head4) && (!automation.ci.exactSha || documentationOnly(context, result2.sha, head4));
     if (absent.length > 0 || !fresh) {
       evidenceError("The required CI checks did not pass for the current result.", {
         absent,
@@ -13951,7 +14645,7 @@ function verifiedEvidence(context, plan, input, head3) {
     }
     ci = { checks: [...automation.ci.requiredChecks], sha: result2.sha };
   }
-  return { ci, criteria, head: head3 };
+  return { ci, criteria, head: head4 };
 }
 function acceptRun(context, runId, input, expectedRevision2) {
   return locked(context, () => {
@@ -13959,12 +14653,16 @@ function acceptRun(context, runId, input, expectedRevision2) {
     const current = readPlan(context);
     ensureRevision(current, expectedRevision2);
     workflowPlanFacade.grant(current, runId);
-    const head3 = context.git.head(context.root) ?? "";
-    const evidence = verifiedEvidence(context, current, input, head3);
-    const plan = workflowPlanFacade.acceptByAutopilot(
-      current,
-      { ...evidence, runId },
-      context.now()
+    ensureNoExternalCommits(context, current);
+    const head4 = context.git.head(context.root) ?? "";
+    const evidence = verifiedEvidence(context, current, input, head4);
+    const plan = withDecision(
+      workflowPlanFacade.acceptByAutopilot(
+        current,
+        { ...evidence, runId },
+        context.now()
+      ),
+      grantRecord(context, current, runId, "accept")
     );
     const commit2 = commitPlan(context, plan, {
       files: [],
@@ -13976,17 +14674,33 @@ function acceptRun(context, runId, input, expectedRevision2) {
     return change(plan, commit2);
   });
 }
+function grantRecord(context, plan, runId, kind) {
+  return {
+    at: context.now(),
+    kind,
+    source: {
+      authorization: hostDigest(plan.scope?.authorization ?? null),
+      kind: "grant",
+      runId
+    },
+    text: `Automatic ${kind} by the advance instruction of run ${runId}`
+  };
+}
 function closeRun(context, scopeId, runId, expectedRevision2) {
   return locked(context, () => {
     ensureNoTransaction(context);
     ensureCleanTree(context);
     const current = readPlan(context);
     ensureRevision(current, expectedRevision2);
+    ensureNoExternalCommits(context, current);
     const plan = workflowPlanFacade.closeByAutopilot(
       current,
       { head: context.git.head(context.root) ?? "", runId, scopeId },
       context.now()
     );
+    if (plan.lastClosed) {
+      plan.lastClosed.decision = grantRecord(context, current, runId, "close");
+    }
     const commit2 = commitPlan(context, plan, {
       files: [],
       message: `chore: close scope ${scopeId} (autopilot run ${runId})`,
@@ -14089,6 +14803,8 @@ function readStatus(context) {
     assignments: own ? [] : assignmentsOf(context, plan),
     changes,
     currentTask: brief(tasks.find((task2) => task2.id === plan?.currentTaskId)),
+    decisions: plan ? pendingDecisions(context) : [],
+    decisionsMode: config.decisions === "host" ? "host" : "agent",
     execution: plan?.scope ? workflowPlanFacade.execution(plan) : null,
     executor: own ? { assignmentId: own.id, taskId: own.taskId } : null,
     head: repository ? context.git.head(context.root) : null,
@@ -14216,6 +14932,7 @@ function autopilotStatus(context) {
     authorization: structuredClone(plan?.scope?.authorization ?? null),
     blockedReason: status.scope?.blockedReason ?? null,
     capability: { ...AUTOPILOT_CAPABILITY },
+    decisionsMode: status.decisionsMode,
     delivery: status.scope?.delivery ?? null,
     head: status.head,
     nextTask: status.nextTask,
@@ -14227,6 +14944,528 @@ function autopilotStatus(context) {
     scope: status.scope?.status ?? "NONE",
     transactionPending: status.transaction !== null
   };
+}
+
+// product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-quality.ts
+function detectQuality(context, stacks) {
+  return workflowQualityFacade.propose(context.root, {
+    stacks,
+    which: (name) => context.git.platform.findExecutable(name, context.env) !== null
+  });
+}
+function applyQuality(context, input, decision3 = null) {
+  return locked(context, () => {
+    ensureNoTransaction(context);
+    const current = readPlan(context);
+    const task2 = current.tasks.find(
+      (item) => item.id === current.currentTaskId && item.kind === "quality"
+    );
+    const before = new Set(context.git.changes(context.root).all);
+    const applied = workflowQualityFacade.applyProfile(
+      context.root,
+      input,
+      context.env
+    );
+    const configPath = workflowQualityFacade.configPath;
+    let files;
+    if (task2) {
+      const selection = context.git.selectTaskFiles(context.root, {
+        iteration: task2.iteration,
+        scopeId: current.scope?.id ?? "NONE",
+        taskId: task2.id
+      });
+      files = [...selection.selected, configPath];
+    } else {
+      files = [
+        ...context.git.changes(context.root).all.filter(
+          (file4) => !(before.has(file4) || context.git.isKitManagedPath(file4))
+        ),
+        configPath
+      ];
+    }
+    let plan = current;
+    if (task2) {
+      plan = structuredClone(current);
+      const own = workflowPlanFacade.task(plan, task2.id);
+      own.files = [.../* @__PURE__ */ new Set([...own.files, ...files])];
+      plan = workflowPlanFacade.completeTask(plan, task2.id);
+    }
+    plan = withDecision(plan, decision3);
+    const commit2 = commitPlan(context, plan, {
+      files,
+      iteration: task2?.iteration,
+      message: task2?.commitMessage ?? "chore: apply the project quality profile",
+      role: "quality",
+      scopeId: current.scope?.id ?? null,
+      taskId: task2?.id ?? null
+    });
+    return { commit: commit2, config: applied.config, installs: applied.installs };
+  });
+}
+function qualityStatus(context) {
+  const config = workflowQualityFacade.readConfig(context.root);
+  const checks = {};
+  for (const check2 of config.quality.checks) {
+    checks[check2.stage] = [...checks[check2.stage] ?? [], check2.id];
+  }
+  return {
+    checks,
+    drift: workflowQualityFacade.drift(context.root, config),
+    stacks: config.quality.stacks,
+    status: config.quality.status
+  };
+}
+function repair(context, options = {}) {
+  return locked(context, () => {
+    if (options.apply) {
+      return context.git.applyRepair(context.root, PLAN_PATH, options.apply);
+    }
+    if (options.cancel) {
+      return context.git.cancelRepair(context.root, PLAN_PATH, options.cancel);
+    }
+    return context.git.planRepair(context.root, PLAN_PATH);
+  });
+}
+
+// product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-task-files.ts
+function comparable(value, platform) {
+  return platform === "linux" ? value : value.toLowerCase();
+}
+function inTaskFiles(files, file4, platform = workflowPlatformFacade.platform) {
+  const value = comparable(file4, platform);
+  return files.some((entry) => {
+    const base = comparable(entry, platform);
+    return value === base || value.startsWith(`${base}/`);
+  });
+}
+function outsideTaskFiles(task2, selected, platform = workflowPlatformFacade.platform) {
+  if (task2.files.length === 0) {
+    return [];
+  }
+  return selected.filter(
+    (file4) => !(inTaskFiles(task2.files, file4, platform) || task2.kind === "docs" && isDocumentationPath(file4))
+  );
+}
+function ensureTaskFiles(task2, selected, platform) {
+  const paths = outsideTaskFiles(task2, selected, platform);
+  ensure(
+    paths.length === 0,
+    "TASK_FILES_OUTSIDE",
+    `These changed paths are outside the files of ${task2.id}: ${paths.join(", ")}.`,
+    { files: task2.files, paths },
+    `Revert what does not belong to ${task2.id}, or extend the task: \`scripts/workflow task:update ${task2.id} --input <patch.json>\` with the full \`files\` list; then repeat the commit.`
+  );
+}
+
+// product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-task.ts
+function briefOf(task2) {
+  const { id, kind, roundId, status, title } = task2;
+  return { id, kind, roundId, status, title };
+}
+function hasCommitChecks(config) {
+  return config.quality.checks.some(
+    (check2) => check2.stage === "commit" && check2.command
+  );
+}
+function ensureMainMayStart(context, plan, task2) {
+  if (workflowPlanFacade.execution(plan).strategy !== "orchestrated") {
+    return;
+  }
+  ensure(
+    task2.kind !== "work" && task2.kind !== "docs",
+    "ORCHESTRATED_MAIN_READ_ONLY",
+    `${task2.id} runs only through an assignment in an orchestrated scope.`,
+    {},
+    `Run \`scripts/workflow assignment:next\`, then \`scripts/workflow assignment:create --task ${task2.id}\`.`
+  );
+  if (task2.kind !== "delivery") {
+    return;
+  }
+  const index = plan.tasks.indexOf(task2);
+  const pending = plan.tasks.filter((item, position) => position < index && item.status !== "DONE").map((item) => item.id);
+  const active = activeRecords(plan, context.root).map((record) => record.id);
+  ensure(
+    pending.length === 0 && active.length === 0,
+    "DELIVERY_NOT_READY",
+    `${task2.id} starts when every earlier task is DONE and no assignment is active.`,
+    { active, pending }
+  );
+}
+function coveringRun(plan, task2) {
+  const grant = plan.scope?.authorization;
+  if (task2.kind !== "delivery" || !grant || grant.revoked !== null || !grant.delivery.some((entry) => entry.taskId === task2.id)) {
+    return null;
+  }
+  return grant.runId;
+}
+function grantDecision(context, plan, runId, taskId) {
+  return {
+    at: context.now(),
+    kind: "confirm-delivery",
+    source: {
+      authorization: hostDigest(plan.scope?.authorization ?? null),
+      kind: "grant",
+      runId
+    },
+    text: `Delivery ${taskId} started by the advance instruction of run ${runId}`
+  };
+}
+function startTask2(context, taskId, confirmation, autopilotRun = null, decision3 = null) {
+  return locked(context, () => {
+    ensureNoTransaction(context);
+    ensureNotPaused(context);
+    const current = readPlan(context);
+    const config = readConfig(context);
+    const task2 = workflowPlanFacade.task(current, taskId);
+    ensureNoExternalCommits(context, current);
+    if (confirmation === null && autopilotRun === null && config.decisions === "host") {
+      autopilotRun = coveringRun(current, task2);
+    }
+    if (autopilotRun !== null) {
+      ensure(
+        confirmation === null && task2.kind === "delivery",
+        "USAGE",
+        "--autopilot-run starts a delivery task instead of --confirmed; it takes no --confirmed."
+      );
+      confirmation = workflowPlanFacade.deliveryConfirmation(
+        current,
+        autopilotRun,
+        taskId
+      );
+      decision3 ??= grantDecision(context, current, autopilotRun, taskId);
+    }
+    ensureMainMayStart(context, current, task2);
+    ensureAssignmentReady(context);
+    workflowQualityFacade.selectChecks({
+      assigned: task2.checks,
+      config,
+      root: context.root,
+      stage: "commit"
+    });
+    const plan = withDecision(
+      workflowPlanFacade.startTask(current, taskId, confirmation),
+      decision3
+    );
+    const baseline = context.git.beginTask(context.root, {
+      iteration: task2.iteration,
+      scopeId: plan.scope?.id ?? "NONE",
+      taskId
+    });
+    savePlan(context, plan);
+    markAssignment(context, "RUNNING");
+    const warnings = [];
+    const limit = config.policy.taskFileSoftLimit;
+    const functional = task2.files.filter((file4) => !isDocumentationPath(file4));
+    if (limit !== null && functional.length > limit) {
+      warnings.push(
+        `The task lists ${functional.length} functional files (soft limit ${limit}); consider splitting it.`
+      );
+    }
+    return {
+      preexisting: baseline.preexisting,
+      task: briefOf(workflowPlanFacade.task(plan, taskId)),
+      warnings
+    };
+  });
+}
+function storePrepareEvidence(context, sha, prepare2) {
+  const stored = workflowQualityFacade.readEvidence(context.root, sha);
+  const evidence = {
+    commit: sha,
+    reports: [prepare2, ...stored?.reports ?? []],
+    transaction: stored?.transaction ?? null
+  };
+  const text4 = `${JSON.stringify(evidence, null, 2)}
+`;
+  for (const name of [`${sha}.json`, "last.json"]) {
+    workflowPlatformFacade.writeFileAtomic(
+      context.git.localPath(context.root, "verification", name),
+      text4
+    );
+  }
+}
+function runPrepare(context, config, task2, files) {
+  if (!config.quality.checks.some((check2) => check2.stage === "prepare")) {
+    return null;
+  }
+  const report = workflowQualityFacade.runStage({
+    assigned: task2.checks,
+    config,
+    env: context.env,
+    files,
+    // Staging will skip these paths: fixers never get the copies on disk.
+    removed: context.git.absentPaths(context.root, files),
+    root: context.root,
+    stage: "prepare"
+  });
+  if (!report.ok) {
+    throw new WorkflowError(
+      "CHECK_FAILED",
+      "A prepare check failed; nothing was committed.",
+      { report },
+      "Fix the reported problem and repeat the same command."
+    );
+  }
+  return report;
+}
+function commitTask(context, taskId, options = {}) {
+  return locked(context, () => {
+    ensureNoTransaction(context);
+    const current = readPlan(context);
+    const config = readConfig(context);
+    const task2 = workflowPlanFacade.task(current, taskId);
+    ensureNoExternalCommits(context, current);
+    ensure(
+      task2.status === "IN_PROGRESS",
+      "TASK_NOT_ACTIVE",
+      `Start the task first: task:start ${taskId}`
+    );
+    ensure(
+      task2.kind !== "quality",
+      "USE_QUALITY_APPLY",
+      "The QUALITY task is completed by `quality:apply`."
+    );
+    ensure(
+      task2.kind !== "docs" || Boolean(options.digest),
+      "ROUND_DIGEST_REQUIRED",
+      `${taskId} closes its round: pass the round digest with --digest <file.json>.`
+    );
+    const identity = {
+      iteration: task2.iteration,
+      scopeId: current.scope?.id ?? "NONE",
+      taskId
+    };
+    const selection = context.git.selectTaskFiles(
+      context.root,
+      identity,
+      options.files
+    );
+    if (!executorAssignment(context)) {
+      ensureTaskFiles(task2, selection.selected);
+    }
+    const functional = selection.selected.filter(
+      (file4) => !isDocumentationPath(file4)
+    );
+    ensure(
+      functional.length === 0 || hasCommitChecks(config),
+      "NOT_CONFIGURED",
+      "Functional files need at least one commit-stage check in the quality profile.",
+      { files: functional },
+      "Configure the profile with `quality:apply`."
+    );
+    const withFiles = structuredClone(current);
+    const own = workflowPlanFacade.task(withFiles, taskId);
+    own.files = [.../* @__PURE__ */ new Set([...own.files, ...selection.selected])];
+    const plan = workflowPlanFacade.completeTask(
+      withFiles,
+      taskId,
+      options.digest ?? null
+    );
+    guardExecutorCommit(
+      context,
+      [...selection.selected, PLAN_PATH],
+      workflowPlanFacade.render(plan)
+    );
+    const prepare2 = runPrepare(context, config, task2, selection.selected);
+    const commit2 = commitPlan(context, plan, {
+      assignmentId: executorAssignment(context)?.id ?? null,
+      checks: task2.checks,
+      excluded: selection.excluded,
+      files: selection.selected,
+      iteration: task2.iteration,
+      message: task2.commitMessage,
+      role: task2.kind === "docs" ? "docs" : "implementation",
+      scopeId: current.scope?.id ?? null,
+      taskId
+    });
+    if (prepare2) {
+      storePrepareEvidence(context, commit2.sha, prepare2);
+    }
+    markAssignment(context, "READY_FOR_INTEGRATION", commit2.sha);
+    return {
+      commit: commit2,
+      nextTask: readStatus(context).nextTask,
+      preexisting: selection.preexisting,
+      prepare: prepare2
+    };
+  });
+}
+function commitDocs(context, files, message = "docs: update documentation") {
+  return locked(context, () => {
+    ensureNoTransaction(context);
+    const plan = readPlan(context);
+    ensure(
+      plan.currentTaskId === null,
+      "TASK_IN_PROGRESS",
+      `Task ${plan.currentTaskId} is in progress; its documents go into its commit.`
+    );
+    const paths = files.map(
+      (file4) => workflowPlatformFacade.normalizeRelative(file4)
+    );
+    const code = paths.filter((file4) => !isDocumentationPath(file4));
+    ensure(
+      paths.length > 0 && code.length === 0,
+      "DOCS_ONLY",
+      "docs:commit takes documentation only: Markdown files and .harness/product-tree/**.",
+      { paths: code }
+    );
+    return commitPlan(context, plan, {
+      files: paths,
+      message,
+      role: "docs",
+      scopeId: plan.scope?.id ?? null,
+      taskId: null
+    });
+  });
+}
+
+// product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-decision-apply.ts
+var SOURCES2 = /* @__PURE__ */ new Set(["button", "grant", "message"]);
+var MIN_NOTE = 10;
+function requestOf(context, id) {
+  const request2 = readRegistry(context).requests.find((item) => item.id === id);
+  ensure(
+    request2 !== void 0,
+    "DECISION_UNKNOWN",
+    `There is no decision request ${id}.`,
+    { decisionId: id },
+    "Read `scripts/workflow status` for the pending decisions."
+  );
+  return request2;
+}
+function recorded(context, id) {
+  const plan = workflowPlanFacade.read(context.root);
+  return plan?.lastClosed?.decision?.decisionId === id || (plan?.scope?.decisions ?? []).some((item) => item.decisionId === id);
+}
+function noteOf(request2, meta) {
+  const text4 = meta.note.trim();
+  const label = `decision ${request2.id}, ${meta.source.kind}`;
+  return text4.length >= MIN_NOTE ? text4 : `${text4} (${label})`;
+}
+function perform(context, request2, record, note) {
+  const choice2 = request2.choice;
+  switch (choice2.kind) {
+    case "accept":
+      return acceptScope2(context, note, record);
+    case "close":
+      return closeScope2(context, choice2.scopeId, note, record);
+    case "unblock":
+      return setBlocked(context, null, record);
+    case "adopt-commits":
+      return adoptCommits2(
+        context,
+        request2.params.commits ?? [],
+        note,
+        record
+      );
+    case "confirm-delivery":
+      return record.source?.kind === "grant" ? startTask2(
+        context,
+        choice2.taskId,
+        null,
+        record.source.runId ?? null,
+        record
+      ) : startTask2(context, choice2.taskId, note, null, record);
+    case "choose":
+      return chooseScope(
+        context,
+        {
+          expectedDigest: request2.proposal?.digest ?? null,
+          generation: choice2.generation,
+          note,
+          option: choice2.option,
+          session: choice2.session
+        },
+        record
+      );
+    default:
+      return applyQuality(context, { ...choice2.input, approval: note }, record);
+  }
+}
+function grantSource(context, request2, source) {
+  if (source.kind !== "grant") {
+    return source;
+  }
+  const runId = source.runId ?? "";
+  ensure(
+    runId !== "",
+    "USAGE",
+    "A grant decision names its run (--autopilot-run)."
+  );
+  if (request2.choice.kind === "choose") {
+    return { ...source, authorization: null };
+  }
+  ensure(
+    request2.choice.kind === "confirm-delivery",
+    "AUTOPILOT_UNAUTHORIZED",
+    `The authorization of run ${runId} does not cover the decision ${request2.kind}.`,
+    { kind: request2.kind, runId },
+    "This decision is the user's: the panel button or the user's message records it."
+  );
+  const plan = readPlan(context);
+  workflowPlanFacade.deliveryConfirmation(plan, runId, request2.choice.taskId);
+  return {
+    ...source,
+    authorization: hostDigest(plan.scope?.authorization ?? null)
+  };
+}
+function applyDecision(context, id, meta) {
+  ensure(
+    SOURCES2.has(meta.source?.kind) && meta.note.trim() !== "",
+    "USAGE",
+    "A decision needs --source button|message|grant and a non-empty --note."
+  );
+  const request2 = requestOf(context, id);
+  const done = (result3, already) => ({
+    already,
+    decisionId: id,
+    kind: request2.kind,
+    result: result3
+  });
+  if (request2.state === "applied") {
+    return done(request2.applied?.result ?? null, true);
+  }
+  if (recorded(context, id)) {
+    markRequest(context, id, (item) => {
+      item.state = "applied";
+      item.applied = { at: context.now(), result: null };
+    });
+    return done(null, true);
+  }
+  const stale = () => {
+    markRequest(context, id, (item) => {
+      item.state = "stale";
+    });
+    ensure(
+      false,
+      "DECISION_STALE",
+      `Decision request ${id} no longer matches the project state; nothing was applied.`,
+      { decisionId: id, kind: request2.kind },
+      "Read `scripts/workflow status`: a new request replaces it when the decision is still needed."
+    );
+    throw new Error("unreachable");
+  };
+  if (request2.state !== "pending") {
+    return stale();
+  }
+  if (reproduced(context, request2) === null) {
+    return stale();
+  }
+  ensureRevision(readPlan(context), meta.expectedRevision);
+  const source = grantSource(context, request2, meta.source);
+  const record = {
+    at: context.now(),
+    decisionId: id,
+    kind: request2.kind,
+    source,
+    text: `${request2.kind}: ${meta.note.trim()}`
+  };
+  const result2 = perform(context, request2, record, noteOf(request2, meta));
+  markRequest(context, id, (item) => {
+    item.state = "applied";
+    item.applied = { at: context.now(), result: result2 };
+  });
+  return done(result2, false);
 }
 
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-delivery-defer.ts
@@ -14322,6 +15561,45 @@ var WorkflowKitBase = class {
   status(root) {
     return readStatus(this.context(root));
   }
+  /** `host` when only the app records user decisions (spec M40). */
+  decisionsMode(root) {
+    return decisionsMode(this.context(root));
+  }
+  /** Registers the decision request and refuses with USER_DECISION_REQUIRED. */
+  requireDecision(root, choice2) {
+    return requireDecision(this.context(root), choice2);
+  }
+  decisionRequest(root, id) {
+    return requestOf(this.context(root), id);
+  }
+  /** `commits:adopt` of the `agent` mode: the exact list with the user's words. */
+  adoptCommits(root, commits, note) {
+    return adoptCommits2(this.context(root), commits, note);
+  }
+  /** EXTERNAL_COMMITS when commits were made past the Kit (spec M40, 3.2). */
+  externalGuard(root) {
+    const context = this.context(root);
+    locked(context, () => {
+      const plan = workflowPlanFacade.read(root);
+      if (plan) {
+        ensureNoExternalCommits(context, plan);
+      }
+    });
+  }
+  /** Applies a registered decision (host only in the CLI, spec M40). */
+  applyDecision(root, id, meta) {
+    return applyDecision(this.context(root), id, meta);
+  }
+  /** The owner session of the scope grant, or null (host ticket binding). */
+  grantOwner(root) {
+    return workflowPlanFacade.read(root)?.scope?.authorization?.ownerSession ?? null;
+  }
+  /** True when `task:start <taskId>` is a TODO delivery no live grant covers. */
+  needsDeliveryDecision(root, taskId) {
+    const plan = workflowPlanFacade.read(root);
+    const task2 = plan?.tasks.find((item) => item.id === taskId);
+    return plan !== null && task2?.kind === "delivery" && task2.status === "TODO" && coveringRun(plan, task2) === null;
+  }
   validate(root) {
     return validateProject(this.context(root));
   }
@@ -14370,7 +15648,79 @@ var WorkflowKitBase = class {
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-hooks.ts
 import { createHash as createHash8 } from "node:crypto";
 import { existsSync as existsSync16, readFileSync as readFileSync12 } from "node:fs";
-import path27 from "node:path";
+import path29 from "node:path";
+
+// product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-push.ts
+var HEADS = "refs/heads/";
+var ZERO_SHA = /^0+$/u;
+var FIELDS = 4;
+function parsePushRefs(stdin) {
+  const refs = [];
+  for (const line of stdin.split("\n")) {
+    const fields = line.replace(/\r$/u, "").trim().split(/\s+/u);
+    if (fields.length !== FIELDS) {
+      continue;
+    }
+    const [localRef = "", localSha = "", remoteRef = "", remoteSha = ""] = fields;
+    refs.push({ localRef, localSha, remoteRef, remoteSha });
+  }
+  return refs;
+}
+function currentBranch(context) {
+  const output = context.git.git.run(
+    context.root,
+    ["symbolic-ref", "-q", "--short", "HEAD"],
+    { allowFailure: true }
+  );
+  const name = output.status === 0 ? output.stdout.trim() : "";
+  return name === "" ? null : name;
+}
+function ciRefusal(plan, branch) {
+  const scope = plan.scope;
+  const allDone = plan.tasks.every((task2) => task2.status === "DONE");
+  if (scope?.automation) {
+    const declared = scope.automation.ci?.task;
+    if (declared === void 0) {
+      return allDone ? null : `the plan names no delivery task that pushes ${branch} (automation.ci.task), so it is pushed only after every task is DONE`;
+    }
+    const status = plan.tasks.find((task2) => task2.id === declared)?.status;
+    return status === "IN_PROGRESS" || status === "DONE" ? null : `delivery task ${declared}, which pushes ${branch}, is not started`;
+  }
+  const delivering = plan.tasks.some(
+    (task2) => task2.kind === "delivery" && task2.status === "IN_PROGRESS"
+  );
+  return delivering || allDone ? null : `${branch} is pushed by a delivery task in progress or after every task is DONE`;
+}
+function pushRefusal(context, plan, refs) {
+  const scope = plan?.scope;
+  if (!(plan && scope) || refs.length === 0) {
+    return null;
+  }
+  const publication = scope.automation?.publication?.branch ?? currentBranch(context);
+  const ci = scope.automation ? scope.automation.ci?.branch ?? null : `ci/${scope.id}`;
+  for (const ref2 of refs) {
+    if (ZERO_SHA.test(ref2.localSha) || !ref2.remoteRef.startsWith(HEADS)) {
+      continue;
+    }
+    const branch = ref2.remoteRef.slice(HEADS.length);
+    if (branch === publication) {
+      return {
+        code: "PUBLISH_SCOPE_OPEN",
+        message: `Branch ${branch} is published only after scope ${scope.id} is accepted and closed; nothing was pushed.`
+      };
+    }
+    const reason = branch === ci ? ciRefusal(plan, branch) : null;
+    if (reason) {
+      return {
+        code: "CI_PUSH_NOT_ALLOWED",
+        message: `Push of ${branch} is not allowed now: ${reason}; nothing was pushed.`
+      };
+    }
+  }
+  return null;
+}
+
+// product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-hooks.ts
 var MANAGED_HINT = "Commit through the Workflow Kit: `scripts/workflow commit --task <ID>` or `scripts/workflow docs:commit`.";
 var OUTPUT_TAIL4 = 1500;
 var pass = (message = "") => ({
@@ -14385,7 +15735,7 @@ var fail = (code, message) => ({
 });
 function fingerprints(root, files) {
   return files.map((file4) => {
-    const absolute2 = path27.join(root, ...file4.split("/"));
+    const absolute2 = path29.join(root, ...file4.split("/"));
     const digest = existsSync16(absolute2) ? createHash8("sha256").update(readFileSync12(absolute2)).digest("hex") : "deleted";
     return `${file4}:${digest}`;
   }).join("\n");
@@ -14469,7 +15819,7 @@ ${failedSummary(report)}`
 }
 function commitMessage(context, args) {
   const journal = context.git.transactions.journal(context.root);
-  const file4 = args[0] ? path27.resolve(context.root, args[0]) : "";
+  const file4 = args[0] ? path29.resolve(context.root, args[0]) : "";
   const message = file4 && existsSync16(file4) ? readFileSync12(file4, "utf8") : "";
   if (!(journal && message.includes(`Workflow-Transaction: ${journal.id}`))) {
     return fail("MANAGED_COMMIT_REQUIRED", MANAGED_HINT);
@@ -14494,7 +15844,7 @@ function pendingDocs(plan) {
   );
   return docs && docs.status !== "DONE" ? docs.id : null;
 }
-function prePush(context) {
+function prePush(context, stdin) {
   const executor = executorAssignment(context);
   if (executor) {
     return fail(
@@ -14514,7 +15864,12 @@ function prePush(context) {
       "An integration is unfinished; run `scripts/workflow integration:continue --id <assignment>`."
     );
   }
-  const docs = pendingDocs(workflowPlanFacade.read(context.root));
+  const plan = workflowPlanFacade.read(context.root);
+  const refused = pushRefusal(context, plan, parsePushRefs(stdin));
+  if (refused) {
+    return fail(refused.code, refused.message);
+  }
+  const docs = pendingDocs(plan);
   if (docs) {
     return fail(
       "DOCS_PENDING",
@@ -14538,7 +15893,7 @@ ${failedSummary(report)}`
     `Workflow push checks passed: ${report.results.map((item) => item.id).join(", ") || "none"}.`
   );
 }
-function runGitHook(context, name, args) {
+function runGitHook(context, name, args, stdin = "") {
   try {
     switch (name) {
       case "pre-commit":
@@ -14548,7 +15903,7 @@ function runGitHook(context, name, args) {
       case "post-commit":
         return pass();
       case "pre-push":
-        return prePush(context);
+        return prePush(context, stdin);
       default:
         return fail("UNKNOWN_HOOK", `Unknown git hook: ${name}`);
     }
@@ -14585,86 +15940,6 @@ function integrationStatus(context) {
   return integration(context).status(context.root);
 }
 
-// product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-quality.ts
-function detectQuality(context, stacks) {
-  return workflowQualityFacade.propose(context.root, {
-    stacks,
-    which: (name) => context.git.platform.findExecutable(name, context.env) !== null
-  });
-}
-function applyQuality(context, input) {
-  return locked(context, () => {
-    ensureNoTransaction(context);
-    const current = readPlan(context);
-    const task2 = current.tasks.find(
-      (item) => item.id === current.currentTaskId && item.kind === "quality"
-    );
-    const before = new Set(context.git.changes(context.root).all);
-    const applied = workflowQualityFacade.applyProfile(
-      context.root,
-      input,
-      context.env
-    );
-    const configPath = workflowQualityFacade.configPath;
-    let files;
-    if (task2) {
-      const selection = context.git.selectTaskFiles(context.root, {
-        iteration: task2.iteration,
-        scopeId: current.scope?.id ?? "NONE",
-        taskId: task2.id
-      });
-      files = [...selection.selected, configPath];
-    } else {
-      files = [
-        ...context.git.changes(context.root).all.filter(
-          (file4) => !(before.has(file4) || context.git.isKitManagedPath(file4))
-        ),
-        configPath
-      ];
-    }
-    let plan = current;
-    if (task2) {
-      plan = structuredClone(current);
-      const own = workflowPlanFacade.task(plan, task2.id);
-      own.files = [.../* @__PURE__ */ new Set([...own.files, ...files])];
-      plan = workflowPlanFacade.completeTask(plan, task2.id);
-    }
-    const commit2 = commitPlan(context, plan, {
-      files,
-      iteration: task2?.iteration,
-      message: task2?.commitMessage ?? "chore: apply the project quality profile",
-      role: "quality",
-      scopeId: current.scope?.id ?? null,
-      taskId: task2?.id ?? null
-    });
-    return { commit: commit2, config: applied.config, installs: applied.installs };
-  });
-}
-function qualityStatus(context) {
-  const config = workflowQualityFacade.readConfig(context.root);
-  const checks = {};
-  for (const check2 of config.quality.checks) {
-    checks[check2.stage] = [...checks[check2.stage] ?? [], check2.id];
-  }
-  return {
-    checks,
-    drift: workflowQualityFacade.drift(context.root, config),
-    stacks: config.quality.stacks,
-    status: config.quality.status
-  };
-}
-function repair(context, options = {}) {
-  return locked(context, () => {
-    if (options.apply) {
-      return context.git.applyRepair(context.root, PLAN_PATH, options.apply);
-    }
-    if (options.cancel) {
-      return context.git.cancelRepair(context.root, PLAN_PATH, options.cancel);
-    }
-    return context.git.planRepair(context.root, PLAN_PATH);
-  });
-}
-
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-scope-owner.ts
 function moveScopeOwner(context, request2) {
   return locked(context, () => {
@@ -14693,237 +15968,6 @@ function moveScopeOwner(context, request2) {
       previous: move.previous,
       revision: move.plan.revision
     };
-  });
-}
-
-// product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-task.ts
-function briefOf(task2) {
-  const { id, kind, roundId, status, title } = task2;
-  return { id, kind, roundId, status, title };
-}
-function hasCommitChecks(config) {
-  return config.quality.checks.some(
-    (check2) => check2.stage === "commit" && check2.command
-  );
-}
-function ensureMainMayStart(context, plan, task2) {
-  if (workflowPlanFacade.execution(plan).strategy !== "orchestrated") {
-    return;
-  }
-  ensure(
-    task2.kind !== "work" && task2.kind !== "docs",
-    "ORCHESTRATED_MAIN_READ_ONLY",
-    `${task2.id} runs only through an assignment in an orchestrated scope.`,
-    {},
-    `Run \`scripts/workflow assignment:next\`, then \`scripts/workflow assignment:create --task ${task2.id}\`.`
-  );
-  if (task2.kind !== "delivery") {
-    return;
-  }
-  const index = plan.tasks.indexOf(task2);
-  const pending = plan.tasks.filter((item, position) => position < index && item.status !== "DONE").map((item) => item.id);
-  const active = activeRecords(plan, context.root).map((record) => record.id);
-  ensure(
-    pending.length === 0 && active.length === 0,
-    "DELIVERY_NOT_READY",
-    `${task2.id} starts when every earlier task is DONE and no assignment is active.`,
-    { active, pending }
-  );
-}
-function startTask2(context, taskId, confirmation, autopilotRun = null) {
-  return locked(context, () => {
-    ensureNoTransaction(context);
-    ensureNotPaused(context);
-    const current = readPlan(context);
-    const config = readConfig(context);
-    const task2 = workflowPlanFacade.task(current, taskId);
-    if (autopilotRun !== null) {
-      ensure(
-        confirmation === null && task2.kind === "delivery",
-        "USAGE",
-        "--autopilot-run starts a delivery task instead of --confirmed; it takes no --confirmed."
-      );
-      confirmation = workflowPlanFacade.deliveryConfirmation(
-        current,
-        autopilotRun,
-        taskId
-      );
-    }
-    ensureMainMayStart(context, current, task2);
-    ensureAssignmentReady(context);
-    workflowQualityFacade.selectChecks({
-      assigned: task2.checks,
-      config,
-      root: context.root,
-      stage: "commit"
-    });
-    const plan = workflowPlanFacade.startTask(current, taskId, confirmation);
-    const baseline = context.git.beginTask(context.root, {
-      iteration: task2.iteration,
-      scopeId: plan.scope?.id ?? "NONE",
-      taskId
-    });
-    savePlan(context, plan);
-    markAssignment(context, "RUNNING");
-    const warnings = [];
-    const limit = config.policy.taskFileSoftLimit;
-    const functional = task2.files.filter((file4) => !isDocumentationPath(file4));
-    if (limit !== null && functional.length > limit) {
-      warnings.push(
-        `The task lists ${functional.length} functional files (soft limit ${limit}); consider splitting it.`
-      );
-    }
-    return {
-      preexisting: baseline.preexisting,
-      task: briefOf(workflowPlanFacade.task(plan, taskId)),
-      warnings
-    };
-  });
-}
-function storePrepareEvidence(context, sha, prepare2) {
-  const stored = workflowQualityFacade.readEvidence(context.root, sha);
-  const evidence = {
-    commit: sha,
-    reports: [prepare2, ...stored?.reports ?? []],
-    transaction: stored?.transaction ?? null
-  };
-  const text4 = `${JSON.stringify(evidence, null, 2)}
-`;
-  for (const name of [`${sha}.json`, "last.json"]) {
-    workflowPlatformFacade.writeFileAtomic(
-      context.git.localPath(context.root, "verification", name),
-      text4
-    );
-  }
-}
-function runPrepare(context, config, task2, files) {
-  if (!config.quality.checks.some((check2) => check2.stage === "prepare")) {
-    return null;
-  }
-  const report = workflowQualityFacade.runStage({
-    assigned: task2.checks,
-    config,
-    env: context.env,
-    files,
-    // Staging will skip these paths: fixers never get the copies on disk.
-    removed: context.git.absentPaths(context.root, files),
-    root: context.root,
-    stage: "prepare"
-  });
-  if (!report.ok) {
-    throw new WorkflowError(
-      "CHECK_FAILED",
-      "A prepare check failed; nothing was committed.",
-      { report },
-      "Fix the reported problem and repeat the same command."
-    );
-  }
-  return report;
-}
-function commitTask(context, taskId, options = {}) {
-  return locked(context, () => {
-    ensureNoTransaction(context);
-    const current = readPlan(context);
-    const config = readConfig(context);
-    const task2 = workflowPlanFacade.task(current, taskId);
-    ensure(
-      task2.status === "IN_PROGRESS",
-      "TASK_NOT_ACTIVE",
-      `Start the task first: task:start ${taskId}`
-    );
-    ensure(
-      task2.kind !== "quality",
-      "USE_QUALITY_APPLY",
-      "The QUALITY task is completed by `quality:apply`."
-    );
-    ensure(
-      task2.kind !== "docs" || Boolean(options.digest),
-      "ROUND_DIGEST_REQUIRED",
-      `${taskId} closes its round: pass the round digest with --digest <file.json>.`
-    );
-    const identity = {
-      iteration: task2.iteration,
-      scopeId: current.scope?.id ?? "NONE",
-      taskId
-    };
-    const selection = context.git.selectTaskFiles(
-      context.root,
-      identity,
-      options.files
-    );
-    const functional = selection.selected.filter(
-      (file4) => !isDocumentationPath(file4)
-    );
-    ensure(
-      functional.length === 0 || hasCommitChecks(config),
-      "NOT_CONFIGURED",
-      "Functional files need at least one commit-stage check in the quality profile.",
-      { files: functional },
-      "Configure the profile with `quality:apply`."
-    );
-    const withFiles = structuredClone(current);
-    const own = workflowPlanFacade.task(withFiles, taskId);
-    own.files = [.../* @__PURE__ */ new Set([...own.files, ...selection.selected])];
-    const plan = workflowPlanFacade.completeTask(
-      withFiles,
-      taskId,
-      options.digest ?? null
-    );
-    guardExecutorCommit(
-      context,
-      [...selection.selected, PLAN_PATH],
-      workflowPlanFacade.render(plan)
-    );
-    const prepare2 = runPrepare(context, config, task2, selection.selected);
-    const commit2 = commitPlan(context, plan, {
-      assignmentId: executorAssignment(context)?.id ?? null,
-      checks: task2.checks,
-      excluded: selection.excluded,
-      files: selection.selected,
-      iteration: task2.iteration,
-      message: task2.commitMessage,
-      role: task2.kind === "docs" ? "docs" : "implementation",
-      scopeId: current.scope?.id ?? null,
-      taskId
-    });
-    if (prepare2) {
-      storePrepareEvidence(context, commit2.sha, prepare2);
-    }
-    markAssignment(context, "READY_FOR_INTEGRATION", commit2.sha);
-    return {
-      commit: commit2,
-      nextTask: readStatus(context).nextTask,
-      preexisting: selection.preexisting,
-      prepare: prepare2
-    };
-  });
-}
-function commitDocs(context, files, message = "docs: update documentation") {
-  return locked(context, () => {
-    ensureNoTransaction(context);
-    const plan = readPlan(context);
-    ensure(
-      plan.currentTaskId === null,
-      "TASK_IN_PROGRESS",
-      `Task ${plan.currentTaskId} is in progress; its documents go into its commit.`
-    );
-    const paths = files.map(
-      (file4) => workflowPlatformFacade.normalizeRelative(file4)
-    );
-    const code = paths.filter((file4) => !isDocumentationPath(file4));
-    ensure(
-      paths.length > 0 && code.length === 0,
-      "DOCS_ONLY",
-      "docs:commit takes documentation only: Markdown files and .harness/product-tree/**.",
-      { paths: code }
-    );
-    return commitPlan(context, plan, {
-      files: paths,
-      message,
-      role: "docs",
-      scopeId: plan.scope?.id ?? null,
-      taskId: null
-    });
   });
 }
 
@@ -14975,7 +16019,9 @@ var WorkflowKitFacade = class extends WorkflowKitBase {
       return null;
     }
     const input = proposal.input;
+    const automation = input?.automation;
     return {
+      automation: typeof automation === "object" && automation !== null,
       createdAt: proposal.createdAt,
       generation: proposal.generation,
       hasParallelWork: proposal.hasParallelWork,
@@ -15065,8 +16111,9 @@ var WorkflowKitFacade = class extends WorkflowKitBase {
     return qualityStatus(this.context(root));
   }
   /** `git-hook <name>`: handlers of the managed git hooks. */
-  gitHook(root, name, args = []) {
-    return runGitHook(this.context(root), name, args);
+  /** `stdin`: the hook input (the pushed refs of `pre-push`). */
+  gitHook(root, name, args = [], stdin = "") {
+    return runGitHook(this.context(root), name, args, stdin);
   }
   repair(root, options = {}) {
     return repair(this.context(root), options);
@@ -15077,7 +16124,7 @@ var workflowKitFacade = new WorkflowKitFacade();
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/workflow-kit-cli.ts
 var EVENTS2 = /* @__PURE__ */ new Set(["startup", "resume", "clear", "compact"]);
 function resolvePath(io, value) {
-  return path28.resolve(io.cwd, value ?? ".");
+  return path30.resolve(io.cwd, value ?? ".");
 }
 function ownBundle(args, io) {
   return {
@@ -15109,7 +16156,7 @@ var COMMANDS = {
     run: ({ args, io, kit, root }) => {
       const digest = flag(args, "digest");
       return kit.commitTask(root, requiredFlag(args, "task"), {
-        digest: digest ? readJsonFile(io.cwd, digest) : null,
+        digest: digest ? readJsonFile(root, io.cwd, digest) : null,
         files: listFlag(args, "files")
       });
     },
@@ -15139,12 +16186,13 @@ var COMMANDS = {
     run: ({ args, io, kit }) => kit.install(resolvePath(io, args.positionals[0]), {
       ...ownBundle(args, io),
       // The installer refuses any other value with USAGE.
+      decisions: flag(args, "decisions"),
       host: flag(args, "host"),
       name: flag(args, "name"),
       update: args.flags.get("update") === true,
       with: listFlag(args, "with")
     }),
-    usage: "install [<path>] [--name <project name>] [--update [--with <json|a,b>]] [--host harness] [--bundle <workflow.mjs>]"
+    usage: "install [<path>] [--name <project name>] [--update [--with <json|a,b>]] [--host harness] [--decisions host] [--bundle <workflow.mjs>]"
   },
   history: {
     run: ({ args, kit, root }) => kit.history(root, {
@@ -15165,7 +16213,7 @@ var COMMANDS = {
   "quality:apply": {
     run: ({ args, io, kit, root }) => kit.qualityApply(
       root,
-      readJsonFile(io.cwd, requiredFlag(args, "input"))
+      readJsonFile(root, io.cwd, requiredFlag(args, "input"))
     ),
     usage: "quality:apply --input <profile.json>"
   },
@@ -15231,6 +16279,7 @@ function helpText() {
     "  scripts/workflow hook session-start --client claude|codex [--part K/N]",
     "  scripts/workflow git-hook <pre-commit|commit-msg|post-commit|pre-push> [args]",
     "",
+    'User decisions in a project with `decisions: host` (scope:choose, task:start of a delivery, accept, close, task:unblock, quality:apply with installs): <command> --decision <id> --source button|message|grant --note "<text>" --expected-revision N (host only).',
     "Options: --format json|text (default json; text for context), --root <project>.",
     'Errors: {"ok":false,"code","message","nextAction"} and exit code 1.',
     ""
@@ -15268,10 +16317,10 @@ function dispatch(args, io, kit, format) {
     io.stdout(text4);
     return 0;
   };
-  const hosted = spec.host?.({ args, io, kit, root }) ?? null;
-  if (hosted) {
-    return verifyHost(io.host ?? null, hosted.request).then(
-      () => print(hosted.run())
+  const hosted2 = decisionGate(command, { args, io, kit, root }) ?? spec.host?.({ args, io, kit, root }) ?? null;
+  if (hosted2) {
+    return verifyHost(io.host ?? null, hosted2.request).then(
+      () => print(hosted2.run())
     );
   }
   return print(spec.run({ args, io, kit, root }));
@@ -15313,7 +16362,7 @@ function invokedDirectly() {
     return false;
   }
   try {
-    return pathToFileURL(realpathSync5(entry)).href === import.meta.url;
+    return pathToFileURL(realpathSync6(entry)).href === import.meta.url;
   } catch {
     return false;
   }

@@ -17,8 +17,8 @@ add `--format text` for a readable answer.
 - Before writing a `--input` JSON, run `scripts/workflow schema <command>`
   for its fields, limits and an example.
 - Write `--input` and `--digest` JSON files to `.harness/inputs/`
-  (git-ignored): a file left elsewhere in the project is an uncommitted
-  change and blocks `close`.
+  (git-ignored): a file elsewhere in the project is refused
+  (`INPUT_LOCATION`).
 - Get documents with `scripts/workflow context <path>[#Heading]` (one call,
   marked text) instead of reading large files piecewise;
   `context --list` prints the documents map.
@@ -30,12 +30,12 @@ add `--format text` for a readable answer.
   no plan. Commit documents with `scripts/workflow docs:commit --files <paths>`.
 - Changing functional files is allowed only inside a started task of the
   active scope.
-- A clear user instruction to implement allows you to write the
-  specification and create the scope with
-  `scripts/workflow scope:create --input <file.json>` without asking again.
-  Record the agreement in `approval`. The plan never replaces the user's
-  current instruction. In a Harness project (`"host": "harness"`) propose
-  the scope instead (see Execution modes).
+- A software development task (a new product or a change to this one)
+  starts with `wfk session plan "<one line: what you are going to build>"`:
+  Workflow Kit decides from the user's settings and message whether to
+  prepare the plan at once or to ask the user. End the turn and follow its
+  answer; then write the specification and propose the scope (see Execution
+  modes). The plan never replaces the user's current instruction.
 
 ### Execution modes
 The recovery packet names your `role:`; follow it.
@@ -59,12 +59,31 @@ The recovery packet names your `role:`; follow it.
   with `GIT_IDENTITY_REQUIRED`, report it to the user with the command it
   prints.
 
+### User decisions
+- The user's decisions — preparing a plan, the execution mode, a delivery,
+  acceptance, closing the scope, removing a block, installing tools and
+  adopting commits made past the Kit — are recorded by Workflow Kit itself
+  from the panel button or from the user's message, never from your words.
+- A command that needs such a decision changes nothing and refuses with
+  `USER_DECISION_REQUIRED`: the decision then waits on a card in the
+  Workflow Kit panel. Tell the user so and end the turn.
+- If the user decided in this chat, run `wfk decision <kind>`; the kinds
+  are choose (with `--option <mode>`), confirm-delivery (with
+  `--task <ID>`), accept, close, unblock, approve-install and
+  adopt-commits. Never pass the user's words yourself: Workflow Kit takes
+  them from the message it received. Acceptance and closing are two
+  separate decisions.
+
 ### One task, one commit, one turn
-1. `scripts/workflow task:start <ID>`; a delivery task needs
-   `--confirmed "<the user's confirmation>"`, or
-   `--autopilot-run <run>` when the `next` line names a live autopilot
-   run that confirmed this task in advance.
-2. Implement the task within its files and acceptance criteria.
+1. `scripts/workflow task:start <ID>`. A delivery task starts by the
+   user's decision: Workflow Kit starts it after the user's confirmation
+   and tells you. Under a live autopilot run that covers the task (the
+   `next` line says so) start it yourself with the same command, without
+   flags.
+2. Implement the task within its files and acceptance criteria. A changed
+   path outside the task files stops the commit (`TASK_FILES_OUTSIDE`):
+   revert it or extend the task with
+   `scripts/workflow task:update <ID> --input <patch.json>` (`files`).
 3. `scripts/workflow commit --task <ID>`. The DOCS task of a round
    reconciles shared documents and needs `--digest <file.json>`
    (`result`, `decisions`, `contracts`, `references`).
@@ -81,25 +100,27 @@ The recovery packet names your `role:`; follow it.
 
 ### Rules
 - Never commit with `git commit` directly and never use `--no-verify`.
+  A commit made past the Kit blocks the scope (`EXTERNAL_COMMITS`) until
+  the user adopts it (see User decisions).
 - Never edit the plan, `.harness/workflow/**` or the launchers by hand.
 - A finished task never changes. Defects found later become a fixes round:
   `scripts/workflow plan:extend --input <file.json> --expected-revision <N>`.
 - Before the first functional code, the QUALITY task chooses checks with
   `quality:detect` and applies them with `quality:apply --input <file.json>`.
-  Installing tools needs the user's approval in `approval`.
+  Installing tools is the user's decision: `quality:apply` with
+  `install` waits for it (see User decisions).
 - Update the contract document of a module in the same commit as its code
   (`docs.contracts` in `.harness/workflow/config.json`).
-- Acceptance (`accept --note "<the user's words>"`) records the user's
-  decision. Closing the scope (`close`) needs a separate direct user command.
 - Autopilot runs: only the Workflow Kit app grants and revokes a run and
-  accepts or closes a scope automatically. Never run `autopilot:authorize`,
-  `autopilot:revoke`, `accept --autopilot-run` or
-  `close --autopilot-run`; they refuse an agent (`HOST_AUTH_REQUIRED`).
-  Without a live run every manual confirmation above stays.
+  accepts, closes and publishes automatically. Never run
+  `autopilot:authorize` or `autopilot:revoke`; they refuse an agent
+  (`HOST_AUTH_REQUIRED`). Without a live run every decision of the user
+  stays with the user.
 - Release build, packaging and installation, and a push of a CI branch a
-  delivery task names, happen only in delivery tasks. Rebuilding a tracked
-  file a commit check requires from the sources (for example a vendored
-  bundle) belongs to the work task that changes those sources.
+  delivery task names, happen only in delivery tasks; the plan names the
+  task that pushes the CI branch in `automation.ci.task`. Rebuilding a
+  tracked file a commit check requires from the sources (for example a
+  vendored bundle) belongs to the work task that changes those sources.
 - Publishing (`git push` of the main branch to its upstream) is no task:
   it comes only after the scope is accepted and closed, on the user's direct
   request or by the live autopilot run of this scope.
@@ -107,8 +128,8 @@ The recovery packet names your `role:`; follow it.
   CI), do not fix it inside the task: keep the results outside git, run
   `scripts/workflow task:defer-delivery <ID> --reason "<failure and link>" --expected-revision <N>`
   on a clean tree, then add a fixes round with `plan:extend`.
-- If the scope is BLOCKED, only discuss and diagnose; run `task:unblock`
-  after the user resolves the reason.
+- If the scope is BLOCKED, only discuss and diagnose; removing the block is
+  the user's decision (see User decisions).
 - If a command reports an unfinished transaction, run
   `scripts/workflow repair` and follow it.
 - Use `scripts/workflow show-task <ID>` and `scripts/workflow history` for
@@ -195,12 +216,19 @@ only in this chat.
 - Plan question: when the user's request is a software development task (a
   new product or a change to this one) that you would answer with a
   specification and a Workflow Kit plan, first run
-  `wfk session plan "<one line: what you are going to build>"` and end your
-  turn without writing the specification or any files. The user answers in
-  the panel: specification and plan with a cross review, without it, or just
-  talk; the answer reaches you as a `Workflow Kit:` message. Do not run it
-  for discussion, research, explanations or everyday questions, and do not
-  run it again for the same task unless the user asks for a plan anew.
+  `wfk session plan "<one line: what you are going to build>"`. If it
+  prints `action: prepare` (Workflow Kit decided by its Settings and the
+  user's message), follow the printed instruction in the same turn.
+  Otherwise end your turn without writing the specification or any files:
+  the user answers in the panel (specification and plan with a cross
+  review, without it, or just talk) and the answer reaches you as a
+  `Workflow Kit:` message. Pass no quote of the user: Workflow Kit reads
+  the user's words itself. In a project whose Kit records the user's
+  decisions (`"decisions": "host"` in `.harness/workflow/config.json`),
+  this replaces the rule that a clear instruction allows `scope:create`
+  without asking. Do not run it for discussion, research, explanations or
+  everyday questions, and do not run it again for the same task unless the
+  user asks for a plan anew.
 - GitHub publication: `git push` of the main branch is not a plan task,
   not even a delivery task. It comes only after the scope is accepted and
   closed: when the user asks (the panel button «Опубликовать на GitHub» or
@@ -215,8 +243,11 @@ only in this chat.
   closes and publishes. Only the app does these host steps: never run
   `autopilot:*`, `accept --autopilot-run` or `close --autopilot-run`
   yourself. A status question of the user gets an answer and the run goes
-  on; «стоп», «пауза» or switching the mode off stop it. Without a live run
-  every manual barrier stays.
+  on. Workflow Kit itself stops or pauses the run when the user's message
+  begins with «стоп» or «пауза» (and their forms, in Russian or English);
+  for other wordings run `wfk session run pause` or `wfk session run stop`.
+  Switching the mode off pauses it too. Without a live run every manual
+  barrier stays.
 - Execution mode and plan start: after `scripts/workflow scope:propose` the
   user chooses the mode and starts the plan with buttons in the panel. End
   your turn and wait; the choice reaches you as a message from Workflow Kit.

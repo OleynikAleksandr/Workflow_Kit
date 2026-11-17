@@ -182,5 +182,6 @@
     "status": "CONFIGURED"
   },
   "schema": "harness-workflow-config/1",
-  "host": "harness"
+  "host": "harness",
+  "decisions": "host"
 }

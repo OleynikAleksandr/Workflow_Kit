@@ -313,7 +313,9 @@ Tasks (`kit-task.ts`):
   1. the task must be in progress (`TASK_NOT_ACTIVE`); a QUALITY task is
      completed by `qualityApply` (`USE_QUALITY_APPLY`); a DOCS task needs a
      digest (`ROUND_DIGEST_REQUIRED`);
-  2. selects the task files (changed since the start, or `files`);
+  2. selects the task files (changed since the start, or `files`); in main
+     a selected path outside the `files` of the task is
+     `TASK_FILES_OUTSIDE` (Kit 2.4.2, [barriers.md](barriers.md));
   3. functional files need a commit-stage command check
      (`NOT_CONFIGURED`);
   4. adds the selected files to `task.files` and completes the task in the

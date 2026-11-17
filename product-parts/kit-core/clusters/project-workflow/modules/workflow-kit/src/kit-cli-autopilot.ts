@@ -98,6 +98,7 @@ export function acceptHost({
     "accept takes --note (the user's words) or --autopilot-run, not both."
   );
   const input = readJsonFile<AcceptanceInput>(
+    root,
     io.cwd,
     requiredFlag(args, "input")
   );
@@ -151,6 +152,7 @@ export const AUTOPILOT_COMMANDS: Readonly<Record<string, HostCommandSpec>> = {
   "autopilot:authorize": {
     host: ({ args, io, kit, root }) => {
       const input = readJsonFile<AuthorizeInput>(
+        root,
         io.cwd,
         requiredFlag(args, "input")
       );

@@ -256,9 +256,10 @@ try {
 
   // The CLI proposes and the sequential choice creates the scope.
   const run = (argv) => cli(hosted, argv);
-  write(hosted, "plan.json", JSON.stringify(docsPlan("docs-h")));
+  // Input files of a project live in .harness/inputs/ (M40, INPUT_LOCATION).
+  write(hosted, ".harness/inputs/plan.json", JSON.stringify(docsPlan("docs-h")));
   assert.equal(
-    JSON.parse(run(["scope:create", "--input", "plan.json"]).stdout).code,
+    JSON.parse(run(["scope:create", "--input", ".harness/inputs/plan.json"]).stdout).code,
     "EXECUTION_MODE_REQUIRED"
   );
   assert.equal(
@@ -266,7 +267,7 @@ try {
       run([
         "scope:propose",
         "--input",
-        "plan.json",
+        ".harness/inputs/plan.json",
         "--recommended",
         "parallel",
         "--reason",
@@ -278,7 +279,7 @@ try {
   const proposedText = run([
     "scope:propose",
     "--input",
-    "plan.json",
+    ".harness/inputs/plan.json",
     "--recommended",
     "sequential",
     "--reason",

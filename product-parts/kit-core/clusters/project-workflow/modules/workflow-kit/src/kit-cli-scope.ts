@@ -61,7 +61,7 @@ export const SCOPE_COMMANDS: Readonly<Record<string, ScopeCommandSpec>> = {
     run: ({ args, io, kit, root }) =>
       kit.carryover(
         root,
-        readJsonFile<CarryoverInput>(io.cwd, requiredFlag(args, "input"))
+        readJsonFile<CarryoverInput>(root, io.cwd, requiredFlag(args, "input"))
       ),
     usage: "carryover --input <file.json>",
   },
@@ -76,7 +76,7 @@ export const SCOPE_COMMANDS: Readonly<Record<string, ScopeCommandSpec>> = {
     run: ({ args, io, kit, root }) =>
       kit.extend(
         root,
-        readJsonFile<ExtendInput>(io.cwd, requiredFlag(args, "input")),
+        readJsonFile<ExtendInput>(root, io.cwd, requiredFlag(args, "input")),
         integerFlag(args, "expected-revision")
       ),
     usage: "plan:extend --input <file.json> [--expected-revision N]",
@@ -85,7 +85,7 @@ export const SCOPE_COMMANDS: Readonly<Record<string, ScopeCommandSpec>> = {
     run: ({ args, io, kit, root }) =>
       kit.createScope(
         root,
-        readJsonFile<ScopeInput>(io.cwd, requiredFlag(args, "input"))
+        readJsonFile<ScopeInput>(root, io.cwd, requiredFlag(args, "input"))
       ),
     usage: "scope:create --input <file.json>",
   },
@@ -120,7 +120,7 @@ export const SCOPE_COMMANDS: Readonly<Record<string, ScopeCommandSpec>> = {
       kit.updateTask(
         root,
         positional(args, 0, "Task id"),
-        readJsonFile<TaskPatch>(io.cwd, requiredFlag(args, "input")),
+        readJsonFile<TaskPatch>(root, io.cwd, requiredFlag(args, "input")),
         integerFlag(args, "expected-revision")
       ),
     usage: "task:update <ID> --input <patch.json> [--expected-revision N]",

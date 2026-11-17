@@ -1,4 +1,4 @@
-# Workflow Kit: Git barriers (Kit 2.4.1, spec M40)
+# Workflow Kit: barriers of Git and files (Kit 2.4.1–2.4.2, spec M40)
 
 Part of the [module contract](module.md). Specification:
 [M40, section 3](../../../../../../docs/planning/M40-user-decisions.md#3-барьеры-ядра).
@@ -67,7 +67,56 @@ passes it to `gitHook(root, "pre-push", args, stdin)`.
     record of kind `adopt-commits` (`workflowPlanFacade.adopt`); the plan
     change is saved and recorded by the next Kit commit, like `task:block`.
 
+## Task files (`kit-task-files.ts`, Kit 2.4.2)
+
+`commit --task <ID>` in main refuses with `TASK_FILES_OUTSIDE` when a path
+it would commit is outside the `files` of the task; nothing is committed and
+the task keeps its list. `details` carry `files` (the list) and `paths`
+(what is outside).
+
+- A path is inside when it equals an entry or lies below it by whole
+  segments (`docs/guide` covers `docs/guide/a.md`, not `docs/guide2/a.md`):
+  `inTaskFiles(files, file, platform?)`. The case is ignored on win32 and
+  darwin, where two spellings name one file.
+- The check runs on the selected paths: everything changed since
+  `task:start`, or the explicit `--files` list. Changes that existed before
+  `task:start` (preexisting), Kit state and private files are not selected,
+  as before, so they are no refusal; a preexisting path given with `--files`
+  is checked like any other.
+- A task with an empty `files` list is not limited.
+- The DOCS task of a round reconciles shared documents and its list is made
+  by the Kit, so its documentation paths are never outside; a code path is.
+- The way out: revert what does not belong to the task, or extend it with
+  `task:update <ID> --input <patch.json>` (`files` of a task in progress);
+  the plan commit of the update shows the extension in the history.
+- In an executor worktree the assignment contract stays the rule
+  (`ASSIGNMENT_SCOPE`), this check does not run there.
+
+## Input files (`kit-input-location.ts`, Kit 2.4.2)
+
+Every `--input <file>` and `commit --digest <file>` goes through
+`readJsonFile(root, cwd, file)`, which calls `ensureInputLocation` before
+the file is read: a file inside the project but not under `.harness/inputs/`
+(git-ignored) is `INPUT_LOCATION` (`details.path`), because it would land in
+a commit. A file outside the project passes. A missing or broken file in the
+wrong place is `INPUT_LOCATION` too, not `INPUT_UNREADABLE` or `INPUT_JSON`.
+
+- `insideProject(root, file, {platform?, realpath?})` returns the
+  project-relative segments or null. Both paths are made real first
+  (`realpathSync.native`: links and Windows 8.3 short names; a missing tail
+  keeps its spelling under the real path of the nearest existing folder), so
+  a link in `.harness/inputs/` that leads to another project file is
+  refused and a short name of the project folder is the same project.
+- win32 uses `path.win32` (both separators, drive letters) and ignores the
+  case; darwin uses `path.posix` and ignores the case; linux uses
+  `path.posix` and compares the case.
+- The service writes its host inputs to `.harness/inputs/` already.
+
 ## OS behaviour
+
+Task files and input files: the comparison takes the platform as a
+parameter; the tests inject `win32`, `linux` and `darwin` with paths that
+exist on no OS (case, separators, an 8.3 short name, another drive, a link).
 
 The same on macOS, Linux and Windows (x64 and ARM64): the hook is a `sh`
 script (Git for Windows runs it with its own `sh`) that starts

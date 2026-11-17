@@ -36,6 +36,7 @@ import {
   markAssignment,
 } from "./kit-executor.js";
 import { ensureNoExternalCommits } from "./kit-decisions.js";
+import { ensureTaskFiles } from "./kit-task-files.js";
 import { hostDigest } from "./kit-host-auth.js";
 import { ensureNotPaused } from "./kit-pause.js";
 import { readStatus, type TaskBrief } from "./kit-status.js";
@@ -296,6 +297,10 @@ export function commitTask(
       identity,
       options.files
     );
+    // In an executor worktree the assignment contract is the stricter rule.
+    if (!executorAssignment(context)) {
+      ensureTaskFiles(task, selection.selected);
+    }
     const functional = selection.selected.filter(
       (file) => !isDocumentationPath(file)
     );

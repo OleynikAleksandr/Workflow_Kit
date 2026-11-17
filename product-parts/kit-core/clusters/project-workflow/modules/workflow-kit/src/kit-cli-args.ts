@@ -4,6 +4,7 @@ import {
   ensure,
   WorkflowError,
 } from "../../workflow-platform/src/workflow-platform-facade.js";
+import { ensureInputLocation } from "./kit-input-location.js";
 
 export interface ParsedArgs {
   command: string | null;
@@ -109,8 +110,13 @@ export function integerFlag(
   return parsed;
 }
 
-/** Reads a JSON input file relative to the working directory. */
-export function readJsonFile<T>(cwd: string, file: string): T {
+/**
+ * Reads a JSON input file (`--input`, `--digest`) relative to the working
+ * directory. A file of the project `root` outside `.harness/inputs/` is
+ * refused with INPUT_LOCATION before it is read (M40).
+ */
+export function readJsonFile<T>(root: string, cwd: string, file: string): T {
+  ensureInputLocation(root, cwd, file);
   let text: string;
   try {
     text = readFileSync(path.resolve(cwd, file), "utf8");

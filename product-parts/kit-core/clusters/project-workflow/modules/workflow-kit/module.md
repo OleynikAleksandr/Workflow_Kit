@@ -31,7 +31,8 @@ User decisions in the `host` decisions mode (Kit 2.4.0, spec M40: the
 decision request, `USER_DECISION_REQUIRED`, the host form `--decision` and
 `status.decisions`) are described in [decisions.md](decisions.md); the Git
 barriers of Kit 2.4.1 (push by target refs, commits made past the Kit and
-`commits:adopt`) in [barriers.md](barriers.md).
+`commits:adopt`) and the file barriers of Kit 2.4.2 (`TASK_FILES_OUTSIDE`,
+`INPUT_LOCATION`) in [barriers.md](barriers.md).
 
 ## Git Hooks (`kit-hooks.ts`)
 
@@ -128,7 +129,8 @@ it changes in the same commit as the commands. Summary:
   spec's `defaultFormat` sets the default).
   Errors: `{ok: false, code, message, nextAction, details}` on stdout with
   exit code 1 (`--format text`: `CODE: message` on stderr); `USAGE`,
-  `UNKNOWN_COMMAND`, `INPUT_UNREADABLE` / `INPUT_JSON`, `INTERNAL`.
+  `UNKNOWN_COMMAND`, `INPUT_LOCATION` /
+  `INPUT_UNREADABLE` / `INPUT_JSON`, `INTERNAL`.
 - Executor worktree: only `status`, `validate`, `recover`, `show-task`,
   `schema`, `context`, `task:start`, `commit`, `repair`, `task:block`,
   `assignment:status`, `assignment:setup`, `assignment:attach`, `help`,

@@ -101,8 +101,10 @@ try {
   });
   mkdirSync(path.join(root, "docs"));
   writeFileSync(path.join(root, "docs", "spec.md"), "# Spec\n");
+  // Input files of a project live in .harness/inputs/ (M40, INPUT_LOCATION).
+  mkdirSync(path.join(root, ".harness", "inputs"), { recursive: true });
   writeFileSync(
-    path.join(root, "scope.json"),
+    path.join(root, ".harness", "inputs", "scope.json"),
     JSON.stringify({
       acceptance: ["ok"],
       approval: "User approved the CLI scope",
@@ -120,7 +122,7 @@ try {
     })
   );
   const sub = path.join(root, "docs");
-  const created = run(["scope:create", "--input", "../scope.json"], "", sub);
+  const created = run(["scope:create", "--input", "../.harness/inputs/scope.json"], "", sub);
   assert.equal(created.code, 0, created.stdout);
   assert.equal(json(created).result.scopeId, "cli-1");
   assert.equal(json(run(["status"], "", sub)).result.nextTask.id, "N");

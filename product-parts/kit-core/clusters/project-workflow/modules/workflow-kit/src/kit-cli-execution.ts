@@ -176,7 +176,7 @@ export const EXECUTION_COMMANDS: Readonly<
     run: ({ args, io, kit, root }) =>
       kit.proposeScope(
         root,
-        readJsonFile<ScopeInput>(io.cwd, requiredFlag(args, "input")),
+        readJsonFile<ScopeInput>(root, io.cwd, requiredFlag(args, "input")),
         choice<"orchestrated" | "sequential">(args, "recommended", STRATEGIES),
         requiredFlag(args, "reason")
       ),

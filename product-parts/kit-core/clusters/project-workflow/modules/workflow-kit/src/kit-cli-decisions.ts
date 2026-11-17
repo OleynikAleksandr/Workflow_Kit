@@ -126,6 +126,7 @@ function choiceOf(command: string, context: GateContext): DecisionChoice | null 
     }
     default: {
       const input = readJsonFile<ProfileInput>(
+        root,
         io.cwd,
         requiredFlag(args, "input")
       );

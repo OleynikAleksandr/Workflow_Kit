@@ -80,7 +80,7 @@ try {
       {
         acceptance: ["a works"],
         commitMessage: "feat: add module a",
-        files: ["src/a.ts", ".gitignore"],
+        files: ["src/a.ts", ".gitignore", "node_modules", "obsolete.txt"],
         id: "A",
         title: "Module A",
       },

@@ -53,7 +53,11 @@ export interface ProjectLaunchers {
 }
 
 export { WorkflowLockError } from "./platform-fs.js";
-export { WorkflowPathError, type WorkflowPlatform } from "./platform-paths.js";
+export {
+  currentWorkflowPlatform,
+  WorkflowPathError,
+  type WorkflowPlatform,
+} from "./platform-paths.js";
 export {
   ensure,
   WorkflowError,

@@ -87,6 +87,13 @@ worktrees where noted):
   `commits:adopt` with the exact list in the `agent` mode, the
   `adopt-commits` request registered by the refusal in the `host` mode,
   `DECISION_STALE` after a new commit and the adoption with a ticket.
+- `test/workflow-kit-file-barriers.test.mjs` (M40) — `TASK_FILES_OUTSIDE`
+  in `commit --task` (paths outside the list, a folder entry, `--files`,
+  preexisting changes, a task without a list, the extension by
+  `task:update`, the DOCS task), `INPUT_LOCATION` on injected `win32`,
+  `linux` and `darwin` with paths that exist on no OS (case, separators, an
+  8.3 short name, another drive, a link) and through the command line
+  before the file is read.
 - `test/workflow-kit-status.test.mjs` — the status fields in every state and
   the text lines.
 - `test/workflow-kit-pause.test.mjs` (worktrees) — `pause:set`, statuses and

@@ -108,7 +108,7 @@ const COMMANDS: Readonly<Record<string, CommandSpec>> = {
     run: ({ args, io, kit, root }) => {
       const digest = flag(args, "digest");
       return kit.commitTask(root, requiredFlag(args, "task"), {
-        digest: digest ? readJsonFile<RoundDigest>(io.cwd, digest) : null,
+        digest: digest ? readJsonFile<RoundDigest>(root, io.cwd, digest) : null,
         files: listFlag(args, "files"),
       });
     },
@@ -173,7 +173,7 @@ const COMMANDS: Readonly<Record<string, CommandSpec>> = {
     run: ({ args, io, kit, root }) =>
       kit.qualityApply(
         root,
-        readJsonFile<ProfileInput>(io.cwd, requiredFlag(args, "input"))
+        readJsonFile<ProfileInput>(root, io.cwd, requiredFlag(args, "input"))
       ),
     usage: "quality:apply --input <profile.json>",
   },

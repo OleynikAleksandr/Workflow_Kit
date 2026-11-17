@@ -184,6 +184,12 @@ try {
   );
   write("src/a.ts", "export const a = 1;   \n\n");
   write("src/extra.ts", "export const extra = 2;");
+  // M40: a path outside the task files is refused until the task is extended.
+  assert.equal(
+    code(() => kit.commitTask(root, "A")),
+    "TASK_FILES_OUTSIDE"
+  );
+  kit.updateTask(root, "A", { files: ["src/a.ts", "src/extra.ts"] });
   const a = kit.commitTask(root, "A");
   assert.deepEqual(a.commit.excluded, ["scratch.txt"]);
   assert.deepEqual(git.commitPaths(root, a.commit.sha).sort(), [

@@ -14,6 +14,11 @@ OS-neutral foundation of the Workflow Kit on macOS, Windows and Linux:
 constructor takes a `WorkflowPlatform` (`darwin`, `linux`, `win32`) so tests
 can simulate other operating systems.
 
+The facade file also exports `currentWorkflowPlatform(platform?)` (Kit
+2.4.2): the Kit platform of a Node platform, default this process. Modules
+with OS branches of their own take the platform as a parameter and resolve
+it with this function (`workflow-kit`: the input file location).
+
 ## Contract
 
 - `WorkflowError(code, message, details, nextAction)` and `ensure(...)` are

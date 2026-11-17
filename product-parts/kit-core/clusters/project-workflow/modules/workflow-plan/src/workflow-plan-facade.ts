@@ -19,6 +19,7 @@ import {
   emptyPlan,
   PLAN_PATH,
   type RoundDigest,
+  type UserDecision,
   type WorkflowExecution,
   type WorkflowPlan,
   type WorkflowTask,
@@ -42,6 +43,7 @@ import { deferDeliveryTask } from "./plan-delivery-defer.js";
 import { moveOwner, type OwnerMove } from "./plan-owner.js";
 import {
   acceptScope,
+  adoptCommits,
   type CarryoverInput,
   carryoverScope,
   closeScope,
@@ -292,6 +294,15 @@ export class WorkflowPlanFacade {
     now: string
   ): WorkflowPlan {
     return closeByAutopilot(plan, request, now);
+  }
+
+  /** `commits:adopt`: the user adopts commits made past the Kit (M40). */
+  adopt(
+    plan: WorkflowPlan,
+    commits: readonly string[],
+    decision: UserDecision
+  ): WorkflowPlan {
+    return adoptCommits(plan, commits, decision);
   }
 
   accept(plan: WorkflowPlan, note: string, now: string): WorkflowPlan {

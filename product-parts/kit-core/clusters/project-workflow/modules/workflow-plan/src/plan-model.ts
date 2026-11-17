@@ -105,6 +105,11 @@ export interface ScopeProposalRef {
 }
 
 export interface WorkflowScope {
+  /**
+   * Commits made past the Kit that the user adopted (M40, `commits:adopt`):
+   * full SHAs in history order; absent when there are none.
+   */
+  adoptedCommits?: string[];
   acceptance: string[];
   /** Present when an autopilot run accepted the result (M39). */
   acceptanceEvidence?: AcceptanceEvidence;

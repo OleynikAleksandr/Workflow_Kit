@@ -13,6 +13,7 @@ import {
   identifier,
   relativePaths,
   schemaError,
+  scopeDecisions,
   text,
   textList,
 } from "./plan-field-checks.js";
@@ -91,15 +92,7 @@ function validateScope(scope: WorkflowScope): void {
   text(scope.objective, "scope.objective");
   textList(scope.acceptance, "scope.acceptance", { nonEmpty: true });
   decision(scope.approval, "scope.approval");
-  ensure(
-    Array.isArray(scope.decisions),
-    schemaError,
-    "scope.decisions must be a list.",
-    { field: "scope.decisions" }
-  );
-  for (const [index, item] of scope.decisions.entries()) {
-    decision(item, `scope.decisions[${index}]`);
-  }
+  scopeDecisions(scope);
   ensure(
     SHA_PATTERN.test(scope.baselineCommit),
     schemaError,

@@ -97,6 +97,12 @@ export const AUTOMATION_FIELDS: FieldSpec[] = [
     "The checks must pass for the exact pushed SHA."
   ),
   automationField(
+    ".ci.task",
+    "string",
+    false,
+    "Delivery task that pushes the CI branch itself; the push is allowed once it is started. Without it the CI branch is pushed only after every task is DONE."
+  ),
+  automationField(
     ".publication",
     "object|null",
     true,

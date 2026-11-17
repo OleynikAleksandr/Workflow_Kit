@@ -359,8 +359,9 @@ export class WorkflowKitFacade extends WorkflowKitBase {
   }
 
   /** `git-hook <name>`: handlers of the managed git hooks. */
-  gitHook(root: string, name: string, args: string[] = []): HookResult {
-    return runGitHook(this.context(root), name, args);
+  /** `stdin`: the hook input (the pushed refs of `pre-push`). */
+  gitHook(root: string, name: string, args: string[] = [], stdin = ""): HookResult {
+    return runGitHook(this.context(root), name, args, stdin);
   }
 
   repair(

@@ -46,10 +46,13 @@ export function runHook(
     io.stdout(kit.sessionStart(root, client, io.readStdin(), part));
     return 0;
   }
+  const name = positional(args, 0, "Hook name");
+  // Only pre-push has an input (the pushed refs); git closes that pipe.
   const result = kit.gitHook(
     root,
-    positional(args, 0, "Hook name"),
-    args.positionals.slice(1)
+    name,
+    args.positionals.slice(1),
+    name === "pre-push" ? io.readStdin() : ""
   );
   if (result.message) {
     io.stderr(`${result.message}\n`);

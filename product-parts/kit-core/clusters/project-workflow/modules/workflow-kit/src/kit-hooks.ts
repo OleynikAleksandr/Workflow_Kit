@@ -14,6 +14,7 @@ import {
 } from "../../workflow-quality/src/workflow-quality-facade.js";
 import type { KitContext } from "./kit-context.js";
 import { executorAssignment, guardExecutorCandidate } from "./kit-executor.js";
+import { parsePushRefs, pushRefusal } from "./kit-push.js";
 
 export type GitHookName =
   | "commit-msg"
@@ -192,7 +193,7 @@ function pendingDocs(plan: WorkflowPlan | null): string | null {
   return docs && docs.status !== "DONE" ? docs.id : null;
 }
 
-function prePush(context: KitContext): HookResult {
+function prePush(context: KitContext, stdin: string): HookResult {
   const executor = executorAssignment(context);
   if (executor) {
     return fail(
@@ -212,7 +213,12 @@ function prePush(context: KitContext): HookResult {
       "An integration is unfinished; run `scripts/workflow integration:continue --id <assignment>`."
     );
   }
-  const docs = pendingDocs(workflowPlanFacade.read(context.root));
+  const plan = workflowPlanFacade.read(context.root);
+  const refused = pushRefusal(context, plan, parsePushRefs(stdin));
+  if (refused) {
+    return fail(refused.code, refused.message);
+  }
+  const docs = pendingDocs(plan);
   if (docs) {
     return fail(
       "DOCS_PENDING",
@@ -236,11 +242,15 @@ function prePush(context: KitContext): HookResult {
   );
 }
 
-/** `git-hook <name>`: the managed git hooks of an installed project. */
+/**
+ * `git-hook <name>`: the managed git hooks of an installed project. `stdin`
+ * is the hook's input (the pushed refs of `pre-push`).
+ */
 export function runGitHook(
   context: KitContext,
   name: string,
-  args: string[]
+  args: string[],
+  stdin = ""
 ): HookResult {
   try {
     switch (name) {
@@ -251,7 +261,7 @@ export function runGitHook(
       case "post-commit":
         return pass();
       case "pre-push":
-        return prePush(context);
+        return prePush(context, stdin);
       default:
         return fail("UNKNOWN_HOOK", `Unknown git hook: ${name}`);
     }

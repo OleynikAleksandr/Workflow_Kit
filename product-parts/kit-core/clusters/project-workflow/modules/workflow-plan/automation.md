@@ -21,9 +21,13 @@ The optional automation block of a scope (`plan-automation.ts`, spec M39
 - `delivery`: `{taskId, effects}[]` — the concrete build, install and
   external effects of delivery tasks of the scope; default `[]`.
 - `ci`: `null` when no remote CI is required, otherwise `{remote, branch,
-  requiredChecks, exactSha}`. `requiredChecks` is a non-empty list of job
-  names; `workflow-kit` checks them against the project CI configuration
-  (`CI_CHECK_UNKNOWN`).
+  requiredChecks, exactSha, task?}`. `requiredChecks` is a non-empty list of
+  job names; `workflow-kit` checks them against the project CI configuration
+  (`CI_CHECK_UNKNOWN`). `task` (optional, Kit 2.4.1, spec M40) names the
+  delivery task that pushes the CI branch itself: the `pre-push` hook allows
+  that push once the task is started. Without `task` the CI branch is pushed
+  only after every task is DONE (the host pushes the result for the CI
+  check); see `workflow-kit/barriers.md`.
 - `publication`: `null` when the result stays local, otherwise `{branch,
   upstream}` with `upstream` as `<remote>/<branch>`. Publication follows
   the closed scope; it is not a delivery task.
@@ -54,8 +58,9 @@ integer (`PLAN_SCHEMA`, field `scope.proposal`).
   - a delivery entry whose `taskId` is not a delivery task of the scope
     (a work task, an unknown id) or is repeated, empty `effects`;
   - `ci.remote`/`ci.branch`/`publication.branch` that are not git names
-    without spaces, empty `requiredChecks`, a non-boolean `exactSha`, an
-    `upstream` without `/`.
+    without spaces, empty `requiredChecks`, a non-boolean `exactSha`, a
+    `ci.task` that is not a delivery task of the scope, an `upstream`
+    without `/`.
 - `plan:extend` keeps the block unchanged; a new delivery task gets no
   effects (new effects need a new authorization, spec M39).
 - `carryover` drops `automation` and `proposal`: the new scope is a new
@@ -70,7 +75,7 @@ integer (`PLAN_SCHEMA`, field `scope.proposal`).
 - `automationSummary(block)` returns the lines that recovery prints:
   `acceptance: <n> automatic, <m> manual (manual: <1-based numbers>)`,
   `delivery effects: <taskId (effects)> | none`, `ci: <remote> <branch>,
-  checks <names>[, exact SHA] | none`, `publication: <branch> → <upstream>
+  checks <names>[, exact SHA][, pushed by <task>] | none`, `publication: <branch> → <upstream>
   | none`.
 
 ## Input schema
@@ -78,7 +83,7 @@ integer (`PLAN_SCHEMA`, field `scope.proposal`).
 `scope:create` and `scope:propose` describe `automation`,
 `automation.acceptance[].criterion|kind|checks|evidence`,
 `automation.delivery[].taskId|effects`,
-`automation.ci.remote|branch|requiredChecks|exactSha` and
+`automation.ci.remote|branch|requiredChecks|exactSha|task` and
 `automation.publication.branch|upstream` with the code `PLAN_AUTOMATION`;
 their example carries a full block and passes the real validator. The
 rules name `CHECK_UNKNOWN`, `CI_CHECK_UNKNOWN` and the proposal digest.

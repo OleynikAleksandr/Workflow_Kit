@@ -24,6 +24,7 @@ import { validatePlan } from "./plan-validation.js";
 
 export {
   acceptScope,
+  adoptCommits,
   type CarryoverInput,
   carryoverScope,
   closeScope,

@@ -35,6 +35,7 @@ import {
   guardExecutorCommit,
   markAssignment,
 } from "./kit-executor.js";
+import { ensureNoExternalCommits } from "./kit-decisions.js";
 import { hostDigest } from "./kit-host-auth.js";
 import { ensureNotPaused } from "./kit-pause.js";
 import { readStatus, type TaskBrief } from "./kit-status.js";
@@ -149,6 +150,7 @@ export function startTask(
     const current = readPlan(context);
     const config = readConfig(context);
     const task = workflowPlanFacade.task(current, taskId);
+    ensureNoExternalCommits(context, current);
     if (
       confirmation === null &&
       autopilotRun === null &&
@@ -268,6 +270,7 @@ export function commitTask(
     const current = readPlan(context);
     const config = readConfig(context);
     const task = workflowPlanFacade.task(current, taskId);
+    ensureNoExternalCommits(context, current);
     ensure(
       task.status === "IN_PROGRESS",
       "TASK_NOT_ACTIVE",

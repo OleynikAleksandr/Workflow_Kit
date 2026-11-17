@@ -43,7 +43,7 @@ const SCOPE = {
   spec: 'docs/spec.md',
   automation: {
     acceptance: [{ criterion: 0, kind: 'automatic', checks: [], evidence: ['docs/evidence/result.md'] }],
-    ci: { remote: 'origin', branch: 'ci/auto', requiredChecks: ['Linux x64'], exactSha: true },
+    ci: { remote: 'origin', branch: 'ci/auto', requiredChecks: ['Linux x64'], exactSha: true, task: 'D1' },
     delivery: [{ taskId: 'D1', effects: ['write the release note'] }],
     publication: { branch: 'main', upstream: 'origin/main' },
   },

@@ -29,11 +29,14 @@ The M39 autopilot authority and the `autopilot:status` capability
 [autopilot.md](autopilot.md#status-kit-autopilot-statusts).
 User decisions in the `host` decisions mode (Kit 2.4.0, spec M40: the
 decision request, `USER_DECISION_REQUIRED`, the host form `--decision` and
-`status.decisions`) are described in [decisions.md](decisions.md).
+`status.decisions`) are described in [decisions.md](decisions.md); the Git
+barriers of Kit 2.4.1 (push by target refs, commits made past the Kit and
+`commits:adopt`) in [barriers.md](barriers.md).
 
 ## Git Hooks (`kit-hooks.ts`)
 
-`gitHook(root, name, args)` returns `{exitCode, code, message}`; the hook
+`gitHook(root, name, args, stdin?)` returns `{exitCode, code, message}`
+(`stdin` is the input of the hook: the pushed refs of `pre-push`); the hook
 scripts print the message and exit with the code. `GIT_HOOKS` lists the
 managed hooks.
 - `pre-commit`:
@@ -66,6 +69,8 @@ managed hooks.
   - `ASSIGNMENT_READ_ONLY` in an executor worktree: executors never push;
   - `TRANSACTION_PENDING` while a journal exists, `INTEGRATION_ACTIVE`
     while an integration journal exists;
+  - `PUBLISH_SCOPE_OPEN` and `CI_PUSH_NOT_ALLOWED` by the target refs of
+    the push (Kit 2.4.1, [barriers.md](barriers.md));
   - `DOCS_PENDING` while the DOCS task of the last round with a finished
     task is not done;
   - runs the required `push` checks (`CHECK_FAILED`).
@@ -95,7 +100,8 @@ it changes in the same commit as the commands. Summary:
   (`autopilot:authorize`, `autopilot:revoke`, host only, see
   [autopilot.md](autopilot.md)), and the decision gate of
   `kit-cli-decisions.ts` in front of `scope:choose`, `task:start`, `accept`,
-  `close`, `task:unblock` and `quality:apply` ([decisions.md](decisions.md)); boolean
+  `close`, `task:unblock`, `quality:apply` and `commits:adopt`
+  ([decisions.md](decisions.md), [barriers.md](barriers.md)); boolean
   flags include `--force`, and `--digest` is boolean only for
   `scope:proposal` (`commit --digest <file>` keeps its value); the other commands are defined in
   `workflow-kit-cli.ts`, the default texts in `kit-cli-text.ts`. `help`

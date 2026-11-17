@@ -77,6 +77,16 @@ worktrees where noted):
   `quality:apply` input, the `grant` source and its M39 refusals, the
   delivery started by the live grant without flags, and the `agent` mode and
   a project without the key behaving as Kit 2.3.3.
+- `test/workflow-kit-push.test.mjs` (M40) — the `pre-push` ref lines (LF,
+  CRLF), the publication branch by the target ref (`HEAD:main`, another
+  local branch, several refs), the CI branch with and without
+  `automation.ci.task` and for a plan without automation, deletions, tags
+  and other branches, and a push through real git and the compiled CLI.
+- `test/workflow-kit-external.test.mjs` (M40) — `EXTERNAL_COMMITS` in
+  `task:start`, `commit`, `accept`, `close` and the run forms,
+  `commits:adopt` with the exact list in the `agent` mode, the
+  `adopt-commits` request registered by the refusal in the `host` mode,
+  `DECISION_STALE` after a new commit and the adoption with a ticket.
 - `test/workflow-kit-status.test.mjs` — the status fields in every state and
   the text lines.
 - `test/workflow-kit-pause.test.mjs` (worktrees) — `pause:set`, statuses and

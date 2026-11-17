@@ -11,6 +11,7 @@ export type HostOperation =
   | "autopilot:authorize"
   | "autopilot:revoke"
   | "close"
+  | "commits:adopt"
   | "quality:apply"
   | "scope:choose"
   | "task:start"

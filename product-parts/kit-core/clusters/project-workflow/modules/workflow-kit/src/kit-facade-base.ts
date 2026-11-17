@@ -37,7 +37,7 @@ import {
   autopilotStatus,
   type KitAutopilotStatus,
 } from "./kit-autopilot-status.js";
-import type { KitContext } from "./kit-context.js";
+import { type KitContext, locked } from "./kit-context.js";
 import {
   applyDecision,
   type DecisionMeta,
@@ -48,8 +48,10 @@ import {
   type DecisionChoice,
   type DecisionRequest,
   decisionsMode,
+  ensureNoExternalCommits,
   requireDecision,
 } from "./kit-decisions.js";
+import { adoptCommits } from "./kit-external.js";
 import {
   type DeferRequest,
   deferDelivery,
@@ -136,6 +138,26 @@ export class WorkflowKitBase {
 
   decisionRequest(root: string, id: string): DecisionRequest {
     return requestOf(this.context(root), id);
+  }
+
+  /** `commits:adopt` of the `agent` mode: the exact list with the user's words. */
+  adoptCommits(
+    root: string,
+    commits: readonly string[],
+    note: string
+  ): PlanChange {
+    return adoptCommits(this.context(root), commits, note);
+  }
+
+  /** EXTERNAL_COMMITS when commits were made past the Kit (spec M40, 3.2). */
+  externalGuard(root: string): void {
+    const context = this.context(root);
+    locked(context, () => {
+      const plan = workflowPlanFacade.read(root);
+      if (plan) {
+        ensureNoExternalCommits(context, plan);
+      }
+    });
   }
 
   /** Applies a registered decision (host only in the CLI, spec M40). */

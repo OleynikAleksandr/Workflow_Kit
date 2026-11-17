@@ -30,6 +30,10 @@ transitions below it exposes `inputSchema(command)` and
     closed it.
 - `WorkflowScope` has these fields:
   - `id`, `objective`, `acceptance`;
+  - `adoptedCommits` (optional, Kit 2.4.1): full SHAs of the commits made
+    past the Kit that the user adopted (`adopt(plan, commits, decision)`
+    appends them with the decision; anything but a list of full SHAs is
+    `PLAN_SCHEMA`);
   - `approval` and `decisions`: user decisions with timestamps
     (`UserDecision {at, text, decisionId?, kind?, source?}`). A decision the
     host applied (Kit 2.4.0, spec M40) carries the id of its request, its

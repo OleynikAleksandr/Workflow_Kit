@@ -24,6 +24,9 @@ Autopilot authority (spec M39, Kit 2.3.1): `authorize`, `revoke`,
   [decisions.md](decisions.md). `accept`, `close`, `unblock`, `startTask`,
   `chooseScope` and `qualityApply` are the operations a decision runs; the
   gate that refuses their manual forms lives in the CLI.
+- `adoptCommits(root, commits, note)`, `externalGuard(root)` and the
+  `stdin` of `gitHook` — the Git barriers of Kit 2.4.1, see
+  [barriers.md](barriers.md).
 - `status(root)` — `decisions` (the reproducible pending decision requests)
   and `decisionsMode` (`host` or `agent`) of spec M40, project, scope (status, result, blocked reason,
   objective, `automation` and `proposal` of spec M39, `null` on a legacy

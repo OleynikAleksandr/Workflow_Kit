@@ -31,6 +31,7 @@ interface GateContext {
 const KINDS: Readonly<Record<string, DecisionKind>> = {
   accept: "accept",
   close: "close",
+  "commits:adopt": "adopt-commits",
   "quality:apply": "approve-install",
   "scope:choose": "choose",
   "task:start": "confirm-delivery",
@@ -98,9 +99,13 @@ function choiceOf(command: string, context: GateContext): DecisionChoice | null 
     return null;
   }
   switch (command) {
+    case "commits:adopt":
+      return { kind: "adopt-commits" };
     case "accept":
+      kit.externalGuard(root);
       return { kind: "accept" };
     case "close":
+      kit.externalGuard(root);
       return { kind: "close", scopeId: requiredFlag(args, "scope") };
     case "task:unblock":
       return { kind: "unblock" };
@@ -114,6 +119,7 @@ function choiceOf(command: string, context: GateContext): DecisionChoice | null 
       };
     case "task:start": {
       const taskId = positional(args, 0, "Task id");
+      kit.externalGuard(root);
       return kit.needsDeliveryDecision(root, taskId)
         ? { kind: "confirm-delivery", taskId }
         : null;

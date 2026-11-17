@@ -1,7 +1,11 @@
 // Scope completion transitions: acceptance, closing and carryover.
 import { ensure } from "../../workflow-platform/src/workflow-platform-facade.js";
 import { checkCarryoverInput } from "./plan-input-checks.js";
-import { emptyPlan, type WorkflowPlan } from "./plan-model.js";
+import {
+  emptyPlan,
+  type UserDecision,
+  type WorkflowPlan,
+} from "./plan-model.js";
 import { arrangeRound } from "./plan-service-tasks.js";
 import { nextRevision, type TransitionContext } from "./plan-transitions.js";
 import { validatePlan } from "./plan-validation.js";
@@ -31,6 +35,27 @@ export function acceptScope(
   if (next.scope) {
     next.scope.delivery = "ACCEPTED";
     next.scope.acceptanceNote = { at: now, text: note.trim() };
+  }
+  return validatePlan(next);
+}
+
+/**
+ * Adds `commits` (full SHAs made past the Kit) to `scope.adoptedCommits`
+ * with the decision that adopts them (M40).
+ */
+export function adoptCommits(
+  plan: WorkflowPlan,
+  commits: readonly string[],
+  decision: UserDecision
+): WorkflowPlan {
+  ensure(plan.scope !== null, "NO_SCOPE", "There is no scope to adopt commits into.");
+  const next = nextRevision(plan);
+  if (next.scope) {
+    next.scope.adoptedCommits = [
+      ...(next.scope.adoptedCommits ?? []),
+      ...commits,
+    ];
+    next.scope.decisions.push({ ...decision });
   }
   return validatePlan(next);
 }

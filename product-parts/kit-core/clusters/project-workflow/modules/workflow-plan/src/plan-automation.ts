@@ -33,6 +33,8 @@ export interface CiPolicy {
   exactSha: boolean;
   remote: string;
   requiredChecks: string[];
+  /** The delivery task that pushes the CI branch (M40); absent: the host pushes after all tasks. */
+  task?: string;
 }
 
 /** The configured publication target after the scope is closed. */
@@ -65,7 +67,7 @@ const KINDS = new Set<string>(CRITERION_KINDS);
 const AUTOMATION_KEYS = new Set(["acceptance", "ci", "delivery", "publication"]);
 const ACCEPTANCE_KEYS = new Set(["checks", "criterion", "evidence", "kind"]);
 const DELIVERY_KEYS = new Set(["effects", "taskId"]);
-const CI_KEYS = new Set(["branch", "exactSha", "remote", "requiredChecks"]);
+const CI_KEYS = new Set(["branch", "exactSha", "remote", "requiredChecks", "task"]);
 const PUBLICATION_KEYS = new Set(["branch", "upstream"]);
 // A git ref name without spaces, control characters, `..`, `~^:?*[\` or a leading `-`.
 const REF_PATTERN = /^(?!-)(?!.*\.\.)(?!.*\/\/)(?!.*\/$)[^\s~^:?*[\\\p{Cc}]+$/u;
@@ -237,7 +239,7 @@ function validateDelivery(
   }
 }
 
-function validateCi(value: unknown, prefix: string): void {
+function validateCi(value: unknown, scope: AutomationScope, prefix: string): void {
   const field = `${prefix}.ci`;
   if (value === null) {
     return;
@@ -252,6 +254,13 @@ function validateCi(value: unknown, prefix: string): void {
     AUTOMATION_ERROR,
     `${field}.exactSha must be boolean.`,
     { field: `${field}.exactSha` }
+  );
+  ensure(
+    ci.task === undefined ||
+      scope.tasks.some((task) => task.id === ci.task && task.kind === "delivery"),
+    AUTOMATION_ERROR,
+    `${field}.task must name a delivery task of the scope: ${String(ci.task)}`,
+    { field: `${field}.task` }
   );
 }
 
@@ -294,7 +303,7 @@ export function validateAutomation(
   }
   validateAcceptance(block.acceptance, scope, prefix);
   validateDelivery(block.delivery, scope, prefix);
-  validateCi(block.ci, prefix);
+  validateCi(block.ci, scope, prefix);
   validatePublication(block.publication, prefix);
 }
 
@@ -362,7 +371,7 @@ export function automationSummary(automation: ScopeAutomation): string[] {
   ).length;
   const manual = automation.acceptance.length - automatic;
   const ci = automation.ci
-    ? `${automation.ci.remote} ${automation.ci.branch}, checks ${automation.ci.requiredChecks.join(", ")}${automation.ci.exactSha ? ", exact SHA" : ""}`
+    ? `${automation.ci.remote} ${automation.ci.branch}, checks ${automation.ci.requiredChecks.join(", ")}${automation.ci.exactSha ? ", exact SHA" : ""}${automation.ci.task ? `, pushed by ${automation.ci.task}` : ""}`
     : "none";
   const publication = automation.publication
     ? `${automation.publication.branch} → ${automation.publication.upstream}`

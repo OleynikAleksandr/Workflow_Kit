@@ -26,6 +26,7 @@ request view).
 | `close` | `close --scope <id>` | always (`--autopilot-run` keeps the M39 host form) |
 | `unblock` | `task:unblock` | always |
 | `approve-install` | `quality:apply --input <file>` | the input has a non-empty `install` |
+| `adopt-commits` | `commits:adopt` (Kit 2.4.1, [barriers.md](barriers.md)) | always; also registered by an `EXTERNAL_COMMITS` refusal |
 
 Work, docs and quality tasks, `task:block`, a profile without installs and
 every other command need no decision.
@@ -43,6 +44,7 @@ every other command need no decision.
 generation and `scope:proposal --digest`, `scopeId` is null); `confirm-delivery`
 — `taskDigest` (title, files, checks, acceptance, dependencies); `accept` —
 `head`, `result`; `close` — `head`; `unblock` — `reasonDigest`;
+`adopt-commits` — `commits` (the exact ordered SHAs);
 `approve-install` — `install` (the exact commands), `profileDigest` (the
 input without `approval`), `configDigest` (the current quality profile).
 
@@ -54,7 +56,7 @@ input without `approval`), `configDigest` (the current quality profile).
 - `requireDecision(context, choice)` registers under the Kit lock. The same
   subject keeps its `id`; another subject of the same kind, scope and task
   replaces the request and the earlier one becomes `stale`.
-- The registry is `.harness/workflow/local/decisions.json` (not in git,
+- The registry (`kit-decision-registry.ts`) is `.harness/workflow/local/decisions.json` (not in git,
   written atomically): the pending requests and the last 50 closed ones. With
   each request Kit stores the `choice` it is recomputed from; for
   `approve-install` this is the whole `quality:apply` input.

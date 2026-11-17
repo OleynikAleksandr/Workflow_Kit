@@ -27,6 +27,7 @@ import {
   savePlan,
   withDecision,
 } from "./kit-context.js";
+import { ensureNoExternalCommits } from "./kit-decisions.js";
 import { hostDigest } from "./kit-host-auth.js";
 import { ensureCleanTree } from "./kit-scope.js";
 import { change, type PlanChange } from "./kit-scope-create.js";
@@ -261,6 +262,7 @@ export function acceptRun(
     const current = readPlan(context);
     ensureRevision(current, expectedRevision);
     workflowPlanFacade.grant(current, runId);
+    ensureNoExternalCommits(context, current);
     const head = context.git.head(context.root) ?? "";
     const evidence = verifiedEvidence(context, current, input, head);
     const plan = withDecision(
@@ -313,6 +315,7 @@ export function closeRun(
     ensureCleanTree(context);
     const current = readPlan(context);
     ensureRevision(current, expectedRevision);
+    ensureNoExternalCommits(context, current);
     const plan = workflowPlanFacade.closeByAutopilot(
       current,
       { head: context.git.head(context.root) ?? "", runId, scopeId },

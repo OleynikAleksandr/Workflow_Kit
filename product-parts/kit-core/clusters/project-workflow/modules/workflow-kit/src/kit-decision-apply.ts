@@ -15,6 +15,7 @@ import {
   readRegistry,
   reproduced,
 } from "./kit-decisions.js";
+import { adoptCommits } from "./kit-external.js";
 import { hostDigest } from "./kit-host-auth.js";
 import { applyQuality } from "./kit-quality.js";
 import { acceptScope, closeScope, setBlocked } from "./kit-scope.js";
@@ -81,6 +82,14 @@ function perform(
       return closeScope(context, choice.scopeId, note, record);
     case "unblock":
       return setBlocked(context, null, record);
+    case "adopt-commits":
+      // The exact list the card showed; a new commit made the request stale.
+      return adoptCommits(
+        context,
+        (request.params.commits ?? []) as string[],
+        note,
+        record
+      );
     case "confirm-delivery":
       return record.source?.kind === "grant"
         ? startTask(

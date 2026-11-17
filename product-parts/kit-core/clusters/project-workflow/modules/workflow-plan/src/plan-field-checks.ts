@@ -76,6 +76,35 @@ export function decision(
   );
 }
 
+const COMMIT_PATTERN = /^[0-9a-f]{40,64}$/u;
+
+/** `scope.decisions` and the optional `scope.adoptedCommits` (full SHAs). */
+export function scopeDecisions(scope: {
+  adoptedCommits?: unknown;
+  decisions: UserDecision[];
+}): void {
+  ensure(
+    Array.isArray(scope.decisions),
+    schemaError,
+    "scope.decisions must be a list.",
+    { field: "scope.decisions" }
+  );
+  for (const [index, item] of scope.decisions.entries()) {
+    decision(item, `scope.decisions[${index}]`);
+  }
+  const adopted = scope.adoptedCommits;
+  ensure(
+    adopted === undefined ||
+      (Array.isArray(adopted) &&
+        adopted.every(
+          (sha) => typeof sha === "string" && COMMIT_PATTERN.test(sha)
+        )),
+    schemaError,
+    "scope.adoptedCommits must be a list of full commit SHAs.",
+    { field: "scope.adoptedCommits" }
+  );
+}
+
 export function relativePaths(values: string[], field: string): void {
   textList(values, field);
   for (const value of values) {

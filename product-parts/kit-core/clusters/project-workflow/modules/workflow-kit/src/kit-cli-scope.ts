@@ -3,6 +3,7 @@ import { ensure } from "../../workflow-platform/src/workflow-platform-facade.js"
 import {
   flag,
   integerFlag,
+  listFlag,
   type ParsedArgs,
   positional,
   readJsonFile,
@@ -33,7 +34,8 @@ interface ScopeCommandSpec {
 /**
  * The scope and plan commands: `scope:create`, `plan:extend`,
  * `task:update`, `task:block`, `task:unblock`, `task:defer-delivery`,
- * `accept`, `close` and `carryover` (text output by `renderText`).
+ * `accept`, `close`, `commits:adopt` and `carryover` (text output by
+ * `renderText`).
  */
 export const SCOPE_COMMANDS: Readonly<Record<string, ScopeCommandSpec>> = {
   accept: {
@@ -41,6 +43,19 @@ export const SCOPE_COMMANDS: Readonly<Record<string, ScopeCommandSpec>> = {
     run: ({ args, kit, root }) => kit.accept(root, requiredFlag(args, "note")),
     usage:
       'accept --note "<the user\'s words>" | accept --autopilot-run <id> --input <evidence.json> --expected-revision N (host only)',
+  },
+  "commits:adopt": {
+    run: ({ args, kit, root }) => {
+      const commits = listFlag(args, "commits");
+      ensure(
+        commits !== undefined && commits.length > 0,
+        "USAGE",
+        "commits:adopt needs --commits <sha,sha>: the exact list of the EXTERNAL_COMMITS refusal."
+      );
+      return kit.adoptCommits(root, commits, requiredFlag(args, "note"));
+    },
+    usage:
+      'commits:adopt --commits <json|sha,sha> --note "<the user\'s words>"',
   },
   carryover: {
     run: ({ args, io, kit, root }) =>

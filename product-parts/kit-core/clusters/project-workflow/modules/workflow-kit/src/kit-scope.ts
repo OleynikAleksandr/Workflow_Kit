@@ -23,6 +23,7 @@ import {
   changedContextTasks,
   ensureContextBudget,
 } from "./kit-context-budget.js";
+import { ensureNoExternalCommits } from "./kit-decisions.js";
 import {
   change,
   ensureInputChecks,
@@ -174,8 +175,10 @@ export function acceptScope(
 ): PlanChange {
   return locked(context, () => {
     ensureNoTransaction(context);
+    const current = readPlan(context);
+    ensureNoExternalCommits(context, current);
     const plan = withDecision(
-      workflowPlanFacade.accept(readPlan(context), note, context.now()),
+      workflowPlanFacade.accept(current, note, context.now()),
       decision
     );
     const commit = commitPlan(context, plan, {
@@ -222,12 +225,9 @@ export function closeScope(
   return locked(context, () => {
     ensureNoTransaction(context);
     ensureCleanTree(context);
-    const plan = workflowPlanFacade.close(
-      readPlan(context),
-      scopeId,
-      note,
-      context.now()
-    );
+    const current = readPlan(context);
+    ensureNoExternalCommits(context, current);
+    const plan = workflowPlanFacade.close(current, scopeId, note, context.now());
     if (decision && plan.lastClosed) {
       plan.lastClosed.decision = { ...decision };
     }

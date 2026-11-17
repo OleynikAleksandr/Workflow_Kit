@@ -12,7 +12,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1280,
+  "revision": 1281,
   "rounds": [
     {
       "digest": {
@@ -52,7 +52,10 @@
       "Установка из исходников выпуска доставляет зависимости времени выполнения, lock, helper (macOS ARM64) с политикой версии и лицензии; CLI работает без ws; установленный экземпляр 0.17.0 распознаёт русскую речь сквозным сценарием браузер → установленные assets → WebSocket → установленный helper → черновик",
       "CI четырёх платформ успешен для объединённого кода и для выпуска"
     ],
-    "acceptanceNote": null,
+    "acceptanceNote": {
+      "at": "2026-11-17T17:12:11.724Z",
+      "text": "Пользователь принял план в панели Workflow Kit"
+    },
     "approval": {
       "at": "2026-11-17T15:57:59.700Z",
       "text": "Пользователь 17.11.2026: «После завершения своего текущего плана интегрируй Speech в main через merge ветки feature/speech-input… До сборки релиза проверь именно объединённый код… Сборку релиза начинай после успешной интеграции и необходимых проверок.» | Execution mode chosen by the user: sequential: Автоматический выбор по поручению run-E4-rDe1mHCmk: sequential (recommended by the plan; ревью: agreed)"
@@ -179,9 +182,21 @@
       {
         "at": "2026-11-17T15:57:59.700Z",
         "text": "Живые проверки микрофона, разрешений, Safari и sleep/wake не входят в автоматическую приёмку и записываются как непроверенные"
+      },
+      {
+        "at": "2026-11-17T17:12:11.706Z",
+        "decisionId": "dec-71582327aec0",
+        "kind": "accept",
+        "source": {
+          "kind": "button",
+          "messageId": null,
+          "runId": null,
+          "session": "25cedd72-7908-49d9-9f21-79cfca178443"
+        },
+        "text": "accept: Пользователь принял план в панели Workflow Kit"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "ACCEPTED",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "25cedd72-7908-49d9-9f21-79cfca178443",
@@ -605,12 +620,12 @@
 ## State
 
 - Scope: speech-integration (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: ACCEPTED
 - Execution: sequential
 - Automation: 4 automatic, 0 manual criteria; CI origin ci/speech-integration (4 checks); publication main → origin/main
 - Current task: none
 - Progress: 7/7
-- Revision: 1280
+- Revision: 1281
 
 ## Objective
 

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1214,
+  "revision": 1216,
   "rounds": [
     {
       "digest": {
@@ -1394,7 +1394,7 @@
       ],
       "fixes": null,
       "id": "T012",
-      "iteration": 3,
+      "iteration": 4,
       "kind": "delivery",
       "roundId": "R3",
       "status": "TODO",
@@ -1414,6 +1414,13 @@
           "iteration": 2,
           "outcome": null,
           "reason": "CI failed on Windows x64 and ARM64 for 4c56e26: only test root-path.test.ts 'linux and darwin' (rootKey('/') resolves to D:\\ on a Windows host); all real-bundle tests pass: https://github.com/OleynikAleksandr/Workflow_Kit/actions/runs/44001635314"
+        },
+        {
+          "at": "2026-11-17T02:41:29.482Z",
+          "confirmation": "я принимаю доп задачи - выполняй без пауз все",
+          "iteration": 3,
+          "outcome": null,
+          "reason": "CI failed for cba932b: Windows x64/ARM64 test:kit workflow-kit-host-ipc (root compared by JS realpath, 8.3 name); macOS cross-review cleanup ENOTEMPTY: https://github.com/OleynikAleksandr/Workflow_Kit/actions/runs/44003136336"
         }
       ]
     }
@@ -1429,7 +1436,7 @@
 - Execution: sequential
 - Current task: none
 - Progress: 18/19
-- Revision: 1214
+- Revision: 1216
 
 ## Objective
 

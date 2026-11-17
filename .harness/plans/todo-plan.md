@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1229,
+  "revision": 1230,
   "rounds": [
     {
       "digest": null,
@@ -204,6 +204,50 @@
     "proposal": {
       "digest": "6d767260db504dd8d70ff25faa7709c51d5a202681dbc36c6f9e0d2342761690",
       "generation": 3
+    },
+    "authorization": {
+      "accept": true,
+      "acceptancePolicy": "automatic",
+      "at": "2026-11-17T07:16:13.439Z",
+      "ci": {
+        "remote": "origin",
+        "branch": "ci/M40-user-decisions",
+        "requiredChecks": [
+          "macOS ARM64",
+          "Linux x64",
+          "Windows x64",
+          "Windows ARM64"
+        ],
+        "exactSha": true
+      },
+      "close": true,
+      "delivery": [
+        {
+          "taskId": "T010",
+          "effects": [
+            "npm run build",
+            "установка Workflow Kit 0.16.0 в Application Support и перезапуск службы"
+          ]
+        },
+        {
+          "taskId": "T011",
+          "effects": [
+            "push ci/M40-user-decisions в origin и ожидание CI четырёх платформ"
+          ]
+        }
+      ],
+      "mode": "full",
+      "note": "Full autopilot run run-ccWhaP7vmQJZ: the user's direct instruction «Сделай так, как предложил - разбей на два скопе» (2026-11-17T06:52:42.726Z) to prepare and carry out the plan",
+      "ownerSession": "25cedd72-7908-49d9-9f21-79cfca178443",
+      "proposalDigest": "6d767260db504dd8d70ff25faa7709c51d5a202681dbc36c6f9e0d2342761690",
+      "publication": {
+        "branch": "main",
+        "upstream": "origin/main"
+      },
+      "revision": 1,
+      "revoked": null,
+      "runId": "run-ccWhaP7vmQJZ",
+      "source": "user-command"
     }
   },
   "tasks": [
@@ -719,7 +763,7 @@
 - Automation: 6 automatic, 0 manual criteria; CI origin ci/M40-user-decisions (4 checks); publication main → origin/main
 - Current task: none
 - Progress: 0/12
-- Revision: 1229
+- Revision: 1230
 
 ## Objective
 

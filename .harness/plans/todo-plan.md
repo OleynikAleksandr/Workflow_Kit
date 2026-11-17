@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1253,
+  "revision": 1255,
   "rounds": [
     {
       "digest": null,
@@ -978,14 +978,19 @@
         "product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/test",
         "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test",
         "docs/evidence/M40-acceptance.md",
-        "docs/architecture/OS-MATRIX.md"
+        "docs/architecture/OS-MATRIX.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/m40-barriers-real.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/m40-full-real.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/m40-host-real.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/m40-legacy-real.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/m40-world.ts"
       ],
       "fixes": null,
       "id": "T009",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Сквозные проверки M40 с настоящим bundle и службой",
       "why": "Модульные тесты не доказывают путь целиком"
     },
@@ -1116,8 +1121,8 @@
 - Execution: sequential
 - Automation: 6 automatic, 0 manual criteria; CI origin ci/M40-user-decisions (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 9/13
-- Revision: 1253
+- Progress: 10/13
+- Revision: 1255
 
 ## Objective
 
@@ -1171,9 +1176,9 @@
   - Commit: feat: show decision cards and enable host decisions for new projects
   - Files: product-parts/control-panel, product-parts/backend-core/clusters/projects, product-parts/workflow-engine/clusters/kit-host/modules/kit-update, product-parts/workflow-engine/clusters/session-loop/modules/autopilot, docs/architecture/OS-MATRIX.md, product-parts/backend-core/clusters/projects/modules/kit-structure/module.md, product-parts/backend-core/clusters/projects/modules/kit-structure/src/templates.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/test/question-hook.test.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/test/structure.test.ts, product-parts/backend-core/clusters/projects/modules/project-setup/module.md, product-parts/backend-core/clusters/projects/modules/project-setup/src/setup.ts, product-parts/backend-core/clusters/projects/modules/project-setup/test/setup.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/index.html, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/decision-card.css, product-parts/control-panel/clusters/web-panel/modules/session-view/src/decision-card.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/decision-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/review-card.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/sidebar-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/test/decision-cards.test.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/src/index.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/src/routes.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/src/update.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/test/kit-update-decisions.test.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/test/kit-update-real.test.ts
   - Depends on: T007
-- [TODO] T009 — Сквозные проверки M40 с настоящим bundle и службой (work)
+- [DONE] T009 — Сквозные проверки M40 с настоящим bundle и службой (work)
   - Commit: test: verify M40 user decisions end to end
-  - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/test, product-parts/backend-core/clusters/runtime/modules/cli/test, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/test, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test, docs/evidence/M40-acceptance.md, docs/architecture/OS-MATRIX.md
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/test, product-parts/backend-core/clusters/runtime/modules/cli/test, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/test, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test, docs/evidence/M40-acceptance.md, docs/architecture/OS-MATRIX.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/m40-barriers-real.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/m40-full-real.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/m40-host-real.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/m40-legacy-real.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/m40-world.ts
   - Depends on: T006, T008
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1

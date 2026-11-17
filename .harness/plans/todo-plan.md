@@ -3,7 +3,7 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "DOCS-R1",
   "lastClosed": {
     "closedAt": "2026-11-17T17:12:16.369Z",
     "scopeId": "speech-integration",
@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1292,
+  "revision": 1294,
   "rounds": [
     {
       "digest": null,
@@ -456,14 +456,16 @@
         "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/run-end.md",
         "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
         "docs/architecture/HTTP-CONTRACTS.md",
-        "docs/evidence/M41-acceptance.md"
+        "docs/evidence/M41-acceptance.md",
+        "docs/usage-autopiloting.md",
+        "docs/architecture/workflow-kit/WorkflowKitCommands.md"
       ],
       "fixes": null,
       "id": "DOCS-R1",
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -546,9 +548,9 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Automation: 4 automatic, 0 manual criteria; CI origin ci/M41-autopilot-acceptance (4 checks); publication main → origin/main
-- Current task: none
+- Current task: DOCS-R1
 - Progress: 4/7
-- Revision: 1292
+- Revision: 1294
 
 ## Objective
 
@@ -580,9 +582,9 @@
   - Commit: test: verify M41 autopilot acceptance end to end
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/m41-acceptance-real.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/m41-kit-update-real.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/m40-world.ts, docs/evidence/M41-acceptance.md, docs/architecture/OS-MATRIX.md
   - Depends on: T003
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [IN_PROGRESS] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
-  - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M41-autopilot-acceptance.md, docs/architecture/OS-MATRIX.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting-completion.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/run-end.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, docs/architecture/HTTP-CONTRACTS.md, docs/evidence/M41-acceptance.md
+  - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M41-autopilot-acceptance.md, docs/architecture/OS-MATRIX.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting-completion.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/run-end.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, docs/architecture/HTTP-CONTRACTS.md, docs/evidence/M41-acceptance.md, docs/usage-autopiloting.md, docs/architecture/workflow-kit/WorkflowKitCommands.md
   - Depends on: T001, T002, T003, T004
 - [TODO] T005 — Поставка 0.18.0 (delivery)
   - Commit: chore: release Workflow Kit 0.18.0

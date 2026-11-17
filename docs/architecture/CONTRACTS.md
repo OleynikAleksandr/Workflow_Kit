@@ -92,8 +92,9 @@ Kit 2.2.6 ставится в проект бандлом (`install --host harne
 Автопилотирование M39 (T005): настройки `autopiloting.json` в каталоге конфигурации службы
 (`off`/`after-start`/`full` и ревью, с ревизией), журнал запусков проекта
 `.workflow-kit/local/autopiloting/<runId>.json`; ручной старт пишет разрешение запуска до
-первого рабочего сообщения, `wfk session plan --authorized` сверяет слова с текстом, который
-пользователь действительно написал сессии (`agent-channel userWords`). Полный режим (T006):
+первого рабочего сообщения; `wfk session plan` в полном режиме решает служба по Settings и
+сообщению пользователя, доставленному в текущий ход (`agent-channel userSource`, M40 T007;
+до M40 — флаг `--authorized` со словами агента). Полный режим (T006):
 предложение → ревью, согласованное на digest `scope:proposal --digest` (`cross-review`
 `reviewedProposal`), → автоматический `scope:choose --expected-digest` и старт тем же
 действием, что кнопки; изменённая после согласия спецификация отменяет допуск. Выполнение
@@ -106,7 +107,16 @@ SHA на CI-ветку замороженной политики (`git-publish` 
 именно его тем же сервисом, что кнопка, под мьютексом проекта; шаги восстанавливаются по
 фактам Kit, git и удалённого репозитория — контракт
 [autopilot/autopiloting.md](../../product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md),
-маршруты — [HTTP-CONTRACTS.md](HTTP-CONTRACTS.md#автопилотирование-m39). Раздел `workflow` даёт модели
+маршруты — [HTTP-CONTRACTS.md](HTTP-CONTRACTS.md#автопилотирование-m39). Решения пользователя M40: в проекте
+`decisions: host` (Kit 2.4.0+, ставят мастер и «Обновить Kit») команда решения без билета не
+меняет план, отвечает `USER_DECISION_REQUIRED` и регистрирует запрос (`status.decisions`);
+служба публикует запросы в разделе `workflow` и исполняет решение операцией хоста по кнопке
+(`decision: { id, inputDigest }`) или по сообщению пользователя текущего хода (`wfk decision`),
+решения запуска автопилота — с источником `grant`; журнал решений службы делает повторы
+идемпотентными. «Стоп» и «пауза» первым словом служба исполняет при получении сообщения.
+Контракты — [autopilot/decisions.md](../../product-parts/workflow-engine/clusters/session-loop/modules/autopilot/decisions.md),
+[run-words.md](../../product-parts/workflow-engine/clusters/session-loop/modules/autopilot/run-words.md),
+ядро — [WorkflowKitDecisions.md](workflow-kit/WorkflowKitDecisions.md). Раздел `workflow` даёт модели
 карточек плана и выбора пути (`plan-view`). Хук вопроса Claude `wfk hook question`
 (`PermissionRequest` вопроса `AskUserQuestion`, структура v4, M33; та же команда в хуке `PreToolUse`
 выходит сразу — Claude пишет вызов в транскрипт перед ним, T011) держит

@@ -10,10 +10,35 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1255,
+  "revision": 1257,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "Kit: <command> --decision <id> --source button|message|grant --note --expected-revision N; USER_DECISION_REQUIRED, DECISION_STALE; status.decisions.",
+          "Kit barriers: PUBLISH_SCOPE_OPEN, CI_PUSH_NOT_ALLOWED, EXTERNAL_COMMITS (commits:adopt), TASK_FILES_OUTSIDE, INPUT_LOCATION; automation.ci.task.",
+          "Service: POST /api/projects/:id/workflow/decision {kind, decision:{id,inputDigest}, requestId, session}; wfk decision <kind>; decision-source-missing/used.",
+          "Service: createRunWords (stop/pause words), runs.authorizePreparation by userSource, RunJournal.advance keeps user barriers."
+        ],
+        "decisions": [
+          "New and updated projects get decisions: host from Kit 2.4.0; Kit 2.3.x projects keep the agent forms.",
+          "The user's words come from the service's message of the current turn; the agent passes only the kind (wfk decision).",
+          "Autopilot run decisions use the grant source; the registering message serves only the run.",
+          "Stop and pause words act on receipt, even while the agent is busy; other wordings stay with the agent.",
+          "The delivery continuation still names --autopilot-run and a double accept press without a request gives NOT_READY: left for M41."
+        ],
+        "references": [
+          "docs/planning/M40-user-decisions.md",
+          "docs/planning/M40-user-decisions-contract.md",
+          "docs/architecture/workflow-kit/WorkflowKitDecisions.md",
+          "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/decisions.md",
+          "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/run-words.md",
+          "docs/usage-autopiloting.md",
+          "docs/evidence/M40-acceptance.md",
+          "docs/planning/M41-kit-mechanics.md"
+        ],
+        "result": "Kit 2.4.0-2.4.4 records user decisions only by host operations (decisions: host): requests in status, button or user-message source, grant for autopilot runs; Git and file barriers. The service applies decisions, starts confirmed deliveries, handles stop/pause words, prepares full runs without --authorized; the panel shows unblock/install/adopt cards. End-to-end scenarios 1-9 pass on the real bundle."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -1031,14 +1056,20 @@
         "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/tests.md",
         "product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/module.md",
         "product-parts/kit-core/clusters/project-workflow/modules/workflow-quality/module.md",
-        "product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md"
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md",
+        "docs/architecture/CONTRACTS.md",
+        "docs/architecture/workflow-kit/WorkflowKitCommands.md",
+        "docs/architecture/workflow-kit/WorkflowKitDecisions.md",
+        "docs/planning/M41-kit-mechanics.md",
+        "docs/usage-autopiloting.md",
+        "docs/usage.md"
       ],
       "fixes": null,
       "id": "DOCS-R1",
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -1121,8 +1152,8 @@
 - Execution: sequential
 - Automation: 6 automatic, 0 manual criteria; CI origin ci/M40-user-decisions (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 10/13
-- Revision: 1255
+- Progress: 11/13
+- Revision: 1257
 
 ## Objective
 
@@ -1180,9 +1211,9 @@
   - Commit: test: verify M40 user decisions end to end
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/test, product-parts/backend-core/clusters/runtime/modules/cli/test, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/test, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test, docs/evidence/M40-acceptance.md, docs/architecture/OS-MATRIX.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/m40-barriers-real.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/m40-full-real.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/m40-host-real.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/m40-legacy-real.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/m40-world.ts
   - Depends on: T006, T008
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
-  - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M40-user-decisions.md, docs/architecture/OS-MATRIX.md, docs/evidence/M40-acceptance.md, docs/planning/M40-user-decisions-contract.md, docs/planning/M40-user-decisions-validation.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/decisions.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/operations.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/tests.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-quality/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md
+  - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M40-user-decisions.md, docs/architecture/OS-MATRIX.md, docs/evidence/M40-acceptance.md, docs/planning/M40-user-decisions-contract.md, docs/planning/M40-user-decisions-validation.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/decisions.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/operations.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/tests.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-quality/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md, docs/architecture/CONTRACTS.md, docs/architecture/workflow-kit/WorkflowKitCommands.md, docs/architecture/workflow-kit/WorkflowKitDecisions.md, docs/planning/M41-kit-mechanics.md, docs/usage-autopiloting.md, docs/usage.md
   - Depends on: T001, T002, T003, T004, T004A, T005, T006, T007, T008, T009
 - [TODO] T010 — Поставка 0.16.0 (delivery)
   - Commit: chore: release Workflow Kit 0.16.0
@@ -1192,5 +1223,7 @@
   - Commit: test: verify M40 on four CI platforms
   - Files: docs/evidence/M40-acceptance.md
   - Depends on: T010, DOCS-R1
+
+Digest: Kit 2.4.0-2.4.4 records user decisions only by host operations (decisions: host): requests in status, button or user-message source, grant for autopilot runs; Git and file barriers. The service applies decisions, starts confirmed deliveries, handles stop/pause words, prepares full runs without --authorized; the panel shows unblock/install/adopt cards. End-to-end scenarios 1-9 pass on the real bundle.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

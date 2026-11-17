@@ -5,6 +5,9 @@ Detailed command reference of the Workflow Kit command line
 `product-parts/core-runtime/clusters/project-workflow/modules/workflow-kit`).
 The module's `module.md` keeps the summary and the facade operations; this
 document is updated in the same commit as the commands it describes.
+The M40 additions (decision requests, host operations of user decisions,
+`commits:adopt`, the Git and file barriers) are in
+[WorkflowKitDecisions.md](WorkflowKitDecisions.md).
 
 ## Conventions
 

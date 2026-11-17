@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1203,
+  "revision": 1205,
   "rounds": [
     {
       "digest": {
@@ -49,7 +49,22 @@
       "title": "Implementation"
     },
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "autopilot: realRoot, rootKey, sameRoot (src/root-path.ts); createHostTickets({ platform? })"
+        ],
+        "decisions": [
+          "T012 отложена по процедуре красного CI (task:defer-delivery, попытка 1), исправление вынесено в fixes round R2",
+          "Приложение меняется — новая поставка D002 (0.15.1); T012 зависит от D002",
+          "Сравнение корня делает служба; Kit присылает свой корень без изменений, ядро не меняется"
+        ],
+        "references": [
+          "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md",
+          "docs/architecture/OS-MATRIX.md",
+          "docs/evidence/M39-acceptance.md"
+        ],
+        "result": "R2 исправил дефект Windows, найденный CI d1ffd1b: host-тикет сравнивает корень проекта через realpathSync.native и с учётом платформы (8.3, регистр, слеши, префикс \\\\?\\). На Windows x64 и ARM64 host-команды автопилота больше не отвергаются как «ticket bound to another root»."
+      },
       "id": "R2",
       "kind": "fixes",
       "status": "OPEN",
@@ -1238,7 +1253,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -1338,8 +1353,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 14/17
-- Revision: 1203
+- Progress: 15/17
+- Revision: 1205
 
 ## Objective
 
@@ -1420,7 +1435,7 @@ Digest: M39 R1: Kit 2.3.3 (automation, host-тикеты, defer-delivery); сл�
   - Commit: fix: match the project root of a host ticket on Windows
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, docs/architecture/OS-MATRIX.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/host-ticket.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/root-path.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-kit.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/root-path.test.ts
   - Fixes: T002
-- [TODO] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R2
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/architecture/OS-MATRIX.md
   - Depends on: F002
@@ -1432,5 +1447,7 @@ Digest: M39 R1: Kit 2.3.3 (automation, host-тикеты, defer-delivery); сл�
   - Commit: test: verify M39 cross-platform delivery and live evidence
   - Files: docs/evidence/M39-acceptance.md, docs/architecture/OS-MATRIX.md
   - Depends on: T011, DOCS-R2, D002
+
+Digest: R2 исправил дефект Windows, найденный CI d1ffd1b: host-тикет сравнивает корень проекта через realpathSync.native и с учётом платформы (8.3, регистр, слеши, префикс \\?\). На Windows x64 и ARM64 host-команды автопилота больше не отвергаются как «ticket bound to another root».
 
 State changes only through `scripts/workflow` commands. History lives in Git.

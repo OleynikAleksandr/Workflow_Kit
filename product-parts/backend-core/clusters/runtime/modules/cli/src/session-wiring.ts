@@ -298,7 +298,7 @@ export function wireSessions(options: SessionWiringOptions): SessionWiring {
   const isClient = (id: string): boolean => providers.get(id) !== undefined;
   registerTitleRoutes({ router, state, titles, isClient });
   const crossReview = wireCrossReview({
-    router, state, channel, messages: wakingChannel, projects, providers, workflow, toggles: review, titles, resolveFolderProject, isClient, authorize: autopiloting.authorize, log: options.log,
+    router, state, channel, messages: wakingChannel, projects, providers, workflow, toggles: review, titles, resolveFolderProject, isClient, prepare: autopiloting.prepare, log: options.log,
     digest: (id) => proposalDigest(kit, projects, id),
     onReviewFinished: (finished) => void autopiloting.reconcile(finished.projectId),
   });

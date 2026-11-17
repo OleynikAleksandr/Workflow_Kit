@@ -98,8 +98,8 @@ stripping).
 
 Что `createApp` подключает и с какими опциями (реестры, Kit, сессии, публикация, обновление
 Kit, ссылки и остановка службы, журнал попыток ответа на вопросы агента M33, автопилотирование
-M39 — `src/autopiloting-wiring.ts`, `src/autopiloting-links.ts`, `wfk session plan
---authorized`, `wfk session progress|run` в `src/session-run-command.ts`, T008 — общий
+M39 — `src/autopiloting-wiring.ts`, `src/autopiloting-links.ts`, `wfk session plan`
+(M40 T007: решает служба, `--authorized` не нужен), `wfk session progress|run` в `src/session-run-command.ts`, T008 — общий
 `createPublisher` кнопки и запусков, сервис завершения; M40 T004A — `createProposalGate`:
 опция `runs` автопилота получает `proposal`, возврат автору предложения без блока
 `automation`; M40 T005 — команда `wfk decision` (`src/decision-command.ts`, `COMMANDS` получает

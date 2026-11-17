@@ -10,9 +10,8 @@ import { SESSION_ENV } from './provider-list.ts';
 import { runSessionRunCommand } from './session-run-command.ts';
 
 export const SESSION_USAGE =
-  'Использование: wfk session title "<коротко о задаче>" | wfk session plan "<что собираемся сделать>" [--authorized "<точные слова пользователя>"]\n' +
+  'Использование: wfk session title "<коротко о задаче>" | wfk session plan "<что собираемся сделать>"\n' +
   '  Сессию можно назвать явно: --client <id провайдера> --session <id сессии>\n' +
-  '  --authorized: пользователь прямо поручил составить спецификацию и план (M39); без вопроса в панели\n' +
   '  wfk session progress --input <файл.json> | wfk session run pause|stop — запуск автопилота (M39)\n';
 
 /** What the agent reads after `wfk session plan`. */
@@ -42,7 +41,8 @@ export function callingSession(env: Readonly<Record<string, string | undefined>>
 
 /**
  * Splits `--client <id>`, `--session <id>` and `--authorized <words>` (also `--name=value`) from
- * the text; null on a flag without a value.
+ * the text; null on a flag without a value. M40: `--authorized` is still read for old agent texts,
+ * but its value is ignored — the service decides itself (Settings and the user's message).
  */
 export function sessionFlags(args: readonly string[]): { text: string; client?: string; sessionId?: string; authorized?: string } | null {
   const words: string[] = [];
@@ -63,7 +63,7 @@ export function sessionFlags(args: readonly string[]): { text: string; client?: 
   return { text: words.join(' ').trim(), ...flags };
 }
 
-/** What the agent reads after `wfk session plan --authorized` (M39): the run and its instruction. */
+/** What the agent reads when the service answered `action: prepare` (M40): the run and its instruction. */
 export function preparedText(body: { instruction?: string; runId?: string | null; policy?: string }): string {
   return `action: prepare\nrunId: ${body.runId ?? 'none'}\npolicy: ${body.policy ?? 'unknown'}\n${body.instruction ?? ''}\n`;
 }
@@ -102,11 +102,12 @@ export async function runSessionCommand(args: readonly string[], deps: SessionCo
     const base = await serviceUrl(deps.env, deps.homedir ?? os.homedir(), deps.platform ?? process.platform);
     const reply = await (deps.request ?? requestJson)(
       `${base}/api/sessions/${sub}`,
-      sub === 'title' ? { title: text, ...where } : { summary: text, ...where, ...(parsed.authorized !== undefined ? { authorized: parsed.authorized } : {}) },
+      sub === 'title' ? { title: text, ...where } : { summary: text, ...where },
       10_000,
     );
-    const body = (reply.body ?? {}) as { title?: { name?: string }; message?: string; instruction?: string; runId?: string | null; policy?: string; error?: { code?: string; message?: string; nextAction?: string; candidates?: unknown } };
-    if (reply.status < 300 && parsed.authorized !== undefined) {
+    const body = (reply.body ?? {}) as { action?: string; title?: { name?: string }; message?: string; instruction?: string; runId?: string | null; policy?: string; error?: { code?: string; message?: string; nextAction?: string; candidates?: unknown } };
+    // The service decided to prepare without the question (full autopilot): the agent goes on.
+    if (reply.status < 300 && sub === 'plan' && body.action === 'prepare') {
       deps.stdout(preparedText(body));
       return 0;
     }

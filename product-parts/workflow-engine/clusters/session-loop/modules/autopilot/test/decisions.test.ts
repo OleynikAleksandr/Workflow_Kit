@@ -95,10 +95,12 @@ function world(mode: 'agent' | 'host' = 'host') {
       return ok({ already: false, decisionId: request.id, kind: request.kind, result: { stored: true } });
     },
   } as unknown as KitRunner;
+  // Messages that registered a full autopilot run (M40 T007).
+  const taken = new Set<string>();
   const service = (): Decisions =>
-    createDecisions({ runner, tickets: createHostTickets(), journal: createDecisionJournal(), userSource: () => source.value, runLive: async () => live.value });
+    createDecisions({ runner, tickets: createHostTickets(), journal: createDecisionJournal(), userSource: () => source.value, runLive: async () => live.value, sourceTaken: async (_root, id) => taken.has(id) });
   const journal = () => createDecisionJournal().list(root);
-  return { root, kit, live, source, decisions: service(), restart: service, journal };
+  return { root, kit, live, source, taken, decisions: service(), restart: service, journal };
 }
 
 const button = (kind: DecisionAsk['kind'], more: Partial<DecisionAsk> = {}): DecisionAsk => ({ kind, origin: { kind: 'button', session: 's-1' }, ...more });
@@ -185,6 +187,16 @@ test('a message decision takes the note from the user\'s delivered message; the 
   w.source.value = said('Закрывай план', 'm-2');
   assert.equal((await w.decisions.apply(w.root, 'p', { kind: 'close', scopeId: 'S1', origin: { kind: 'message', key: 'claude:s-1' } }))!.note, 'Закрывай план');
   assert.deepEqual(w.kit.history.map((h) => h.messageId), ['m-1', 'm-2']);
+});
+
+test('M40 T007: the message that registered a full autopilot run is no source of another decision', async () => {
+  const w = world();
+  w.source.value = said('Сделай склад и сразу принимай', 'm-run');
+  w.taken.add('m-run');
+  await assert.rejects(w.decisions.apply(w.root, 'p', { kind: 'accept', origin: { kind: 'message', key: 'claude:s-1' } }), refused('decision-source-used'));
+  assert.deepEqual([w.kit.manual, w.kit.hosted, await w.journal()], [[], [], []], 'Kit is not asked, nothing is written');
+  // A button is not a message: it still decides.
+  assert.ok(await w.decisions.apply(w.root, 'p', button('accept')));
 });
 
 test('a lost answer and a restart of the service: the issued record is reconciled by its decision id', async () => {

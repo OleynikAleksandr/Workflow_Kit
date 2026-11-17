@@ -103,7 +103,7 @@ before(async () => {
   const projectPath = async () => root;
   const listProjects = async () => [{ id: 'p', path: root }];
   const gitEnv: typeof runGit = (cwd, args) => runGit(cwd, args);
-  runs = createRuns({ settings, journal, kit: runKit, tickets, words: () => [], projectPath, listProjects });
+  runs = createRuns({ settings, journal, kit: runKit, tickets, userSource: () => null, projectPath, listProjects });
   waits = createRunWaits({ journal, kit: runKit, ci: { read: async (_root, sha) => (read.push(sha), verdict(sha)) }, projectPath, listProjects, send: () => assert.fail('the service CI sends no message') });
   completion = createRunCompletion({ journal, kit: runKit, publisher: createPublisher({ git: gitEnv }), git: gitEnv, projectPath, listProjects });
 });

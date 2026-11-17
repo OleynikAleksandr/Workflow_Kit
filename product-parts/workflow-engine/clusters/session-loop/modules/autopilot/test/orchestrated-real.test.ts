@@ -109,7 +109,7 @@ before(async () => {
   const journal = createRunJournal();
   const runKit = createRunKit({ runner, tickets });
   const orchestration = async (client: string) => (capable.has(client) ? { available: true } : { available: false, reason: 'no executors' });
-  runs = createRuns({ settings, journal, kit: runKit, tickets, words: (key) => channel.userWords(key), projectPath, listProjects });
+  runs = createRuns({ settings, journal, kit: runKit, tickets, userSource: (key) => channel.userSource(key), projectPath, listProjects });
   autopilot = createAutopilot({
     runner, workflow, channel, projectPath, orchestration, runs: createRunTurns({ journal, projectPath }),
     authority: { beforeStart: async (id, key) => (await runs.beginExecution(id, key))?.runId ?? null, beforeResume: async (id, key) => (await runs.resume(id, key))?.runId ?? null },
@@ -127,7 +127,7 @@ after(async () => {
 
 test('orchestrated: the recommended mode is chosen, the orchestrator hands out the ready tasks, executors at work are a wait', async () => {
   await said('orch', 'claude', 'Да, составляй спецификацию и план');
-  const prepared = await runs.authorizePreparation('orch', 'claude:s-1', 'Two notes', 'составляй спецификацию и план');
+  const prepared = await runs.authorizePreparation('orch', 'claude:s-1', 'Two notes').then((prepared) => prepared!);
   await propose('orch');
   const start = await stop('orch');
   assert.match(start ?? '', /orchestrat/iu, 'the orchestrator start message');
@@ -153,7 +153,7 @@ test('orchestrated: the recommended mode is chosen, the orchestrator hands out t
 test('orchestrated recommended, the provider runs no executors: sequential with the reason', async () => {
   capable.delete('codex');
   await said('fallback', 'codex', 'Да, составляй спецификацию и план');
-  const prepared = await runs.authorizePreparation('fallback', 'codex:s-1', 'Two notes', 'составляй спецификацию и план');
+  const prepared = await runs.authorizePreparation('fallback', 'codex:s-1', 'Two notes').then((prepared) => prepared!);
   assert.ok(prepared.runId);
   await propose('fallback');
   const start = await stop('fallback', 'codex');

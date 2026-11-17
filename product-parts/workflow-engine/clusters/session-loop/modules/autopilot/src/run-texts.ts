@@ -1,7 +1,6 @@
 // Texts of autopiloting runs (spec M39): the policy of a start for the panel (Russian, exact
 // labels of the agreed specification) and the preparation instruction for the agent (English).
 import type { RunRecord } from './run-journal.ts';
-import type { AutopilotingMode } from './settings.ts';
 
 export const POLICY_TEXTS = {
   off: 'Подготовка и выполнение с ручными действиями пользователя.',
@@ -29,17 +28,14 @@ export const RUN_STOP_NEXT = {
 
 export type RunStopReason = keyof typeof RUN_STOP_NEXT;
 
-/** What the agent does after `wfk session plan --authorized` (it continues the same turn). */
-export function preparationText(policy: AutopilotingMode | 'kit-update-required', review: boolean, runId: string | null): string {
+/** What the agent does after `wfk session plan` answered `action: prepare` (it continues the same turn). */
+export function preparationText(policy: 'full' | 'kit-update-required', review: boolean, runId: string | null): string {
   const propose = 'write the specification and the plan, then run `scripts/workflow scope:propose --input <file.json> --recommended <mode> --reason "<why>"`';
   const reviewed = review ? 'The plan gets a cross review before it starts.' : 'The plan starts without a cross review (Settings).';
   if (policy === 'full') {
-    return `Full autopilot: run ${runId} is registered by the user's direct instruction. Continue this turn without the plan question: ${propose}. ${AUTOMATION_REQUIRED} ${reviewed} Do not choose the mode or start the plan yourself; Workflow Kit does it after the review.`;
+    return `Full autopilot: run ${runId} is registered by the user's message of this turn. Continue this turn without the plan question: ${propose}. ${AUTOMATION_REQUIRED} ${reviewed} Do not choose the mode or start the plan yourself; Workflow Kit does it after the review.`;
   }
-  if (policy === 'kit-update-required') {
-    return `The user's instruction allows the preparation, but the project's Kit cannot autopilot (update Kit). Continue this turn: ${propose}, then end the turn; the user chooses the mode and starts the plan in the panel.`;
-  }
-  return `The user's instruction allows the preparation. Continue this turn without the plan question: ${propose}, then end the turn; the user chooses the mode and starts the plan in the panel. ${reviewed}`;
+  return `Full autopilot is on in Settings, but the project's Kit cannot autopilot (update Kit). Continue this turn without the plan question: ${propose}, then end the turn; the user chooses the mode and starts the plan in the panel. ${reviewed}`;
 }
 
 /** The note of the Kit grant: where the user's advance instruction came from (English, as Kit notes). */

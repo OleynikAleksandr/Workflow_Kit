@@ -85,6 +85,11 @@ export interface DecisionsDeps {
   userSource(key: string): TurnUserSource | null;
   /** Whether the run may still decide: not paused, stopped or revoked (asked before the ticket). */
   runLive?(root: string, runId: string): Promise<boolean>;
+  /**
+   * Whether the user's message already registered a full autopilot run (`wfk session plan`,
+   * M40 T007): that message is the source of the run alone (contract section 5).
+   */
+  sourceTaken?(root: string, messageId: string): Promise<boolean>;
   now?: () => Date;
   log?: (line: string) => void;
 }
@@ -250,6 +255,7 @@ export function createDecisions(deps: DecisionsDeps) {
       const args = commandOf(ask);
       const same = (r: DecisionRecord): boolean => r.kind === ask.kind && r.taskId === taskId && r.args.join('\u0000') === args.join('\u0000');
       // One message — one decision: the same message never records another kind or target.
+      if (source.kind === 'message' && deps.sourceTaken && (await deps.sourceTaken(root, source.messageId!))) fail('decision-source-used', DECISION_TEXTS.sourceUsed, DECISION_TEXTS.sourceNext);
       if (source.kind === 'message' && records.some((r) => r.sourceId === sourceId && r.state !== 'failed' && !same(r))) {
         fail('decision-source-used', DECISION_TEXTS.sourceUsed, DECISION_TEXTS.sourceNext);
       }

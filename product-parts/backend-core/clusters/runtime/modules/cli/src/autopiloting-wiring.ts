@@ -8,6 +8,7 @@ import type { Decisions, RunCompleter, ControlActions, PrepareActions, ReviewFac
 import { createGitHubCi, createPublisher, runGit } from '#git-publish';
 import type { GitHubCi, GitRunner, Publisher } from '#git-publish';
 import type { KeyedMutex } from '#data-store';
+import { SERVICE_MESSAGE_MARK } from '#project-setup';
 import type { Router, StateRegistry } from '#http-server';
 import type { KitRunner } from '#kit-runner';
 import type { ProjectRegistry } from '#project-registry';
@@ -40,8 +41,8 @@ export interface AutopilotingWiring {
   completion: RunCompleter;
   tick(): Promise<void>;
   recoverAll(): Promise<void>;
-  /** The `authorize` option of the plan question route (`wfk session plan --authorized`). */
-  authorize(projectId: string, key: string, summary: string, quote: string): Promise<Record<string, unknown>>;
+  /** The `prepare` option of the plan question route (`wfk session plan`); null opens the question. */
+  prepare(projectId: string, key: string, summary: string): Promise<Record<string, unknown> | null>;
   /** Late links of the full-run preparation (T006): the autopilot actions and the review facts. */
   attach(links: PreparationLinks): void;
   /** One preparation step of the project's full run (a finished turn or review, the service start). */
@@ -68,7 +69,7 @@ export function wireAutopiloting(options: {
   mutex: KeyedMutex;
   projects: ProjectRegistry;
   kit: KitRunner;
-  channel: Pick<AgentChannel, 'enqueue' | 'userSource' | 'userWords'>;
+  channel: Pick<AgentChannel, 'enqueue' | 'userSource'>;
   configDir: string;
   platform?: NodeJS.Platform;
   /** Stores the review decision of a session (plan-review) and closes its open plan question. */
@@ -85,6 +86,11 @@ export function wireAutopiloting(options: {
   const journal = createRunJournal(options.platform ? { platform: options.platform } : {});
   const runKit = createRunKit({ runner: options.kit, tickets });
   const projectPath = async (id: string): Promise<string | undefined> => (await options.projects.get(id))?.path;
+  // The panel's first message of a project is a service greeting, not an instruction of the user.
+  const userSource = (key: string) => {
+    const source = options.channel.userSource(key);
+    return source && !source.text.includes(SERVICE_MESSAGE_MARK) ? source : null;
+  };
   const decisions = createDecisions({
     runner: options.kit,
     tickets,
@@ -92,6 +98,8 @@ export function wireAutopiloting(options: {
     userSource: (key) => options.channel.userSource(key),
     // A run that was paused, stopped or revoked decides nothing more (asked before every ticket).
     runLive: runMayDecide(journal),
+    // The message that registered a full run is that run's source alone (M40 T007).
+    sourceTaken: async (root, messageId) => (await journal.list(root)).some((run) => run.request.source === 'user-command' && run.request.turnId === messageId),
     ...(options.log ? { log: options.log } : {}),
   });
   let links: PreparationLinks | null = null;
@@ -111,7 +119,7 @@ export function wireAutopiloting(options: {
     journal,
     kit: runKit,
     tickets,
-    words: (key) => options.channel.userWords(key),
+    userSource,
     projectPath,
     listProjects: async () => (await options.projects.list()).map((project) => ({ id: project.id, path: project.path })),
     decideReview: options.decideReview,
@@ -160,7 +168,11 @@ export function wireAutopiloting(options: {
       await control.recoverAll();
       await completion.advanceAll();
     },
-    authorize: (projectId, key, summary, quote) => runHttp(async () => ({ ...(await runs.authorizePreparation(projectId, key, summary, quote)) })),
+    prepare: (projectId, key, summary) =>
+      runHttp(async () => {
+        const prepared = await runs.authorizePreparation(projectId, key, summary);
+        return prepared ? { ...prepared } : null;
+      }),
     attach(next) {
       links = next;
     },

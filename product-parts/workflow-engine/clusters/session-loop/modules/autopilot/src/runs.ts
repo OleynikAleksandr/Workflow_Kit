@@ -1,11 +1,12 @@
 // Autopiloting runs (spec M39 runtime sections 1–2): a run is the user's advance instruction for
-// one project, recorded with its real source before anything acts on it. A direct instruction
-// (`wfk session plan --authorized`) is accepted only when its quote is in the words the user
-// really wrote to the session; a review, reminder or service message never authorizes. The manual
+// one project, recorded with its real source before anything acts on it. In the full mode
+// `wfk session plan` registers a run only from the user's message delivered in the current turn
+// of the session (M40: the service decides, the agent passes no quote); a review, reminder or
+// service message never authorizes. The manual
 // start in the mode «После ручного запуска Плана» records the Kit grant through the host ticket
 // before the first work message; Settings off pauses every run for good (resumable only by the
 // user). The policy of a plan (automatic, manual acceptance, legacy, Kit update) is told ahead.
-import type { UserWords } from '#agent-channel';
+import type { TurnUserSource } from '#agent-channel';
 import type { KeyedMutex } from '#data-store';
 import { UPDATE_KIT_TEXT } from '#plan-view';
 import { WorkflowActionError } from './autopilot-types.ts';
@@ -17,6 +18,7 @@ import type { RunJournal, RunRecord, RunSource } from './run-journal.ts';
 import type { RunKit, RunKitStatus, RunScope } from './run-kit.ts';
 import type { AutopilotingMode, SettingsChange, SettingsStore } from './settings.ts';
 import { POLICY_TEXTS, grantNote, preparationText } from './run-texts.ts';
+import { PREFIX } from './texts.ts';
 
 export type StartPolicyKind = 'off' | 'automatic' | 'manual-acceptance' | 'legacy' | 'kit-update-required';
 
@@ -32,9 +34,9 @@ export interface StartPolicy {
 export interface PreparationResult {
   action: 'prepare';
   runId: string | null;
-  mode: AutopilotingMode;
+  mode: 'full';
   review: boolean;
-  policy: AutopilotingMode | 'kit-update-required';
+  policy: 'full' | 'kit-update-required';
   /** The instruction the agent reads (English, like every agent text). */
   instruction: string;
 }
@@ -46,8 +48,8 @@ export interface RunsOptions {
   journal: RunJournal;
   kit: RunKit;
   tickets: HostTickets;
-  /** The recent words the user wrote to a session (agent-channel `userWords`). */
-  words: (key: string) => UserWords[];
+  /** The user's delivered message of the session's current turn (agent-channel `userSource`). */
+  userSource: (key: string) => TurnUserSource | null;
   projectPath: (projectId: string) => Promise<string | undefined>;
   listProjects: () => Promise<Array<{ id: string; path: string }>>;
   /** Stores the review decision of the session (plan-review), so no plan question opens. */
@@ -64,7 +66,12 @@ export interface RunsOptions {
 export interface Runs {
   /** Restores the redeemed tickets and the briefs of every project's runs (service start). */
   load(): Promise<void>;
-  authorizePreparation(projectId: string, key: string, summary: string, quote: string): Promise<PreparationResult>;
+  /**
+   * `wfk session plan` (M40): the service decides by Settings and the user's message of the
+   * current turn. A result — the agent prepares without the plan question (a registered full run,
+   * or a Kit that cannot autopilot); null — the usual plan question card.
+   */
+  authorizePreparation(projectId: string, key: string, summary: string): Promise<PreparationResult | null>;
   /** The user's answer on the plan question card: in full mode review/plan register a run. */
   planDecision(projectId: string, key: string, choice: 'review' | 'plan' | 'talk', summary: string): Promise<RunRecord | null>;
   policy(projectId: string): Promise<StartPolicy>;
@@ -85,7 +92,8 @@ export interface Runs {
 /** Phases of a started run that is going on (not paused, blocked or final). */
 const RUNNING: ReadonlySet<RunRecord['phase']> = new Set(['executing', 'delivering', 'verifying', 'accepting', 'closing', 'publishing', 'waiting']);
 
-const normalize = (text: string): string => text.replace(/\s+/gu, ' ').trim().toLowerCase();
+/** The words of the user kept as the note of a run. */
+export const RUN_QUOTE_MAX = 500;
 const idOf = (key: string): string => key.slice(key.indexOf(':') + 1);
 const clientOf = (key: string): string => key.slice(0, key.indexOf(':'));
 const fail = (code: string, message: string, status = 409, nextAction: string | null = null): never => {
@@ -203,37 +211,31 @@ export function createRuns(options: RunsOptions): Runs {
       }
     },
 
-    authorizePreparation: (projectId, key, summary, quote) =>
+    authorizePreparation: (projectId, key, summary) =>
       serial(projectId, async () => {
-        if (quote.trim().length < 3) fail('bad-request', 'Нужны точные слова пользователя в --authorized', 400);
-        const latest = options.words(key).at(-1);
-        if (!latest) {
-          fail('authorization-source-missing', 'Служба не получила текст пользователя этой сессии: разрешение не записано.', 409, 'Покажите вопрос о плане без --authorized: `wfk session plan "<что собираемся сделать>"`.');
-        }
-        if (!normalize(latest!.text).includes(normalize(quote))) {
-          fail('authorization-quote-mismatch', 'Этих слов нет в последнем сообщении пользователя: разрешение не записано.', 409, 'Передайте в --authorized точные слова из последнего сообщения пользователя или задайте вопрос о плане.');
-        }
         const { settings } = await options.settings.read();
+        if (settings.mode !== 'full') return null; // off, after-start: the plan question
         const folder = await root(projectId);
-        const review = await decideReview(projectId, key, settings.review);
-        if (settings.mode !== 'full') {
-          return { action: 'prepare', runId: null, mode: settings.mode, review, policy: settings.mode, instruction: preparationText(settings.mode, review, null) };
-        }
         if (!options.kit.supported(await options.kit.status(folder)).ready) {
+          const review = await decideReview(projectId, key, settings.review);
           return { action: 'prepare', runId: null, mode: 'full', review, policy: 'kit-update-required', instruction: preparationText('kit-update-required', review, null) };
         }
+        // Only the user's own message that began this turn registers a run (contract section 3).
+        const source = options.userSource(key);
+        if (!source || source.text.trimStart().startsWith(PREFIX)) return null;
         const active = await options.journal.active(folder);
-        if (active && active.owner.key === key && active.request.at === latest!.at && active.request.source === 'user-command') {
+        if (active && active.owner.key === key && active.request.turnId === source.id && active.request.source === 'user-command') {
           return { action: 'prepare', runId: active.runId, mode: 'full', review: active.review, policy: 'full', instruction: preparationText('full', active.review, active.runId) };
         }
         if (active) fail('run-active', `В проекте уже идёт запуск автопилота ${active.runId}`, 409, 'Дождитесь его окончания или остановите его в панели.');
+        const review = await decideReview(projectId, key, settings.review);
         const run = remember(
           await options.journal.create(folder, {
             projectId,
             owner: { key, client: clientOf(key), sessionId: idOf(key) },
             mode: 'full',
             review,
-            request: { source: 'user-command', quote: quote.trim(), at: latest!.at, turnId: latest!.turnId, goal: summary.trim() },
+            request: { source: 'user-command', quote: source.text.trim().slice(0, RUN_QUOTE_MAX), at: source.at, turnId: source.id, goal: summary.trim() },
             proposal: null,
             scopeId: null,
             authority: null,
@@ -243,7 +245,7 @@ export function createRuns(options: RunsOptions): Runs {
             nextAction: null,
           }),
         );
-        log(`autopiloting: ${projectId} run ${run.runId} registered by the user's instruction in ${key}`);
+        log(`autopiloting: ${projectId} run ${run.runId} registered by the user's message ${source.id} in ${key}`);
         return { action: 'prepare', runId: run.runId, mode: 'full', review: run.review, policy: 'full', instruction: preparationText('full', run.review, run.runId) };
       }),
 

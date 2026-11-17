@@ -70,16 +70,17 @@ async function setup(over: Partial<NewRun> = {}) {
   return { folder, journal, run, kit, runKit, calls, preparation, read };
 }
 
-test('the preparation text of the full mode names the automation block; the other texts are the old ones', () => {
+test('the preparation text of the full mode names the automation block; an old Kit is told to update', () => {
   const full = preparationText('full', true, 'run-abcdef');
   assert.ok(full.includes(AUTOMATION_REQUIRED));
   assert.match(full, /`automation` block .*`scripts\/workflow schema scope:propose`.*does not start a plan without it/u);
+  assert.match(full, /run run-abcdef is registered by the user's message of this turn/u);
   const propose = 'write the specification and the plan, then run `scripts/workflow scope:propose --input <file.json> --recommended <mode> --reason "<why>"`';
-  for (const mode of ['after-start', 'off'] as const) {
-    assert.equal(preparationText(mode, true, null), `The user's instruction allows the preparation. Continue this turn without the plan question: ${propose}, then end the turn; the user chooses the mode and starts the plan in the panel. The plan gets a cross review before it starts.`);
-    assert.equal(preparationText(mode, false, null).includes('automation'), false);
-  }
-  assert.equal(preparationText('kit-update-required', true, null), `The user's instruction allows the preparation, but the project's Kit cannot autopilot (update Kit). Continue this turn: ${propose}, then end the turn; the user chooses the mode and starts the plan in the panel.`);
+  assert.equal(
+    preparationText('kit-update-required', true, null),
+    `Full autopilot is on in Settings, but the project's Kit cannot autopilot (update Kit). Continue this turn without the plan question: ${propose}, then end the turn; the user chooses the mode and starts the plan in the panel. The plan gets a cross review before it starts.`,
+  );
+  assert.equal(preparationText('kit-update-required', false, null).includes('automation'), false);
 });
 
 test('full: a proposal without automation goes back to its author once — no review, no choice, no start; the second one stops the run', async () => {
@@ -220,12 +221,12 @@ test('the panel state has no run that ended with its scope; a run the service st
   await mkdir(path.join(dir, 'config'), { recursive: true });
   const journal = createRunJournal();
   const kit = { status: async () => null, supported: () => ({ ready: false }), scope: async () => null } as unknown as RunKit;
-  const runs = createRuns({ settings: createSettingsStore({ configDir: path.join(dir, 'config') }), journal, kit, tickets: createHostTickets(), words: () => [], projectPath: async () => dir, listProjects: async () => [{ id: 'p', path: dir }] });
+  const runs = createRuns({ settings: createSettingsStore({ configDir: path.join(dir, 'config') }), journal, kit, tickets: createHostTickets(), userSource: () => null, projectPath: async () => dir, listProjects: async () => [{ id: 'p', path: dir }] });
   const run = await journal.create(dir, newRun({ phase: 'starting', scopeId: 'auto' }));
   assert.equal((await runs.section()).projects['p']?.phase, 'starting');
   await journal.update(dir, run.runId, (r) => ({ ...r, phase: 'finished', reason: 'closed-manually' }));
   assert.deepEqual((await runs.section()).projects, {});
-  const again = createRuns({ settings: createSettingsStore({ configDir: path.join(dir, 'config') }), journal, kit, tickets: createHostTickets(), words: () => [], projectPath: async () => dir, listProjects: async () => [{ id: 'p', path: dir }] });
+  const again = createRuns({ settings: createSettingsStore({ configDir: path.join(dir, 'config') }), journal, kit, tickets: createHostTickets(), userSource: () => null, projectPath: async () => dir, listProjects: async () => [{ id: 'p', path: dir }] });
   await again.load();
   assert.deepEqual((await again.section()).projects, {}, 'after a restart of the service too');
   const stopped = await journal.create(dir, newRun());

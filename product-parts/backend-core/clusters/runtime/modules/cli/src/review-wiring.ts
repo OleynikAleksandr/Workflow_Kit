@@ -115,8 +115,8 @@ export function wireCrossReview(options: {
   digest?: CrossReviewDeps['digest'];
   /** M39: hears every finished review (the full-run preparation). */
   onReviewFinished?: CrossReviewDeps['onFinished'];
-  /** M39: `wfk session plan --authorized` (the autopiloting runs). */
-  authorize?: (projectId: string, key: string, summary: string, quote: string) => Promise<Record<string, unknown>>;
+  /** M40: `wfk session plan` in the full autopilot (the autopiloting runs); null opens the question. */
+  prepare?: (projectId: string, key: string, summary: string) => Promise<Record<string, unknown> | null>;
   log?: (line: string) => void;
 }): CrossReview {
   const { projects, providers } = options;
@@ -177,7 +177,7 @@ export function wireCrossReview(options: {
     router: options.router,
     toggles: options.toggles,
     resolveProject: options.resolveFolderProject,
-    ...(options.authorize ? { authorize: options.authorize } : {}),
+    ...(options.prepare ? { prepare: options.prepare } : {}),
     sessionKey: async (input, projectId) => {
       const named = namedSession(input, options.isClient);
       if (named) return `${named.client}:${named.id}`;

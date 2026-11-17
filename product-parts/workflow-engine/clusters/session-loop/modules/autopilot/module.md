@@ -172,6 +172,11 @@ M40 T006 — «стоп» и «паузу» пользователя читае�
 `WORD_TEXTS`, `RunControl.byWord` (барьер сразу, вне очереди проекта), `RunJournal.advance`
 (запись автоматического шага не снимает барьер пользователя) — [run-words.md](run-words.md).
 
+M40 T007 — `wfk session plan` решает служба: `Runs.authorizePreparation(projectId, key,
+summary) → PreparationResult | null` с опцией `userSource` вместо `words` и цитаты,
+`RUN_QUOTE_MAX`, `preparationText` для `full` и `kit-update-required`, опция решений
+`sourceTaken` — [autopiloting.md](autopiloting.md), раздел «Запуски».
+
 ## Инварианты
 
 - Все сообщения автопилота в канал (`choose`, `start`, `enable`) передают `projectId`:

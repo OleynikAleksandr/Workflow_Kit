@@ -65,21 +65,24 @@
 
 ## Запуски (`src/runs.ts`, `src/run-texts.ts`)
 
-`createRuns({ settings, journal, kit, tickets, words, projectPath, listProjects,
+`createRuns({ settings, journal, kit, tickets, userSource, projectPath, listProjects,
 decideReview?, mutex?, log? }) → Runs`:
 
-- `authorizePreparation(projectId, key, summary, quote)` — `wfk session plan --authorized`
-  (под мьютексом `project:<id>`). Источник — последние слова пользователя этой сессии
-  (`words` = `agent-channel userWords`): их нет — 409 `authorization-source-missing`;
-  цитата (без учёта регистра и пробелов) не входит в последнее сообщение — 409
-  `authorization-quote-mismatch`; короче 3 символов — 400. Сообщения ревью, напоминаний,
-  решателя и службы в `userWords` не попадают и разрешения не дают. Затем
-  `decideReview(settings.review)` (решение сессии, если уже есть, сохраняется; вопрос о
-  плане закрывается). `full` с готовым Kit регистрирует запуск (`user-command`,
-  `phase=preparing`); повтор той же сессии с теми же словами возвращает тот же `runId`;
-  другой активный запуск проекта — 409 `run-active`. `off`/`after-start` и старый Kit
-  (`kit-update-required`) запуска не создают. Ответ `PreparationResult`: `action: prepare`,
-  `runId`, `mode`, `review`, `policy`, `instruction` (`preparationText`, английский).
+- `authorizePreparation(projectId, key, summary) → PreparationResult | null` — `wfk session plan`
+  (под мьютексом `project:<id>`); решает служба, агент цитату не передаёт (M40 T007, раздел 2.3
+  спецификации). `off`/`after-start` — `null` (обычная карточка вопроса). `full` со старым Kit —
+  `policy: kit-update-required`, запуска нет, карточки нет. `full` с готовым Kit: источник —
+  сообщение пользователя, доставленное в текущий ход (`userSource` = `agent-channel
+  userSource`, правило контракта, раздел 3); его нет (продолжение автопилота, напоминание,
+  ревью, служебное сообщение, сообщение в очереди, старый ход) или текст начинается с
+  `Workflow Kit:` — `null`. Иначе `decideReview(settings.review)` (решение сессии, если уже
+  есть, сохраняется) и запуск `user-command`, `phase=preparing`: `request.quote` — текст
+  сообщения (до `RUN_QUOTE_MAX` = 500 символов), `request.turnId` — id сообщения, `at` — его
+  время. Повтор той же сессии с тем же сообщением возвращает тот же `runId`; другой активный
+  запуск проекта — 409 `run-active`. Ответ `PreparationResult`: `action: prepare`, `runId`,
+  `mode: full`, `review`, `policy` (`full` или `kit-update-required`), `instruction`
+  (`preparationText`, английский). Сообщение, зарегистрировавшее запуск, больше не источник
+  решений (`Decisions` опция `sourceTaken`, [decisions.md](decisions.md)).
 - `planDecision(projectId, key, choice, summary)` — ответ на карточке вопроса о плане: в
   `full` `review`/`plan` регистрируют запуск (`plan-decision`, ревью по ответу), `talk` — нет.
 - `policy(projectId)` → `StartPolicy` (`off`, `automatic`, `manual-acceptance` с номерами

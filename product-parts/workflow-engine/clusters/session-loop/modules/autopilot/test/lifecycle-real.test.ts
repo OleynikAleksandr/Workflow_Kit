@@ -108,7 +108,7 @@ async function boot() {
   const journal = createRunJournal();
   const runKit = createRunKit({ runner, tickets });
   const send = (projectId: string, key: string, text: string) => void channel.enqueue(key, text, 'panel', projectId);
-  const runs = createRuns({ settings, journal, kit: runKit, tickets, words: (key) => channel.userWords(key), projectPath, listProjects, mutex });
+  const runs = createRuns({ settings, journal, kit: runKit, tickets, userSource: (key) => channel.userSource(key), projectPath, listProjects, mutex });
   await runs.load();
   const turns = createRunTurns({ journal, projectPath });
   let actions: ReturnType<typeof createAutopilot> | null = null;

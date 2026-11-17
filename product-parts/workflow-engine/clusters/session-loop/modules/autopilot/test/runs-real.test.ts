@@ -99,7 +99,7 @@ before(async () => {
     journal: createRunJournal(),
     kit: createRunKit({ runner, tickets }),
     tickets,
-    words: () => [],
+    userSource: () => null,
     projectPath: async (id) => roots[id],
     listProjects: async () => Object.entries(roots).map(([id, root]) => ({ id, path: root })),
   });

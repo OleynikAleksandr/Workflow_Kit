@@ -1,5 +1,5 @@
-// M39 T005 in the service: the autopiloting settings routes and state section, and the direct
-// instruction of `wfk session plan --authorized` checked against the words the user wrote.
+// M39 T005 in the service: the autopiloting settings routes and state section; M40 T007: the
+// service itself decides `wfk session plan` (Settings, the user's message of the turn).
 import assert from 'node:assert/strict';
 import { mkdir, mkdtemp, readFile, rm } from 'node:fs/promises';
 import os from 'node:os';
@@ -8,7 +8,7 @@ import { after, before, test } from 'node:test';
 import { createStubProvider } from '#provider-registry';
 import { createApp } from '../src/index.ts';
 import type { App } from '../src/index.ts';
-import { SESSION_USAGE, preparedText, runSessionCommand, sessionFlags } from '../src/session-command.ts';
+import { PLAN_ASKED, SESSION_USAGE, preparedText, runSessionCommand, sessionFlags } from '../src/session-command.ts';
 import { locateSession, ownerUnreachable, proposalDigest, reviewFact } from '../src/autopiloting-links.ts';
 import { RUN_USAGE, inputFlag } from '../src/session-run-command.ts';
 import { writeFile } from 'node:fs/promises';
@@ -58,28 +58,36 @@ test('Settings: off by default, saved in the configuration folder with a revisio
   assert.deepEqual(state.autopiloting.settings, file);
 });
 
-test('--authorized: refused without the user words, refused for other words, accepted for the words the user typed', async () => {
-  const post = async (authorized: string) => {
-    const reply = await fetch(`${base}/api/sessions/plan`, { method: 'POST', headers: H(), body: JSON.stringify({ summary: 'Склад', cwd: folder, client: 'claude', sessionId: 's-auth', authorized }) });
-    return { status: reply.status, body: (await reply.json()) as Record<string, unknown> & { error?: { code?: string; nextAction?: string } } };
+test('M40 T007: wfk session plan — the service decides; --authorized with any value changes nothing', async () => {
+  const post = async (extra: object = {}) => {
+    const reply = await fetch(`${base}/api/sessions/plan`, { method: 'POST', headers: H(), body: JSON.stringify({ summary: 'Склад', cwd: folder, client: 'claude', sessionId: 's-auth', ...extra }) });
+    return { status: reply.status, body: (await reply.json()) as Record<string, unknown> & { error?: { code?: string } } };
   };
-  const missing = await post('да, составляй спецификацию');
-  assert.deepEqual([missing.status, missing.body.error?.code], [409, 'authorization-source-missing']);
-  assert.match(missing.body.error?.nextAction ?? '', /wfk session plan/u);
-  // A message the service queues (a review, a reminder, a Kit message) is no user's word.
-  app.channel.enqueue('claude:s-auth', 'Да, составляй спецификацию и план', 'review');
-  assert.equal((await post('составляй спецификацию')).body.error?.code, 'authorization-source-missing');
-  await app.channel.prompt({ client: 'claude', dialect: 'claude', sessionId: 's-auth', turnId: 'u-1', cwd: folder, projectDir: null, transcriptPath: null, stopHookActive: false, lastAssistantMessage: null, prompt: 'Да, составляй спецификацию и план', sessionTitle: null, panelProcess: false });
-  assert.equal((await post('и сразу публикуй')).body.error?.code, 'authorization-quote-mismatch');
-  // The demo project has no Kit: the preparation is allowed, the autopilot asks to update Kit.
-  const ok = await post('составляй спецификацию и план');
-  assert.equal(ok.status, 200, JSON.stringify(ok.body));
-  assert.deepEqual([ok.body['action'], ok.body['runId'], ok.body['policy']], ['prepare', null, 'kit-update-required']);
-  assert.equal(ok.body['key'], 'claude:s-auth');
+  // Settings «Полный автопилот» (the first test), the demo project has no Kit: the preparation goes
+  // on without the question and the agent is told to update Kit — with or without a message.
+  const plain = await post();
+  assert.equal(plain.status, 200, JSON.stringify(plain.body));
+  assert.deepEqual([plain.body['action'], plain.body['runId'], plain.body['policy'], plain.body['key']], ['prepare', null, 'kit-update-required', 'claude:s-auth']);
+  await app.channel.prompt({ client: 'claude', dialect: 'claude', sessionId: 's-auth', turnId: 'u-1', cwd: folder, projectDir: null, transcriptPath: null, stopHookActive: false, lastAssistantMessage: null, prompt: 'Да, составляй спецификацию и план', sessionTitle: null, panelProcess: false }).then((reply) => reply.ack());
+  for (const authorized of [undefined, 'да', 'совсем другие слова', '']) {
+    const reply = await post(authorized === undefined ? {} : { authorized });
+    assert.deepEqual([reply.status, reply.body['action'], reply.body['policy']], [200, 'prepare', 'kit-update-required'], String(authorized));
+  }
+  // «После ручного запуска Плана»: the usual question card, whatever the agent passes.
+  const settings = (await (await fetch(`${base}/api/settings/autopiloting`, { headers: H() })).json()) as { revision: number };
+  await fetch(`${base}/api/settings/autopiloting`, { method: 'POST', headers: H(), body: JSON.stringify({ expectedRevision: settings.revision, mode: 'after-start', review: false }) });
+  for (const extra of [{}, { authorized: 'Да, составляй спецификацию и план' }]) {
+    const card = await post(extra);
+    assert.equal(card.status, 200, JSON.stringify(card.body));
+    assert.equal(card.body['action'], undefined);
+    assert.ok(card.body['question'], 'the plan question card');
+  }
+  await fetch(`${base}/api/settings/autopiloting`, { method: 'POST', headers: H(), body: JSON.stringify({ expectedRevision: settings.revision + 1, mode: 'full', review: true }) });
 });
 
-test('wfk session plan --authorized sends the words and prints the run; title refuses the flag', async () => {
+test('wfk session plan: --authorized is left out of the usage and not sent; the prepare answer is printed by the body', async () => {
   assert.deepEqual(sessionFlags(['Склад', '--authorized', 'да, делай']), { text: 'Склад', authorized: 'да, делай' });
+  assert.equal(SESSION_USAGE.includes('--authorized'), false);
   const out: string[] = [];
   const err: string[] = [];
   const calls: unknown[] = [];
@@ -92,13 +100,21 @@ test('wfk session plan --authorized sends the words and prints the run; title re
     request: async (_url: string, body: unknown) => (calls.push(body), reply),
   });
   const body = { action: 'prepare', runId: 'run-abcdef', policy: 'full', instruction: 'Full autopilot: …' };
-  assert.equal(await runSessionCommand(['plan', 'Склад', '--authorized=да, делай'], deps({ status: 200, body })), 0);
-  assert.deepEqual(calls[0], { summary: 'Склад', cwd: '/work/sklad', projectDir: null, client: 'claude', sessionId: 'c1', authorized: 'да, делай' });
-  assert.equal(out.join(''), preparedText(body));
-  assert.match(out.join(''), /^action: prepare\nrunId: run-abcdef\npolicy: full\n/u);
-  const refused = { status: 409, body: { error: { code: 'authorization-source-missing', message: 'Служба не получила текст', nextAction: 'Покажите вопрос о плане' } } };
-  assert.equal(await runSessionCommand(['plan', 'Склад', '--authorized', 'да'], deps(refused)), 1);
-  assert.match(err.join(''), /Служба не получила текст\nПокажите вопрос о плане\n/u);
+  for (const args of [['plan', 'Склад'], ['plan', 'Склад', '--authorized=да, делай']]) {
+    out.length = 0;
+    calls.length = 0;
+    assert.equal(await runSessionCommand(args, deps({ status: 200, body })), 0);
+    assert.deepEqual(calls[0], { summary: 'Склад', cwd: '/work/sklad', projectDir: null, client: 'claude', sessionId: 'c1' }, 'no words of the user are sent');
+    assert.equal(out.join(''), preparedText(body));
+    assert.match(out.join(''), /^action: prepare\nrunId: run-abcdef\npolicy: full\n/u);
+  }
+  // The question card: the agent ends the turn.
+  out.length = 0;
+  assert.equal(await runSessionCommand(['plan', 'Склад', '--authorized', 'да'], deps({ status: 200, body: { question: { id: 'q' } } })), 0);
+  assert.equal(out.join(''), PLAN_ASKED);
+  const refused = { status: 409, body: { error: { code: 'run-active', message: 'В проекте уже идёт запуск', nextAction: 'Дождитесь его окончания' } } };
+  assert.equal(await runSessionCommand(['plan', 'Склад'], deps(refused)), 1);
+  assert.match(err.join(''), /В проекте уже идёт запуск\nДождитесь его окончания\n/u);
   err.length = 0;
   assert.equal(await runSessionCommand(['title', 'Склад', '--authorized', 'да'], deps({ status: 200, body: {} })), 64);
   assert.equal(err.join(''), SESSION_USAGE);

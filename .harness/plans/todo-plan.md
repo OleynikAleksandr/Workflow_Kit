@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1247,
+  "revision": 1251,
   "rounds": [
     {
       "digest": null,
@@ -842,14 +842,39 @@
         "product-parts/workflow-engine/clusters/session-loop/modules/autopilot",
         "product-parts/workflow-engine/clusters/session-loop/modules/plan-review",
         "product-parts/backend-core/clusters/runtime/modules/cli",
-        "docs/architecture/OS-MATRIX.md"
+        "docs/architecture/OS-MATRIX.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/commands.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/connected-modules.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/autopiloting-wiring.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/review-wiring.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/session-command.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/autopiloting.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/decisions.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/decisions.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-texts.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/runs.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/complete-real.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/decisions.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/lifecycle-real.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/orchestrated-real.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/prepare-real.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/run-end.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/runs-ci-real.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/runs-real.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/runs.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/plan-review/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/plan-review/src/routes.ts"
       ],
       "fixes": null,
       "id": "T007",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Служба: вопрос о плане в полном автопилоте без --authorized",
       "why": "Карточка появляется, если агент не знает про --authorized"
     },
@@ -1068,8 +1093,8 @@
 - Execution: sequential
 - Automation: 6 automatic, 0 manual criteria; CI origin ci/M40-user-decisions (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 7/13
-- Revision: 1247
+- Progress: 8/13
+- Revision: 1251
 
 ## Objective
 
@@ -1115,9 +1140,9 @@
   - Commit: feat: stop or pause a live run by the user's word in the service
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel, product-parts/backend-core/clusters/runtime/modules/cli, docs/architecture/OS-MATRIX.md, product-parts/backend-core/clusters/runtime/modules/cli/connected-modules.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/autopiloting-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/run-words.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/routes.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/run-words.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-complete.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-control.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-journal.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-prepare.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-proposal.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-turns.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-waits.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-words.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/runs.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/run-words.test.ts
   - Depends on: T005
-- [TODO] T007 — Служба: вопрос о плане в полном автопилоте без --authorized (work)
+- [DONE] T007 — Служба: вопрос о плане в полном автопилоте без --authorized (work)
   - Commit: feat: let the service authorize full-autopilot preparation itself
-  - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/workflow-engine/clusters/session-loop/modules/plan-review, product-parts/backend-core/clusters/runtime/modules/cli, docs/architecture/OS-MATRIX.md
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/workflow-engine/clusters/session-loop/modules/plan-review, product-parts/backend-core/clusters/runtime/modules/cli, docs/architecture/OS-MATRIX.md, product-parts/backend-core/clusters/runtime/modules/cli/commands.md, product-parts/backend-core/clusters/runtime/modules/cli/connected-modules.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/autopiloting-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/review-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/session-command.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/autopiloting.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/decisions.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/decisions.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-texts.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/runs.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/complete-real.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/decisions.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/lifecycle-real.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/orchestrated-real.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/prepare-real.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/run-end.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/runs-ci-real.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/runs-real.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/runs.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/module.md, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/src/routes.ts
   - Depends on: T005
 - [TODO] T008 — Панель и структура: карточки решений и decisions host (work)
   - Commit: feat: show decision cards and enable host decisions for new projects

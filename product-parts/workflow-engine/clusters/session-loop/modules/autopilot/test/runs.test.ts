@@ -6,7 +6,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { after, test } from 'node:test';
 import { createRouter, createStateRegistry } from '#http-server';
-import type { UserWords } from '#agent-channel';
+import { USER_MESSAGE_SOURCE, createAgentChannel, parseHookInput } from '#agent-channel';
+import type { StopDecision, TurnUserSource } from '#agent-channel';
 import { SUPPORTED_HOST_PROTOCOL } from '#plan-view';
 import { POLICY_TEXTS, createHostTickets, createRunJournal, createRuns, createSettingsStore, registerAutopilotingRoutes } from '../src/index.ts';
 import type { AutopilotingMode, RunKit, RunKitStatus } from '../src/index.ts';
@@ -17,12 +18,12 @@ const CAPABILITY = { authorization: true, automation: true, complete: true, defe
 const KEY = 'claude:s-1';
 let n = 0;
 
-async function setup(mode: AutopilotingMode, status: Partial<RunKitStatus> | null = {}, review = true, sessionDecision?: boolean) {
+async function setup(mode: AutopilotingMode, status: Partial<RunKitStatus> | null = {}, review = true, sessionDecision?: boolean, userSource?: (key: string) => TurnUserSource | null) {
   const dir = path.join(tmp, `p${(n += 1)}`);
   await mkdir(path.join(dir, 'config'), { recursive: true });
   const settings = createSettingsStore({ configDir: path.join(dir, 'config') });
   if (mode !== 'off' || review) await settings.write({ expectedRevision: 0, mode, review });
-  const words = new Map<string, UserWords[]>();
+  const sources = new Map<string, TurnUserSource | null>();
   const decided: Array<[string, boolean]> = [];
   const kit = {
     status: async () => (status === null ? null : ({ revision: 3, head: 'abc', capability: CAPABILITY, proposal: null, authorization: null, acceptance: null, ...status } as RunKitStatus)),
@@ -36,7 +37,7 @@ async function setup(mode: AutopilotingMode, status: Partial<RunKitStatus> | nul
     journal,
     kit,
     tickets: createHostTickets(),
-    words: (key) => words.get(key) ?? [],
+    userSource: userSource ?? ((key) => sources.get(key) ?? null),
     projectPath: async (id) => (id === 'p1' ? dir : undefined),
     listProjects: async () => [{ id: 'p1', path: dir }],
     decideReview: async (_id, key, on) => {
@@ -44,52 +45,95 @@ async function setup(mode: AutopilotingMode, status: Partial<RunKitStatus> | nul
       return sessionDecision;
     },
   });
-  const say = (key: string, text: string, at = '2026-11-16T10:00:00.000Z') => words.set(key, [...(words.get(key) ?? []), { text, at, via: 'prompt', turnId: 't-1' }]);
-  return { runs, say, decided, dir, settings, journal };
+  let ids = 0;
+  // The user's message that began the current turn of the session (a new one per call).
+  const say = (key: string, text: string, at = '2026-11-16T10:00:00.000Z') => {
+    ids += 1;
+    sources.set(key, { id: `m-${ids}`, text, at, via: 'prompt', turnRef: `g-${ids}` });
+  };
+  // A turn the user did not begin (a continuation, a reminder, a review): no source.
+  const service = (key: string) => sources.set(key, null);
+  return { runs, say, service, decided, dir, settings, journal };
 }
 
-test('no user words: authorization-source-missing; words not in the last message: mismatch', async () => {
-  const { runs, say } = await setup('full');
-  await assert.rejects(runs.authorizePreparation('p1', KEY, 'Docs', 'да, составляй'), { code: 'authorization-source-missing' });
-  say(KEY, 'Да, составляй спецификацию и план');
-  say(KEY, 'А сколько это займёт?');
-  await assert.rejects(runs.authorizePreparation('p1', KEY, 'Docs', 'Да, составляй спецификацию'), { code: 'authorization-quote-mismatch' });
-  await assert.rejects(runs.authorizePreparation('p1', KEY, 'Docs', 'да'), { code: 'bad-request' });
-});
-
-test('full: the direct instruction registers one run; a repeat returns it; another session gets run-active', async () => {
-  const { runs, say, decided } = await setup('full');
-  say(KEY, 'Да,   составляй СПЕЦИФИКАЦИЮ и план, пожалуйста');
-  const first = await runs.authorizePreparation('p1', KEY, 'Docs', 'да, составляй спецификацию и план');
-  assert.equal(first.action, 'prepare');
-  assert.equal(first.policy, 'full');
+test('M40: full and a message of the user in this turn: a run without the plan question, review from Settings', async () => {
+  const { runs, say, decided, journal, dir } = await setup('full');
+  say(KEY, 'Сделай учёт склада: спецификация, план и выполнение');
+  const first = (await runs.authorizePreparation('p1', KEY, 'Docs'))!;
+  assert.deepEqual([first.action, first.policy, first.mode, first.review], ['prepare', 'full', 'full', true]);
   assert.match(first.runId!, /^run-/u);
   assert.match(first.instruction, /scope:propose/u);
+  assert.match(first.instruction, /registered by the user's message of this turn/u);
   assert.deepEqual(decided, [[KEY, true]]);
-  const again = await runs.authorizePreparation('p1', KEY, 'Docs', 'составляй спецификацию');
-  assert.equal(again.runId, first.runId);
-  say('codex:s-2', 'да, составляй спецификацию');
-  await assert.rejects(runs.authorizePreparation('p1', 'codex:s-2', 'Other', 'да, составляй спецификацию'), { code: 'run-active' });
+  const run = (await journal.read(dir, first.runId!))!;
+  // The note of the run is the user's message itself; the agent passed no quote.
+  assert.deepEqual([run.request.source, run.request.quote, run.request.turnId, run.request.goal], ['user-command', 'Сделай учёт склада: спецификация, план и выполнение', 'm-1', 'Docs']);
   const section = await runs.section();
-  assert.equal(section.projects['p1']?.runId, first.runId);
   assert.equal(section.projects['p1']?.source, 'user-command');
-  assert.equal(JSON.stringify(section).includes('составляй'), false);
+  assert.equal(JSON.stringify(section).includes('склада'), false, 'the panel brief quotes no words');
 });
 
-test('off and after-start: the preparation is allowed without a run; an old Kit gets the update policy', async () => {
+test('M40: a repeat in the same turn returns the same run; another message or session gets run-active', async () => {
+  const { runs, say } = await setup('full');
+  say(KEY, 'Да, делай план');
+  const first = (await runs.authorizePreparation('p1', KEY, 'Docs'))!;
+  assert.equal((await runs.authorizePreparation('p1', KEY, 'Docs again'))?.runId, first.runId);
+  say(KEY, 'И ещё одну задачу');
+  await assert.rejects(runs.authorizePreparation('p1', KEY, 'Other'), { code: 'run-active' });
+  say('codex:s-2', 'Сделай другое');
+  await assert.rejects(runs.authorizePreparation('p1', 'codex:s-2', 'Other'), { code: 'run-active' });
+});
+
+test('M40: no message of the user in this turn — the usual question card (null), no run', async () => {
+  const { runs, say, service, journal, dir } = await setup('full');
+  assert.equal(await runs.authorizePreparation('p1', KEY, 'Docs'), null, 'no message at all');
+  service(KEY);
+  assert.equal(await runs.authorizePreparation('p1', KEY, 'Docs'), null, 'a continuation, a reminder or a review');
+  say(KEY, 'Workflow Kit: autopilot. Continue the workflow');
+  assert.equal(await runs.authorizePreparation('p1', KEY, 'Docs'), null, 'a service text is no user message');
+  assert.deepEqual(await journal.list(dir), []);
+});
+
+test('M40: off and after-start — the question card; full with an old Kit — kit-update-required', async () => {
   for (const mode of ['off', 'after-start'] as const) {
-    const { runs, say } = await setup(mode);
+    const { runs, say, journal, dir } = await setup(mode);
     say(KEY, 'Да, составляй спецификацию и план');
-    const result = await runs.authorizePreparation('p1', KEY, 'Docs', 'составляй спецификацию и план');
-    assert.equal(result.runId, null);
-    assert.equal(result.policy, mode);
-    assert.match(result.instruction, /the user chooses the mode and starts the plan/u);
+    assert.equal(await runs.authorizePreparation('p1', KEY, 'Docs'), null, mode);
+    assert.deepEqual(await journal.list(dir), []);
   }
   const old = await setup('full', { capability: undefined });
-  old.say(KEY, 'Да, составляй спецификацию и план');
-  const result = await old.runs.authorizePreparation('p1', KEY, 'Docs', 'составляй спецификацию и план');
-  assert.equal(result.policy, 'kit-update-required');
-  assert.equal(result.runId, null);
+  for (const said of [true, false]) {
+    if (said) old.say(KEY, 'Да, составляй спецификацию и план');
+    else old.service(KEY);
+    const result = (await old.runs.authorizePreparation('p1', KEY, 'Docs'))!;
+    assert.deepEqual([result.policy, result.runId], ['kit-update-required', null]);
+    assert.match(result.instruction, /update Kit/u);
+  }
+  assert.deepEqual(await old.journal.list(old.dir), []);
+});
+
+test('M40 with the agent channel: a continuation, a queued message and an old turn are no source; the delivered message is', async () => {
+  const channel = createAgentChannel({ resolveProject: async () => ({ id: 'p1' }) });
+  let next: StopDecision = { kind: 'continue', text: 'Workflow Kit: autopilot. Continue the workflow.' };
+  channel.setDecider(async () => next);
+  const prompt = (text: string) => parseHookInput('claude', { session_id: 's-1', hook_event_name: 'UserPromptSubmit', prompt: text, cwd: '/p' })!;
+  const stop = async () => (await channel.stop(parseHookInput('claude', { session_id: 's-1', hook_event_name: 'Stop', stop_hook_active: false, last_assistant_message: 'done', cwd: '/p' })!)).ack();
+  const { runs, journal, dir } = await setup('full', {}, true, undefined, (key) => channel.userSource(key));
+  (await channel.prompt(prompt('Как дела?'))).ack();
+  // The autopilot continued the session: the user's message belongs to the old turn.
+  await stop();
+  assert.equal(channel.get(KEY)?.state, 'working');
+  assert.equal(await runs.authorizePreparation('p1', KEY, 'Docs'), null, 'a continuation of the autopilot');
+  // A panel message of the user waits in the queue while the agent works: not delivered yet.
+  channel.enqueue(KEY, 'Сделай план склада', USER_MESSAGE_SOURCE, 'p1');
+  assert.equal(await runs.authorizePreparation('p1', KEY, 'Docs'), null, 'a queued message');
+  // The end of the turn delivers it: now it is the user's message of the current turn.
+  next = { kind: 'release' };
+  await stop();
+  const prepared = (await runs.authorizePreparation('p1', KEY, 'Docs'))!;
+  assert.equal(prepared.policy, 'full');
+  assert.equal((await journal.read(dir, prepared.runId!))?.request.quote, 'Сделай план склада');
+  channel.close();
 });
 
 test('plan decision: talk never starts a run; review/plan in full mode register one with the answer as source', async () => {
@@ -129,7 +173,7 @@ test('a manual start gets no M39 authority when off, on a legacy plan or with an
 test('T006: a review decision the session already has wins over the Settings default in the run snapshot', async () => {
   const { runs, say } = await setup('full', {}, true, false);
   say(KEY, 'Да, составляй спецификацию и план');
-  const result = await runs.authorizePreparation('p1', KEY, 'Docs', 'составляй спецификацию и план');
+  const result = (await runs.authorizePreparation('p1', KEY, 'Docs'))!;
   assert.equal(result.review, false);
   assert.match(result.instruction, /without a cross review/u);
 });

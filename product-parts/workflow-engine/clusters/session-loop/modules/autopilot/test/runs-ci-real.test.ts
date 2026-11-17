@@ -95,7 +95,7 @@ before(async () => {
   const projectPath = async () => root;
   const listProjects = async () => [{ id: 'p', path: root }];
   const send = (_p: string, _k: string, text: string) => void sent.push(text);
-  runs = createRuns({ settings, journal, kit: runKit, tickets, words: () => [], projectPath, listProjects });
+  runs = createRuns({ settings, journal, kit: runKit, tickets, userSource: () => null, projectPath, listProjects });
   waits = createRunWaits({ journal, kit: runKit, ci: { read: async () => verdict }, projectPath, listProjects, send });
   control = createRunControl({ journal, kit: runKit, projectPath, listProjects, send, actions: () => ({ pause: async () => undefined, resume: async (_p, s) => ({ owner: s! }), halt: () => undefined }), activity: () => undefined });
 });

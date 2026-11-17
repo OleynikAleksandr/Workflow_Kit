@@ -122,7 +122,7 @@ before(async () => {
   const tickets = createHostTickets();
   const journal = createRunJournal();
   const runKit = createRunKit({ runner, tickets });
-  runs = createRuns({ settings, journal, kit: runKit, tickets, words: (key) => channel.userWords(key), projectPath, listProjects });
+  runs = createRuns({ settings, journal, kit: runKit, tickets, userSource: (key) => channel.userSource(key), projectPath, listProjects });
   autopilot = createAutopilot({
     runner, workflow, channel, projectPath,
     authority: { beforeStart: async (id, key) => (await runs.beginExecution(id, key))?.runId ?? null, beforeResume: async () => null },
@@ -145,7 +145,7 @@ after(async () => {
 
 test('full without review: instruction → proposal → automatic choice with the Kit digest → start with the grant', async () => {
   await said('off', 's-1', 'Да, составляй спецификацию и план');
-  const prepared = await runs.authorizePreparation('off', 'claude:s-1', 'Release note', 'составляй спецификацию и план');
+  const prepared = await runs.authorizePreparation('off', 'claude:s-1', 'Release note').then((prepared) => prepared!);
   assert.ok(prepared.runId);
   await propose('off');
   const digest = await runner.proposalDigest(roots['off']!);
@@ -171,7 +171,7 @@ test('full without review: instruction → proposal → automatic choice with th
 test('a specification changed after the agreement cancels the admission; Kit refuses the old digest too', async () => {
   reviewOn.add('changed');
   await said('changed', 's-2', 'Да, составляй спецификацию и план');
-  const prepared = await runs.authorizePreparation('changed', 'claude:s-2', 'Release note', 'составляй спецификацию и план');
+  const prepared = await runs.authorizePreparation('changed', 'claude:s-2', 'Release note').then((prepared) => prepared!);
   assert.ok(prepared.runId);
   await propose('changed');
   const before = await runner.proposalDigest(roots['changed']!);

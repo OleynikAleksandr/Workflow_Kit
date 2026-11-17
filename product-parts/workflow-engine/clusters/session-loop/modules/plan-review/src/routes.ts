@@ -1,5 +1,5 @@
 // POST /api/projects/:id/sessions/:sid/review { on }, …/plan-decision { choice } (spec M4 12.1),
-// POST /api/sessions/plan { …, authorized? } (M39: the direct instruction of the user)
+// POST /api/sessions/plan (M40: in the full autopilot the service itself decides to prepare)
 // and the "review" section of /api/state.
 import { HttpError, classifyAddress } from '#http-server';
 import type { Router, StateRegistry } from '#http-server';
@@ -23,27 +23,25 @@ export function registerPlanQuestionRoute(options: {
    */
   sessionKey: (input: Record<string, unknown>, projectId: string) => Promise<string>;
   /**
-   * M39: `authorized` — the exact words of the user's direct instruction to write the
-   * specification and the plan. The autopiloting runs check them against the words the user
-   * really wrote and answer with the preparation policy (no plan question opens); refusals are
-   * HttpErrors. Without it `authorized` is refused as unsupported.
+   * M40: the service decides whether the task is prepared without the question (the autopiloting
+   * runs: Settings «Полный автопилот» and the user's message of the current turn). An object is
+   * the answer to the agent (`action: prepare`, no plan question opens); null opens the usual
+   * question; refusals are HttpErrors. The old `authorized` field of the request is ignored.
    */
-  authorize?: (projectId: string, key: string, summary: string, quote: string) => Promise<Record<string, unknown>>;
+  prepare?: (projectId: string, key: string, summary: string) => Promise<Record<string, unknown> | null>;
 }): void {
   options.router.post('/api/sessions/plan', async ({ body, req }) => {
     if (classifyAddress(req.socket.remoteAddress) !== 'loopback') throw new HttpError(403, 'loopback-only', 'Вопрос о плане принимается только с этого компьютера');
     const input = typeof body === 'object' && body !== null ? (body as Record<string, unknown>) : {};
     const summary = typeof input['summary'] === 'string' ? input['summary'].trim() : '';
     if (summary === '') throw new HttpError(400, 'bad-request', 'Нужна одна строка: что собираемся сделать');
-    const quote = input['authorized'];
-    if (quote !== undefined && (typeof quote !== 'string' || quote.trim() === '')) throw new HttpError(400, 'bad-request', '--authorized: нужны точные слова пользователя');
-    if (quote !== undefined && !options.authorize) throw new HttpError(400, 'authorization-unsupported', 'Служба не поддерживает --authorized');
     for (const folder of [input['projectDir'], input['cwd']]) {
       if (typeof folder !== 'string' || folder === '') continue;
       const project = await options.resolveProject(folder);
       if (!project) continue;
       const key = await options.sessionKey(input, project.id);
-      if (typeof quote === 'string') return { projectId: project.id, key, ...(await options.authorize!(project.id, key, summary, quote)) };
+      const prepared = (await options.prepare?.(project.id, key, summary)) ?? null;
+      if (prepared) return { projectId: project.id, key, ...prepared };
       try {
         const question = await options.toggles.ask(project.id, key, 'agent', summary);
         return { projectId: project.id, key, question };

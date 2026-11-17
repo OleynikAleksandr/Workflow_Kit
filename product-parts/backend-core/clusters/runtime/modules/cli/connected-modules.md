@@ -90,6 +90,11 @@
   /api/projects/:id/workflow/decision` (кнопка карточки) с общим замком проекта; сообщение
   сессии по кнопке идёт через будящий канал. Контракт —
   [autopilot/decisions.md](../../../../../workflow-engine/clusters/session-loop/modules/autopilot/decisions.md);
+- вопрос о плане M40 T007: `wireAutopiloting` отдаёт `prepare(projectId, key, summary)` —
+  `runs.authorizePreparation` с источником `userSource` канала (служебное приветствие панели
+  `SERVICE_MESSAGE_MARK` источником не считается); `wireCrossReview` передаёт его маршруту
+  `POST /api/sessions/plan` (`registerPlanQuestionRoute`, опция `prepare`); сервис решений
+  получает `sourceTaken` — сообщение, зарегистрировавшее запуск, решением не становится.
 - «стоп» и «пауза» пользователя M40 T006: `wireAutopiloting` создаёт сервис слов
   (`createRunWords`: управление запуском `RunControl.byWord`, `tell` — `channel.enqueue` без
   пробуждения сессии) и отдаёт его как `words`; `wireSessions` вызывает `words.received` в двух

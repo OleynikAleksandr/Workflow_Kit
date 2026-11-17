@@ -12,6 +12,13 @@ import { openKit, write } from "./workflow-kit-support.mjs";
 // the Node IPC on every OS.
 const build = await buildWorkflowModules(["workflow-kit"], "workflow-kit-host-ipc");
 const roots = [];
+
+// The root as the service compares it (M39 F004): the native realpath expands the 8.3 names of
+// a Windows temporary folder (`RUNNER~1`), which the Kit and git name in the long form, and
+// returns the case stored on disk on every OS.
+function sameRoot(left, right) {
+  return typeof left === "string" && realpathSync.native(left) === realpathSync.native(right);
+}
 const PROTOCOL = "wfk-host/1";
 try {
   const opened = await openKit(build, { clock: "13:00", prefix: "workflow-host-", roots });
@@ -169,7 +176,7 @@ try {
   // The honest parent: the payload is bound to this project, run, scope and input.
   const done = await forked(authorizeArgs, parent((payload) =>
     payload.operation === "autopilot:authorize" &&
-    payload.root === realpathSync(root) &&
+    sameRoot(payload.root, root) &&
     payload.runId === "run-1" &&
     payload.scopeId === "auto" &&
     payload.ownerSession === "s-1" &&

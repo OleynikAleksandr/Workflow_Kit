@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1217,
+  "revision": 1219,
   "rounds": [
     {
       "digest": {
@@ -1386,7 +1386,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R4",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Тест host IPC ядра сравнивает корень так же, как служба",
       "why": "CI cba932b (run 44003136336): test:kit впервые дошёл до Windows; workflow-kit-host-ipc сравнивал payload.root с realpathSync(root), а на Windows корень Kit и временная папка различаются именем 8.3 — честный родитель отвечал binding"
     },
@@ -1515,8 +1515,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 18/22
-- Revision: 1217
+- Progress: 19/22
+- Revision: 1219
 
 ## Objective
 
@@ -1623,7 +1623,7 @@ Digest: R3 исправил тест F002: проверки веток linux и 
 
 ### R4 — Тесты, скрытые прошлыми падениями CI (fixes, OPEN)
 
-- [TODO] F004 — Тест host IPC ядра сравнивает корень так же, как служба (work)
+- [DONE] F004 — Тест host IPC ядра сравнивает корень так же, как служба (work)
   - Commit: test: compare the host root by the native realpath in the Kit IPC test
   - Files: product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-host-ipc.test.mjs
   - Fixes: T002

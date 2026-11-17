@@ -4,3 +4,5 @@ export { HOST_DECISIONS_SINCE, KIT_INSTALLED_STATES, approveKitHooks, compareVer
 export type { KitUpdate, KitUpdateOptions, KitUpdateSection } from './routes.ts';
 export { registerKitUpdateRoutes } from './routes.ts';
 export type { KitStructureLast, KitStructureState, StructureAccess } from './structure.ts';
+export type { DeferralSources, KitDeferral, KitDeferralCode } from './deferral.ts';
+export { deferralText, kitDeferral } from './deferral.ts';

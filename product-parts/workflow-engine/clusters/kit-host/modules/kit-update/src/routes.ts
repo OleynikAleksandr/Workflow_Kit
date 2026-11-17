@@ -11,6 +11,8 @@ import type { Project, ProviderRegistry } from '#provider-registry';
 import { STRUCTURE_NO_CHANGES, dirtyNote, pendingPaths, restore, snapshot, structureState, writtenPaths } from './structure.ts';
 import type { KitStructureLast, StructureAccess, StructureSnapshot } from './structure.ts';
 import { KIT_INSTALLED_STATES, approveKitHooks, decisionsOption, kitAction } from './update.ts';
+import { deferralText } from './deferral.ts';
+import type { KitDeferral } from './deferral.ts';
 import type { HookApprovalOptions, KitUpdateState } from './update.ts';
 
 export interface KitUpdateOptions {
@@ -31,6 +33,13 @@ export interface KitUpdateOptions {
   log?: (line: string) => void;
   /** Called after an update attempt (the workflow state re-reads the project). */
   onUpdated?: (projectId: string) => void;
+  /**
+   * M41: why the update waits — an open plan or a run not yet published (`kitDeferral`), read
+   * fresh at the request and again under `mutex` before the first write.
+   */
+  deferral?: (root: string) => Promise<KitDeferral | null>;
+  /** M41: the project lock the completion of a run takes (`project:<id>`). */
+  mutex?: { run<T>(key: string, action: () => Promise<T>): Promise<T> };
 }
 
 export interface KitUpdateSection {
@@ -72,10 +81,14 @@ export function registerKitUpdateRoutes(options: KitUpdateOptions): KitUpdate {
     return found;
   }
 
+  const deferralOf = async (project: Project): Promise<KitDeferral | null> => (options.deferral ? options.deferral(project.path) : null);
+  const serial = <T>(id: string, action: () => Promise<T>): Promise<T> => (options.mutex ? options.mutex.run(`project:${id}`, action) : action());
+
   async function refreshOne(project: Project): Promise<void> {
     const outcome = await options.kit.inspect(project.path);
     const current = entry(project.id);
     current.checkedAt = now().toISOString();
+    if (options.deferral) current.deferred = await deferralOf(project).catch(() => null);
     delete current.structureNote;
     current.structure = null;
     if (!outcome.ok) {
@@ -145,11 +158,24 @@ export function registerKitUpdateRoutes(options: KitUpdateOptions): KitUpdate {
       if (prepared.saved) await restore(project.path, prepared.saved).catch(() => undefined);
     };
     try {
-      prepared = await prepareStructure(project);
-      // M40: the bundled Kit 2.4.0+ makes the project a `host` one (the app records the decisions).
-      const outcome = await options.kit.install(project.path, { update: true, ...(prepared.with.length > 0 ? { with: prepared.with } : {}), ...decisionsOption(bundled) });
+      // M41: the facts are read again under the project lock before the first write; the
+      // structure, Kit's commit and the restore of the structure all happen under it.
+      const outcome = await serial(project.id, async () => {
+        const deferred = await deferralOf(project);
+        if (deferred) {
+          current.deferred = deferred;
+          current.error = { code: deferred.code, message: deferralText(deferred), nextAction: null, at: now().toISOString() };
+          options.log?.(`kit: update deferred ${project.name}: ${deferred.code}`);
+          return null;
+        }
+        prepared = await prepareStructure(project);
+        // M40: the bundled Kit 2.4.0+ makes the project a `host` one (the app records the decisions).
+        const installed = await options.kit.install(project.path, { update: true, ...(prepared.with.length > 0 ? { with: prepared.with } : {}), ...decisionsOption(bundled) });
+        if (!installed.ok) await putBack();
+        return installed;
+      });
+      if (!outcome) return;
       if (!outcome.ok) {
-        await putBack();
         current.error = { code: outcome.code, message: outcome.message, nextAction: outcome.nextAction, at: now().toISOString() };
         options.log?.(`kit: update failed ${project.name}: ${outcome.code}`);
         return;
@@ -168,7 +194,7 @@ export function registerKitUpdateRoutes(options: KitUpdateOptions): KitUpdate {
       if (prepared.last) options.log?.(`kit: structure ${project.name} ${prepared.last.from ?? '—'} → ${prepared.last.to}`);
       if (prepared.note) options.log?.(`kit: structure skipped ${project.name}: ${prepared.note}`);
     } catch (error) {
-      await putBack();
+      await serial(project.id, putBack);
       current.error = { code: 'KIT_UPDATE_FAILED', message: message(error), nextAction: null, at: now().toISOString() };
     } finally {
       await refreshOne(project).catch(() => undefined);
@@ -184,6 +210,10 @@ export function registerKitUpdateRoutes(options: KitUpdateOptions): KitUpdate {
     if (!project) throw new HttpError(404, 'not-found', `Проект не найден: ${id}`);
     if (jobs.has(id)) throw new HttpError(409, 'busy', 'Kit этого проекта уже обновляется');
     const current = entry(id);
+    // M41: an open plan or a run not yet published: nothing starts, nothing is written.
+    const deferred = await deferralOf(project);
+    if (options.deferral) current.deferred = deferred;
+    if (deferred) throw new HttpError(409, deferred.code, deferralText(deferred), { scopeId: deferred.scopeId, runId: deferred.runId });
     current.running = true;
     delete current.error;
     delete current.last;

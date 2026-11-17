@@ -21,8 +21,22 @@ const INSTALLED = new Set(['KIT_OK', 'KIT_OUTDATED', 'KIT_DAMAGED']);
  * @property {string} text
  * @property {string[]} lines kept structure files, the structure and the hooks after the update, or Kit's next step after an error
  * @property {string | null} button «Обновить Kit», null while it runs or after a success
+ * @property {string | null} deferred M41: why the button is off — «После закрытия плана «…»» or «После публикации запуска»
  * @property {boolean} running
  */
+
+/**
+ * M41: the caption of the button that waits for the plan or the run (kit-update `deferred`).
+ * @param {unknown} value
+ * @returns {string | null}
+ */
+export function deferredCaption(value) {
+  if (!value || typeof value !== 'object') return null;
+  const deferred = /** @type {Record<string, unknown>} */ (value);
+  if (deferred['code'] === 'scope-open') return `После закрытия плана «${typeof deferred['scopeId'] === 'string' ? deferred['scopeId'] : ''}»`;
+  if (deferred['code'] === 'run-active') return 'После публикации запуска';
+  return null;
+}
 
 /**
  * @typedef {object} KitView
@@ -82,10 +96,11 @@ export function kitView(state, projectId) {
   const kitArrow = `Kit ${installed ?? '—'} → ${bundled}`;
   const arrow = structureOlder && !kitOlder ? `Структура Kit ${structureArrow}` : structureOlder ? `${kitArrow}, структура ${structureArrow}` : kitArrow;
   const kept = strings(structure?.kept);
+  const deferred = deferredCaption(entry.deferred);
   /** @type {KitCard | null} */
   let card = null;
   if (entry.running === true) {
-    card = { tone: 'muted', title: arrow, text: 'Kit обновляется…', lines: [], button: null, running: true };
+    card = { tone: 'muted', title: arrow, text: 'Kit обновляется…', lines: [], button: null, deferred: null, running: true };
   } else if (entry.error && typeof entry.error === 'object') {
     const next = text(entry.error.nextAction);
     card = {
@@ -94,13 +109,14 @@ export function kitView(state, projectId) {
       text: `Kit не обновлён: ${text(entry.error.message) ?? text(entry.error.code) ?? 'ошибка'}`,
       lines: next ? [`Следующий шаг: ${next}`] : [],
       button: entry.action === 'update' ? 'Обновить Kit' : null,
+      deferred,
       running: false,
     };
   } else if (entry.last && typeof entry.last === 'object') {
     card = lastCard(entry, bundled);
   } else if (entry.action === 'update') {
     const lines = kept.length > 0 ? [`Изменено вручную, не обновится: ${kept.join(', ')}`] : [];
-    card = { tone: 'muted', title: arrow, text: KIT_UPDATE_TEXT, lines, button: 'Обновить Kit', running: false };
+    card = { tone: 'muted', title: arrow, text: KIT_UPDATE_TEXT, lines, button: 'Обновить Kit', deferred, running: false };
   }
   return { line, missing, card };
 }
@@ -122,7 +138,7 @@ function lastCard(entry, bundled) {
   if (note) lines.push(note);
   const kitChanged = text(last.from) !== to;
   if (!kitChanged && !structure && note) {
-    return { tone: 'error', title: 'Структура Kit не обновлена', text: note, lines: strings(last.hooks), button: entry.action === 'update' ? 'Обновить Kit' : null, running: false };
+    return { tone: 'error', title: 'Структура Kit не обновлена', text: note, lines: strings(last.hooks), button: entry.action === 'update' ? 'Обновить Kit' : null, deferred: deferredCaption(entry.deferred), running: false };
   }
   return {
     tone: 'ok',
@@ -130,6 +146,7 @@ function lastCard(entry, bundled) {
     text: `${commit ? `Коммит ${commit.slice(0, 7)}. ` : ''}${AFTER_TEXT}`,
     lines,
     button: null,
+    deferred: null,
     running: false,
   };
 }
@@ -162,7 +179,11 @@ export function kitPanel(card, update) {
     h('p', { class: tone }, [card.text]),
     card.lines.length > 0 ? h('ul', { class: 'checks' }, card.lines.map((l) => h('li', {}, [l]))) : null,
   ];
-  if (card.button) {
+  if (card.button && card.deferred) {
+    // M41: the update waits for the plan or the run; the service refuses it meanwhile (409).
+    const node = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'btn', disabled: '', title: card.deferred }, [card.button]));
+    children.push(node, h('p', { class: 'pub-muted' }, [card.deferred]));
+  } else if (card.button) {
     const node = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'btn primary' }, [card.button]));
     node.addEventListener('click', () => {
       node.disabled = true;

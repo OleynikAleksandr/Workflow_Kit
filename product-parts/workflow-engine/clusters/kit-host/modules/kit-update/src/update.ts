@@ -2,6 +2,7 @@
 // with the app's bundle, the update is `install --update`, and after it the Kit hooks of a provider
 // that only records an approval (Codex) are approved when the folder is trusted. Kit itself writes
 // the project; this module only runs its commands and keeps their outcome.
+import type { KitDeferral } from './deferral.ts';
 import type { KitInspect } from '#kit-runner';
 import type { Project, Provider } from '#provider-registry';
 import type { KitStructureLast, KitStructureState } from './structure.ts';
@@ -50,6 +51,8 @@ export interface KitUpdateState {
   last?: KitUpdateLast;
   /** Why the state is unknown (inspect failed), or absent. */
   note?: string;
+  /** M41: why the update waits (an open plan, a run not yet published), or null. */
+  deferred?: KitDeferral | null;
   checkedAt: string | null;
 }
 

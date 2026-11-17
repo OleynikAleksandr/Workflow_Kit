@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { KIT_UPDATE_TEXT, kitView } from '../src/kit-card.js';
+import { KIT_UPDATE_TEXT, deferredCaption, kitView } from '../src/kit-card.js';
 
 const st = (entry: Record<string, unknown>) => ({ kitUpdate: { projects: { p1: { bundled: '2.2.4', running: false, checkedAt: null, ...entry } } } });
 
@@ -18,9 +18,9 @@ test('the Kit line: the version, no Kit, or why the state is unknown', () => {
 test('an older Kit gets the card with the button; the button is gone while it runs', () => {
   const offer = kitView(st({ installed: '2.2.3', state: 'KIT_OUTDATED', action: 'update' }), 'p1')!;
   assert.equal(offer.line, 'Kit 2.2.3');
-  assert.deepEqual(offer.card, { tone: 'muted', title: 'Kit 2.2.3 → 2.2.4', text: KIT_UPDATE_TEXT, lines: [], button: 'Обновить Kit', running: false });
+  assert.deepEqual(offer.card, { tone: 'muted', title: 'Kit 2.2.3 → 2.2.4', text: KIT_UPDATE_TEXT, lines: [], button: 'Обновить Kit', deferred: null, running: false });
   const running = kitView(st({ installed: '2.2.3', state: 'KIT_OUTDATED', action: 'update', running: true }), 'p1')!;
-  assert.deepEqual(running.card, { tone: 'muted', title: 'Kit 2.2.3 → 2.2.4', text: 'Kit обновляется…', lines: [], button: null, running: true });
+  assert.deepEqual(running.card, { tone: 'muted', title: 'Kit 2.2.3 → 2.2.4', text: 'Kit обновляется…', lines: [], button: null, deferred: null, running: true });
   // A newer Kit than the app's: the line only, never a downgrade.
   assert.equal(kitView(st({ installed: '2.2.5', state: 'KIT_OK', action: 'none' }), 'p1')!.card, null);
 });
@@ -38,6 +38,7 @@ test('after the update: the outcome with the hooks lines, or the Kit error with 
     text: 'Коммит c0ffee1. Сессии, начатые до обновления, получат новые хуки и пакет со следующей сессии.',
     lines: ['ChatGPT: хуки Kit одобрены'],
     button: null,
+    deferred: null,
     running: false,
   });
   const failed = kitView(st({
@@ -52,6 +53,7 @@ test('after the update: the outcome with the hooks lines, or the Kit error with 
     text: 'Kit не обновлён: A Kit commit transaction is unfinished.',
     lines: ['Следующий шаг: Run `scripts/workflow repair`.'],
     button: 'Обновить Kit',
+    deferred: null,
     running: false,
   });
   const noStep = kitView(st({ installed: '2.2.3', state: 'KIT_OUTDATED', action: 'none', error: { code: 'KIT_TIMEOUT', message: '', nextAction: null } }), 'p1')!;
@@ -70,6 +72,7 @@ test('the Kit structure (M38): the arrow, the files kept by hand, the outcome an
     text: KIT_UPDATE_TEXT,
     lines: ['Изменено вручную, не обновится: .workflow-kit/templates/module.md'],
     button: 'Обновить Kit',
+    deferred: null,
     running: false,
   });
   assert.match(KIT_UPDATE_TEXT, /структуру/);
@@ -96,6 +99,7 @@ test('the Kit structure (M38): the arrow, the files kept by hand, the outcome an
     text: 'Коммит abc1234. Сессии, начатые до обновления, получат новые хуки и пакет со следующей сессии.',
     lines: ['Структура Kit 3 → 4: .claude/settings.json, .workflow-kit/manifest.json'],
     button: null,
+    deferred: null,
     running: false,
   });
   const bothDone = kitView(st({
@@ -121,5 +125,17 @@ test('the Kit structure (M38): the arrow, the files kept by hand, the outcome an
     structure: structure(true),
     last: { from: '2.2.4', to: '2.2.4', commit: null, hooks: [], structure: null, structureNote: note, at: '2026-11-16T12:00:00.000Z' },
   }), 'p1')!;
-  assert.deepEqual(skipped.card, { tone: 'error', title: 'Структура Kit не обновлена', text: note, lines: [], button: 'Обновить Kit', running: false });
+  assert.deepEqual(skipped.card, { tone: 'error', title: 'Структура Kit не обновлена', text: note, lines: [], button: 'Обновить Kit', deferred: null, running: false });
+});
+
+test('M41: the update waits for an open plan or an unpublished run; the button is off with the reason', () => {
+  const plan = kitView(st({ installed: '2.2.3', state: 'KIT_OUTDATED', action: 'update', deferred: { code: 'scope-open', scopeId: 'M41-autopilot-acceptance', runId: null } }), 'p1')!;
+  assert.deepEqual([plan.card?.button, plan.card?.deferred], ['Обновить Kit', 'После закрытия плана «M41-autopilot-acceptance»']);
+  const run = kitView(st({ installed: '2.2.3', state: 'KIT_OUTDATED', action: 'update', deferred: { code: 'run-active', scopeId: null, runId: 'run-abcdef' } }), 'p1')!;
+  assert.equal(run.card?.deferred, 'После публикации запуска');
+  // The refusal of a background update keeps the button off while the reason holds.
+  const refused = kitView(st({ installed: '2.2.3', state: 'KIT_OUTDATED', action: 'update', deferred: { code: 'run-active', scopeId: 'auto', runId: 'run-abcdef' }, error: { code: 'run-active', message: 'Обновление Kit — после публикации запуска run-abcdef', nextAction: null } }), 'p1')!;
+  assert.deepEqual([refused.card?.tone, refused.card?.deferred], ['error', 'После публикации запуска']);
+  assert.equal(kitView(st({ installed: '2.2.3', state: 'KIT_OUTDATED', action: 'update', deferred: null }), 'p1')!.card?.deferred, null);
+  assert.equal(deferredCaption({ code: 'other' }), null);
 });

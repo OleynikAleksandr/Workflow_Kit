@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1288,
+  "revision": 1290,
   "rounds": [
     {
       "digest": null,
@@ -371,14 +371,23 @@
         "product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts",
         "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
         "docs/architecture/HTTP-CONTRACTS.md",
-        "docs/architecture/OS-MATRIX.md"
+        "docs/architecture/OS-MATRIX.md",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/kit-card.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/kit-card.test.ts",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-update/module.md",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-update/src/deferral.ts",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-update/src/index.ts",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-update/src/routes.ts",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-update/src/update.ts",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-update/test/kit-update-deferral.test.ts"
       ],
       "fixes": null,
       "id": "T003",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "«Обновить Kit» после закрытия плана и публикации",
       "why": "Коммит Kit после зелёного CI сделал доказательство приёмки непригодным"
     },
@@ -538,8 +547,8 @@
 - Execution: sequential
 - Automation: 4 automatic, 0 manual criteria; CI origin ci/M41-autopilot-acceptance (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 2/7
-- Revision: 1288
+- Progress: 3/7
+- Revision: 1290
 
 ## Objective
 
@@ -563,9 +572,9 @@
   - Commit: feat: wait for the user's acceptance instead of stopping the autopilot run
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting-completion.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/run-end.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/complete.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/manual-acceptance.test.ts, product-parts/control-panel/clusters/web-panel/modules/session-view, docs/architecture/OS-MATRIX.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/run-card.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/run-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/test/run-model.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-brief.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-complete.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-journal.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-kit.ts
   - Depends on: T001
-- [TODO] T003 — «Обновить Kit» после закрытия плана и публикации (work)
+- [DONE] T003 — «Обновить Kit» после закрытия плана и публикации (work)
   - Commit: feat: defer the Kit update while a plan is open
-  - Files: product-parts/workflow-engine/clusters/kit-host/modules/kit-update, product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, docs/architecture/HTTP-CONTRACTS.md, docs/architecture/OS-MATRIX.md
+  - Files: product-parts/workflow-engine/clusters/kit-host/modules/kit-update, product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, docs/architecture/HTTP-CONTRACTS.md, docs/architecture/OS-MATRIX.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/kit-card.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/kit-card.test.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/src/deferral.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/src/index.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/src/routes.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/src/update.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/test/kit-update-deferral.test.ts
   - Depends on: T002
 - [TODO] T004 — Сквозные сценарии M41 (work)
   - Commit: test: verify M41 autopilot acceptance end to end

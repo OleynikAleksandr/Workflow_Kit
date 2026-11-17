@@ -9,6 +9,7 @@ import { createHttpServer, createRouter, createStateRegistry, registerCoreRoutes
 import type { HttpServerHandle, InterfaceMap, Router, StateRegistry } from '#http-server';
 import type { AgentChannel } from '#agent-channel';
 import type { Autopilot } from '#autopilot';
+import { createRunJournal } from '#autopilot';
 import { kitBundleProvider } from '#kit-bundle';
 import { createProjectSetup, registerSetupRoutes } from '#project-setup';
 import type { ProjectSetup } from '#project-setup';
@@ -21,7 +22,7 @@ import { createKitRunner, createWorkflowState } from '#kit-runner';
 import type { KitRunner, WorkflowState } from '#kit-runner';
 import { checkStructure, installStructure, registerStructureRoutes } from '#kit-structure';
 import { createPublisher, registerPublicationRoutes, runGit } from '#git-publish';
-import { registerKitUpdateRoutes } from '#kit-update';
+import { kitDeferral, registerKitUpdateRoutes } from '#kit-update';
 import { panelShellMount } from '#panel-shell';
 import { projectWizardMount } from '#project-wizard';
 import { sessionViewMount } from '#session-view';
@@ -154,6 +155,8 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
   const stopSpeech = registerSpeechRoutes({ router, server, speech });
   const events = createEventLog({ file: eventsFile(dirs) });
   const mutex = createKeyedMutex();
+  // M41: a reader of the run journal files (the runs write them); «Обновить Kit» waits for a run.
+  const runJournal = createRunJournal({ platform });
   const homeScope = { homedir, platform };
   const projects = createProjectRegistry({
     ...homeScope,
@@ -257,6 +260,16 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
     structure: { check: checkStructure, install: (root) => installStructure(root) },
     log: options.log,
     onUpdated: (projectId) => void workflow.refresh(projectId).catch(() => undefined),
+    // M41: no Kit commit while a plan is open or a run has not published its verified SHA; the
+    // check is repeated under the project lock the completion of a run takes.
+    deferral: kitDeferral({
+      status: (root) => kit.status(root),
+      activeRun: async (root) => {
+        const run = await runJournal.active(root);
+        return run ? { runId: run.runId, scopeId: run.scopeId } : null;
+      },
+    }),
+    mutex,
   });
 
   // The deepest registered project that contains a folder (paths compared after realpath).

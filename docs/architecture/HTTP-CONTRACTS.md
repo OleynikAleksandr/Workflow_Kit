@@ -45,6 +45,12 @@
   text, manualCriteria }`.
 - Раздел `reviews` (T006): у ревью есть `approvedDigest`, `versioned` и `reviewedProposal`
   (`{ scopeId, generation, digest }` согласованной версии предложения).
+- M41 T002: в разделе `autopiloting.projects[id]` — `manualAcceptance { reason, since }`
+  (запуск ждёт приёмки пользователя) и `notice` (раннее предупреждение).
+- M41 T003: `POST /api/projects/:id/kit/update` — 409 `scope-open`, пока открыт план, и 409
+  `run-active`, пока запуск автопилотирования не опубликовал результат (`details { scopeId,
+  runId }`); раздел `kitUpdate.projects[id].deferred { code, scopeId, runId } | null`.
+  Контракт — [kit-update/module.md](../../product-parts/workflow-engine/clusters/kit-host/modules/kit-update/module.md).
 - Контракт — [autopilot/autopiloting.md](../../product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md).
 
 ## Голосовой ввод (speech-integration)

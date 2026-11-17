@@ -40,7 +40,9 @@ stripping).
   проектов, операции, учёт процессов и реестр провайдеров, публикация в git (`registerPublicationRoutes`
   из `git-publish`: `scopeOpen` — у проекта есть scope в `workflow`, обновление после `onChange`
   состояния плана), версия и обновление Kit и его структуры (`registerKitUpdateRoutes` из
-  `kit-update`, M22, M38: `structure` — `checkStructure`, `installStructure`). `App`: `dirs`,
+  `kit-update`, M22, M38: `structure` — `checkStructure`, `installStructure`; M41:
+  `deferral` — `kitDeferral` по `kit.status` и `active` журнала запусков (`createRunJournal`
+  только для чтения файлов запусков), `mutex` — общий `KeyedMutex`). `App`: `dirs`,
   `config`, `version`, `os`, `router`, `state`, `server`, `events`
   (`events.jsonl`), `mutex` (D10), `projects` (`ProjectRegistry`),
   `operations` (`Operations`, D10), `providers` (`ProviderRegistry`),

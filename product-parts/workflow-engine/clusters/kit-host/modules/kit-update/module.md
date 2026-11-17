@@ -80,6 +80,30 @@ Kit» — это согласие.
 (`project-setup`). Тесты — `test/kit-update-decisions.test.ts`; `test/kit-update-real.test.ts`
 ставит проект с `decisions: host`, как мастер, и обновление остаётся коммитом одной структуры.
 
+## Отложенное обновление (M41 T003, `src/deferral.ts`)
+
+- `kitDeferral({ status, activeRun? }) → (root) → KitDeferral | null`: открытый scope по
+  `status` Kit (`scope.id`) — `{ code: 'scope-open', scopeId, runId: null }`; иначе запуск
+  автопилотирования, не дошедший до `completed`/`finished`/`stopped`, — `{ code:
+  'run-active', scopeId, runId }`; отказ `status` (Kit ещё нет) ничего не откладывает.
+  `deferralText(deferral)` — текст отказа: «Обновление Kit — после закрытия плана «<scope>»:
+  коммит Kit посреди плана меняет процесс и делает CI-доказательство приёмки непригодным»
+  или «Обновление Kit — после публикации запуска <run>: новый коммит остановил бы публикацию
+  проверенного SHA (head-changed)».
+- Опции `registerKitUpdateRoutes`: `deferral(root)` и `mutex` (`KeyedMutex` с ключом
+  `project:<id>` — тот же, что у завершения запуска и кнопки публикации). Раздел даёт
+  `deferred` (при `refresh` и запросе; без опции поля нет).
+- `POST …/kit/update` при запрете — 409 `scope-open` или `run-active` с текстом
+  `deferralText` и `details { scopeId, runId }`; ничего не начинается. Фоновое обновление
+  под `project:<id>` заново читает запрет до первой записи; под той же блокировкой —
+  `prepareStructure` (`structure.install`), `kit.install` и возврат сохранённых текстов при
+  отказе; одобрение хуков — после неё. Запрет при свежей проверке — `error { code, message:
+  deferralText, nextAction: null }`, ни файлов структуры, ни коммита; журнал `kit: update
+  deferred <проект>: <код>`.
+- Тест — `test/kit-update-deferral.test.ts`: 409 обоих видов без записи; запуск, появившийся
+  между запросом и блокировкой, — ни структуры, ни `install`; без запрета структура и Kit
+  пишутся под `project:p1`; правила `kitDeferral`.
+
 ## Инварианты
 
 - Раздел состояния только читает кэш (D11): `inspect` запускается в `refresh()` — при
@@ -115,6 +139,7 @@ Kit» — это согласие.
 | Структура Kit (M38): проверка, запись, возврат файлов | `kit-structure`; пути через `path.join` от корня | то же | то же; команды хуков Claude — в exec-форме `kit-structure` (M33) |
 | Одобрение хуков Kit | Codex: команда из шаблона | то же | Codex: `commandWindows` хука (PowerShell), как его показывает провайдер (M5, M21) |
 | Раздел, маршрут, журнал | одинаково | одинаково | одинаково |
+| Отложенное обновление (M41): `status` Kit, журнал запусков, мьютекс проекта | общий Node-код | то же | то же |
 
 Своих веток по ОС у модуля нет: различия команд хуков знает провайдер.
 

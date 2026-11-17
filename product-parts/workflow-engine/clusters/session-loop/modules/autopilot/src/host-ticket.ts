@@ -4,7 +4,7 @@
 // input digest, and hands it only to the Kit child it forks (kit-runner
 // runHost). The ticket is never written to an environment, a file or a log.
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
-import { realpathSync } from 'node:fs';
+import { sameRoot } from './root-path.ts';
 import type { HostPayload, HostVerdict, HostVerifier } from '#kit-runner';
 
 /** The operations only the host performs (the Kit's `HostOperation`). */
@@ -25,6 +25,8 @@ export interface HostTicketsOptions {
   ttlMs?: number;
   /** Called once when a ticket is redeemed, before the verdict is sent. */
   onRedeem?: (redemption: HostRedemption) => void;
+  /** The platform the roots are compared on (default the running one; F002). */
+  platform?: NodeJS.Platform;
 }
 
 export interface HostTickets {
@@ -57,14 +59,6 @@ export function hostInputDigest(value: unknown): string {
     .digest('hex');
 }
 
-function realRoot(root: string): string {
-  try {
-    return realpathSync(root);
-  } catch {
-    return root;
-  }
-}
-
 function sameText(left: string, right: string): boolean {
   const a = Buffer.from(left);
   const b = Buffer.from(right);
@@ -73,18 +67,19 @@ function sameText(left: string, right: string): boolean {
 
 const FIELDS = ['expectedRevision', 'inputDigest', 'operation', 'ownerSession', 'runId', 'scopeId'] as const;
 
-function mismatch(binding: HostBinding, payload: unknown): string | null {
+function mismatch(binding: HostBinding, payload: unknown, platform: NodeJS.Platform): string | null {
   if (!payload || typeof payload !== 'object') return 'payload';
   const given = payload as Record<string, unknown>;
   for (const field of FIELDS) {
     if (given[field] !== binding[field]) return field;
   }
-  return typeof given['root'] === 'string' && realRoot(given['root']) === realRoot(binding.root) ? null : 'root';
+  return typeof given['root'] === 'string' && sameRoot(given['root'], binding.root, platform) ? null : 'root';
 }
 
 export function createHostTickets(options: HostTicketsOptions = {}): HostTickets {
   const now = options.now ?? Date.now;
   const ttl = options.ttlMs ?? HOST_TICKET_TTL_MS;
+  const platform = options.platform ?? process.platform;
   const spent = new Set<string>();
   return {
     issue(binding) {
@@ -96,7 +91,7 @@ export function createHostTickets(options: HostTicketsOptions = {}): HostTickets
         if (spent.has(ticketId)) return { ok: false, reason: 'ticket already used' };
         if (now() > expiresAt) return { ok: false, reason: 'ticket expired' };
         if (request.payloadDigest !== hostInputDigest(request.payload)) return { ok: false, reason: 'payload digest' };
-        const field = mismatch(binding, request.payload);
+        const field = mismatch(binding, request.payload, platform);
         if (field) return { ok: false, reason: `ticket bound to another ${field}` };
         // Redeemed before the verdict leaves: a replay of the same child or ticket is refused.
         spent.add(ticketId);

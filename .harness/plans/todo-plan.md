@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1201,
+  "revision": 1203,
   "rounds": [
     {
       "digest": {
@@ -1198,14 +1198,20 @@
       "docsWaiver": null,
       "files": [
         "product-parts/workflow-engine/clusters/session-loop/modules/autopilot",
-        "docs/architecture/OS-MATRIX.md"
+        "docs/architecture/OS-MATRIX.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/host-ticket.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/index.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/root-path.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-kit.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/root-path.test.ts"
       ],
       "fixes": "T002",
       "id": "F002",
       "iteration": 1,
       "kind": "work",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Host-тикет узнаёт корень проекта на Windows",
       "why": "CI d1ffd1b (run 43996726304): на Windows x64 и ARM64 все host-команды отвергнуты «ticket bound to another root» — служба привязывает тикет к пути проекта в виде, отличном от пути Kit (короткое имя 8.3, регистр, разделители); автопилот на Windows не работает"
     },
@@ -1332,8 +1338,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 13/17
-- Revision: 1201
+- Progress: 14/17
+- Revision: 1203
 
 ## Objective
 
@@ -1410,9 +1416,9 @@ Digest: M39 R1: Kit 2.3.3 (automation, host-тикеты, defer-delivery); сл�
 
 ### R2 — Windows: host-тикет и корень проекта (fixes, OPEN)
 
-- [TODO] F002 — Host-тикет узнаёт корень проекта на Windows (work)
+- [DONE] F002 — Host-тикет узнаёт корень проекта на Windows (work)
   - Commit: fix: match the project root of a host ticket on Windows
-  - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, docs/architecture/OS-MATRIX.md
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, docs/architecture/OS-MATRIX.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/host-ticket.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/root-path.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-kit.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/root-path.test.ts
   - Fixes: T002
 - [TODO] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R2

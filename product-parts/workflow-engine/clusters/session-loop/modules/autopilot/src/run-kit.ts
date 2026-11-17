@@ -1,7 +1,7 @@
 // The Kit facts and host steps of an autopiloting run (spec M39): the project's own
 // `autopilot:status` and `status`, the grant and its revocation through `KitRunner.runHost` with
 // a one-time host ticket. Only public Kit commands; `.harness/**` is never read.
-import { realpathSync } from 'node:fs';
+import { realRoot } from './root-path.ts';
 import { mkdir, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import type { KitOutcome, KitRunner } from '#kit-runner';
@@ -54,13 +54,7 @@ export interface HostStep {
 
 const RETRIES = 3;
 
-export function realRoot(root: string): string {
-  try {
-    return realpathSync(root);
-  } catch {
-    return root;
-  }
-}
+export { realRoot };
 
 export function createRunKit(options: { runner: KitRunner; tickets: HostTickets }) {
   async function read<T>(root: string, args: string[]): Promise<T | null> {

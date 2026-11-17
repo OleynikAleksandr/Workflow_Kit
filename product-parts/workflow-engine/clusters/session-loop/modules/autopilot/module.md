@@ -124,13 +124,13 @@
   плана, раздел ниже; автопилот создаёт его сам.
 - `STOP_LABELS['host-transition']` — «Автопилот выполняет приёмку или закрытие» (причина
   решателя ядра Kit 2.3.3 при живом разрешении; порт `decide.ts` получит её в задачах службы M39).
-- Тикеты хоста (M39, `src/host-ticket.ts`): `createHostTickets({ now?, ttlMs?, onRedeem? })`
+- Тикеты хоста (M39, `src/host-ticket.ts`): `createHostTickets({ now?, ttlMs?, onRedeem?, platform? })`
   → `{ issue(binding), redeemed(), restore(ids) }`. `issue` после проверки настоящего источника
   шага выдаёт `HostVerifier` для одного дочернего процесса `KitRunner.runHost`: случайный тикет
   (`<ticketId>.<секрет>`, 32 байта), срок `HOST_TICKET_TTL_MS` (60 с). `verify` сравнивает тикет
   за постоянное время, отказывает после погашения (`ticket already used`) и срока
-  (`ticket expired`), проверяет `payloadDigest` и каждое поле привязки (`operation`, `root` по
-  `realpath`, `runId`, `scopeId`, `ownerSession`, `expectedRevision`, `inputDigest`) и гасит
+  (`ticket expired`), проверяет `payloadDigest` и каждое поле привязки (`operation`, `root` —
+  `sameRoot` платформы, F002, `runId`, `scopeId`, `ownerSession`, `expectedRevision`, `inputDigest`) и гасит
   тикет до ответа, вызывая `onRedeem` для журнала запуска (журнал — T005; `restore` возвращает
   погашенные id после перезапуска). `hostInputDigest(value)` — тот же sha256 канонического JSON,
   что `hostDigest` Kit. Подключение к решению автопилота и журналу — T005–T008; `autopilot.ts`
@@ -174,6 +174,14 @@
 `#agent-channel`, `#kit-runner`, `#plan-view` (типы), `#http-server`,
 `#data-store` (тип мьютекса). Тесты используют `#kit-bundle`,
 `#process-supervisor` и настоящий бандл Kit на временном git-репозитории;
+`src/root-path.ts` (F002): `realRoot(root)` — `realpathSync.native` (на Windows раскрывает
+короткие имена 8.3, `RUNNER~1`), иначе обычный `realpath`, иначе сам текст; `rootKey(root,
+platform?)` и `sameRoot(a, b, platform?)` — на `win32` без учёта регистра, разделителей,
+конечного `\` и префикса `\\?\`; на других ОС — с учётом регистра, без конечного `/`.
+Служба называет проект зарегистрированной папкой, Kit — найденным им корнем: на Windows они
+расходились, и каждая host-команда получала `ticket bound to another root` (CI `d1ffd1b`).
+`test/root-path.test.ts` — ветки `win32`, `linux` и `darwin` с переданной платформой,
+настоящая временная папка (на macOS `/var` → `/private/var`, на Windows 8.3) и тикет `win32`.
 `test/host-ticket.test.ts` — тикеты (одноразовость, срок, digest, каждое поле, восстановление) и
 настоящий `runHost`: без канала и с `WFK_HOST` в окружении — `HOST_AUTH_REQUIRED`, чужие ревизия,
 операция и вход — `HOST_AUTH_INVALID` без записи, верный тикет — grant и коммит, повтор того же

@@ -24,6 +24,7 @@ export { KIT_OUTDATED_NEXT, KIT_OUTDATED_TEXT, OWNER_NOTE, moveOwner, wakeHolder
 export type { OwnerDeps, OwnerMove } from './owner.ts';
 export type { HostBinding, HostOperation, HostRedemption, HostTickets, HostTicketsOptions } from './host-ticket.ts';
 export { HOST_TICKET_TTL_MS, createHostTickets, hostInputDigest } from './host-ticket.ts';
+export { realRoot, rootKey, sameRoot } from './root-path.ts';
 export type { AutopilotingMode, AutopilotingSettings, SettingsChange, SettingsStore, SettingsView } from './settings.ts';
 export { AUTOPILOTING_MODES, DEFAULT_SETTINGS, SETTINGS_FILE, SettingsError, createSettingsStore } from './settings.ts';
 export type { NewRun, RunAuthority, RunJournal, RunPhase, RunReceipt, RunRecord, RunRequest, RunSource } from './run-journal.ts';

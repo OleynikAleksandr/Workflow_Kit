@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1302,
+  "revision": 1304,
   "rounds": [
     {
       "digest": {
@@ -53,10 +53,20 @@
       "title": "Implementation"
     },
     {
-      "digest": null,
+      "digest": {
+        "contracts": [],
+        "decisions": [
+          "The macOS KIT_TIMEOUT of m40-host-real scenario 2 is treated as a runner load failure unless it repeats"
+        ],
+        "references": [
+          "docs/evidence/M41-acceptance.md",
+          ".github/workflows/ci.yml"
+        ],
+        "result": "M41 R2: the CI jobs get timeout-minutes 40 so that Windows ARM64 completes npm test with the M41 end-to-end tests; the red candidate CI 44145356489 and its causes are recorded in the M41 evidence."
+      },
       "id": "R2",
       "kind": "fixes",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "CI limits"
     }
   ],
@@ -222,7 +232,7 @@
         "text": "Delivery T006 started by the advance instruction of run run-eX36hZQS5Jh3"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "25cedd72-7908-49d9-9f21-79cfca178443",
@@ -638,7 +648,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     }
@@ -650,12 +660,12 @@
 ## State
 
 - Scope: M41-autopilot-acceptance (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Automation: 4 automatic, 0 manual criteria; CI origin ci/M41-autopilot-acceptance (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 8/9
-- Revision: 1302
+- Progress: 9/9
+- Revision: 1304
 
 ## Objective
 
@@ -702,15 +712,17 @@
 
 Digest: M41 R1: Kit 2.4.5 records the delivery checks a delivery task names and refuses automation criteria no task can record (AUTOMATION_CHECK_UNRECORDED), autopilot:status reports checksPending/checksUnreachable; the service waits for the user's acceptance instead of stopping the run, then closes and publishes, and warns early; «Обновить Kit» waits for the close of the plan and the publication of the run (409 scope-open/run-active, re-checked under the project lock); end-to-end scenarios pass on the real bundle.
 
-### R2 — CI limits (fixes, OPEN)
+### R2 — CI limits (fixes, CLOSED)
 
 - [DONE] F001 — Лимит времени заданий CI (work)
   - Commit: ci: give the four-platform jobs room for the M41 end-to-end tests
   - Files: .github/workflows/ci.yml, docs/evidence/M41-acceptance.md
   - Fixes: T004
-- [TODO] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R2
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/evidence/M41-acceptance.md
   - Depends on: F001
+
+Digest: M41 R2: the CI jobs get timeout-minutes 40 so that Windows ARM64 completes npm test with the M41 end-to-end tests; the red candidate CI 44145356489 and its causes are recorded in the M41 evidence.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

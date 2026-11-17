@@ -66,9 +66,9 @@
         "required": true,
         "timeoutMs": 600000,
         "command": {
-          "executable": "npm",
+          "executable": "node",
           "args": [
-            "test"
+            "tools/speech-checks/test.mjs"
           ]
         },
         "appliesTo": [
@@ -98,6 +98,25 @@
           "docs/planning/**",
           "tools/platform-guard/**"
         ]
+      },
+      {
+        "id": "speech-native",
+        "role": "test",
+        "stage": "commit",
+        "required": true,
+        "timeoutMs": 600000,
+        "appliesTo": [
+          "product-parts/speech-input/**/speech-helper/**"
+        ],
+        "command": {
+          "executable": "cargo",
+          "args": [
+            "test",
+            "--locked",
+            "--manifest-path",
+            "product-parts/speech-input/clusters/local-recognition/modules/speech-helper/Cargo.toml"
+          ]
+        }
       },
       {
         "id": "installed-service",

@@ -87,6 +87,12 @@ try {
     plans.read(root).tasks.find((task) => task.id === "D1").confirmation,
     /^Autopilot run run-1 \(authorization 2, panel-resume, .+\): User started the plan .+ \| effects: write the release note$/u
   );
+  // M40: the start by the run is recorded with the source `grant`.
+  const startRecord = plans.read(root).scope.decisions.at(-1);
+  assert.equal(startRecord.kind, "confirm-delivery");
+  assert.equal(startRecord.source.kind, "grant");
+  assert.equal(startRecord.source.runId, "run-1");
+  assert.match(startRecord.source.authorization, /^[0-9a-f]{64}$/u);
   // A revoke while the task runs is saved for the task commit, not committed.
   const headInTask = git.head(root);
   const offInTask = kit.revoke(root, { note: "Settings: off", reason: "settings-off", runId: "run-1" }, revision());
@@ -139,6 +145,11 @@ try {
   assert.equal(plan.scope.acceptanceEvidence.head, current);
   assert.deepEqual(plan.scope.acceptanceEvidence.ci, { checks: ["Linux x64"], sha: ciCommit });
   assert.ok(accepted.commit.sha);
+  assert.equal(plan.scope.decisions.at(-1).kind, "accept");
+  assert.deepEqual(
+    [plan.scope.decisions.at(-1).source.kind, plan.scope.decisions.at(-1).source.runId],
+    ["grant", "run-1"]
+  );
   const packet = kit.recover(root).text;
   assert.match(packet, /Autopilot: run run-1 \(after-start, authorization 3, panel-resume\)/u);
   assert.match(packet, /Accepted automatically by run run-1 at /u);
@@ -153,6 +164,10 @@ try {
   assert.equal(plan.scope, null);
   assert.equal(plan.lastClosed.autopilotRun, "run-1");
   assert.equal(plan.lastClosed.finalCommit, finalHead);
+  assert.deepEqual(
+    [plan.lastClosed.decision.kind, plan.lastClosed.decision.source.kind, plan.lastClosed.decision.source.runId],
+    ["close", "grant", "run-1"]
+  );
   assert.equal(subject(), "chore: close scope auto (autopilot run run-1)");
 
   // user-stop is final: the old run never resumes.

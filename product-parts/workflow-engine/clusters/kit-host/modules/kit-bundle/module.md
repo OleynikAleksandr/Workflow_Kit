@@ -15,7 +15,7 @@ M22 2.5). В модуле лежат gzip (`vendor/workflow-kit-<версия>.m
 
 ## Публичный интерфейс (`src/index.ts`)
 
-- `KIT_VERSION` (`2.3.3`, M39 T004: правила агента с границей автопилота и единым правилом публикации, тексты `next` при живом запуске, решатель ядра с разрешением, полный `capability`; 2.3.2, M39 T003: `task:defer-delivery` — начатая поставка возвращается в TODO для раунда исправлений; 2.3.1, M39 T002: разрешение автопилота, host-only команды через IPC-тикет родителя, `task:start --autopilot-run`; 2.3.0, M39 T001: блок `automation` scope, `scope:proposal --digest` и `scope:choose --expected-digest`; 2.2.7, M38: `install --update --with` для файлов структуры приложения; 2.2.6, M37: папка входных файлов `.harness/inputs/`, подсказка `next` и отказ `close` с путями; 2.2.5, M31: `scope:owner`), `KIT_SHA256`, `KIT_SOURCE_DIGEST` — из
+- `KIT_VERSION` (`2.4.0`, M40 T001: режим `decisions`, запросы решений и запись решений пользователя только операциями хоста; 2.3.3, M39 T004: правила агента с границей автопилота и единым правилом публикации, тексты `next` при живом запуске, решатель ядра с разрешением, полный `capability`; 2.3.2, M39 T003: `task:defer-delivery` — начатая поставка возвращается в TODO для раунда исправлений; 2.3.1, M39 T002: разрешение автопилота, host-only команды через IPC-тикет родителя, `task:start --autopilot-run`; 2.3.0, M39 T001: блок `automation` scope, `scope:proposal --digest` и `scope:choose --expected-digest`; 2.2.7, M38: `install --update --with` для файлов структуры приложения; 2.2.6, M37: папка входных файлов `.harness/inputs/`, подсказка `next` и отказ `close` с путями; 2.2.5, M31: `scope:owner`), `KIT_SHA256`, `KIT_SOURCE_DIGEST` — из
   `src/bundle-meta.ts`; `KIT_SOURCE_DIGEST` — дайджест исходников Kit
   (`kitSourceDigest` сборки).
 - `vendorBundleFile()` — путь gzip в модуле; `unpackedBundleFile(appDir)` —
@@ -42,7 +42,10 @@ M22 2.5). В модуле лежат gzip (`vendor/workflow-kit-<версия>.m
 
 ## Тесты
 
-- `test/bundle.test.ts` — распаковка vendor-бандла и его хеш.
+- `test/bundle.test.ts` — распаковка vendor-бандла и его хеш; фикстура Kit 2.3.3
+  (`test/fixtures/workflow-kit-2.3.3.mjs.gz`, M40: последний бандл без решений хоста, для
+  регрессионных проверок необновлённых проектов) распаковывается в записанный хеш и
+  запускается (`help` без `--decision`).
 - `test/delivery-defer.test.ts` (M39 T003) — настоящий бандл на временном git-проекте: красный CI
   начатой поставки T012 → `task:defer-delivery` (до него безопасные отказы для DONE-задачи,
   устаревшей ревизии и грязного дерева) → `plan:extend` с `round: "new"`, fixes и новой поставкой

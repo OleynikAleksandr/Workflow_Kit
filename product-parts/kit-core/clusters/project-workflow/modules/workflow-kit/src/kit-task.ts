@@ -3,6 +3,7 @@ import {
   isDocumentationPath,
   PLAN_PATH,
   type RoundDigest,
+  type UserDecision,
   type WorkflowPlan,
   type WorkflowTask,
   workflowPlanFacade,
@@ -26,6 +27,7 @@ import {
   readConfig,
   readPlan,
   savePlan,
+  withDecision,
 } from "./kit-context.js";
 import {
   ensureAssignmentReady,
@@ -33,6 +35,7 @@ import {
   guardExecutorCommit,
   markAssignment,
 } from "./kit-executor.js";
+import { hostDigest } from "./kit-host-auth.js";
 import { ensureNotPaused } from "./kit-pause.js";
 import { readStatus, type TaskBrief } from "./kit-status.js";
 
@@ -96,12 +99,49 @@ function ensureMainMayStart(
   );
 }
 
+/** The run whose live grant covers the TODO delivery `task`, or null. */
+export function coveringRun(
+  plan: WorkflowPlan,
+  task: WorkflowTask
+): string | null {
+  const grant = plan.scope?.authorization;
+  if (
+    task.kind !== "delivery" ||
+    !grant ||
+    grant.revoked !== null ||
+    !grant.delivery.some((entry) => entry.taskId === task.id)
+  ) {
+    return null;
+  }
+  return grant.runId;
+}
+
+/** The history record of a delivery the grant of `runId` started (M40). */
+function grantDecision(
+  context: KitContext,
+  plan: WorkflowPlan,
+  runId: string,
+  taskId: string
+): UserDecision {
+  return {
+    at: context.now(),
+    kind: "confirm-delivery",
+    source: {
+      authorization: hostDigest(plan.scope?.authorization ?? null),
+      kind: "grant",
+      runId,
+    },
+    text: `Delivery ${taskId} started by the advance instruction of run ${runId}`,
+  };
+}
+
 /** `task:start`: checks, snapshot of earlier changes, IN_PROGRESS. */
 export function startTask(
   context: KitContext,
   taskId: string,
   confirmation: string | null,
-  autopilotRun: string | null = null
+  autopilotRun: string | null = null,
+  decision: UserDecision | null = null
 ): TaskStart {
   return locked(context, () => {
     ensureNoTransaction(context);
@@ -109,6 +149,14 @@ export function startTask(
     const current = readPlan(context);
     const config = readConfig(context);
     const task = workflowPlanFacade.task(current, taskId);
+    if (
+      confirmation === null &&
+      autopilotRun === null &&
+      config.decisions === "host"
+    ) {
+      // M40: the live grant of the scope covers its delivery tasks itself.
+      autopilotRun = coveringRun(current, task);
+    }
     if (autopilotRun !== null) {
       ensure(
         confirmation === null && task.kind === "delivery",
@@ -121,6 +169,7 @@ export function startTask(
         autopilotRun,
         taskId
       );
+      decision ??= grantDecision(context, current, autopilotRun, taskId);
     }
     ensureMainMayStart(context, current, task);
     ensureAssignmentReady(context);
@@ -130,7 +179,10 @@ export function startTask(
       root: context.root,
       stage: "commit",
     });
-    const plan = workflowPlanFacade.startTask(current, taskId, confirmation);
+    const plan = withDecision(
+      workflowPlanFacade.startTask(current, taskId, confirmation),
+      decision
+    );
     const baseline = context.git.beginTask(context.root, {
       iteration: task.iteration,
       scopeId: plan.scope?.id ?? "NONE",

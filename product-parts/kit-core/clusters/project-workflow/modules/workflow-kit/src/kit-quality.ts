@@ -5,6 +5,7 @@ import type {
 } from "../../workflow-git/src/workflow-git-facade.js";
 import {
   PLAN_PATH,
+  type UserDecision,
   workflowPlanFacade,
 } from "../../workflow-plan/src/workflow-plan-facade.js";
 import {
@@ -20,6 +21,7 @@ import {
   type KitContext,
   locked,
   readPlan,
+  withDecision,
 } from "./kit-context.js";
 
 export interface QualityApplied {
@@ -47,7 +49,8 @@ export function detectQuality(
  */
 export function applyQuality(
   context: KitContext,
-  input: ProfileInput
+  input: ProfileInput,
+  decision: UserDecision | null = null
 ): QualityApplied {
   return locked(context, () => {
     ensureNoTransaction(context);
@@ -87,6 +90,7 @@ export function applyQuality(
       own.files = [...new Set([...own.files, ...files])];
       plan = workflowPlanFacade.completeTask(plan, task.id);
     }
+    plan = withDecision(plan, decision);
     const commit = commitPlan(context, plan, {
       files,
       iteration: task?.iteration,

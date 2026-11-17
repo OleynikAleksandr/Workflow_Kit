@@ -24,6 +24,7 @@ import {
 import type { TransactionSummary } from "../../workflow-recovery/src/workflow-recovery-facade.js";
 import { INTEGRATION_FILE } from "./kit-assignment.js";
 import type { KitContext } from "./kit-context.js";
+import { type DecisionView, pendingDecisions } from "./kit-decisions.js";
 import { executorAssignment } from "./kit-executor.js";
 import { readPause } from "./kit-pause.js";
 
@@ -68,6 +69,13 @@ export interface KitStatus {
   assignments: StatusAssignment[];
   changes: string[];
   currentTask: TaskBrief | null;
+  /**
+   * Pending user decisions of a `decisions: host` project (M40), each
+   * recomputed from the current state; empty in the `agent` mode.
+   */
+  decisions: DecisionView[];
+  /** Who records user decisions: `host` (only the app) or `agent` (Kit 2.3 forms). */
+  decisionsMode: "agent" | "host";
   /** The scope execution block; null without a scope. */
   execution: {
     maxWorkers: number;
@@ -235,6 +243,8 @@ export function readStatus(context: KitContext): KitStatus {
     assignments: own ? [] : assignmentsOf(context, plan),
     changes,
     currentTask: brief(tasks.find((task) => task.id === plan?.currentTaskId)),
+    decisions: plan ? pendingDecisions(context) : [],
+    decisionsMode: config.decisions === "host" ? "host" : "agent",
     execution: plan?.scope ? workflowPlanFacade.execution(plan) : null,
     executor: own ? { assignmentId: own.id, taskId: own.taskId } : null,
     head: repository ? context.git.head(context.root) : null,

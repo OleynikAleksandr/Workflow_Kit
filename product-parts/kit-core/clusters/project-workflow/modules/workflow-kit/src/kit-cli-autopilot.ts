@@ -43,7 +43,7 @@ interface HostCommandSpec {
   usage: string;
 }
 
-function canonicalRoot(root: string): string {
+export function canonicalRoot(root: string): string {
   try {
     return realpathSync(root);
   } catch {

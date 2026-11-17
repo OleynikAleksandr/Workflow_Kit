@@ -188,6 +188,32 @@ try {
   );
   assert.equal(existsSync(at("bad-host")), false);
 
+  // The decisions mode (M40): `decisions: "host"` on a new project and on an
+  // update; without the option the key is absent and an existing one is kept.
+  const decided = at("decided");
+  installer.install(decided, { ...options, decisions: "host", host: "harness" });
+  assert.equal(configOf(decided).decisions, "host");
+  assert.equal(configOf(decided).host, "harness");
+  installer.install(decided, { ...options, update: true });
+  assert.equal(configOf(decided).decisions, "host");
+  assert.equal(configOf(hosted).decisions, undefined);
+  const switched = installer.install(hosted, {
+    ...options,
+    decisions: "host",
+    update: true,
+  });
+  assert.deepEqual(switched.written, [".harness/workflow/config.json"]);
+  assert.equal(configOf(hosted).decisions, "host");
+  assert.equal(configOf(hosted).host, "harness");
+  assert.equal(kit.validate(hosted).ok, true);
+  assert.equal(
+    code(() =>
+      installer.install(at("bad-decisions"), { ...options, decisions: "panel" })
+    ),
+    "USAGE"
+  );
+  assert.equal(existsSync(at("bad-decisions")), false);
+
   // The installed hooks reject a direct commit through the real launcher.
   write(path.join(fresh, "direct.txt"), "x");
   git.git.run(fresh, ["add", "direct.txt"]);

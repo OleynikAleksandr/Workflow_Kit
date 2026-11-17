@@ -97,6 +97,7 @@ export type { ExecutionInput } from "./plan-execution.js";
 export type { OwnerMove } from "./plan-owner.js";
 export type { FieldSpec, InputSchema } from "./plan-input-schema.js";
 export type {
+  DecisionSource,
   DeliveryStatus,
   DocumentRef,
   ExecutionStrategy,

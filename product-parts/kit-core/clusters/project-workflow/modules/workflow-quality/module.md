@@ -51,7 +51,11 @@ The project quality profile of the Workflow Kit:
   - every `docs.contracts` entry maps a code glob to at least one document;
   - `host`, when present, is a non-empty string. It names the host that
     drives the project (`harness`: Harness AI); the default configuration
-    has no host, and `applyProfile` keeps the field.
+    has no host, and `applyProfile` keeps the field;
+  - `decisions`, when present, is `"host"` or `"agent"` (Kit 2.4.0, spec
+    M40): who records user decisions. `host` — only the Workflow Kit app
+    with a host ticket; `agent` or absent — the manual forms of Kit 2.3.
+    `applyProfile` keeps the field.
 - Refusals name the field in `details.field`: `quality.checks[<n>].role`
   (and `.id`, `.stage`, `.required`, `.timeoutMs`, `.command`,
   `.command.executable`, `.command.args`, `.builtin`, `.appliesTo`,

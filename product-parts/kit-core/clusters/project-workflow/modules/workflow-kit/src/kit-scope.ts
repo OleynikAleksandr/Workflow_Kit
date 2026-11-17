@@ -1,5 +1,6 @@
 import { workflowExecutionModeFacade } from "../../workflow-execution-mode/src/workflow-execution-mode-facade.js";
 import {
+  type UserDecision,
   type WorkflowPlanFacade,
   type WorkflowTask,
   workflowPlanFacade,
@@ -16,6 +17,7 @@ import {
   readConfig,
   readPlan,
   savePlan,
+  withDecision,
 } from "./kit-context.js";
 import {
   changedContextTasks,
@@ -165,13 +167,16 @@ export function updateTask(
 }
 
 /** `accept`: records the user's acceptance; the scope stays open. */
-export function acceptScope(context: KitContext, note: string): PlanChange {
+export function acceptScope(
+  context: KitContext,
+  note: string,
+  decision: UserDecision | null = null
+): PlanChange {
   return locked(context, () => {
     ensureNoTransaction(context);
-    const plan = workflowPlanFacade.accept(
-      readPlan(context),
-      note,
-      context.now()
+    const plan = withDecision(
+      workflowPlanFacade.accept(readPlan(context), note, context.now()),
+      decision
     );
     const commit = commitPlan(context, plan, {
       files: [],
@@ -211,7 +216,8 @@ export function ensureCleanTree(context: KitContext): void {
 export function closeScope(
   context: KitContext,
   scopeId: string,
-  note: string
+  note: string,
+  decision: UserDecision | null = null
 ): PlanChange {
   return locked(context, () => {
     ensureNoTransaction(context);
@@ -222,6 +228,9 @@ export function closeScope(
       note,
       context.now()
     );
+    if (decision && plan.lastClosed) {
+      plan.lastClosed.decision = { ...decision };
+    }
     const commit = commitPlan(context, plan, {
       files: [],
       message: `chore: close scope ${scopeId}`,
@@ -260,15 +269,18 @@ export function carryoverScope(
 /** `task:block` / `task:unblock`: the next Kit commit records the state. */
 export function setBlocked(
   context: KitContext,
-  reason: string | null
+  reason: string | null,
+  decision: UserDecision | null = null
 ): PlanChange {
   return locked(context, () => {
     ensureNoIntegration(context);
     const current = readPlan(context);
-    const plan =
+    const plan = withDecision(
       reason === null
         ? workflowPlanFacade.unblock(current)
-        : workflowPlanFacade.block(current, reason);
+        : workflowPlanFacade.block(current, reason),
+      decision
+    );
     savePlan(context, plan);
     return change(plan, null);
   });

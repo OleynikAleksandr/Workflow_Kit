@@ -20,9 +20,10 @@ import {
   type RecoveryPacket,
   WorkflowRecoveryFacade,
 } from "../../workflow-recovery/src/workflow-recovery-facade.js";
-import type {
-  AuthorizeInput,
-  RevokeInput,
+import {
+  type AuthorizeInput,
+  type RevokeInput,
+  workflowPlanFacade,
 } from "../../workflow-plan/src/workflow-plan-facade.js";
 import {
   type AcceptanceInput,
@@ -38,11 +39,24 @@ import {
 } from "./kit-autopilot-status.js";
 import type { KitContext } from "./kit-context.js";
 import {
+  applyDecision,
+  type DecisionMeta,
+  type DecisionOutcome,
+  requestOf,
+} from "./kit-decision-apply.js";
+import {
+  type DecisionChoice,
+  type DecisionRequest,
+  decisionsMode,
+  requireDecision,
+} from "./kit-decisions.js";
+import {
   type DeferRequest,
   deferDelivery,
   type DeliveryDeferral,
 } from "./kit-delivery-defer.js";
 import type { PlanChange } from "./kit-scope-create.js";
+import { coveringRun } from "./kit-task.js";
 import {
   type KitStatus,
   readStatus,
@@ -108,6 +122,44 @@ export class WorkflowKitBase {
 
   status(root: string): KitStatus {
     return readStatus(this.context(root));
+  }
+
+  /** `host` when only the app records user decisions (spec M40). */
+  decisionsMode(root: string): "agent" | "host" {
+    return decisionsMode(this.context(root));
+  }
+
+  /** Registers the decision request and refuses with USER_DECISION_REQUIRED. */
+  requireDecision(root: string, choice: DecisionChoice): never {
+    return requireDecision(this.context(root), choice);
+  }
+
+  decisionRequest(root: string, id: string): DecisionRequest {
+    return requestOf(this.context(root), id);
+  }
+
+  /** Applies a registered decision (host only in the CLI, spec M40). */
+  applyDecision(root: string, id: string, meta: DecisionMeta): DecisionOutcome {
+    return applyDecision(this.context(root), id, meta);
+  }
+
+  /** The owner session of the scope grant, or null (host ticket binding). */
+  grantOwner(root: string): string | null {
+    return (
+      workflowPlanFacade.read(root)?.scope?.authorization?.ownerSession ?? null
+    );
+  }
+
+  /** True when `task:start <taskId>` is a TODO delivery no live grant covers. */
+  needsDeliveryDecision(root: string, taskId: string): boolean {
+    const plan = workflowPlanFacade.read(root);
+    const task = plan?.tasks.find((item) => item.id === taskId);
+    return (
+      plan !== null &&
+      task?.kind === "delivery" &&
+      task.status === "TODO" &&
+      coveringRun(plan, task) === null
+    );
   }
 
   validate(root: string): ValidationReport {

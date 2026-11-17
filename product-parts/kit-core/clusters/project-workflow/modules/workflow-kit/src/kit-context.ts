@@ -6,6 +6,7 @@ import type {
 import { workflowIntegrationFacade } from "../../workflow-integration/src/workflow-integration-facade.js";
 import {
   PLAN_PATH,
+  type UserDecision,
   type WorkflowPlan,
   workflowPlanFacade,
 } from "../../workflow-plan/src/workflow-plan-facade.js";
@@ -108,6 +109,19 @@ export function commitPlan(
 /** Writes a plan state change that the next Kit commit records. */
 export function savePlan(context: KitContext, plan: WorkflowPlan): void {
   workflowPlanFacade.write(context.root, plan);
+}
+
+/** The plan with an applied decision in `scope.decisions` (M40); a copy. */
+export function withDecision(
+  plan: WorkflowPlan,
+  record: UserDecision | null
+): WorkflowPlan {
+  if (!(record && plan.scope)) {
+    return plan;
+  }
+  const next = structuredClone(plan);
+  next.scope?.decisions.push({ ...record });
+  return next;
 }
 
 export function changedDocuments(

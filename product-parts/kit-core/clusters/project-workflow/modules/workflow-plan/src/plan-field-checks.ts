@@ -67,6 +67,13 @@ export function decision(
   );
   text(value.text, `${field}.text`);
   text(value.at, `${field}.at`);
+  ensure(
+    value.source === undefined ||
+      ["button", "grant", "message"].includes(value.source?.kind),
+    schemaError,
+    `Decision source is button, message or grant: ${field}.source`,
+    { field: `${field}.source` }
+  );
 }
 
 export function relativePaths(values: string[], field: string): void {

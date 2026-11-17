@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import os from 'node:os';
@@ -76,4 +77,17 @@ test('the provider memoizes success and retries after a failure', async () => {
   const first = get();
   assert.equal(get(), first);
   assert.equal((await first).file, unpackedBundleFile(dir));
+});
+
+// M40: the Kit 2.3.3 bundle (the last one without host decisions) is kept as a fixture for the
+// regression checks of projects that have not been updated.
+test('the Kit 2.3.3 fixture unpacks to its recorded hash and runs', async () => {
+  const fixture = path.join(import.meta.dirname, 'fixtures', 'workflow-kit-2.3.3.mjs.gz');
+  const sha256 = 'f7ca59a807a5702130a286e8c9bb3c98c300cfa3aa682081bc6c65091bfb1418';
+  const bundle = await ensureKitBundle({ appDir: appDir(), vendorFile: fixture, sha256 });
+  assert.equal(sha(await readFile(bundle.file)), sha256);
+  const help = spawnSync(process.execPath, [bundle.file, 'help'], { encoding: 'utf8' });
+  assert.equal(help.status, 0, help.stderr);
+  assert.match(help.stdout, /scripts\/workflow accept --note/u);
+  assert.doesNotMatch(help.stdout, /--decision/u);
 });

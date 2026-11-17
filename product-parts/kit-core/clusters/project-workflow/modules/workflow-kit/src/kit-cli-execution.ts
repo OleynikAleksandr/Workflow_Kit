@@ -34,7 +34,7 @@ const OPTIONS = new Set(["orchestrated", "refine", "sequential"]);
 const GENERATION_PATTERN = /^[1-9]\d*$/u;
 const DIGEST_PATTERN = /^[0-9a-f]{64}$/u;
 
-function expectedDigest(args: ParsedArgs): string | null {
+export function expectedDigest(args: ParsedArgs): string | null {
   const value = flag(args, "expected-digest");
   if (value === undefined) {
     return null;
@@ -47,7 +47,7 @@ function expectedDigest(args: ParsedArgs): string | null {
   return value;
 }
 
-function choice<T extends string>(
+export function choice<T extends string>(
   args: ParsedArgs,
   name: string,
   allowed: Set<string>
@@ -61,7 +61,7 @@ function choice<T extends string>(
   return value as T;
 }
 
-function generation(args: ParsedArgs): number {
+export function generation(args: ParsedArgs): number {
   const value = requiredFlag(args, "generation");
   ensure(
     GENERATION_PATTERN.test(value),

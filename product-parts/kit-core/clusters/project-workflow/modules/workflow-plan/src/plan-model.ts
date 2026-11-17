@@ -23,8 +23,23 @@ export interface DocumentRef {
   required: boolean;
 }
 
+/** Who decided (M40): the user by a button or a message, or the grant of a run. */
+export interface DecisionSource {
+  /** sha256 of the scope grant that covered a `grant` decision. */
+  authorization?: string | null;
+  kind: "button" | "grant" | "message";
+  messageId?: string | null;
+  runId?: string | null;
+  session?: string | null;
+}
+
 export interface UserDecision {
   at: string;
+  /** Id of the decision request the host applied (M40); absent on text notes. */
+  decisionId?: string;
+  /** Kind of the applied decision (`accept`, `confirm-delivery`, ...). */
+  kind?: string;
+  source?: DecisionSource;
   text: string;
 }
 
@@ -114,6 +129,8 @@ export interface WorkflowScope {
 }
 
 export interface ClosedScopeRef {
+  /** The applied close decision of the user (M40, host decisions). */
+  decision?: UserDecision;
   /** The autopilot run that closed the scope (M39). */
   autopilotRun?: string;
   closedAt: string;

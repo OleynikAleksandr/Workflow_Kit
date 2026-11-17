@@ -63,7 +63,7 @@ Writing rules:
 
 `manifest(entries)` → `{schema "harness-workflow-manifest/1", version,
 files: [{path, kind, executable, sha256}]}`; `sha256` hashes the managed
-part (`null` for `create`). `version` is `KIT_VERSION` (`2.3.3`: agent rules and `next` texts that know the autopilot grant, one publication rule, the complete M39 capability, spec M39 T004; 2.3.2: `task:defer-delivery`, spec M39 T003; 2.3.1: the autopilot grant with host-only `autopilot:authorize`/`autopilot:revoke` and `accept`/`close --autopilot-run` over the parent IPC ticket, `task:start --autopilot-run`, spec M39 T002; 2.3.0: the scope `automation` block, `scope:proposal --digest` and `scope:choose --expected-digest`, spec M39 T001; 2.2.7: `install --update --with`, spec M38; 2.2.6: the input folder `.harness/inputs/`, spec M37; 2.2.5 added `scope:owner`, spec M31; 2.2.4 was the first Kit built in
+part (`null` for `create`). `version` is `KIT_VERSION` (`2.4.0`: the `decisions` mode with decision requests and host-only user decisions, spec M40 T001; 2.3.3: agent rules and `next` texts that know the autopilot grant, one publication rule, the complete M39 capability, spec M39 T004; 2.3.2: `task:defer-delivery`, spec M39 T003; 2.3.1: the autopilot grant with host-only `autopilot:authorize`/`autopilot:revoke` and `accept`/`close --autopilot-run` over the parent IPC ticket, `task:start --autopilot-run`, spec M39 T002; 2.3.0: the scope `automation` block, `scope:proposal --digest` and `scope:choose --expected-digest`, spec M39 T001; 2.2.7: `install --update --with`, spec M38; 2.2.6: the input folder `.harness/inputs/`, spec M37; 2.2.5 added `scope:owner`, spec M31; 2.2.4 was the first Kit built in
 Workflow Kit; Kit 1.x was Workflow Pilot). A change of a managed text or of the runtime raises the version, so
 older installations read as `KIT_OUTDATED` and the update rewrites them
 (2.1.0 added `.harness/sessions/` and `.claude/worktrees/` to `.gitignore`
@@ -162,8 +162,8 @@ path) reports `nestedIn` and action `unsupported`.
 
 ## Install And Update (`installer-install.ts`)
 
-`install(path, {bundle, name?, update?, with?, runtime?, host?, platform?})` (CLI
-`install [<path>] [--name] [--update [--with <json|a,b>]] [--host harness] [--bundle]`):
+`install(path, {bundle, name?, update?, with?, runtime?, host?, decisions?, platform?})` (CLI
+`install [<path>] [--name] [--update [--with <json|a,b>]] [--host harness] [--decisions host] [--bundle]`):
 1. refuses `USAGE` for `with` without `update` (`--with needs --update.`),
    then `NESTED_REPOSITORY`, `PILOT_KIT_UNSUPPORTED`,
    `TRANSACTION_PENDING`, `ALREADY_INSTALLED` (without `update`),
@@ -203,7 +203,12 @@ path) reports `nestedIn` and action `unsupported`.
    absent, and the manifest. `host: "harness"` adds `"host": "harness"` to
    the new configuration, or to an existing one that lacks it (the only
    change made to an existing configuration); without `host` an existing
-   marker is kept;
+   marker is kept (`installer-config.ts`: `checkMarkers`, `writeConfig`).
+   `decisions: "host"` (spec M40) writes
+   `"decisions": "host"` the same way — into a new configuration or into an
+   existing one with another value or none; without the option the key is not written
+   and an existing one is kept; another value is `USAGE` before anything is
+   created;
 6. records `runtime` (`.harness/workflow/local/runtime`) so the launchers
    and hooks find Node or Electron;
 7. commits the written files and the `with` paths that have uncommitted
@@ -360,7 +365,8 @@ Node built-ins only.
   written; a global-only identity copied into the repository config (also
   over a placeholder) and signing the bootstrap commit; a real local
   identity kept; the host marker written, kept by an update and added by
-  `--update --host harness`; an invalid host; a new project with the
+  `--update --host harness`; an invalid host; `decisions: "host"` written,
+  kept by an update, added by an update and refused for another value; a new project with the
   installed hooks rejecting a direct commit; damage detection; a 2.1.0
   installation with the old `.gitignore` section (no `.DS_Store`, no dependency folders) reported
   outdated by inspect and doctor and updated, and a 2.2.1 manifest read as

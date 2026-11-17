@@ -25,10 +25,18 @@ transitions below it exposes `inputSchema(command)` and
   - `projectId`, `projectName`;
   - `scope`: `null` when the status is `NONE`;
   - `rounds`, `tasks`, `currentTaskId`;
-  - `lastClosed`: reference to the previously closed scope.
+  - `lastClosed`: reference to the previously closed scope; `decision` is
+    the applied close decision of spec M40 (a `UserDecision`), when one
+    closed it.
 - `WorkflowScope` has these fields:
   - `id`, `objective`, `acceptance`;
-  - `approval` and `decisions`: user decisions with timestamps;
+  - `approval` and `decisions`: user decisions with timestamps
+    (`UserDecision {at, text, decisionId?, kind?, source?}`). A decision the
+    host applied (Kit 2.4.0, spec M40) carries the id of its request, its
+    kind and `source: DecisionSource {kind: "button" | "message" | "grant",
+    messageId?, session?, runId?, authorization?}` — `authorization` is the
+    sha256 of the scope grant for a `grant` decision; a source of another
+    kind is `PLAN_SCHEMA`. Text notes have none of the three;
   - `spec`, `context`: document references;
   - `baselineCommit`: full SHA;
   - `status`: `ACTIVE` or `BLOCKED`, with `blockedReason`;

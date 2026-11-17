@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1230,
+  "revision": 1232,
   "rounds": [
     {
       "digest": null,
@@ -286,14 +286,58 @@
       "files": [
         "product-parts/kit-core",
         "product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle",
-        "docs/architecture/OS-MATRIX.md"
+        "docs/architecture/OS-MATRIX.md",
+        "docs/planning/M40-user-decisions-contract.md",
+        "docs/planning/M40-user-decisions-validation.md",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/module.md",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-config.ts",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-install.ts",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-payload.ts",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/test/workflow-installer-install.test.mjs",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/test/workflow-installer-payload.test.mjs",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/decisions.md",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/module.md",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/operations.md",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-autopilot.ts",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-cli-autopilot.ts",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-cli-decisions.ts",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-cli-execution.ts",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-context.ts",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-decision-apply.ts",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-decisions.ts",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-facade-base.ts",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-host-auth.ts",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-quality.ts",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-scope-create.ts",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-scope.ts",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-status.ts",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-task.ts",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/workflow-kit-cli.ts",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-autopilot-grant.test.mjs",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-decisions-grant.test.mjs",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-decisions-support.mjs",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-decisions.test.mjs",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/tests.md",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/module.md",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/src/plan-field-checks.ts",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/src/plan-model.ts",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/src/workflow-plan-facade.ts",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-quality/module.md",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-quality/src/quality-config.ts",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/src/bundle-meta.ts",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/test/bundle.test.ts",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/test/fixtures/workflow-kit-2.3.3.mjs.gz",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/PROVENANCE",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/workflow-kit-2.3.3.mjs.gz",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/workflow-kit-2.4.0.mjs.gz"
       ],
       "fixes": null,
       "id": "T001",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Ядро: режим decisions, запросы решений и операции хоста (Kit 2.4.0)",
       "why": "Kit верит тексту агента о решениях пользователя"
     },
@@ -762,8 +806,8 @@
 - Execution: sequential
 - Automation: 6 automatic, 0 manual criteria; CI origin ci/M40-user-decisions (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 0/12
-- Revision: 1230
+- Progress: 1/12
+- Revision: 1232
 
 ## Objective
 
@@ -782,9 +826,9 @@
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T001 — Ядро: режим decisions, запросы решений и операции хоста (Kit 2.4.0) (work)
+- [DONE] T001 — Ядро: режим decisions, запросы решений и операции хоста (Kit 2.4.0) (work)
   - Commit: feat: record user decisions only through host operations
-  - Files: product-parts/kit-core, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle, docs/architecture/OS-MATRIX.md
+  - Files: product-parts/kit-core, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle, docs/architecture/OS-MATRIX.md, docs/planning/M40-user-decisions-contract.md, docs/planning/M40-user-decisions-validation.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-config.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-install.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-payload.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/test/workflow-installer-install.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/test/workflow-installer-payload.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/decisions.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/operations.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-autopilot.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-cli-autopilot.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-cli-decisions.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-cli-execution.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-context.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-decision-apply.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-decisions.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-facade-base.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-host-auth.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-quality.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-scope-create.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-scope.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-status.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-task.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/workflow-kit-cli.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-autopilot-grant.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-decisions-grant.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-decisions-support.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-decisions.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/tests.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/src/plan-field-checks.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/src/plan-model.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/src/workflow-plan-facade.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-quality/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-quality/src/quality-config.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/src/bundle-meta.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/test/bundle.test.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/test/fixtures/workflow-kit-2.3.3.mjs.gz, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/PROVENANCE, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/workflow-kit-2.3.3.mjs.gz, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/workflow-kit-2.4.0.mjs.gz
 - [TODO] T002 — Ядро: барьеры Git — push и внешние коммиты (Kit 2.4.1) (work)
   - Commit: feat: enforce push and external commit barriers
   - Files: product-parts/kit-core, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle, docs/architecture/OS-MATRIX.md

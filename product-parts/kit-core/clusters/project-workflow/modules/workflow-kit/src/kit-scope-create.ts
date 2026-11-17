@@ -6,6 +6,7 @@ import type { CommitResult } from "../../workflow-git/src/workflow-git-facade.js
 import {
   type ExecutionStrategy,
   type ScopeProposalRef,
+  type UserDecision,
   type WorkflowExecution,
   type WorkflowPlan,
   type WorkflowPlanFacade,
@@ -81,7 +82,8 @@ export function change(
 function commitScope(
   context: KitContext,
   input: ScopeInput,
-  proposal: ScopeProposalRef | null = null
+  proposal: ScopeProposalRef | null = null,
+  decision: UserDecision | null = null
 ): PlanChange {
   ensureNoTransaction(context);
   const plan = workflowPlanFacade.createScope(
@@ -91,6 +93,9 @@ function commitScope(
   );
   if (proposal && plan.scope) {
     plan.scope.proposal = { ...proposal };
+  }
+  if (decision && plan.scope) {
+    plan.scope.decisions.push({ ...decision });
   }
   ensureInputChecks(context, input.tasks);
   ensureAutomationInput(context, input.automation);
@@ -247,7 +252,8 @@ export function chooseScope(
     note: string;
     option: ExecutionModeOption;
     session: string;
-  }
+  },
+  decision: UserDecision | null = null
 ): ScopeChoiceResult {
   return locked(context, () => {
     ensureNoTransaction(context);
@@ -293,7 +299,8 @@ export function chooseScope(
         request.session.trim(),
         `Execution mode chosen by the user: ${request.option}: ${request.note.trim()}`
       ),
-      { digest, generation: proposal.generation }
+      { digest, generation: proposal.generation },
+      decision
     );
     return {
       execution: workflowPlanFacade.execution(readPlan(context)),

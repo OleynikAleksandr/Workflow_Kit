@@ -20,6 +20,7 @@ import {
   ensureExecutorCommand,
 } from "./kit-cli-assignment.js";
 import { CONTEXT_COMMANDS } from "./kit-cli-context.js";
+import { decisionGate } from "./kit-cli-decisions.js";
 import { EXECUTION_COMMANDS } from "./kit-cli-execution.js";
 import { runHook } from "./kit-cli-hook.js";
 import {
@@ -140,13 +141,14 @@ const COMMANDS: Readonly<Record<string, CommandSpec>> = {
       kit.install(resolvePath(io, args.positionals[0]), {
         ...ownBundle(args, io),
         // The installer refuses any other value with USAGE.
+        decisions: flag(args, "decisions") as "host" | undefined,
         host: flag(args, "host") as "harness" | undefined,
         name: flag(args, "name"),
         update: args.flags.get("update") === true,
         with: listFlag(args, "with"),
       }),
     usage:
-      "install [<path>] [--name <project name>] [--update [--with <json|a,b>]] [--host harness] [--bundle <workflow.mjs>]",
+      "install [<path>] [--name <project name>] [--update [--with <json|a,b>]] [--host harness] [--decisions host] [--bundle <workflow.mjs>]",
   },
   history: {
     run: ({ args, kit, root }) =>
@@ -244,6 +246,7 @@ function helpText(): string {
     "  scripts/workflow hook session-start --client claude|codex [--part K/N]",
     "  scripts/workflow git-hook <pre-commit|commit-msg|post-commit|pre-push> [args]",
     "",
+    'User decisions in a project with `decisions: host` (scope:choose, task:start of a delivery, accept, close, task:unblock, quality:apply with installs): <command> --decision <id> --source button|message|grant --note "<text>" --expected-revision N (host only).',
     "Options: --format json|text (default json; text for context), --root <project>.",
     'Errors: {"ok":false,"code","message","nextAction"} and exit code 1.',
     "",
@@ -291,7 +294,10 @@ function dispatch(
     io.stdout(text);
     return 0;
   };
-  const hosted = spec.host?.({ args, io, kit, root }) ?? null;
+  const hosted =
+    decisionGate(command, { args, io, kit, root }) ??
+    spec.host?.({ args, io, kit, root }) ??
+    null;
   if (hosted) {
     // Nothing is written before the parent confirms the ticket (spec M39).
     return verifyHost(io.host ?? null, hosted.request).then(() =>

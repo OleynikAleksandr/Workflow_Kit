@@ -51,6 +51,11 @@ export interface WorkflowConfig {
   autopilot: { maxContinues: number };
   budget: { briefBytes: number; documentBytes: number; recoveryBytes: number };
   docs: { contracts: DocsContract[] };
+  /**
+   * Who records user decisions (M40): `host` — only the Workflow Kit app
+   * with a host ticket; `agent` or absent — the manual forms of Kit 2.3.
+   */
+  decisions?: "agent" | "host";
   /** The host that drives the project; `harness` requires scope:propose. */
   host?: string;
   policy: { maxFileLines: number | null; taskFileSoftLimit: number | null };
@@ -370,6 +375,13 @@ export function validateConfig(input: WorkflowConfig): WorkflowConfig {
       (typeof config.host === "string" && config.host.trim() !== ""),
     error,
     "host must be a non-empty string when present."
+  );
+  ensure(
+    config.decisions === undefined ||
+      config.decisions === "agent" ||
+      config.decisions === "host",
+    error,
+    "decisions is host or agent when present."
   );
   return config;
 }

@@ -11,6 +11,7 @@ import {
   isDocumentationPath,
   PLAN_PATH,
   type RevokeInput,
+  type UserDecision,
   type WorkflowPlan,
   workflowPlanFacade,
 } from "../../workflow-plan/src/workflow-plan-facade.js";
@@ -24,7 +25,9 @@ import {
   locked,
   readPlan,
   savePlan,
+  withDecision,
 } from "./kit-context.js";
+import { hostDigest } from "./kit-host-auth.js";
 import { ensureCleanTree } from "./kit-scope.js";
 import { change, type PlanChange } from "./kit-scope-create.js";
 
@@ -260,10 +263,13 @@ export function acceptRun(
     workflowPlanFacade.grant(current, runId);
     const head = context.git.head(context.root) ?? "";
     const evidence = verifiedEvidence(context, current, input, head);
-    const plan = workflowPlanFacade.acceptByAutopilot(
-      current,
-      { ...evidence, runId },
-      context.now()
+    const plan = withDecision(
+      workflowPlanFacade.acceptByAutopilot(
+        current,
+        { ...evidence, runId },
+        context.now()
+      ),
+      grantRecord(context, current, runId, "accept")
     );
     const commit = commitPlan(context, plan, {
       files: [],
@@ -274,6 +280,25 @@ export function acceptRun(
     });
     return change(plan, commit);
   });
+}
+
+/** The history record of a step done by the grant of `runId` (M40). */
+function grantRecord(
+  context: KitContext,
+  plan: WorkflowPlan,
+  runId: string,
+  kind: "accept" | "close"
+): UserDecision {
+  return {
+    at: context.now(),
+    kind,
+    source: {
+      authorization: hostDigest(plan.scope?.authorization ?? null),
+      kind: "grant",
+      runId,
+    },
+    text: `Automatic ${kind} by the advance instruction of run ${runId}`,
+  };
 }
 
 /** `close --scope --autopilot-run --expected-revision` (host only). */
@@ -293,6 +318,9 @@ export function closeRun(
       { head: context.git.head(context.root) ?? "", runId, scopeId },
       context.now()
     );
+    if (plan.lastClosed) {
+      plan.lastClosed.decision = grantRecord(context, current, runId, "close");
+    }
     const commit = commitPlan(context, plan, {
       files: [],
       message: `chore: close scope ${scopeId} (autopilot run ${runId})`,

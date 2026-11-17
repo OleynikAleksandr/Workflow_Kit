@@ -66,6 +66,17 @@ worktrees where noted):
 - `test/workflow-kit-worktree.test.mjs` (worktrees, fake `npm`) —
   `NEEDS_SETUP`, setup refusals, success and failure, cleanup `DONE` and
   `PENDING`, branch deletion.
+- `test/workflow-kit-decisions.test.mjs` and
+  `test/workflow-kit-decisions-grant.test.mjs` (M40, support
+  `workflow-kit-decisions-support.mjs`) — the `host` decisions mode:
+  every decision command without a ticket (`USER_DECISION_REQUIRED`, the
+  request by kind, the same id for the same input, `stale` for another),
+  `status.decisions` with a planted and an edited record, the host form over
+  a fake parent and a real fork (the bindings of the ticket, the root with
+  injected `win32` and `linux`), `DECISION_STALE`, `already`, the stored
+  `quality:apply` input, the `grant` source and its M39 refusals, the
+  delivery started by the live grant without flags, and the `agent` mode and
+  a project without the key behaving as Kit 2.3.3.
 - `test/workflow-kit-status.test.mjs` — the status fields in every state and
   the text lines.
 - `test/workflow-kit-pause.test.mjs` (worktrees) — `pause:set`, statuses and

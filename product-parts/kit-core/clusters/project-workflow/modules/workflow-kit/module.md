@@ -27,6 +27,9 @@ The M39 autopilot authority and the `autopilot:status` capability
 (`kit-autopilot-status.ts`: `automation`, `authorization`, `deferDelivery`,
 `instructions`, `complete` — true since Kit 2.3.3) are described in
 [autopilot.md](autopilot.md#status-kit-autopilot-statusts).
+User decisions in the `host` decisions mode (Kit 2.4.0, spec M40: the
+decision request, `USER_DECISION_REQUIRED`, the host form `--decision` and
+`status.decisions`) are described in [decisions.md](decisions.md).
 
 ## Git Hooks (`kit-hooks.ts`)
 
@@ -90,7 +93,9 @@ it changes in the same commit as the commands. Summary:
   [operations.md](operations.md)), `accept`, `close`, `carryover`; `accept` and
   `close` take the host-only `--autopilot-run` form), `kit-cli-autopilot.ts`
   (`autopilot:authorize`, `autopilot:revoke`, host only, see
-  [autopilot.md](autopilot.md)); boolean
+  [autopilot.md](autopilot.md)), and the decision gate of
+  `kit-cli-decisions.ts` in front of `scope:choose`, `task:start`, `accept`,
+  `close`, `task:unblock` and `quality:apply` ([decisions.md](decisions.md)); boolean
   flags include `--force`, and `--digest` is boolean only for
   `scope:proposal` (`commit --digest <file>` keeps its value); the other commands are defined in
   `workflow-kit-cli.ts`, the default texts in `kit-cli-text.ts`. `help`
@@ -124,7 +129,8 @@ it changes in the same commit as the commands. Summary:
   `hook` and `git-hook` run; every other known command fails with
   `ASSIGNMENT_READ_ONLY` (`details.allowed`) before it runs.
 - `install [<path>] [--name] [--update [--with <json|a,b>]] [--host
-  harness] [--bundle]` passes `--with` (a JSON or comma list, as `--files`)
+  harness] [--decisions host] [--bundle]` passes `--decisions` to the
+  installer (`config.decisions`, spec M40) and `--with` (a JSON or comma list, as `--files`)
   to `workflow-installer` as `with`: the files of the app's managed
   structure for the same `kit-update` commit (Kit 2.2.7, spec M38); the
   installer refuses it without `--update` (`USAGE`) and for paths outside

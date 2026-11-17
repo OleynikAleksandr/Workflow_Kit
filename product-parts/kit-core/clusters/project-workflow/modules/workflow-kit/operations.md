@@ -17,7 +17,15 @@ Autopilot authority (spec M39, Kit 2.3.1): `authorize`, `revoke`,
 `acceptRun`, `closeRun`, `startTask` with a run and the extended
 `autopilotStatus` are described in [autopilot.md](autopilot.md).
 
-- `status(root)` — project, scope (status, result, blocked reason,
+- `decisionsMode(root)`, `requireDecision(root, choice)`,
+  `decisionRequest(root, id)`, `applyDecision(root, id, meta)`,
+  `needsDeliveryDecision(root, taskId)`, `grantOwner(root)` — the user
+  decisions of the `host` mode (Kit 2.4.0, spec M40), see
+  [decisions.md](decisions.md). `accept`, `close`, `unblock`, `startTask`,
+  `chooseScope` and `qualityApply` are the operations a decision runs; the
+  gate that refuses their manual forms lives in the CLI.
+- `status(root)` — `decisions` (the reproducible pending decision requests)
+  and `decisionsMode` (`host` or `agent`) of spec M40, project, scope (status, result, blocked reason,
   objective, `automation` and `proposal` of spec M39, `null` on a legacy
   scope), revision, current and next task, progress, rounds, quality
   (status, stacks, drift), HEAD, pending transaction, changes outside

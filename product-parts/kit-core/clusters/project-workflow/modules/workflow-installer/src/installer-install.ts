@@ -16,10 +16,12 @@ import {
   type WorkflowPlatform,
   workflowPlatformFacade,
 } from "../../workflow-platform/src/workflow-platform-facade.js";
+import { workflowQualityFacade } from "../../workflow-quality/src/workflow-quality-facade.js";
 import {
-  type WorkflowConfig,
-  workflowQualityFacade,
-} from "../../workflow-quality/src/workflow-quality-facade.js";
+  checkMarkers,
+  type ConfigMarkers,
+  writeConfig,
+} from "./installer-config.js";
 import { type FolderState, inspectFolder } from "./installer-inspect.js";
 import {
   checkWith,
@@ -36,11 +38,9 @@ import {
   renderManifest,
 } from "./installer-payload.js";
 
-export interface InstallOptions {
+export interface InstallOptions extends ConfigMarkers {
   /** Text of the Kit bundle copied into the project. */
   bundle: string;
-  /** Host marker written to `config.host`; an existing marker is kept. */
-  host?: "harness" | null;
   name?: string;
   /** Runtime recorded for the launchers (Electron inside Harness). */
   runtime?: { executable: string; mode: "electron" | "node" } | null;
@@ -192,25 +192,6 @@ function writePayload(
   return written;
 }
 
-/**
- * Writes the default configuration when it is absent, or only the host
- * marker into an existing one; returns true when the file changed.
- */
-function writeConfig(root: string, host: InstallOptions["host"]): boolean {
-  const exists =
-    workflowPlatformFacade.readTextIfExists(
-      workflowQualityFacade.configFile(root)
-    ) !== null;
-  const config: WorkflowConfig & { host?: string } = exists
-    ? workflowQualityFacade.readConfig(root)
-    : workflowQualityFacade.defaultConfig();
-  if (exists && (!host || config.host === host)) {
-    return false;
-  }
-  workflowQualityFacade.writeConfig(root, host ? { ...config, host } : config);
-  return true;
-}
-
 /** Writes configuration, manifest and runtime; returns the written paths. */
 function writeState(
   root: string,
@@ -218,7 +199,7 @@ function writeState(
   options: InstallOptions
 ): string[] {
   const written: string[] = [];
-  if (writeConfig(root, options.host)) {
+  if (writeConfig(root, options)) {
     written.push(workflowQualityFacade.configPath);
   }
   if (
@@ -325,13 +306,7 @@ export function installKit(
     inspected.nestedIn,
     inspected.transactionPending
   );
-  ensure(
-    options.host === undefined ||
-      options.host === null ||
-      options.host === "harness",
-    "USAGE",
-    "--host is harness."
-  );
+  checkMarkers(options);
   const identity = requireInstallIdentity(git, root, inspected.git.repository);
   mkdirSync(root, { recursive: true });
   if (!inspected.git.repository) {

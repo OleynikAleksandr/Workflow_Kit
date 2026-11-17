@@ -10,16 +10,23 @@ export type HostOperation =
   | "accept"
   | "autopilot:authorize"
   | "autopilot:revoke"
-  | "close";
+  | "close"
+  | "quality:apply"
+  | "scope:choose"
+  | "task:start"
+  | "task:unblock";
 
 /** What the ticket is bound to; the parent compares every field. */
 export interface HostRequest {
+  /** The decision request a user decision applies (M40); absent on M39 run operations. */
+  decisionId?: string;
   expectedRevision: number;
   inputDigest: string;
   operation: HostOperation;
   ownerSession: string | null;
   root: string;
-  runId: string;
+  /** The autopilot run; null for a decision of the user outside a run (M40). */
+  runId: string | null;
   scopeId: string;
 }
 
@@ -110,7 +117,7 @@ export function verifyHost(
   ensure(
     channel !== null,
     "HOST_AUTH_REQUIRED",
-    `${request.operation} with an autopilot run is performed only by the Workflow Kit app.`,
+    `${request.operation} ${request.decisionId ? "as a user decision" : "with an autopilot run"} is performed only by the Workflow Kit app.`,
     { operation: request.operation },
     "Finish your task and end the turn; the app performs the authorized step."
   );

@@ -29,7 +29,8 @@ export type RunTurnDecision =
   | { action: 'stop'; reason: AutopilotReason; detail: string };
 
 export const TURN_TEXTS = {
-  userMessage: `The user wrote in this turn. If it was a question about the work, it is answered; if the user asked to pause or stop the autopilot, run \`wfk session run pause\` or \`wfk session run stop\` and end the turn. Otherwise go on:`,
+  // M40: «стоп» and «пауза» as the first word never reach this text — the service acted on them.
+  userMessage: `The user wrote in this turn. If it was a question about the work, it is answered; if the user asked in other words to pause or stop the autopilot, run \`wfk session run pause\` or \`wfk session run stop\` and end the turn. Otherwise go on:`,
   noProgress: (count: number) => `The last turn changed neither the plan nor HEAD (${count} of ${NO_PROGRESS_LIMIT}). Run \`${KIT_COMMAND} recover --format text\`, follow its next line and commit the task; if something blocks it, say what and run \`${KIT_COMMAND} task:block\`.`,
   blocked: `${NO_PROGRESS_LIMIT} ходов подряд без изменений плана и истории: запуск остановлен.`,
   blockedNext: 'Посмотрите ответы агента в чате, устраните препятствие и нажмите «Продолжить».',
@@ -60,7 +61,7 @@ export function createRunTurns(deps: { journal: RunJournal; projectPath(projectI
       }
       if (decision.action === 'continue') {
         const phase = status.nextTask?.kind === 'delivery' ? 'delivering' : 'executing';
-        if ((run.noProgress ?? 0) !== 0 || run.phase !== phase) await deps.journal.update(folder, run.runId, (r) => ({ ...r, noProgress: 0, phase }));
+        if ((run.noProgress ?? 0) !== 0 || run.phase !== phase) await deps.journal.advance(folder, run.runId, (r) => ({ ...r, noProgress: 0, phase }));
         const ci = (status.authorization as { ci?: unknown } | null | undefined)?.ci;
         const wait = phase === 'delivering' && ci ? ` ${TURN_TEXTS.ciWait(run.runId, hostInputDigest(ci))}` : '';
         return { action: 'continue', taskId: decision.taskId, text: `${userMessage ? `${TURN_TEXTS.userMessage} ` : ''}${decision.text}${wait}` };
@@ -68,10 +69,10 @@ export function createRunTurns(deps: { journal: RunJournal; projectPath(projectI
       if (decision.reason !== 'no-progress') return { action: 'stop', reason: decision.reason, detail: decision.detail };
       const count = (run.noProgress ?? 0) + 1;
       if (count < NO_PROGRESS_LIMIT) {
-        await deps.journal.update(folder, run.runId, (r) => ({ ...r, noProgress: count }));
+        await deps.journal.advance(folder, run.runId, (r) => ({ ...r, noProgress: count }));
         return { action: 'continue', taskId: status.nextTask?.id ?? '-', text: TURN_TEXTS.noProgress(count) };
       }
-      await deps.journal.update(folder, run.runId, (r) => ({ ...r, noProgress: count, phase: 'blocked', pausedFrom: r.phase, reason: 'agent-no-progress', nextAction: TURN_TEXTS.blockedNext }));
+      await deps.journal.advance(folder, run.runId, (r) => ({ ...r, noProgress: count, phase: 'blocked', pausedFrom: r.phase, reason: 'agent-no-progress', nextAction: TURN_TEXTS.blockedNext }));
       log(`autopiloting: ${run.runId} blocked after ${count} turns without progress`);
       return { action: 'stop', reason: 'no-progress', detail: TURN_TEXTS.blocked };
     },

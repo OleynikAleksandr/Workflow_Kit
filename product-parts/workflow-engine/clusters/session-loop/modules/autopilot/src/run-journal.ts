@@ -158,6 +158,13 @@ export interface RunJournal {
   active(root: string): Promise<RunRecord | null>;
   /** Changes a run under the project lock; `change` returns the new record or null to keep it. */
   update(root: string, runId: string, change: (run: RunRecord) => RunRecord | null): Promise<RunRecord>;
+  /**
+   * The change of an automatic step (M40): like `update`, but a barrier the user set meanwhile
+   * stays. The result of the finished action is recorded (receipts, tickets, completion), while a
+   * stopped run stays stopped and a paused run stays paused — it goes on from the new phase after
+   * «Продолжить». A verified end of the run (a final phase) still ends a paused run.
+   */
+  advance(root: string, runId: string, change: (run: RunRecord) => RunRecord | null): Promise<RunRecord>;
   /** Serializes work on one project (the same lock the journal writes take). */
   locked<T>(root: string, action: () => Promise<T>): Promise<T>;
   /** T009: called after every write, whoever wrote (turns, control, waits, completion). */
@@ -207,6 +214,17 @@ export function createRunJournal(options: { now?: () => Date; platform?: NodeJS.
     return runs.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
   }
 
+  const update: RunJournal['update'] = (root, runId, change) =>
+    withLock(root, async () => {
+      const current = await read(root, runId);
+      if (!current) throw new Error(`run not found: ${runId}`);
+      const next = change(structuredClone(current));
+      if (!next) return current;
+      const record: RunRecord = { ...next, version: 1, runId, revision: current.revision + 1, updatedAt: now().toISOString() };
+      await writeJsonAtomic(runFile(root, runId), record, writeOptions);
+      return notify(record);
+    });
+
   return {
     read,
     list,
@@ -221,15 +239,15 @@ export function createRunJournal(options: { now?: () => Date; platform?: NodeJS.
         return notify(record);
       });
     },
-    update(root, runId, change) {
-      return withLock(root, async () => {
-        const current = await read(root, runId);
-        if (!current) throw new Error(`run not found: ${runId}`);
+    update,
+    advance(root, runId, change) {
+      return update(root, runId, (current) => {
         const next = change(structuredClone(current));
-        if (!next) return current;
-        const record: RunRecord = { ...next, version: 1, runId, revision: current.revision + 1, updatedAt: now().toISOString() };
-        await writeJsonAtomic(runFile(root, runId), record, writeOptions);
-        return notify(record);
+        const stopped = FINAL_PHASES.has(current.phase);
+        if (!next || next.phase === current.phase || !(stopped || current.phase === 'paused')) return next;
+        if (!stopped && FINAL_PHASES.has(next.phase)) return next;
+        const resumable = next.phase !== 'blocked' && next.phase !== 'paused' && !FINAL_PHASES.has(next.phase);
+        return { ...next, phase: current.phase, pausedFrom: !stopped && resumable ? next.phase : current.pausedFrom, reason: current.reason, nextAction: current.nextAction };
       });
     },
     locked: withLock,

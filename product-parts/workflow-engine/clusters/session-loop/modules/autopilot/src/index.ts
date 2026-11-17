@@ -64,3 +64,5 @@ export type { DecisionAnswer, DecisionCommand, DecisionCommands, DecisionCommand
 export { DECISION_COMMAND_TEXTS, DECISION_DONE, DECISION_KINDS, createDecisionCommands, decisionBy, registerDecisionRoutes } from './decision-commands.ts';
 export type { PlanEndResult } from './acceptance.ts';
 export { deliveryStartedMessage } from './texts.ts';
+export type { RunWord, RunWords, RunWordsDeps } from './run-words.ts';
+export { WORD_TEXTS, createRunWords, runWord } from './run-words.ts';

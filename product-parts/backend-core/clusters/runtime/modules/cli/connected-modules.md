@@ -90,6 +90,15 @@
   /api/projects/:id/workflow/decision` (кнопка карточки) с общим замком проекта; сообщение
   сессии по кнопке идёт через будящий канал. Контракт —
   [autopilot/decisions.md](../../../../../workflow-engine/clusters/session-loop/modules/autopilot/decisions.md);
+- «стоп» и «пауза» пользователя M40 T006: `wireAutopiloting` создаёт сервис слов
+  (`createRunWords`: управление запуском `RunControl.byWord`, `tell` — `channel.enqueue` без
+  пробуждения сессии) и отдаёт его как `words`; `wireSessions` вызывает `words.received` в двух
+  местах, где служба получает сообщение пользователя: опция `onUserMessage` маршрутов канала
+  (сообщение панели — до прямого пути и до очереди, даже при занятом агенте) и хук
+  UserPromptSubmit (`observedChannel.prompt`, до `channel.prompt`; проект — по активности
+  сессии или по папке хука). Ошибка проверки пишется в журнал службы и сообщение не задерживает.
+  Контракт —
+  [autopilot/run-words.md](../../../../../workflow-engine/clusters/session-loop/modules/autopilot/run-words.md);
 - автопилотирование M39 (`src/autopiloting-wiring.ts`, `wireAutopiloting`, вызывается из
   `wireSessions` с `configDir` и `platform` из `createApp`): настройки `autopiloting.json` в
   `DataDirs.configDir`, журнал запусков проектов, один `createHostTickets` службы, слова

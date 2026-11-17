@@ -70,10 +70,10 @@ export function createPreparation(deps: PreparationDeps) {
   }
 
   const block = (folder: string, run: RunRecord, reason: string, nextAction: string = PREPARE_TEXTS.next): Promise<RunRecord> =>
-    deps.journal.update(folder, run.runId, (r) => ({ ...r, phase: 'blocked', pausedFrom: r.phase, reason, nextAction }));
+    deps.journal.advance(folder, run.runId, (r) => ({ ...r, phase: 'blocked', pausedFrom: r.phase, reason, nextAction }));
 
   const phase = (folder: string, run: RunRecord, next: RunRecord['phase']): Promise<RunRecord> =>
-    deps.journal.update(folder, run.runId, (r) => (r.phase === next ? null : { ...r, phase: next }));
+    deps.journal.advance(folder, run.runId, (r) => (r.phase === next ? null : { ...r, phase: next }));
 
   /** Picks the recommended mode; orchestration without the provider's capability falls back to sequential. */
   async function option(run: RunRecord, folder: string): Promise<{ option: KitChoiceOption; why: string } | null> {
@@ -93,7 +93,7 @@ export function createPreparation(deps: PreparationDeps) {
     const picked = await option(run, folder);
     if (!picked) return block(folder, run, PREPARE_TEXTS.noOption);
     const actionId = `choose:${version.generation}:${version.proposalDigest.slice(0, 16)}`;
-    let current = await deps.journal.update(folder, run.runId, (r) => ({
+    let current = await deps.journal.advance(folder, run.runId, (r) => ({
       ...r,
       phase: 'choosing',
       proposal: { scopeId: version.scopeId ?? '', generation: version.generation, digest: version.proposalDigest },
@@ -113,7 +113,7 @@ export function createPreparation(deps: PreparationDeps) {
       return block(folder, current, code === 'PROPOSAL_CHANGED' || code === 'DECISION_STALE' ? PREPARE_TEXTS.changed : `${code}: ${error instanceof Error ? error.message : String(error)}`);
     }
     const scope = await deps.kit.scope(folder);
-    current = await deps.journal.update(folder, run.runId, (r) => ({
+    current = await deps.journal.advance(folder, run.runId, (r) => ({
       ...r,
       phase: 'starting',
       scopeId: scope?.id ?? version.scopeId,
@@ -149,7 +149,7 @@ export function createPreparation(deps: PreparationDeps) {
       return block(folder, (await deps.journal.read(folder, run.runId)) ?? fresh, `${code}: ${error instanceof Error ? error.message : String(error)}`);
     }
     const revision = (await deps.kit.status(folder))?.revision ?? null;
-    return deps.journal.update(folder, run.runId, (r) =>
+    return deps.journal.advance(folder, run.runId, (r) =>
       r.receipts.some((receipt) => receipt.actionId === actionId)
         ? null
         : { ...r, receipts: [...r.receipts, { actionId, type: 'start', at: now().toISOString(), commit: null, detail: `scope ${scope.id}, plan revision ${revision ?? 'unknown'}` }] },
@@ -171,8 +171,8 @@ export function createPreparation(deps: PreparationDeps) {
       const own = scope.ownerSession === run.owner.sessionId && (run.scopeId === null || run.scopeId === scope.id);
       if (!own) return block(folder, run, PREPARE_TEXTS.scopeChanged, 'Запустите новый запуск после окончания этого плана.');
       const grant = status.authorization;
-      if (grant && grant.runId === run.runId && !grant.revoked) return deps.journal.update(folder, run.runId, (r) => (r.phase === 'executing' ? null : { ...r, phase: 'executing', scopeId: scope.id }));
-      return start(folder, await deps.journal.update(folder, run.runId, (r) => ({ ...r, phase: 'starting', scopeId: scope.id })));
+      if (grant && grant.runId === run.runId && !grant.revoked) return deps.journal.advance(folder, run.runId, (r) => (r.phase === 'executing' ? null : { ...r, phase: 'executing', scopeId: scope.id }));
+      return start(folder, await deps.journal.advance(folder, run.runId, (r) => ({ ...r, phase: 'starting', scopeId: scope.id })));
     }
     const version = await deps.kit.digest(folder);
     if (!version) return phase(folder, run, 'preparing');

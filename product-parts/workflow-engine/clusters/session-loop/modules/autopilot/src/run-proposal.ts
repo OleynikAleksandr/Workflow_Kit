@@ -4,6 +4,7 @@
 // The run counts such proposals: the second one stops it with the reason `automation-missing`,
 // and the usual review and mode cards work as without autopilot. A Kit that does not report the
 // block (before 2.4.4) is checked after the choice instead (run-prepare.ts).
+import { FINAL_PHASES } from './run-journal.ts';
 import type { RunJournal, RunRecord } from './run-journal.ts';
 import type { RunKit } from './run-kit.ts';
 import { RUN_STOP_NEXT, automationReturnText } from './run-texts.ts';
@@ -17,7 +18,8 @@ const BEFORE_CHOICE: ReadonlySet<RunRecord['phase']> = new Set(['preparing', 're
 
 /** Stops a run of the service's own accord: final, with a reason the card names. */
 export function stopRun(journal: RunJournal, folder: string, run: RunRecord, reason: RunStopReason, more: Partial<RunRecord> = {}): Promise<RunRecord> {
-  return journal.update(folder, run.runId, (r) => ({ ...r, ...more, phase: 'stopped', pausedFrom: r.phase, reason, nextAction: RUN_STOP_NEXT[reason], pendingAction: null }));
+  // A run the user stopped meanwhile keeps its own reason.
+  return journal.update(folder, run.runId, (r) => (FINAL_PHASES.has(r.phase) ? null : { ...r, ...more, phase: 'stopped', pausedFrom: r.phase, reason, nextAction: RUN_STOP_NEXT[reason], pendingAction: null }));
 }
 
 /** Whether the open proposal is known to lack the `automation` block. */
@@ -47,7 +49,7 @@ export function createProposalGate(deps: { journal: RunJournal; kit: Pick<RunKit
         deps.log?.(`autopiloting: ${run.runId} stopped: proposal ${lacking.generation} has no automation block again`);
         return null;
       }
-      await deps.journal.update(folder, run.runId, (r) => ({
+      await deps.journal.advance(folder, run.runId, (r) => ({
         ...r,
         phase: 'preparing',
         automationMissing: count,

@@ -84,6 +84,42 @@ test('the checks come before direct: a bad text or a foreign session never reach
   channel.close();
 });
 
+test('M40: a checked user message is shown to the service before it is sent or queued; a failure keeps the message', async () => {
+  const seen: string[] = [];
+  const build = (direct: ChannelRoutesOptions['direct'], onUserMessage: ChannelRoutesOptions['onUserMessage']) => {
+    const channel = createAgentChannel({ resolveProject: async () => undefined });
+    const router = createRouter();
+    registerChannelRoutes({ router, state: createStateRegistry(), channel, owns: async (projectId) => projectId === 'p1', direct, onUserMessage });
+    const url = `/api/projects/p1/sessions/${KEY}/message`;
+    const match = router.match('POST', url);
+    if (match.kind !== 'found') throw new Error('no route');
+    const post = (text: unknown) => Promise.resolve(match.handler({ method: 'POST', path: url, query: new URLSearchParams(), params: match.params, body: { text }, req: {} as IncomingMessage, res: {} as ServerResponse })).catch((error: HttpError) => ({ code: error.code }));
+    return { channel, post };
+  };
+  // Queued (no direct path, as for a busy agent): the service sees the text first.
+  const busy = build(undefined, async (projectId, key, text) => void seen.push(`${projectId}|${key}|${text}|queued:${busy.channel.queued(key).length}`));
+  assert.equal(typeof ((await busy.post('  Стоп ')) as { queued?: string }).queued, 'string');
+  assert.deepEqual(seen, [`p1|${KEY}|Стоп|queued:0`]);
+  assert.deepEqual(queued(busy.channel), ['Стоп']);
+  // A bad text never reaches the service.
+  assert.deepEqual(await busy.post('   '), { code: 'empty-message' });
+  assert.equal(seen.length, 1);
+  busy.channel.close();
+  // Sent directly: the same order.
+  const order: string[] = [];
+  const waiting = build(async () => (order.push('direct'), true), async () => void order.push('service'));
+  assert.deepEqual(await waiting.post('пауза'), { sent: true });
+  assert.deepEqual(order, ['service', 'direct']);
+  waiting.channel.close();
+  // A failing check loses nothing.
+  for (const failing of [async () => Promise.reject(new Error('boom')), () => { throw new Error('sync boom'); }] as Array<NonNullable<ChannelRoutesOptions['onUserMessage']>>) {
+    const broken = build(undefined, failing);
+    assert.equal(typeof ((await broken.post('стоп')) as { queued?: string }).queued, 'string');
+    assert.deepEqual(queued(broken.channel), ['стоп']);
+    broken.channel.close();
+  }
+});
+
 test('the limit is 20000 characters', async () => {
   assert.equal(MESSAGE_MAX_CHARS, 20_000);
   const { channel, post } = setup(async () => false);

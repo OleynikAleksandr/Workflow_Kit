@@ -28,6 +28,12 @@ export interface ChannelRoutesOptions {
    * provider took it and nothing is queued. False, an error or no option keeps the queue path.
    */
   direct?: (projectId: string, key: string, text: string) => Promise<boolean>;
+  /**
+   * M40: a checked panel message of the user, as the service receives it — before it is given
+   * to the agent or queued behind a running turn. The service reads the user's «стоп» and
+   * «пауза» for an autopilot run here; a failure never loses the message.
+   */
+  onUserMessage?: (projectId: string, key: string, text: string) => Promise<void>;
   interrupt?: (projectId: string, key: string, body: unknown) => Promise<unknown>;
   interruptions?: () => Promise<Record<string, unknown>>;
   /** Holds a question hook request (wfk hook question); without it the route is not registered. */
@@ -172,6 +178,11 @@ export function registerChannelRoutes(options: ChannelRoutesOptions): void {
     const activity = messages.get(key);
     const owned = activity?.projectId === projectId ? false : ((await options.owns?.(projectId, key).catch(() => false)) ?? false);
     const clean = checkSessionMessage(messages, projectId, key, text, owned);
+    try {
+      await options.onUserMessage?.(projectId, key, clean);
+    } catch {
+      // The message is still given to the agent.
+    }
     channel.resumeDelivery(key); // Only a validated, explicit user message releases the barrier.
     // The direct path gives the text to the agent as a user's message; any refusal queues it.
     if (await sendDirect(options.direct, projectId, key, clean)) {

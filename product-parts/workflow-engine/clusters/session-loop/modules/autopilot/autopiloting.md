@@ -48,7 +48,9 @@
   `at`, `commit`, `detail`), `tickets` (погашенные тикеты хоста), `createdAt`, `updatedAt`.
 - `create`, `read`, `list` (по времени создания; битые файлы пропускаются), `active`
   (последний не `completed`/`stopped`, `FINAL_PHASES`), `update(root, runId, change)`
-  (`change` возвращает новую запись или `null` — без записи), `locked(root, action)`.
+  (`change` возвращает новую запись или `null` — без записи), `advance` (M40 T006: запись
+  автоматического шага, не снимает барьер пользователя — [run-words.md](run-words.md)),
+  `locked(root, action)`.
 
 ## Kit запуска (`src/run-kit.ts`)
 

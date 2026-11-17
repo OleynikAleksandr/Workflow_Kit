@@ -183,6 +183,14 @@ export function wireSessions(options: SessionWiringOptions): SessionWiring {
   channel.setDecider((context) => autopilot.decide(context));
   // The prompt hook tells the autopilot who started the turn: the user typing, or panel messages;
   // the Stop hook lets a waiting rename go.
+  async function userWord(key: string, folder: string | null | undefined, text: string): Promise<void> {
+    try {
+      const projectId = channel.get(key)?.projectId ?? (folder ? (await resolveFolderProject(folder))?.id : undefined);
+      if (projectId) await autopiloting.words.received(projectId, key, text);
+    } catch (error) {
+      options.log?.(`autopiloting: the user's word of ${key}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
   const observedChannel: AgentChannel = {
     ...channel,
     // At Stop the agent is out of its turn: a name that waited for it can go to the app.
@@ -196,8 +204,11 @@ export function wireSessions(options: SessionWiringOptions): SessionWiring {
     },
     async prompt(input) {
       if (await providers.get(input.client)?.nativeControlHook?.({ ...input, event: 'prompt' })) return nativeControlHookReply('prompt');
-      const reply = await channel.prompt(input);
       const key = `${input.client}:${input.sessionId}`;
+      // M40: a text typed in the provider's app reaches the service here: «стоп» and «пауза» of
+      // the owner of a live run act before the agent reads the prompt.
+      if (input.prompt) await userWord(key, input.cwd, input.prompt);
+      const reply = await channel.prompt(input);
       // The panel's first message is a service greeting: no session topic is taken in that turn.
       titles.setServiceTurn(key, input.prompt?.includes(SERVICE_MESSAGE_MARK) === true);
       // A prompt the service itself sent (reply.own) is the service's turn as well.
@@ -343,6 +354,9 @@ export function wireSessions(options: SessionWiringOptions): SessionWiring {
     if ('decision' in reply || 'release' in reply) void autopiloting.waits.questionEnded(project.id, asking, 'decision' in reply ? 'answered' : 'expired').catch(() => undefined);
     return reply;
   };
-  registerChannelRoutes({ router, state, channel: observedChannel, messages: wakingChannel, owns: ownsSession, dialects, direct, interrupt: interruptions.interrupt, interruptions: interruptions.section, question });
+  registerChannelRoutes({
+    router, state, channel: observedChannel, messages: wakingChannel, owns: ownsSession, dialects, direct, interrupt: interruptions.interrupt, interruptions: interruptions.section, question,
+    onUserMessage: async (projectId, key, text) => void (await autopiloting.words.received(projectId, key, text)),
+  });
   return { channel, autopilot, review, titles, crossReview, autopiloting };
 }

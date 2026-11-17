@@ -168,6 +168,10 @@ M40 T005 — решения пользователя операциями хос
 `runMayDecide`, операции решений в `HostOperation` и `decisionId` в привязке билета —
 [decisions.md](decisions.md).
 
+M40 T006 — «стоп» и «паузу» пользователя читает служба: `runWord`, `createRunWords`,
+`WORD_TEXTS`, `RunControl.byWord` (барьер сразу, вне очереди проекта), `RunJournal.advance`
+(запись автоматического шага не снимает барьер пользователя) — [run-words.md](run-words.md).
+
 ## Инварианты
 
 - Все сообщения автопилота в канал (`choose`, `start`, `enable`) передают `projectId`:

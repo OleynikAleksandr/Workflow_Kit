@@ -149,6 +149,10 @@ export function createRuns(options: RunsOptions): Runs {
       scopeId: scope.id,
       source,
     };
+    // «Продолжить» lifts the pause of Settings off (the user's decision); any other grant is an
+    // automatic step and keeps a barrier set meanwhile. A stop that came meanwhile always stays.
+    const write = (change: (r: RunRecord) => RunRecord): Promise<RunRecord> =>
+      source === 'panel-resume' ? options.journal.update(folder, run.runId, (r) => (FINAL_PHASES.has(r.phase) ? null : change(r))) : options.journal.advance(folder, run.runId, change);
     const step = await options.kit.host(folder, {
       operation: 'autopilot:authorize',
       runId: run.runId,
@@ -160,13 +164,13 @@ export function createRuns(options: RunsOptions): Runs {
     });
     const tickets = step.redeemed ? [step.ticketId] : [];
     if (!step.ok) {
-      await options.journal.update(folder, run.runId, (r) => ({ ...r, phase: 'blocked', pausedFrom: r.phase, reason: `${step.code}: ${step.message}`, tickets: [...r.tickets, ...tickets] })).then(remember);
+      await write((r) => ({ ...r, phase: 'blocked', pausedFrom: r.phase, reason: `${step.code}: ${step.message}`, tickets: [...r.tickets, ...tickets] })).then(remember);
       return fail(step.code ?? 'grant-failed', `Kit не записал разрешение запуска: ${step.message ?? step.code}`, 409, 'Проверьте план и нажмите «Начать выполнение плана» ещё раз.');
     }
     const written = step.result?.['grant'] as { revision: number } | undefined;
     const commit = (step.result?.['commit'] as { sha?: string } | null)?.sha ?? null;
     return remember(
-      await options.journal.update(folder, run.runId, (r) => ({
+      await write((r) => ({
         ...r,
         scopeId: scope.id,
         proposal: { scopeId: scope.id, generation: status.proposal!.generation, digest: status.proposal!.digest },
@@ -351,10 +355,10 @@ export function createRuns(options: RunsOptions): Runs {
             });
             if (!step.ok) log(`autopiloting: revoke of ${run.runId} failed: ${step.code} ${step.message}`);
             revocation = { at: new Date().toISOString(), reason: 'settings-off', resumable: true };
-            await options.journal.update(project.path, run.runId, (r) => ({ ...r, tickets: step.redeemed ? [...r.tickets, step.ticketId] : r.tickets }));
+            await options.journal.advance(project.path, run.runId, (r) => ({ ...r, tickets: step.redeemed ? [...r.tickets, step.ticketId] : r.tickets }));
           }
           remember(
-            await options.journal.update(project.path, run.runId, (r) => ({
+            await options.journal.advance(project.path, run.runId, (r) => ({
               ...r,
               phase: 'paused',
               pausedFrom: r.phase,

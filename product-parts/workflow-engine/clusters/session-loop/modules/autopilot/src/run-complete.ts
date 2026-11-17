@@ -62,7 +62,7 @@ export function createRunCompletion(deps: RunCompletionDeps) {
   const live = (status: RunKitStatus, run: RunRecord): boolean => status.authorization?.runId === run.runId && !status.authorization.revoked;
   const receipt = (actionId: string, type: string, commit: string | null, detail: string) => ({ actionId, type, at: now().toISOString(), commit, detail });
 
-  const update = (folder: string, run: RunRecord, change: (r: RunRecord) => RunRecord) => deps.journal.update(folder, run.runId, change);
+  const update = (folder: string, run: RunRecord, change: (r: RunRecord) => RunRecord) => deps.journal.advance(folder, run.runId, change);
   const block = (folder: string, run: RunRecord, reason: string, nextAction: string = COMPLETE_TEXTS.retry) =>
     update(folder, run, (r) => ({ ...r, phase: 'blocked', pausedFrom: r.phase, reason, nextAction }));
 
@@ -114,6 +114,7 @@ export function createRunCompletion(deps: RunCompletionDeps) {
     if (!due(run, actionId)) return null;
     let current = run;
     if (!has(run, actionId)) {
+      if (!(await mayDecide(folder, run.runId))) return null; // M40: «стоп» or «пауза» came meanwhile
       try {
         const staged = await deps.publisher.stageCi(folder, { sha, remote: ci.remote, branch: ci.branch });
         current = await update(folder, run, (r) => ({ ...r, receipts: [...r.receipts, receipt(actionId, 'ci-stage', sha, staged.already ? `already on ${ci.remote}/${ci.branch}` : `pushed to ${ci.remote}/${ci.branch}`)] }));
@@ -199,6 +200,8 @@ export function createRunCompletion(deps: RunCompletionDeps) {
     if (completion.ci?.exactSha && !greenFor(run, sha)) return stage(folder, run, sha);
     const actionId = `publish:${sha}`;
     if (!due(run, actionId)) return null;
+    // M40: the user's «стоп» or «пауза» is read again right before the push.
+    if (!(await mayDecide(folder, run.runId))) return null;
     try {
       const done = await deps.publisher.publish(folder, false, { sha, branch: completion.publication.branch, upstream: completion.publication.upstream });
       log(`autopiloting: ${run.runId} published ${sha} to ${completion.publication.upstream}`);
@@ -215,7 +218,9 @@ export function createRunCompletion(deps: RunCompletionDeps) {
   /** One step of the run from the facts, or null when nothing can be done now. */
   async function step(folder: string, run: RunRecord): Promise<RunRecord | null> {
     const status = await deps.kit.status(folder);
-    if (!status) return null;
+    // M40: the barrier of the user is written outside the queue of the project; every step
+    // reads the run again and starts nothing behind it.
+    if (!status || !(await mayDecide(folder, run.runId))) return null;
     if (run.phase === 'executing' || run.phase === 'delivering') {
       if (status.scope !== 'ACTIVE' || !live(status, run)) return null;
       const snapshot = { ci: (status.authorization!.ci ?? null) as NonNullable<RunRecord['completion']>['ci'], publication: run.authority!.publication, finalSha: null };

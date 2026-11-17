@@ -66,6 +66,25 @@ export function createRunControl(deps: RunControlDeps) {
     return deps.journal.update(folder, run.runId, (r) => ({ ...r, phase: 'paused', pausedFrom: r.phase === 'blocked' ? r.pausedFrom : r.phase, reason, nextAction: reason === 'user-pause' ? CONTROL_TEXTS.paused : CONTROL_TEXTS.interrupted }));
   }
 
+  /** Kit records the revocation of a stopped run's grant; the journal keeps the ticket. */
+  async function revoke(folder: string, run: RunRecord, note: string): Promise<RunRecord> {
+    let tickets: string[] = [];
+    if (run.authority && !run.authority.revocation) {
+      const step = await deps.kit.host(folder, {
+        operation: 'autopilot:revoke', runId: run.runId, scopeId: run.scopeId ?? 'NONE', ownerSession: run.owner.sessionId, file: false,
+        input: { note, reason: 'user-stop', runId: run.runId },
+        args: (_file, revision) => ['autopilot:revoke', '--run', run.runId, '--reason', 'user-stop', '--note', note, '--expected-revision', String(revision)],
+      });
+      if (!step.ok) log(`autopiloting: revoke of ${run.runId} failed: ${step.code} ${step.message}`);
+      tickets = step.redeemed ? [step.ticketId] : [];
+    }
+    return deps.journal.update(folder, run.runId, (r) => ({
+      ...r,
+      tickets: [...r.tickets, ...tickets],
+      authority: r.authority ? { ...r.authority, revocation: r.authority.revocation ?? { at: new Date().toISOString(), reason: 'user-stop', resumable: false } } : null,
+    }));
+  }
+
   return {
     /** workflow/pause and the M24 stop (called by the autopilot under the route's lock). */
     async onPause(projectId: string, reason: 'user-pause' | 'interrupted'): Promise<void> {
@@ -96,22 +115,29 @@ export function createRunControl(deps: RunControlDeps) {
         // The barrier first: nothing automatic starts while Kit records the revocation.
         await deps.journal.update(folder, run.runId, (r) => ({ ...r, phase: 'stopped', pausedFrom: r.phase, reason: 'user-stop', nextAction: CONTROL_TEXTS.stopped }));
         deps.actions()?.halt(projectId);
-        let tickets: string[] = [];
-        if (run.authority && !run.authority.revocation) {
-          const step = await deps.kit.host(folder, {
-            operation: 'autopilot:revoke', runId: run.runId, scopeId: run.scopeId ?? 'NONE', ownerSession: run.owner.sessionId, file: false,
-            input: { note: 'The user stopped the run in the panel', reason: 'user-stop', runId: run.runId },
-            args: (_file, revision) => ['autopilot:revoke', '--run', run.runId, '--reason', 'user-stop', '--note', 'The user stopped the run in the panel', '--expected-revision', String(revision)],
-          });
-          if (!step.ok) log(`autopiloting: revoke of ${run.runId} failed: ${step.code} ${step.message}`);
-          tickets = step.redeemed ? [step.ticketId] : [];
-        }
-        return deps.journal.update(folder, run.runId, (r) => ({
-          ...r,
-          tickets: [...r.tickets, ...tickets],
-          authority: r.authority ? { ...r.authority, revocation: r.authority.revocation ?? { at: new Date().toISOString(), reason: 'user-stop', resumable: false } } : null,
-        }));
+        return revoke(folder, run, 'The user stopped the run in the panel');
       }),
+
+    /**
+     * M40: the user's «стоп» or «пауза» as the service received it. The barrier is written at
+     * once, outside the queue of the project: an automatic step that runs now records its result
+     * and starts nothing more. The Kit pause and the revocation of the grant follow in the queue
+     * (`settled`). Null — no run of this owner, or the run is paused already.
+     */
+    async byWord(projectId: string, key: string, action: 'pause' | 'stop'): Promise<{ run: RunRecord; settled: Promise<void> } | null> {
+      const folder = await deps.projectPath(projectId);
+      const run = folder ? await deps.journal.active(folder).catch(() => null) : null;
+      if (!folder || !run || run.owner.key !== key) return null;
+      const failed = (error: unknown): void => log(`autopiloting: ${action} of ${run.runId} by the user's word: ${error instanceof Error ? error.message : String(error)}`);
+      if (action === 'pause') {
+        if (run.phase === 'paused') return null;
+        const paused = await barrier(folder, run, 'user-pause');
+        return { run: paused, settled: serial(projectId, async () => void (await deps.actions()?.pause(projectId))).catch(failed) };
+      }
+      const stopped = await deps.journal.update(folder, run.runId, (r) => ({ ...r, phase: 'stopped', pausedFrom: r.phase === 'paused' || r.phase === 'blocked' ? r.pausedFrom : r.phase, reason: 'user-stop', nextAction: CONTROL_TEXTS.stopped }));
+      deps.actions()?.halt(projectId);
+      return { run: stopped, settled: serial(projectId, async () => void (await revoke(folder, run, "The user wrote «стоп» to the run's owner session"))).catch(failed) };
+    },
 
     /** `wfk session run pause|stop` of the run's owner (the agent understood the user's words). */
     async byOwner(projectId: string, key: string, action: 'pause' | 'stop'): Promise<RunRecord> {

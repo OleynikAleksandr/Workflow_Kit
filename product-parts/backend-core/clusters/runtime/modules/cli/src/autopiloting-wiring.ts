@@ -3,8 +3,8 @@
 // user wrote to the session, kept by the agent channel). The manual start records the grant of
 // its run before the first work message; Settings off pauses the active runs.
 import type { AgentChannel } from '#agent-channel';
-import { createDecisionJournal, createDecisions, createHostTickets, runMayDecide, createPreparation, createProposalGate, createRunCompletion, createRunControl, createRunJournal, createRunKit, createRunTurns, createRunWaits, createRuns, createSettingsStore, registerAutopilotingRoutes, registerRunControlRoutes, registerSessionRunRoutes, runHttp } from '#autopilot';
-import type { Decisions, RunCompleter, ControlActions, PrepareActions, ReviewFact, RunControl, RunTurns, RunWaits, Runs, SettingsStore } from '#autopilot';
+import { createDecisionJournal, createDecisions, createHostTickets, runMayDecide, createPreparation, createProposalGate, createRunCompletion, createRunControl, createRunJournal, createRunKit, createRunTurns, createRunWaits, createRunWords, createRuns, createSettingsStore, registerAutopilotingRoutes, registerRunControlRoutes, registerSessionRunRoutes, runHttp } from '#autopilot';
+import type { Decisions, RunCompleter, ControlActions, PrepareActions, ReviewFact, RunControl, RunTurns, RunWaits, RunWords, Runs, SettingsStore } from '#autopilot';
 import { createGitHubCi, createPublisher, runGit } from '#git-publish';
 import type { GitHubCi, GitRunner, Publisher } from '#git-publish';
 import type { KeyedMutex } from '#data-store';
@@ -32,6 +32,8 @@ export interface AutopilotingWiring {
    */
   turns: RunTurns & { proposal(projectId: string, key: string): Promise<{ text: string } | null> };
   control: RunControl;
+  /** M40: the user's «стоп» and «пауза» for the owner of a live run, read when the service gets the message. */
+  words: RunWords;
   waits: RunWaits;
   /** One CI check of the waiting runs and, at the service start, the recovery of started runs. */
   /** T008: accept, close and publish of an authorized run (the service, no turn of the agent). */
@@ -66,7 +68,7 @@ export function wireAutopiloting(options: {
   mutex: KeyedMutex;
   projects: ProjectRegistry;
   kit: KitRunner;
-  channel: Pick<AgentChannel, 'userSource' | 'userWords'>;
+  channel: Pick<AgentChannel, 'enqueue' | 'userSource' | 'userWords'>;
   configDir: string;
   platform?: NodeJS.Platform;
   /** Stores the review decision of a session (plan-review) and closes its open plan question. */
@@ -129,6 +131,8 @@ export function wireAutopiloting(options: {
     unreachable: (projectId, key) => links?.unreachable?.(projectId, key) ?? Promise.resolve(null),
     ...(options.log ? { log: options.log } : {}),
   });
+  // The context goes into the queue without a wake: it is delivered with the user's own message.
+  const words = createRunWords({ control, tell: (projectId, key, text) => void options.channel.enqueue(key, text, 'panel', projectId), ...(options.log ? { log: options.log } : {}) });
   const waits = createRunWaits({ journal, kit: runKit, ci: options.ci ?? createGitHubCi(), projectPath, listProjects, send, mutex: options.mutex, ...(options.log ? { log: options.log } : {}) });
   const git = options.git ?? runGit;
   const completion = createRunCompletion({ journal, kit: runKit, publisher: options.publisher ?? createPublisher({ git }), git, projectPath, listProjects, mutex: options.mutex, ...(options.log ? { log: options.log } : {}) });
@@ -145,6 +149,7 @@ export function wireAutopiloting(options: {
     },
     turns,
     control,
+    words,
     waits,
     completion,
     tick: async () => {

@@ -70,11 +70,11 @@ export function createRunWaits(deps: RunWaitsDeps) {
   async function retry(folder: string, run: RunRecord, actionId: string, error: string): Promise<void> {
     const count = (run.retries?.[actionId]?.count ?? 0) + 1;
     if (count > RETRY_DELAYS_MS.length) {
-      await deps.journal.update(folder, run.runId, (r) => ({ ...r, phase: 'blocked', pausedFrom: resume(r), reason: `ci-unavailable: ${error}`, nextAction: 'Проверьте доступ к GitHub и нажмите «Продолжить».' }));
+      await deps.journal.advance(folder, run.runId, (r) => ({ ...r, phase: 'blocked', pausedFrom: resume(r), reason: `ci-unavailable: ${error}`, nextAction: 'Проверьте доступ к GitHub и нажмите «Продолжить».' }));
       return;
     }
     const nextAt = new Date(now().getTime() + RETRY_DELAYS_MS[count - 1]!).toISOString();
-    await deps.journal.update(folder, run.runId, (r) => ({ ...r, retries: { ...r.retries, [actionId]: { count, nextAt, error } } }));
+    await deps.journal.advance(folder, run.runId, (r) => ({ ...r, retries: { ...r.retries, [actionId]: { count, nextAt, error } } }));
   }
 
   async function checkCi(projectId: string, folder: string, run: RunRecord): Promise<RunRecord | null> {
@@ -92,12 +92,12 @@ export function createRunWaits(deps: RunWaitsDeps) {
     if (verdict.state === 'pending') return run;
     if (verdict.state === 'unavailable') {
       if (verdict.transient) await retry(folder, run, actionId, verdict.reason);
-      else await deps.journal.update(folder, run.runId, (r) => ({ ...r, phase: 'blocked', pausedFrom: resume(r), reason: `ci-unavailable: ${verdict.reason}`, nextAction: 'Настройте gh (gh auth login) и нажмите «Продолжить».' }));
+      else await deps.journal.advance(folder, run.runId, (r) => ({ ...r, phase: 'blocked', pausedFrom: resume(r), reason: `ci-unavailable: ${verdict.reason}`, nextAction: 'Настройте gh (gh auth login) и нажмите «Продолжить».' }));
       return deps.journal.read(folder, run.runId);
     }
     const at = now().toISOString();
     if (verdict.state === 'success') {
-      const done = await deps.journal.update(folder, run.runId, (r) => ({ ...r, wait: null, phase: resume(r), pausedFrom: null, receipts: [...r.receipts, { actionId, type: 'ci', at, commit: verdict.sha, detail: verdict.jobs.map((j) => j.name).join(', ') }] }));
+      const done = await deps.journal.advance(folder, run.runId, (r) => ({ ...r, wait: null, phase: resume(r), pausedFrom: null, receipts: [...r.receipts, { actionId, type: 'ci', at, commit: verdict.sha, detail: verdict.jobs.map((j) => j.name).join(', ') }] }));
       if (!service) deps.send(projectId, run.owner.key, WAIT_TEXTS.green(run.runId, verdict.sha, verdict.jobs.map((j) => j.name)));
       return done;
     }
@@ -106,14 +106,14 @@ export function createRunWaits(deps: RunWaitsDeps) {
     const task = status?.nextTask;
     if (task?.kind !== 'delivery' || task.status !== 'IN_PROGRESS') {
       const closed = run.pausedFrom === 'publishing';
-      return deps.journal.update(folder, run.runId, (r) => ({ ...r, wait: null, phase: 'blocked', pausedFrom: resume(r), reason: WAIT_TEXTS.red(failed), receipts: [...r.receipts, { actionId, type: 'ci-failed', at, commit: verdict.sha, detail: failed }], nextAction: closed ? 'Scope уже закрыт: исправление требует отдельного согласованного scope.' : 'Исправьте причину и нажмите «Продолжить».' }));
+      return deps.journal.advance(folder, run.runId, (r) => ({ ...r, wait: null, phase: 'blocked', pausedFrom: resume(r), reason: WAIT_TEXTS.red(failed), receipts: [...r.receipts, { actionId, type: 'ci-failed', at, commit: verdict.sha, detail: failed }], nextAction: closed ? 'Scope уже закрыт: исправление требует отдельного согласованного scope.' : 'Исправьте причину и нажмите «Продолжить».' }));
     }
     const reason = `CI failed for ${verdict.sha}: ${failed}`;
     const deferred = await deps.kit.command(folder, ['task:defer-delivery', task.id, '--reason', reason, '--outcome', 'red CI of the pushed commit', '--expected-revision', String(status!.revision)]);
     if (!deferred.ok) {
-      return deps.journal.update(folder, run.runId, (r) => ({ ...r, wait: null, phase: 'blocked', pausedFrom: resume(r), reason: `${deferred.code}: ${deferred.message}`, nextAction: 'Отложите поставку командой task:defer-delivery и нажмите «Продолжить».' }));
+      return deps.journal.advance(folder, run.runId, (r) => ({ ...r, wait: null, phase: 'blocked', pausedFrom: resume(r), reason: `${deferred.code}: ${deferred.message}`, nextAction: 'Отложите поставку командой task:defer-delivery и нажмите «Продолжить».' }));
     }
-    const done = await deps.journal.update(folder, run.runId, (r) => ({ ...r, wait: null, phase: 'executing', pausedFrom: null, receipts: [...r.receipts, { actionId, type: 'ci-failed', at, commit: verdict.sha, detail: `${failed}; deferred ${task.id}` }] }));
+    const done = await deps.journal.advance(folder, run.runId, (r) => ({ ...r, wait: null, phase: 'executing', pausedFrom: null, receipts: [...r.receipts, { actionId, type: 'ci-failed', at, commit: verdict.sha, detail: `${failed}; deferred ${task.id}` }] }));
     deps.send(projectId, run.owner.key, WAIT_TEXTS.deferred(run.runId, verdict.sha, failed, task.id));
     log(`autopiloting: ${run.runId} red CI for ${verdict.sha}; ${task.id} deferred`);
     return done;
@@ -137,7 +137,7 @@ export function createRunWaits(deps: RunWaitsDeps) {
         if (!grant || grant.runId !== runId || grant.revoked || !grant.ci) fail('no-ci-policy', 'У разрешения запуска нет политики CI');
         if (hostInputDigest(grant!.ci) !== ciPolicyDigest) fail('ci-policy-mismatch', 'Политика CI не совпадает с закреплённой в разрешении запуска');
         const wait = { reason: 'ci' as const, since: now().toISOString(), sha: targetSha as string, actionId: actionId as string, stage: stage as string, detail: WAIT_TEXTS.ci(targetSha as string) };
-        await deps.journal.update(folder, run!.runId, (r) => ({ ...r, wait, phase: 'waiting', pausedFrom: r.phase === 'waiting' ? r.pausedFrom : r.phase }));
+        await deps.journal.advance(folder, run!.runId, (r) => ({ ...r, wait, phase: 'waiting', pausedFrom: r.phase === 'waiting' ? r.pausedFrom : r.phase }));
         return { recorded: true, runId, wait, note: 'A wait is no CI result: Workflow Kit reads the required jobs of this SHA on GitHub itself.' };
       }),
 
@@ -156,7 +156,7 @@ export function createRunWaits(deps: RunWaitsDeps) {
       const folder = await deps.projectPath(projectId);
       const run = folder ? await deps.journal.active(folder) : null;
       if (!folder || !run || run.owner.key !== key || run.wait || !['executing', 'delivering'].includes(run.phase)) return;
-      await deps.journal.update(folder, run.runId, (r) => ({ ...r, phase: 'waiting', pausedFrom: r.phase, wait: { reason: 'question', since: now().toISOString(), detail: WAIT_TEXTS.question } }));
+      await deps.journal.advance(folder, run.runId, (r) => ({ ...r, phase: 'waiting', pausedFrom: r.phase, wait: { reason: 'question', since: now().toISOString(), detail: WAIT_TEXTS.question } }));
     },
 
     /** The question was answered (the run goes on in the same turn) or its hook expired (blocked). */
@@ -164,7 +164,7 @@ export function createRunWaits(deps: RunWaitsDeps) {
       const folder = await deps.projectPath(projectId);
       const run = folder ? await deps.journal.active(folder) : null;
       if (!folder || !run || run.owner.key !== key || run.wait?.reason !== 'question') return;
-      await deps.journal.update(folder, run.runId, (r) =>
+      await deps.journal.advance(folder, run.runId, (r) =>
         outcome === 'answered'
           ? { ...r, wait: null, phase: resume(r), pausedFrom: null }
           : { ...r, wait: null, phase: 'blocked', pausedFrom: resume(r), reason: 'question-expired', nextAction: `${WAIT_TEXTS.expired}. Ответьте агенту в приложении и нажмите «Продолжить».` },

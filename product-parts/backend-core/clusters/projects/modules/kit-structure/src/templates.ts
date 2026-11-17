@@ -3,7 +3,7 @@
 // They are read by agents of any project, so they are written in English.
 
 /** Version of the Kit structure; bump it whenever a managed text below changes. */
-export const STRUCTURE_VERSION = 5;
+export const STRUCTURE_VERSION = 6;
 
 /** Markers of the Kit section in AGENTS.md. */
 export const AGENTS_BEGIN = '<!-- wfk:begin -->';
@@ -81,12 +81,19 @@ only in this chat.
 - Plan question: when the user's request is a software development task (a
   new product or a change to this one) that you would answer with a
   specification and a Workflow Kit plan, first run
-  \`wfk session plan "<one line: what you are going to build>"\` and end your
-  turn without writing the specification or any files. The user answers in
-  the panel: specification and plan with a cross review, without it, or just
-  talk; the answer reaches you as a \`Workflow Kit:\` message. Do not run it
-  for discussion, research, explanations or everyday questions, and do not
-  run it again for the same task unless the user asks for a plan anew.
+  \`wfk session plan "<one line: what you are going to build>"\`. If it
+  prints \`action: prepare\` (Workflow Kit decided by its Settings and the
+  user's message), follow the printed instruction in the same turn.
+  Otherwise end your turn without writing the specification or any files:
+  the user answers in the panel (specification and plan with a cross
+  review, without it, or just talk) and the answer reaches you as a
+  \`Workflow Kit:\` message. Pass no quote of the user: Workflow Kit reads
+  the user's words itself. In a project whose Kit records the user's
+  decisions (\`"decisions": "host"\` in \`.harness/workflow/config.json\`),
+  this replaces the rule that a clear instruction allows \`scope:create\`
+  without asking. Do not run it for discussion, research, explanations or
+  everyday questions, and do not run it again for the same task unless the
+  user asks for a plan anew.
 - GitHub publication: \`git push\` of the main branch is not a plan task,
   not even a delivery task. It comes only after the scope is accepted and
   closed: when the user asks (the panel button «Опубликовать на GitHub» or
@@ -101,8 +108,11 @@ only in this chat.
   closes and publishes. Only the app does these host steps: never run
   \`autopilot:*\`, \`accept --autopilot-run\` or \`close --autopilot-run\`
   yourself. A status question of the user gets an answer and the run goes
-  on; «стоп», «пауза» or switching the mode off stop it. Without a live run
-  every manual barrier stays.
+  on. Workflow Kit itself stops or pauses the run when the user's message
+  begins with «стоп» or «пауза» (and their forms, in Russian or English);
+  for other wordings run \`wfk session run pause\` or \`wfk session run stop\`.
+  Switching the mode off pauses it too. Without a live run every manual
+  barrier stays.
 - Execution mode and plan start: after \`scripts/workflow scope:propose\` the
   user chooses the mode and starts the plan with buttons in the panel. End
   your turn and wait; the choice reaches you as a message from Workflow Kit.

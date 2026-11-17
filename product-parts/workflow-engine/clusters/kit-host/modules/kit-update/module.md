@@ -70,6 +70,16 @@ Kit» — это согласие.
   `KitUpdateAction`, `KitUpdateError`, `KitUpdateLast`, `HookApprovalOptions`,
   `KitStructureState`, `KitStructureLast`, `StructureAccess` (`src/structure.ts`).
 
+## Режим решений (M40 T008)
+
+`HOST_DECISIONS_SINCE` = `2.4.0`; `decisionsOption(version) → { decisions?: 'host' }` —
+`{ decisions: 'host' }` для Kit 2.4.0 и новее, `{}` для старшего и нечитаемого номера.
+«Обновить Kit» ставит бандл с `...decisionsOption(bundled)`: проект на Kit 2.4.x становится
+проектом `host` (решения пользователя записывает только приложение), ключ сохраняется при
+следующих обновлениях; бандл 2.3.x ключа не передаёт. Тот же помощник использует мастер
+(`project-setup`). Тесты — `test/kit-update-decisions.test.ts`; `test/kit-update-real.test.ts`
+ставит проект с `decisions: host`, как мастер, и обновление остаётся коммитом одной структуры.
+
 ## Инварианты
 
 - Раздел состояния только читает кэш (D11): `inspect` запускается в `refresh()` — при

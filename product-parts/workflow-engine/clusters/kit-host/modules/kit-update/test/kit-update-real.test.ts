@@ -38,7 +38,8 @@ test('an outdated structure is written and committed by Kit in one commit', asyn
   await installStructure(root);
   git(root, 'add', '-A');
   git(root, 'commit', '-q', '-m', 'chore: add Workflow Kit structure');
-  const install = await kit.install(root);
+  // M40: the wizard installs Kit 2.4.0+ with `decisions: host`; the update keeps the key.
+  const install = await kit.install(root, { decisions: 'host' });
   assert.ok(install.ok, install.ok ? '' : `${install.code}: ${install.message}`);
   assert.equal((await checkStructure(root)).status, 'ok');
 

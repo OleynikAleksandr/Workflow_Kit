@@ -260,6 +260,18 @@ test('a structure v1 project is "outdated" and the update adds the Stop and prom
   assert.equal(statusOf(updated.report, 'claude-hook'), 'ok');
 });
 
+test('M40 T008: the panel section asks no quote of the user and lets the service decide the plan question', async () => {
+  const root = await project();
+  await installStructure(root);
+  const section = (await read(root, 'AGENTS.md')).replace(/\s+/gu, ' ');
+  assert.equal(section.includes('--authorized'), false);
+  assert.match(section, /If it prints `action: prepare` .*follow the printed instruction in the same turn/u);
+  assert.match(section, /Pass no quote of the user/u);
+  assert.match(section, /"decisions": "host".*replaces the rule that a clear instruction allows `scope:create` without asking/u);
+  assert.match(section, /Workflow Kit itself stops or pauses the run when the user's message begins with «стоп» or «пауза»/u);
+  assert.equal(STRUCTURE_VERSION, 6);
+});
+
 test('invalid JSON or broken markers refuse the install without writing anything', async () => {
   const root = await project({ '.claude/settings.json': '{ "hooks": ', 'AGENTS.md': 'User text\n' });
   const report = await checkStructure(root);

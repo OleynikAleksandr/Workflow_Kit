@@ -67,6 +67,17 @@ export function compareVersions(left: string, right: string): number {
   return 0;
 }
 
+/** The first Kit whose user decisions the app records itself (M40, `decisions: host`). */
+export const HOST_DECISIONS_SINCE = '2.4.0';
+
+/**
+ * The install option of the app for the Kit it installs (M40 2.1): Kit 2.4.0 and newer get
+ * `decisions: host` — only the app records the user's decisions; an older Kit gets no key.
+ */
+export function decisionsOption(version: string): { decisions?: 'host' } {
+  return /^\d+\.\d+/u.test(version) && compareVersions(version, HOST_DECISIONS_SINCE) >= 0 ? { decisions: 'host' } : {};
+}
+
 /**
  * `update` for an older Kit only: KIT_OUTDATED, or an installed Kit whose version is older than the
  * bundle. A newer Kit is never replaced by an older one (Kit itself has no downgrade guard).

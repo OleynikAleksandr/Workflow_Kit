@@ -1,0 +1,32 @@
+/* M40: decision cards of Kit requests (unblock, approve-install, adopt-commits); the card itself
+   is a .choice block, these rules only shape the list of what the user allows. */
+.sv-decisions {
+  display: grid;
+  gap: 12px;
+}
+
+.sv-decision-items {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  color: var(--text);
+}
+
+.sv-decision-items li + li {
+  margin-top: 4px;
+}
+
+.sv-decision-items code {
+  font-size: 12px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  color: var(--text);
+}
+
+.sv-decision .row {
+  margin-top: 10px;
+}
+
+.sv-decision button[aria-busy='true'] {
+  opacity: 0.6;
+  cursor: progress;
+}

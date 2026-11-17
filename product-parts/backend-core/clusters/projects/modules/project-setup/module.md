@@ -85,6 +85,13 @@ Kit (версия бандла приложения, `KIT_VERSION` из `#kit-bu
   `SetupError`, `PREVIEW_TTL_MS`; типы `ProviderButton`, `HookPreview`,
   `SetupAction`, `SetupProvider` и `StepId` (строки).
 
+## Режим решений (M40 T008)
+
+Шаг `kit` ставит Kit с `decisionsOption(deps.bundledKit ?? KIT_VERSION)`: Kit 2.4.0 и новее
+получает `--decisions host` (в `.harness/workflow/config.json` — `"decisions": "host"`, решения
+пользователя записывает только приложение), Kit 2.3.x — без ключа. `SetupDeps.bundledKit` —
+версия бандла приложения (тесты). Проверка — `test/setup.test.ts` (настоящий бандл).
+
 ## Инварианты
 
 - Предпросмотр только читает; всё пишется одним согласием в `apply`.
@@ -97,7 +104,7 @@ Kit (версия бандла приложения, `KIT_VERSION` из `#kit-bu
 
 ## Зависимости
 
-`#kit-bundle` (`KIT_VERSION`), `#kit-runner`, `#kit-structure`, `#project-registry`, `#provider-registry`
+`#kit-bundle` (`KIT_VERSION`), `#kit-runner`, `#kit-structure`, `#kit-update` (`decisionsOption`, M40), `#project-registry`, `#provider-registry`
 (типы), `#process-supervisor` (тип), `#data-store` (операции),
 `#http-server`. Тесты: временный HOME, настоящие git и бандл Kit,
 подставные провайдеры (третий — с хуком, который пишется в файл).

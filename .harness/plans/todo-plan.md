@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1251,
+  "revision": 1253,
   "rounds": [
     {
       "digest": null,
@@ -913,14 +913,37 @@
         "product-parts/backend-core/clusters/projects",
         "product-parts/workflow-engine/clusters/kit-host/modules/kit-update",
         "product-parts/workflow-engine/clusters/session-loop/modules/autopilot",
-        "docs/architecture/OS-MATRIX.md"
+        "docs/architecture/OS-MATRIX.md",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/module.md",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/src/templates.ts",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/test/question-hook.test.ts",
+        "product-parts/backend-core/clusters/projects/modules/kit-structure/test/structure.test.ts",
+        "product-parts/backend-core/clusters/projects/modules/project-setup/module.md",
+        "product-parts/backend-core/clusters/projects/modules/project-setup/src/setup.ts",
+        "product-parts/backend-core/clusters/projects/modules/project-setup/test/setup.test.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/index.html",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/decision-card.css",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/decision-card.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/decision-model.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/review-card.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/sidebar-view.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/test/decision-cards.test.ts",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-update/module.md",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-update/src/index.ts",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-update/src/routes.ts",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-update/src/update.ts",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-update/test/kit-update-decisions.test.ts",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-update/test/kit-update-real.test.ts"
       ],
       "fixes": null,
       "id": "T008",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Панель и структура: карточки решений и decisions host",
       "why": "Новые решения пользователя нужно принять кнопкой; новые проекты включают режим host"
     },
@@ -1093,8 +1116,8 @@
 - Execution: sequential
 - Automation: 6 automatic, 0 manual criteria; CI origin ci/M40-user-decisions (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 8/13
-- Revision: 1251
+- Progress: 9/13
+- Revision: 1253
 
 ## Objective
 
@@ -1144,9 +1167,9 @@
   - Commit: feat: let the service authorize full-autopilot preparation itself
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/workflow-engine/clusters/session-loop/modules/plan-review, product-parts/backend-core/clusters/runtime/modules/cli, docs/architecture/OS-MATRIX.md, product-parts/backend-core/clusters/runtime/modules/cli/commands.md, product-parts/backend-core/clusters/runtime/modules/cli/connected-modules.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/autopiloting-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/review-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/session-command.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/autopiloting.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/decisions.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/decisions.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-texts.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/runs.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/complete-real.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/decisions.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/lifecycle-real.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/orchestrated-real.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/prepare-real.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/run-end.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/runs-ci-real.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/runs-real.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/runs.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/module.md, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/src/routes.ts
   - Depends on: T005
-- [TODO] T008 — Панель и структура: карточки решений и decisions host (work)
+- [DONE] T008 — Панель и структура: карточки решений и decisions host (work)
   - Commit: feat: show decision cards and enable host decisions for new projects
-  - Files: product-parts/control-panel, product-parts/backend-core/clusters/projects, product-parts/workflow-engine/clusters/kit-host/modules/kit-update, product-parts/workflow-engine/clusters/session-loop/modules/autopilot, docs/architecture/OS-MATRIX.md
+  - Files: product-parts/control-panel, product-parts/backend-core/clusters/projects, product-parts/workflow-engine/clusters/kit-host/modules/kit-update, product-parts/workflow-engine/clusters/session-loop/modules/autopilot, docs/architecture/OS-MATRIX.md, product-parts/backend-core/clusters/projects/modules/kit-structure/module.md, product-parts/backend-core/clusters/projects/modules/kit-structure/src/templates.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/test/question-hook.test.ts, product-parts/backend-core/clusters/projects/modules/kit-structure/test/structure.test.ts, product-parts/backend-core/clusters/projects/modules/project-setup/module.md, product-parts/backend-core/clusters/projects/modules/project-setup/src/setup.ts, product-parts/backend-core/clusters/projects/modules/project-setup/test/setup.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/index.html, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/decision-card.css, product-parts/control-panel/clusters/web-panel/modules/session-view/src/decision-card.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/decision-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/review-card.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/sidebar-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/test/decision-cards.test.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/src/index.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/src/routes.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/src/update.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/test/kit-update-decisions.test.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/test/kit-update-real.test.ts
   - Depends on: T007
 - [TODO] T009 — Сквозные проверки M40 с настоящим bundle и службой (work)
   - Commit: test: verify M40 user decisions end to end

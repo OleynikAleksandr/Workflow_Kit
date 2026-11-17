@@ -1,6 +1,8 @@
 // @ts-check
 import { activityView, choiceView, crossReviewView, foreignPlanView, planQuestionView, planView } from './session-model.js';
 import { runView } from './run-model.js';
+import { decisionCardsView, decisionFields, hostDecisions } from './decision-model.js';
+import { projectReviews as projectReviewsOf } from './plan-cards.js';
 
 /** @typedef {import('../../panel-shell/src/slots.js').SessionContext} SessionContext */
 /** @typedef {import('../../panel-shell/src/slots.js').SlotContext} SlotContext */
@@ -30,7 +32,9 @@ export function installSidebarSlot(shell, renderers, version = () => 0) {
     select(state, session) {
       const { id } = session.project;
       const { key } = session.session;
-      return { version: version(session), activity: activityView(state, id, key), question: planQuestionView(state, id, key), choice: choiceView(state, id, key), plan: planView(state, id, key), foreign: foreignPlanView(state, id, key), review: crossReviewView(state, id, key), run: runView(state, id, key), name: session.session.name };
+      return { version: version(session), activity: activityView(state, id, key), question: planQuestionView(state, id, key), choice: choiceView(state, id, key), plan: planView(state, id, key), foreign: foreignPlanView(state, id, key), review: crossReviewView(state, id, key), run: runView(state, id, key), name: session.session.name , decisions: decisionCardsView(state, id, key, (s, p, k) => projectReviewsOf(s, p).some((r) => r.reviewerKey === k)),
+        // M40: the requests of Kit the plan buttons send (`host` projects); empty objects otherwise.
+        host: hostDecisions(state, id), requests: Object.fromEntries(['accept', 'close', 'choose', 'confirm-delivery'].map((kind) => [kind, decisionFields(state, id, kind)])) };
     },
     render(data, _state, session, ctx) {
       const id = `${session.project.id}\n${session.session.key}`;
@@ -41,13 +45,14 @@ export function installSidebarSlot(shell, renderers, version = () => 0) {
       }
       const descriptions = [
         ['question', data.question],
+        ['decisions', data.decisions?.length ? data.decisions : null],
         ['review', showsReview(data) ? data.review : null],
-        ['delivery', data.plan?.delivery ? true : null],
-        ['choice', data.choice],
+        ['delivery', data.plan?.delivery ? { host: data.host, request: data.requests['confirm-delivery'] } : null],
+        ['choice', data.choice ? { ...data.choice, request: data.requests.choose } : null],
         ['run', data.run],
-        ['plan', data.plan ? { ...data.plan, name: data.name, version: data.version } : null],
+        ['plan', data.plan ? { ...data.plan, name: data.name, version: data.version, requests: data.requests } : null],
         ['foreign', data.foreign],
-        ['empty', !data.plan && !data.foreign && !data.question && !data.choice && !data.run && !showsReview(data) ? true : null],
+        ['empty', !data.plan && !data.foreign && !data.question && !data.choice && !data.run && !data.decisions?.length && !showsReview(data) ? true : null],
         ['activity', data.activity],
       ];
       const keep = new Set();
@@ -72,7 +77,7 @@ export function installSidebarSlot(shell, renderers, version = () => 0) {
       for (const [name, part] of entry.parts) {
         if (!keep.has(name)) { part.node.remove(); entry.parts.delete(name); }
       }
-      entry.root.dataset['needsAttention'] = String(Boolean(data.question || data.choice || data.plan?.delivery || ['ready', 'acceptance', 'accepted', 'blocked'].includes(data.plan?.phase) || ['blocked', 'paused'].includes(data.run?.phase)));
+      entry.root.dataset['needsAttention'] = String(Boolean(data.question || data.choice || data.decisions?.length || data.plan?.delivery || ['ready', 'acceptance', 'accepted', 'blocked'].includes(data.plan?.phase) || ['blocked', 'paused'].includes(data.run?.phase)));
       return entry.root;
     },
   });

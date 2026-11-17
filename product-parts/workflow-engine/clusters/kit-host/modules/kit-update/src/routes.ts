@@ -10,7 +10,7 @@ import type { KitRunner } from '#kit-runner';
 import type { Project, ProviderRegistry } from '#provider-registry';
 import { STRUCTURE_NO_CHANGES, dirtyNote, pendingPaths, restore, snapshot, structureState, writtenPaths } from './structure.ts';
 import type { KitStructureLast, StructureAccess, StructureSnapshot } from './structure.ts';
-import { KIT_INSTALLED_STATES, approveKitHooks, kitAction } from './update.ts';
+import { KIT_INSTALLED_STATES, approveKitHooks, decisionsOption, kitAction } from './update.ts';
 import type { HookApprovalOptions, KitUpdateState } from './update.ts';
 
 export interface KitUpdateOptions {
@@ -146,7 +146,8 @@ export function registerKitUpdateRoutes(options: KitUpdateOptions): KitUpdate {
     };
     try {
       prepared = await prepareStructure(project);
-      const outcome = await options.kit.install(project.path, { update: true, ...(prepared.with.length > 0 ? { with: prepared.with } : {}) });
+      // M40: the bundled Kit 2.4.0+ makes the project a `host` one (the app records the decisions).
+      const outcome = await options.kit.install(project.path, { update: true, ...(prepared.with.length > 0 ? { with: prepared.with } : {}), ...decisionsOption(bundled) });
       if (!outcome.ok) {
         await putBack();
         current.error = { code: outcome.code, message: outcome.message, nextAction: outcome.nextAction, at: now().toISOString() };

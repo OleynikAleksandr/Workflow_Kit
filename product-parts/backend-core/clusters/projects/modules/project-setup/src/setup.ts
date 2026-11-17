@@ -6,6 +6,7 @@ import { randomBytes } from 'node:crypto';
 import type { Operations } from '#data-store';
 import { KIT_VERSION } from '#kit-bundle';
 import type { KitRunner, WorkflowState } from '#kit-runner';
+import { decisionsOption } from '#kit-update';
 import { installStructure } from '#kit-structure';
 import type { Project } from '#project-registry';
 import { providerLabel } from '#provider-registry';
@@ -47,6 +48,8 @@ export interface SetupDeps extends PreviewDeps {
   operations: Operations;
   workflow: WorkflowState;
   kit: KitRunner;
+  /** Kit version of the app's bundle (default KIT_VERSION); 2.4.0+ is installed with `decisions: host` (M40). */
+  bundledKit?: string;
   log?: (line: string) => void;
   /** Waits between hook-state reads of a provider that shows the hash later (tests shorten it). */
   hooksPollMs?: number;
@@ -227,7 +230,8 @@ export function createProjectSetup(deps: SetupDeps): ProjectSetup {
     });
     await step(run, 'kit', async () => {
       if (preview.kit.action === 'open') return { skipped: true, note: `Kit ${KIT_VERSION} уже установлен` };
-      const outcome = await deps.kit.install(root, { update: preview.kit.action === 'update', name: project.name });
+      // M40: the bundled Kit 2.4.0+ makes the project a `host` one (the app records the decisions).
+      const outcome = await deps.kit.install(root, { update: preview.kit.action === 'update', name: project.name, ...decisionsOption(deps.bundledKit ?? KIT_VERSION) });
       if (!outcome.ok) throw new SetupError(outcome.code, outcome.message, 409, outcome.nextAction ?? undefined);
       void deps.workflow.refresh(project.id);
       return { note: `Kit ${outcome.result.version}` };

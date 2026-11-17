@@ -38,6 +38,15 @@ SessionStart, Stop и UserPromptSubmit, приём хука SessionStart.
 останавливает запуск, «стоп», «пауза» и выключение режима — останавливают. Проект версии 4 получает
 `outdated` по `agents-section`. Тот же текст правила публикации — в управляемом разделе Kit
 (`workflow-installer`), согласованность проверяет `kit-update/test/kit-update-instructions.test.ts`.
+
+`STRUCTURE_VERSION` 6 (M40 T008) меняет только текст раздела `AGENTS.md`: правило вопроса о
+плане — если `wfk session plan` напечатал `action: prepare` (служба решила по Settings и
+сообщению пользователя), агент выполняет напечатанную инструкцию в том же ходе, иначе
+заканчивает ход; цитату пользователя агент не передаёт (`--authorized` нет); в проекте с
+`"decisions": "host"` это правило заменяет «понятная команда позволяет `scope:create` без
+вопроса». «Стоп» и «пауза» первым словом сообщения пользователя останавливает служба сама,
+другие формулировки — агент командой `wfk session run pause|stop`. Проект версии 5 получает
+`outdated` по `agents-section`.
 `STRUCTURE_VERSION` 4: проект версии 3 получает `outdated` по `claude-hook`, обновление
 дописывает группы `PreToolUse` и `PermissionRequest` в конец их списков, `.codex/hooks.json` не
 меняется; проект v4 без `PreToolUse`, записанный до поправки T008, тоже получает `outdated`); если

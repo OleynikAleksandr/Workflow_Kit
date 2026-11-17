@@ -4,7 +4,9 @@
 // slot of panel-shell (M39: the review switch moved to «Настройки»; the "sessionReview" slot stays
 // empty). Typed text lives in inputs kept per session.
 import { foreignPlanCard } from './foreign-card.js';
+import { decisionCards } from './decision-card.js';
 import { dirtyBlock } from './plan-dirty.js';
+import { crossReviewCard } from './review-card.js';
 import { installSidebarSlot } from './sidebar-view.js';
 import { policyLine, runCard } from './run-card.js';
 import { START_SLOW_TEXT, START_STEPS, activityView, choiceView, crossReviewView, planQuestionView, planView, timer } from './session-model.js';
@@ -91,7 +93,7 @@ export function install(shell) {
   }
 
   /**
-   * @param {NonNullable<ReturnType<typeof choiceView>>} choice
+   * @param {NonNullable<ReturnType<typeof choiceView>> & { request?: Record<string, unknown> }} choice
    * @param {SessionContext} session
    * @param {SlotContext} ctx
    */
@@ -111,7 +113,7 @@ export function install(shell) {
         h('div', { class: 'opt' }, [
           h('b', {}, [o.title, o.recommended ? h('span', { class: 'rec' }, [' (рекомендую)']) : null]),
           h('p', {}, [o.description]),
-          button('Выбрать', () => void send(ctx, session.project.id, 'choose', { session: session.session.key, generation: choice.generation, option: o.option }, 'Не удалось выбрать путь'), o.recommended ? 'btn warn' : 'btn warn-o'),
+          button('Выбрать', () => void send(ctx, session.project.id, 'choose', { session: session.session.key, generation: choice.generation, option: o.option, ...(choice.request ?? {}) }, 'Не удалось выбрать путь'), o.recommended ? 'btn warn' : 'btn warn-o'),
         ]),
       ),
       h('p', { class: 'sv-muted sv-gap' }, ['или напишите ответ в чат своими словами']),
@@ -214,7 +216,7 @@ export function install(shell) {
   }
 
   /**
-   * @param {NonNullable<ReturnType<typeof planView>>} plan
+   * @param {NonNullable<ReturnType<typeof planView>> & { requests?: Record<string, Record<string, unknown>> }} plan
    * @param {SessionContext} session
    * @param {SlotContext} ctx
    */
@@ -243,8 +245,9 @@ export function install(shell) {
         });
       }
       if (b.action === 'start') return button(b.label, () => void startPlan(ctx, projectId, key, row), 'btn primary wide');
-      const body = { session: key };
       const run = () => {
+        // M40: the request of this kind the user sees goes with the press (`host` projects).
+        const body = { session: key, ...(plan.requests?.[b.action] ?? {}) };
         if (b.action === 'accept' && !window.confirm('Принять план? Kit отметит результат как принятый вами.')) return;
         if (b.action === 'close' && !window.confirm('Закрыть план? После этого карточка плана исчезнет.')) return;
         void send(ctx, projectId, b.route, body, `Не удалось: ${b.label}`);
@@ -285,11 +288,23 @@ export function install(shell) {
   }
 
   /**
+   * @param {{ host: boolean, request: Record<string, unknown> }} data
    * @param {SessionContext} session
    * @param {SlotContext} ctx
    */
-  function deliveryCard(session, ctx) {
+  function deliveryCard(data, session, ctx) {
     const fields = inputsOf(`${session.project.id}\n${session.session.key}`);
+    // M40, a `host` project: the press is the confirmation; Workflow Kit starts the task itself.
+    if (data.host) {
+      return h('div', { class: 'choice' }, [
+        h('div', { class: 'eyebrow' }, ['Выбор пользователя']),
+        h('h2', {}, ['Подтвердить выпуск']),
+        h('p', { class: 'sv-muted' }, ['Агент готов собрать и выпустить результат. Workflow Kit начнёт задачу выпуска по вашему нажатию и сообщит агенту.']),
+        h('div', { class: 'row' }, [
+          button('Подтвердить выпуск', () => void send(ctx, session.project.id, 'confirm-delivery', { session: session.session.key, ...data.request }, 'Не удалось подтвердить выпуск'), 'btn warn'),
+        ]),
+      ]);
+    }
     return h('div', { class: 'choice' }, [
       h('div', { class: 'eyebrow' }, ['Выбор пользователя']),
       h('h2', {}, ['Подтвердить выпуск']),
@@ -307,72 +322,11 @@ export function install(shell) {
     ]);
   }
 
-  /**
-   * The reviewer's chat in its app (M12): a computer asks the service to open the desktop link, a
-   * touch device follows the mobile one.
-   * @param {Record<string, string>} links
-   */
-  function openReviewerChat(links) {
-    const touch = (navigator.maxTouchPoints ?? 0) > 1;
-    const link = touch ? (links['mobile'] ?? links['web']) : (links['desktop'] ?? links['web']);
-    if (!link) return;
-    if (touch) window.location.assign(link);
-    else void shell.api('POST', '/api/open-link', { url: link }).catch(() => window.location.assign(link));
-  }
-
-  /**
-   * «Ревью плана» (spec M4 section 6): the reviewer, the round, who answers, the journal; the
-   * reviewer's screen points to the reviewed session.
-   * @param {NonNullable<ReturnType<typeof crossReviewView>>} review
-   * @param {SessionContext} session
-   * @param {SlotContext} ctx
-   */
-  function crossReviewCard(review, session, ctx) {
-    const projectId = session.project.id;
-    const open = (/** @type {string} */ key) => (ctx.openSession ? ctx.openSession(projectId, key) : ctx.navigate({ screen: 'session', projectId, key }));
-    const other = review.role === 'main' ? review.reviewerKey : review.mainKey;
-    const head = review.role === 'main' ? `Ревьюер — ${review.reviewerName}` : `Эта сессия — ревьюер плана сессии «${review.mainTitle}»`;
-    const state = review.active
-      ? `Круг ${Math.max(review.round, 1)} из ${review.maxRounds} · ${review.turn}`
-      : `${review.statusLabel}${review.reason ? `: ${review.reason}` : ''}`;
-    const buttons = [
-      other && review.canOpenOther ? button(review.role === 'main' ? 'Открыть сессию ревьюера' : 'Открыть основную сессию', () => open(other), 'btn') : null,
-      review.reviewerLinks ? button('Открыть чат ревьюера', () => openReviewerChat(review.reviewerLinks ?? {}), 'btn') : null,
-      review.active && review.role === 'main'
-        ? button('Прервать ревью', async () => {
-            try {
-              await shell.api('POST', `/api/projects/${encodeURIComponent(projectId)}/reviews/${encodeURIComponent(review.mainKey)}/cancel`);
-            } catch (error) {
-              ctx.say('error', 'Не удалось прервать ревью', error);
-            } finally {
-              ctx.requestRefresh();
-            }
-          }, 'btn')
-        : null,
-    ].filter((n) => n !== null);
-    // The newest entry (the first: newest on top) is open, the rest fold.
-    const journal = review.entries.map((entry, index) => {
-      const key = JSON.stringify([projectId, session.session.key, entry.from, entry.round, entry.text]);
-      const opened = journalOpen.get(key) ?? index === 0;
-      const node = h('details', { class: `sv-xr-entry ${entry.from}`, ...(opened ? { open: '' } : {}) }, [h('summary', {}, [`${entry.who}${entry.round ? ` · круг ${entry.round}` : ''}`]), h('p', {}, [entry.text])]);
-      node.addEventListener('toggle', () => journalOpen.set(key, /** @type {HTMLDetailsElement} */ (node).open));
-      return node;
-    });
-    const tone = review.status === 'agreed' ? ' ok' : review.active ? '' : ' muted';
-    return h('div', { class: `panel sv-xreview${tone}` }, [
-      h('h2', {}, ['Ревью плана']),
-      h('p', {}, [head]),
-      h('p', { class: 'sv-xr-state' }, [state]),
-      review.note ? h('p', { class: 'sv-muted' }, [review.note]) : null,
-      buttons.length ? h('div', { class: 'sv-xr-buttons' }, buttons) : null,
-      journal.length ? h('div', { class: 'sv-xr-journal' }, journal) : null,
-    ].filter((n) => n !== null));
-  }
-
   installSidebarSlot(shell, {
     question: questionCard,
-    review: crossReviewCard,
-    delivery: (_data, session, ctx) => deliveryCard(session, ctx),
+    decisions: (data, session, ctx) => decisionCards(shell, data, session.project.id, session.session.key, ctx),
+    review: (data, session, ctx) => crossReviewCard(shell, data, session, ctx, journalOpen),
+    delivery: deliveryCard,
     choice: choiceCard,
     plan: planCard,
     run: (data, session, ctx) => runCard(shell, data, session.project.id, ctx),

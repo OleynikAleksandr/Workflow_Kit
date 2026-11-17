@@ -186,6 +186,10 @@ test('create: preview, one consent, then everything happens and the session link
   assert.match(log, /chore: add Workflow Kit structure/);
   assert.equal(git(folder, 'status', '--porcelain'), '', 'the tree is clean after the wizard');
   assert.match(await readFile(path.join(folder, 'AGENTS.md'), 'utf8'), /wfk session title/);
+  // M40 T008: the bundled Kit 2.4.0+ is installed with `decisions: host` — only the app records
+  // the user's decisions in a project it created.
+  const config = JSON.parse(await readFile(path.join(folder, '.harness', 'workflow', 'config.json'), 'utf8')) as { decisions?: string };
+  assert.equal(config.decisions, 'host');
   assert.deepEqual(calls.filter((c) => !c.includes(':session:')), [
     'codex:grant:tok-codex',
     'codex:approve:kit:sha256:k',

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1212,
+  "revision": 1214,
   "rounds": [
     {
       "digest": {
@@ -71,7 +71,18 @@
       "title": "Windows: host-тикет и корень проекта"
     },
     {
-      "digest": null,
+      "digest": {
+        "contracts": [],
+        "decisions": [
+          "T012 отложена второй раз (попытка 2) по процедуре красного CI",
+          "Меняется только тест, установленный артефакт 0.15.1 тот же — новой поставки нет"
+        ],
+        "references": [
+          "docs/architecture/OS-MATRIX.md",
+          "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md"
+        ],
+        "result": "R3 исправил тест F002: проверки веток linux и darwin с переданной платформой больше не зависят от файловой системы хоста (на Windows `/` — корень диска). CI 4c56e26 показал, что само исправление F002 работает: все тесты на настоящем бандле прошли на Windows x64 и ARM64."
+      },
       "id": "R3",
       "kind": "fixes",
       "status": "OPEN",
@@ -1337,14 +1348,15 @@
       "docsWaiver": null,
       "files": [
         "README.md",
-        "docs/architecture/OVERVIEW.md"
+        "docs/architecture/OVERVIEW.md",
+        "docs/architecture/OS-MATRIX.md"
       ],
       "fixes": null,
       "id": "DOCS-R3",
       "iteration": 1,
       "kind": "docs",
       "roundId": "R3",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -1416,8 +1428,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 17/19
-- Revision: 1212
+- Progress: 18/19
+- Revision: 1214
 
 ## Objective
 
@@ -1515,13 +1527,15 @@ Digest: R2 исправил дефект Windows, найденный CI d1ffd1b:
   - Commit: test: keep injected-platform root checks off the host file system
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/root-path.test.ts
   - Fixes: F002
-- [TODO] DOCS-R3 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R3 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R3
-  - Files: README.md, docs/architecture/OVERVIEW.md
+  - Files: README.md, docs/architecture/OVERVIEW.md, docs/architecture/OS-MATRIX.md
   - Depends on: F003
 - [TODO] T012 — Четыре платформы CI и факты сквозных прогонов (delivery)
   - Commit: test: verify M39 cross-platform delivery and live evidence
   - Files: docs/evidence/M39-acceptance.md, docs/architecture/OS-MATRIX.md
   - Depends on: T011, D002, DOCS-R3
+
+Digest: R3 исправил тест F002: проверки веток linux и darwin с переданной платформой больше не зависят от файловой системы хоста (на Windows `/` — корень диска). CI 4c56e26 показал, что само исправление F002 работает: все тесты на настоящем бандле прошли на Windows x64 и ARM64.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

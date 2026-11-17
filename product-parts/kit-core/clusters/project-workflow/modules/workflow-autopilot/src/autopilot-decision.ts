@@ -59,6 +59,13 @@ function grantedDelivery(
   if (!grant?.delivery.some((entry) => entry.taskId === task.id)) {
     return null;
   }
+  if (status.decisionsMode === "host") {
+    return {
+      action: "continue",
+      taskId: task.id,
+      text: `Continue the workflow: autopilot run ${grant.runId} covers delivery task ${task.id}; run \`${KIT_COMMAND} task:start ${task.id}\` without flags if it is not started (Workflow Kit records the confirmation of the run itself), perform only its reviewed effects and commit.`,
+    };
+  }
   return {
     action: "continue",
     taskId: task.id,

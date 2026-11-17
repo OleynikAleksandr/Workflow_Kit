@@ -32,7 +32,10 @@ decision request, `USER_DECISION_REQUIRED`, the host form `--decision` and
 `status.decisions`) are described in [decisions.md](decisions.md); the Git
 barriers of Kit 2.4.1 (push by target refs, commits made past the Kit and
 `commits:adopt`) and the file barriers of Kit 2.4.2 (`TASK_FILES_OUTSIDE`,
-`INPUT_LOCATION`) in [barriers.md](barriers.md).
+`INPUT_LOCATION`) in [barriers.md](barriers.md). Since Kit 2.4.3 (spec
+M40 T004) `autopilot:status` reports `decisionsMode`, the recovery texts of
+a `host` project carry no manual form of a user decision
+(`workflow-recovery`) and `task:block` registers the `unblock` request.
 
 ## Git Hooks (`kit-hooks.ts`)
 

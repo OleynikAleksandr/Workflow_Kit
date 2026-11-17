@@ -20,6 +20,7 @@ import { workflowQualityFacade } from "../../workflow-quality/src/workflow-quali
 import {
   checkMarkers,
   type ConfigMarkers,
+  decisionsOf,
   writeConfig,
 } from "./installer-config.js";
 import { type FolderState, inspectFolder } from "./installer-inspect.js";
@@ -322,6 +323,7 @@ export function installKit(
   const name = options.name?.trim() || path.basename(root);
   const entries = buildPayload({
     bundle: options.bundle,
+    decisions: decisionsOf(root, options),
     hooksPath,
     projectName: name,
   });

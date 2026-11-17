@@ -63,7 +63,7 @@ Writing rules:
 
 `manifest(entries)` → `{schema "harness-workflow-manifest/1", version,
 files: [{path, kind, executable, sha256}]}`; `sha256` hashes the managed
-part (`null` for `create`). `version` is `KIT_VERSION` (`2.4.2`: the file barriers — `TASK_FILES_OUTSIDE` of `commit --task` in main and `INPUT_LOCATION` of `--input`/`--digest` files, spec M40 T003; 2.4.1: the Git barriers — `pre-push` by the target refs (`PUBLISH_SCOPE_OPEN`, `CI_PUSH_NOT_ALLOWED`, `automation.ci.task`) and commits made past the Kit (`EXTERNAL_COMMITS`, `commits:adopt`), spec M40 T002; 2.4.0: the `decisions` mode with decision requests and host-only user decisions, spec M40 T001; 2.3.3: agent rules and `next` texts that know the autopilot grant, one publication rule, the complete M39 capability, spec M39 T004; 2.3.2: `task:defer-delivery`, spec M39 T003; 2.3.1: the autopilot grant with host-only `autopilot:authorize`/`autopilot:revoke` and `accept`/`close --autopilot-run` over the parent IPC ticket, `task:start --autopilot-run`, spec M39 T002; 2.3.0: the scope `automation` block, `scope:proposal --digest` and `scope:choose --expected-digest`, spec M39 T001; 2.2.7: `install --update --with`, spec M38; 2.2.6: the input folder `.harness/inputs/`, spec M37; 2.2.5 added `scope:owner`, spec M31; 2.2.4 was the first Kit built in
+part (`null` for `create`). `version` is `KIT_VERSION` (`2.4.3`: the agent rules by decisions mode and the `host` recovery texts, spec M40 T004; 2.4.2: the file barriers — `TASK_FILES_OUTSIDE` of `commit --task` in main and `INPUT_LOCATION` of `--input`/`--digest` files, spec M40 T003; 2.4.1: the Git barriers — `pre-push` by the target refs (`PUBLISH_SCOPE_OPEN`, `CI_PUSH_NOT_ALLOWED`, `automation.ci.task`) and commits made past the Kit (`EXTERNAL_COMMITS`, `commits:adopt`), spec M40 T002; 2.4.0: the `decisions` mode with decision requests and host-only user decisions, spec M40 T001; 2.3.3: agent rules and `next` texts that know the autopilot grant, one publication rule, the complete M39 capability, spec M39 T004; 2.3.2: `task:defer-delivery`, spec M39 T003; 2.3.1: the autopilot grant with host-only `autopilot:authorize`/`autopilot:revoke` and `accept`/`close --autopilot-run` over the parent IPC ticket, `task:start --autopilot-run`, spec M39 T002; 2.3.0: the scope `automation` block, `scope:proposal --digest` and `scope:choose --expected-digest`, spec M39 T001; 2.2.7: `install --update --with`, spec M38; 2.2.6: the input folder `.harness/inputs/`, spec M37; 2.2.5 added `scope:owner`, spec M31; 2.2.4 was the first Kit built in
 Workflow Kit; Kit 1.x was Workflow Pilot). A change of a managed text or of the runtime raises the version, so
 older installations read as `KIT_OUTDATED` and the update rewrites them
 (2.1.0 added `.harness/sessions/` and `.claude/worktrees/` to `.gitignore`
@@ -102,6 +102,13 @@ one publication rule shared with the wfk section of `kit-structure`:
   `task:defer-delivery` and a fixes round;
 - an executor has no push, acceptance, close or publication.
 
+Since Kit 2.4.3 (spec M40 T004) the section is generated for the decisions
+mode of the project: `agentRules(mode)`; the `host` text gives the agent no
+manual form of a user decision. The fragments that differ, the rules of the
+barriers of Kit 2.4.1–2.4.2 and the tests are in
+[agent-rules-modes.md](agent-rules-modes.md). The description below is the
+`agent` text.
+
 `agentRules()` is the managed `AGENTS.md` section: the plan and commands,
 session start (the packet arrives at session start, for Claude in parts
 K/N; unless every part with one digest is in the context, without
@@ -131,8 +138,8 @@ to follow the `role:` of the recovery packet:
 The Inputs and documents block (after session start) tells the agent to
 run `scripts/workflow schema <command>` before writing a `--input` JSON, to
 write `--input` and `--digest` JSON files to `.harness/inputs/` (git-ignored;
-a file left elsewhere in the project is an uncommitted change and blocks
-`close`, spec M37), to
+a file elsewhere in the project is refused with `INPUT_LOCATION`, Kit
+2.4.2), to
 get documents with `scripts/workflow context <path>[#Heading]` (one call,
 marked text; `context --list` prints the documents map) instead of reading
 large files piecewise, and never to read Kit runtime files

@@ -194,15 +194,27 @@ try {
   installer.install(decided, { ...options, decisions: "host", host: "harness" });
   assert.equal(configOf(decided).decisions, "host");
   assert.equal(configOf(decided).host, "harness");
+  // The managed section is the one of the mode (M40 T004), kept by an update.
+  const rulesOf = (root) => readFileSync(path.join(root, "AGENTS.md"), "utf8");
+  assert.ok(rulesOf(decided).includes(installer.agentRules("host")));
   installer.install(decided, { ...options, update: true });
   assert.equal(configOf(decided).decisions, "host");
+  assert.ok(rulesOf(decided).includes(installer.agentRules("host")));
+  assert.ok(rulesOf(hosted).includes(installer.agentRules("agent")));
   assert.equal(configOf(hosted).decisions, undefined);
   const switched = installer.install(hosted, {
     ...options,
     decisions: "host",
     update: true,
   });
-  assert.deepEqual(switched.written, [".harness/workflow/config.json"]);
+  // Turning the mode on rewrites the section with the configuration.
+  assert.deepEqual(switched.written, [
+    "AGENTS.md",
+    ".harness/workflow/config.json",
+    ".harness/workflow/manifest.json",
+  ]);
+  assert.ok(rulesOf(hosted).includes(installer.agentRules("host")));
+  assert.equal(rulesOf(hosted).includes(installer.agentRules("agent")), false);
   assert.equal(configOf(hosted).decisions, "host");
   assert.equal(configOf(hosted).host, "harness");
   assert.equal(kit.validate(hosted).ok, true);

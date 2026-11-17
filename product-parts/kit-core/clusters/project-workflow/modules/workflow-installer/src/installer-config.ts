@@ -35,6 +35,26 @@ export function checkMarkers(markers: ConfigMarkers): void {
 }
 
 /**
+ * The decisions mode the installation ends with: the passed marker, else
+ * the one of the existing configuration; `agent` without either.
+ */
+export function decisionsOf(
+  root: string,
+  markers: ConfigMarkers
+): "agent" | "host" {
+  if (markers.decisions === "host") {
+    return "host";
+  }
+  const exists =
+    workflowPlatformFacade.readTextIfExists(
+      workflowQualityFacade.configFile(root)
+    ) !== null;
+  return exists && workflowQualityFacade.readConfig(root).decisions === "host"
+    ? "host"
+    : "agent";
+}
+
+/**
  * Writes the default configuration when it is absent, or only the passed
  * markers into an existing one; returns true when the file changed.
  */

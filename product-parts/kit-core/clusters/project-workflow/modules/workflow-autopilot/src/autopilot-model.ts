@@ -74,6 +74,11 @@ export interface AutopilotProjectStatus {
   /** The grant of an autopilot run (M39); absent or null: manual barriers. */
   authorization?: AutopilotAuthority | null;
   blockedReason: string | null;
+  /**
+   * `host`: only the app records user decisions (M40, Kit 2.4.0+), so a
+   * delivery task of the run starts without flags. Absent means `agent`.
+   */
+  decisionsMode?: "agent" | "host";
   delivery: "ACCEPTED" | "IN_PROGRESS" | "READY_FOR_ACCEPTANCE" | null;
   head: string | null;
   nextTask: {

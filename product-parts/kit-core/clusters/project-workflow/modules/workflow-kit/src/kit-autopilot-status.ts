@@ -128,6 +128,7 @@ export function autopilotStatus(context: KitContext): KitAutopilotStatus {
     authorization: structuredClone(plan?.scope?.authorization ?? null),
     blockedReason: status.scope?.blockedReason ?? null,
     capability: { ...AUTOPILOT_CAPABILITY },
+    decisionsMode: status.decisionsMode,
     delivery: (status.scope?.delivery ??
       null) as AutopilotProjectStatus["delivery"],
     head: status.head,

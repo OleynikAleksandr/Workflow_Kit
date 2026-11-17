@@ -128,6 +128,33 @@ Without a live run every text is the one before M39. The executor rule
 adds "no push, acceptance, close or publication, even under an autopilot
 run".
 
+### The `host` decisions mode (Kit 2.4.3, spec M40)
+
+`RecoveryInput.decisions` (`"agent" | "host"`, absent: `agent`) comes from
+`config.decisions`. In the `host` mode no `next` text gives the agent a
+manual form of a user decision (`--confirmed`, `--autopilot-run`,
+`accept --note`, `close`, `task:unblock`); it names the decision and where
+the user takes it:
+- a `TODO` delivery task without a run that covers it: starting it is the
+  user's decision, it waits for the confirmation in the Workflow Kit panel,
+  Workflow Kit starts the task and tells the agent; in the chat —
+  `wfk decision confirm-delivery --task <ID>`;
+- a delivery task a live run covers: `scripts/workflow task:start <ID>`
+  without flags (the Kit records the confirmation of the run itself);
+- `READY_FOR_ACCEPTANCE`: report the result and end the turn, the user
+  accepts in the panel or reports defects, in the chat —
+  `wfk decision accept`; with a run that accepts: end the turn, never
+  accept or close the scope yourself; with manual criteria the text adds
+  that the run then closes and publishes;
+- `ACCEPTED`: closing is the user's separate decision in the panel, in the
+  chat — `wfk decision close`; with a run that closes: end the turn;
+- `BLOCKED` (`blockedStep`): only discuss and diagnose, removing the block
+  waits on a card in the panel, in the chat — `wfk decision unblock`;
+- the run rule ends with "never run `autopilot:*` and never accept or
+  close the scope yourself".
+Every chat form ends with "never pass the user's words yourself". The
+`agent` mode keeps the texts above.
+
 ## Documents Map (`recovery-documents.ts`, spec 3.2)
 
 - Files: `git ls-files -z --cached --others --exclude-standard -- '*.md'
@@ -321,6 +348,8 @@ Node built-ins only.
 
 ## Tests
 
+- `test/workflow-recovery-autopilot.test.mjs` also covers the `host`
+  decisions mode (M40): every `next` variant without manual forms.
 - `test/workflow-recovery-autopilot.test.mjs` — the `next` texts without a
   grant, with a live run (delivery, acceptance, untidy acceptance, close,
   run rule), after-start with a manual criterion, a revoked grant, a

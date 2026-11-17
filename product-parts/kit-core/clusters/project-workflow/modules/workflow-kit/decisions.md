@@ -24,7 +24,7 @@ request view).
 | `confirm-delivery` | `task:start <ID>` | the task is a TODO delivery no live grant covers |
 | `accept` | `accept` | always (`--autopilot-run` keeps the M39 host form) |
 | `close` | `close --scope <id>` | always (`--autopilot-run` keeps the M39 host form) |
-| `unblock` | `task:unblock` | always |
+| `unblock` | `task:unblock` | always; also registered by `task:block` itself (Kit 2.4.3), so the card needs no command of the agent |
 | `approve-install` | `quality:apply --input <file>` | the input has a non-empty `install` |
 | `adopt-commits` | `commits:adopt` (Kit 2.4.1, [barriers.md](barriers.md)) | always; also registered by an `EXTERNAL_COMMITS` refusal |
 

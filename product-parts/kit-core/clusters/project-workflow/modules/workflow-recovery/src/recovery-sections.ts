@@ -11,6 +11,7 @@ import {
   shortSha,
 } from "./recovery-model.js";
 import {
+  blockedStep,
   closedByRunStep,
   completionStep,
   deliveryStep,
@@ -90,6 +91,7 @@ export function stateSection(input: RecoveryInput): string {
 
 function nextStep(input: RecoveryInput, role: AgentRole): string {
   const { plan } = input;
+  const host = input.decisions === "host";
   const scope = plan.scope;
   if (!scope) {
     return closedByRunStep(plan) ?? planningStep(input);
@@ -98,7 +100,7 @@ function nextStep(input: RecoveryInput, role: AgentRole): string {
     return `A commit transaction is unfinished: run \`${KIT_COMMAND} repair\` before anything else.`;
   }
   if (scope.status === "BLOCKED") {
-    return `BLOCKED: ${scope.blockedReason ?? "no reason recorded"}. Resolve it with the user, then unblock.`;
+    return blockedStep(scope.blockedReason, host);
   }
   if (role === "executor") {
     return executorStep(input);
@@ -109,7 +111,7 @@ function nextStep(input: RecoveryInput, role: AgentRole): string {
     scope.delivery === "READY_FOR_ACCEPTANCE" ||
     scope.delivery === "ACCEPTED"
   ) {
-    return completionStep(plan, untidy);
+    return completionStep(plan, untidy, host);
   }
   if (role === "orchestrator") {
     return orchestratorStep(input);
@@ -122,7 +124,7 @@ function nextStep(input: RecoveryInput, role: AgentRole): string {
     return `Continue ${task.id}: ${task.title}`;
   }
   if (task.kind === "delivery") {
-    return deliveryStep(plan, task);
+    return deliveryStep(plan, task, host);
   }
   return `Start ${task.id} via \`${KIT_COMMAND} task:start ${task.id}\`: ${task.title}`;
 }
@@ -130,7 +132,10 @@ function nextStep(input: RecoveryInput, role: AgentRole): string {
 /** The next step for the session's role, followed by the role rule. */
 export function nextSection(input: RecoveryInput): string {
   const role = agentRole(input);
-  const run = role === "executor" ? null : runRule(input.plan);
+  const run =
+    role === "executor"
+      ? null
+      : runRule(input.plan, input.decisions === "host");
   return [nextStep(input, role), roleRule(role), ...(run ? [run] : [])].join("\n");
 }
 

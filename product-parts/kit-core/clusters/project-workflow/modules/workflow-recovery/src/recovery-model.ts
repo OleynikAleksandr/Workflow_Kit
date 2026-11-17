@@ -29,6 +29,12 @@ export interface RecoveryInput {
   budgetBytes: number;
   /** Working-tree changes outside the current task. */
   changes: string[];
+  /**
+   * `host`: only the app records user decisions (M40), so the texts name the
+   * decision and where the user takes it instead of a manual command form.
+   * Absent means `agent`.
+   */
+  decisions?: "agent" | "host";
   /** The documents map of the project; absent or null: no `documents` section. */
   documents?: DocumentsMap | null;
   event: RecoveryEvent;

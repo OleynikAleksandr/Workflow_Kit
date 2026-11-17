@@ -23,7 +23,11 @@ import {
   changedContextTasks,
   ensureContextBudget,
 } from "./kit-context-budget.js";
-import { ensureNoExternalCommits } from "./kit-decisions.js";
+import {
+  decisionsMode,
+  ensureNoExternalCommits,
+  registerDecision,
+} from "./kit-decisions.js";
 import {
   change,
   ensureInputChecks,
@@ -282,6 +286,11 @@ export function setBlocked(
       decision
     );
     savePlan(context, plan);
+    // The `host` mode: the request to remove the block is registered at
+    // once, so the card needs no command of the agent (M40).
+    if (reason !== null && decisionsMode(context) === "host") {
+      registerDecision(context, { kind: "unblock" });
+    }
     return change(plan, null);
   });
 }

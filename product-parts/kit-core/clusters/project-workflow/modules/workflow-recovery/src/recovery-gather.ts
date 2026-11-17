@@ -104,6 +104,7 @@ export function gatherRecovery(
   return {
     budgetBytes: config.budget.recoveryBytes,
     changes: repository ? outsideChanges(git, root, plan) : [],
+    decisions: config.decisions === "host" ? "host" : "agent",
     documents: repository
       ? documentsMap(git, root, { specPath: plan.scope?.spec ?? null })
       : null,

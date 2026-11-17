@@ -293,7 +293,11 @@ function integrationStep(
 }
 
 /** QUALITY or delivery task the orchestrator runs itself, when it is ready. */
-function ownStep(plan: WorkflowPlan, facts: RoleFacts): string | null {
+function ownStep(
+  plan: WorkflowPlan,
+  facts: RoleFacts,
+  host: boolean
+): string | null {
   const done = new Set(
     plan.tasks.filter((task) => task.status === "DONE").map((task) => task.id)
   );
@@ -315,7 +319,7 @@ function ownStep(plan: WorkflowPlan, facts: RoleFacts): string | null {
   const active = facts.assignments.some((record) =>
     workflowAssignmentFacade.isActive(record)
   );
-  return pending || active ? null : deliveryStep(plan, own);
+  return pending || active ? null : deliveryStep(plan, own, host);
 }
 
 /**
@@ -346,7 +350,7 @@ export function orchestratorStep(input: RecoveryInput): string {
   const current = plan.tasks.find((task) => task.id === plan.currentTaskId);
   const own = current
     ? `Continue ${current.id} in main: ${current.title}`
-    : ownStep(plan, facts);
+    : ownStep(plan, facts, input.decisions === "host");
   if (own) {
     lines.push(own);
   }

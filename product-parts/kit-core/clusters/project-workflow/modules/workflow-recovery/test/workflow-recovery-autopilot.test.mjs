@@ -84,10 +84,11 @@ try {
     if (delivery === "ACCEPTED") next.scope.acceptanceNote = "User: accepted";
     return next;
   };
-  const nextOf = (plan, changes = []) => {
+  const nextOf = (plan, changes = [], decisions = undefined) => {
     const text = recovery.build({
       budgetBytes: 32_000,
       changes,
+      ...(decisions ? { decisions } : {}),
       event: "startup",
       head: "b".repeat(40),
       plan,
@@ -134,6 +135,46 @@ try {
   const closed = plans.createEmpty("p", "Demo");
   closed.lastClosed = { autopilotRun: "run-1", closedAt: "2026-11-16T13:00:00.000Z", finalCommit: "c".repeat(40), scopeId: "demo" };
   assert.match(nextOf(closed), /^Scope demo was closed by autopilot run run-1; the Workflow Kit app publishes it to the reviewed upstream\. Do not push yourself\./u);
+  // ── M40 T004, the `host` decisions mode: no text gives the agent a manual
+  // form of a user decision; each names the decision and where it is taken.
+  const hostOf = (plan, changes = []) => nextOf(plan, changes, "host");
+  const MANUAL_FORMS = /--confirmed|--autopilot-run|--note|accept --|close --|`accept`|`close`|task:unblock|scripts\/workflow (?:accept|close)/u;
+  const blockedPlan = plans.block(atDelivery(scope()), "The licence is unclear");
+  const hostTexts = [
+    hostOf(atDelivery(scope())),
+    hostOf(atDelivery(live)),
+    hostOf(withDelivery(scope(), "READY_FOR_ACCEPTANCE")),
+    hostOf(withDelivery(scope(), "READY_FOR_ACCEPTANCE"), ["notes.txt"]),
+    hostOf(withDelivery(live, "READY_FOR_ACCEPTANCE")),
+    hostOf(withDelivery(manualRun, "READY_FOR_ACCEPTANCE")),
+    hostOf(withDelivery(scope(), "ACCEPTED")),
+    hostOf(withDelivery(scope(), "ACCEPTED"), ["notes.txt"]),
+    hostOf(withDelivery(live, "ACCEPTED")),
+    hostOf(blockedPlan),
+    hostOf(atDelivery(revoked)),
+  ];
+  for (const text of hostTexts) {
+    assert.doesNotMatch(text, MANUAL_FORMS, text);
+  }
+  // A delivery: the user's decision in the panel, or the chat with `wfk decision`.
+  assert.match(hostTexts[0], /^Next task D1 is delivery: starting it is the user's decision\. Tell the user that the delivery waits for the confirmation in the Workflow Kit panel and end the turn; Workflow Kit starts the task after the confirmation and tells you\. If the user confirmed in this chat, run `wfk decision confirm-delivery --task D1`; never pass the user's words yourself\./u);
+  assert.match(hostTexts[10], /^Next task D1 is delivery: starting it is the user's decision/u);
+  // Under a live run the task starts without flags; the run rule names no manual form.
+  assert.match(hostTexts[1], /^Next task D1 is delivery, covered by autopilot run run-1: `scripts\/workflow task:start D1` without flags \(Workflow Kit records the confirmation of the run itself\)\. Do not ask the user again/u);
+  assert.match(hostTexts[1], /\nAutopilot run run-1 \(after-start\): report the result of the turn briefly and end it; the Workflow Kit app continues the run — do not ask whether to continue\. Only the app grants and revokes the run, accepts, closes and publishes; never run `autopilot:\*` and never accept or close the scope yourself\.$/u);
+  // Acceptance and closing.
+  assert.match(hostTexts[2], /^Scope is READY_FOR_ACCEPTANCE: report the result and end the turn\. Acceptance is the user's decision: the user accepts in the Workflow Kit panel or reports defects\. If the user accepts in this chat, run `wfk decision accept`; never pass the user's words yourself\./u);
+  assert.match(hostTexts[3], /^Scope is READY_FOR_ACCEPTANCE: first tidy the paths outside commits .+ clean tree\. Then report the result and end the turn\./u);
+  assert.match(hostTexts[4], /^Scope is READY_FOR_ACCEPTANCE: end the turn\. Autopilot run run-1 accepts the result automatically from the recorded evidence and closes the scope; the Workflow Kit app runs these steps\. Never accept or close the scope yourself\./u);
+  assert.match(hostTexts[5], /The result has manual criteria; after the acceptance autopilot run run-1 closes and publishes the scope\. If the user accepts in this chat, run `wfk decision accept`/u);
+  assert.match(hostTexts[6], /^Scope is ACCEPTED: closing it is the user's separate decision in the Workflow Kit panel\. If the user tells you in this chat to close the plan, run `wfk decision close`; never pass the user's words yourself\.\n/u);
+  assert.match(hostTexts[7], /Closing needs a clean tree: tidy the paths outside commits \(see changes\)\./u);
+  assert.match(hostTexts[8], /^Scope is ACCEPTED: end the turn\. Autopilot run run-1 closes the scope and then publishes it; the Workflow Kit app runs these steps\. Never close the scope or push yourself\./u);
+  // A blocked scope.
+  assert.match(hostTexts[9], /^BLOCKED: The licence is unclear\. Only discuss and diagnose\. Removing the block is the user's decision: it waits on a card in the Workflow Kit panel\. If the user decides in this chat, run `wfk decision unblock`; never pass the user's words yourself\./u);
+  // The `agent` mode is the default and keeps its texts.
+  assert.equal(nextOf(atDelivery(scope()), [], "agent"), manual);
+  assert.match(nextOf(blockedPlan), /^BLOCKED: The licence is unclear\. Resolve it with the user, then unblock\./u);
   console.log("workflow-recovery autopilot tests passed");
 } finally {
   await build.cleanup();

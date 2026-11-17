@@ -37,6 +37,13 @@ try {
   assert.equal(go.action, "continue");
   assert.equal(go.taskId, "D1");
   assert.match(go.text, /task:start D1 --autopilot-run run-1/u);
+  // The `host` decisions mode (M40): the same task starts without flags.
+  const hostGo = decide(status({ decisionsMode: "host" }));
+  assert.equal(hostGo.action, "continue");
+  assert.equal(hostGo.taskId, "D1");
+  assert.match(hostGo.text, /autopilot run run-1 covers delivery task D1; run `scripts\/workflow task:start D1` without flags if it is not started/u);
+  assert.doesNotMatch(hostGo.text, /--autopilot-run|--confirmed/u);
+  assert.equal(decide(status({ decisionsMode: "agent" })).text, go.text);
   // Not granted, revoked, another digest, no grant, a legacy Kit: the user confirms.
   for (const extra of [
     { authorization: grant({ delivery: [{ effects: ["x"], taskId: "D2" }] }) },

@@ -92,7 +92,11 @@ decision (state per session, sending turns, events) belongs to Core.
     the decision continues with `Continue the workflow: autopilot run <run>
     confirmed delivery task <ID> in advance; run \`scripts/workflow
     task:start <ID> --autopilot-run <run>\` if it is not started, perform
-    only its reviewed effects and commit.` after the same `no-progress` and
+    only its reviewed effects and commit.` (with
+    `status.decisionsMode: "host"`, Kit 2.4.3, spec M40: `…autopilot run
+    <run> covers delivery task <ID>; run \`scripts/workflow task:start
+    <ID>\` without flags if it is not started (Workflow Kit records the
+    confirmation of the run itself)…`) after the same `no-progress` and
     `limit` checks; in an orchestrated scope only without an integration,
     working or `READY_FOR_INTEGRATION` assignments and without a pause;
   - `READY_FOR_ACCEPTANCE` with `accept` and `ACCEPTED` with `close` stop

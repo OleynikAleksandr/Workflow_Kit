@@ -28,7 +28,7 @@ import {
   type PayloadOptions,
   renderManifest,
 } from "./installer-payload.js";
-import { agentRules } from "./installer-texts.js";
+import { agentRules, type DecisionsMode } from "./installer-texts.js";
 
 export type {
   DoctorCheck,
@@ -98,9 +98,12 @@ export class WorkflowInstallerFacade {
     return renderManifest(manifest);
   }
 
-  /** The English agent rules of the managed AGENTS.md section. */
-  agentRules(): string {
-    return agentRules();
+  /**
+   * The English agent rules of the managed AGENTS.md section; `host` gives
+   * the text without manual forms of user decisions (M40).
+   */
+  agentRules(mode: DecisionsMode = "agent"): string {
+    return agentRules(mode);
   }
 }
 

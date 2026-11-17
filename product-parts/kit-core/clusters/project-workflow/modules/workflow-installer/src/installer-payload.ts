@@ -17,6 +17,7 @@ import {
 import {
   agentRules,
   CLAUDE_IMPORT_LINE,
+  type DecisionsMode,
   gitattributesSection,
   gitHookSection,
   gitignoreSection,
@@ -25,7 +26,7 @@ import {
 } from "./installer-texts.js";
 
 /** Version of the Workflow Kit payload; Kit 1.x was Workflow Pilot. */
-export const KIT_VERSION = "2.4.2";
+export const KIT_VERSION = "2.4.3";
 export const MANIFEST_PATH = ".harness/workflow/manifest.json";
 export const MANIFEST_SCHEMA = "harness-workflow-manifest/1";
 export const OWN_HOOKS_DIR = ".harness/workflow/hooks";
@@ -57,6 +58,8 @@ export interface PayloadEntry {
 
 export interface PayloadOptions {
   bundle: string;
+  /** The decisions mode of the project (M40); absent means `agent`. */
+  decisions?: DecisionsMode;
   /** Configured `core.hooksPath` relative to the root, or null. */
   hooksPath: string | null;
   projectName: string;
@@ -213,7 +216,7 @@ export function buildPayload(options: PayloadOptions): PayloadEntry[] {
     owned("scripts/workflow.cmd", launchers.cmd),
     owned("scripts/workflow.ps1", launchers.powershell),
     ...hookEntries(options.hooksPath),
-    section("AGENTS.md", "html", agentRules()),
+    section("AGENTS.md", "html", agentRules(options.decisions ?? "agent")),
     claudeLine(),
     providerHook(".codex/hooks.json", "codex"),
     providerHook(".claude/settings.json", "claude"),

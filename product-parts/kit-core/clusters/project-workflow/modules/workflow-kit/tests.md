@@ -94,6 +94,10 @@ worktrees where noted):
   `linux` and `darwin` with paths that exist on no OS (case, separators, an
   8.3 short name, another drive, a link) and through the command line
   before the file is read.
+- `test/workflow-kit-host-texts.test.mjs` (M40) — a `host` project: the
+  `unblock` request registered by a block, `autopilot:status.decisionsMode`
+  and the `next` texts (blocked, delivery without and under a run) without
+  manual forms; an `agent` project keeps its texts and registers nothing.
 - `test/workflow-kit-status.test.mjs` — the status fields in every state and
   the text lines.
 - `test/workflow-kit-pause.test.mjs` (worktrees) — `pause:set`, statuses and

@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1209,
+  "revision": 1210,
   "rounds": [
     {
       "digest": {
@@ -67,8 +67,15 @@
       },
       "id": "R2",
       "kind": "fixes",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Windows: host-тикет и корень проекта"
+    },
+    {
+      "digest": null,
+      "id": "R3",
+      "kind": "fixes",
+      "status": "OPEN",
+      "title": "Тест корня проекта на Windows-хосте"
     }
   ],
   "schema": "harness-workflow-plan/1",
@@ -1294,6 +1301,55 @@
     },
     {
       "acceptance": [
+        "Проверки с переданной платформой используют пути, которых нет ни на одном хосте, и проходят на macOS, Linux и Windows",
+        "Сравнение корня по-прежнему проверено для win32, linux и darwin; артефакт приложения не меняется, новая поставка не нужна"
+      ],
+      "checks": [],
+      "commitMessage": "test: keep injected-platform root checks off the host file system",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/root-path.test.ts"
+      ],
+      "fixes": "F002",
+      "id": "F003",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R3",
+      "status": "TODO",
+      "title": "Тест веток linux и darwin не зависит от файловой системы хоста",
+      "why": "CI 4c56e26 (run 44001635314): на Windows x64 и ARM64 упал только тест root-path «linux and darwin» — rootKey('/', 'linux') прошёл через настоящий realpath хоста и дал диск D; исправление F002 работает, все тесты на настоящем бандле прошли"
+    },
+    {
+      "acceptance": [
+        "Project-wide documents describe the round result",
+        "The round digest records result, decisions, contracts and references"
+      ],
+      "checks": [],
+      "commitMessage": "docs: reconcile documentation for R3",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "F003"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/architecture/OVERVIEW.md"
+      ],
+      "fixes": null,
+      "id": "DOCS-R3",
+      "iteration": 1,
+      "kind": "docs",
+      "roundId": "R3",
+      "status": "TODO",
+      "title": "Reconcile project documentation and write the round digest",
+      "why": "Keep the project context current for the next agent and close the round."
+    },
+    {
+      "acceptance": [
         "CI для точного pushed SHA на ci/M39-autopiloting успешен на macOS, Linux, Windows x64 и ARM64; последний проверенный SHA назван явно.",
         "Проверены одноразовые end-to-end сценарии доступных провайдеров; отдельно записаны реальные и fake результаты, repo/remote SHA и число подтверждений.",
         "Пользовательская macOS и Windows-приёмка имеют фактический статус и владельца; непроведённые проверки не отмечены успешными.",
@@ -1316,8 +1372,8 @@
       ],
       "dependencies": [
         "T011",
-        "DOCS-R2",
-        "D002"
+        "D002",
+        "DOCS-R3"
       ],
       "docsWaiver": null,
       "files": [
@@ -1328,7 +1384,7 @@
       "id": "T012",
       "iteration": 3,
       "kind": "delivery",
-      "roundId": "R2",
+      "roundId": "R3",
       "status": "TODO",
       "title": "Четыре платформы CI и факты сквозных прогонов",
       "why": "Четыре платформы CI и факты сквозных прогонов",
@@ -1360,8 +1416,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 16/17
-- Revision: 1209
+- Progress: 16/19
+- Revision: 1210
 
 ## Objective
 
@@ -1436,7 +1492,7 @@
 
 Digest: M39 R1: Kit 2.3.3 (automation, host-тикеты, defer-delivery); служба — настройки, журнал запусков, подготовка с ревью версии, ходы без предела 40, пауза/стоп, ожидания CI и вопросов, восстановление, приёмка, закрытие, stageCi и проверенная публикация; панель — «Автопилотирование», свёрнутые карточки, карточка запуска; сквозные тесты; F001.
 
-### R2 — Windows: host-тикет и корень проекта (fixes, OPEN)
+### R2 — Windows: host-тикет и корень проекта (fixes, CLOSED)
 
 - [DONE] F002 — Host-тикет узнаёт корень проекта на Windows (work)
   - Commit: fix: match the project root of a host ticket on Windows
@@ -1450,11 +1506,22 @@ Digest: M39 R1: Kit 2.3.3 (automation, host-тикеты, defer-delivery); сл�
   - Commit: chore: deliver Workflow Kit 0.15.1
   - Files: package.json, package-lock.json, CHANGELOG.md, README.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, docs/evidence/M39-acceptance.md, docs/architecture/OS-MATRIX.md
   - Depends on: F002, DOCS-R2
+
+Digest: R2 исправил дефект Windows, найденный CI d1ffd1b: host-тикет сравнивает корень проекта через realpathSync.native и с учётом платформы (8.3, регистр, слеши, префикс \\?\). На Windows x64 и ARM64 host-команды автопилота больше не отвергаются как «ticket bound to another root».
+
+### R3 — Тест корня проекта на Windows-хосте (fixes, OPEN)
+
+- [TODO] F003 — Тест веток linux и darwin не зависит от файловой системы хоста (work)
+  - Commit: test: keep injected-platform root checks off the host file system
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/root-path.test.ts
+  - Fixes: F002
+- [TODO] DOCS-R3 — Reconcile project documentation and write the round digest (docs)
+  - Commit: docs: reconcile documentation for R3
+  - Files: README.md, docs/architecture/OVERVIEW.md
+  - Depends on: F003
 - [TODO] T012 — Четыре платформы CI и факты сквозных прогонов (delivery)
   - Commit: test: verify M39 cross-platform delivery and live evidence
   - Files: docs/evidence/M39-acceptance.md, docs/architecture/OS-MATRIX.md
-  - Depends on: T011, DOCS-R2, D002
-
-Digest: R2 исправил дефект Windows, найденный CI d1ffd1b: host-тикет сравнивает корень проекта через realpathSync.native и с учётом платформы (8.3, регистр, слеши, префикс \\?\). На Windows x64 и ARM64 host-команды автопилота больше не отвергаются как «ticket bound to another root».
+  - Depends on: T011, D002, DOCS-R3
 
 State changes only through `scripts/workflow` commands. History lives in Git.

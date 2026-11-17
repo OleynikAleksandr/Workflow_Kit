@@ -18,7 +18,8 @@ jobs:
   test:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 20
+    # M41: the end-to-end tests of the real bundle take Windows ARM64 past 20 minutes.
+    timeout-minutes: 40
     strategy:
       fail-fast: false
       matrix:

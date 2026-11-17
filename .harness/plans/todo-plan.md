@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1300,
+  "revision": 1302,
   "rounds": [
     {
       "digest": {
@@ -611,7 +611,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Лимит времени заданий CI",
       "why": "CI кандидата M41: Windows ARM64 превысил timeout-minutes 20 (прошлый прогон 19 мин 22 с, сквозные тесты M41 добавили минуты); на macOS ARM64 один Kit-вызов теста M40 не ответил за 60 с под нагрузкой"
     },
@@ -654,8 +654,8 @@
 - Execution: sequential
 - Automation: 4 automatic, 0 manual criteria; CI origin ci/M41-autopilot-acceptance (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 7/9
-- Revision: 1300
+- Progress: 8/9
+- Revision: 1302
 
 ## Objective
 
@@ -704,7 +704,7 @@ Digest: M41 R1: Kit 2.4.5 records the delivery checks a delivery task names and 
 
 ### R2 — CI limits (fixes, OPEN)
 
-- [TODO] F001 — Лимит времени заданий CI (work)
+- [DONE] F001 — Лимит времени заданий CI (work)
   - Commit: ci: give the four-platform jobs room for the M41 end-to-end tests
   - Files: .github/workflows/ci.yml, docs/evidence/M41-acceptance.md
   - Fixes: T004

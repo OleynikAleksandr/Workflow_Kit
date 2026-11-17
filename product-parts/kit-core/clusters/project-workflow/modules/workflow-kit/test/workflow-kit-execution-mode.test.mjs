@@ -78,6 +78,7 @@ try {
   const stored = kit.readProposal(plain);
   // The card view: no plan input, scope id and objective from the input.
   assert.deepEqual(kit.proposalView(plain), {
+    automation: false,
     createdAt: stored.createdAt,
     generation: 1,
     hasParallelWork: false,
@@ -137,6 +138,7 @@ try {
   assert.equal(afterRefine.choice.session, "session-1");
   const refiningView = kit.proposalView(plain);
   assert.equal(refiningView.refining, true);
+  assert.equal(refiningView.automation, false);
   assert.equal(refiningView.scopeId, null);
   assert.equal(refiningView.objective, null);
   assert.equal(

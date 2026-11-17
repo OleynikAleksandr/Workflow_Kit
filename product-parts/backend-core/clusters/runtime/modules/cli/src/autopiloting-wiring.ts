@@ -3,7 +3,7 @@
 // user wrote to the session, kept by the agent channel). The manual start records the grant of
 // its run before the first work message; Settings off pauses the active runs.
 import type { AgentChannel } from '#agent-channel';
-import { createHostTickets, createPreparation, createRunCompletion, createRunControl, createRunJournal, createRunKit, createRunTurns, createRunWaits, createRuns, createSettingsStore, registerAutopilotingRoutes, registerRunControlRoutes, registerSessionRunRoutes, runHttp } from '#autopilot';
+import { createHostTickets, createPreparation, createProposalGate, createRunCompletion, createRunControl, createRunJournal, createRunKit, createRunTurns, createRunWaits, createRuns, createSettingsStore, registerAutopilotingRoutes, registerRunControlRoutes, registerSessionRunRoutes, runHttp } from '#autopilot';
 import type { RunCompleter, ControlActions, PrepareActions, ReviewFact, RunControl, RunTurns, RunWaits, Runs, SettingsStore } from '#autopilot';
 import { createGitHubCi, createPublisher, runGit } from '#git-publish';
 import type { GitHubCi, GitRunner, Publisher } from '#git-publish';
@@ -21,8 +21,11 @@ export interface AutopilotingWiring {
     beforeResume(projectId: string, key: string): Promise<string | null>;
     onPause(projectId: string, reason: 'user-pause' | 'interrupted'): Promise<void>;
   };
-  /** The `runs` option of the autopilot: the started run decides its owner's turns (T007). */
-  turns: RunTurns;
+  /**
+   * The `runs` option of the autopilot: the started run decides its owner's turns (T007); M40 —
+   * `proposal` returns a proposal without the automation block to its author.
+   */
+  turns: RunTurns & { proposal(projectId: string, key: string): Promise<{ text: string } | null> };
   control: RunControl;
   waits: RunWaits;
   /** One CI check of the waiting runs and, at the service start, the recovery of started runs. */
@@ -103,7 +106,8 @@ export function wireAutopiloting(options: {
   registerAutopilotingRoutes({ router: options.router, state: options.state, settings, runs });
   const listProjects = async () => (await options.projects.list()).map((project) => ({ id: project.id, path: project.path }));
   const send = (projectId: string, key: string, text: string): void => links?.send(projectId, key, text);
-  const turns = createRunTurns({ journal, projectPath, ...(options.log ? { log: options.log } : {}) });
+  const gate = createProposalGate({ journal, kit: runKit, projectPath, ...(options.log ? { log: options.log } : {}) });
+  const turns = { ...createRunTurns({ journal, projectPath, ...(options.log ? { log: options.log } : {}) }), proposal: gate.check };
   const control = createRunControl({
     journal, kit: runKit, projectPath, listProjects, send, mutex: options.mutex,
     actions: () => links?.actions ?? null,

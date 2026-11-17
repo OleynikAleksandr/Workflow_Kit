@@ -106,7 +106,9 @@ test('a restart after accept or close finds the facts and repeats no Kit step', 
   assert.deepEqual(closed.pushes, [`main:${FINAL}`]);
   const elsewhere = await setup({ phase: 'closing', completion: { ci: null, publication: PUB, finalSha: null } });
   elsewhere.kit.status = { ...elsewhere.kit.status, scope: 'NONE' };
-  assert.deepEqual([(await elsewhere.completer.advance('p'))?.phase, (await elsewhere.read()).nextAction], ['blocked', COMPLETE_TEXTS.closedElsewhere]);
+  // M40: the user closed the scope by hand — the run ends and publishes nothing.
+  const ended = await elsewhere.completer.advance('p');
+  assert.deepEqual([ended?.phase, ended?.reason, ended?.pausedFrom, ended?.nextAction, elsewhere.pushes], ['finished', 'closed-manually', 'closing', null, []]);
 });
 
 test('typed stops: manual criterion, revoked grant, pause, another scope, no upstream, missing evidence, a refusal of Kit', async () => {

@@ -40,7 +40,9 @@ worktrees where noted):
   proposal digest stays the same for a new generation and changes with a
   task, the CI policy and the bytes of the spec, a scope context and a task
   context document (a missing one is `null`); `scope:proposal --digest`
-  JSON and text; a stale `--expected-digest` refuses the choice with
+  JSON and text; `proposalView().automation` is `true` for a proposal with
+  the block (Kit 2.4.4; `false` without it and after refine —
+  `workflow-kit-execution-mode.test.mjs`); a stale `--expected-digest` refuses the choice with
   nothing written, a bad one is `USAGE`; the current digest creates the
   scope with `proposal` and `automation` in the plan and in `status`;
   recovery shows the criterion kinds, the automation lines and the

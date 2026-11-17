@@ -23,6 +23,17 @@ export const PHASE_LABELS = Object.freeze({
   waiting: 'Ждёт',
   paused: 'На паузе',
   blocked: 'Остановлен: нужно ваше действие',
+  stopped: 'Автопилот остановлен',
+});
+
+/**
+ * Why the service stopped a run itself (M40): the card names the reason until the plan changes.
+ * A run the user stopped (`user-stop`) and a run that ended with its scope show no card.
+ * @type {Record<string, string>}
+ */
+export const STOP_REASONS = Object.freeze({
+  'automation-missing': 'В плане нет блока automation: полный автопилот не может довести его до публикации.',
+  'authorization-missing': 'План запущен, но разрешение запуска автопилота не записано.',
 });
 
 /** Phases in which the run may still act: «Пауза» and «Остановить автопилот». */
@@ -70,8 +81,9 @@ function publicationOf(run) {
 }
 
 /**
- * The run of the project whose owner is this session; null for another session, a stopped run and
- * a completed run of an earlier plan.
+ * The run of the project whose owner is this session; null for another session, a run the user
+ * stopped, a run that ended with its scope (`finished`) and a completed run of an earlier plan.
+ * A run the service stopped itself shows why, without buttons, while the plan is the same.
  * @param {Record<string, unknown>} state
  * @param {string} projectId
  * @param {string} key
@@ -81,26 +93,29 @@ export function runView(state, projectId, key) {
   const run = record(record(record(state['autopiloting'])['projects'])[projectId]);
   if (typeof run['runId'] !== 'string' || run['owner'] !== key) return null;
   const phase = String(run['phase'] ?? '');
-  if (phase === 'stopped') return null;
+  if (phase === 'finished') return null;
   const plan = record(record(record(record(state['workflow'])['projects'])[projectId])['plan']);
+  const stopReason = phase === 'stopped' ? (STOP_REASONS[String(run['reason'])] ?? null) : null;
+  const planScope = typeof plan['scopeId'] === 'string' ? plan['scopeId'] : null;
+  if (phase === 'stopped' && (!stopReason || planScope !== (typeof run['scopeId'] === 'string' ? run['scopeId'] : null))) return null;
   if (phase === 'completed' && typeof plan['scopeId'] === 'string' && plan['scopeId'] !== run['scopeId']) return null;
   const wait = record(run['wait']);
   const question = wait['reason'] === 'question';
   const expired = phase === 'blocked' && run['reason'] === 'question-expired';
   const phaseLabel = phase === 'waiting' ? (question ? 'Ждёт ответа на вопрос агента' : 'Ждёт CI') : expired ? 'Нужны данные' : (PHASE_LABELS[phase] ?? phase);
-  const detail = phase === 'waiting' ? (typeof wait['detail'] === 'string' ? wait['detail'] : null) : phase === 'blocked' || phase === 'paused' ? (typeof run['reason'] === 'string' ? run['reason'] : null) : null;
+  const detail = stopReason ?? (phase === 'waiting' ? (typeof wait['detail'] === 'string' ? wait['detail'] : null) : phase === 'blocked' || phase === 'paused' ? (typeof run['reason'] === 'string' ? run['reason'] : null) : null);
   /** @type {RunView['buttons']} */
   const buttons = [];
   if (RUNNING.has(phase)) buttons.push({ action: 'pause', label: 'Пауза', primary: false });
   if (phase === 'paused' || phase === 'blocked') buttons.push({ action: 'resume', label: 'Продолжить', primary: true });
-  if (phase !== 'completed') buttons.push({ action: 'stop', label: 'Остановить автопилот', primary: false });
+  if (phase !== 'completed' && phase !== 'stopped') buttons.push({ action: 'stop', label: 'Остановить автопилот', primary: false });
   return {
     runId: run['runId'],
     revision: typeof run['revision'] === 'number' ? run['revision'] : 0,
     modeLabel: MODE_LABELS[String(run['mode'])] ?? String(run['mode'] ?? ''),
     phase,
     phaseLabel,
-    tone: phase === 'completed' ? 'done' : phase === 'blocked' || phase === 'paused' ? 'warn' : phase === 'waiting' ? 'waiting' : 'working',
+    tone: phase === 'completed' ? 'done' : phase === 'blocked' || phase === 'paused' || phase === 'stopped' ? 'warn' : phase === 'waiting' ? 'waiting' : 'working',
     detail,
     nextAction: typeof run['nextAction'] === 'string' && run['nextAction'] ? run['nextAction'] : null,
     buttons,

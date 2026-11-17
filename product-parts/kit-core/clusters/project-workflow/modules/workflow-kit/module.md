@@ -35,7 +35,9 @@ barriers of Kit 2.4.1 (push by target refs, commits made past the Kit and
 `INPUT_LOCATION`) in [barriers.md](barriers.md). Since Kit 2.4.3 (spec
 M40 T004) `autopilot:status` reports `decisionsMode`, the recovery texts of
 a `host` project carry no manual form of a user decision
-(`workflow-recovery`) and `task:block` registers the `unblock` request.
+(`workflow-recovery`) and `task:block` registers the `unblock` request. Since Kit 2.4.4
+(spec M40 T004A) `scope:proposal` reports `automation`: whether the stored
+proposal has the automation block ([operations.md](operations.md)).
 
 ## Git Hooks (`kit-hooks.ts`)
 

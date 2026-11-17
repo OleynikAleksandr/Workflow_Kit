@@ -145,6 +145,15 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
       const other = options.channel
         .list()
         .some((a) => a.key !== context.key && a.projectId === context.projectId && (a.holdReason === 'waiting-for-mode-choice' || a.holdReason === 'waiting-for-review' || a.holdReason === 'waiting-for-plan-decision'));
+      // M40: a full run returns a proposal without the automation block to its author before any
+      // review or choice; the second such proposal stops the run and the usual cards go on.
+      const returned = status.proposalPending ? ((await options.runs?.proposal?.(context.projectId, context.key).catch(() => null)) ?? null) : null;
+      if (returned) {
+        entry.origin = 'kit';
+        note(entry, 'continue', null, 'Предложение без блока automation возвращено автору');
+        log(`autopilot: ${context.key} proposal returned: no automation block`);
+        return { kind: 'continue', text: `${PREFIX} autopilot. ${returned.text}` };
+      }
       if (options.review) {
         const reviewer = options.review.isReviewer(context.key);
         const reviewed = await options.review.decide(context, status.proposalPending && !other && !reviewer);

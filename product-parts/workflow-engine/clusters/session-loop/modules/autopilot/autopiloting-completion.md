@@ -45,7 +45,8 @@ log? }) → RunCompleter`:
    - другой отказ — `blocked` с кодом Kit.
 3. `closing`:
    - scope `NONE` и в истории есть `chore: close scope … (autopilot run <id>)` — квитанция по
-     факту, иначе `blocked` `closed-elsewhere`;
+     факту, иначе запуск закончен: `finished` `closed-manually` (M40,
+     [run-end.md](run-end.md)); раньше — `blocked` `closed-elsewhere`;
    - иначе `close --scope <id> --autopilot-run <id> --expected-revision N` через тикет.
      `DIRTY_TREE` — `blocked`: чужие файлы не удаляются и не коммитятся.
    - `finalSha` — коммит закрытия; фаза `publishing`.

@@ -126,6 +126,7 @@ function proposalViewText(value: unknown): string {
     `scope: ${view.scopeId ?? "NONE"}${view.objective ? ` — ${view.objective}` : ""}`,
     `reason: ${view.reason}`,
     `options: ${view.options.join(", ")}`,
+    `automation: ${view.automation ? "yes" : "no"}`,
   ].join("\n")}\n`;
 }
 

@@ -161,7 +161,7 @@ test('full without review: instruction → proposal → automatic choice with th
   assert.equal(kit.authorization?.runId, prepared.runId);
   assert.equal(kit.proposal?.digest, digest.result.proposalDigest, 'the grant names the chosen version');
   const journal = await createRunJournal().active(roots['off']!);
-  assert.deepEqual(journal?.receipts.map((r) => r.type), ['review', 'choose', 'authorize']);
+  assert.deepEqual(journal?.receipts.map((r) => r.type), ['review', 'choose', 'authorize', 'start']);
   assert.equal(journal?.receipts[0]?.detail, 'skipped-by-setting', 'no review is not a successful review');
   assert.match(journal!.receipts[1]!.detail, new RegExp(`Автоматический выбор по поручению ${prepared.runId}: sequential`, 'u'));
   assert.equal(journal?.proposal?.digest, digest.result.proposalDigest);

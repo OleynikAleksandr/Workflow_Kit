@@ -137,8 +137,12 @@ every change is a Kit commit unless noted:
 - `proposalView(root)` — `scope:proposal`, read-only: the card view of the
   stored proposal without the plan input, or `null`:
   `{generation, recommended, reason, hasParallelWork, options, refining,
-  createdAt, scopeId, objective, host}`; `scopeId`/`objective` come from the
-  stored input (`null` after `refine`), `host` is `config.host` or `null`.
+  createdAt, scopeId, objective, host, automation}`; `scopeId`/`objective`
+  come from the stored input (`null` after `refine`), `host` is
+  `config.host` or `null`; `automation` (Kit 2.4.4, spec M40 T004A) is `true`
+  when the stored input has the `automation` block, so the host can return
+  a proposal without it before a full autopilot run reviews, chooses and
+  starts the plan (the text form adds `automation: yes|no`).
   Harness Core builds the mode card from it.
 - `extend(root, input, expectedRevision?)` — role `scope-plan`
   (`docs: extend scope <id> (<round>)`); `REVISION_MISMATCH` when the plan

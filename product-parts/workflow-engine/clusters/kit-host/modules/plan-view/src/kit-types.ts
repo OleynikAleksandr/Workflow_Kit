@@ -92,6 +92,11 @@ export interface KitProposalDigest {
 
 /** Result of `scope:proposal` (null when no proposal is open). */
 export interface KitProposal {
+  /**
+   * Whether the proposal has the `automation` block (Kit 2.4.4+); absent on an older Kit, where
+   * the service learns it only from the chosen scope.
+   */
+  automation?: boolean;
   createdAt: string;
   generation: number;
   hasParallelWork: boolean;

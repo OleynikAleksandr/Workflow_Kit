@@ -6,7 +6,7 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { MODE_LABELS, PHASE_LABELS, STOP_CONFIRM, runView } from '../src/run-model.js';
+import { MODE_LABELS, PHASE_LABELS, STOP_CONFIRM, STOP_REASONS, runView } from '../src/run-model.js';
 import { planView } from '../src/plan-cards.js';
 
 const KEY = 'claude:s-1';
@@ -46,6 +46,24 @@ test('after the close: «Публикует», then the SHA, the upstream and th
   const refused = runView(state({ phase: 'blocked', pausedFrom: 'publishing', reason: 'push-auth: Удалённый репозиторий отклонил учётные данные', publication: { upstream: 'origin/main', finalSha: sha, published: null } }), 'p', KEY)!;
   assert.deepEqual([refused.publication?.tone, refused.publication?.text], ['warn', 'Публикация не выполнена: push-auth: Удалённый репозиторий отклонил учётные данные']);
   assert.equal(runView(state({ phase: 'completed' }, { scopeId: 'next' }), 'p', KEY), null, 'a new plan replaces the old result');
+});
+
+test('M40: a run that ended with its scope shows no card; a run the service stopped names the reason', () => {
+  assert.equal(runView(state({ phase: 'finished', pausedFrom: 'starting', reason: 'closed-manually' }), 'p', KEY), null, 'closed by hand: no card');
+  assert.equal(runView(state({ phase: 'finished', reason: 'closed-manually' }, { scopeId: 'auto' }), 'p', KEY), null);
+  // Stopped in the preparation: no scope yet, the card names the reason and has no buttons.
+  const next = 'Полный автопилот этот план не запускает. Продолжайте вручную.';
+  const missing = runView(state({ mode: 'full', phase: 'stopped', pausedFrom: 'preparing', scopeId: null, reason: 'automation-missing', nextAction: next }), 'p', KEY)!;
+  assert.deepEqual([missing.phaseLabel, missing.detail, missing.nextAction, missing.tone, missing.buttons], ['Автопилот остановлен', STOP_REASONS['automation-missing'], next, 'warn', []]);
+  assert.match(missing.detail!, /нет блока automation/u);
+  assert.equal(missing.publication, null);
+  // The user went on by hand (a plan is chosen): the card is gone.
+  assert.equal(runView(state({ phase: 'stopped', scopeId: null, reason: 'automation-missing' }, { scopeId: 'auto' }), 'p', KEY), null);
+  // Stopped at the start of the chosen plan: shown while that plan is open, gone after its close.
+  const started = { phase: 'stopped', pausedFrom: 'starting', scopeId: 'auto', reason: 'authorization-missing' };
+  assert.equal(runView(state(started, { scopeId: 'auto' }), 'p', KEY)?.detail, STOP_REASONS['authorization-missing']);
+  assert.equal(runView(state(started), 'p', KEY), null);
+  assert.equal(runView(state({ phase: 'stopped', scopeId: 'auto', reason: 'user-stop' }, { scopeId: 'auto' }), 'p', KEY), null, 'the user stopped it: no card');
 });
 
 test('an unstarted plan carries the mode of the settings for its policy line; started — none', () => {

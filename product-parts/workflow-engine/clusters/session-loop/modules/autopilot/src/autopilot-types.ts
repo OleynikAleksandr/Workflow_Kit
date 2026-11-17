@@ -82,7 +82,10 @@ export interface AutopilotOptions {
   owns?: (projectId: string, key: string) => Promise<boolean>;
   maxContinues?: number;
   /** M39 T007: the started run of the owner decides its turns (no limit of 40, waits, barriers). */
-  runs?: Pick<RunTurns, 'live' | 'turn'>;
+  runs?: Pick<RunTurns, 'live' | 'turn'> & {
+    /** M40: the text that returns a proposal without the `automation` block to its author, or null. */
+    proposal?(projectId: string, key: string): Promise<{ text: string } | null>;
+  };
   /**
    * M39 autopiloting runs: the grant of a manual start is recorded before the first work message;
    * «Продолжить» of a run paused by Settings off records a new grant revision. Both return the

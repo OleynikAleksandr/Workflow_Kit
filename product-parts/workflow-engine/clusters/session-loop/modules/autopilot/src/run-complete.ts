@@ -9,6 +9,7 @@ import type { KeyedMutex } from '#data-store';
 import type { RunJournal, RunRecord } from './run-journal.ts';
 import type { RunKit, RunKitStatus } from './run-kit.ts';
 import { RETRY_DELAYS_MS, WAIT_TEXTS } from './run-waits.ts';
+import { finishRun, settleRunEnd } from './run-end.ts';
 
 export interface PublisherLike {
   publish(folder: string, scopeOpen: boolean, expected: { sha: string; branch: string; upstream: string }): Promise<{ sha: string; already: boolean; commits?: number }>;
@@ -36,7 +37,6 @@ export const COMPLETE_TEXTS = {
   afterClose: 'Scope уже закрыт: исправление требует отдельного согласованного scope.',
   scopeChanged: 'Открыт другой scope: старый запуск не публикует его незаконченный результат.',
   noUpstream: 'У запуска нет адресата публикации (upstream): результат остаётся локальным.',
-  closedElsewhere: 'Scope закрыт не этим запуском: публикация — кнопкой «Опубликовать на GitHub».',
   retry: 'Устраните причину и нажмите «Продолжить».',
 } as const;
 
@@ -164,7 +164,8 @@ export function createRunCompletion(deps: RunCompletionDeps) {
   async function close(folder: string, run: RunRecord, status: RunKitStatus): Promise<RunRecord | null> {
     if (status.scope === 'NONE') {
       const sha = await closedBy(folder, run.runId);
-      if (!sha) return block(folder, run, 'closed-elsewhere', COMPLETE_TEXTS.closedElsewhere);
+      // M40: the user closed the scope by hand — the run ends, it publishes nothing.
+      if (!sha) return finishRun(deps.journal, folder, run);
       return update(folder, run, (r) => ({ ...r, phase: 'publishing', completion: { ...r.completion!, finalSha: sha }, receipts: has(r, `close:${r.scopeId}`) ? r.receipts : [...r.receipts, receipt(`close:${r.scopeId}`, 'close', sha, 'closed (fact of the history)')] }));
     }
     if (status.delivery !== 'ACCEPTED' || !live(status, run) || !status.authorization?.close) return block(folder, run, 'not-accepted: scope не принят или разрешение не включает закрытие');
@@ -230,7 +231,9 @@ export function createRunCompletion(deps: RunCompletionDeps) {
     const folder = await deps.projectPath(projectId);
     if (!folder) return null;
     return serial(projectId, async () => {
-      let run = await deps.journal.active(folder);
+      const active = await deps.journal.active(folder);
+      // M40: a run whose scope is gone (accepted and closed by hand) ends, whatever its phase.
+      let run = active ? await settleRunEnd({ journal: deps.journal, kit: deps.kit, log }, folder, active) : null;
       // accept → close → stage/publish in one pass; every step re-reads the facts.
       for (let i = 0; i < 6 && run && run.authority && !run.authority.revocation && ACTING.has(run.phase); i += 1) {
         const next = await step(folder, run);

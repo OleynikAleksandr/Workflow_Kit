@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": "T004A",
+  "currentTaskId": null,
   "lastClosed": {
     "closedAt": "2026-11-17T05:47:18.191Z",
     "scopeId": "M39-autopiloting"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1242,
+  "revision": 1243,
   "rounds": [
     {
       "digest": null,
@@ -595,14 +595,54 @@
         "product-parts/workflow-engine/clusters/kit-host/modules/plan-view",
         "docs/planning/M40-autopilot-run-end.md",
         "docs/planning/M40-user-decisions.md",
-        "docs/planning/M40-user-decisions-validation.md"
+        "docs/planning/M40-user-decisions-validation.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/autopiloting-wiring.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/run-model.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/test/run-model.test.ts",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/module.md",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-payload.ts",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/test/workflow-installer-payload.test.mjs",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/module.md",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/operations.md",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-cli-execution.ts",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/workflow-kit-facade.ts",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-automation.test.mjs",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-execution-mode.test.mjs",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/tests.md",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/src/bundle-meta.ts",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/PROVENANCE",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/workflow-kit-2.4.3.mjs.gz",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/workflow-kit-2.4.4.mjs.gz",
+        "product-parts/workflow-engine/clusters/kit-host/modules/plan-view/module.md",
+        "product-parts/workflow-engine/clusters/kit-host/modules/plan-view/src/kit-types.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting-completion.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/run-end.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/autopilot-types.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/autopilot.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/index.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-complete.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-end.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-journal.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-prepare.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-proposal.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-texts.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/runs.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/complete.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/prepare-real.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/prepare.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/run-end.test.ts"
       ],
       "fixes": null,
       "id": "T004A",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "title": "Служба: полный автопилот и план без automation, один запуск плана, конец запуска",
       "why": "На тестовом проекте служба повторяла сообщение о запуске плана после каждого хода, а карточка автопилота не исчезала после ручного закрытия"
     },
@@ -961,9 +1001,9 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Automation: 6 automatic, 0 manual criteria; CI origin ci/M40-user-decisions (4 checks); publication main → origin/main
-- Current task: T004A
-- Progress: 4/13
-- Revision: 1242
+- Current task: none
+- Progress: 5/13
+- Revision: 1243
 
 ## Objective
 
@@ -997,9 +1037,9 @@
   - Commit: feat: generate host-mode instructions without user-decision relays
   - Files: product-parts/kit-core, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle, docs/architecture/OS-MATRIX.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-autopilot/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-autopilot/src/autopilot-decision.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-autopilot/src/autopilot-model.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-autopilot/test/workflow-autopilot-authority.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/agent-rules-modes.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-config.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-install.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-payload.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-texts.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/workflow-installer-facade.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/test/workflow-installer-install.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/test/workflow-installer-payload.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/test/workflow-installer-texts.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/decisions.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-autopilot-status.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-scope.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-host-texts.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/tests.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery/src/recovery-autopilot.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery/src/recovery-gather.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery/src/recovery-model.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery/src/recovery-roles.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery/src/recovery-sections.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-recovery/test/workflow-recovery-autopilot.test.mjs, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/src/bundle-meta.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/PROVENANCE, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/workflow-kit-2.4.2.mjs.gz, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/workflow-kit-2.4.3.mjs.gz
   - Depends on: T003
-- [IN_PROGRESS] T004A — Служба: полный автопилот и план без automation, один запуск плана, конец запуска (work)
+- [DONE] T004A — Служба: полный автопилот и план без automation, один запуск плана, конец запуска (work)
   - Commit: fix: start an autopilot plan once and end the run with its scope
-  - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/control-panel, docs/architecture/OS-MATRIX.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle, product-parts/workflow-engine/clusters/kit-host/modules/plan-view, docs/planning/M40-autopilot-run-end.md, docs/planning/M40-user-decisions.md, docs/planning/M40-user-decisions-validation.md
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/control-panel, docs/architecture/OS-MATRIX.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle, product-parts/workflow-engine/clusters/kit-host/modules/plan-view, docs/planning/M40-autopilot-run-end.md, docs/planning/M40-user-decisions.md, docs/planning/M40-user-decisions-validation.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/autopiloting-wiring.ts, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/run-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/test/run-model.test.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-payload.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/test/workflow-installer-payload.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/operations.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-cli-execution.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/workflow-kit-facade.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-automation.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-execution-mode.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/tests.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/src/bundle-meta.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/PROVENANCE, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/workflow-kit-2.4.3.mjs.gz, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/workflow-kit-2.4.4.mjs.gz, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/module.md, product-parts/workflow-engine/clusters/kit-host/modules/plan-view/src/kit-types.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting-completion.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/run-end.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/autopilot-types.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/autopilot.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-complete.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-end.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-journal.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-prepare.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-proposal.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-texts.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/runs.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/complete.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/prepare-real.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/prepare.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/run-end.test.ts
   - Depends on: T004
 - [TODO] T005 — Служба: журнал решений, привязка к ходу, wfk decision и операции хоста (work)
   - Commit: feat: record user decisions from panel buttons and delivered user messages

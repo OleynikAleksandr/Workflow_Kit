@@ -5,11 +5,17 @@
 // recommended mode with `--expected-digest` of the agreed (or, without review, current)
 // version, start the plan through the same service action as the button. Triggers: a finished
 // turn, a finished review, the service start. «После ручного запуска Плана» never gets here.
+// M40: the plan is started once per scope (a receipt `start:<scope>`); a plan without the
+// `automation` block or without a grant after its start stops the run with a reason instead of
+// a start message after every turn; a proposal without the block is neither reviewed nor chosen
+// (run-proposal.ts returns it to its author); a run whose scope is gone is finished (run-end.ts).
 import type { KitChoiceOption, KitProposalDigest } from '#plan-view';
 import type { KeyedMutex } from '#data-store';
 import type { ChooseRequest } from './autopilot-types.ts';
 import type { RunJournal, RunRecord } from './run-journal.ts';
 import type { RunKit } from './run-kit.ts';
+import { settleRunEnd } from './run-end.ts';
+import { proposalLacksAutomation, stopRun } from './run-proposal.ts';
 
 /** The cross review of the owner's proposal as the reconciler needs it. */
 export interface ReviewFact {
@@ -115,23 +121,45 @@ export function createPreparation(deps: PreparationDeps) {
     return start(folder, current);
   }
 
+  /**
+   * Starts the chosen plan once: the receipt `start:<scope>` keeps a later step from sending the
+   * start message again. A plan the run cannot be authorized for stops the run with the reason.
+   */
   async function start(folder: string, run: RunRecord): Promise<RunRecord | null> {
     const actions = deps.actions();
     const fresh = await still(folder, run);
     if (!actions || !fresh) return fresh;
+    const scope = await deps.kit.scope(folder);
+    if (!scope) return fresh;
+    if (!scope.automation) {
+      log(`autopiloting: ${run.runId} stopped: scope ${scope.id} has no automation block`);
+      return stopRun(deps.journal, folder, fresh, 'automation-missing');
+    }
+    const actionId = `start:${scope.id}`;
+    if (fresh.receipts.some((receipt) => receipt.actionId === actionId)) {
+      log(`autopiloting: ${run.runId} stopped: scope ${scope.id} was started but has no grant of the run`);
+      return stopRun(deps.journal, folder, fresh, 'authorization-missing');
+    }
     try {
       await actions.start(run.projectId, run.owner.key);
     } catch (error) {
       const code = (error as { code?: string }).code ?? 'start-failed';
       return block(folder, (await deps.journal.read(folder, run.runId)) ?? fresh, `${code}: ${error instanceof Error ? error.message : String(error)}`);
     }
-    return deps.journal.read(folder, run.runId);
+    const revision = (await deps.kit.status(folder))?.revision ?? null;
+    return deps.journal.update(folder, run.runId, (r) =>
+      r.receipts.some((receipt) => receipt.actionId === actionId)
+        ? null
+        : { ...r, receipts: [...r.receipts, { actionId, type: 'start', at: now().toISOString(), commit: null, detail: `scope ${scope.id}, plan revision ${revision ?? 'unknown'}` }] },
+    );
   }
 
   async function step(projectId: string): Promise<RunRecord | null> {
     const folder = await deps.projectPath(projectId);
     if (!folder) return null;
-    const run = await deps.journal.active(folder);
+    const active = await deps.journal.active(folder);
+    // M40: a run whose scope the user closed by hand ends here, whatever its phase.
+    const run = active ? await settleRunEnd({ journal: deps.journal, kit: deps.kit, log }, folder, active) : null;
     if (!run || run.mode !== 'full' || !PREPARING.has(run.phase)) return run;
     const status = await deps.kit.status(folder);
     if (!status || !deps.kit.supported(status).ready) return run;
@@ -146,6 +174,9 @@ export function createPreparation(deps: PreparationDeps) {
     }
     const version = await deps.kit.digest(folder);
     if (!version) return phase(folder, run, 'preparing');
+    // M40: no review and no choice for a proposal without the automation block; its author gets
+    // it back at the end of the turn (run-proposal.ts).
+    if (await proposalLacksAutomation(deps.kit, folder)) return phase(folder, run, 'preparing');
     if (!deps.reviewOn(projectId, run.owner.key)) return chooseAndStart(folder, run, version, 'skipped-by-setting');
     const review = deps.review(projectId, run.owner.key);
     if (!review || review.scopeId !== version.scopeId || !['agreed', 'disagreed', 'failed', 'cancelled'].includes(review.status)) return phase(folder, run, 'reviewing');

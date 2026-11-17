@@ -26,13 +26,17 @@ export type RunPhase =
   | 'closing'
   | 'publishing'
   | 'completed'
+  | 'finished'
   | 'waiting'
   | 'paused'
   | 'blocked'
   | 'stopped';
 
-/** A run that no longer acts: completed (verified publication) or stopped for good. */
-export const FINAL_PHASES: ReadonlySet<RunPhase> = new Set(['completed', 'stopped']);
+/**
+ * A run that no longer acts: completed (verified publication), stopped for good, or finished
+ * because its scope is gone (M40: the user accepted and closed it by hand).
+ */
+export const FINAL_PHASES: ReadonlySet<RunPhase> = new Set(['completed', 'finished', 'stopped']);
 
 export interface RunRequest {
   source: RunSource;
@@ -120,6 +124,8 @@ export interface RunRecord {
    * the grant (the grant disappears with the closed scope) and the final SHA of the close.
    */
   completion?: RunCompletion | null;
+  /** M40: proposals without the `automation` block the run met (one is returned, the second stops it). */
+  automationMissing?: number;
   createdAt: string;
   updatedAt: string;
 }

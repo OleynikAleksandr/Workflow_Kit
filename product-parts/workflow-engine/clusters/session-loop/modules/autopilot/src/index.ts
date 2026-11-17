@@ -51,3 +51,8 @@ export { grantedDelivery, liveGrant } from './decide-orchestration.ts';
 export type { GitRead, PublisherLike, RunCompleter, RunCompletionDeps } from './run-complete.ts';
 export { COMPLETE_TEXTS, createRunCompletion } from './run-complete.ts';
 export type { RunCompletion } from './run-journal.ts';
+export { RUN_END_REASON, finishRun, settleRunEnd } from './run-end.ts';
+export type { ProposalGate } from './run-proposal.ts';
+export { AUTOMATION_ATTEMPTS, createProposalGate, proposalLacksAutomation, stopRun } from './run-proposal.ts';
+export type { RunStopReason } from './run-texts.ts';
+export { AUTOMATION_REQUIRED, RUN_STOP_NEXT, automationReturnText } from './run-texts.ts';

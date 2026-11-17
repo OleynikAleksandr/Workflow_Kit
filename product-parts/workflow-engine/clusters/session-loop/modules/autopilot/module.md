@@ -11,6 +11,12 @@
 
 ## Публичный интерфейс (`src/index.ts`)
 
+M40 T004A — план без блока `automation` в полном автопилоте, один запуск плана на scope и
+конец запуска вместе со scope (`createProposalGate`, `proposalLacksAutomation`, `stopRun`,
+`AUTOMATION_ATTEMPTS`, `settleRunEnd`, `finishRun`, `RUN_END_REASON`, `AUTOMATION_REQUIRED`,
+`automationReturnText`, `RUN_STOP_NEXT`, фаза `finished`, опция `runs.proposal` автопилота):
+[run-end.md](run-end.md).
+
 - `decideAutopilot(state, status, turn)`, `nextAutopilotState(state,
   decision)`, `DEFAULT_MAX_CONTINUES` (40) и типы — порт чистой функции
   Harness (`workflow-autopilot/autopilot-decision.ts`) без изменений

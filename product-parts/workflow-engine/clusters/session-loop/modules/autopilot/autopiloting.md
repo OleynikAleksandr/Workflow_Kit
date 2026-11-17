@@ -105,6 +105,9 @@ decideReview?, mutex?, log? }) → Runs`:
 
 ## Подготовка полного запуска (`src/run-prepare.ts`, T006)
 
+M40: предложение без `automation`, запуск плана один раз и конец запуска —
+[run-end.md](run-end.md).
+
 `createPreparation({ journal, kit, projectPath, review, reviewOn, orchestration?, actions,
 mutex?, log?, now? })` → `{ reconcile(projectId) }`. Один шаг под мьютексом `project:<id>`
 (с кнопками панели), не больше одного действия; ошибки пишутся в журнал службы:

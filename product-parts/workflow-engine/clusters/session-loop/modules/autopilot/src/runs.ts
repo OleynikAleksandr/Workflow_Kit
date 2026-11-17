@@ -369,7 +369,8 @@ export function createRuns(options: RunsOptions): Runs {
     },
 
     async section() {
-      return { projects: Object.fromEntries(briefs) };
+      // M40: a run that ended with its scope (closed by hand) has no card in the panel state.
+      return { projects: Object.fromEntries([...briefs].filter(([, run]) => run.phase !== 'finished')) };
     },
   };
 }

@@ -121,7 +121,7 @@
 ## 3. Поставка и CI
 
 - T010: `npm run build`, установка 0.16.0, проверка `installed-service` (версия службы,
-  ответ `/api/health`, bundle Kit 2.4.3 в установленном приложении).
+  ответ `/api/health`, bundle Kit 2.4.4 в установленном приложении).
 - T011: push в `ci/M40-user-decisions`, обязательные задания `macOS ARM64`, `Linux x64`,
   `Windows x64`, `Windows ARM64` для точного SHA. Красный CI — `task:defer-delivery` и раунд
   исправлений, как в M39; результат CI записывается вне git.

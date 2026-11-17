@@ -128,8 +128,12 @@ export type { TaskCommit, TaskStart } from "./kit-task.js";
  * `scope:proposal`: what the mode card needs from the stored proposal,
  * without the plan input. `scopeId`/`objective` come from the stored input
  * and are `null` after "refine"; `host` is `config.host` of the project.
+ * `automation` (Kit 2.4.4) tells whether the stored input has the
+ * `automation` block: the host checks it before a full autopilot run
+ * reviews, chooses and starts the plan.
  */
 export interface ScopeProposalView {
+  automation: boolean;
   createdAt: string;
   generation: number;
   hasParallelWork: boolean;
@@ -220,7 +224,9 @@ export class WorkflowKitFacade extends WorkflowKitBase {
       return null;
     }
     const input = proposal.input as Partial<ScopeInput> | null;
+    const automation = (input as { automation?: unknown } | null)?.automation;
     return {
+      automation: typeof automation === "object" && automation !== null,
       createdAt: proposal.createdAt,
       generation: proposal.generation,
       hasParallelWork: proposal.hasParallelWork,

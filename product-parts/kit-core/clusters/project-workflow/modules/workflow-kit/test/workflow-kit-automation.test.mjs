@@ -147,6 +147,8 @@ try {
   const first = kit.proposeScope(root, scope(), "sequential", reason);
   assert.equal(first.generation, 1);
   const digest1 = kit.proposalDigest(root);
+  // Kit 2.4.4: the card view tells the host the proposal has the block.
+  assert.equal(kit.proposalView(root).automation, true);
   assert.equal(digest1.generation, 1);
   assert.equal(digest1.scopeId, "auto-1");
   assert.match(digest1.proposalDigest, /^[0-9a-f]{64}$/u);

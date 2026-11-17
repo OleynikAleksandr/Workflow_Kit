@@ -15,6 +15,8 @@ after(() => rm(tmp, { recursive: true, force: true }));
 let n = 0;
 const DIGEST = 'd'.repeat(64);
 const KEY = 'claude:s-1';
+/** The automation block of the scripted scope: a plan without one is not started (M40, run-end.test.ts). */
+const AUTOMATION = { acceptance: [], ci: null, delivery: [], publication: null };
 
 function run(over: Partial<NewRun> = {}): NewRun {
   return {
@@ -29,7 +31,7 @@ async function setup(options: { review?: boolean; fact?: ReviewFact | null; reco
   const journal = createRunJournal();
   const kit = {
     version: { scopeId: 'auto', generation: 1, proposalDigest: DIGEST, documentDigests: {} } as { scopeId: string; generation: number; proposalDigest: string; documentDigests: object } | null,
-    scope: null as { id: string; ownerSession: string | null; automation: null } | null,
+    scope: null as { id: string; ownerSession: string | null; automation: object | null } | null,
     grant: null as { runId: string; revoked: unknown } | null,
   };
   const calls: string[] = [];
@@ -54,7 +56,7 @@ async function setup(options: { review?: boolean; fact?: ReviewFact | null; reco
         calls.push('choose');
         chosen.push(request);
         if (options.chooseError) throw new WorkflowActionError(options.chooseError, 'refused');
-        kit.scope = { id: 'auto', ownerSession: 's-1', automation: null };
+        kit.scope = { id: 'auto', ownerSession: 's-1', automation: AUTOMATION };
       },
       start: async (_id, session) => {
         calls.push(`start:${session}`);
@@ -78,7 +80,7 @@ test('review off: the proposal is chosen with its digest and started; the review
   assert.match(t.chosen[0]!.automatic!.note, new RegExp(`Автоматический выбор по поручению ${created.runId}`, 'u'));
   assert.equal(result?.phase, 'executing');
   assert.equal(result?.scopeId, 'auto');
-  assert.deepEqual(result?.receipts.map((r) => [r.type, r.type === 'review' ? r.detail : '']), [['review', 'skipped-by-setting'], ['choose', '']]);
+  assert.deepEqual(result?.receipts.map((r) => [r.type, r.type === 'review' ? r.detail : '']), [['review', 'skipped-by-setting'], ['choose', ''], ['start', '']]);
   assert.equal((await t.preparation.reconcile('p1'))?.phase, 'executing', 'a repeat does nothing');
   assert.equal(t.calls.length, 2);
 });
@@ -133,12 +135,12 @@ test('after-start, paused, stopped and late events: nothing is chosen or started
 test('a plan chosen by another owner is not taken over; a chosen own plan is started once after a restart', async () => {
   const other = await setup();
   await other.journal.create(other.folder, run({ review: false }));
-  other.kit.scope = { id: 'auto', ownerSession: 's-9', automation: null };
+  other.kit.scope = { id: 'auto', ownerSession: 's-9', automation: AUTOMATION };
   const blocked = await other.preparation.reconcile('p1');
   assert.deepEqual([blocked?.phase, blocked?.reason], ['blocked', PREPARE_TEXTS.scopeChanged]);
   const own = await setup();
   await own.journal.create(own.folder, run({ review: false, phase: 'starting', scopeId: 'auto' }));
-  own.kit.scope = { id: 'auto', ownerSession: 's-1', automation: null };
+  own.kit.scope = { id: 'auto', ownerSession: 's-1', automation: AUTOMATION };
   assert.equal((await own.preparation.reconcile('p1'))?.phase, 'executing');
   assert.deepEqual(own.calls, [`start:${KEY}`]);
 });

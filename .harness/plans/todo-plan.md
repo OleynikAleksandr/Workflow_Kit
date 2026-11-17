@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1200,
+  "revision": 1201,
   "rounds": [
     {
       "digest": {
@@ -1295,7 +1295,8 @@
       ],
       "dependencies": [
         "T011",
-        "DOCS-R2"
+        "DOCS-R2",
+        "D002"
       ],
       "docsWaiver": null,
       "files": [
@@ -1332,7 +1333,7 @@
 - Execution: sequential
 - Current task: none
 - Progress: 13/17
-- Revision: 1200
+- Revision: 1201
 
 ## Objective
 
@@ -1424,6 +1425,6 @@ Digest: M39 R1: Kit 2.3.3 (automation, host-тикеты, defer-delivery); сл�
 - [TODO] T012 — Четыре платформы CI и факты сквозных прогонов (delivery)
   - Commit: test: verify M39 cross-platform delivery and live evidence
   - Files: docs/evidence/M39-acceptance.md, docs/architecture/OS-MATRIX.md
-  - Depends on: T011, DOCS-R2
+  - Depends on: T011, DOCS-R2, D002
 
 State changes only through `scripts/workflow` commands. History lives in Git.

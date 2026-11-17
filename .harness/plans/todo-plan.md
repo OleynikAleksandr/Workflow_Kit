@@ -12,7 +12,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1267,
+  "revision": 1269,
   "rounds": [
     {
       "digest": null,
@@ -358,7 +358,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Проверка объединённого кода",
       "why": "Проверки ветки Speech не доказывают объединённый код"
     },
@@ -565,8 +565,8 @@
 - Execution: sequential
 - Automation: 4 automatic, 0 manual criteria; CI origin ci/speech-integration (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 1/7
-- Revision: 1267
+- Progress: 2/7
+- Revision: 1269
 
 ## Objective
 
@@ -586,7 +586,7 @@
 - [DONE] T001 — Перенос ветки Speech в main (work)
   - Commit: feat: integrate speech input from feature/speech-input 5e990e3
   - Files: .github/workflows/ci.yml, README.md, THIRD_PARTY_NOTICES.md, docs/architecture/OS-MATRIX.md, docs/architecture/OVERVIEW.md, docs/evidence/speech-input-acceptance.md, docs/planning/speech-input-integration.md, docs/planning/speech-input-macos.md, docs/planning/speech-input/handoff-1.md, docs/planning/speech-input/handoff-2.md, docs/planning/speech-input/handoff-3.md, docs/planning/speech-input/handoff-4.md, package-lock.json, package.json, product-parts/backend-core/clusters/http-api/modules/http-server/module.md, product-parts/backend-core/clusters/http-api/modules/http-server/src/server.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/settings.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/speech-settings.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/styles.css, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/autopiloting-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/speech-settings.browser.mjs, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/speech.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/composer.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/question-card.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/session-chat.css, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/session-chat.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/run-browser.mjs, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/speech-composer.browser.mjs, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/speech-question.browser.mjs, product-parts/speech-input, tools/speech-checks/README.md, tools/speech-checks/test.mjs, tsconfig.json, product-parts/speech-input/clusters/browser-input/cluster.md, product-parts/speech-input/clusters/browser-input/modules/speech-input/module.md, product-parts/speech-input/clusters/browser-input/modules/speech-input/src/capture.js, product-parts/speech-input/clusters/browser-input/modules/speech-input/src/connection.js, product-parts/speech-input/clusters/browser-input/modules/speech-input/src/dictation.js, product-parts/speech-input/clusters/browser-input/modules/speech-input/src/field-model.js, product-parts/speech-input/clusters/browser-input/modules/speech-input/src/index.ts, product-parts/speech-input/clusters/browser-input/modules/speech-input/src/resampler.js, product-parts/speech-input/clusters/browser-input/modules/speech-input/src/worklet.js, product-parts/speech-input/clusters/browser-input/modules/speech-input/test/browser-model.test.ts, product-parts/speech-input/clusters/browser-input/modules/speech-input/test/capture-negative.browser.mjs, product-parts/speech-input/clusters/browser-input/modules/speech-input/test/real-browser.smoke.mjs, product-parts/speech-input/clusters/browser-input/modules/speech-input/test/worklet.test.ts, product-parts/speech-input/clusters/local-recognition/cluster.md, product-parts/speech-input/clusters/local-recognition/modules/speech-helper/.gitignore, product-parts/speech-input/clusters/local-recognition/modules/speech-helper/Cargo.lock, product-parts/speech-input/clusters/local-recognition/modules/speech-helper/Cargo.toml, product-parts/speech-input/clusters/local-recognition/modules/speech-helper/module.md, product-parts/speech-input/clusters/local-recognition/modules/speech-helper/src/main.rs, product-parts/speech-input/clusters/local-recognition/modules/speech-helper/src/native.rs, product-parts/speech-input/clusters/local-recognition/modules/speech-helper/src/protocol.rs, product-parts/speech-input/clusters/local-recognition/modules/speech-helper/test/streaming.smoke.mjs, product-parts/speech-input/clusters/local-recognition/modules/speech-service/module.md, product-parts/speech-input/clusters/local-recognition/modules/speech-service/src/catalog.ts, product-parts/speech-input/clusters/local-recognition/modules/speech-service/src/helper-client.ts, product-parts/speech-input/clusters/local-recognition/modules/speech-service/src/index.ts, product-parts/speech-input/clusters/local-recognition/modules/speech-service/src/model-store.ts, product-parts/speech-input/clusters/local-recognition/modules/speech-service/src/routes.ts, product-parts/speech-input/clusters/local-recognition/modules/speech-service/src/service.ts, product-parts/speech-input/clusters/local-recognition/modules/speech-service/test/helper-client.test.ts, product-parts/speech-input/clusters/local-recognition/modules/speech-service/test/model-store.test.ts, product-parts/speech-input/clusters/local-recognition/modules/speech-service/test/runtime-switch.smoke.mjs, product-parts/speech-input/clusters/local-recognition/modules/speech-service/test/service.test.ts, product-parts/speech-input/product-part.md
-- [TODO] T002 — Проверка объединённого кода (work)
+- [DONE] T002 — Проверка объединённого кода (work)
   - Commit: test: verify the integrated speech input
   - Files: docs/evidence/speech-integration-acceptance.md
   - Depends on: T001

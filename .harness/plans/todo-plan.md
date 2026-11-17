@@ -12,7 +12,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1264,
+  "revision": 1265,
   "rounds": [
     {
       "digest": null,
@@ -172,6 +172,57 @@
     "proposal": {
       "digest": "ef6d64a240469784aac7a68a99ee7183ce3910a7788fe7bc62e06b81ff708019",
       "generation": 2
+    },
+    "authorization": {
+      "accept": true,
+      "acceptancePolicy": "automatic",
+      "at": "2026-11-17T15:58:01.392Z",
+      "ci": {
+        "remote": "origin",
+        "branch": "ci/speech-integration",
+        "requiredChecks": [
+          "macOS ARM64",
+          "Linux x64",
+          "Windows x64",
+          "Windows ARM64"
+        ],
+        "exactSha": true
+      },
+      "close": true,
+      "delivery": [
+        {
+          "taskId": "T004",
+          "effects": [
+            "push ci/speech-integration в origin и ожидание CI четырёх платформ"
+          ]
+        },
+        {
+          "taskId": "T005",
+          "effects": [
+            "cargo build --release --locked speech-helper",
+            "отдельный экземпляр WFK_DATA_DIR: node bin/wfk.mjs install, сквозной сценарий, остановка и удаление",
+            "установка Workflow Kit 0.17.0 (node bin/wfk.mjs install) с helper в Application Support/Workflow Kit/speech и перезапуск службы"
+          ]
+        },
+        {
+          "taskId": "T006",
+          "effects": [
+            "push ci/speech-integration в origin и ожидание CI четырёх платформ"
+          ]
+        }
+      ],
+      "mode": "full",
+      "note": "Full autopilot run run-E4-rDe1mHCmk: the user's direct instruction «После завершения своего текущего плана интегрируй Speech в main через merge ветки feature/speech-input.\n\nДерево Speech: /Users/oleksandroliinyk/VSCODE/Workflow_Kit_Speech\nБаза: bbab32d72f8a899cc6a01a0» (2026-11-17T15:44:42.033Z) to prepare and carry out the plan",
+      "ownerSession": "25cedd72-7908-49d9-9f21-79cfca178443",
+      "proposalDigest": "ef6d64a240469784aac7a68a99ee7183ce3910a7788fe7bc62e06b81ff708019",
+      "publication": {
+        "branch": "main",
+        "upstream": "origin/main"
+      },
+      "revision": 1,
+      "revoked": null,
+      "runId": "run-E4-rDe1mHCmk",
+      "source": "user-command"
     }
   },
   "tasks": [
@@ -481,7 +532,7 @@
 - Automation: 4 automatic, 0 manual criteria; CI origin ci/speech-integration (4 checks); publication main → origin/main
 - Current task: none
 - Progress: 0/7
-- Revision: 1264
+- Revision: 1265
 
 ## Objective
 

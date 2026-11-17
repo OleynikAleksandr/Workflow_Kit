@@ -12,17 +12,518 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1263,
-  "rounds": [],
+  "revision": 1264,
+  "rounds": [
+    {
+      "digest": null,
+      "id": "R1",
+      "kind": "implementation",
+      "status": "OPEN",
+      "title": "Implementation"
+    }
+  ],
   "schema": "harness-workflow-plan/1",
-  "scope": null,
-  "tasks": []
+  "scope": {
+    "acceptance": [
+      "Код Speech из feature/speech-input (5e990e3) перенесён в main коммитом задачи; план, история, Kit runtime/bundle, настройки, версия и изменения M40 main сохранены; speech-проверки добавлены в профиль командой Kit",
+      "Объединённый код проверен: typecheck, обе Node-группы, platform guard, проверки Kit, cargo test и debug-сборка helper, браузерные сценарии и настоящий Voxtral; результаты и ограничения записаны в docs/evidence/speech-integration-acceptance.md",
+      "Установка из исходников выпуска доставляет зависимости времени выполнения, lock, helper (macOS ARM64) с политикой версии и лицензии; CLI работает без ws; установленный экземпляр 0.17.0 распознаёт русскую речь сквозным сценарием браузер → установленные assets → WebSocket → установленный helper → черновик",
+      "CI четырёх платформ успешен для объединённого кода и для выпуска"
+    ],
+    "acceptanceNote": null,
+    "approval": {
+      "at": "2026-11-17T15:57:59.700Z",
+      "text": "Пользователь 17.11.2026: «После завершения своего текущего плана интегрируй Speech в main через merge ветки feature/speech-input… До сборки релиза проверь именно объединённый код… Сборку релиза начинай после успешной интеграции и необходимых проверок.» | Execution mode chosen by the user: sequential: Автоматический выбор по поручению run-E4-rDe1mHCmk: sequential (recommended by the plan; ревью: agreed)"
+    },
+    "automation": {
+      "acceptance": [
+        {
+          "criterion": 0,
+          "kind": "automatic",
+          "checks": [
+            "typecheck",
+            "test",
+            "platform-guard",
+            "speech-native",
+            "kit:doc-size",
+            "kit:md-links"
+          ],
+          "evidence": [
+            "docs/evidence/speech-integration-acceptance.md"
+          ]
+        },
+        {
+          "criterion": 1,
+          "kind": "automatic",
+          "checks": [
+            "typecheck",
+            "test",
+            "platform-guard",
+            "speech-native",
+            "kit:doc-size",
+            "kit:md-links"
+          ],
+          "evidence": [
+            "docs/evidence/speech-integration-acceptance.md"
+          ]
+        },
+        {
+          "criterion": 2,
+          "kind": "automatic",
+          "checks": [
+            "typecheck",
+            "test",
+            "platform-guard",
+            "speech-native",
+            "kit:doc-size",
+            "kit:md-links",
+            "installed-service"
+          ],
+          "evidence": [
+            "docs/evidence/speech-integration-acceptance.md"
+          ]
+        },
+        {
+          "criterion": 3,
+          "kind": "automatic",
+          "checks": [
+            "typecheck",
+            "test",
+            "platform-guard",
+            "speech-native",
+            "kit:doc-size",
+            "kit:md-links"
+          ],
+          "evidence": [
+            "docs/evidence/speech-integration-acceptance.md"
+          ]
+        }
+      ],
+      "ci": {
+        "remote": "origin",
+        "branch": "ci/speech-integration",
+        "requiredChecks": [
+          "macOS ARM64",
+          "Linux x64",
+          "Windows x64",
+          "Windows ARM64"
+        ],
+        "exactSha": true
+      },
+      "delivery": [
+        {
+          "taskId": "T004",
+          "effects": [
+            "push ci/speech-integration в origin и ожидание CI четырёх платформ"
+          ]
+        },
+        {
+          "taskId": "T005",
+          "effects": [
+            "cargo build --release --locked speech-helper",
+            "отдельный экземпляр WFK_DATA_DIR: node bin/wfk.mjs install, сквозной сценарий, остановка и удаление",
+            "установка Workflow Kit 0.17.0 (node bin/wfk.mjs install) с helper в Application Support/Workflow Kit/speech и перезапуск службы"
+          ]
+        },
+        {
+          "taskId": "T006",
+          "effects": [
+            "push ci/speech-integration в origin и ожидание CI четырёх платформ"
+          ]
+        }
+      ],
+      "publication": {
+        "branch": "main",
+        "upstream": "origin/main"
+      }
+    },
+    "baselineCommit": "1b2ee5eeb8068f946ef6fa64f428cc8d3a6af945",
+    "blockedReason": null,
+    "context": [
+      {
+        "path": "docs/planning/speech-integration.md",
+        "required": true
+      }
+    ],
+    "decisions": [
+      {
+        "at": "2026-11-17T15:57:59.700Z",
+        "text": "Перенос — git merge --squash в задаче T001 и commit --task: Kit отклоняет прямой коммит слияния, а ревизии отдельного плана Speech не должны попасть в историю плана main; ветка feature/speech-input сохраняется"
+      },
+      {
+        "at": "2026-11-17T15:57:59.700Z",
+        "text": "Профиль качества main дополнен проверкой speech-native и обёрткой tools/speech-checks/test.mjs командой quality:apply (8cafd65)"
+      },
+      {
+        "at": "2026-11-17T15:57:59.700Z",
+        "text": "Живые проверки микрофона, разрешений, Safari и sleep/wake не входят в автоматическую приёмку и записываются как непроверенные"
+      }
+    ],
+    "delivery": "IN_PROGRESS",
+    "execution": {
+      "maxWorkers": 3,
+      "ownerSession": "25cedd72-7908-49d9-9f21-79cfca178443",
+      "strategy": "sequential"
+    },
+    "id": "speech-integration",
+    "objective": "Голосовой ввод из feature/speech-input перенесён в main с сохранением плана, истории и Kit main, объединённый код проверен, установщик доставляет helper, зависимости и лицензии, выпущена 0.17.0.",
+    "spec": "docs/planning/speech-integration.md",
+    "status": "ACTIVE",
+    "proposal": {
+      "digest": "ef6d64a240469784aac7a68a99ee7183ce3910a7788fe7bc62e06b81ff708019",
+      "generation": 2
+    }
+  },
+  "tasks": [
+    {
+      "acceptance": [
+        "Main содержит изменения feature/speech-input 5e990e3 со всеми точками совмещения: package.json и lock, cli, http-server upgrade, composer, question-card, Settings, CI, tsconfig, общие документы",
+        "План, .harness/workflow, версия 0.16.0 и изменения M40 main сохранены; README, OVERVIEW и OS-MATRIX не больше 28 000 байт",
+        "Коммит проходит typecheck, test (обёртка), platform-guard, speech-native и проверки Kit"
+      ],
+      "checks": [
+        "speech-native"
+      ],
+      "commitMessage": "feat: integrate speech input from feature/speech-input 5e990e3",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/speech-integration.md",
+          "required": true,
+          "heading": "2.1. T001: перенос"
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        ".github/workflows/ci.yml",
+        "README.md",
+        "THIRD_PARTY_NOTICES.md",
+        "docs/architecture/OS-MATRIX.md",
+        "docs/architecture/OVERVIEW.md",
+        "docs/evidence/speech-input-acceptance.md",
+        "docs/planning/speech-input-integration.md",
+        "docs/planning/speech-input-macos.md",
+        "docs/planning/speech-input/handoff-1.md",
+        "docs/planning/speech-input/handoff-2.md",
+        "docs/planning/speech-input/handoff-3.md",
+        "docs/planning/speech-input/handoff-4.md",
+        "package-lock.json",
+        "package.json",
+        "product-parts/backend-core/clusters/http-api/modules/http-server/module.md",
+        "product-parts/backend-core/clusters/http-api/modules/http-server/src/server.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/settings.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/speech-settings.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/styles.css",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/autopiloting-model.test.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/speech-settings.browser.mjs",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/speech.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/composer.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/question-card.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/session-chat.css",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/src/session-chat.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/test/run-browser.mjs",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/test/speech-composer.browser.mjs",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/test/speech-question.browser.mjs",
+        "product-parts/speech-input",
+        "tools/speech-checks/README.md",
+        "tools/speech-checks/test.mjs",
+        "tsconfig.json"
+      ],
+      "fixes": null,
+      "id": "T001",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R1",
+      "status": "TODO",
+      "title": "Перенос ветки Speech в main",
+      "why": "Голосовой ввод готов в отдельной ветке"
+    },
+    {
+      "acceptance": [
+        "npm ci, typecheck, обе Node-группы, platform guard и проверки Kit пройдены на SHA T001",
+        "cargo test --locked и debug-сборка helper пройдены",
+        "Браузерные сценарии composer, question-card, Settings и негативные сценарии захвата пройдены в обеих темах",
+        "Настоящий Voxtral: streaming до EOF, переключение Q8/Q4/Q6 и полный путь AudioWorklet → WebSocket → helper → черновик пройдены на отдельном экземпляре",
+        "Evidence называет SHA, метрики и непроверенное: физический микрофон, разрешения, Safari, sleep/wake"
+      ],
+      "checks": [],
+      "commitMessage": "test: verify the integrated speech input",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/speech-integration.md",
+          "required": true,
+          "heading": "2.2. T002: проверка объединённого кода"
+        }
+      ],
+      "dependencies": [
+        "T001"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "docs/evidence/speech-integration-acceptance.md"
+      ],
+      "fixes": null,
+      "id": "T002",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R1",
+      "status": "TODO",
+      "title": "Проверка объединённого кода",
+      "why": "Проверки ветки Speech не доказывают объединённый код"
+    },
+    {
+      "acceptance": [
+        "cli загружает app.ts только для serve: install, doctor, hook, session и --version работают без ws; serve без ws завершается понятным сообщением и кодом 1",
+        "Копия приложения содержит node_modules пакетов lock без dev, package-lock.json и THIRD_PARTY_NOTICES.md и не содержит каталогов target; нет пакета в источнике — DEPENDENCY_MISSING без побочных изменений; повторная установка из копии ничего не копирует",
+        "На macOS ARM64 release helper заменяется атомарно с helper.json {version, sha256} и notices; без нового артефакта прежний helper остаётся только при совпадении версии и sha256, иначе удаляется с предупреждением; ошибка замены удаляет helper; модели и speech.json сохраняются; uninstall удаляет helper; Linux, Windows и Intel ничего не копируют",
+        "doctor --installed проверяет зависимости копии и helper с его версией на macOS ARM64",
+        "Тесты: модульные с внедрёнными darwin, linux, win32 и arm64/x64; отдельным процессом с WFK_DATA_DIR без ws — --version, настоящий install с DEPENDENCY_MISSING и пустым каталогом данных, doctor --installed с отсутствующим ws",
+        "installed-browser.smoke.mjs ведёт синтетический MediaStream через assets и WebSocket установленного экземпляра в черновик без отправки; module.md и OS-MATRIX обновлены"
+      ],
+      "checks": [],
+      "commitMessage": "feat: install speech helper, runtime dependencies and notices",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/speech-integration.md",
+          "required": true,
+          "heading": "2.3. T003: доставка в установленное приложение (`service-installer`, `cli`)"
+        }
+      ],
+      "dependencies": [
+        "T002"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/index.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/commands.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/commands.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test",
+        "product-parts/system-service/clusters/deployment/modules/service-installer",
+        "product-parts/speech-input/clusters/browser-input/modules/speech-input/test/installed-browser.smoke.mjs",
+        "product-parts/speech-input/clusters/browser-input/modules/speech-input/module.md",
+        "docs/architecture/OS-MATRIX.md"
+      ],
+      "fixes": null,
+      "id": "T003",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R1",
+      "status": "TODO",
+      "title": "Загрузка CLI без ws и доставка helper, зависимостей и лицензий",
+      "why": "Установленная служба без ws не запустится, а helper не доставляется"
+    },
+    {
+      "acceptance": [
+        "Project-wide documents describe the round result",
+        "The round digest records result, decisions, contracts and references"
+      ],
+      "checks": [],
+      "commitMessage": "docs: reconcile documentation for R1",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T001",
+        "T002",
+        "T003"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/architecture/OVERVIEW.md",
+        "docs/planning/speech-integration.md",
+        "THIRD_PARTY_NOTICES.md",
+        "docs/architecture/OS-MATRIX.md",
+        "docs/evidence/speech-input-acceptance.md",
+        "docs/planning/speech-input-integration.md",
+        "docs/planning/speech-input-macos.md",
+        "docs/planning/speech-input/handoff-1.md",
+        "docs/planning/speech-input/handoff-2.md",
+        "docs/planning/speech-input/handoff-3.md",
+        "docs/planning/speech-input/handoff-4.md",
+        "product-parts/backend-core/clusters/http-api/modules/http-server/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-chat/speech.md",
+        "tools/speech-checks/README.md",
+        "docs/evidence/speech-integration-acceptance.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/commands.md",
+        "product-parts/speech-input/clusters/browser-input/modules/speech-input/module.md"
+      ],
+      "fixes": null,
+      "id": "DOCS-R1",
+      "iteration": 1,
+      "kind": "docs",
+      "roundId": "R1",
+      "status": "TODO",
+      "title": "Reconcile project documentation and write the round digest",
+      "why": "Keep the project context current for the next agent and close the round."
+    },
+    {
+      "acceptance": [
+        "CI на ci/speech-integration успешен для точного SHA на macOS ARM64, Linux x64, Windows x64 и Windows ARM64"
+      ],
+      "checks": [],
+      "commitMessage": "test: verify the speech integration on four CI platforms",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/speech-integration.md",
+          "required": true,
+          "heading": "2.4. Поставка"
+        }
+      ],
+      "dependencies": [
+        "T003",
+        "DOCS-R1"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "docs/evidence/speech-integration-acceptance.md"
+      ],
+      "fixes": null,
+      "id": "T004",
+      "iteration": 1,
+      "kind": "delivery",
+      "roundId": "R1",
+      "status": "TODO",
+      "title": "CI объединённого кода",
+      "why": "Изменения должны работать на macOS, Linux и Windows до выпуска"
+    },
+    {
+      "acceptance": [
+        "Версия 0.17.0 собрана с release helper и установлена через node bin/wfk.mjs install из исходников выпуска; installed-service успешна; CHANGELOG и README называют 0.17.0",
+        "Отдельный экземпляр (WFK_DATA_DIR, свободный порт, без WFK_SPEECH_HELPER и исходного target) после install проходит installed-browser.smoke.mjs с настоящим Q8: русский текст в черновике, отправок нет",
+        "Evidence называет версию, пути копии и helper, sha256 helper и helper.json и результат сценария; обычная установленная служба сообщает доступность диктовки"
+      ],
+      "checks": [
+        "installed-service"
+      ],
+      "commitMessage": "chore: release Workflow Kit 0.17.0",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/speech-integration.md",
+          "required": true,
+          "heading": "2.4. Поставка"
+        }
+      ],
+      "dependencies": [
+        "T004",
+        "DOCS-R1"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "package.json",
+        "package-lock.json",
+        "CHANGELOG.md",
+        "README.md",
+        "docs/evidence/speech-integration-acceptance.md"
+      ],
+      "fixes": null,
+      "id": "T005",
+      "iteration": 1,
+      "kind": "delivery",
+      "roundId": "R1",
+      "status": "TODO",
+      "title": "Поставка 0.17.0",
+      "why": "Пользователь получает голосовой ввод"
+    },
+    {
+      "acceptance": [
+        "CI на ci/speech-integration успешен для точного SHA выпуска на macOS ARM64, Linux x64, Windows x64 и Windows ARM64"
+      ],
+      "checks": [],
+      "commitMessage": "test: verify the 0.17.0 release on four CI platforms",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/speech-integration.md",
+          "required": true,
+          "heading": "2.4. Поставка"
+        }
+      ],
+      "dependencies": [
+        "T005",
+        "DOCS-R1"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "docs/evidence/speech-integration-acceptance.md"
+      ],
+      "fixes": null,
+      "id": "T006",
+      "iteration": 1,
+      "kind": "delivery",
+      "roundId": "R1",
+      "status": "TODO",
+      "title": "CI выпуска",
+      "why": "Выпуск должен работать на macOS, Linux и Windows"
+    }
+  ]
 }
 ```
 <!-- harness-workflow:end -->
 
 ## State
 
-No active scope. Last closed scope: M40-user-decisions.
+- Scope: speech-integration (ACTIVE)
+- Delivery: IN_PROGRESS
+- Execution: sequential
+- Automation: 4 automatic, 0 manual criteria; CI origin ci/speech-integration (4 checks); publication main → origin/main
+- Current task: none
+- Progress: 0/7
+- Revision: 1264
+
+## Objective
+
+Голосовой ввод из feature/speech-input перенесён в main с сохранением плана, истории и Kit main, объединённый код проверен, установщик доставляет helper, зависимости и лицензии, выпущена 0.17.0.
+
+## Acceptance
+
+- Код Speech из feature/speech-input (5e990e3) перенесён в main коммитом задачи; план, история, Kit runtime/bundle, настройки, версия и изменения M40 main сохранены; speech-проверки добавлены в профиль командой Kit
+- Объединённый код проверен: typecheck, обе Node-группы, platform guard, проверки Kit, cargo test и debug-сборка helper, браузерные сценарии и настоящий Voxtral; результаты и ограничения записаны в docs/evidence/speech-integration-acceptance.md
+- Установка из исходников выпуска доставляет зависимости времени выполнения, lock, helper (macOS ARM64) с политикой версии и лицензии; CLI работает без ws; установленный экземпляр 0.17.0 распознаёт русскую речь сквозным сценарием браузер → установленные assets → WebSocket → установленный helper → черновик
+- CI четырёх платформ успешен для объединённого кода и для выпуска
+
+## Rounds
+
+### R1 — Implementation (implementation, OPEN)
+
+- [TODO] T001 — Перенос ветки Speech в main (work)
+  - Commit: feat: integrate speech input from feature/speech-input 5e990e3
+  - Files: .github/workflows/ci.yml, README.md, THIRD_PARTY_NOTICES.md, docs/architecture/OS-MATRIX.md, docs/architecture/OVERVIEW.md, docs/evidence/speech-input-acceptance.md, docs/planning/speech-input-integration.md, docs/planning/speech-input-macos.md, docs/planning/speech-input/handoff-1.md, docs/planning/speech-input/handoff-2.md, docs/planning/speech-input/handoff-3.md, docs/planning/speech-input/handoff-4.md, package-lock.json, package.json, product-parts/backend-core/clusters/http-api/modules/http-server/module.md, product-parts/backend-core/clusters/http-api/modules/http-server/src/server.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/settings.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/speech-settings.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/styles.css, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/autopiloting-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/speech-settings.browser.mjs, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/speech.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/composer.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/question-card.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/session-chat.css, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/session-chat.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/run-browser.mjs, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/speech-composer.browser.mjs, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/speech-question.browser.mjs, product-parts/speech-input, tools/speech-checks/README.md, tools/speech-checks/test.mjs, tsconfig.json
+- [TODO] T002 — Проверка объединённого кода (work)
+  - Commit: test: verify the integrated speech input
+  - Files: docs/evidence/speech-integration-acceptance.md
+  - Depends on: T001
+- [TODO] T003 — Загрузка CLI без ws и доставка helper, зависимостей и лицензий (work)
+  - Commit: feat: install speech helper, runtime dependencies and notices
+  - Files: product-parts/backend-core/clusters/runtime/modules/cli/src/index.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/commands.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/commands.md, product-parts/backend-core/clusters/runtime/modules/cli/test, product-parts/system-service/clusters/deployment/modules/service-installer, product-parts/speech-input/clusters/browser-input/modules/speech-input/test/installed-browser.smoke.mjs, product-parts/speech-input/clusters/browser-input/modules/speech-input/module.md, docs/architecture/OS-MATRIX.md
+  - Depends on: T002
+- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+  - Commit: docs: reconcile documentation for R1
+  - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/speech-integration.md, THIRD_PARTY_NOTICES.md, docs/architecture/OS-MATRIX.md, docs/evidence/speech-input-acceptance.md, docs/planning/speech-input-integration.md, docs/planning/speech-input-macos.md, docs/planning/speech-input/handoff-1.md, docs/planning/speech-input/handoff-2.md, docs/planning/speech-input/handoff-3.md, docs/planning/speech-input/handoff-4.md, product-parts/backend-core/clusters/http-api/modules/http-server/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/speech.md, tools/speech-checks/README.md, docs/evidence/speech-integration-acceptance.md, product-parts/backend-core/clusters/runtime/modules/cli/commands.md, product-parts/speech-input/clusters/browser-input/modules/speech-input/module.md
+  - Depends on: T001, T002, T003
+- [TODO] T004 — CI объединённого кода (delivery)
+  - Commit: test: verify the speech integration on four CI platforms
+  - Files: docs/evidence/speech-integration-acceptance.md
+  - Depends on: T003, DOCS-R1
+- [TODO] T005 — Поставка 0.17.0 (delivery)
+  - Commit: chore: release Workflow Kit 0.17.0
+  - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/evidence/speech-integration-acceptance.md
+  - Depends on: T004, DOCS-R1
+- [TODO] T006 — CI выпуска (delivery)
+  - Commit: test: verify the 0.17.0 release on four CI platforms
+  - Files: docs/evidence/speech-integration-acceptance.md
+  - Depends on: T005, DOCS-R1
 
 State changes only through `scripts/workflow` commands. History lives in Git.

@@ -12,7 +12,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1279,
+  "revision": 1280,
   "rounds": [
     {
       "digest": {
@@ -242,7 +242,12 @@
         "upstream": "origin/main"
       },
       "revision": 1,
-      "revoked": null,
+      "revoked": {
+        "at": "2026-11-17T17:12:06.591Z",
+        "note": "The user stopped the run in the panel",
+        "reason": "user-stop",
+        "resumable": false
+      },
       "runId": "run-E4-rDe1mHCmk",
       "source": "user-command"
     }
@@ -605,7 +610,7 @@
 - Automation: 4 automatic, 0 manual criteria; CI origin ci/speech-integration (4 checks); publication main → origin/main
 - Current task: none
 - Progress: 7/7
-- Revision: 1279
+- Revision: 1280
 
 ## Objective
 

@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1297,
+  "revision": 1299,
   "rounds": [
     {
       "digest": {
@@ -49,7 +49,7 @@
       },
       "id": "R1",
       "kind": "implementation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Implementation"
     }
   ],
@@ -203,9 +203,19 @@
           "runId": "run-eX36hZQS5Jh3"
         },
         "text": "Delivery T005 started by the advance instruction of run run-eX36hZQS5Jh3"
+      },
+      {
+        "at": "2026-11-17T18:12:09.769Z",
+        "kind": "confirm-delivery",
+        "source": {
+          "authorization": "7141c48e462750bb3fd696490d5bf11f0ba46712f0a400e70fed9cd356ce7e64",
+          "kind": "grant",
+          "runId": "run-eX36hZQS5Jh3"
+        },
+        "text": "Delivery T006 started by the advance instruction of run run-eX36hZQS5Jh3"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "25cedd72-7908-49d9-9f21-79cfca178443",
@@ -543,7 +553,7 @@
       ],
       "checks": [],
       "commitMessage": "test: verify M41 on four CI platforms",
-      "confirmation": null,
+      "confirmation": "Autopilot run run-eX36hZQS5Jh3 (authorization 1, user-command, 2026-11-17T17:27:11.983Z): Full autopilot run run-eX36hZQS5Jh3: the user's direct instruction «Окей согласен подготовь новый (спецификацию todo Plan).» (2026-11-17T17:15:06.625Z) to prepare and carry out the plan | effects: push ci/M41-autopilot-acceptance в origin и ожидание CI четырёх платформ",
       "context": [
         {
           "path": "docs/planning/M41-autopilot-acceptance.md",
@@ -564,7 +574,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "CI четырёх платформ",
       "why": "Изменения должны работать на macOS, Linux и Windows"
     }
@@ -576,12 +586,12 @@
 ## State
 
 - Scope: M41-autopilot-acceptance (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Automation: 4 automatic, 0 manual criteria; CI origin ci/M41-autopilot-acceptance (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 6/7
-- Revision: 1297
+- Progress: 7/7
+- Revision: 1299
 
 ## Objective
 
@@ -596,7 +606,7 @@
 
 ## Rounds
 
-### R1 — Implementation (implementation, OPEN)
+### R1 — Implementation (implementation, CLOSED)
 
 - [DONE] T001 — Kit 2.4.5: проверки поставки и выполнимые критерии (work)
   - Commit: feat: record delivery checks and refuse unrecordable automation checks in Kit 2.4.5
@@ -621,7 +631,7 @@
   - Commit: chore: release Workflow Kit 0.18.0
   - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/evidence/M41-acceptance.md
   - Depends on: T004, DOCS-R1
-- [TODO] T006 — CI четырёх платформ (delivery)
+- [DONE] T006 — CI четырёх платформ (delivery)
   - Commit: test: verify M41 on four CI platforms
   - Files: docs/evidence/M41-acceptance.md
   - Depends on: T005, DOCS-R1

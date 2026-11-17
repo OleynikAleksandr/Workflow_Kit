@@ -39,7 +39,14 @@ export const COMPLETE_TEXTS = {
   scopeChanged: 'Открыт другой scope: старый запуск не публикует его незаконченный результат.',
   noUpstream: 'У запуска нет адресата публикации (upstream): результат остаётся локальным.',
   retry: 'Устраните причину и нажмите «Продолжить».',
+  /** M41: the automatic acceptance gives way to the user's instead of stopping the run. */
+  awaitUser: (reason: string) => `Автоприёмка не смогла доказать результат: ${reason}. Проверьте результат и нажмите «Принять план» — запуск сам закроет план и опубликует.`,
+  /** M41: the early warning while the tasks still run. */
+  notice: (checks: string) => `Автоприёмка не сможет доказать: ${checks} — в конце понадобится ваша приёмка.`,
 } as const;
+
+/** M41: Kit refusals of the acceptance that the user's acceptance replaces. */
+const USER_ACCEPTS = new Set(['AUTOPILOT_EVIDENCE_REQUIRED', 'AUTOPILOT_MANUAL_REQUIRED']);
 
 /** Next actions for the refusals of the publisher (git-publish `PublishError` codes). */
 const PUBLISH_NEXT: Record<string, string> = {
@@ -126,18 +133,43 @@ export function createRunCompletion(deps: RunCompletionDeps) {
     return update(folder, current, (r) => ({ ...r, phase: 'waiting', pausedFrom: r.phase, wait }));
   }
 
+  /**
+   * M41: the run waits in `accepting` for «Принять план»; Kit is not asked again at this HEAD.
+   * After the user's acceptance the run closes and publishes as the grant allows.
+   */
+  async function awaitUser(folder: string, run: RunRecord, head: string, reason: string): Promise<RunRecord | null> {
+    const nextAction = COMPLETE_TEXTS.awaitUser(reason);
+    if (run.manualAcceptance?.head === head && run.nextAction === nextAction) return null;
+    log(`autopiloting: ${run.runId} awaits the user's acceptance: ${reason}`);
+    return update(folder, run, (r) => ({ ...r, manualAcceptance: { head, reason, since: now().toISOString() }, nextAction }));
+  }
+
+  /** M41: the checks no unfinished task can record, once, while the tasks still run. */
+  async function warn(folder: string, run: RunRecord, status: RunKitStatus): Promise<RunRecord | null> {
+    if (run.notice) return null;
+    const items = (status.acceptance ?? [])
+      .filter((entry) => entry.kind === 'automatic')
+      .flatMap((entry) => (entry.checksUnreachable ?? []).map((id) => ({ id, label: `${id} (критерий ${entry.criterion + 1})` })));
+    if (items.length === 0) return null;
+    const text = COMPLETE_TEXTS.notice(items.map((item) => item.label).join(', '));
+    log(`autopiloting: ${run.runId} notice: ${items.map((item) => item.label).join(', ')}`);
+    return update(folder, run, (r) => ({ ...r, notice: { text, checks: [...new Set(items.map((item) => item.id))], at: now().toISOString() } }));
+  }
+
   const mayDecide = runMayDecide(deps.journal);
   const greenFor = (run: RunRecord, sha: string) => run.receipts.some((r) => r.type === 'ci' && r.commit === sha);
 
   async function accept(folder: string, run: RunRecord, status: RunKitStatus): Promise<RunRecord | null> {
     if (status.delivery === 'ACCEPTED') {
-      return update(folder, run, (r) => ({ ...r, phase: 'closing', receipts: has(r, `accept:${r.scopeId}`) ? r.receipts : [...r.receipts, receipt(`accept:${r.scopeId}`, 'accept', status.head, 'accepted (fact of the plan)')] }));
+      return update(folder, run, (r) => ({ ...r, phase: 'closing', manualAcceptance: null, nextAction: r.manualAcceptance ? null : r.nextAction, receipts: has(r, `accept:${r.scopeId}`) ? r.receipts : [...r.receipts, receipt(`accept:${r.scopeId}`, 'accept', status.head, 'accepted (fact of the plan)')] }));
     }
     if (status.scope !== 'ACTIVE' || status.delivery !== 'READY_FOR_ACCEPTANCE' || !live(status, run)) return block(folder, run, 'not-ready-for-acceptance: результат не готов к приёмке или разрешение запуска не действует');
     if (status.transactionPending || status.orchestration?.integration) return null;
+    // M41: the user accepts this HEAD; a new commit (the evidence) gives Kit another try.
+    if (run.manualAcceptance && run.manualAcceptance.head === status.head) return null;
     const automatic = (status.acceptance ?? []).filter((entry) => entry.kind === 'automatic');
     const missing = automatic.flatMap((entry) => entry.evidenceMissing ?? []);
-    if (missing.length > 0) return block(folder, run, COMPLETE_TEXTS.evidence(missing.join(', ')), 'Закоммитьте файлы доказательств в задаче плана и нажмите «Продолжить».');
+    if (missing.length > 0) return awaitUser(folder, run, status.head!, COMPLETE_TEXTS.evidence(missing.join(', ')));
     const ci = run.completion?.ci ?? null;
     const proof = [...run.receipts].reverse().find((r) => r.type === 'ci' && r.commit);
     if (ci && !proof) return stage(folder, run, status.head!);
@@ -158,12 +190,13 @@ export function createRunCompletion(deps: RunCompletionDeps) {
     if (step.ok) {
       const sha = (step.result?.['commit'] as { sha?: string } | null)?.sha ?? null;
       log(`autopiloting: ${run.runId} accepted ${run.scopeId}`);
-      return update(folder, run, (r) => ({ ...r, phase: 'closing', tickets: [...r.tickets, ...tickets], receipts: [...r.receipts, receipt(`accept:${r.scopeId}`, 'accept', sha, `automatic acceptance by run ${r.runId}`)] }));
+      return update(folder, run, (r) => ({ ...r, phase: 'closing', manualAcceptance: null, tickets: [...r.tickets, ...tickets], receipts: [...r.receipts, receipt(`accept:${r.scopeId}`, 'accept', sha, `automatic acceptance by run ${r.runId}`)] }));
     }
     const current = tickets.length ? await update(folder, run, (r) => ({ ...r, tickets: [...r.tickets, ...tickets] })) : run;
     // CI of another SHA than the docs-only past of HEAD: the service checks HEAD itself.
     if (ci && step.code === 'AUTOPILOT_EVIDENCE_REQUIRED' && step.details && 'absent' in step.details && proof?.commit !== status.head) return stage(folder, current, status.head!);
-    return block(folder, current, `${step.code}: ${step.message}`, step.code === 'AUTOPILOT_MANUAL_REQUIRED' ? COMPLETE_TEXTS.manual : COMPLETE_TEXTS.retry);
+    if (step.code && USER_ACCEPTS.has(step.code)) return awaitUser(folder, current, status.head!, `${step.code}: ${step.message}`);
+    return block(folder, current, `${step.code}: ${step.message}`);
   }
 
   async function close(folder: string, run: RunRecord, status: RunKitStatus): Promise<RunRecord | null> {
@@ -223,6 +256,8 @@ export function createRunCompletion(deps: RunCompletionDeps) {
     if (!status || !(await mayDecide(folder, run.runId))) return null;
     if (run.phase === 'executing' || run.phase === 'delivering') {
       if (status.scope !== 'ACTIVE' || !live(status, run)) return null;
+      const warned = await warn(folder, run, status);
+      if (warned) return warned;
       const snapshot = { ci: (status.authorization!.ci ?? null) as NonNullable<RunRecord['completion']>['ci'], publication: run.authority!.publication, finalSha: null };
       if (status.delivery === 'READY_FOR_ACCEPTANCE') {
         if (!status.authorization!.accept) return run.nextAction === COMPLETE_TEXTS.manual ? null : update(folder, run, (r) => ({ ...r, nextAction: COMPLETE_TEXTS.manual }));

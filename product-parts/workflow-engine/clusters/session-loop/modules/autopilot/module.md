@@ -177,6 +177,11 @@ summary) → PreparationResult | null` с опцией `userSource` вместо
 `RUN_QUOTE_MAX`, `preparationText` для `full` и `kit-update-required`, опция решений
 `sourceTaken` — [autopiloting.md](autopiloting.md), раздел «Запуски».
 
+M41 T002 — приёмка пользователя вместо остановки: `RunRecord.manualAcceptance`/`notice`,
+`COMPLETE_TEXTS.awaitUser`/`notice`, `RunBrief.manualAcceptance`/`notice`, поля
+`checksPending`/`checksUnreachable` в `RunKitStatus.acceptance` (Kit 2.4.5) —
+[autopiloting-completion.md](autopiloting-completion.md).
+
 ## Инварианты
 
 - Все сообщения автопилота в канал (`choose`, `start`, `enable`) передают `projectId`:

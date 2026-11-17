@@ -45,7 +45,8 @@
   `revocation: { at, reason: settings-off | user-stop, resumable } | null`), `phase`
   (`preparing … publishing`, `completed`; `waiting`, `paused`, `blocked`, `stopped`),
   `pausedFrom`, `reason`, `nextAction`, `pendingAction`, `receipts` (`actionId`, `type`,
-  `at`, `commit`, `detail`), `tickets` (погашенные тикеты хоста), `createdAt`, `updatedAt`.
+  `at`, `commit`, `detail`), `tickets` (погашенные тикеты хоста), `createdAt`, `updatedAt`;
+  M41: `manualAcceptance`, `notice` — [autopiloting-completion.md](autopiloting-completion.md).
 - `create`, `read`, `list` (по времени создания; битые файлы пропускаются), `active`
   (последний не `completed`/`stopped`, `FINAL_PHASES`), `update(root, runId, change)`
   (`change` возвращает новую запись или `null` — без записи), `advance` (M40 T006: запись
@@ -235,6 +236,7 @@ unreachable?, send, mutex?, log? })` (`src/run-control.ts`): `pause|resume|stop(
 - `runId`, `revision` (для `expectedRevision` кнопок), `owner`, `mode`, `phase`, `pausedFrom`;
 - `reason`, `nextAction`, `source`, `scopeId`, `review`;
 - `wait { reason, detail, sha, since }`;
+- M41: `manualAcceptance { reason, since }` (только в `accepting`) и `notice`;
 - `publication { upstream, finalSha, published, commits, already, detail }`. `commits` и
   `already` берутся из `RunCompletion.published`, его записывает завершение при публикации.
 Цитат пользователя в сводке нет.

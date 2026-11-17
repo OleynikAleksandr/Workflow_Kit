@@ -126,6 +126,13 @@ export interface RunRecord {
   completion?: RunCompletion | null;
   /** M40: proposals without the `automation` block the run met (one is returned, the second stops it). */
   automationMissing?: number;
+  /**
+   * M41: the automatic acceptance could not prove the result at `head`; the run waits in
+   * `accepting` for the user's acceptance and asks Kit again only after a new commit.
+   */
+  manualAcceptance?: { head: string; reason: string; since: string } | null;
+  /** M41: the early warning that the automatic acceptance will lack some checks (written once). */
+  notice?: { text: string; checks: string[]; at: string } | null;
   createdAt: string;
   updatedAt: string;
 }

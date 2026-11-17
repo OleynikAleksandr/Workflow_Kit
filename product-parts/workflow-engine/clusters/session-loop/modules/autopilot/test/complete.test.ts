@@ -111,7 +111,7 @@ test('a restart after accept or close finds the facts and repeats no Kit step', 
   assert.deepEqual([ended?.phase, ended?.reason, ended?.pausedFrom, ended?.nextAction, elsewhere.pushes], ['finished', 'closed-manually', 'closing', null, []]);
 });
 
-test('typed stops: manual criterion, revoked grant, pause, another scope, no upstream, missing evidence, a refusal of Kit', async () => {
+test('typed stops: manual criterion, revoked grant, pause, another scope, no upstream; missing evidence and a refusal of Kit wait for the user (M41)', async () => {
   const manual = await setup();
   (manual.kit.status['authorization'] as { accept: boolean }).accept = false;
   assert.equal((await manual.completer.advance('p'))?.nextAction, COMPLETE_TEXTS.manual);
@@ -128,10 +128,18 @@ test('typed stops: manual criterion, revoked grant, pause, another scope, no ups
   assert.equal((await local.completer.advance('p'))?.reason, 'no-upstream');
   const missing = await setup({ phase: 'accepting', completion: { ci: null, publication: PUB, finalSha: null } });
   missing.kit.status = { ...missing.kit.status, acceptance: [{ criterion: 0, kind: 'automatic', checks: [], evidence: ['r.md'], evidenceMissing: ['r.md'] }] };
-  assert.equal((await missing.completer.advance('p'))?.reason, COMPLETE_TEXTS.evidence('r.md'));
+  const waiting = await missing.completer.advance('p');
+  assert.deepEqual([waiting?.phase, waiting?.manualAcceptance?.reason, waiting?.nextAction], ['accepting', COMPLETE_TEXTS.evidence('r.md'), COMPLETE_TEXTS.awaitUser(COMPLETE_TEXTS.evidence('r.md'))]);
   const refused = await setup({ phase: 'accepting', completion: { ci: null, publication: PUB, finalSha: null } });
   refused.kit.hostResult = { ok: false, code: 'AUTOPILOT_EVIDENCE_REQUIRED', message: 'Criterion 1: check x has no passed record', details: { check: 'x' } };
-  assert.match((await refused.completer.advance('p'))?.reason ?? '', /^AUTOPILOT_EVIDENCE_REQUIRED/u);
+  const refusedRun = await refused.completer.advance('p');
+  assert.equal(refusedRun?.phase, 'accepting');
+  assert.match(refusedRun?.manualAcceptance?.reason ?? '', /^AUTOPILOT_EVIDENCE_REQUIRED/u);
+  // Another refusal of Kit still stops the run with «Продолжить».
+  const stale = await setup({ phase: 'accepting', completion: { ci: null, publication: PUB, finalSha: null } });
+  stale.kit.hostResult = { ok: false, code: 'REVISION_MISMATCH', message: 'The plan changed' };
+  const staleRun = await stale.completer.advance('p');
+  assert.deepEqual([staleRun?.phase, staleRun?.reason, staleRun?.nextAction], ['blocked', 'REVISION_MISMATCH: The plan changed', COMPLETE_TEXTS.retry]);
 });
 
 test('a CI of another SHA: Kit refuses it and the service checks HEAD itself', async () => {

@@ -36,6 +36,9 @@ export const STOP_REASONS = Object.freeze({
   'authorization-missing': 'План запущен, но разрешение запуска автопилота не записано.',
 });
 
+/** Phases after which the warning of the run says nothing new. */
+const FINISHED = new Set(['completed', 'stopped']);
+
 /** Phases in which the run may still act: «Пауза» and «Остановить автопилот». */
 const RUNNING = new Set(['preparing', 'reviewing', 'choosing', 'starting', 'executing', 'delivering', 'verifying', 'accepting', 'closing', 'publishing', 'waiting']);
 
@@ -51,7 +54,11 @@ const RUNNING = new Set(['preparing', 'reviewing', 'choosing', 'starting', 'exec
  * @property {string | null} nextAction
  * @property {Array<{ action: 'pause' | 'resume' | 'stop', label: string, primary: boolean }>} buttons
  * @property {{ text: string, tone: 'working' | 'done' | 'warn' } | null} publication
+ * @property {string | null} notice M41: the early warning that the automatic acceptance will lack checks
  */
+
+/** M41: the automatic acceptance gave way to the user's; the run waits for «Принять план». */
+export const USER_ACCEPTANCE_LABEL = 'Ждёт вашей приёмки';
 
 /** @param {unknown} value @returns {Record<string, any>} */
 function record(value) {
@@ -102,8 +109,10 @@ export function runView(state, projectId, key) {
   const wait = record(run['wait']);
   const question = wait['reason'] === 'question';
   const expired = phase === 'blocked' && run['reason'] === 'question-expired';
-  const phaseLabel = phase === 'waiting' ? (question ? 'Ждёт ответа на вопрос агента' : 'Ждёт CI') : expired ? 'Нужны данные' : (PHASE_LABELS[phase] ?? phase);
-  const detail = stopReason ?? (phase === 'waiting' ? (typeof wait['detail'] === 'string' ? wait['detail'] : null) : phase === 'blocked' || phase === 'paused' ? (typeof run['reason'] === 'string' ? run['reason'] : null) : null);
+  const manual = record(run['manualAcceptance']);
+  const userAccepts = phase === 'accepting' && typeof manual['reason'] === 'string';
+  const phaseLabel = userAccepts ? USER_ACCEPTANCE_LABEL : phase === 'waiting' ? (question ? 'Ждёт ответа на вопрос агента' : 'Ждёт CI') : expired ? 'Нужны данные' : (PHASE_LABELS[phase] ?? phase);
+  const detail = userAccepts ? String(manual['reason']) : stopReason ?? (phase === 'waiting' ? (typeof wait['detail'] === 'string' ? wait['detail'] : null) : phase === 'blocked' || phase === 'paused' ? (typeof run['reason'] === 'string' ? run['reason'] : null) : null);
   /** @type {RunView['buttons']} */
   const buttons = [];
   if (RUNNING.has(phase)) buttons.push({ action: 'pause', label: 'Пауза', primary: false });
@@ -115,11 +124,12 @@ export function runView(state, projectId, key) {
     modeLabel: MODE_LABELS[String(run['mode'])] ?? String(run['mode'] ?? ''),
     phase,
     phaseLabel,
-    tone: phase === 'completed' ? 'done' : phase === 'blocked' || phase === 'paused' || phase === 'stopped' ? 'warn' : phase === 'waiting' ? 'waiting' : 'working',
+    tone: phase === 'completed' ? 'done' : phase === 'blocked' || phase === 'paused' || phase === 'stopped' ? 'warn' : phase === 'waiting' || userAccepts ? 'waiting' : 'working',
     detail,
     nextAction: typeof run['nextAction'] === 'string' && run['nextAction'] ? run['nextAction'] : null,
     buttons,
     publication: publicationOf(run),
+    notice: typeof run['notice'] === 'string' && run['notice'] && !FINISHED.has(phase) ? run['notice'] : null,
   };
 }
 

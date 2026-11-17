@@ -22,6 +22,10 @@ export interface RunBrief {
   wait: { reason: 'ci' | 'question'; detail: string; sha: string | null; since: string } | null;
   /** T008: the target and the final SHA after the close; `published` once the remote has it. */
   publication: { upstream: string | null; finalSha: string | null; published: string | null; commits: number | null; already: boolean; detail: string | null } | null;
+  /** M41: why the automatic acceptance gave way to the user's, while the run waits for it. */
+  manualAcceptance: { reason: string; since: string } | null;
+  /** M41: the early warning about checks the automatic acceptance will lack. */
+  notice: string | null;
   updatedAt: string;
 }
 
@@ -44,6 +48,8 @@ export function brief(run: RunRecord): RunBrief {
     publication: completion || published
       ? { upstream: completion?.publication?.upstream ?? run.authority?.publication?.upstream ?? null, finalSha: completion?.finalSha ?? null, published: published?.commit ?? null, commits: completion?.published?.commits ?? null, already: completion?.published?.already ?? false, detail: published?.detail ?? null }
       : null,
+    manualAcceptance: run.phase === 'accepting' && run.manualAcceptance ? { reason: run.manualAcceptance.reason, since: run.manualAcceptance.since } : null,
+    notice: run.notice?.text ?? null,
     updatedAt: run.updatedAt,
   };
 }

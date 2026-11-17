@@ -19,7 +19,8 @@ export interface RunKitStatus {
   authorization?: { runId: string; revision: number; revoked: unknown; delivery: Array<{ taskId: string }>; accept: boolean; close: boolean; ci?: unknown } | null;
   /** The next task of the plan (T007: a started delivery deferred after a red CI). */
   nextTask?: { id: string; kind: string; status: string } | null;
-  acceptance?: Array<{ criterion: number; kind: 'automatic' | 'manual'; checks?: string[]; evidence?: string[]; evidenceMissing?: string[] }> | null;
+  /** `checksPending`/`checksUnreachable` since Kit 2.4.5 (M41): absent on an older Kit. */
+  acceptance?: Array<{ criterion: number; kind: 'automatic' | 'manual'; checks?: string[]; evidence?: string[]; evidenceMissing?: string[]; checksPending?: string[]; checksUnreachable?: string[] }> | null;
   /** T008: the scope state and the result of the delivery. */
   scope?: 'ACTIVE' | 'BLOCKED' | 'NONE';
   delivery?: 'IN_PROGRESS' | 'READY_FOR_ACCEPTANCE' | 'ACCEPTED' | null;

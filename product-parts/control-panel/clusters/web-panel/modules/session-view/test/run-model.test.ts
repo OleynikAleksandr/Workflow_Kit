@@ -6,7 +6,7 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { MODE_LABELS, PHASE_LABELS, STOP_CONFIRM, STOP_REASONS, runView } from '../src/run-model.js';
+import { MODE_LABELS, PHASE_LABELS, STOP_CONFIRM, STOP_REASONS, USER_ACCEPTANCE_LABEL, runView } from '../src/run-model.js';
 import { planView } from '../src/plan-cards.js';
 
 const KEY = 'claude:s-1';
@@ -81,4 +81,20 @@ test('the sidebar shows the run card and the panel loads its stylesheet', async 
   assert.match(card, /autopiloting\/policy/u);
   const html = await readFile(path.join(dir, '..', '..', 'panel-shell', 'src', 'index.html'), 'utf8');
   assert.match(html, /session-view\/run-card\.css/u);
+});
+
+test('M41: a run that waits for the user\'s acceptance names why; the early notice is a warning only', () => {
+  const reason = 'Нет закоммиченных доказательств приёмки: docs/evidence/r.md';
+  const next = 'Автоприёмка не смогла доказать результат: … Проверьте результат и нажмите «Принять план» — запуск сам закроет план и опубликует.';
+  const waits = runView(state({ phase: 'accepting', manualAcceptance: { reason, since: 'x' }, nextAction: next }), 'p', KEY)!;
+  assert.deepEqual([waits.phaseLabel, waits.tone, waits.detail, waits.nextAction], [USER_ACCEPTANCE_LABEL, 'waiting', reason, next]);
+  assert.equal(USER_ACCEPTANCE_LABEL, 'Ждёт вашей приёмки');
+  assert.deepEqual(waits.buttons.map((b) => b.action), ['pause', 'stop'], 'never «Продолжить»: the plan card accepts');
+  const automatic = runView(state({ phase: 'accepting', manualAcceptance: null }), 'p', KEY)!;
+  assert.deepEqual([automatic.phaseLabel, automatic.tone, automatic.detail], [PHASE_LABELS['accepting'], 'working', null]);
+  const notice = 'Автоприёмка не сможет доказать: installed-service (критерий 3) — в конце понадобится ваша приёмка.';
+  const warned = runView(state({ phase: 'executing', notice }), 'p', KEY)!;
+  assert.deepEqual([warned.phaseLabel, warned.tone, warned.notice], [PHASE_LABELS['executing'], 'working', notice]);
+  assert.equal(runView(state({ phase: 'executing' }), 'p', KEY)!.notice, null);
+  assert.equal(runView(state({ phase: 'completed', notice }), 'p', KEY)!.notice, null, 'no warning after the publication');
 });

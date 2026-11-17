@@ -37,6 +37,8 @@ export function runCard(shell, run, projectId, ctx) {
     h('div', { class: 'sv-run-stage' }, [mark, h('b', {}, [run.phaseLabel])]),
     run.detail ? h('p', { class: run.tone === 'warn' ? 'sv-warn' : 'sv-muted' }, [run.detail]) : null,
     run.nextAction ? h('p', { class: 'sv-muted' }, [run.nextAction]) : null,
+    // M41: a warning only; the run goes on.
+    run.notice ? h('p', { class: 'sv-warn' }, [run.notice]) : null,
     // Green only for a verified publication; a publication under way is plain text.
     run.publication ? h('p', { class: { warn: 'sv-warn', done: 'sv-run-pub', working: 'sv-muted' }[run.publication.tone] }, [run.publication.text]) : null,
     run.buttons.length

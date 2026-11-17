@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1261,
+  "revision": 1262,
   "rounds": [
     {
       "digest": {
@@ -55,7 +55,10 @@
       "Инструкции и recovery режима host не поручают агенту передавать решения пользователя; проекты на Kit 2.3.x и без приложения работают как раньше",
       "Сквозные сценарии с настоящим bundle и службой и CI четырёх платформ пройдены; доказательства в docs/evidence/M40-acceptance.md"
     ],
-    "acceptanceNote": null,
+    "acceptanceNote": {
+      "at": "2026-11-17T12:52:25.540Z",
+      "text": "Accepted automatically by autopilot run run-ccWhaP7vmQJZ under the user's advance instruction (authorization 1, user-command, 2026-11-17T07:16:13.439Z): Full autopilot run run-ccWhaP7vmQJZ: the user's direct instruction «Сделай так, как предложил - разбей на два скопе» (2026-11-17T06:52:42.726Z) to prepare and carry out the plan | evidence at fe8c4b20ad299c1c14a289035ed8a87e70ed657c"
+    },
     "approval": {
       "at": "2026-11-17T07:16:11.953Z",
       "text": "Пользователь 17.11.2026: «Проверь внимательно все места, где мы поручаем агенту лишние ненужные задачи… И это все надо исправить.»; «Сделай так, как предложил - разбей на два скопе. И я включил автопилот полный.» | Execution mode chosen by the user: sequential: Автоматический выбор по поручению run-ccWhaP7vmQJZ: sequential (recommended by the plan; ревью: agreed)"
@@ -216,7 +219,7 @@
         "text": "Решения по разрешению запуска автопилота имеют источник grant и не потребляют сообщение пользователя; стоп и пауза исполняются при получении сообщения"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "ACCEPTED",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "25cedd72-7908-49d9-9f21-79cfca178443",
@@ -273,6 +276,192 @@
       "revoked": null,
       "runId": "run-ccWhaP7vmQJZ",
       "source": "user-command"
+    },
+    "acceptanceEvidence": {
+      "ci": {
+        "checks": [
+          "macOS ARM64",
+          "Linux x64",
+          "Windows x64",
+          "Windows ARM64"
+        ],
+        "sha": "02d84432fe9b5df7d179b5eaa7011fb07dd63c54"
+      },
+      "criteria": [
+        {
+          "checks": [
+            {
+              "commit": "02d84432fe9b5df7d179b5eaa7011fb07dd63c54",
+              "id": "typecheck"
+            },
+            {
+              "commit": "02d84432fe9b5df7d179b5eaa7011fb07dd63c54",
+              "id": "test"
+            },
+            {
+              "commit": "2ea7da646c51d69685d287353d748e6675472a63",
+              "id": "platform-guard"
+            },
+            {
+              "commit": "fe8c4b20ad299c1c14a289035ed8a87e70ed657c",
+              "id": "kit:doc-size"
+            },
+            {
+              "commit": "fe8c4b20ad299c1c14a289035ed8a87e70ed657c",
+              "id": "kit:md-links"
+            }
+          ],
+          "criterion": 0,
+          "evidence": [
+            "docs/evidence/M40-acceptance.md"
+          ]
+        },
+        {
+          "checks": [
+            {
+              "commit": "02d84432fe9b5df7d179b5eaa7011fb07dd63c54",
+              "id": "typecheck"
+            },
+            {
+              "commit": "02d84432fe9b5df7d179b5eaa7011fb07dd63c54",
+              "id": "test"
+            },
+            {
+              "commit": "2ea7da646c51d69685d287353d748e6675472a63",
+              "id": "platform-guard"
+            },
+            {
+              "commit": "fe8c4b20ad299c1c14a289035ed8a87e70ed657c",
+              "id": "kit:doc-size"
+            },
+            {
+              "commit": "fe8c4b20ad299c1c14a289035ed8a87e70ed657c",
+              "id": "kit:md-links"
+            }
+          ],
+          "criterion": 1,
+          "evidence": [
+            "docs/evidence/M40-acceptance.md"
+          ]
+        },
+        {
+          "checks": [
+            {
+              "commit": "02d84432fe9b5df7d179b5eaa7011fb07dd63c54",
+              "id": "typecheck"
+            },
+            {
+              "commit": "02d84432fe9b5df7d179b5eaa7011fb07dd63c54",
+              "id": "test"
+            },
+            {
+              "commit": "2ea7da646c51d69685d287353d748e6675472a63",
+              "id": "platform-guard"
+            },
+            {
+              "commit": "fe8c4b20ad299c1c14a289035ed8a87e70ed657c",
+              "id": "kit:doc-size"
+            },
+            {
+              "commit": "fe8c4b20ad299c1c14a289035ed8a87e70ed657c",
+              "id": "kit:md-links"
+            }
+          ],
+          "criterion": 2,
+          "evidence": [
+            "docs/evidence/M40-acceptance.md"
+          ]
+        },
+        {
+          "checks": [
+            {
+              "commit": "02d84432fe9b5df7d179b5eaa7011fb07dd63c54",
+              "id": "typecheck"
+            },
+            {
+              "commit": "02d84432fe9b5df7d179b5eaa7011fb07dd63c54",
+              "id": "test"
+            },
+            {
+              "commit": "2ea7da646c51d69685d287353d748e6675472a63",
+              "id": "platform-guard"
+            },
+            {
+              "commit": "fe8c4b20ad299c1c14a289035ed8a87e70ed657c",
+              "id": "kit:doc-size"
+            },
+            {
+              "commit": "fe8c4b20ad299c1c14a289035ed8a87e70ed657c",
+              "id": "kit:md-links"
+            }
+          ],
+          "criterion": 3,
+          "evidence": [
+            "docs/evidence/M40-acceptance.md"
+          ]
+        },
+        {
+          "checks": [
+            {
+              "commit": "02d84432fe9b5df7d179b5eaa7011fb07dd63c54",
+              "id": "typecheck"
+            },
+            {
+              "commit": "02d84432fe9b5df7d179b5eaa7011fb07dd63c54",
+              "id": "test"
+            },
+            {
+              "commit": "2ea7da646c51d69685d287353d748e6675472a63",
+              "id": "platform-guard"
+            },
+            {
+              "commit": "fe8c4b20ad299c1c14a289035ed8a87e70ed657c",
+              "id": "kit:doc-size"
+            },
+            {
+              "commit": "fe8c4b20ad299c1c14a289035ed8a87e70ed657c",
+              "id": "kit:md-links"
+            }
+          ],
+          "criterion": 4,
+          "evidence": [
+            "docs/evidence/M40-acceptance.md"
+          ]
+        },
+        {
+          "checks": [
+            {
+              "commit": "02d84432fe9b5df7d179b5eaa7011fb07dd63c54",
+              "id": "typecheck"
+            },
+            {
+              "commit": "02d84432fe9b5df7d179b5eaa7011fb07dd63c54",
+              "id": "test"
+            },
+            {
+              "commit": "2ea7da646c51d69685d287353d748e6675472a63",
+              "id": "platform-guard"
+            },
+            {
+              "commit": "fe8c4b20ad299c1c14a289035ed8a87e70ed657c",
+              "id": "kit:doc-size"
+            },
+            {
+              "commit": "fe8c4b20ad299c1c14a289035ed8a87e70ed657c",
+              "id": "kit:md-links"
+            }
+          ],
+          "criterion": 5,
+          "evidence": [
+            "docs/evidence/M40-acceptance.md"
+          ]
+        }
+      ],
+      "head": "fe8c4b20ad299c1c14a289035ed8a87e70ed657c",
+      "runId": "run-ccWhaP7vmQJZ",
+      "at": "2026-11-17T12:52:25.540Z",
+      "authorizationRevision": 1,
+      "source": "autopilot"
     }
   },
   "tasks": [
@@ -1148,12 +1337,12 @@
 ## State
 
 - Scope: M40-user-decisions (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: ACCEPTED
 - Execution: sequential
 - Automation: 6 automatic, 0 manual criteria; CI origin ci/M40-user-decisions (4 checks); publication main → origin/main
 - Current task: none
 - Progress: 13/13
-- Revision: 1261
+- Revision: 1262
 
 ## Objective
 

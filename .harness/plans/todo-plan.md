@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1216,
+  "revision": 1217,
   "rounds": [
     {
       "digest": {
@@ -85,8 +85,15 @@
       },
       "id": "R3",
       "kind": "fixes",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Тест корня проекта на Windows-хосте"
+    },
+    {
+      "digest": null,
+      "id": "R4",
+      "kind": "fixes",
+      "status": "OPEN",
+      "title": "Тесты, скрытые прошлыми падениями CI"
     }
   ],
   "schema": "harness-workflow-plan/1",
@@ -1362,6 +1369,79 @@
     },
     {
       "acceptance": [
+        "Честный родитель в тесте сравнивает корень через realpathSync.native с обеих сторон и без учёта регистра на Windows",
+        "Тест проходит на macOS, Linux и Windows; поведение и бандл Kit не меняются"
+      ],
+      "checks": [],
+      "commitMessage": "test: compare the host root by the native realpath in the Kit IPC test",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-host-ipc.test.mjs"
+      ],
+      "fixes": "T002",
+      "id": "F004",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R4",
+      "status": "TODO",
+      "title": "Тест host IPC ядра сравнивает корень так же, как служба",
+      "why": "CI cba932b (run 44003136336): test:kit впервые дошёл до Windows; workflow-kit-host-ipc сравнивал payload.root с realpathSync(root), а на Windows корень Kit и временная папка различаются именем 8.3 — честный родитель отвечал binding"
+    },
+    {
+      "acceptance": [
+        "Удаление временной папки теста ревью повторяется при ENOTEMPTY и EBUSY (maxRetries), как в других тестах проекта",
+        "Тест проходит на всех ОС; поведение приложения не меняется"
+      ],
+      "checks": [],
+      "commitMessage": "test: retry the review test cleanup while late writes settle",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test/review.test.ts"
+      ],
+      "fixes": null,
+      "id": "F005",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R4",
+      "status": "TODO",
+      "title": "Очистка временной папки в тесте ревью переживает позднюю запись",
+      "why": "CI cba932b: на macOS тест «a Claude reviewer without hooks in time…» упал при удалении временной папки (ENOTEMPTY .workflow-kit/local/reviews) — служба дописала файл ревью во время rm"
+    },
+    {
+      "acceptance": [
+        "Project-wide documents describe the round result",
+        "The round digest records result, decisions, contracts and references"
+      ],
+      "checks": [],
+      "commitMessage": "docs: reconcile documentation for R4",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "F004",
+        "F005"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/architecture/OVERVIEW.md"
+      ],
+      "fixes": null,
+      "id": "DOCS-R4",
+      "iteration": 1,
+      "kind": "docs",
+      "roundId": "R4",
+      "status": "TODO",
+      "title": "Reconcile project documentation and write the round digest",
+      "why": "Keep the project context current for the next agent and close the round."
+    },
+    {
+      "acceptance": [
         "CI для точного pushed SHA на ci/M39-autopiloting успешен на macOS, Linux, Windows x64 и ARM64; последний проверенный SHA назван явно.",
         "Проверены одноразовые end-to-end сценарии доступных провайдеров; отдельно записаны реальные и fake результаты, repo/remote SHA и число подтверждений.",
         "Пользовательская macOS и Windows-приёмка имеют фактический статус и владельца; непроведённые проверки не отмечены успешными.",
@@ -1385,7 +1465,7 @@
       "dependencies": [
         "T011",
         "D002",
-        "DOCS-R3"
+        "DOCS-R4"
       ],
       "docsWaiver": null,
       "files": [
@@ -1396,7 +1476,7 @@
       "id": "T012",
       "iteration": 4,
       "kind": "delivery",
-      "roundId": "R3",
+      "roundId": "R4",
       "status": "TODO",
       "title": "Четыре платформы CI и факты сквозных прогонов",
       "why": "Четыре платформы CI и факты сквозных прогонов",
@@ -1435,8 +1515,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 18/19
-- Revision: 1216
+- Progress: 18/22
+- Revision: 1217
 
 ## Objective
 
@@ -1528,7 +1608,7 @@ Digest: M39 R1: Kit 2.3.3 (automation, host-тикеты, defer-delivery); сл�
 
 Digest: R2 исправил дефект Windows, найденный CI d1ffd1b: host-тикет сравнивает корень проекта через realpathSync.native и с учётом платформы (8.3, регистр, слеши, префикс \\?\). На Windows x64 и ARM64 host-команды автопилота больше не отвергаются как «ticket bound to another root».
 
-### R3 — Тест корня проекта на Windows-хосте (fixes, OPEN)
+### R3 — Тест корня проекта на Windows-хосте (fixes, CLOSED)
 
 - [DONE] F003 — Тест веток linux и darwin не зависит от файловой системы хоста (work)
   - Commit: test: keep injected-platform root checks off the host file system
@@ -1538,11 +1618,25 @@ Digest: R2 исправил дефект Windows, найденный CI d1ffd1b:
   - Commit: docs: reconcile documentation for R3
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/architecture/OS-MATRIX.md
   - Depends on: F003
+
+Digest: R3 исправил тест F002: проверки веток linux и darwin с переданной платформой больше не зависят от файловой системы хоста (на Windows `/` — корень диска). CI 4c56e26 показал, что само исправление F002 работает: все тесты на настоящем бандле прошли на Windows x64 и ARM64.
+
+### R4 — Тесты, скрытые прошлыми падениями CI (fixes, OPEN)
+
+- [TODO] F004 — Тест host IPC ядра сравнивает корень так же, как служба (work)
+  - Commit: test: compare the host root by the native realpath in the Kit IPC test
+  - Files: product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-host-ipc.test.mjs
+  - Fixes: T002
+- [TODO] F005 — Очистка временной папки в тесте ревью переживает позднюю запись (work)
+  - Commit: test: retry the review test cleanup while late writes settle
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test/review.test.ts
+- [TODO] DOCS-R4 — Reconcile project documentation and write the round digest (docs)
+  - Commit: docs: reconcile documentation for R4
+  - Files: README.md, docs/architecture/OVERVIEW.md
+  - Depends on: F004, F005
 - [TODO] T012 — Четыре платформы CI и факты сквозных прогонов (delivery)
   - Commit: test: verify M39 cross-platform delivery and live evidence
   - Files: docs/evidence/M39-acceptance.md, docs/architecture/OS-MATRIX.md
-  - Depends on: T011, D002, DOCS-R3
-
-Digest: R3 исправил тест F002: проверки веток linux и darwin с переданной платформой больше не зависят от файловой системы хоста (на Windows `/` — корень диска). CI 4c56e26 показал, что само исправление F002 работает: все тесты на настоящем бандле прошли на Windows x64 и ARM64.
+  - Depends on: T011, D002, DOCS-R4
 
 State changes only through `scripts/workflow` commands. History lives in Git.

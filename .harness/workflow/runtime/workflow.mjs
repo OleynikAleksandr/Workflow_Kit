@@ -3068,7 +3068,7 @@ var AUTOMATION_FIELDS = [
     ".acceptance[].checks",
     "string[]",
     true,
-    "Quality check ids whose success proves the criterion (CHECK_UNKNOWN)."
+    "Quality check ids whose success proves the criterion (CHECK_UNKNOWN); a task of the scope must be able to record each (AUTOMATION_CHECK_UNRECORDED)."
   ),
   automationField(
     ".acceptance[].evidence",
@@ -3220,7 +3220,7 @@ var SCOPE_FIELDS = [
 var SCOPE_RULES = [
   "A scope is created only when no scope is open (SCOPE_EXISTS) and the repository has a commit (NO_BASELINE).",
   "A scope with several tasks needs `spec` (SPEC_REQUIRED).",
-  "`automation` is optional; when present it describes every acceptance criterion once, names only delivery tasks of the scope, quality check ids known to the profile (CHECK_UNKNOWN) and CI jobs of the project CI configuration (CI_CHECK_UNKNOWN); other refusals are PLAN_AUTOMATION.",
+  "`automation` is optional; when present it describes every acceptance criterion once, names only delivery tasks of the scope, quality check ids known to the profile (CHECK_UNKNOWN) that a task of the scope can record once the profile is CONFIGURED \u2014 a commit or prepare check the task runs, a delivery check a delivery task names in checks, never a push check, appliesTo matching the task files (AUTOMATION_CHECK_UNRECORDED) \u2014 and CI jobs of the project CI configuration (CI_CHECK_UNKNOWN); other refusals are PLAN_AUTOMATION.",
   "The proposal digest (`scope:proposal --digest`) covers the whole body, automation and CI included, and the bytes of the spec and context documents.",
   ...TASK_RULES
 ];
@@ -7667,6 +7667,83 @@ function runStage(request2) {
   };
 }
 
+// product-parts/kit-core/clusters/project-workflow/modules/workflow-quality/src/quality-recording.ts
+var SERVICE_KINDS = /* @__PURE__ */ new Set(["docs", "quality"]);
+var WILDCARD_PATTERN = /[*{]/u;
+var TRAILING_SLASH_PATTERN2 = /\/+$/u;
+function selectedBy(config, known, check2, task2) {
+  const assigned = task2.checks.filter((id) => known.has(id));
+  const picks = (stage2, service) => selectChecks({ assigned, config, root: "", service, stage: stage2 }).some(
+    (item) => item.id === check2.id
+  );
+  switch (check2.stage) {
+    case "commit":
+      return picks("commit", SERVICE_KINDS.has(task2.kind));
+    case "prepare":
+      return task2.kind !== "quality" && picks("prepare", false);
+    case "delivery":
+      return task2.kind === "delivery" && assigned.includes(check2.id);
+    default:
+      return false;
+  }
+}
+function literalRoot(glob) {
+  const index = glob.search(WILDCARD_PATTERN);
+  return index < 0 ? glob : glob.slice(0, index);
+}
+function appliesToTask(check2, files) {
+  const globs = check2.appliesTo ?? [];
+  if (globs.length === 0 || files.length === 0) {
+    return true;
+  }
+  return files.some((file4) => {
+    const entry = file4.replace(TRAILING_SLASH_PATTERN2, "");
+    if (matchesAny(globs, entry)) {
+      return true;
+    }
+    return globs.some((glob) => {
+      const start = literalRoot(glob);
+      return start.startsWith(`${entry}/`) || `${entry}/`.startsWith(start);
+    });
+  });
+}
+function canRecord(config, id, task2) {
+  const checks = effectiveChecks(config);
+  const check2 = checks.find((item) => item.id === id);
+  if (!check2) {
+    return false;
+  }
+  const known = new Set(checks.map((item) => item.id));
+  return selectedBy(config, known, check2, task2) && appliesToTask(check2, task2.files);
+}
+function unrecordedChecks(config, ids, tasks) {
+  const checks = effectiveChecks(config);
+  const known = new Set(checks.map((item) => item.id));
+  const missing2 = [];
+  for (const id of new Set(ids)) {
+    const check2 = checks.find((item) => item.id === id);
+    if (!check2) {
+      continue;
+    }
+    const selecting = tasks.filter(
+      (task2) => selectedBy(config, known, check2, task2)
+    );
+    if (selecting.some((task2) => appliesToTask(check2, task2.files))) {
+      continue;
+    }
+    let reason = "not-assigned";
+    if (check2.stage === "push") {
+      reason = "stage-push";
+    } else if (selecting.length > 0) {
+      reason = "applies-to";
+    } else if (check2.stage === "delivery") {
+      reason = "delivery-unassigned";
+    }
+    missing2.push({ check: id, reason, stage: check2.stage });
+  }
+  return missing2;
+}
+
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-quality/src/workflow-quality-facade.ts
 var WorkflowQualityFacade = class {
   configPath = CONFIG_PATH;
@@ -7745,6 +7822,17 @@ var WorkflowQualityFacade = class {
   /** Checks a stage would run, without running them. */
   selectChecks(request2) {
     return selectChecks(request2);
+  }
+  /**
+   * Whether the task can record a passed result of the check in the evidence
+   * of its commit (spec M41 2.1): the runner's selection plus `appliesTo`.
+   */
+  canRecord(config, id, task2) {
+    return canRecord(config, id, task2);
+  }
+  /** Checks of `ids` no task of `tasks` can record, with the reason. */
+  unrecordedChecks(config, ids, tasks) {
+    return unrecordedChecks(config, ids, tasks);
   }
   runStage(request2) {
     return runStage(request2);
@@ -12436,7 +12524,7 @@ in line with the code.
 }
 
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-payload.ts
-var KIT_VERSION = "2.4.4";
+var KIT_VERSION = "2.4.5";
 var MANIFEST_PATH = ".harness/workflow/manifest.json";
 var MANIFEST_SCHEMA = "harness-workflow-manifest/1";
 var OWN_HOOKS_DIR = ".harness/workflow/hooks";
@@ -13847,19 +13935,41 @@ function ciCheckNames(root) {
 }
 
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-automation.ts
-function ensureAutomationInput(context, automation) {
+var UNRECORDED_TEXT = {
+  "applies-to": "its appliesTo matches none of the files of the tasks that run it, so the runner skips it",
+  "delivery-unassigned": "it is a delivery check that no delivery task of the scope names in its checks",
+  "not-assigned": "no task of the scope runs it: it is neither required nor assigned",
+  "stage-push": "it runs at push, and the push report never reaches the evidence of a commit"
+};
+function ensureAutomationInput(context, automation, tasks = []) {
   if (!automation || typeof automation !== "object") {
     return;
   }
   const entries2 = Array.isArray(automation.acceptance) ? automation.acceptance : [];
-  workflowQualityFacade.ensurePlannedChecks(
-    readConfig(context),
-    entries2.map((entry, index) => ({
-      checks: Array.isArray(entry?.checks) ? entry.checks : [],
-      field: `automation.acceptance[${index}].checks`,
-      taskId: null
-    }))
-  );
+  const config = readConfig(context);
+  const planned = entries2.map((entry, index) => ({
+    checks: Array.isArray(entry?.checks) ? entry.checks : [],
+    field: `automation.acceptance[${index}].checks`,
+    taskId: null
+  }));
+  workflowQualityFacade.ensurePlannedChecks(config, planned);
+  if (config.quality.status === "CONFIGURED") {
+    const open = tasks.filter((task2) => task2.status !== "DONE");
+    for (const entry of planned) {
+      const [first] = workflowQualityFacade.unrecordedChecks(
+        config,
+        entry.checks,
+        open
+      );
+      ensure(
+        first === void 0,
+        "AUTOMATION_CHECK_UNRECORDED",
+        first ? `${entry.field} names ${first.check} (stage ${first.stage}), which no task of the scope can record: ${UNRECORDED_TEXT[first.reason]}.` : "",
+        first ? { ...first, field: entry.field } : {},
+        "Name commit or prepare checks, assign the delivery check to a delivery task (tasks[].checks), or match its appliesTo with the task files."
+      );
+    }
+  }
   const required = automation.ci?.requiredChecks;
   if (!Array.isArray(required) || required.length === 0) {
     return;
@@ -13910,7 +14020,7 @@ function commitScope(context, input, proposal = null, decision3 = null) {
     plan.scope.decisions.push({ ...decision3 });
   }
   ensureInputChecks(context, input.tasks);
-  ensureAutomationInput(context, input.automation);
+  ensureAutomationInput(context, input.automation, plan.tasks);
   ensureContextBudget(context, plan, plan.tasks);
   const documents2 = changedDocuments(context, [
     input.spec,
@@ -13959,7 +14069,11 @@ function proposeScope(context, request2) {
       transition(context)
     );
     ensureInputChecks(context, request2.input.tasks);
-    ensureAutomationInput(context, request2.input.automation);
+    ensureAutomationInput(
+      context,
+      request2.input.automation,
+      candidate.tasks
+    );
     ensureContextBudget(context, candidate, candidate.tasks);
     const proposal = workflowExecutionModeFacade.nextProposal(context.root, {
       hasParallelWork: workflowPlanFacade.hasParallelWork(candidate),
@@ -14875,6 +14989,7 @@ function validateProject(context) {
 }
 
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-autopilot-status.ts
+var EVIDENCE_WINDOW = 200;
 var AUTOPILOT_CAPABILITY = {
   authorization: true,
   automation: true,
@@ -14909,26 +15024,56 @@ function orchestrationOf(context, status) {
     readyTasks: schedule.ready
   };
 }
-function acceptanceOf(context, status) {
+function passedChecks(context, head4) {
+  const passed = /* @__PURE__ */ new Set();
+  if (head4 === null) {
+    return passed;
+  }
+  const commits = context.git.history(context.root, null, head4).reverse().filter((commit2) => (commit2.trailers["Workflow-Transaction"] ?? []).length > 0).slice(0, EVIDENCE_WINDOW);
+  for (const commit2 of commits) {
+    const record = workflowQualityFacade.readEvidence(context.root, commit2.sha);
+    for (const report of record?.reports ?? []) {
+      for (const result2 of report.results) {
+        if (result2.status === "passed") {
+          passed.add(result2.id);
+        }
+      }
+    }
+  }
+  return passed;
+}
+function acceptanceOf(context, status, plan) {
   const automation = status.scope?.automation;
   if (!automation) {
     return null;
   }
-  return automation.acceptance.map((entry) => ({
-    checks: [...entry.checks],
-    criterion: entry.criterion,
-    evidence: [...entry.evidence],
-    evidenceMissing: entry.evidence.filter(
-      (file4) => status.head === null || context.git.show(context.root, status.head, file4) === null
-    ),
-    kind: entry.kind
-  }));
+  const named = automation.acceptance.some((entry) => entry.checks.length > 0);
+  const passed = named ? passedChecks(context, status.head) : /* @__PURE__ */ new Set();
+  const config = workflowQualityFacade.readConfig(context.root);
+  const open = (plan?.tasks ?? []).filter((task2) => task2.status !== "DONE");
+  return automation.acceptance.map((entry) => {
+    const pending = entry.checks.filter((id) => !passed.has(id));
+    const unreachable = new Set(
+      workflowQualityFacade.unrecordedChecks(config, pending, open).map((item) => item.check)
+    );
+    return {
+      checks: [...entry.checks],
+      checksPending: pending,
+      checksUnreachable: pending.filter((id) => unreachable.has(id)),
+      criterion: entry.criterion,
+      evidence: [...entry.evidence],
+      evidenceMissing: entry.evidence.filter(
+        (file4) => status.head === null || context.git.show(context.root, status.head, file4) === null
+      ),
+      kind: entry.kind
+    };
+  });
 }
 function autopilotStatus(context) {
   const status = readStatus(context);
   const plan = workflowPlanFacade.read(context.root);
   return {
-    acceptance: acceptanceOf(context, status),
+    acceptance: acceptanceOf(context, status, plan),
     authorization: structuredClone(plan?.scope?.authorization ?? null),
     blockedReason: status.scope?.blockedReason ?? null,
     capability: { ...AUTOPILOT_CAPABILITY },
@@ -15787,19 +15932,30 @@ function preCommit(context) {
   guardExecutorCandidate(context, journal);
   const task2 = candidateTask(journal);
   const before = fingerprints(root, journal.selected);
-  const report = workflowQualityFacade.runStage({
-    assigned: journal.checks,
-    config: workflowQualityFacade.readConfig(root),
+  const config = workflowQualityFacade.readConfig(root);
+  const request2 = {
+    config,
     docsWaiver: task2?.docsWaiver ?? null,
     env: context.env,
     files: journal.selected,
     // The index equals the candidate: paths outside it are not committed.
     removed: git.absentPaths(root, journal.selected),
-    root,
+    root
+  };
+  const report = workflowQualityFacade.runStage({
+    ...request2,
+    assigned: journal.checks,
     service: isServiceCommit(journal, task2),
     stage: "commit"
   });
-  workflowQualityFacade.recordEvidence(root, journal.id, [report]);
+  const delivery = report.ok ? deliveryChecks(journal, task2, config.quality.checks) : [];
+  const deliveryReport = delivery.length > 0 ? workflowQualityFacade.runStage({
+    ...request2,
+    only: delivery,
+    stage: "delivery"
+  }) : null;
+  const reports = deliveryReport ? [report, deliveryReport] : [report];
+  workflowQualityFacade.recordEvidence(root, journal.id, reports);
   if (git.git.text(root, ["write-tree"]) !== journal.candidateTree || fingerprints(root, journal.selected) !== before) {
     return fail(
       "CHECK_MODIFIED_CANDIDATE",
@@ -15813,9 +15969,24 @@ function preCommit(context) {
 ${failedSummary(report)}`
     );
   }
+  if (deliveryReport && !deliveryReport.ok) {
+    return fail(
+      "CHECK_FAILED",
+      `Delivery checks of the task failed:
+${failedSummary(deliveryReport)}`
+    );
+  }
+  const results = reports.flatMap((item) => item.results);
   return pass(
-    `Workflow checks passed: ${report.results.map((item) => `${item.id} ${item.status}`).join(", ") || "none"}.`
+    `Workflow checks passed: ${results.map((item) => `${item.id} ${item.status}`).join(", ") || "none"}.`
   );
+}
+function deliveryChecks(journal, task2, checks) {
+  if (journal.role !== "implementation" || task2?.kind !== "delivery") {
+    return [];
+  }
+  const assigned = journal.checks;
+  return checks.filter((check2) => check2.stage === "delivery" && assigned.includes(check2.id)).map((check2) => check2.id);
 }
 function commitMessage(context, args) {
   const journal = context.git.transactions.journal(context.root);

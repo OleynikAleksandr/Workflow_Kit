@@ -3,6 +3,8 @@ import { launchctl, parseRegQuery, registry, systemctl } from './commands.ts';
 import { readCurrent, readProgramPathsSync, servicePort } from './deploy.ts';
 import { layoutOf } from './install.ts';
 import { mechanismLabel } from './layout.ts';
+import type { ServiceLayout } from './layout.ts';
+import { helperPaths, helperSupported, missingPackages, readHelperRecord, runtimePackages } from './runtime-payload.ts';
 import { PROGRAMS, envPath, findProgram } from './programs.ts';
 import { desktopExecArg, isOwnLauncher, windowsFileUrl, windowsRunValue } from './templates.ts';
 import type { ResolvedDeps } from './types.ts';
@@ -59,6 +61,7 @@ export async function doctor(deps: ResolvedDeps, options: { installed: boolean; 
       add('установка', 'ok', `версия ${current.version} в ${current.appPath}`);
       add('точка входа', (await deps.fs.exists(current.entry)) ? 'ok' : 'fail', current.entry);
       add('node службы', deps.fs.isExecutable(current.node) ? 'ok' : 'fail', current.node);
+      await checkPayload(deps, layout, current.appPath, current.version, add);
       if (!current.integrated || layout.development) {
         add('запускатель, значок, автозапуск', 'ok', 'не ставятся для экземпляра разработки (WFK_DATA_DIR)');
       } else {
@@ -141,4 +144,23 @@ export function formatDoctor(report: DoctorReport): string {
   const lines = report.checks.map((check) => `${mark[check.level]} ${check.name}: ${check.detail}`);
   lines.push(report.ok ? 'итог: всё в порядке' : 'итог: есть ошибки');
   return lines.join('\n');
+}
+
+/** Runtime packages of the installed copy and, on macOS Apple Silicon, the speech helper of its version. */
+async function checkPayload(deps: ResolvedDeps, layout: ServiceLayout, appPath: string, version: string, add: (name: string, level: DoctorCheck['level'], detail: string) => void): Promise<void> {
+  const packages = await runtimePackages(deps.fs, deps.platform, appPath);
+  const missing = await missingPackages(deps.fs, deps.platform, appPath);
+  if (missing.length > 0) add('зависимости копии', 'fail', `нет ${missing.join(', ')} в node_modules копии: npm ci в клоне, затем node bin/wfk.mjs install`);
+  else add('зависимости копии', 'ok', packages.length > 0 ? packages.map((key) => key.slice('node_modules/'.length)).join(', ') : 'не нужны');
+  if (!helperSupported(deps.platform, deps.arch)) return;
+  const paths = helperPaths(layout);
+  const record = await readHelperRecord(deps.fs, layout);
+  const sha256 = await deps.fs.sha256(paths.helper);
+  const problem = !sha256 ? `нет ${paths.helper}`
+    : !deps.fs.isExecutable(paths.helper) ? `${paths.helper} не исполним`
+    : !record ? `нет ${paths.record}`
+    : record.version !== version ? `helper версии ${record.version}, копия ${version}`
+    : record.sha256 !== sha256 ? 'sha256 helper не совпадает с helper.json'
+    : null;
+  add('диктовка: helper', problem ? 'warn' : 'ok', problem ? `диктовка недоступна: ${problem}` : `${paths.helper}, версия ${version}`);
 }

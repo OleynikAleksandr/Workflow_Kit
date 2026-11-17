@@ -109,6 +109,8 @@ export interface ServiceDeps extends ServiceContext {
   uid?: number;
   /** Root of the code being installed (default: the root this module runs from). */
   sourceRoot?: string;
+  /** CPU architecture (default: process.arch); the speech helper is delivered on darwin arm64 only. */
+  arch?: string;
   /** Absolute node binary (default: process.execPath). */
   nodePath?: string;
   /** How long to wait for /api/health after a start (default 20 s). */
@@ -134,6 +136,7 @@ export interface ResolvedDeps {
   now: () => Date;
   uid: number;
   sourceRoot: string;
+  arch: string;
   nodePath: string;
   readyTimeoutMs: number;
   stopTimeoutMs: number;

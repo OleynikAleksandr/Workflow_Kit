@@ -1,5 +1,6 @@
 // Test doubles: an in-memory file system with platform paths, a recording command runner,
 // a fake backend that answers /api/health after a start, and ready-made machines per OS.
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 import type { RunOptions, RunResult } from '#process-supervisor';
 import type { InstallerFs } from '../src/fs.ts';
@@ -93,6 +94,18 @@ export class MemoryFs implements InstallerFs {
 
   async ensureDir(dir: string): Promise<void> {
     this.addDir(dir);
+  }
+
+  async copyFile(from: string, to: string, mode: number): Promise<void> {
+    const entry = this.files.get(from);
+    if (!entry) throw Object.assign(new Error(`ENOENT: ${from}`), { code: 'ENOENT' });
+    if (!this.dirs.has(this.p.dirname(to))) throw Object.assign(new Error(`ENOENT: ${to}`), { code: 'ENOENT' });
+    this.seed(to, entry.text, mode);
+  }
+
+  async sha256(file: string): Promise<string | null> {
+    const entry = this.files.get(file);
+    return entry ? createHash('sha256').update(entry.text).digest('hex') : null;
   }
 
   existsSync(target: string): boolean {
@@ -233,6 +246,8 @@ export function makeMachine(platform: NodeJS.Platform, options: { handler?: Hand
       uid: 501,
       nodePath: base.nodePath,
       sourceRoot: base.sourceRoot,
+      // Fixed per platform so the helper branch does not depend on the host CPU.
+      arch: platform === 'darwin' ? 'arm64' : 'x64',
       now: () => new Date('2026-11-05T10:00:00Z'),
       sleep: async () => undefined,
       readyTimeoutMs: 1000,

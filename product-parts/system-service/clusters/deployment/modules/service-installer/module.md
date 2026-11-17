@@ -51,7 +51,8 @@ login-shell (D12), запускатель `wfk`, значок «Workflow Kit», 
   `input.macApp` — собранное приложение macOS, вид `mac-app`),
   `fetchHealth(port)`, `spawnDetachedProcess`, `nodeFs`, `ServiceError`,
   `NOT_IMPLEMENTED`, `PROGRAMS`, `APP_PARTS` (`bin`, `product-parts`,
-  `package.json`), `COPY_EXCLUDED_DIRS` (`test`, `node_modules`, `.git`),
+  `package.json`, `package-lock.json`, `THIRD_PARTY_NOTICES.md`), `COPY_EXCLUDED_DIRS`
+  (`test`, `node_modules`, `.git`, `target`),
   константы `LAUNCH_AGENT_LABEL` (`ai.workflowkit.backend`),
   `SYSTEMD_UNIT` (`workflow-kit.service`), `RUN_KEY`, `RUN_VALUE_NAME`
   (`WorkflowKit`), `ICON_BUNDLE_ID` (`ai.workflowkit.launcher`), метки
@@ -74,6 +75,8 @@ login-shell (D12), запускатель `wfk`, значок «Workflow Kit», 
 | автозапуск | `~/Library/LaunchAgents/ai.workflowkit.backend.plist` | `$XDG_CONFIG_HOME/systemd/user/workflow-kit.service`, без systemd — `$XDG_CONFIG_HOME/autostart/workflow-kit.desktop` | `HKCU\…\Run` → `WorkflowKit` |
 | журналы | `<состояние>/logs/service.log`, `open.log` | то же | то же |
 | каталог `wfk` в PATH службы (M17) | `~/.local/bin` | `~/.local/bin` | каталог данных |
+| helper речи (speech-integration) | ARM64: `<данные>/speech/wfk-speech-helper` + `helper.json`; Intel — не ставится | не ставится | не ставится (x64/ARM64) |
+| `node_modules` копии (пакеты lock без `dev`) | `app/<версия>/node_modules` | то же | то же |
 
 ## Установка (`install`)
 
@@ -81,9 +84,12 @@ login-shell (D12), запускатель `wfk`, значок «Workflow Kit», 
    любых изменений. Своим значком считается бандл с идентификатором
    `ai.workflowkit.launcher` или `com.workflowkit.launcher` (апплет
    прототипа): он заменяется.
-2. Версия из `package.json` источника; копия `bin`, `product-parts`,
-   `package.json` (без `test/`) во временный каталог и `rename` в
-   `app/<версия>`. Запуск из самой установленной копии ничего не копирует.
+2. Версия из `package.json` источника; до любых изменений — пакеты
+   lock-файла без `dev` в `node_modules` источника (иначе `DEPENDENCY_MISSING`,
+   раздел «Зависимости и helper речи»). Копия `APP_PARTS` (без `test/` и Cargo
+   `target/`) и этих пакетов во временный каталог и `rename` в `app/<версия>`;
+   затем helper речи (macOS ARM64). Запуск из самой установленной копии ничего
+   не копирует.
 3. PATH login-shell: `$SHELL -i -l -c`, затем `-l -c` (маркеры
    `__WFK_PATH__`), объединяется с каталогом `node` (первым) и PATH
    процесса. Пути остальных программ `PROGRAMS` (`claude`, `codex`, `kimi`,
@@ -156,9 +162,51 @@ login-shell (D12), запускатель `wfk`, значок «Workflow Kit», 
 
 Останавливает службу, снимает автозапуск (`bootout` и plist; `disable`,
 unit, `daemon-reload`; XDG-файл; `reg delete`, `.vbs`, PATH пользователя),
-запускатель и значок (только с метками Workflow Kit) и каталог `app/`.
-`config.json`, `projects.json`, журналы, сессии и копии чужих конфигов
-остаются. Для экземпляра разработки снимается только `app/`.
+запускатель и значок (только с метками Workflow Kit), каталог `app/` и на macOS
+ARM64 файлы helper речи (`wfk-speech-helper`, `helper.json`,
+`THIRD_PARTY_NOTICES.md` в `<данные>/speech`). `config.json`, `projects.json`,
+журналы, сессии, модели речи, `speech.json` и копии чужих конфигов остаются. Для экземпляра разработки снимается только `app/`.
+
+## Зависимости и helper речи (speech-integration, `src/runtime-payload.ts`)
+
+Спецификация — [speech-integration.md](../../../../../../docs/planning/speech-integration.md), §2.3.
+
+- `runtimePackages(fs, platform, root)` — ключи `node_modules/<имя>` из
+  `package-lock.json` без `dev: true`, по алфавиту; без lock-файла — `[]` (копии до
+  0.17.0); не JSON — `ServiceError`. `missingPackages` — имена тех, которых нет под
+  корнем. `ensureDependencies` бросает `DEPENDENCY_MISSING: в <корень>/node_modules нет
+  <имена> — запустите npm ci в клоне и повторите установку` до любых записей, команд и
+  запуска. `copyDependencies` копирует эти пакеты в готовящуюся копию (`copyApp`).
+- Helper (`helperSupported`: только `darwin` и `arch` `arm64`; `ServiceDeps.arch`,
+  по умолчанию `process.arch`). Файлы `helperPaths(layout)`: `<appDir>/speech/
+  wfk-speech-helper`, `helper.json` (`{version, sha256}`), `THIRD_PARTY_NOTICES.md`;
+  `appDir` — каталог данных `data-store`, его же читает служба.
+  `deployHelper(fs, layout, sourceRoot, version, arch)` → `{state, warnings}`:
+  - в источнике есть `product-parts/speech-input/…/speech-helper/target/release/
+    wfk-speech-helper` (`HELPER_ARTIFACT`): копия во временный файл
+    `.wfk-speech-helper.<hex>.tmp` (`copyFile`, 0755), sha256, `rename` поверх
+    прежнего, затем `helper.json` и notices источника — `installed`;
+  - артефакта нет: прежний helper остаётся (`kept`), только если `helper.json` называет
+    устанавливаемую версию и sha256 файла совпадает; иначе три файла удаляются
+    (`removed`, без прежнего — `absent`) с предупреждением «диктовка недоступна:
+    helper версии <v> не собран (cargo build --release --locked)»;
+  - ошибка копирования или замены: временный файл и три файла удаляются,
+    предупреждение «… не установлен: <причина>», установка продолжается;
+  - Linux, Windows и Intel macOS — `unsupported`: ничего не копируется и не удаляется.
+  Модели (`<состояние>/speech/models`) и `<конфигурация>/speech.json` не трогаются
+  никогда. Отчёт `install` — строка «диктовка: helper установлен | той же версии,
+  сохранён | удалён | нет»; предупреждения — строками «ВНИМАНИЕ».
+- `InstallerFs` дополнен `copyFile(from, to, mode)` (байты и режим) и
+  `sha256(file)` (hex или `null`).
+- `doctor --installed`: «зависимости копии» — `fail`, если пакетов lock-файла копии нет
+  в её `node_modules`, иначе `ok` со списком («не нужны» без lock-файла); на macOS
+  ARM64 «диктовка: helper» — `warn` «диктовка недоступна: <причина>» (нет файла, не
+  исполним, нет `helper.json`, другая версия, sha256 не совпадает), иначе `ok`.
+- Тесты: `test/runtime-payload.test.ts` (копия, `DEPENDENCY_MISSING` без побочных
+  изменений на трёх ОС, замена, политика версии, ошибка замены, повторная установка
+  из копии, `uninstall`, Linux/Windows/Intel), `test/payload-doctor.test.ts`; стенд —
+  `test/payload-fixtures.ts`. Машины `fakes.ts` задают `arch` (`darwin` — `arm64`,
+  остальные — `x64`), чтобы ветка helper не зависела от процессора хоста.
 
 ## Служба, `open`, `doctor`
 

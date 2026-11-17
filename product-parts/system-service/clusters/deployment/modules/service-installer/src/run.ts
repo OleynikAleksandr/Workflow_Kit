@@ -41,6 +41,8 @@ function installText(report: InstallReport, deps: ResolvedDeps): string {
   }
   const health = report.start.health;
   lines.push(`служба: работает (pid ${health.pid}, версия ${health.version})`);
+  const helper = { installed: 'установлен', kept: 'той же версии, сохранён', removed: 'удалён', absent: 'нет', unsupported: '' }[report.helper];
+  if (helper) lines.push(`диктовка: helper ${helper}`);
   if (report.removedVersions.length > 0) lines.push(`удалены старые версии: ${report.removedVersions.join(', ')}`);
   for (const warning of report.warnings) lines.push(`ВНИМАНИЕ: ${warning}`);
   return lines.join('\n');

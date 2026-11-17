@@ -4,11 +4,12 @@ import { DEFAULT_PORT, parsePort } from '#data-store';
 import { copyFilter, pathApi } from './fs.ts';
 import type { InstallerFs } from './fs.ts';
 import { entryOf, versionDir } from './layout.ts';
+import { copyDependencies } from './runtime-payload.ts';
 import type { ServiceLayout } from './layout.ts';
 import type { AutostartMechanism } from './types.ts';
 
 /** What gets copied from the source root into app/<version>. */
-export const APP_PARTS: readonly string[] = ['bin', 'product-parts', 'package.json'];
+export const APP_PARTS: readonly string[] = ['bin', 'product-parts', 'package.json', 'package-lock.json', 'THIRD_PARTY_NOTICES.md'];
 
 /** Contents of app/current.json. */
 export interface CurrentRecord {
@@ -101,7 +102,7 @@ function samePath(platform: NodeJS.Platform, a: string, b: string): boolean {
 }
 
 /**
- * Copies bin, product-parts and package.json into app/<version> through a temporary
+ * Copies APP_PARTS and the runtime packages of the lock into app/<version> through a temporary
  * directory and a rename; returns false when the source already is that directory.
  */
 export async function copyApp(fs: InstallerFs, layout: ServiceLayout, sourceRoot: string, version: string): Promise<boolean> {
@@ -114,6 +115,7 @@ export async function copyApp(fs: InstallerFs, layout: ServiceLayout, sourceRoot
       const from = p.join(sourceRoot, part);
       if (await fs.exists(from)) await fs.copyTree(from, p.join(tmp, part), copyFilter);
     }
+    await copyDependencies(fs, layout.platform, sourceRoot, tmp);
     await fs.remove(target);
     await fs.rename(tmp, target);
   } catch (error) {

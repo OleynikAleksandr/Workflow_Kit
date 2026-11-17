@@ -1,7 +1,8 @@
 // File system operations of the installer behind an interface, so the same install flow is
 // tested for macOS, Linux and Windows paths on an in-memory file system.
+import { createHash } from 'node:crypto';
 import { accessSync, constants, existsSync, readFileSync, realpathSync, statSync } from 'node:fs';
-import { cp, mkdir, readFile, readdir, rename, rm, stat } from 'node:fs/promises';
+import { chmod, copyFile, cp, mkdir, readFile, readdir, rename, rm, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { writeFileAtomic } from '#data-store';
 
@@ -19,6 +20,10 @@ export interface InstallerFs {
   /** Copies a directory tree; filter gets the source path of every entry. */
   copyTree(from: string, to: string, filter: (source: string) => boolean): Promise<void>;
   rename(from: string, to: string): Promise<void>;
+  /** Copies one file (bytes) and sets its mode; the parent directory must exist. */
+  copyFile(from: string, to: string, mode: number): Promise<void>;
+  /** SHA-256 (hex) of a file's bytes; null when it does not exist. */
+  sha256(file: string): Promise<string | null>;
   /** Creates a directory and its parents (0700 by default). */
   ensureDir(dir: string, mode?: number): Promise<void>;
   /** Synchronous reads for the status of the panel (cheap, files only). */
@@ -59,6 +64,18 @@ export const nodeFs: InstallerFs = {
   },
   copyTree: (from, to, filter) => cp(from, to, { recursive: true, filter: (source) => filter(source) }),
   rename: (from, to) => rename(from, to),
+  async copyFile(from, to, mode) {
+    await copyFile(from, to);
+    await chmod(to, mode);
+  },
+  async sha256(file) {
+    try {
+      return createHash('sha256').update(await readFile(file)).digest('hex');
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') return null;
+      throw error;
+    }
+  },
   async ensureDir(dir, mode = 0o700) {
     await mkdir(dir, { recursive: true, mode });
   },
@@ -89,9 +106,9 @@ export const nodeFs: InstallerFs = {
 };
 
 /** Directories left out of the installed copy. */
-export const COPY_EXCLUDED_DIRS: readonly string[] = ['test', 'node_modules', '.git'];
+export const COPY_EXCLUDED_DIRS: readonly string[] = ['test', 'node_modules', '.git', 'target'];
 
-/** Filter for copyTree: skips test directories and editor or OS litter. */
+/** Filter for copyTree: skips test, dependency, git and Cargo build directories and editor or OS litter. */
 export function copyFilter(source: string): boolean {
   const name = source.split(/[\\/]/).pop() ?? '';
   if (COPY_EXCLUDED_DIRS.includes(name)) return false;

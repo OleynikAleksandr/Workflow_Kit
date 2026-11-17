@@ -114,6 +114,7 @@ export function resolveDeps(deps: ServiceDeps = {}): ResolvedDeps {
     now: deps.now ?? (() => new Date()),
     uid: deps.uid ?? process.getuid?.() ?? 0,
     sourceRoot: deps.sourceRoot ?? SOURCE_ROOT,
+    arch: deps.arch ?? process.arch,
     nodePath: deps.nodePath ?? process.execPath,
     readyTimeoutMs: deps.readyTimeoutMs ?? READY_TIMEOUT_MS,
     stopTimeoutMs: deps.stopTimeoutMs ?? STOP_TIMEOUT_MS,

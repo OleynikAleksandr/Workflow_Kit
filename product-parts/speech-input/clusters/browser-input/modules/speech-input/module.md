@@ -54,6 +54,16 @@ paths, real helper/GGUF, WebSocket, worklet and composer. Russian WAV feeds a sy
 MediaStream only after listening; text must arrive before EOF and never send.
 Tracks/contexts close on Stop. This does not verify hardware permission or Safari.
 
+Opt-in test/installed-browser.smoke.mjs <playwright> <url> <wav> <out> drives an
+installed instance (spec speech-integration 2.3): it opens the real panel of the
+instance (/), adds a composer card and routes only the WAV, so dom.js, composer,
+speech-input modules, the worklet, /api/speech and the WebSocket come from the
+installed service and its own helper (no WFK_SPEECH_HELPER). A routed document is
+not used: Chromium's local network access checks block its WebSocket to loopback.
+It requires available=true, Russian text in the draft, no sends, closed tracks and
+contexts, no browser errors; it writes installed-browser.json with first text and
+Stop times.
+
 ## AudioWorklet backpressure and errors (T010)
 
 Worklet → main MessagePort allows at most 8 unacknowledged 200-ms packets

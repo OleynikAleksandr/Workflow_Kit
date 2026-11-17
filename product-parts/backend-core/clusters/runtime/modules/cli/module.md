@@ -18,6 +18,8 @@ stripping).
   `service` (`ServiceDeps` из `#service-installer`: `run`, `fs`, `health`,
   `spawnDetached`, `sleep`, `readyTimeoutMs` и др.) — подставные эффекты
   установщика.
+  `loadApp` — загрузка серверного модуля для `serve` (по умолчанию
+  `import('./app.ts')`); тесты подставляют отсутствующую зависимость.
 - `runHook(args, deps) → Promise<0>`, `readProcessStdin(timeoutMs)`,
   `HOOK_BUDGET_MS` (1500), тип `HookDeps` (`stdout`, `stderr`, `env`,
   `cwd`, `readStdin`, `homedir?`, `platform?`, `post?`).
@@ -224,3 +226,19 @@ The speech API never calls a provider, changes its turn or sends an agent messag
 
 Speech Input T004: createApp mounts public #speech-input at /speech-input/ for
 AudioWorklet and dictation.js. CSP remains self-only; no inline scripts added.
+
+### Загрузка без серверных зависимостей (speech-integration)
+
+`app.ts` тянет зависимости времени выполнения (`ws` через `#speech-service`), поэтому
+он загружается только для `serve` (`src/commands.ts`): `loadCreateApp(load?)` →
+`{ok: true, createApp}` или `{ok: false, message}` для `ERR_MODULE_NOT_FOUND`
+пакета («зависимость <имя> не найдена: переустановите Workflow Kit (npm ci в клоне,
+затем node bin/wfk.mjs install)»; `serve` печатает её и выходит с кодом 1);
+`missingPackage(error)` — имя пакета такой ошибки. `index.ts` экспортирует
+`createApp` обёрткой с динамическим импортом, поэтому `bin/wfk.mjs → #cli` не
+загружает сервер: `install`, `doctor`, `hook`, `session`, `--version` работают в
+копии без `node_modules`. `test/missing-dependency-process.test.ts` проверяет это
+отдельными процессами во временной копии источника (`WFK_DATA_DIR`, `HOME`,
+свободный `WFK_PORT`): `--version`; `install` — `DEPENDENCY_MISSING` и
+отсутствующий каталог данных; `serve` — сообщение без трассировки; `doctor
+--installed` копии без `ws` — `[ошибка] зависимости копии`.

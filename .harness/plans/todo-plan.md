@@ -12,7 +12,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1269,
+  "revision": 1271,
   "rounds": [
     {
       "digest": null,
@@ -394,14 +394,28 @@
         "product-parts/system-service/clusters/deployment/modules/service-installer",
         "product-parts/speech-input/clusters/browser-input/modules/speech-input/test/installed-browser.smoke.mjs",
         "product-parts/speech-input/clusters/browser-input/modules/speech-input/module.md",
-        "docs/architecture/OS-MATRIX.md"
+        "docs/architecture/OS-MATRIX.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/missing-dependency-process.test.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/module.md",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/context.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/deploy.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/doctor.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/fs.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/install.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/run.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/runtime-payload.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/src/types.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/test/fakes.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/test/payload-doctor.test.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/test/payload-fixtures.ts",
+        "product-parts/system-service/clusters/deployment/modules/service-installer/test/runtime-payload.test.ts"
       ],
       "fixes": null,
       "id": "T003",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Загрузка CLI без ws и доставка helper, зависимостей и лицензий",
       "why": "Установленная служба без ws не запустится, а helper не доставляется"
     },
@@ -565,8 +579,8 @@
 - Execution: sequential
 - Automation: 4 automatic, 0 manual criteria; CI origin ci/speech-integration (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 2/7
-- Revision: 1269
+- Progress: 3/7
+- Revision: 1271
 
 ## Objective
 
@@ -590,9 +604,9 @@
   - Commit: test: verify the integrated speech input
   - Files: docs/evidence/speech-integration-acceptance.md
   - Depends on: T001
-- [TODO] T003 — Загрузка CLI без ws и доставка helper, зависимостей и лицензий (work)
+- [DONE] T003 — Загрузка CLI без ws и доставка helper, зависимостей и лицензий (work)
   - Commit: feat: install speech helper, runtime dependencies and notices
-  - Files: product-parts/backend-core/clusters/runtime/modules/cli/src/index.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/commands.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/commands.md, product-parts/backend-core/clusters/runtime/modules/cli/test, product-parts/system-service/clusters/deployment/modules/service-installer, product-parts/speech-input/clusters/browser-input/modules/speech-input/test/installed-browser.smoke.mjs, product-parts/speech-input/clusters/browser-input/modules/speech-input/module.md, docs/architecture/OS-MATRIX.md
+  - Files: product-parts/backend-core/clusters/runtime/modules/cli/src/index.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/commands.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/commands.md, product-parts/backend-core/clusters/runtime/modules/cli/test, product-parts/system-service/clusters/deployment/modules/service-installer, product-parts/speech-input/clusters/browser-input/modules/speech-input/test/installed-browser.smoke.mjs, product-parts/speech-input/clusters/browser-input/modules/speech-input/module.md, docs/architecture/OS-MATRIX.md, product-parts/backend-core/clusters/runtime/modules/cli/test/missing-dependency-process.test.ts, product-parts/system-service/clusters/deployment/modules/service-installer/module.md, product-parts/system-service/clusters/deployment/modules/service-installer/src/context.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/deploy.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/doctor.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/fs.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/install.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/run.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/runtime-payload.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/types.ts, product-parts/system-service/clusters/deployment/modules/service-installer/test/fakes.ts, product-parts/system-service/clusters/deployment/modules/service-installer/test/payload-doctor.test.ts, product-parts/system-service/clusters/deployment/modules/service-installer/test/payload-fixtures.ts, product-parts/system-service/clusters/deployment/modules/service-installer/test/runtime-payload.test.ts
   - Depends on: T002
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1

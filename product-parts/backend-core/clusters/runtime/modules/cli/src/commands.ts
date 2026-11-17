@@ -2,7 +2,6 @@ import os from 'node:os';
 import path from 'node:path';
 import { runServiceCommand } from '#service-installer';
 import type { ServiceCommand, ServiceDeps } from '#service-installer';
-import { createApp } from './app.ts';
 import type { App, AppOptions } from './app.ts';
 import { runStatusline } from './statusline.ts';
 import { readProcessStdin, runHook } from './hook.ts';
@@ -34,6 +33,37 @@ export interface CliDeps {
   waitForShutdown?: (app: App) => Promise<void>;
   /** Effects of the service installer (runner, health probe, spawner); tests pass fakes. */
   service?: ServiceDeps;
+  /** Loads the server module for serve (default: import('./app.ts')); tests simulate a missing dependency. */
+  loadApp?: () => Promise<{ createApp: typeof import('./app.ts').createApp }>;
+}
+
+// Lazy loading of the server (app.ts): it pulls runtime dependencies (ws through
+// #speech-service), so a copy without them must still run install, doctor, hook and session.
+type CreateApp = (options?: AppOptions) => Promise<App>;
+export type LoadedApp = { ok: true; createApp: CreateApp } | { ok: false; message: string };
+
+/** The bare package name of a module-not-found error, or null for any other error. */
+export function missingPackage(error: unknown): string | null {
+  const err = error as NodeJS.ErrnoException;
+  if (err?.code !== 'ERR_MODULE_NOT_FOUND') return null;
+  const match = /Cannot find package '([^']+)'/u.exec(String(err.message));
+  return match?.[1] ?? null;
+}
+
+/** Imports app.ts; a missing package becomes a message instead of a crash. */
+export async function loadCreateApp(load: () => Promise<{ createApp: CreateApp }> = () => import('./app.ts')): Promise<LoadedApp> {
+  try {
+    return { ok: true, createApp: (await load()).createApp };
+  } catch (error) {
+    const name = missingPackage(error);
+    if (!name) throw error;
+    return { ok: false, message: `зависимость ${name} не найдена: переустановите Workflow Kit (npm ci в клоне, затем node bin/wfk.mjs install)` };
+  }
+}
+
+/** createApp of the server, loaded on first use. */
+export async function createApp(options?: AppOptions): Promise<App> {
+  return (await import('./app.ts')).createApp(options);
 }
 
 /** Top-level commands of wfk, in help order. */
@@ -85,8 +115,15 @@ async function serve(deps: CliDeps): Promise<number> {
   let app: App;
   const added = withLauncherDir(deps.app?.env ?? process.env, deps.app?.platform ?? process.platform, deps.app?.homedir ?? os.homedir());
   if (added) deps.stderr(`wfk serve: каталог wfk добавлен в PATH службы: ${added}\n`);
+  // The server code (and its runtime dependencies such as ws) loads only for serve, so every
+  // other command keeps working in a copy whose dependencies are missing.
+  const loaded = await loadCreateApp(deps.loadApp);
+  if (!loaded.ok) {
+    deps.stderr(`wfk serve: ${loaded.message}\n`);
+    return 1;
+  }
   try {
-    app = await createApp({ log: (line) => deps.stderr(`${line}\n`), ...deps.app });
+    app = await loaded.createApp({ log: (line) => deps.stderr(`${line}\n`), ...deps.app });
   } catch (error) {
     deps.stderr(`wfk serve: не удалось подготовить данные: ${error instanceof Error ? error.message : String(error)}\n`);
     return 1;

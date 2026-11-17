@@ -10,6 +10,8 @@ import type { IconResult } from './integrate.ts';
 import { autostartEntry, entryOf, launcherDir, serviceLayout, versionDir } from './layout.ts';
 import type { ServiceLayout } from './layout.ts';
 import { detectPrograms, mergePath } from './programs.ts';
+import { deployHelper, ensureDependencies, helperSupported, removeHelper } from './runtime-payload.ts';
+import type { HelperOutcome } from './runtime-payload.ts';
 import type { ServiceProgram } from './templates.ts';
 import type { ResolvedDeps } from './types.ts';
 
@@ -28,7 +30,9 @@ export interface InstallReport {
   removedVersions: string[];
   /** What the icon is (macOS: the app or the browser-window script) and why, when it is not the app. */
   icon: IconResult | null;
-  /** Warnings shown after the report (Windows: run with administrator rights). */
+  /** The speech helper in <data>/speech (spec speech-integration 2.3). */
+  helper: HelperOutcome['state'];
+  /** Warnings shown after the report (Windows: run with administrator rights; dictation unavailable). */
   warnings: string[];
 }
 
@@ -90,6 +94,8 @@ export async function install(deps: ResolvedDeps): Promise<InstallReport> {
   const layout = layoutOf(deps);
   const integrated = !layout.development;
   const version = await readSourceVersion(deps.fs, deps.platform, deps.sourceRoot);
+  // Before any change: a copy without its runtime packages would not start (DEPENDENCY_MISSING).
+  await ensureDependencies(deps.fs, deps.platform, deps.sourceRoot);
   const previous = await readCurrent(deps.fs, layout);
   const port = await servicePort(deps.fs, layout, deps.env);
   if (integrated) await checkConflicts(deps, layout);
@@ -104,6 +110,8 @@ export async function install(deps: ResolvedDeps): Promise<InstallReport> {
   const detected = dir ? { ...found, loginPath: mergePath(deps.platform, found.loginPath, dir) } : found;
   const copied = await copyApp(deps.fs, layout, deps.sourceRoot, version);
   const appPath = versionDir(layout, version);
+  const helper = await deployHelper(deps.fs, layout, deps.sourceRoot, version, deps.arch);
+  warnings.push(...helper.warnings);
   await saveProgramPaths(deps.fs, layout, detected.programs, detected.loginPath);
 
   const program: ServiceProgram = {
@@ -151,17 +159,20 @@ export async function install(deps: ResolvedDeps): Promise<InstallReport> {
     start,
     removedVersions,
     icon,
+    helper: helper.state,
     warnings,
   };
 }
 
-/** Stops the service and removes autostart, launcher, icon and app/; config and journals stay. */
+/** Stops the service and removes autostart, launcher, icon, app/ and the speech helper; config, journals and models stay. */
 export async function uninstall(deps: ResolvedDeps): Promise<UninstallReport> {
   const layout = layoutOf(deps);
   const current = await readCurrent(deps.fs, layout);
   const port = await servicePort(deps.fs, layout, deps.env);
   const stopped = await stopService(deps, { layout, current, port });
   const removed = layout.development ? [] : await removeIntegration(deps, layout);
+  // The speech helper is part of the app; models and speech settings stay with the data.
+  if (helperSupported(deps.platform, deps.arch)) removed.push(...(await removeHelper(deps.fs, layout)));
   if (await deps.fs.exists(layout.appRoot)) {
     await deps.fs.remove(layout.appRoot);
     removed.push(layout.appRoot);

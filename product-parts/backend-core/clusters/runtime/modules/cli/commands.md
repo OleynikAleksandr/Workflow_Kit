@@ -6,7 +6,7 @@
 
 | Команда | Поведение |
 | --- | --- |
-| `serve` | дописывает `launcherDir` в PATH своего окружения (`service-path.ts` `withLauncherDir`, M17), собирает приложение, слушает `config.port` (4747, `WFK_PORT`), печатает адреса панели, останавливается по SIGINT/SIGTERM |
+| `serve` | дописывает `launcherDir` в PATH своего окружения (`service-path.ts` `withLauncherDir`, M17), собирает приложение, слушает `config.port` (4747, `WFK_PORT`), печатает адреса панели, останавливается по SIGINT/SIGTERM; сервер (`app.ts`) загружается только здесь: без пакета времени выполнения (`ws`) — «зависимость <имя> не найдена…» и код 1, остальные команды работают |
 | `install`, `uninstall`, `service start/stop/restart/status` (`restart` — `stop`, затем `start`), `open [--url-only]` | передаются в `runServiceCommand` из `service-installer` с контекстом `{ env, platform, homedir, ...deps.service }` (по умолчанию — текущий процесс и `os.homedir()`); сообщение — в stdout (успех) или stderr (ошибка), код выхода — из результата |
 | `doctor [--installed]` | то же, `--installed` передаётся аргументом; другие аргументы — справка, код 64 |
 | `link [--force]` | пишет запускатель `~/.local/bin/wfk` (0755, `#!/bin/sh`, строка-метка `# Workflow Kit launcher`), который запускает `bin/wfk.mjs` этого клона абсолютным `node`; чужой файл заменяется только с `--force`; предупреждает, если каталога нет в PATH; на Windows пишет те же три запускателя, что `wfk install` (`wfk.cmd`, `wfk` для Git Bash, `wfk.mjs` для хуков), в `%LOCALAPPDATA%\Workflow Kit` (M5, раздел 6) |

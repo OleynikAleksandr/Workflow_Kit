@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1283,
+  "revision": 1284,
   "rounds": [
     {
       "digest": null,
@@ -187,6 +187,50 @@
     "proposal": {
       "digest": "7cc672b22d4f746cde4c70fde0aeedc9a99600a8edde529ceeb21a6d35952c62",
       "generation": 3
+    },
+    "authorization": {
+      "accept": true,
+      "acceptancePolicy": "automatic",
+      "at": "2026-11-17T17:27:11.983Z",
+      "ci": {
+        "remote": "origin",
+        "branch": "ci/M41-autopilot-acceptance",
+        "requiredChecks": [
+          "macOS ARM64",
+          "Linux x64",
+          "Windows x64",
+          "Windows ARM64"
+        ],
+        "exactSha": true
+      },
+      "close": true,
+      "delivery": [
+        {
+          "taskId": "T005",
+          "effects": [
+            "npm ci",
+            "node bin/wfk.mjs install: установка Workflow Kit 0.18.0 в Application Support и перезапуск службы"
+          ]
+        },
+        {
+          "taskId": "T006",
+          "effects": [
+            "push ci/M41-autopilot-acceptance в origin и ожидание CI четырёх платформ"
+          ]
+        }
+      ],
+      "mode": "full",
+      "note": "Full autopilot run run-eX36hZQS5Jh3: the user's direct instruction «Окей согласен подготовь новый (спецификацию todo Plan).» (2026-11-17T17:15:06.625Z) to prepare and carry out the plan",
+      "ownerSession": "25cedd72-7908-49d9-9f21-79cfca178443",
+      "proposalDigest": "7cc672b22d4f746cde4c70fde0aeedc9a99600a8edde529ceeb21a6d35952c62",
+      "publication": {
+        "branch": "main",
+        "upstream": "origin/main"
+      },
+      "revision": 1,
+      "revoked": null,
+      "runId": "run-eX36hZQS5Jh3",
+      "source": "user-command"
     }
   },
   "tasks": [
@@ -460,7 +504,7 @@
 - Automation: 4 automatic, 0 manual criteria; CI origin ci/M41-autopilot-acceptance (4 checks); publication main → origin/main
 - Current task: none
 - Progress: 0/7
-- Revision: 1283
+- Revision: 1284
 
 ## Objective
 

@@ -55,6 +55,25 @@ bare-репозиторий. HOME и глобальный git-конфиг — �
   появления запроса) отклоняется Kit как `NOT_READY`, а не возвращает `already: true`; второй
   записи нет.
 
+## Поставка 0.16.0 (T010)
+
+macOS, 17.11.2026: исходники `94695d79` и изменения T010 (версия, CHANGELOG, README).
+
+```sh
+npm run typecheck             # без ошибок
+npm run check:platforms       # platform-guard: ok
+npm test                      # test:app 1362 (1360 пройдено, 2 пропущено, 0 ошибок); test:kit 76 из 76
+npm run build:kit             # Kit 2.4.4, sha256 eec54a75…3909b0fbc, бандл без изменений
+node bin/wfk.mjs install      # app/0.16.0 вместо 0.15.1, удалена старая 0.15.0
+~/.local/bin/wfk doctor --installed
+```
+
+Doctor: все строки `ok`, «итог: всё в порядке», служба 0.16.0 (pid 93428). `/api/health`:
+`{"ok":true,"version":"0.16.0","pid":93428,"startedAt":"2026-11-17T12:30:28.847Z"}`. В
+установленной копии — bundle `workflow-kit-2.4.4.mjs.gz` и `run-words.ts`. После перезапуска
+служба продолжила живой запуск автопилота этого scope (сообщение «goes on after a restart»).
+Сам Workflow_Kit остаётся на Kit 2.3.3 до «Обновить Kit» после M40.
+
 ## Не проверено
 
 - HTTP-маршруты службы и команда `wfk` в сквозных сценариях не вызываются (их проверяют тесты

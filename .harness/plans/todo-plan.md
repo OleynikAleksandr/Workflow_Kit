@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1257,
+  "revision": 1259,
   "rounds": [
     {
       "digest": {
@@ -1081,7 +1081,7 @@
         "installed-service"
       ],
       "commitMessage": "chore: release Workflow Kit 0.16.0",
-      "confirmation": null,
+      "confirmation": "Autopilot run run-ccWhaP7vmQJZ (authorization 1, user-command, 2026-11-17T07:16:13.439Z): Full autopilot run run-ccWhaP7vmQJZ: the user's direct instruction «Сделай так, как предложил - разбей на два скопе» (2026-11-17T06:52:42.726Z) to prepare and carry out the plan | effects: npm run build; установка Workflow Kit 0.16.0 в Application Support и перезапуск службы",
       "context": [
         {
           "path": "docs/planning/M40-user-decisions-validation.md",
@@ -1105,7 +1105,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Поставка 0.16.0",
       "why": "Пользователь получает исправление"
     },
@@ -1152,8 +1152,8 @@
 - Execution: sequential
 - Automation: 6 automatic, 0 manual criteria; CI origin ci/M40-user-decisions (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 11/13
-- Revision: 1257
+- Progress: 12/13
+- Revision: 1259
 
 ## Objective
 
@@ -1215,7 +1215,7 @@
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M40-user-decisions.md, docs/architecture/OS-MATRIX.md, docs/evidence/M40-acceptance.md, docs/planning/M40-user-decisions-contract.md, docs/planning/M40-user-decisions-validation.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/decisions.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/operations.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/tests.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-quality/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md, docs/architecture/CONTRACTS.md, docs/architecture/workflow-kit/WorkflowKitCommands.md, docs/architecture/workflow-kit/WorkflowKitDecisions.md, docs/planning/M41-kit-mechanics.md, docs/usage-autopiloting.md, docs/usage.md
   - Depends on: T001, T002, T003, T004, T004A, T005, T006, T007, T008, T009
-- [TODO] T010 — Поставка 0.16.0 (delivery)
+- [DONE] T010 — Поставка 0.16.0 (delivery)
   - Commit: chore: release Workflow Kit 0.16.0
   - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/evidence/M40-acceptance.md
   - Depends on: DOCS-R1

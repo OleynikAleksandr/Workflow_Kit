@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1222,
+  "revision": 1224,
   "rounds": [
     {
       "digest": {
@@ -89,7 +89,18 @@
       "title": "Тест корня проекта на Windows-хосте"
     },
     {
-      "digest": null,
+      "digest": {
+        "contracts": [],
+        "decisions": [
+          "T012 отложена третий раз (попытка 3) по процедуре красного CI",
+          "Уязвимая очистка исправлена сразу во всех пяти тестах ревью, а не только в упавшем",
+          "Новой поставки нет: в установленной копии тестов нет"
+        ],
+        "references": [
+          "docs/architecture/OS-MATRIX.md"
+        ],
+        "result": "R4 исправил два теста, которые прошлые падения CI скрывали: тест host IPC ядра Kit сравнивает корень через realpathSync.native (Windows, имена 8.3), очистка временных папок тестов ревью повторяется при ENOTEMPTY (macOS). Приложение и бандл Kit не менялись."
+      },
       "id": "R4",
       "kind": "fixes",
       "status": "OPEN",
@@ -1433,14 +1444,15 @@
       "docsWaiver": null,
       "files": [
         "README.md",
-        "docs/architecture/OVERVIEW.md"
+        "docs/architecture/OVERVIEW.md",
+        "docs/architecture/OS-MATRIX.md"
       ],
       "fixes": null,
       "id": "DOCS-R4",
       "iteration": 1,
       "kind": "docs",
       "roundId": "R4",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -1519,8 +1531,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 20/22
-- Revision: 1222
+- Progress: 21/22
+- Revision: 1224
 
 ## Objective
 
@@ -1634,13 +1646,15 @@ Digest: R3 исправил тест F002: проверки веток linux и 
 - [DONE] F005 — Очистка временной папки в тесте ревью переживает позднюю запись (work)
   - Commit: test: retry the review test cleanup while late writes settle
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test/review.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test/version.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test/author.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test/question-stale.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test/interruption.test.ts
-- [TODO] DOCS-R4 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R4 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R4
-  - Files: README.md, docs/architecture/OVERVIEW.md
+  - Files: README.md, docs/architecture/OVERVIEW.md, docs/architecture/OS-MATRIX.md
   - Depends on: F004, F005
 - [TODO] T012 — Четыре платформы CI и факты сквозных прогонов (delivery)
   - Commit: test: verify M39 cross-platform delivery and live evidence
   - Files: docs/evidence/M39-acceptance.md, docs/architecture/OS-MATRIX.md
   - Depends on: T011, D002, DOCS-R4
+
+Digest: R4 исправил два теста, которые прошлые падения CI скрывали: тест host IPC ядра Kit сравнивает корень через realpathSync.native (Windows, имена 8.3), очистка временных папок тестов ревью повторяется при ENOTEMPTY (macOS). Приложение и бандл Kit не менялись.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

@@ -12,7 +12,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1277,
+  "revision": 1279,
   "rounds": [
     {
       "digest": {
@@ -40,7 +40,7 @@
       },
       "id": "R1",
       "kind": "implementation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Implementation"
     }
   ],
@@ -181,7 +181,7 @@
         "text": "Живые проверки микрофона, разрешений, Safari и sleep/wake не входят в автоматическую приёмку и записываются как непроверенные"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "25cedd72-7908-49d9-9f21-79cfca178443",
@@ -567,7 +567,7 @@
       ],
       "checks": [],
       "commitMessage": "test: verify the 0.17.0 release on four CI platforms",
-      "confirmation": null,
+      "confirmation": "Autopilot run run-E4-rDe1mHCmk (authorization 1, user-command, 2026-11-17T15:58:01.392Z): Full autopilot run run-E4-rDe1mHCmk: the user's direct instruction «После завершения своего текущего плана интегрируй Speech в main через merge ветки feature/speech-input.\n\nДерево Speech: /Users/oleksandroliinyk/VSCODE/Workflow_Kit_Speech\nБаза: bbab32d72f8a899cc6a01a0» (2026-11-17T15:44:42.033Z) to prepare and carry out the plan | effects: push ci/speech-integration в origin и ожидание CI четырёх платформ",
       "context": [
         {
           "path": "docs/planning/speech-integration.md",
@@ -588,7 +588,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "CI выпуска",
       "why": "Выпуск должен работать на macOS, Linux и Windows"
     }
@@ -600,12 +600,12 @@
 ## State
 
 - Scope: speech-integration (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Automation: 4 automatic, 0 manual criteria; CI origin ci/speech-integration (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 6/7
-- Revision: 1277
+- Progress: 7/7
+- Revision: 1279
 
 ## Objective
 
@@ -620,7 +620,7 @@
 
 ## Rounds
 
-### R1 — Implementation (implementation, OPEN)
+### R1 — Implementation (implementation, CLOSED)
 
 - [DONE] T001 — Перенос ветки Speech в main (work)
   - Commit: feat: integrate speech input from feature/speech-input 5e990e3
@@ -645,7 +645,7 @@
   - Commit: chore: release Workflow Kit 0.17.0
   - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/evidence/speech-integration-acceptance.md
   - Depends on: T004, DOCS-R1
-- [TODO] T006 — CI выпуска (delivery)
+- [DONE] T006 — CI выпуска (delivery)
   - Commit: test: verify the 0.17.0 release on four CI platforms
   - Files: docs/evidence/speech-integration-acceptance.md
   - Depends on: T005, DOCS-R1

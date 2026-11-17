@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1241,
+  "revision": 1242,
   "rounds": [
     {
       "digest": null,
@@ -594,7 +594,8 @@
         "product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle",
         "product-parts/workflow-engine/clusters/kit-host/modules/plan-view",
         "docs/planning/M40-autopilot-run-end.md",
-        "docs/planning/M40-user-decisions.md"
+        "docs/planning/M40-user-decisions.md",
+        "docs/planning/M40-user-decisions-validation.md"
       ],
       "fixes": null,
       "id": "T004A",
@@ -962,7 +963,7 @@
 - Automation: 6 automatic, 0 manual criteria; CI origin ci/M40-user-decisions (4 checks); publication main → origin/main
 - Current task: T004A
 - Progress: 4/13
-- Revision: 1241
+- Revision: 1242
 
 ## Objective
 
@@ -998,7 +999,7 @@
   - Depends on: T003
 - [IN_PROGRESS] T004A — Служба: полный автопилот и план без automation, один запуск плана, конец запуска (work)
   - Commit: fix: start an autopilot plan once and end the run with its scope
-  - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/control-panel, docs/architecture/OS-MATRIX.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle, product-parts/workflow-engine/clusters/kit-host/modules/plan-view, docs/planning/M40-autopilot-run-end.md, docs/planning/M40-user-decisions.md
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/control-panel, docs/architecture/OS-MATRIX.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle, product-parts/workflow-engine/clusters/kit-host/modules/plan-view, docs/planning/M40-autopilot-run-end.md, docs/planning/M40-user-decisions.md, docs/planning/M40-user-decisions-validation.md
   - Depends on: T004
 - [TODO] T005 — Служба: журнал решений, привязка к ходу, wfk decision и операции хоста (work)
   - Commit: feat: record user decisions from panel buttons and delivered user messages

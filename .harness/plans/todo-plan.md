@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1290,
+  "revision": 1292,
   "rounds": [
     {
       "digest": null,
@@ -425,7 +425,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Сквозные сценарии M41",
       "why": "Изменения Kit и службы проверяются вместе на настоящем bundle"
     },
@@ -547,8 +547,8 @@
 - Execution: sequential
 - Automation: 4 automatic, 0 manual criteria; CI origin ci/M41-autopilot-acceptance (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 3/7
-- Revision: 1290
+- Progress: 4/7
+- Revision: 1292
 
 ## Objective
 
@@ -576,7 +576,7 @@
   - Commit: feat: defer the Kit update while a plan is open
   - Files: product-parts/workflow-engine/clusters/kit-host/modules/kit-update, product-parts/control-panel/clusters/web-panel/modules/panel-shell, product-parts/backend-core/clusters/runtime/modules/cli/src/app.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, docs/architecture/HTTP-CONTRACTS.md, docs/architecture/OS-MATRIX.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/kit-card.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/kit-card.test.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/src/deferral.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/src/index.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/src/routes.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/src/update.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-update/test/kit-update-deferral.test.ts
   - Depends on: T002
-- [TODO] T004 — Сквозные сценарии M41 (work)
+- [DONE] T004 — Сквозные сценарии M41 (work)
   - Commit: test: verify M41 autopilot acceptance end to end
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/m41-acceptance-real.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/m41-kit-update-real.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/m40-world.ts, docs/evidence/M41-acceptance.md, docs/architecture/OS-MATRIX.md
   - Depends on: T003

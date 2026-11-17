@@ -142,13 +142,18 @@ export async function openWorld(prefix: string, options: { bundle?: { file: stri
     assert.ok(installed.ok, JSON.stringify(installed));
     return root;
   }
+  /** M41: `quality:apply` of the agent (no installs): the profile is CONFIGURED before the scope. */
+  async function configure(id: string, profile: Record<string, unknown>): Promise<void> {
+    await put(id, '.harness/inputs/quality.json', JSON.stringify(profile));
+    await kit(id, 'quality:apply', '--input', '.harness/inputs/quality.json');
+  }
   async function propose(id: string, scope: Record<string, unknown> = AUTO_SCOPE): Promise<void> {
     await put(id, '.harness/inputs/scope.json', JSON.stringify(scope));
     await kit(id, 'scope:propose', '--input', '.harness/inputs/scope.json', '--recommended', 'sequential', '--reason', 'One note and one release');
   }
 
   return {
-    tmp, env, runner, roots, remotes, git, tryGit, put, kit, refusedKit, plan, history, project, propose,
+    tmp, env, runner, roots, remotes, git, tryGit, put, kit, refusedKit, plan, history, project, configure, propose,
     close: () => rm(tmp, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }),
   };
 }
@@ -236,6 +241,8 @@ export async function bootService(world: World, settingsMode: AutopilotingMode =
     return text;
   }
   return {
+    // M41: the project lock of the completion, for «Обновить Kit» in the same service.
+    mutex,
     workflow, channel, settings, journal, runs, decisions, commands, preparation, control, words, waits, completion, autopilot: pilot, verdicts, ciReads, prompt, stop,
     close: () => {
       channel.close();

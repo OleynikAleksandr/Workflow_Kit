@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1199,
+  "revision": 1200,
   "rounds": [
     {
       "digest": {
@@ -45,8 +45,15 @@
       },
       "id": "R1",
       "kind": "implementation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Implementation"
+    },
+    {
+      "digest": null,
+      "id": "R2",
+      "kind": "fixes",
+      "status": "OPEN",
+      "title": "Windows: host-тикет и корень проекта"
     }
   ],
   "schema": "harness-workflow-plan/1",
@@ -1172,6 +1179,100 @@
     },
     {
       "acceptance": [
+        "Тикет принимает корень проекта, который Kit называет иначе, чем служба: короткое имя 8.3, другой регистр и прямые слеши на Windows",
+        "Сравнение корня зависит от платформы, переданной параметром; ветки win32 и linux покрыты тестами с инъекцией платформы",
+        "Другой проект по-прежнему отвергается с причиной root",
+        "Тесты на настоящем бандле (runs-real, runs-ci-real, complete-real, prepare-real, lifecycle-real, orchestrated-real, host-run) проходят в CI на Windows x64 и ARM64"
+      ],
+      "checks": [],
+      "commitMessage": "fix: match the project root of a host ticket on Windows",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M39-autopiloting-validation.md",
+          "required": true,
+          "heading": "1.0. Ядро и генерируемые инструкции — T001–T004"
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot",
+        "docs/architecture/OS-MATRIX.md"
+      ],
+      "fixes": "T002",
+      "id": "F002",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Host-тикет узнаёт корень проекта на Windows",
+      "why": "CI d1ffd1b (run 43996726304): на Windows x64 и ARM64 все host-команды отвергнуты «ticket bound to another root» — служба привязывает тикет к пути проекта в виде, отличном от пути Kit (короткое имя 8.3, регистр, разделители); автопилот на Windows не работает"
+    },
+    {
+      "acceptance": [
+        "Project-wide documents describe the round result",
+        "The round digest records result, decisions, contracts and references"
+      ],
+      "checks": [],
+      "commitMessage": "docs: reconcile documentation for R2",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "F002"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/architecture/OVERVIEW.md",
+        "docs/architecture/OS-MATRIX.md"
+      ],
+      "fixes": null,
+      "id": "DOCS-R2",
+      "iteration": 1,
+      "kind": "docs",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Reconcile project documentation and write the round digest",
+      "why": "Keep the project context current for the next agent and close the round."
+    },
+    {
+      "acceptance": [
+        "Версия 0.15.1 свободна; CHANGELOG и evidence фиксируют KIT_VERSION, source SHA и digest бандла",
+        "Сборка и установка штатные, wfk doctor --installed и installed-service успешны для 0.15.1",
+        "Evidence называет причину красного CI d1ffd1b и исправление F002"
+      ],
+      "checks": [
+        "installed-service"
+      ],
+      "commitMessage": "chore: deliver Workflow Kit 0.15.1",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "F002",
+        "DOCS-R2"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "package.json",
+        "package-lock.json",
+        "CHANGELOG.md",
+        "README.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "docs/evidence/M39-acceptance.md",
+        "docs/architecture/OS-MATRIX.md"
+      ],
+      "fixes": null,
+      "id": "D002",
+      "iteration": 1,
+      "kind": "delivery",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Поставка Workflow Kit 0.15.1 и проверка установленной службы",
+      "why": "Исправление F002 меняет приложение: нужна следующая patch-версия, штатная переустановка и installed-service"
+    },
+    {
+      "acceptance": [
         "CI для точного pushed SHA на ci/M39-autopiloting успешен на macOS, Linux, Windows x64 и ARM64; последний проверенный SHA назван явно.",
         "Проверены одноразовые end-to-end сценарии доступных провайдеров; отдельно записаны реальные и fake результаты, repo/remote SHA и число подтверждений.",
         "Пользовательская macOS и Windows-приёмка имеют фактический статус и владельца; непроведённые проверки не отмечены успешными.",
@@ -1194,7 +1295,7 @@
       ],
       "dependencies": [
         "T011",
-        "DOCS-R1"
+        "DOCS-R2"
       ],
       "docsWaiver": null,
       "files": [
@@ -1205,7 +1306,7 @@
       "id": "T012",
       "iteration": 2,
       "kind": "delivery",
-      "roundId": "R1",
+      "roundId": "R2",
       "status": "TODO",
       "title": "Четыре платформы CI и факты сквозных прогонов",
       "why": "Четыре платформы CI и факты сквозных прогонов",
@@ -1230,8 +1331,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 13/14
-- Revision: 1199
+- Progress: 13/17
+- Revision: 1200
 
 ## Objective
 
@@ -1249,7 +1350,7 @@
 
 ## Rounds
 
-### R1 — Implementation (implementation, OPEN)
+### R1 — Implementation (implementation, CLOSED)
 
 - [DONE] T001 — Kit: схема automation и CI, digest предложения, recovery (work)
   - Commit: feat: add reviewed automation schema and proposal digest
@@ -1303,11 +1404,26 @@
   - Commit: chore: deliver Workflow Kit 0.15.0 autopiloting
   - Files: package.json, package-lock.json, CHANGELOG.md, README.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, docs/evidence/M39-acceptance.md, docs/architecture/OS-MATRIX.md
   - Depends on: T010, DOCS-R1
+
+Digest: M39 R1: Kit 2.3.3 (automation, host-тикеты, defer-delivery); служба — настройки, журнал запусков, подготовка с ревью версии, ходы без предела 40, пауза/стоп, ожидания CI и вопросов, восстановление, приёмка, закрытие, stageCi и проверенная публикация; панель — «Автопилотирование», свёрнутые карточки, карточка запуска; сквозные тесты; F001.
+
+### R2 — Windows: host-тикет и корень проекта (fixes, OPEN)
+
+- [TODO] F002 — Host-тикет узнаёт корень проекта на Windows (work)
+  - Commit: fix: match the project root of a host ticket on Windows
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, docs/architecture/OS-MATRIX.md
+  - Fixes: T002
+- [TODO] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
+  - Commit: docs: reconcile documentation for R2
+  - Files: README.md, docs/architecture/OVERVIEW.md, docs/architecture/OS-MATRIX.md
+  - Depends on: F002
+- [TODO] D002 — Поставка Workflow Kit 0.15.1 и проверка установленной службы (delivery)
+  - Commit: chore: deliver Workflow Kit 0.15.1
+  - Files: package.json, package-lock.json, CHANGELOG.md, README.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, docs/evidence/M39-acceptance.md, docs/architecture/OS-MATRIX.md
+  - Depends on: F002, DOCS-R2
 - [TODO] T012 — Четыре платформы CI и факты сквозных прогонов (delivery)
   - Commit: test: verify M39 cross-platform delivery and live evidence
   - Files: docs/evidence/M39-acceptance.md, docs/architecture/OS-MATRIX.md
-  - Depends on: T011, DOCS-R1
-
-Digest: M39 R1: Kit 2.3.3 (automation, host-тикеты, defer-delivery); служба — настройки, журнал запусков, подготовка с ревью версии, ходы без предела 40, пауза/стоп, ожидания CI и вопросов, восстановление, приёмка, закрытие, stageCi и проверенная публикация; панель — «Автопилотирование», свёрнутые карточки, карточка запуска; сквозные тесты; F001.
+  - Depends on: T011, DOCS-R2
 
 State changes only through `scripts/workflow` commands. History lives in Git.

@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1304,
+  "revision": 1305,
   "rounds": [
     {
       "digest": {
@@ -78,7 +78,10 @@
       "«Обновить Kit» отклоняется, пока план открыт (409 scope-open) или запуск автопилота ещё не опубликовал результат (409 run-active), и в панели выключено с причиной",
       "Сквозные сценарии с bundle 2.4.5, выпуск 0.18.0 и CI четырёх платформ пройдены; доказательства в docs/evidence/M41-acceptance.md"
     ],
-    "acceptanceNote": null,
+    "acceptanceNote": {
+      "at": "2026-11-17T18:40:04.704Z",
+      "text": "Пользователь принял план в панели Workflow Kit"
+    },
     "approval": {
       "at": "2026-11-17T17:27:10.457Z",
       "text": "Пользователь 17.11.2026: «Автопилот должен автоматически сам заканчиваться сниматься при выполнении полного плана или не влиять на приёмку чтобы не возникало этой ошибки предложи лучший вариант»; на предложение из четырёх пунктов: «Окей согласен подготовь новый (спецификацию todo Plan).» | Execution mode chosen by the user: sequential: Автоматический выбор по поручению run-eX36hZQS5Jh3: sequential (recommended by the plan; ревью: agreed)"
@@ -230,9 +233,21 @@
           "runId": "run-eX36hZQS5Jh3"
         },
         "text": "Delivery T006 started by the advance instruction of run run-eX36hZQS5Jh3"
+      },
+      {
+        "at": "2026-11-17T18:40:04.687Z",
+        "decisionId": "dec-c6c553f395fc",
+        "kind": "accept",
+        "source": {
+          "kind": "button",
+          "messageId": null,
+          "runId": null,
+          "session": "25cedd72-7908-49d9-9f21-79cfca178443"
+        },
+        "text": "accept: Пользователь принял план в панели Workflow Kit"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "ACCEPTED",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "25cedd72-7908-49d9-9f21-79cfca178443",
@@ -660,12 +675,12 @@
 ## State
 
 - Scope: M41-autopilot-acceptance (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: ACCEPTED
 - Execution: sequential
 - Automation: 4 automatic, 0 manual criteria; CI origin ci/M41-autopilot-acceptance (4 checks); publication main → origin/main
 - Current task: none
 - Progress: 9/9
-- Revision: 1304
+- Revision: 1305
 
 ## Objective
 

@@ -147,15 +147,17 @@ Automation (Kit 2.3.0, spec M39 T001): the optional `automation` block of
 `scope:create`/`scope:propose` (`schema scope:propose`; contract in
 `workflow-plan/automation.md`) is refused with `PLAN_AUTOMATION` for its
 structure, `CHECK_UNKNOWN` (field `automation.acceptance[<i>].checks`) for
-an unknown quality check and `CI_CHECK_UNKNOWN` (`details {field, known,
-unknown}`) for a required CI check that no job of
-`.github/workflows/*.yml` reports (job id, literal job name or matrix
-name). Nothing is written then.
+an unknown quality check, `AUTOMATION_CHECK_UNRECORDED` (Kit 2.4.5, spec
+M41: `details {field, check, stage, reason}`, a check no unfinished task of
+the scope can record once the profile is CONFIGURED) and
+`CI_CHECK_UNKNOWN` (`details {field, known, unknown}`) for a required CI
+check that no job of `.github/workflows/*.yml` reports (job id, literal job
+name or matrix name). Nothing is written then.
 
 - `scope:create --input <file.json>` — the agreed scope; input:
   `schema scope:create`. Refusals: `SCOPE_EXISTS`, `NO_BASELINE`,
   `SPEC_REQUIRED`, `SCOPE_APPROVAL`, `PLAN_SCHEMA`, `PLAN_EXECUTION`,
-  `PLAN_AUTOMATION`, `CI_CHECK_UNKNOWN`;
+  `PLAN_AUTOMATION`, `AUTOMATION_CHECK_UNRECORDED`, `CI_CHECK_UNKNOWN`;
   `EXECUTION_MODE_REQUIRED` with config `host: "harness"` (next action
   `scope:propose`), `CONTEXT_MISSING`, `CONTEXT_TOO_LARGE`.
 - `scope:propose --input <file.json> --recommended sequential|orchestrated

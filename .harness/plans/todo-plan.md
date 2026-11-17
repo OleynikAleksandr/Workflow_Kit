@@ -3,7 +3,7 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": "DOCS-R1",
+  "currentTaskId": null,
   "lastClosed": {
     "closedAt": "2026-11-17T17:12:16.369Z",
     "scopeId": "speech-integration",
@@ -22,10 +22,31 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1294,
+  "revision": 1295,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "product-parts/kit-core/clusters/project-workflow/modules/workflow-quality/module.md",
+          "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/operations.md",
+          "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/autopilot.md",
+          "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting-completion.md",
+          "product-parts/workflow-engine/clusters/kit-host/modules/kit-update/module.md",
+          "docs/architecture/HTTP-CONTRACTS.md"
+        ],
+        "decisions": [
+          "Missing acceptance evidence turns the run into a wait for the user's acceptance (phase accepting with manualAcceptance), never a stop",
+          "Kit runs at the commit of a delivery task only the delivery-stage checks it names; required unnamed ones never run",
+          "The recording rule reuses the runner's selectChecks; push never records, appliesTo must fit the task files",
+          "The Kit update is deferred, the exactSha rule is not weakened"
+        ],
+        "references": [
+          "docs/planning/M41-autopilot-acceptance.md",
+          "docs/evidence/M41-acceptance.md",
+          "docs/usage-autopiloting.md"
+        ],
+        "result": "M41 R1: Kit 2.4.5 records the delivery checks a delivery task names and refuses automation criteria no task can record (AUTOMATION_CHECK_UNRECORDED), autopilot:status reports checksPending/checksUnreachable; the service waits for the user's acceptance instead of stopping the run, then closes and publishes, and warns early; «Обновить Kit» waits for the close of the plan and the publication of the run (409 scope-open/run-active, re-checked under the project lock); end-to-end scenarios pass on the real bundle."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -465,7 +486,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -548,9 +569,9 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Automation: 4 automatic, 0 manual criteria; CI origin ci/M41-autopilot-acceptance (4 checks); publication main → origin/main
-- Current task: DOCS-R1
-- Progress: 4/7
-- Revision: 1294
+- Current task: none
+- Progress: 5/7
+- Revision: 1295
 
 ## Objective
 
@@ -582,7 +603,7 @@
   - Commit: test: verify M41 autopilot acceptance end to end
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/m41-acceptance-real.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/m41-kit-update-real.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/m40-world.ts, docs/evidence/M41-acceptance.md, docs/architecture/OS-MATRIX.md
   - Depends on: T003
-- [IN_PROGRESS] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M41-autopilot-acceptance.md, docs/architecture/OS-MATRIX.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting-completion.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/run-end.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, docs/architecture/HTTP-CONTRACTS.md, docs/evidence/M41-acceptance.md, docs/usage-autopiloting.md, docs/architecture/workflow-kit/WorkflowKitCommands.md
   - Depends on: T001, T002, T003, T004
@@ -594,5 +615,7 @@
   - Commit: test: verify M41 on four CI platforms
   - Files: docs/evidence/M41-acceptance.md
   - Depends on: T005, DOCS-R1
+
+Digest: M41 R1: Kit 2.4.5 records the delivery checks a delivery task names and refuses automation criteria no task can record (AUTOMATION_CHECK_UNRECORDED), autopilot:status reports checksPending/checksUnreachable; the service waits for the user's acceptance instead of stopping the run, then closes and publishes, and warns early; «Обновить Kit» waits for the close of the plan and the publication of the run (409 scope-open/run-active, re-checked under the project lock); end-to-end scenarios pass on the real bundle.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

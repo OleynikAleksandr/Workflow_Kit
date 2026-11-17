@@ -207,3 +207,18 @@ null` и `mutex` (тот же `KeyedMutex`, что у завершения за�
 | T004 | сквозные сценарии с bundle 2.4.5, доказательства | `autopilot/test`, `docs/evidence/M41-acceptance.md` |
 | T005 | выпуск 0.18.0 (delivery) | версии, CHANGELOG, README, evidence |
 | T006 | CI четырёх платформ (delivery) | evidence |
+
+## 7. Уточнения реализации
+
+- T001: правило `canRecord`/`unrecordedChecks` живёт в `workflow-quality`
+  (`quality-recording.ts`) и считает выбор тем же `selectChecks`, что раннер. В `plan-view`
+  типа статуса автопилота нет: поля `checksPending`/`checksUnreachable` получил тип службы
+  `RunKitStatus` (`autopilot/src/run-kit.ts`) в T002. Окно `checksPending` — 200 новейших
+  коммитов Kit истории HEAD, как у доказательств, которые служба передаёт `accept`.
+- T002: ожидание приёмки пользователя — фаза `accepting` с `manualAcceptance`, а не новая
+  фаза; панель называет её «Ждёт вашей приёмки». Кнопки запуска — «Пауза» и «Остановить
+  автопилот», принимает карточка плана.
+- T003: запрет читает `status` Kit проекта (а не кэш панели) и `active` журнала запусков;
+  одобрение хуков Codex после обновления идёт вне блокировки проекта — оно не пишет git.
+- DOCS-R1: руководство по автопилоту (`docs/usage-autopiloting.md`) и справочник команд
+  (`WorkflowKitCommands.md`) добавлены в файлы задачи документации.

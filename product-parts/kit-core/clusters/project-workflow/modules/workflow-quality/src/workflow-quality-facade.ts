@@ -38,6 +38,12 @@ import {
 import { qualityInputSchema } from "./quality-input-schema.js";
 import { proposeQuality, type QualityProposal } from "./quality-proposal.js";
 import {
+  canRecord,
+  type RecordingTask,
+  type UnrecordedCheck,
+  unrecordedChecks,
+} from "./quality-recording.js";
+import {
   ensurePlannedChecks,
   type PlannedChecks,
   runStage,
@@ -64,6 +70,11 @@ export type {
 } from "./quality-config.js";
 export type { StackDetection, StackId } from "./quality-detect.js";
 export type { ProposalEntry, QualityProposal } from "./quality-proposal.js";
+export type {
+  RecordingTask,
+  UnrecordedCheck,
+  UnrecordedReason,
+} from "./quality-recording.js";
 export type {
   CheckResult,
   CheckStatus,
@@ -171,6 +182,23 @@ export class WorkflowQualityFacade {
   /** Checks a stage would run, without running them. */
   selectChecks(request: StageRequest): CheckDefinition[] {
     return selectChecks(request);
+  }
+
+  /**
+   * Whether the task can record a passed result of the check in the evidence
+   * of its commit (spec M41 2.1): the runner's selection plus `appliesTo`.
+   */
+  canRecord(config: WorkflowConfig, id: string, task: RecordingTask): boolean {
+    return canRecord(config, id, task);
+  }
+
+  /** Checks of `ids` no task of `tasks` can record, with the reason. */
+  unrecordedChecks(
+    config: WorkflowConfig,
+    ids: readonly string[],
+    tasks: readonly RecordingTask[]
+  ): UnrecordedCheck[] {
+    return unrecordedChecks(config, ids, tasks);
   }
 
   runStage(request: StageRequest): StageReport {

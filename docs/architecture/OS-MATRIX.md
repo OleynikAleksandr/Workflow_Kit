@@ -79,6 +79,7 @@
 | M39: автопилотирование (Kit 2.3.0–2.3.3, приложение 0.15.0–0.15.1; T001–T012, F001–F005, D002) | [матрица M39](OS-MATRIX-M39.md) | то же | то же |
 | M40: решения пользователя (Kit 2.4.0–2.4.4, приложение 0.16.0; T001–T009) | [матрица M40](OS-MATRIX-M40.md) | то же | то же |
 | speech-integration T003: CLI загружает сервер только для `serve` (команды без `ws` работают); копия приложения с пакетами lock без `dev`, `package-lock.json` и notices, без Cargo `target`; `DEPENDENCY_MISSING` до изменений; `doctor --installed` проверяет зависимости копии | общий Node-код; helper речи ARM64 в `<данные>/speech` с `helper.json` (версия, sha256), замена через временный файл и `rename`; Intel — не ставится | общий Node-код, helper не ставится и не удаляется | общий Node-код x64/ARM64 (пути `path.win32` в тестах), helper не ставится и не удаляется |
+| M41 T001: Kit 2.4.5 — проверки стадии `delivery`, названные задачей поставки, выполняются в `pre-commit` после проверок `commit` и записываются в доказательства коммита; `AUTOMATION_CHECK_UNRECORDED` у `scope:propose`/`scope:create`; `checksPending`/`checksUnreachable` в `autopilot:status` | общий Node-код Kit; команды проверок без shell тем же раннером, что `commit` | то же | то же: x64/ARM64, `.cmd` проверок — правилами существующего раннера; новых путей и процессов нет |
 
 ## Speech Input — native helper
 

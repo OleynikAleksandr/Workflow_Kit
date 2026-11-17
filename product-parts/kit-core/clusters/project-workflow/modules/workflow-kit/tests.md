@@ -116,6 +116,17 @@ worktrees where noted):
   --host`, `install --with` without `--update` (`USAGE`), text output, recovery events, SessionStart and git-hook
   dispatch, the compiled program, and `identity:set` outside a project
   (its refusals and the write to a temporary `GIT_CONFIG_GLOBAL`).
+- `test/workflow-kit-delivery-checks.test.mjs` (Kit 2.4.5, spec M41 2.1) —
+  with real hooks: the four `AUTOMATION_CHECK_UNRECORDED` reasons and their
+  details; a work task records its assigned prepare check, no delivery
+  check runs; the delivery task runs only its named delivery check after
+  the commit checks (a required unnamed one never runs, an `appliesTo`
+  mismatch is skipped), a failure rolls back and keeps the edits;
+  `checksPending`/`checksUnreachable` as the work goes; `acceptRun` reads
+  the stored prepare report and the delivery record. A new project: a
+  future id passes before QUALITY; after `quality:apply` a delivery check
+  no delivery task names is unreachable, and with only DOCS left
+  `kit:file-lines` is unreachable while `kit:md-links` is not.
 - The integration commands, busy refusals and the merge-aware hook are
   tested in `workflow-integration/test/workflow-integration-merge.test.mjs`.
 

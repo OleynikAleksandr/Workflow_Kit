@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1284,
+  "revision": 1286,
   "rounds": [
     {
       "digest": null,
@@ -258,14 +258,41 @@
         "product-parts/kit-core",
         "product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle",
         "product-parts/workflow-engine/clusters/kit-host/modules/plan-view",
-        "docs/architecture/OS-MATRIX.md"
+        "docs/architecture/OS-MATRIX.md",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/module.md",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-payload.ts",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/test/workflow-installer-payload.test.mjs",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/autopilot.md",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/module.md",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/operations.md",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-automation.ts",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-autopilot-status.ts",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-hooks.ts",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-scope-create.ts",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-autopilot-grant.test.mjs",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-delivery-checks.test.mjs",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/tests.md",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/automation.md",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/module.md",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/src/plan-input-schema-automation.ts",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/src/plan-input-schema.ts",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-quality/module.md",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-quality/src/quality-recording.ts",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-quality/src/quality-runner.ts",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-quality/src/workflow-quality-facade.ts",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-quality/test/workflow-quality-recording.test.mjs",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/src/bundle-meta.ts",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/PROVENANCE",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/workflow-kit-2.4.4.mjs.gz",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/workflow-kit-2.4.5.mjs.gz"
       ],
       "fixes": null,
       "id": "T001",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Kit 2.4.5: проверки поставки и выполнимые критерии",
       "why": "installed-service назначалась задаче поставки, но Kit её не запускал, а план с ней принял"
     },
@@ -503,8 +530,8 @@
 - Execution: sequential
 - Automation: 4 automatic, 0 manual criteria; CI origin ci/M41-autopilot-acceptance (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 0/7
-- Revision: 1284
+- Progress: 1/7
+- Revision: 1286
 
 ## Objective
 
@@ -521,9 +548,9 @@
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T001 — Kit 2.4.5: проверки поставки и выполнимые критерии (work)
+- [DONE] T001 — Kit 2.4.5: проверки поставки и выполнимые критерии (work)
   - Commit: feat: record delivery checks and refuse unrecordable automation checks in Kit 2.4.5
-  - Files: product-parts/kit-core, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle, product-parts/workflow-engine/clusters/kit-host/modules/plan-view, docs/architecture/OS-MATRIX.md
+  - Files: product-parts/kit-core, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle, product-parts/workflow-engine/clusters/kit-host/modules/plan-view, docs/architecture/OS-MATRIX.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-payload.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/test/workflow-installer-payload.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/autopilot.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/operations.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-automation.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-autopilot-status.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-hooks.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/src/kit-scope-create.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-autopilot-grant.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-delivery-checks.test.mjs, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/tests.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/automation.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/src/plan-input-schema-automation.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-plan/src/plan-input-schema.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-quality/module.md, product-parts/kit-core/clusters/project-workflow/modules/workflow-quality/src/quality-recording.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-quality/src/quality-runner.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-quality/src/workflow-quality-facade.ts, product-parts/kit-core/clusters/project-workflow/modules/workflow-quality/test/workflow-quality-recording.test.mjs, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/module.md, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/src/bundle-meta.ts, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/PROVENANCE, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/workflow-kit-2.4.4.mjs.gz, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle/vendor/workflow-kit-2.4.5.mjs.gz
 - [TODO] T002 — Служба: приёмка пользователя вместо остановки (work)
   - Commit: feat: wait for the user's acceptance instead of stopping the autopilot run
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting-completion.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/run-end.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/complete.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/manual-acceptance.test.ts, product-parts/control-panel/clusters/web-panel/modules/session-view, docs/architecture/OS-MATRIX.md

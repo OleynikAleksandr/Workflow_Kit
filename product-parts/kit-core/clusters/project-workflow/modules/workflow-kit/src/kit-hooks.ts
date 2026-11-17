@@ -9,6 +9,7 @@ import {
   workflowPlanFacade,
 } from "../../workflow-plan/src/workflow-plan-facade.js";
 import {
+  type CheckDefinition,
   type StageReport,
   workflowQualityFacade,
 } from "../../workflow-quality/src/workflow-quality-facade.js";
@@ -127,19 +128,36 @@ function preCommit(context: KitContext): HookResult {
   guardExecutorCandidate(context, journal);
   const task = candidateTask(journal);
   const before = fingerprints(root, journal.selected);
-  const report = workflowQualityFacade.runStage({
-    assigned: journal.checks,
-    config: workflowQualityFacade.readConfig(root),
+  const config = workflowQualityFacade.readConfig(root);
+  const request = {
+    config,
     docsWaiver: task?.docsWaiver ?? null,
     env: context.env,
     files: journal.selected,
     // The index equals the candidate: paths outside it are not committed.
     removed: git.absentPaths(root, journal.selected),
     root,
+  };
+  const report = workflowQualityFacade.runStage({
+    ...request,
+    assigned: journal.checks,
     service: isServiceCommit(journal, task),
     stage: "commit",
   });
-  workflowQualityFacade.recordEvidence(root, journal.id, [report]);
+  const delivery = report.ok
+    ? deliveryChecks(journal, task, config.quality.checks)
+    : [];
+  // M41: the delivery checks a delivery task names join the evidence of its commit.
+  const deliveryReport =
+    delivery.length > 0
+      ? workflowQualityFacade.runStage({
+          ...request,
+          only: delivery,
+          stage: "delivery",
+        })
+      : null;
+  const reports = deliveryReport ? [report, deliveryReport] : [report];
+  workflowQualityFacade.recordEvidence(root, journal.id, reports);
   if (
     git.git.text(root, ["write-tree"]) !== journal.candidateTree ||
     fingerprints(root, journal.selected) !== before
@@ -155,9 +173,35 @@ function preCommit(context: KitContext): HookResult {
       `Commit checks failed:\n${failedSummary(report)}`
     );
   }
+  if (deliveryReport && !deliveryReport.ok) {
+    return fail(
+      "CHECK_FAILED",
+      `Delivery checks of the task failed:\n${failedSummary(deliveryReport)}`
+    );
+  }
+  const results = reports.flatMap((item) => item.results);
   return pass(
-    `Workflow checks passed: ${report.results.map((item) => `${item.id} ${item.status}`).join(", ") || "none"}.`
+    `Workflow checks passed: ${results.map((item) => `${item.id} ${item.status}`).join(", ") || "none"}.`
   );
+}
+
+/**
+ * Delivery-stage checks the delivery task names in `checks` (spec M41 2.1):
+ * they run once its commit checks passed. Required delivery checks the task
+ * does not name are not run.
+ */
+function deliveryChecks(
+  journal: CommitJournal,
+  task: WorkflowTask | null,
+  checks: readonly CheckDefinition[]
+): string[] {
+  if (journal.role !== "implementation" || task?.kind !== "delivery") {
+    return [];
+  }
+  const assigned = journal.checks;
+  return checks
+    .filter((check) => check.stage === "delivery" && assigned.includes(check.id))
+    .map((check) => check.id);
 }
 
 function commitMessage(context: KitContext, args: string[]): HookResult {

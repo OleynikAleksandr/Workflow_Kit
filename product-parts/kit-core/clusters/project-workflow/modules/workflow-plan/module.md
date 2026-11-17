@@ -247,7 +247,9 @@ by several descriptors live in `plan-input-schema-fields.ts`;
 - Both scope descriptors describe the optional `automation` block (code
   `PLAN_AUTOMATION`, fields in `plan-input-schema-automation.ts`) and carry
   it in their example
-  ([automation.md](automation.md#input-schema)).
+  ([automation.md](automation.md#input-schema)); since Kit 2.4.5 the scope
+  rules and the `checks` field also name `AUTOMATION_CHECK_UNRECORDED` (a
+  criterion check no task of the scope can record, spec M41 2.1).
 
 ## Transitions (`plan-transitions.ts`, `plan-service-tasks.ts`)
 

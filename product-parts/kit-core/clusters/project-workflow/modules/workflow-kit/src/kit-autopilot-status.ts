@@ -9,8 +9,10 @@ import type {
 import {
   type AutopilotGrant,
   type ScopeProposalRef,
+  type WorkflowPlan,
   workflowPlanFacade,
 } from "../../workflow-plan/src/workflow-plan-facade.js";
+import { workflowQualityFacade } from "../../workflow-quality/src/workflow-quality-facade.js";
 import { activeRecords } from "./kit-assignment.js";
 import type { KitContext } from "./kit-context.js";
 import { HOST_PROTOCOL } from "./kit-host-auth.js";
@@ -38,8 +40,15 @@ export interface CriterionState {
   evidence: string[];
   /** Evidence files not tracked at HEAD. */
   evidenceMissing: string[];
+  /** Checks without a passed record on the history of HEAD (Kit 2.4.5, spec M41). */
+  checksPending: string[];
+  /** Of `checksPending`, those no unfinished task of the scope can record. */
+  checksUnreachable: string[];
   kind: "automatic" | "manual";
 }
+
+/** Kit commits of HEAD the host offers as evidence (its own window, newest first). */
+const EVIDENCE_WINDOW = 200;
 
 /** The autopilot decision input plus the user's pause and the M39 facts. */
 export type KitAutopilotStatus = AutopilotProjectStatus & {
@@ -98,25 +107,68 @@ function orchestrationOf(
   };
 }
 
+/**
+ * Check ids with a passed record in the evidence of a Kit commit of HEAD's
+ * history: the newest Kit commits the host offers to `accept`, as
+ * `verifiedEvidence` reads them (any stage).
+ */
+function passedChecks(context: KitContext, head: string | null): Set<string> {
+  const passed = new Set<string>();
+  if (head === null) {
+    return passed;
+  }
+  const commits = context.git
+    .history(context.root, null, head)
+    .reverse()
+    .filter((commit) => (commit.trailers["Workflow-Transaction"] ?? []).length > 0)
+    .slice(0, EVIDENCE_WINDOW);
+  for (const commit of commits) {
+    const record = workflowQualityFacade.readEvidence(context.root, commit.sha);
+    for (const report of record?.reports ?? []) {
+      for (const result of report.results) {
+        if (result.status === "passed") {
+          passed.add(result.id);
+        }
+      }
+    }
+  }
+  return passed;
+}
+
 function acceptanceOf(
   context: KitContext,
-  status: KitStatus
+  status: KitStatus,
+  plan: WorkflowPlan | null
 ): CriterionState[] | null {
   const automation = status.scope?.automation;
   if (!automation) {
     return null;
   }
-  return automation.acceptance.map((entry) => ({
-    checks: [...entry.checks],
-    criterion: entry.criterion,
-    evidence: [...entry.evidence],
-    evidenceMissing: entry.evidence.filter(
-      (file) =>
-        status.head === null ||
-        context.git.show(context.root, status.head, file) === null
-    ),
-    kind: entry.kind,
-  }));
+  const named = automation.acceptance.some((entry) => entry.checks.length > 0);
+  const passed = named ? passedChecks(context, status.head) : new Set<string>();
+  const config = workflowQualityFacade.readConfig(context.root);
+  const open = (plan?.tasks ?? []).filter((task) => task.status !== "DONE");
+  return automation.acceptance.map((entry) => {
+    const pending = entry.checks.filter((id) => !passed.has(id));
+    const unreachable = new Set(
+      workflowQualityFacade
+        .unrecordedChecks(config, pending, open)
+        .map((item) => item.check)
+    );
+    return {
+      checks: [...entry.checks],
+      checksPending: pending,
+      checksUnreachable: pending.filter((id) => unreachable.has(id)),
+      criterion: entry.criterion,
+      evidence: [...entry.evidence],
+      evidenceMissing: entry.evidence.filter(
+        (file) =>
+          status.head === null ||
+          context.git.show(context.root, status.head, file) === null
+      ),
+      kind: entry.kind,
+    };
+  });
 }
 
 /** The status shape the autopilot decision reads. */
@@ -124,7 +176,7 @@ export function autopilotStatus(context: KitContext): KitAutopilotStatus {
   const status = readStatus(context);
   const plan = workflowPlanFacade.read(context.root);
   return {
-    acceptance: acceptanceOf(context, status),
+    acceptance: acceptanceOf(context, status, plan),
     authorization: structuredClone(plan?.scope?.authorization ?? null),
     blockedReason: status.scope?.blockedReason ?? null,
     capability: { ...AUTOPILOT_CAPABILITY },

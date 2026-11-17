@@ -63,7 +63,13 @@ managed hooks.
     from the candidate plan; `removed` = `absentPaths` of the selected
     files (`git rm -r --cached node_modules`) is skipped by content builtins
     and `{files}`;
-  - stores the report as pending evidence of the transaction;
+  - Kit 2.4.5 (spec M41 2.1): for role `implementation` of a `delivery`
+    task, once the commit stage passed, runs exactly the `delivery`-stage
+    checks the task names in `checks` (`only`, same files); required
+    delivery checks it does not name are not run. Their report joins the
+    evidence of the commit; a failure is `CHECK_FAILED` («Delivery checks
+    of the task failed») with the same rollback;
+  - stores the reports as pending evidence of the transaction;
   - `CHECK_MODIFIED_CANDIDATE` when a check changed the index tree or a
     selected file; `CHECK_FAILED` with the failed checks and their output
     tail otherwise. The transaction then rolls back the plan and index and

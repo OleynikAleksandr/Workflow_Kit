@@ -79,6 +79,13 @@ every change is a Kit commit unless noted:
   plan validates its structure (`PLAN_AUTOMATION`), the Kit checks
   `automation.acceptance[i].checks` with `workflow-quality`
   (`CHECK_UNKNOWN`, field `automation.acceptance[i].checks`) and
+  every such check against the unfinished tasks of the scope once the
+  profile is CONFIGURED (Kit 2.4.5, spec M41 2.1): a check no task can
+  record (`unrecordedChecks` of `workflow-quality`) is
+  `AUTOMATION_CHECK_UNRECORDED` with details `{field, check, stage,
+  reason}`, `reason` one of `stage-push`, `delivery-unassigned`,
+  `not-assigned`, `applies-to`; before QUALITY future ids pass as for
+  `CHECK_UNKNOWN`. Then
   `automation.ci.requiredChecks` against the project CI configuration
   (`CI_CHECK_UNKNOWN`, details `{field, known, unknown}`). The check names
   come from `kit-ci-config.ts`: every `.github/workflows/*.yml|yaml`, job

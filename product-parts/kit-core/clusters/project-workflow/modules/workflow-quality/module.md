@@ -111,6 +111,24 @@ The project quality profile of the Workflow Kit:
   and alternatives. Kit builtins are not part of the proposal; they stay in
   the configuration.
 
+## Recording rule (`quality-recording.ts`, Kit 2.4.5, spec M41 2.1)
+
+- `canRecord(config, id, task)` — whether a task `{kind, checks, files}`
+  can record a `passed` result of check `id` in the evidence of its commit,
+  by the runner's own `selectChecks`: `commit` — required or assigned
+  (DOCS and QUALITY commits are service commits: only
+  `DOCUMENTATION_BUILTINS`); `prepare` — required or assigned, not QUALITY
+  (its commit runs no prepare stage); `delivery` — a `delivery` task that
+  names it; `push` — never. Then `appliesTo` must fit the task files
+  (`appliesToTask`): no globs or no files, a file the glob matches, or a
+  task directory that holds the literal start of a glob or lies under it;
+  a check the runner skips is no record.
+- `unrecordedChecks(config, ids, tasks)` — the ids no task can record, with
+  `{check, reason, stage}`; `reason` is `stage-push`, `applies-to` (a task
+  selects it but its files never match), `delivery-unassigned` or
+  `not-assigned`. Ids the profile does not know are left out.
+- `effectiveChecks(config)` of `quality-runner.ts` is exported for it.
+
 ## Check Runner (`quality-runner.ts`)
 
 - `selectChecks(request)` / `runStage(request)`; the request is
@@ -282,6 +300,10 @@ Node built-ins only.
   files that fail them otherwise, `kit:docs-contracts` still fails,
   `{files}` drops them and skips when none is left), the implicit guard
   for a profile without it, the waiver and evidence records.
+- `test/workflow-quality-recording.test.mjs` — `canRecord` per stage and
+  task kind (service commits without `kit:file-lines`, QUALITY without
+  prepare, delivery only when named, push never), `appliesTo` against task
+  files and directories, and the `unrecordedChecks` reasons.
 - `test/workflow-quality-apply.test.mjs` — approval, validation before
   installs, failed install, builtins kept, policy and contracts, re-apply,
   drift (a stack without manifests is missing only for manifest tools).

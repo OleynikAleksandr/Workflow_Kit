@@ -98,7 +98,7 @@ function commitScope(
     plan.scope.decisions.push({ ...decision });
   }
   ensureInputChecks(context, input.tasks);
-  ensureAutomationInput(context, input.automation);
+  ensureAutomationInput(context, input.automation, plan.tasks);
   ensureContextBudget(context, plan, plan.tasks);
   const documents = changedDocuments(context, [
     input.spec,
@@ -195,7 +195,11 @@ export function proposeScope(
       transition(context)
     );
     ensureInputChecks(context, request.input.tasks);
-    ensureAutomationInput(context, request.input.automation);
+    ensureAutomationInput(
+      context,
+      request.input.automation,
+      candidate.tasks
+    );
     ensureContextBudget(context, candidate, candidate.tasks);
     const proposal = workflowExecutionModeFacade.nextProposal(context.root, {
       hasParallelWork: workflowPlanFacade.hasParallelWork(candidate),

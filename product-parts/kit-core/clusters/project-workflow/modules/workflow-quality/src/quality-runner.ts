@@ -69,7 +69,7 @@ function tail(text: string): string {
 }
 
 /** The configured checks plus the implicit Kit guards the profile lacks. */
-function effectiveChecks(config: WorkflowConfig): CheckDefinition[] {
+export function effectiveChecks(config: WorkflowConfig): CheckDefinition[] {
   const listed = config.quality.checks;
   const missing = IMPLICIT_BUILTINS.filter(
     (id) => !listed.some((check) => check.id === id || check.builtin === id)

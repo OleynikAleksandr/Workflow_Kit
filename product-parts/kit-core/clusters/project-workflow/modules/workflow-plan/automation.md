@@ -86,7 +86,9 @@ integer (`PLAN_SCHEMA`, field `scope.proposal`).
 `automation.ci.remote|branch|requiredChecks|exactSha|task` and
 `automation.publication.branch|upstream` with the code `PLAN_AUTOMATION`;
 their example carries a full block and passes the real validator. The
-rules name `CHECK_UNKNOWN`, `CI_CHECK_UNKNOWN` and the proposal digest.
+rules name `CHECK_UNKNOWN`, `AUTOMATION_CHECK_UNRECORDED` (Kit 2.4.5: a
+check no task of the scope can record, see `workflow-kit/operations.md`),
+`CI_CHECK_UNKNOWN` and the proposal digest.
 
 ## Tests
 

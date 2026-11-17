@@ -48,7 +48,7 @@ export const AUTOMATION_FIELDS: FieldSpec[] = [
     ".acceptance[].checks",
     "string[]",
     true,
-    "Quality check ids whose success proves the criterion (CHECK_UNKNOWN)."
+    "Quality check ids whose success proves the criterion (CHECK_UNKNOWN); a task of the scope must be able to record each (AUTOMATION_CHECK_UNRECORDED)."
   ),
   automationField(
     ".acceptance[].evidence",

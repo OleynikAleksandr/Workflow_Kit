@@ -117,7 +117,7 @@ const SCOPE_FIELDS: FieldSpec[] = [
 const SCOPE_RULES = [
   "A scope is created only when no scope is open (SCOPE_EXISTS) and the repository has a commit (NO_BASELINE).",
   "A scope with several tasks needs `spec` (SPEC_REQUIRED).",
-  "`automation` is optional; when present it describes every acceptance criterion once, names only delivery tasks of the scope, quality check ids known to the profile (CHECK_UNKNOWN) and CI jobs of the project CI configuration (CI_CHECK_UNKNOWN); other refusals are PLAN_AUTOMATION.",
+  "`automation` is optional; when present it describes every acceptance criterion once, names only delivery tasks of the scope, quality check ids known to the profile (CHECK_UNKNOWN) that a task of the scope can record once the profile is CONFIGURED — a commit or prepare check the task runs, a delivery check a delivery task names in checks, never a push check, appliesTo matching the task files (AUTOMATION_CHECK_UNRECORDED) — and CI jobs of the project CI configuration (CI_CHECK_UNKNOWN); other refusals are PLAN_AUTOMATION.",
   "The proposal digest (`scope:proposal --digest`) covers the whole body, automation and CI included, and the bytes of the spec and context documents.",
   ...TASK_RULES,
 ];

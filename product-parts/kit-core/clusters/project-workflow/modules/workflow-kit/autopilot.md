@@ -100,7 +100,12 @@ a Kit without the field or with `complete` false gets «Обновите Kit
 проекта» from the app (`plan-view` `autopilotSupport`), `proposal` (the reviewed
 proposal reference or `null`), `authorization` (the grant or `null`) and
 `acceptance` (`null` on a legacy plan, else every criterion with `kind`,
-`checks`, `evidence` and `evidenceMissing` — evidence not tracked at HEAD).
+`checks`, `evidence` and `evidenceMissing` — evidence not tracked at HEAD;
+Kit 2.4.5, spec M41 2.1: `checksPending` — checks without a `passed`
+result, of any stage, in the evidence of the newest 200 Kit commits of
+HEAD's history (the window the host offers to `accept`), and
+`checksUnreachable` — those of them no unfinished task of the scope can
+record, by `unrecordedChecks` of `workflow-quality`).
 The decision of `workflow-autopilot` reads `authorization` and `proposal`
 of this status since Kit 2.3.3 (its module contract).
 

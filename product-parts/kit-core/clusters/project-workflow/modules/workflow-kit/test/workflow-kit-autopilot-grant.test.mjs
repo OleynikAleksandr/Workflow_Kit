@@ -36,6 +36,9 @@ try {
   assert.deepEqual(status.acceptance, [
     {
       checks: ["unit"],
+      // Kit 2.4.5: no record yet; before QUALITY the stage of "unit" is unknown.
+      checksPending: ["unit"],
+      checksUnreachable: [],
       criterion: 0,
       evidence: ["docs/evidence/result.md"],
       evidenceMissing: ["docs/evidence/result.md"],

@@ -59,7 +59,7 @@ async function setup(over: Partial<CrossReviewDeps> = {}) {
   const review = createCrossReview(deps);
   await review.load();
   const ctx: StopContext = { key: MAIN, client: 'claude', sessionId: 'main-1', projectId: 'p1', stopHookActive: false, lastAssistantMessage: null, woken: false, turnStartedAt: AFTER };
-  return { review, open, decided, lines, plan, ctx, cleanup: () => rm(folder, { recursive: true, force: true }) };
+  return { review, open, decided, lines, plan, ctx, cleanup: () => rm(folder, { recursive: true, force: true, maxRetries: 10, retryDelay: 50 }) };
 }
 
 test('answered in the chat: the proposal closes the agent question, then the proposal question asks for the review (M4 12.2)', async () => {

@@ -42,7 +42,7 @@ async function setup(initial: ProposalDigestRef | null) {
   };
   assert.deepEqual(await review.decide(ctx(MAIN), true), { kind: 'continue', text: PLAN_REQUEST });
   await stop(MAIN, 'План: T001', 'decider', []);
-  return { folder, review, sent, finished, stop, setVersion: (v: ProposalDigestRef | null) => void (version = v), cleanup: () => rm(folder, { recursive: true, force: true }) };
+  return { folder, review, sent, finished, stop, setVersion: (v: ProposalDigestRef | null) => void (version = v), cleanup: () => rm(folder, { recursive: true, force: true, maxRetries: 10, retryDelay: 50 }) };
 }
 
 const v = (digest: string, generation = 1): ProposalDigestRef => ({ scopeId: 's1', generation, digest: digest.repeat(64).slice(0, 64), documents: ['docs/spec.md'] });

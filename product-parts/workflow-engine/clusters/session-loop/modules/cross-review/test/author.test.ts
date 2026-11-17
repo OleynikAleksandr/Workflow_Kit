@@ -42,7 +42,7 @@ async function setup(over: Partial<CrossReviewDeps> = {}) {
   const ctx = (key: string, turnStartedAt: string | null): StopContext => ({
     key, client: key.split(':')[0]!, sessionId: key.split(':')[1]!, projectId: 'p1', stopHookActive: false, lastAssistantMessage: null, turnStartedAt, woken: false,
   });
-  return { review, asked, created, turns, ctx, cleanup: () => rm(folder, { recursive: true, force: true }) };
+  return { review, asked, created, turns, ctx, cleanup: () => rm(folder, { recursive: true, force: true, maxRetries: 10, retryDelay: 50 }) };
 }
 
 test('isAuthor: a turn begun no later than the proposal is the author; unknown times count as author', () => {

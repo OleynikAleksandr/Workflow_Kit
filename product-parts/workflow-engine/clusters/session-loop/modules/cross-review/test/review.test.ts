@@ -56,7 +56,8 @@ async function setup(over: Partial<CrossReviewDeps> = {}) {
     folder, review, sent, woken, created, settle, ctx, stop, begin,
     setToggle: (on: boolean) => void (toggle = on),
     setProposal: (value: typeof proposal) => void (proposal = value),
-    cleanup: () => rm(folder, { recursive: true, force: true }),
+    // A late write of the review store may land during the removal (ENOTEMPTY): retry (M39 F005).
+    cleanup: () => rm(folder, { recursive: true, force: true, maxRetries: 10, retryDelay: 50 }),
   };
 }
 

@@ -3,14 +3,14 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": "F005",
+  "currentTaskId": null,
   "lastClosed": {
     "closedAt": "2026-11-16T17:16:45.868Z",
     "scopeId": "M38-kit-structure-update"
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1221,
+  "revision": 1222,
   "rounds": [
     {
       "digest": {
@@ -1413,7 +1413,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R4",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "title": "Очистка временной папки в тесте ревью переживает позднюю запись",
       "why": "CI cba932b: на macOS тест «a Claude reviewer without hooks in time…» упал при удалении временной папки (ENOTEMPTY .workflow-kit/local/reviews) — служба дописала файл ревью во время rm"
     },
@@ -1518,9 +1518,9 @@
 - Scope: M39-autopiloting (ACTIVE)
 - Delivery: IN_PROGRESS
 - Execution: sequential
-- Current task: F005
-- Progress: 19/22
-- Revision: 1221
+- Current task: none
+- Progress: 20/22
+- Revision: 1222
 
 ## Objective
 
@@ -1631,7 +1631,7 @@ Digest: R3 исправил тест F002: проверки веток linux и 
   - Commit: test: compare the host root by the native realpath in the Kit IPC test
   - Files: product-parts/kit-core/clusters/project-workflow/modules/workflow-kit/test/workflow-kit-host-ipc.test.mjs
   - Fixes: T002
-- [IN_PROGRESS] F005 — Очистка временной папки в тесте ревью переживает позднюю запись (work)
+- [DONE] F005 — Очистка временной папки в тесте ревью переживает позднюю запись (work)
   - Commit: test: retry the review test cleanup while late writes settle
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test/review.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test/version.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test/author.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test/question-stale.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/test/interruption.test.ts
 - [TODO] DOCS-R4 — Reconcile project documentation and write the round digest (docs)

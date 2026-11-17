@@ -47,7 +47,7 @@ for (const interruptedKey of [MAIN, REVIEWER]) test(`interrupting ${interruptedK
     assert.equal(await review.retry('p', MAIN), true);
     assert.deepEqual(resumed, [MAIN]);
     assert.match(deliveries.at(-1)!, /повторить ревью плана после остановки/);
-  } finally { await review.idle(); await rm(folder, { recursive: true, force: true }); }
+  } finally { await review.idle(); await rm(folder, { recursive: true, force: true, maxRetries: 10, retryDelay: 50 }); }
 });
 
 test('a barrier arriving during review preparation prevents creating a new active review', async () => {

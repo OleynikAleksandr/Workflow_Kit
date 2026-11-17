@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1210,
+  "revision": 1212,
   "rounds": [
     {
       "digest": {
@@ -1318,7 +1318,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R3",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Тест веток linux и darwin не зависит от файловой системы хоста",
       "why": "CI 4c56e26 (run 44001635314): на Windows x64 и ARM64 упал только тест root-path «linux and darwin» — rootKey('/', 'linux') прошёл через настоящий realpath хоста и дал диск D; исправление F002 работает, все тесты на настоящем бандле прошли"
     },
@@ -1416,8 +1416,8 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Current task: none
-- Progress: 16/19
-- Revision: 1210
+- Progress: 17/19
+- Revision: 1212
 
 ## Objective
 
@@ -1511,7 +1511,7 @@ Digest: R2 исправил дефект Windows, найденный CI d1ffd1b:
 
 ### R3 — Тест корня проекта на Windows-хосте (fixes, OPEN)
 
-- [TODO] F003 — Тест веток linux и darwin не зависит от файловой системы хоста (work)
+- [DONE] F003 — Тест веток linux и darwin не зависит от файловой системы хоста (work)
   - Commit: test: keep injected-platform root checks off the host file system
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/root-path.test.ts
   - Fixes: F002

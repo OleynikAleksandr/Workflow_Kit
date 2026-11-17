@@ -1,6 +1,8 @@
 // M39 F002: the project root of a host ticket. The service and the Kit child may name the same
 // folder differently; on Windows by the 8.3 short name, the case, the slashes and a trailing
 // separator. The platform is injected; the real folder check runs on every OS in CI.
+// rootKey asks the host file system first, so injected-platform checks use paths that exist on
+// no host (F003: on a Windows host `/` is the drive root `D:\`).
 import assert from 'node:assert/strict';
 import { realpathSync } from 'node:fs';
 import { mkdtemp, rm } from 'node:fs/promises';
@@ -21,11 +23,13 @@ test('win32: case, slashes, a trailing separator and the long-path prefix name t
   assert.equal(rootKey('\\\\?\\UNC\\server\\share\\p', 'win32'), '\\\\?\\unc\\server\\share\\p', 'a UNC long path keeps its prefix');
 });
 
+const MISSING = '/wfk-no-such-root-F003';
+
 test('linux and darwin: the case matters, a trailing slash does not', () => {
-  assert.equal(sameRoot('/home/u/Project', '/home/u/project', 'linux'), false);
-  assert.equal(sameRoot('/home/u/project/', '/home/u/project', 'linux'), true);
-  assert.equal(sameRoot('/Users/u/p', '/Users/u/p/', 'darwin'), true);
-  assert.equal(rootKey('/', 'linux'), '/');
+  assert.equal(sameRoot(`${MISSING}/u/Project`, `${MISSING}/u/project`, 'linux'), false);
+  assert.equal(sameRoot(`${MISSING}/u/project/`, `${MISSING}/u/project`, 'linux'), true);
+  assert.equal(sameRoot(`${MISSING}/u/p`, `${MISSING}/u/p//`, 'darwin'), true);
+  assert.equal(rootKey(`${MISSING}/`, 'linux'), MISSING);
 });
 
 test('a real folder: the native realpath joins its aliases (macOS /var → /private/var, Windows 8.3 names)', async () => {

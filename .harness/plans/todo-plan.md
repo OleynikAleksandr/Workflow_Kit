@@ -12,7 +12,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1275,
+  "revision": 1277,
   "rounds": [
     {
       "digest": {
@@ -532,7 +532,7 @@
         "installed-service"
       ],
       "commitMessage": "chore: release Workflow Kit 0.17.0",
-      "confirmation": null,
+      "confirmation": "Autopilot run run-E4-rDe1mHCmk (authorization 1, user-command, 2026-11-17T15:58:01.392Z): Full autopilot run run-E4-rDe1mHCmk: the user's direct instruction «После завершения своего текущего плана интегрируй Speech в main через merge ветки feature/speech-input.\n\nДерево Speech: /Users/oleksandroliinyk/VSCODE/Workflow_Kit_Speech\nБаза: bbab32d72f8a899cc6a01a0» (2026-11-17T15:44:42.033Z) to prepare and carry out the plan | effects: cargo build --release --locked speech-helper; отдельный экземпляр WFK_DATA_DIR: node bin/wfk.mjs install, сквозной сценарий, остановка и удаление; установка Workflow Kit 0.17.0 (node bin/wfk.mjs install) с helper в Application Support/Workflow Kit/speech и перезапуск службы",
       "context": [
         {
           "path": "docs/planning/speech-integration.md",
@@ -557,7 +557,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Поставка 0.17.0",
       "why": "Пользователь получает голосовой ввод"
     },
@@ -604,8 +604,8 @@
 - Execution: sequential
 - Automation: 4 automatic, 0 manual criteria; CI origin ci/speech-integration (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 5/7
-- Revision: 1275
+- Progress: 6/7
+- Revision: 1277
 
 ## Objective
 
@@ -641,7 +641,7 @@
   - Commit: test: verify the speech integration on four CI platforms
   - Files: docs/evidence/speech-integration-acceptance.md
   - Depends on: T003, DOCS-R1
-- [TODO] T005 — Поставка 0.17.0 (delivery)
+- [DONE] T005 — Поставка 0.17.0 (delivery)
   - Commit: chore: release Workflow Kit 0.17.0
   - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/evidence/speech-integration-acceptance.md
   - Depends on: T004, DOCS-R1

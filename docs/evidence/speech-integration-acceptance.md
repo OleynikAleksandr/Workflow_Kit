@@ -108,3 +108,41 @@ T005.
 Каждое задание прошло `npm ci`, Rust 1.88.0 и `npm run test:speech-native`, typecheck,
 `npm test` и `check:platforms`. Windows и Linux проверены только CI; Windows-проверяющий — не
 проверено.
+
+## T005: поставка 0.17.0
+
+17.11.2026, macOS 27.2 ARM64. Версия 0.17.0 в `package.json`, lock-файле, CHANGELOG и README.
+
+**Release helper.** `cargo build --release --locked` (14 с): `Mach-O 64-bit executable arm64`,
+9 083 472 байта, sha256 `2b024bd6811db1e0b6359bcdbaab631ee9e3abc567c089864fba5685656b4aca`;
+зависит только от системных библиотек и фреймворков (`otool -L`: libc++, libSystem, Accelerate,
+Foundation, Metal, MetalKit, CoreFoundation, libobjc, libiconv).
+
+**Отдельный экземпляр.** `node bin/wfk.mjs install` из исходников выпуска с временным
+`WFK_DATA_DIR`, свободным `WFK_PORT` и без `WFK_SPEECH_HELPER`: «Workflow Kit 0.17.0 установлен…
+(новая установка)», «диктовка: helper установлен». Копия `app/0.17.0`: `bin`, `product-parts`,
+`node_modules/ws`, `package.json`, `package-lock.json`, `THIRD_PARTY_NOTICES.md`; каталогов
+`target` нет. `<данные>/speech`: helper 0755, `helper.json` (`0.17.0`, тот же sha256), notices.
+Процесс службы — `app/0.17.0/bin/wfk.mjs serve`, в окружении нет `WFK_SPEECH_HELPER`;
+`/api/speech`: `available: true`. `doctor --installed`: «всё в порядке», «зависимости копии:
+ws», «диктовка: helper … версия 0.17.0». Модель Q8 связана в `<данные>/speech/models` и выбрана
+`POST /api/speech/models/voxtral-q8/select`.
+
+`installed-browser.smoke.mjs` (Chromium 153.0.8010.12, настоящая панель экземпляра, только WAV
+подставлен): `ok`, backend `MTL0`, первый текст 2092 мс, Stop до
+готового поля 1001 мс, отправок 0, ошибок браузера 0. Ресурсы от экземпляра:
+`/api/speech`, `/dom.js`, `/session-chat/composer-model.js`, `/session-chat/composer.js`, `/speech-input/capture.js`, `/speech-input/connection.js`, `/speech-input/dictation.js`, `/speech-input/field-model.js`. Работал процесс
+`<данные>/speech/wfk-speech-helper` (проверено `pgrep`). Текст черновика: «Заметка: Создай отдельный модуль распознавания речи для Workflow Kit. Версия 1.15. Проверь файл package.json, затем открой GitHub и настройки macOS. Текст должен появляться во время речи, а отправка сообщения выполняется отдельно.»
+Экземпляр остановлен `service stop`, каталог удалён.
+
+**Обычная установка.** `node bin/wfk.mjs install` в корне репозитория (не `wfk` из PATH):
+«обновление с 0.16.0», «диктовка: helper установлен», удалена старая версия 0.15.1; служба pid
+69478, `/api/health` — версия 0.17.0. `~/Library/Application Support/Workflow Kit/app/0.17.0`
+без `target`; `speech/helper.json` — `0.17.0` и тот же sha256. `doctor --installed`: «всё в
+порядке» (зависимости копии, helper версии 0.17.0, LaunchAgent, служба). `/api/speech`:
+`available: true`; моделей в данных пользователя нет — их скачивают в «Настройках», проверочные
+веса туда не копировались.
+
+Не проверено: физический микрофон, разрешения TCC и браузера, Safari, sleep/wake, смена
+устройства (живая проверка пользователя); скачивание модели из «Настроек» установленной службы
+по сети в этой поставке не запускалось.

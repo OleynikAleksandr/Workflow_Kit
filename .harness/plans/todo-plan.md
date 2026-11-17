@@ -12,10 +12,32 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1271,
+  "revision": 1273,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "cli: app.ts загружается только для serve (loadCreateApp, missingPackage, ленивый createApp); deps.loadApp",
+          "service-installer: APP_PARTS + package-lock.json, THIRD_PARTY_NOTICES.md; COPY_EXCLUDED_DIRS + target; runtime-payload.ts (runtimePackages, ensureDependencies, deployHelper, removeHelper); ServiceDeps.arch; InstallerFs.copyFile/sha256",
+          "doctor --installed: «зависимости копии» (fail) и «диктовка: helper» (warn) на macOS ARM64",
+          "HTTP: GET /api/speech, POST /api/speech/models/:id/*, upgrade /api/speech/stream (HTTP-CONTRACTS.md)"
+        ],
+        "decisions": [
+          "Перенос — git apply -3 изменений ветки без .harness внутри T001 и commit --task: коммит слияния Kit отклоняет, а ревизии плана Speech не должны попасть в историю плана main",
+          "Профиль качества дополнен speech-native и обёрткой tools/speech-checks/test.mjs командой quality:apply",
+          "Helper речи живёт в <данные>/speech с helper.json {version, sha256}; helper другой версии удаляется, модели и speech.json не трогаются",
+          "npm ci — обязательный шаг перед install; без пакетов lock установка отказывает DEPENDENCY_MISSING до изменений",
+          "Сценарий установленного экземпляра открывает настоящую панель (/): подставленный документ блокируется проверками local network access Chromium"
+        ],
+        "references": [
+          "docs/planning/speech-integration.md",
+          "docs/evidence/speech-integration-acceptance.md",
+          "docs/planning/speech-input-integration.md",
+          "docs/planning/speech-input-macos.md",
+          "product-parts/system-service/clusters/deployment/modules/service-installer/module.md"
+        ],
+        "result": "Голосовой ввод feature/speech-input (5e990e3) перенесён в main коммитом задачи 719e22c; объединённый код проверен (Node 1384/1386 и 76/76, cargo, браузерные сценарии, настоящий Voxtral Q8/Q4/Q6 и полный путь до черновика); CLI работает без ws, установщик доставляет пакеты lock, notices и helper речи с политикой версии."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -455,14 +477,17 @@
         "tools/speech-checks/README.md",
         "docs/evidence/speech-integration-acceptance.md",
         "product-parts/backend-core/clusters/runtime/modules/cli/commands.md",
-        "product-parts/speech-input/clusters/browser-input/modules/speech-input/module.md"
+        "product-parts/speech-input/clusters/browser-input/modules/speech-input/module.md",
+        "docs/architecture/HTTP-CONTRACTS.md",
+        "docs/installation.md",
+        "docs/setup.md"
       ],
       "fixes": null,
       "id": "DOCS-R1",
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -579,8 +604,8 @@
 - Execution: sequential
 - Automation: 4 automatic, 0 manual criteria; CI origin ci/speech-integration (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 3/7
-- Revision: 1271
+- Progress: 4/7
+- Revision: 1273
 
 ## Objective
 
@@ -608,9 +633,9 @@
   - Commit: feat: install speech helper, runtime dependencies and notices
   - Files: product-parts/backend-core/clusters/runtime/modules/cli/src/index.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/commands.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/commands.md, product-parts/backend-core/clusters/runtime/modules/cli/test, product-parts/system-service/clusters/deployment/modules/service-installer, product-parts/speech-input/clusters/browser-input/modules/speech-input/test/installed-browser.smoke.mjs, product-parts/speech-input/clusters/browser-input/modules/speech-input/module.md, docs/architecture/OS-MATRIX.md, product-parts/backend-core/clusters/runtime/modules/cli/test/missing-dependency-process.test.ts, product-parts/system-service/clusters/deployment/modules/service-installer/module.md, product-parts/system-service/clusters/deployment/modules/service-installer/src/context.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/deploy.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/doctor.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/fs.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/install.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/run.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/runtime-payload.ts, product-parts/system-service/clusters/deployment/modules/service-installer/src/types.ts, product-parts/system-service/clusters/deployment/modules/service-installer/test/fakes.ts, product-parts/system-service/clusters/deployment/modules/service-installer/test/payload-doctor.test.ts, product-parts/system-service/clusters/deployment/modules/service-installer/test/payload-fixtures.ts, product-parts/system-service/clusters/deployment/modules/service-installer/test/runtime-payload.test.ts
   - Depends on: T002
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
-  - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/speech-integration.md, THIRD_PARTY_NOTICES.md, docs/architecture/OS-MATRIX.md, docs/evidence/speech-input-acceptance.md, docs/planning/speech-input-integration.md, docs/planning/speech-input-macos.md, docs/planning/speech-input/handoff-1.md, docs/planning/speech-input/handoff-2.md, docs/planning/speech-input/handoff-3.md, docs/planning/speech-input/handoff-4.md, product-parts/backend-core/clusters/http-api/modules/http-server/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/speech.md, tools/speech-checks/README.md, docs/evidence/speech-integration-acceptance.md, product-parts/backend-core/clusters/runtime/modules/cli/commands.md, product-parts/speech-input/clusters/browser-input/modules/speech-input/module.md
+  - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/speech-integration.md, THIRD_PARTY_NOTICES.md, docs/architecture/OS-MATRIX.md, docs/evidence/speech-input-acceptance.md, docs/planning/speech-input-integration.md, docs/planning/speech-input-macos.md, docs/planning/speech-input/handoff-1.md, docs/planning/speech-input/handoff-2.md, docs/planning/speech-input/handoff-3.md, docs/planning/speech-input/handoff-4.md, product-parts/backend-core/clusters/http-api/modules/http-server/module.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/speech.md, tools/speech-checks/README.md, docs/evidence/speech-integration-acceptance.md, product-parts/backend-core/clusters/runtime/modules/cli/commands.md, product-parts/speech-input/clusters/browser-input/modules/speech-input/module.md, docs/architecture/HTTP-CONTRACTS.md, docs/installation.md, docs/setup.md
   - Depends on: T001, T002, T003
 - [TODO] T004 — CI объединённого кода (delivery)
   - Commit: test: verify the speech integration on four CI platforms
@@ -624,5 +649,7 @@
   - Commit: test: verify the 0.17.0 release on four CI platforms
   - Files: docs/evidence/speech-integration-acceptance.md
   - Depends on: T005, DOCS-R1
+
+Digest: Голосовой ввод feature/speech-input (5e990e3) перенесён в main коммитом задачи 719e22c; объединённый код проверен (Node 1384/1386 и 76/76, cargo, браузерные сценарии, настоящий Voxtral Q8/Q4/Q6 и полный путь до черновика); CLI работает без ws, установщик доставляет пакеты lock, notices и helper речи с политикой версии.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

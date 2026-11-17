@@ -29,8 +29,8 @@ Kimi Code вживую проверяется только на macOS: на Linu
 
 ## Требования
 
-- Node.js **24+**, доступный в терминале как `node`. Runtime-зависимостей npm
-  нет; `npm ci` нужен для разработки и проверок.
+- Node.js **24+**, доступный в терминале как `node`. Перед `install` —
+  `npm ci` (пакет `ws`; иначе `DEPENDENCY_MISSING`).
 - Git: для клонирования, подготовки управляемых проектов и коммитов их задач.
   Для коммитов нужна настроенная пользователем Git-личность.
 - Claude Code (`claude`, 2.1.0+; для контролов 2.1.323+) и `expect` для Claude, Codex (`codex`) для
@@ -76,6 +76,7 @@ cd Workflow_Kit
 ## Установка службы
 
 ```sh
+npm ci
 node bin/wfk.mjs install
 ```
 
@@ -253,6 +254,7 @@ wfk doctor --installed
 
 ```sh
 git pull --ff-only
+npm ci
 node bin/wfk.mjs install
 wfk doctor --installed
 ```

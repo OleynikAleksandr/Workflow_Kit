@@ -2,6 +2,11 @@
 
 ## Состояние и границы
 
+**Интеграция выполнена** scope [speech-integration](speech-integration.md): изменения ветки
+перенесены в main коммитом задачи `719e22c`, проверки объединённого кода —
+[доказательства интеграции](../evidence/speech-integration-acceptance.md); поставка helper,
+зависимостей и лицензий реализована в установщике. Текст ниже — исходная передача.
+
 Код находится в `/Users/oleksandroliinyk/VSCODE/Workflow_Kit_Speech`, ветка
 `feature/speech-input`, база `bbab32d72f8a899cc6a01a0aadb5d741efb21bf2`.
 Последний функциональный коммит — `afa4ade7fcc27e829c931138e79342f355d05bee`;

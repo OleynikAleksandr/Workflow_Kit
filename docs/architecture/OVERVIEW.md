@@ -184,7 +184,7 @@ T001–T006 и fixes T008/T009 завершены; последний функц
 - Матрица ОС — [OS-MATRIX.md](OS-MATRIX.md). Основные контракты модулей — [CONTRACTS.md](CONTRACTS.md); процесс Kit —
   [workflow-kit/WorkflowKit.md](workflow-kit/WorkflowKit.md) и соседние документы.
 
-## Speech Input (исходники без поставки)
+## Speech Input (интеграция в main, поставка 0.17.0)
 
 Часть [speech-input](../../product-parts/speech-input/product-part.md) содержит
 speech-helper (Rust/transcribe-cpp 0.4.2, Metal), speech-service (store, supervisor,
@@ -194,7 +194,13 @@ attachDictation, Settings управляет проверенными модел
 provider channel; отправка — отдельная команда пользователя. Очереди ограничены
 от MessagePort до worker. Поддержка inference первой версии — macOS ARM64.
 
-[Evidence](../evidence/speech-input-acceptance.md) отделяет настоящий Voxtral от UI
-fixtures и живых непроверенных сценариев. [Передача основному агенту](../planning/speech-input-integration.md)
-описывает сохранение плана main, проверки объединённого SHA и отсутствующую пока
-поставку helper. Версия приложения и установленная служба этим scope не менялись.
+Scope [speech-integration](../planning/speech-integration.md) перенёс ветку
+`feature/speech-input` (`5e990e3`) в main коммитом задачи (`719e22c`; коммит слияния
+Kit отклоняет) и проверил объединённый код
+([доказательства](../evidence/speech-integration-acceptance.md)). `cli` загружает сервер
+(`app.ts`, а с ним `ws`) только для `serve`; установщик копирует пакеты lock-файла без
+`dev`, `package-lock.json` и notices, исключает Cargo `target`, отказывает
+`DEPENDENCY_MISSING` до изменений и на macOS ARM64 кладёт release helper в
+`<данные>/speech` с `helper.json` (версия, sha256): helper другой версии не остаётся.
+[Evidence ветки](../evidence/speech-input-acceptance.md) отделяет настоящий Voxtral от UI
+fixtures; физический микрофон, разрешения, Safari и sleep/wake не проверены.

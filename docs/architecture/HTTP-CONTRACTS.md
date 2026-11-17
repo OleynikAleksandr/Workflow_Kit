@@ -46,3 +46,14 @@
 - Раздел `reviews` (T006): у ревью есть `approvedDigest`, `versioned` и `reviewedProposal`
   (`{ scopeId, generation, digest }` согласованной версии предложения).
 - Контракт — [autopilot/autopiloting.md](../../product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md).
+
+## Голосовой ввод (speech-integration)
+
+- `GET /api/speech` → состояние: `supported`, `available`, `reason`, `phase`, `backend`,
+  `selected`, `models`; не loopback — `{ supported: false, available: false }` с причиной.
+- `POST /api/speech/models/:id/download|cancel|select|remove` → публичное состояние моделей.
+- Upgrade `/api/speech/stream` (реестр `addUpgrade` `http-server`; неизвестный upgrade
+  отклоняется): тот же Origin, Host и порт, loopback с обеих сторон, протокол 1 и
+  `dictationId`; двоичные кадры — `u32` `audioSeq` (LE) и PCM. Аудио и текст не пишутся в
+  журнал и не уходят провайдеру. Контракт —
+  [speech-service/module.md](../../product-parts/speech-input/clusters/local-recognition/modules/speech-service/module.md).

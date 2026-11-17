@@ -194,3 +194,21 @@ Windows-риски установщика: копия `node_modules` с длин
 | T004 | CI объединённого кода (delivery) | evidence |
 | T005 | выпуск 0.17.0 (delivery) | версии, CHANGELOG, README, evidence |
 | T006 | CI выпуска (delivery) | evidence |
+
+## 7. Уточнения реализации
+
+- **T001.** `git merge --squash` отказался: `task:start` уже записал план в рабочее дерево, а
+  план вручную не трогается. Те же изменения `bbab32d7..5e990e3` без путей `.harness`
+  применены `git apply -3` (результат по путям совпадает со squash), индекс сброшен до
+  коммита Kit. Передаточный документ Speech получил обязательный раздел «Поведение на ОС».
+- **T003.** Ленивая загрузка `app.ts` — в `cli/src/commands.ts` (`loadCreateApp`,
+  `missingPackage`, обёртка `createApp`), в пределах файлов задачи. Проблема helper в
+  `doctor --installed` — предупреждение, а не ошибка: диктовка необязательна, служба работает.
+- **T003, сценарий установленного экземпляра.** Страница стенда, подставленная `page.route`,
+  для Chromium — публичная: проверки local network access блокируют её WebSocket на loopback
+  (`ERR_BLOCKED_BY_LOCAL_NETWORK_ACCESS_CHECKS`). Поэтому `installed-browser.smoke.mjs`
+  открывает настоящую панель экземпляра (`/`), добавляет в неё карточку composer и подставляет
+  только WAV. Проверочный прогон на экземпляре из исходников (`WFK_SPEECH_HELPER` debug, Q8):
+  первый текст 2,0 с, Stop до поля 1,07 с, отправок 0.
+- **Документы пользователя.** `npm ci` стал обязательным шагом перед `install` (README,
+  `docs/setup.md`, `docs/installation.md`); сборка helper для диктовки — в `docs/setup.md`.

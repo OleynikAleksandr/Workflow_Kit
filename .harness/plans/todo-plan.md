@@ -10,7 +10,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1197,
+  "revision": 1199,
   "rounds": [
     {
       "digest": {
@@ -1203,12 +1203,21 @@
       ],
       "fixes": null,
       "id": "T012",
-      "iteration": 1,
+      "iteration": 2,
       "kind": "delivery",
       "roundId": "R1",
       "status": "TODO",
       "title": "Четыре платформы CI и факты сквозных прогонов",
-      "why": "Четыре платформы CI и факты сквозных прогонов"
+      "why": "Четыре платформы CI и факты сквозных прогонов",
+      "deferrals": [
+        {
+          "at": "2026-11-17T01:42:03.397Z",
+          "confirmation": "Подтверждая",
+          "iteration": 1,
+          "outcome": null,
+          "reason": "CI failed on Windows x64 and ARM64 for d1ffd1b (host ticket: ticket bound to another root, 11 tests): https://github.com/OleynikAleksandr/Workflow_Kit/actions/runs/43996726304"
+        }
+      ]
     }
   ]
 }
@@ -1222,7 +1231,7 @@
 - Execution: sequential
 - Current task: none
 - Progress: 13/14
-- Revision: 1197
+- Revision: 1199
 
 ## Objective
 

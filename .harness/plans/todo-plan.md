@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1350,
+  "revision": 1351,
   "rounds": [
     {
       "digest": {
@@ -80,7 +80,10 @@
       "Выпуск 0.20.0 установлен, CI четырёх платформ зелёный для точного SHA на ci/M44-autopilot-grant; результаты в docs/evidence/M44-acceptance.md",
       "Живая проверка пользователя на Mac: строка режима в новой сессии, переключение режима доходит к следующему ходу, следующий план под полным автопилотом проходит поставку, приёмку и закрытие без кнопок"
     ],
-    "acceptanceNote": null,
+    "acceptanceNote": {
+      "at": "2026-11-18T18:38:34.134Z",
+      "text": "Пользователь принял план в панели Workflow Kit"
+    },
     "approval": {
       "at": "2026-11-18T08:53:35.860Z",
       "text": "Пользователь 18.11.2026: «как агент узнает о том, что в Workflow Kit выбрана опция автопилота? … при старте каждой сессии проверка этих установок … должна происходить, и агент об этом должен получать четкую информацию. Также это должно … доходить до агента в момент любых изменений»; на предложение: «Да, готовь, пожалуйста, спецификацию и план.» | Execution mode chosen by the user: sequential: Автоматический выбор по поручению run-grGmd5VPjbzn: sequential (recommended by the plan; ревью: skipped-by-setting)"
@@ -249,9 +252,21 @@
           "session": "ffc970ed-20a1-499c-9d2c-47dff30c41a0"
         },
         "text": "confirm-delivery: Нет в панели  никакого способов подтверждения. Подтверждаю просто тут."
+      },
+      {
+        "at": "2026-11-18T18:38:34.116Z",
+        "decisionId": "dec-5b7af80470c9",
+        "kind": "accept",
+        "source": {
+          "kind": "button",
+          "messageId": null,
+          "runId": null,
+          "session": "ffc970ed-20a1-499c-9d2c-47dff30c41a0"
+        },
+        "text": "accept: Пользователь принял план в панели Workflow Kit"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "ACCEPTED",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "ffc970ed-20a1-499c-9d2c-47dff30c41a0",
@@ -677,12 +692,12 @@
 ## State
 
 - Scope: M44-autopilot-grant (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: ACCEPTED
 - Execution: sequential
 - Automation: 4 automatic, 1 manual criteria; CI origin ci/M44-autopilot-grant (4 checks); publication main → origin/main
 - Current task: none
 - Progress: 10/10
-- Revision: 1350
+- Revision: 1351
 
 ## Objective
 

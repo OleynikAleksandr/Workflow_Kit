@@ -3,7 +3,7 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T003",
   "lastClosed": {
     "closedAt": "2026-11-18T08:40:14.929Z",
     "scopeId": "M43-codex-remote-owner",
@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1329,
+  "revision": 1331,
   "rounds": [
     {
       "digest": null,
@@ -326,6 +326,7 @@
       "files": [
         "product-parts/workflow-engine/clusters/session-loop/modules/autopilot",
         "product-parts/backend-core/clusters/runtime/modules/cli",
+        "docs/architecture/OS-MATRIX.md",
         "docs/evidence/M44-acceptance.md"
       ],
       "fixes": null,
@@ -333,7 +334,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "Изменения настроек и запуска доходят до агента; тексты только при разрешении",
       "why": "Смена режима в Settings и судьба запуска агенту не сообщаются; служба говорит «autopilot» без разрешения Kit"
     },
@@ -514,9 +515,9 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Automation: 4 automatic, 1 manual criteria; CI origin ci/M44-autopilot-grant (4 checks); publication main → origin/main
-- Current task: none
+- Current task: T003
 - Progress: 2/8
-- Revision: 1329
+- Revision: 1331
 
 ## Objective
 
@@ -541,9 +542,9 @@
   - Commit: feat: tell every new session the autopilot mode and run state
   - Files: product-parts/backend-core/clusters/runtime/modules/cli, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel, docs/architecture/HTTP-CONTRACTS.md, docs/architecture/OS-MATRIX.md, docs/evidence/M44-acceptance.md, product-parts/backend-core/clusters/runtime/modules/cli/commands.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/autopilot-line.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/autopiloting-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/hook.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/session-start-line.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/hook-link.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/session-start-line.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/hook-input.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/session-start-route.test.ts
   - Depends on: T001
-- [TODO] T003 — Изменения настроек и запуска доходят до агента; тексты только при разрешении (work)
+- [IN_PROGRESS] T003 — Изменения настроек и запуска доходят до агента; тексты только при разрешении (work)
   - Commit: feat: queue autopilot settings and run changes for the agent
-  - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/backend-core/clusters/runtime/modules/cli, docs/evidence/M44-acceptance.md
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/backend-core/clusters/runtime/modules/cli, docs/architecture/OS-MATRIX.md, docs/evidence/M44-acceptance.md
   - Depends on: T002
 - [TODO] T004 — Панель: автопилот без разрешения Kit (work)
   - Commit: feat: show an unauthorized autopilot run with a retry in the panel

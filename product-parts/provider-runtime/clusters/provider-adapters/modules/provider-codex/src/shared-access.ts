@@ -13,7 +13,7 @@ import { backupFile } from '#data-store';
 import { powershell } from '#process-supervisor';
 import { ProviderError } from '#provider-registry';
 import type { SharedAccess, SharedAccessAdminStep, SharedAccessPreview, SharedAccessState, SharedAccessStateName, SharedAccessTarget } from '#provider-registry';
-import { processListing } from './handover.ts';
+import { processListing } from './reclaim.ts';
 import { isSecondAppServer } from './shared-mode.ts';
 import type { CodexRuntime } from './runtime.ts';
 import { findProgram } from './runtime.ts';

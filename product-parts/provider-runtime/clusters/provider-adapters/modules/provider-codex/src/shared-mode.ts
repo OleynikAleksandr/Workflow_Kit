@@ -1,18 +1,10 @@
 // The shared daemon mode of Codex sessions (spec M12 section 2.3): on while the shared access is
 // active. In the mode the ChatGPT app is a client of the Kit daemon: a chat opens with the
-// hostId of the SSH connection, a new chat is not unloaded, an idle chat can be woken, and remote
-// control stays with the daemon. Anything else (another OS, a broken setup) keeps the old ways.
-import type { SessionLinks, SharedAccess, SharedAccessState } from '#provider-registry';
+// hostId of the SSH connection, a new chat is not unloaded and an idle chat can be woken. Remote
+// control stays with the daemon in every mode (spec M43, reclaim.ts). Anything else (another OS,
+// a broken setup) keeps the old ways.
+import type { SessionLinks, SharedAccess } from '#provider-registry';
 import { SHARED_HOST_ID } from './shared-files.ts';
-
-/** Why remote control should come back to the daemon in the mode (the app took it first). */
-export const SHARED_APP_OWNER_REASON =
-  'Удалённое управление держит приложение ChatGPT: закройте ChatGPT, дождитесь «подключён» и откройте снова — тогда чаты Kit откроются и на iPad.';
-
-/** Note of the provider status when the app holds remote control in the active mode; else null. */
-export function appOwnerNote(shared: SharedAccessState | null, remoteOwner: 'app' | null): string | null {
-  return shared?.state === 'active' && remoteOwner === 'app' ? SHARED_APP_OWNER_REASON : null;
-}
 
 const THREAD_ID = /^[A-Za-z0-9_-]{1,128}$/;
 

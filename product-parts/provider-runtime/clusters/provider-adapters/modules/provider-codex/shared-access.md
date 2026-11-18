@@ -18,7 +18,7 @@ ChatGPT подключается к этому Mac по SSH (`wfk-local`) и ч�
   `needs-connection`; иначе `active`. Подключение — строка `ps` с `ssh`, `wfk-local` и
   `app-server proxy` (`isSharedConnection`); первый раз записывается в
   `<state>/codex-shared-access.json` (`connectionSeenAt`). Результат живёт
-  `SHARED_TTL_MS` (60 с); `maintain()` после передачи управления обновляет его, статус
+  `SHARED_TTL_MS` (60 с); `maintain()` после возврата удалённого управления (M43) обновляет его, статус
   провайдера отдаёт `details.sharedAccess` (`cached()`), без новых проверок.
 - `preview()` → записи, токен (`shared-access`, отпечаток — содержимое всех файлов) и
   заметки: ключ `~/.ssh/wfk_local` (`ssh-keygen -t ed25519 -N ""`, есть — не трогается),
@@ -61,9 +61,10 @@ ChatGPT подключается к этому Mac по SSH (`wfk-local`) и ч�
   режима — `false` (бэкенд будит только простаивающую сессию);
 - `reviewBrief: 'first-message'` всегда: ревьюер получает задание первым сообщением
   (`detached`, M4 11.1), хотя `wakeSession` есть;
-- передача управления (`handover.ts`) пропускается: удалённое управление остаётся у демона. Если
-  его держит приложение (`remoteOwner: 'app'`), статус провайдера даёт `appOwnerNote` →
-  `SHARED_APP_OWNER_REASON` («закройте ChatGPT, дождитесь «подключён» и откройте снова»);
+- удалённое управление остаётся у демона в этом режиме и вне его (M43, [reclaim.md](reclaim.md)):
+  если его держит приложение (`remoteOwner: 'app'`), Kit на macOS сам закрывает и снова
+  открывает ChatGPT; статус даёт `appOwnerNote` (`APP_OWNER_NOTE`, на Windows
+  `WINDOWS_APP_OWNER_NOTE` — закрыть вручную);
 - самопроверка: `maintain()` раз в минуту обновляет состояние; второй app-server приложения
   (`isSecondAppServer`: `app-server --listen` с `code_mode_host` вне `ChatGPT.app`) или любая
   неудачная проверка дают `broken` — режим выключается сам, сессии идут прежним путём, и

@@ -45,7 +45,7 @@ before(async () => {
     serviceTurnWaitMs: 100,
     daemonTtlMs: 0,
     releasePollMs: 10,
-    handover: { waitMs: 0, sleep: async () => undefined },
+    reclaim: { sleep: async () => undefined },
     sharedAccess: { probePort: async () => true, loginShell: () => '/bin/zsh', userName: () => 'u', appInstalled: async () => true, nodeDir: '/n' },
   });
   await provider.refresh!();

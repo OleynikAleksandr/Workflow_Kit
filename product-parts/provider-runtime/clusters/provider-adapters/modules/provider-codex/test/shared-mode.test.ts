@@ -3,7 +3,8 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import type { SharedAccess, SharedAccessState } from '#provider-registry';
-import { SHARED_APP_OWNER_REASON, appOwnerNote, createSharedMode, isSecondAppServer, sharedThreadLinks } from '../src/shared-mode.ts';
+import { createSharedMode, isSecondAppServer, sharedThreadLinks } from '../src/shared-mode.ts';
+import { APP_OWNER_NOTE, WINDOWS_APP_OWNER_NOTE, appOwnerNote } from '../src/reclaim.ts';
 import { WAKE_TEXT, wakeThread } from '../src/thread-ops.ts';
 import type { RpcSession } from '../src/rpc.ts';
 
@@ -60,10 +61,10 @@ test('wake: an unloaded chat is resumed first, a loaded one gets the turn at onc
   assert.deepEqual(open.calls, ['thread/loaded/list', 'turn/start:hi', 'thread/unsubscribe']);
 });
 
-test('the app holding remote control is explained only in the active mode', () => {
-  const active = { state: 'active' } as SharedAccessState;
-  assert.equal(appOwnerNote(active, 'app'), SHARED_APP_OWNER_REASON);
-  assert.equal(appOwnerNote(active, null), null);
-  assert.equal(appOwnerNote({ state: 'broken' } as SharedAccessState, 'app'), null);
-  assert.equal(appOwnerNote(null, 'app'), null);
+test('the app holding remote control is explained in every mode (M43); Windows asks to close the app by hand', () => {
+  assert.equal(appOwnerNote('darwin', 'app'), APP_OWNER_NOTE);
+  assert.equal(appOwnerNote('darwin', null), null);
+  assert.equal(appOwnerNote('win32', 'app'), WINDOWS_APP_OWNER_NOTE);
+  assert.equal(appOwnerNote('linux', 'app'), WINDOWS_APP_OWNER_NOTE);
+  assert.equal(appOwnerNote('linux', null), null);
 });

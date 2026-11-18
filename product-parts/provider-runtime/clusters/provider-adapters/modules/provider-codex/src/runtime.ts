@@ -37,8 +37,8 @@ export interface CodexDeps {
   releaseWaitMs?: number;
   /** Interval of the thread/loaded/list polls while waiting (default 2 s). */
   releasePollMs?: number;
-  /** Hand-over of remote control to the ChatGPT app: pause and sleep (tests make them instant). */
-  handover?: { waitMs?: number; sleep?: (ms: number) => Promise<void> };
+  /** Remote control back to the daemon (spec M43): system steps, clock and waits (tests make them fake). */
+  reclaim?: import('./reclaim.ts').ReclaimDeps;
   /** Shared access (spec M12): port probe, login shell, user, app presence (tests make them fake). */
   sharedAccess?: SharedAccessDeps;
   /** One confirmed interruption and native state polling. */

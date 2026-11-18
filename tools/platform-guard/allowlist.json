@@ -264,6 +264,13 @@
       "darwin": "Login shell пользователя, резерв /bin/zsh",
       "linux": "Login shell пользователя, резерв /bin/sh",
       "win32": "Не вызывается: loginShellPath возвращает null"
+    },
+    {
+      "file": "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/reclaim.ts",
+      "program": "osascript",
+      "darwin": "штатный выход ChatGPT: tell application id \"com.openai.codex\" to quit (запасной путь — SIGTERM главному процессу приложения)",
+      "linux": "не нужно: приложения ChatGPT для Linux нет, возврата удалённого управления нет",
+      "win32": "не поддерживается: проверенного способа штатно закрыть и открыть пакетное приложение ChatGPT нет; подсказка закрыть вручную"
     }
   ],
   "legacySpecs": [

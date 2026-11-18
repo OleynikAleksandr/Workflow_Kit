@@ -8,11 +8,12 @@ export { APP_OWNER_REASON, CONNECTING_REASON, DAEMON_START_ACTION, STALE_LOGIN_R
 export type { CodexDeps, DaemonOpener, DaemonState, ProgramState } from './runtime.ts';
 export type { AppServerOpener, AppServerSpec } from './stdio.ts';
 export type { RpcTransport } from './rpc.ts';
-export { HANDOVER_REASON, HANDOVER_WAIT_MS, appServerPids, isChatgptAppServer } from './handover.ts';
+export { APP_OWNER_NOTE, RECLAIM_ACTION, RECLAIM_REASON, WINDOWS_APP_OWNER_NOTE, appOwnerNote, appServerPids, createReclaim, isChatgptApp, isChatgptAppServer, reclaimAction } from './reclaim.ts';
+export type { Reclaim, ReclaimDeps, ReclaimResult, ReclaimSystem } from './reclaim.ts';
 export { BLOCK_BEGIN, BLOCK_END, CONNECTIONS_LINK, REMOTE_LOGIN_LINK, SHARED_ALIAS, SHARED_HOST_ID } from './shared-files.ts';
 export { createSharedAccess } from './shared-access.ts';
 export type { SharedAccessDeps } from './shared-access.ts';
-export { SHARED_APP_OWNER_REASON, appOwnerNote, createSharedMode, isSecondAppServer, sharedThreadLinks } from './shared-mode.ts';
+export { createSharedMode, isSecondAppServer, sharedThreadLinks } from './shared-mode.ts';
 export type { SharedMode } from './shared-mode.ts';
 export { WAKE_TEXT, threadStatus, wakeThread } from './thread-ops.ts';
 export { CHAT_TIMEOUT_MS, DIRECT_STATUSES, chatPage, createChatParts, threadMessages } from './chat.ts';

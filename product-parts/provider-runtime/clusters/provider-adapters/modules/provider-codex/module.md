@@ -20,11 +20,13 @@ app-server на весь Mac, доверие к папке, одобрение �
   `isAlive(pid)`, `tokens` (`TokenStore`), `daemonTtlMs`,
   `serviceTurnWaitMs` (ожидание `turn/completed` служебного хода),
   `releaseWaitMs` и `releasePollMs` (ожидание выгрузки треда демоном),
-  `handover` (`waitMs`, `sleep` передачи управления), `sharedAccess`
+  `reclaim` (`ReclaimDeps`: `system`, `sleep`, `now`, ожидания возврата удалённого управления), `sharedAccess`
   (`SharedAccessDeps`: `probePort`, `loginShell`, `userName`, `appInstalled`, `nodeDir`).
 - Константы: `PROVIDER_ID` = `codex`, `PROVIDER_TITLE`,
   `DAEMON_START_ACTION` = `daemon-start`, `LOGIN_HINT`, `CONNECTING_REASON`,
-  `STALE_LOGIN_REASON`, `HANDOVER_REASON`, `HANDOVER_WAIT_MS` (60 с),
+  `STALE_LOGIN_REASON`, `RECLAIM_ACTION` = `reclaim-remote`, `RECLAIM_REASON`, `APP_OWNER_NOTE`,
+  `WINDOWS_APP_OWNER_NOTE`, `appOwnerNote(platform, remoteOwner)`, `reclaimAction(platform, remoteOwner, active)`,
+  `createReclaim(rt, deps)`, `isChatgptApp(line)`,
   `isChatgptAppServer(line, platform)`, `appServerPids(listing, platform)`,
   `KIT_HOOK_COMMAND` (= `kitCodexCommand('SessionStart')`: POSIX-команда хука Kit, на Windows —
   его `commandWindows`),
@@ -116,10 +118,12 @@ app-server на весь Mac, доверие к папке, одобрение �
 чат»), в журнале — `codex: thread <id> released by the daemon`; настройки треда —
 пользовательские; хук Kit после одобрения срабатывает с первым ходом.
 
-## Передача удалённого управления (M7)
+## Удалённое управление у демона Kit (M43)
 
-`src/handover.ts`, `maintain()`: правило, состояния и поведение на ОС —
-[handover.md](handover.md).
+`src/reclaim.ts`: если удалённое управление держит встроенный сервер приложения ChatGPT, Kit
+на macOS закрывает приложение штатно и открывает снова, демон получает слот обратно — после
+`createSession` и в `maintain()`; действие «Вернуть управление Kit». Правило, шаги, состояния
+и поведение на ОС — [reclaim.md](reclaim.md). Передача M7 приложению удалена.
 
 ## Общий доступ к чатам (M12)
 
@@ -159,8 +163,9 @@ app-server на весь Mac, доверие к папке, одобрение �
   `idleUnloadPolls` — через столько `thread/loaded/list`, `thread/archive` сразу,
   `archiveError` — без архивации); настоящий `~/.codex` не трогается. На Windows демон
   слушает именованный канал (`listenPath`); наборы с машиной macOS/Linux пропускаются
-  (`POSIX_MACHINE_SKIP`), путь Windows — `windows.test.ts`, `ws-rpc.test.ts`; передача
-  управления — `handover.test.ts` на подставном runtime для всех трёх ОС.
+  (`POSIX_MACHINE_SKIP`), путь Windows — `windows.test.ts`, `ws-rpc.test.ts`; возврат
+  удалённого управления — `reclaim.test.ts` на подставных runtime и системе для всех трёх ОС,
+  создание сессии при занятом приложением слоте — `provider-reclaim.test.ts`.
 - После `createSession` тред не остаётся загруженным в демоне, а ссылка
   появляется только после его выгрузки; после завершённого хода тред
   выгружается архивацией без минутного ожидания и возвращается из архива,

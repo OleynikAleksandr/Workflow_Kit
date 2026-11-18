@@ -2,10 +2,10 @@
 // Mac-wide daemon, its start as a special action, trust, the Kit hook and sessions.
 import { CHAT_PAGE_LIMIT, ProviderError } from '#provider-registry';
 import type { Capabilities, Project, ProjectProviderState, Provider, ProviderAction, ProviderContext, ProviderStatus, SharedAccessState } from '#provider-registry';
-import { createHandover, HANDOVER_REASON } from './handover.ts';
+import { RECLAIM_ACTION, RECLAIM_REASON, RECLAIM_WINDOWS_REASON, appOwnerNote, createReclaim, reclaimAction } from './reclaim.ts';
 import { ELEVATED_HINT, ELEVATED_REASON, isElevatedRefusal } from './elevation.ts';
 import { createSharedAccess } from './shared-access.ts';
-import { appOwnerNote, createSharedMode } from './shared-mode.ts';
+import { createSharedMode } from './shared-mode.ts';
 import { wakeThread } from './thread-ops.ts';
 import { createInterruptParts, interruptProgramReason } from './interrupt.ts';
 import { createParameterUpdater } from './parameter-update.ts';
@@ -74,7 +74,7 @@ function loginProblem(daemon: DaemonState): boolean {
   return daemon.running && !daemon.staleLogin && !daemon.settling && daemon.remoteOwner !== 'app' && (daemon.remoteControl === 'errored' || (daemon.remoteControl !== 'connected' && daemon.tokenError !== null));
 }
 
-function buildStatus(rt: CodexRuntime, daemon: DaemonState, handingOver = false, shared: SharedAccessState | null = null, refused: string | null = null, staleEnv = false): ProviderStatus {
+function buildStatus(rt: CodexRuntime, daemon: DaemonState, reclaiming = false, shared: SharedAccessState | null = null, refused: string | null = null, staleEnv = false): ProviderStatus {
   const program = rt.program;
   const details: Record<string, unknown> = {
     daemon: { running: daemon.running, pid: daemon.pid, remoteControl: daemon.remoteControl, serverName: daemon.serverName },
@@ -84,7 +84,6 @@ function buildStatus(rt: CodexRuntime, daemon: DaemonState, handingOver = false,
   const base = { implemented: true, installed: program.installed, version: program.version, path: program.path, checkedAt: program.checkedAt, details };
   if (program.installed === false) return { ...base, state: 'not-installed', label: 'не установлен', note: program.error ?? 'codex не найден' };
   if (program.unsupported) return { ...base, state: 'unavailable', label: 'нужна новее версия', note: program.unsupported };
-  if (handingOver) return { ...base, state: 'unavailable', label: 'передаёт управление ChatGPT', note: HANDOVER_REASON };
   if (daemon.running && daemon.staleLogin && daemon.remoteControl !== 'connected') {
     return { ...base, state: 'error', label: 'демон держит устаревший вход', note: STALE_LOGIN_REASON };
   }
@@ -95,10 +94,12 @@ function buildStatus(rt: CodexRuntime, daemon: DaemonState, handingOver = false,
   if (!daemon.running && refused) return { ...base, state: 'error', label: 'демон не запускается', note: `${refused}. ${ELEVATED_HINT}` };
   if (!daemon.running) return { ...base, state: 'unavailable', label: 'демон не запущен', note: 'Сессии создаются через демон: «Запустить демон».' };
   if (daemon.error) return { ...base, state: 'error', label: 'демон не отвечает', note: daemon.error };
+  // Spec M43: the daemon works while remote control is given back to it; sessions go on.
+  if (reclaiming) return { ...base, state: 'ready', label: 'возвращает управление Kit', note: RECLAIM_REASON };
   if (linked(daemon)) {
     const label = daemon.remoteControl === 'connected' ? 'демон подключён' : 'через приложение ChatGPT';
-    // Shared daemon mode (M12): the app should not hold remote control, the user can fix it.
-    const note = appOwnerNote(shared, daemon.remoteOwner) ?? (staleEnv ? STALE_ENV_REASON : null) ?? program.error;
+    // Spec M43: remote control belongs to the daemon in both modes; the app holding it is shown.
+    const note = appOwnerNote(rt.context.platform, daemon.remoteOwner) ?? (staleEnv ? STALE_ENV_REASON : null) ?? program.error;
     return { ...base, state: program.installed === null ? 'unknown' : 'ready', label, ...(note ? { note } : {}) };
   }
   if (connecting(daemon)) return { ...base, state: 'unavailable', label: 'подключается к ChatGPT', note: CONNECTING_REASON };
@@ -108,17 +109,22 @@ function buildStatus(rt: CodexRuntime, daemon: DaemonState, handingOver = false,
 /** Creates the Codex provider; deps replace the transports and the clock of tokens in tests. */
 export function createCodexProvider(context: ProviderContext, deps: CodexDeps = {}): Provider {
   const rt = createCodexRuntime(context, deps);
-  // Sessions being created through the daemon: the hand-over never stops it under them.
-  let creating = 0;
   // The refusal of the last daemon start (elevated process, M14); cleared by a start that works.
   let refused: string | null = null;
   const shared = createSharedAccess(rt, deps.sharedAccess);
   const sharedMode = createSharedMode(shared);
   const parameters = createParameterParts(rt, shared);
   const updateParameters = createParameterUpdater(rt, parameters, sharedMode);
-  const handover = createHandover(rt, { ...deps.handover, busy: () => creating > 0, shared: () => sharedMode.active() });
+  // Spec M43: remote control is given back to the daemon when the ChatGPT app took it.
+  const reclaim = createReclaim(rt, deps.reclaim);
+  const reclaimInBackground = (reason: 'maintain' | 'create-session'): void => {
+    void reclaim.request(reason).then(
+      (line) => { if (line) context.log(`codex: ${line}`); },
+      (error: unknown) => context.log(`codex: reclaim failed: ${(error as Error).message}`),
+    );
+  };
   const trustParts = createTrustParts(rt);
-  const interruptions = createInterruptParts(rt, deps, () => handover.active ? HANDOVER_REASON : null);
+  const interruptions = createInterruptParts(rt, deps);
   const questions = createQuestionParts(rt, deps.questionTiming);
   const chatParts = createChatParts({
     withDaemon: (fn, timeoutMs) => rt.withDaemon(fn, timeoutMs),
@@ -160,7 +166,6 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
     const missing = rt.program.installed === false ? 'codex не найден в PATH службы' : rt.program.unsupported;
     const daemon = await rt.daemon();
     let create: string | null = missing;
-    if (!create && handover.active) create = HANDOVER_REASON;
     if (!create && !daemon.running && refused) create = refused;
     if (!create && !daemon.running) create = 'демон Codex не запущен — «Запустить демон»';
     else if (!create && daemon.staleLogin && daemon.remoteControl !== 'connected') create = STALE_LOGIN_REASON;
@@ -170,6 +175,30 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
     else if (!create && !linked(daemon)) create = 'демон Codex не подключён к ChatGPT — «Подключить к ChatGPT»';
     const cap = (reason: string | null) => (reason ? { available: false, reason } : { available: true });
     return { trust: cap(missing), hooks: cap(missing), sessions: { available: true }, createSession: cap(create), daemon: cap(missing), interruptTurn: cap(interruptProgramReason(rt)), sessionParameters: cap(missing), updateParameters: cap(missing), answerQuestion: cap(missing) };
+  };
+
+  // Spec M43: «Вернуть управление Kit» while the ChatGPT app holds remote control (macOS; off on Windows).
+  const reclaimActions = (daemon: DaemonState): ProviderAction[] => {
+    const action = reclaimAction(context.platform, daemon.remoteOwner, reclaim.active);
+    return action ? [action] : [];
+  };
+
+  const runReclaim = async (): Promise<ProviderStatus> => {
+    requireCodex(rt);
+    if (!reclaim.supported) throw new ProviderError('reclaim-unsupported', RECLAIM_WINDOWS_REASON, { status: 409 });
+    const line = await reclaim.request('manual');
+    if (line) context.log(`codex: ${line}`);
+    const result = reclaim.lastResult?.result;
+    if (line && result === 'app-kept') {
+      throw new ProviderError('reclaim-app-kept', 'ChatGPT не закрылся (возможно, спросил подтверждение)', { status: 409, hint: 'Закройте ChatGPT сами, дождитесь «подключён» и откройте снова.' });
+    }
+    if (line && result === 'not-connected') {
+      throw new ProviderError('reclaim-not-connected', 'ChatGPT закрыт и открыт снова, но демон не подключился к ChatGPT', { status: 409, hint: 'Нажмите «Перепроверить»; при повторе — «Перезапустить демон».' });
+    }
+    if (line && result?.startsWith('failed')) throw new ProviderError('reclaim-failed', `Управление не вернулось: ${result.slice('failed: '.length)}`, { status: 500 });
+    rt.forgetDaemon();
+    const daemon = await rt.daemon(true);
+    return buildStatus(rt, daemon, reclaim.active, shared.cached(), refused, await staleEnv(daemon));
   };
 
   const actions = async (project: Project | null): Promise<ProviderAction[]> => {
@@ -183,12 +212,11 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
       confirm: 'Запустить фоновый app-server Codex с удалённым управлением (codex remote-control start) для всего Mac?',
     };
     if (rt.program.installed === false) return [{ ...action, enabled: false, reason: 'codex не найден' }];
-    if (handover.active) return [{ ...action, enabled: false, reason: HANDOVER_REASON }];
     if (!daemon.running) return [action];
     // A running daemon: the action only makes sense when its link to ChatGPT is off or failed.
     if (await staleEnv(daemon)) return [{ ...action, title: 'Перезапустить демон', confirm: STALE_ENV_CONFIRM }];
     if (daemon.remoteControl === 'connected') return [{ ...action, enabled: false, reason: 'демон работает и подключён к ChatGPT' }];
-    if (linked(daemon)) return [{ ...action, enabled: false, reason: APP_OWNER_REASON }];
+    if (linked(daemon)) return [{ ...action, enabled: false, reason: APP_OWNER_REASON }, ...reclaimActions(daemon)];
     if (daemon.staleLogin) {
       return [{ ...action, title: 'Перезапустить демон', confirm: 'Перезапустить демон Codex, чтобы он перечитал вход (codex remote-control stop, затем start)? Чаты, открытые через демон на iPad, переподключатся.' }];
     }
@@ -255,9 +283,9 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
     label: 'ChatGPT',
     mark: 'G',
     autostart,
-    // Upkeep: the hand-over, then a fresh check of the shared access (reused for SHARED_TTL_MS).
+    // Upkeep: remote control back to the daemon (M43), then a fresh check of the shared access.
     maintain: async () => {
-      const line = await handover.maintain();
+      const line = await reclaim.maintain();
       await shared.state(false).catch((error: unknown) => context.log(`codex: shared access check failed: ${(error as Error).message}`));
       return line;
     },
@@ -265,7 +293,7 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
     capabilities,
     async status() {
       const daemon = await rt.daemon();
-      return buildStatus(rt, daemon, handover.active, shared.cached(), refused, await staleEnv(daemon));
+      return buildStatus(rt, daemon, reclaim.active, shared.cached(), refused, await staleEnv(daemon));
     },
     async refresh() {
       await rt.refreshProgram();
@@ -273,7 +301,7 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
       trustParts.clearCache();
       parameters.clearCache();
       const daemon = await rt.daemon(true);
-      return buildStatus(rt, daemon, handover.active, shared.cached(), refused, await staleEnv(daemon));
+      return buildStatus(rt, daemon, reclaim.active, shared.cached(), refused, await staleEnv(daemon));
     },
     trust: (project) => trustParts.trust(project),
     previewTrust: (project) => trustParts.previewTrust(project),
@@ -292,13 +320,11 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
     retryDeletes: () => sessionParts.retryDeletes(),
     async createSession(project, opts) {
       requireCodex(rt);
-      if (handover.active) throw new ProviderError('codex-handover', HANDOVER_REASON, { status: 409 });
-      creating += 1;
-      try {
-        return await sessionParts.createSession(project, opts);
-      } finally {
-        creating -= 1;
-      }
+      const session = await sessionParts.createSession(project, opts);
+      // Spec M43: a phone opens the new chat only through the daemon; give remote control back
+      // without making the creation wait for it.
+      if (rt.cachedDaemon()?.remoteOwner === 'app') reclaimInBackground('create-session');
+      return session;
     },
     // The brief of a cross review goes as the first message of the reviewer's chat (M4 11.1), not
     // through the queue, although Codex can wake a session in the shared mode.
@@ -327,6 +353,7 @@ export function createCodexProvider(context: ProviderContext, deps: CodexDeps = 
     actions,
     async runAction(id, project): Promise<ProviderStatus | ProjectProviderState> {
       if (id === DAEMON_START_ACTION && project === null) return startDaemon();
+      if (id === RECLAIM_ACTION && project === null) return runReclaim();
       throw new ProviderError('unknown-action', `Неизвестное действие Codex: ${id}`, { status: 404 });
     },
   };

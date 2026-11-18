@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1348,
+  "revision": 1350,
   "rounds": [
     {
       "digest": {
@@ -67,7 +67,7 @@
       },
       "id": "R2",
       "kind": "fixes",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "CI macOS: session-start hook test"
     }
   ],
@@ -237,9 +237,21 @@
           "session": "ffc970ed-20a1-499c-9d2c-47dff30c41a0"
         },
         "text": "confirm-delivery: Решение пользователя в панели Workflow Kit"
+      },
+      {
+        "at": "2026-11-18T17:41:35.677Z",
+        "decisionId": "dec-e83fe7f7804f",
+        "kind": "confirm-delivery",
+        "source": {
+          "kind": "message",
+          "messageId": "18280311-cb01-402a-ac4c-5660d05228b1",
+          "runId": null,
+          "session": "ffc970ed-20a1-499c-9d2c-47dff30c41a0"
+        },
+        "text": "confirm-delivery: Нет в панели  никакого способов подтверждения. Подтверждаю просто тут."
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "ffc970ed-20a1-499c-9d2c-47dff30c41a0",
@@ -623,7 +635,7 @@
       ],
       "checks": [],
       "commitMessage": "test: verify M44 on four CI platforms",
-      "confirmation": null,
+      "confirmation": "Нет в панели  никакого способов подтверждения. Подтверждаю просто тут.",
       "context": [
         {
           "path": "docs/planning/M44-autopilot-grant-and-agent-state.md",
@@ -644,7 +656,7 @@
       "iteration": 2,
       "kind": "delivery",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "CI четырёх платформ",
       "why": "Изменения в хуках и службе: нужна зелёная CI macOS, Linux и Windows x64/ARM64",
       "deferrals": [
@@ -665,12 +677,12 @@
 ## State
 
 - Scope: M44-autopilot-grant (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Automation: 4 automatic, 1 manual criteria; CI origin ci/M44-autopilot-grant (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 9/10
-- Revision: 1348
+- Progress: 10/10
+- Revision: 1350
 
 ## Objective
 
@@ -718,7 +730,7 @@
 
 Digest: Full autopilot runs get the Kit grant (Kit 2.4.6 allows the full mode with a manual criterion: the run waits for the user's acceptance, then closes and publishes); every start and grant outcome is logged and retried up to 3 times; new sessions get the autopilot line at SessionStart; Settings and run changes are queued for the agent; autopilot texts only under a live grant; the panel shows a run without the grant with «Повторить».
 
-### R2 — CI macOS: session-start hook test (fixes, OPEN)
+### R2 — CI macOS: session-start hook test (fixes, CLOSED)
 
 - [DONE] T008 — Hook end-to-end test without a hanging port (work)
   - Commit: test: give the session-start hook test a service stub that drops the connection
@@ -728,7 +740,7 @@ Digest: Full autopilot runs get the Kit grant (Kit 2.4.6 allows the full mode wi
   - Commit: docs: reconcile documentation for R2
   - Files: README.md, docs/architecture/OVERVIEW.md
   - Depends on: T008
-- [TODO] T007 — CI четырёх платформ (delivery)
+- [DONE] T007 — CI четырёх платформ (delivery)
   - Commit: test: verify M44 on four CI platforms
   - Files: docs/evidence/M44-acceptance.md
   - Depends on: T006, DOCS-R2

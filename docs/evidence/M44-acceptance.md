@@ -94,3 +94,22 @@ M44 на Kit 2.4.5 без разрешения):
   run=run-grGmd5VPjbzn NOT authorized (phase executing without a Kit grant). Without a live Kit
   grant every user decision stays manual: follow the next line of the Kit recovery packet.`
 - Kimi: та же строка в `{ message }`.
+
+## T007 — CI четырёх платформ
+
+Первая попытка (iteration 1), `bc55f778`, [run 44310031268](https://github.com/OleynikAleksandr/Workflow_Kit/actions/runs/44310031268):
+Linux x64, Windows x64 и Windows ARM64 — success; macOS ARM64 — failure дважды (вторая
+попытка — повтор упавшего задания): `hook-link.test.ts` «the hook command from settings runs
+the linked launcher end to end» — 2982 и 2415 мс при лимите 2000 (до M44 на macOS CI —
+0,8–0,9 с). Поставка отложена (`task:defer-delivery`), раунд исправлений R2: T008 (`ac392e05`)
+— тест направляет хук не на порт 1, а на свою заглушку на loopback, которая сразу рвёт
+соединение; причина медленного хука (`WFK_HOOK_DEBUG`) — в тексте ошибки. DOCS-R2 —
+`0be629fb`.
+
+Вторая попытка (iteration 2), `0be629fb`, [run 44361495710](https://github.com/OleynikAleksandr/Workflow_Kit/actions/runs/44361495710):
+macOS ARM64, Linux x64, Windows x64, Windows ARM64 — success, точный SHA
+`0be629fbcfaffaa926a398d8528c5888c49cc1e0` на `ci/M44-autopilot-grant`.
+
+Замечание: тест хука на macOS CI прошёл за 1884 мс (Linux — 602 мс), запас до лимита 2000 мс
+мал. Хук M44 дольше прежнего на macOS CI и без зависшего порта — вероятно, загрузка модулей
+строки SessionStart на медленном раннере; разобрать отдельно.

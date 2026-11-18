@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
+import net from 'node:net';
 import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -139,14 +140,19 @@ test('wfk link writes the launcher into a substituted HOME and refuses foreign f
 test('the hook command from settings runs the linked launcher end to end', { skip: !posix }, async () => {
   assert.equal((await run(['link'], { app: { homedir: home, env: {}, platform: 'darwin' } })).code, 0);
   const before = (await journal()).length;
-  // WFK_PORT 1: no service answers there, whatever runs on this machine.
-  const env = { HOME: home, PATH: '/usr/bin:/bin', CLAUDE_PROJECT_DIR: project, WFK_PORT: '1' };
+  // M44 T008: a loopback stub that drops every connection at once stands for a missing service.
+  // A fixed port (WFK_PORT 1) is not refused at once everywhere: on the macOS CI runner the
+  // request waited the whole hook budget.
+  const stub = net.createServer((socket) => socket.destroy());
+  await new Promise<void>((resolve) => stub.listen(0, '127.0.0.1', resolve));
+  const port = String((stub.address() as net.AddressInfo).port);
+  const env = { HOME: home, PATH: '/usr/bin:/bin', CLAUDE_PROJECT_DIR: project, WFK_PORT: port, WFK_HOOK_DEBUG: '1' };
   const input = JSON.stringify({ session_id: 'e2e-1', transcript_path: '/tmp/e2e.jsonl', model: 'm' });
-  const result = await exec('/bin/sh', ['-c', hookCommand('claude')], env, input);
+  const result = await exec('/bin/sh', ['-c', hookCommand('claude')], env, input).finally(() => stub.close());
   assert.equal(result.code, 0, result.err);
   // M44: without the service the session still learns that the autopilot state is unknown.
   assert.deepEqual(JSON.parse(result.out), { continue: true, hookSpecificOutput: { hookEventName: 'SessionStart', additionalContext: 'Workflow Kit autopilot: unknown (service not reachable).' } });
-  assert.ok(result.ms < 2000, `hook took ${result.ms} ms`);
+  assert.ok(result.ms < 2000, `hook took ${result.ms} ms: ${result.err}`);
   const lines = await journal();
   assert.equal(lines.length, before + 1);
   assert.equal(lines.at(-1)?.['session_id'], 'e2e-1');

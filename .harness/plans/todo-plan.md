@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1344,
+  "revision": 1346,
   "rounds": [
     {
       "digest": {
@@ -576,7 +576,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Hook end-to-end test without a hanging port",
       "why": "CI macOS ARM64 red: with WFK_PORT=1 the M44 session-start request waits the whole hook budget on the runner (2.4-3.0 s against the 2 s limit)"
     },
@@ -658,8 +658,8 @@
 - Execution: sequential
 - Automation: 4 automatic, 1 manual criteria; CI origin ci/M44-autopilot-grant (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 7/10
-- Revision: 1344
+- Progress: 8/10
+- Revision: 1346
 
 ## Objective
 
@@ -709,7 +709,7 @@ Digest: Full autopilot runs get the Kit grant (Kit 2.4.6 allows the full mode wi
 
 ### R2 — CI macOS: session-start hook test (fixes, OPEN)
 
-- [TODO] T008 — Hook end-to-end test without a hanging port (work)
+- [DONE] T008 — Hook end-to-end test without a hanging port (work)
   - Commit: test: give the session-start hook test a service stub that drops the connection
   - Files: product-parts/backend-core/clusters/runtime/modules/cli/test/hook-link.test.ts
   - Fixes: T002

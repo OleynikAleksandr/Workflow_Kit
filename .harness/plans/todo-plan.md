@@ -3,7 +3,7 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T001",
   "lastClosed": {
     "closedAt": "2026-11-18T08:40:14.929Z",
     "scopeId": "M43-codex-remote-owner",
@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1323,
+  "revision": 1325,
   "rounds": [
     {
       "digest": null,
@@ -194,11 +194,11 @@
   "tasks": [
     {
       "acceptance": [
-        "Реальный сценарий: полный автопилот, ревью выключено, выбор во время хода владельца до его Stop — воспроизводит сбой M43 до исправления и проходит после: квитанции review, choose, authorize, start",
-        "Каждый выход start() и grant() пишет строку autopiloting: <run> start/grant с исходом; молчаливых return нет",
-        "Нет разрешения и нет квитанции start — следующий reconcile или tick повторяет старт; квитанция start без разрешения — до 3 попыток разрешения, затем blocked authorization-missing: <код Kit>",
-        "resume запуска без authority записывает разрешение; отказ — blocked с причиной",
-        "Установленная причина описана в разделе «Уточнения реализации» спецификации; autopiloting.md и module.md обновлены"
+        "Причина M43 установлена: Kit 2.4.5 отказывает autopilot:authorize полного автопилота с ручным критерием (AUTOPILOT_MANUAL_REQUIRED, правило M39), хотя служба по M41 ждёт приёмки пользователя; описано в «Уточнениях реализации» спецификации",
+        "Kit 2.4.6: authorize допускает mode full с ручным критерием при accept=false и acceptancePolicy manual; accept=true или policy automatic с ручным критерием по-прежнему AUTOPILOT_MANUAL_REQUIRED; бандл пересобран, версия 2.4.6 в payload, bundle-meta, vendor и PROVENANCE; тесты kit-core",
+        "Реальный сценарий на bundle 2.4.6: полный автопилот, ревью выключено, ручной критерий — квитанции review, choose, authorize, start; поставки подтверждаются запуском, запуск ждёт приёмки пользователя, после неё сам закрывает",
+        "Каждый выход start() и grant() пишет строку autopiloting: <run> start/grant с исходом; повторный block не затирает pausedFrom и причину; resume запуска без authority записывает разрешение, отказ — blocked с причиной",
+        "Нет разрешения и нет квитанции start — следующий reconcile повторяет старт; квитанция start без разрешения — до 3 попыток, затем blocked authorization-missing: <код Kit>; autopiloting.md, module.md и OS-MATRIX.md обновлены"
       ],
       "checks": [],
       "commitMessage": "fix: authorize full autopilot runs reliably and log every start outcome",
@@ -213,6 +213,12 @@
       "docsWaiver": null,
       "files": [
         "product-parts/workflow-engine/clusters/session-loop/modules/autopilot",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-plan",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-installer",
+        "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle",
+        "product-parts/workflow-engine/clusters/kit-host/modules/kit-update",
+        "docs/architecture/OS-MATRIX.md",
         "docs/planning/M44-autopilot-grant-and-agent-state.md",
         "docs/evidence/M44-acceptance.md"
       ],
@@ -221,7 +227,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "Разрешение запуска: воспроизведение, исправление, журнал, повтор",
       "why": "В M43 запуск выбрал способ, но так и не получил разрешения Kit — всё шло по кнопкам"
     },
@@ -471,9 +477,9 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Automation: 4 automatic, 1 manual criteria; CI origin ci/M44-autopilot-grant (4 checks); publication main → origin/main
-- Current task: none
+- Current task: T001
 - Progress: 0/8
-- Revision: 1323
+- Revision: 1325
 
 ## Objective
 
@@ -491,9 +497,9 @@
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T001 — Разрешение запуска: воспроизведение, исправление, журнал, повтор (work)
+- [IN_PROGRESS] T001 — Разрешение запуска: воспроизведение, исправление, журнал, повтор (work)
   - Commit: fix: authorize full autopilot runs reliably and log every start outcome
-  - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, docs/planning/M44-autopilot-grant-and-agent-state.md, docs/evidence/M44-acceptance.md
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/kit-core/clusters/project-workflow/modules/workflow-plan, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle, product-parts/workflow-engine/clusters/kit-host/modules/kit-update, docs/architecture/OS-MATRIX.md, docs/planning/M44-autopilot-grant-and-agent-state.md, docs/evidence/M44-acceptance.md
 - [TODO] T002 — Строка состояния автопилота при старте сессии (work)
   - Commit: feat: tell every new session the autopilot mode and run state
   - Files: product-parts/backend-core/clusters/runtime/modules/cli, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel, docs/architecture/HTTP-CONTRACTS.md, docs/architecture/OS-MATRIX.md, docs/evidence/M44-acceptance.md

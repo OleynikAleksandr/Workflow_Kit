@@ -3,7 +3,7 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": "DOCS-R1",
+  "currentTaskId": null,
   "lastClosed": {
     "closedAt": "2026-11-17T18:40:08.766Z",
     "scopeId": "M41-autopilot-acceptance",
@@ -22,10 +22,27 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1312,
+  "revision": 1313,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "provider-codex: createReclaim, reclaimAction, appOwnerNote(platform, remoteOwner), RECLAIM_ACTION reclaim-remote, CodexDeps.reclaim (ReclaimSystem)",
+          "Статус провайдера: label «возвращает управление Kit» с RECLAIM_REASON; APP_OWNER_NOTE вместо SHARED_APP_OWNER_REASON; HANDOVER_REASON и codex-handover удалены"
+        ],
+        "decisions": [
+          "Владелец удалённого управления — демон Kit в обоих режимах; передача M7 приложению удалена",
+          "Выход ChatGPT: osascript quit, при отказе Apple Events — SIGTERM главному процессу; никогда KILL",
+          "Не больше 3 автоматических попыток за час; после app-kept — до нового pid, после not-connected — до подключённого демона",
+          "open не внесён в programNames platform-guard: ложные совпадения с обычными строками"
+        ],
+        "references": [
+          "docs/planning/M43-codex-remote-owner.md",
+          "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/reclaim.md",
+          "docs/evidence/M43-acceptance.md"
+        ],
+        "result": "Удалённое управление ChatGPT у демона Kit: reclaim.ts вместо передачи M7; на macOS при remoteOwner app Kit закрывает ChatGPT штатно, толкает демон, ждёт connected и открывает ChatGPT снова — после создания сессии и раз в минуту; действие «Вернуть управление Kit»; Windows — подсказка, Linux — ничего. Документы и руководства обновлены."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -261,7 +278,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -344,9 +361,9 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Automation: 3 automatic, 1 manual criteria; CI origin ci/M43-codex-remote-owner (4 checks); publication main → origin/main
-- Current task: DOCS-R1
-- Progress: 1/4
-- Revision: 1312
+- Current task: none
+- Progress: 2/4
+- Revision: 1313
 
 ## Objective
 
@@ -366,7 +383,7 @@
 - [DONE] T001 — Возврат удалённого управления демону Kit (work)
   - Commit: feat: keep ChatGPT remote control with the Kit daemon
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/reclaim.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/handover.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/runtime.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/shared-mode.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/shared-access.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/reclaim.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider-reclaim.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/handover.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/shared-mode.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/shared-sessions.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/handover.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/reclaim.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/shared-access.md, docs/architecture/OS-MATRIX.md, tools/platform-guard/allowlist.json, docs/evidence/M43-acceptance.md
-- [IN_PROGRESS] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M43-codex-remote-owner.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/handover.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/reclaim.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/shared-access.md, docs/architecture/OS-MATRIX.md, docs/evidence/M43-acceptance.md, docs/setup.md, docs/installation.md
   - Depends on: T001
@@ -378,5 +395,7 @@
   - Commit: test: verify M43 on four CI platforms
   - Files: docs/evidence/M43-acceptance.md
   - Depends on: T002, DOCS-R1
+
+Digest: Удалённое управление ChatGPT у демона Kit: reclaim.ts вместо передачи M7; на macOS при remoteOwner app Kit закрывает ChatGPT штатно, толкает демон, ждёт connected и открывает ChatGPT снова — после создания сессии и раз в минуту; действие «Вернуть управление Kit»; Windows — подсказка, Linux — ничего. Документы и руководства обновлены.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

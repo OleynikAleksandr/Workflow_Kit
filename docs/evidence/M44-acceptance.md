@@ -1,0 +1,78 @@
+# M44: разрешение запуска автопилота и знание агента — доказательства
+
+Спецификация: [M44](../planning/M44-autopilot-grant-and-agent-state.md).
+
+## Причина (T001, воспроизведено 18.11.2026 на бандле Kit 2.4.5)
+
+- Запуск M43 `run-khg6_dmzVg8_` и запуск этого плана `run-grGmd5VPjbzn`: квитанции только
+  `review` и `choose`, `authority: null`, `scope.authorization: null`; в журнале службы после
+  `decisions: choose … applied` — ни одной строки старта или разрешения.
+- Служба просила `autopilot:authorize` с `mode: full`, `accept: false`,
+  `acceptancePolicy: manual` (в плане ручной критерий — живая проверка пользователя). Kit 2.4.5
+  отказывал: `AUTOPILOT_MANUAL_REQUIRED` (правило M39 в `checkAuthorizeInput` допускало ручной
+  критерий только не в полном режиме). У M41 ручных критериев не было — поэтому он работал.
+- Отказ ставил `blocked`, затем `start()` останавливал запуск второй раз (`pausedFrom: blocked`),
+  а «Продолжить» возвращал его в `blocked` без причины и без новой попытки.
+
+## Исправление по задачам
+
+| Задача | Коммит | Что сделано |
+| --- | --- | --- |
+| T001 | `5807b005` | Kit 2.4.6: полный автопилот с ручным критерием (accept=false, policy manual); журнал исходов старта и разрешения; повтор до 3 раз; «Продолжить» без разрешения просит его снова |
+| T002 | `2d20a437` | `wfk hook session-start` печатает строку `Workflow Kit autopilot: mode=…, review=…; run=…` в диалекте клиента; без службы — `unknown (service not reachable)` |
+| T003 | `719875c4` | Смена Settings и состояния запуска — строка в очередь сессии без пробуждения; «autopilot» в текстах хода только при живом разрешении Kit |
+| T004 | `b97c22f8` | Панель: «Автопилот не получил разрешения Kit», причина и «Повторить» (`POST …/autopiloting/retry`) |
+
+## Автоматические проверки (macOS ARM64, Node 24)
+
+| Команда | Результат |
+| --- | --- |
+| `npm run typecheck` | без ошибок |
+| `npm run test:app` | 1437 из 1437 (после T004) |
+| `npm run test:kit` | 78 из 78 (после T001) |
+| `npm run check:platforms` | `platform-guard: ok` |
+| сценарии M44 (список ниже) | 45 из 45, 58 с |
+| `node …/session-view/test/m44-run-card.browser.mjs` | 4 из 4 (тёмная и светлая тема, 1280 и 390 px), 9 проверок в каждом |
+
+Сценарии M44 (`node --test`):
+
+- `autopilot/test/m44-manual-full-real.test.ts` — настоящий бандл 2.4.6, «Полный автопилот»,
+  ревью выключено, ручной критерий: квитанции `review`, `choose`, `authorize`, `start`;
+  разрешение в плане (`mode full`, `accept false`); поставка запущена по разрешению (источник
+  `grant`, не кнопка); на `READY_FOR_ACCEPTANCE` запуск ждёт «Принять план»; после приёмки
+  (источник `button`) сам закрывает (источник `grant`) и публикует SHA закрытия.
+- `autopilot/test/m40-full-real.test.ts` — полный автопилот без ручных критериев проходит до
+  публикации без кнопок (все решения — источник `grant`).
+- `autopilot/test/m41-acceptance-real.test.ts` — проверки поставки и ожидание приёмки (M41) не
+  сломаны.
+- `autopilot/test/runs-grant.test.ts` — отказ разрешения: строка журнала, `blocked` с кодом
+  Kit, `pausedFrom` сохраняется; «Продолжить» записывает разрешение; «Повторить» (`run-stale`,
+  `run-not-found`, `already`).
+- `autopilot/test/prepare-retry.test.ts` — повтор старта, `blocked authorization-missing: <код>`
+  после трёх отказов, повторная запись разрешения запущенного плана.
+- `autopilot/test/agent-notices.test.ts`, `autopilot/test/run-turns.test.ts` — строки о смене
+  Settings и запуска, без дублей; тексты без разрешения — ручные, без «autopilot».
+- `cli/test/m44-agent-state.test.ts` — служба на loopback: строка SessionStart для Claude,
+  Codex и Kimi; запуск «executing» без разрешения Kit — `NOT authorized`; смена Settings доходит
+  до владельца хуком `UserPromptSubmit` один раз; без службы — `unknown`.
+- `cli/test/session-start-line.test.ts` — диалекты, недоступная служба, нехватка бюджета,
+  URL службы при подставленной платформе `win32` и `linux`.
+- `agent-channel/test/session-start-route.test.ts` — маршрут: loopback, 400, нет опции — нет
+  маршрута.
+- `session-view/test/run-model.test.ts` — модель «не получил разрешения» и «Повторить».
+
+## Ограничение этого плана
+
+Проект Workflow_Kit на Kit 2.4.5: запуск M44 разрешения не получит, поставки T006 и T007,
+приёмка и закрытие M44 — кнопками. Полный автопилот с ручным критерием заработает после выпуска
+0.20.0 и «Обновить Kit» проекта до 2.4.6.
+
+## Живые проверки по ОС
+
+| ОС | Кто | Что |
+| --- | --- | --- |
+| macOS | пользователь | новая сессия видит строку `Workflow Kit autopilot: …`; переключение режима в Settings доходит до агента к следующему ходу; следующий план под «Полным автопилотом» проходит поставку, приёмку (кнопкой при ручном критерии) и закрытие |
+| Windows x64/ARM64 | проверяющий Windows | строка SessionStart в сессии Claude и ChatGPT (`wfk.cmd`), ASCII без искажений |
+| Linux | CI | typecheck, тесты, platform-guard |
+
+Поставка (T006) и CI четырёх платформ (T007) — ниже, по мере выполнения.

@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1335,
+  "revision": 1337,
   "rounds": [
     {
       "digest": null,
@@ -415,14 +415,15 @@
       "files": [
         "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test",
         "product-parts/backend-core/clusters/runtime/modules/cli/test",
-        "docs/evidence/M44-acceptance.md"
+        "docs/evidence/M44-acceptance.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/m44-agent-state.test.ts"
       ],
       "fixes": null,
       "id": "T005",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Сквозные сценарии и доказательства",
       "why": "Проверить весь путь полного автопилота без кнопок и доставку состояния агенту"
     },
@@ -540,8 +541,8 @@
 - Execution: sequential
 - Automation: 4 automatic, 1 manual criteria; CI origin ci/M44-autopilot-grant (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 4/8
-- Revision: 1335
+- Progress: 5/8
+- Revision: 1337
 
 ## Objective
 
@@ -574,9 +575,9 @@
   - Commit: feat: show an unauthorized autopilot run with a retry in the panel
   - Files: product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/workflow-engine/clusters/session-loop/modules/autopilot, docs/architecture/HTTP-CONTRACTS.md, docs/architecture/OS-MATRIX.md, docs/evidence/M44-acceptance.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/run-card.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/run-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/test/m44-run-card.browser.mjs, product-parts/control-panel/clusters/web-panel/modules/session-view/test/run-model.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/grant.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-brief.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-retry.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/runs-routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/runs.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/runs-grant.test.ts
   - Depends on: T003
-- [TODO] T005 — Сквозные сценарии и доказательства (work)
+- [DONE] T005 — Сквозные сценарии и доказательства (work)
   - Commit: test: verify M44 autopilot grant and agent state end to end
-  - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test, product-parts/backend-core/clusters/runtime/modules/cli/test, docs/evidence/M44-acceptance.md
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test, product-parts/backend-core/clusters/runtime/modules/cli/test, docs/evidence/M44-acceptance.md, product-parts/backend-core/clusters/runtime/modules/cli/test/m44-agent-state.test.ts
   - Depends on: T004
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1

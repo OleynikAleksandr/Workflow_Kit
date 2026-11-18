@@ -3,7 +3,7 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T003",
   "lastClosed": {
     "closedAt": "2026-11-17T18:40:08.766Z",
     "scopeId": "M41-autopilot-acceptance",
@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1315,
+  "revision": 1319,
   "rounds": [
     {
       "digest": {
@@ -191,6 +191,30 @@
           "session": "ffc970ed-20a1-499c-9d2c-47dff30c41a0"
         },
         "text": "confirm-delivery: Решение пользователя в панели Workflow Kit"
+      },
+      {
+        "at": "2026-11-18T08:12:43.946Z",
+        "decisionId": "dec-b614355ef670",
+        "kind": "confirm-delivery",
+        "source": {
+          "kind": "button",
+          "messageId": null,
+          "runId": null,
+          "session": "ffc970ed-20a1-499c-9d2c-47dff30c41a0"
+        },
+        "text": "confirm-delivery: Решение пользователя в панели Workflow Kit"
+      },
+      {
+        "at": "2026-11-18T08:39:39.564Z",
+        "decisionId": "dec-50e197a027b9",
+        "kind": "unblock",
+        "source": {
+          "kind": "message",
+          "messageId": "44aca6e0-10dc-4803-bbfd-9efa5b7eb675",
+          "runId": null,
+          "session": "ffc970ed-20a1-499c-9d2c-47dff30c41a0"
+        },
+        "text": "unblock: Добавить в .gitignore"
       }
     ],
     "delivery": "IN_PROGRESS",
@@ -337,7 +361,7 @@
       ],
       "checks": [],
       "commitMessage": "test: verify M43 on four CI platforms",
-      "confirmation": null,
+      "confirmation": "Решение пользователя в панели Workflow Kit",
       "context": [
         {
           "path": "docs/planning/M43-codex-remote-owner.md",
@@ -351,14 +375,15 @@
       ],
       "docsWaiver": null,
       "files": [
-        "docs/evidence/M43-acceptance.md"
+        "docs/evidence/M43-acceptance.md",
+        ".gitignore"
       ],
       "fixes": null,
       "id": "T003",
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "CI четырёх платформ",
       "why": "Изменение трогает процессы ОС: нужна зелёная CI macOS, Linux и Windows x64/ARM64"
     }
@@ -373,9 +398,9 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Automation: 3 automatic, 1 manual criteria; CI origin ci/M43-codex-remote-owner (4 checks); publication main → origin/main
-- Current task: none
+- Current task: T003
 - Progress: 3/4
-- Revision: 1315
+- Revision: 1319
 
 ## Objective
 
@@ -403,9 +428,9 @@
   - Commit: chore: release Workflow Kit 0.19.0
   - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/evidence/M43-acceptance.md
   - Depends on: T001, DOCS-R1
-- [TODO] T003 — CI четырёх платформ (delivery)
+- [IN_PROGRESS] T003 — CI четырёх платформ (delivery)
   - Commit: test: verify M43 on four CI platforms
-  - Files: docs/evidence/M43-acceptance.md
+  - Files: docs/evidence/M43-acceptance.md, .gitignore
   - Depends on: T002, DOCS-R1
 
 Digest: Удалённое управление ChatGPT у демона Kit: reclaim.ts вместо передачи M7; на macOS при remoteOwner app Kit закрывает ChatGPT штатно, толкает демон, ждёт connected и открывает ChatGPT снова — после создания сессии и раз в минуту; действие «Вернуть управление Kit»; Windows — подсказка, Linux — ничего. Документы и руководства обновлены.

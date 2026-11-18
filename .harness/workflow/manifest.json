@@ -4,7 +4,7 @@
       "executable": false,
       "kind": "owned",
       "path": ".harness/workflow/runtime/workflow.mjs",
-      "sha256": "3bd6453c8fff7163d2fb2c1db588faed92d43b0952789754e0f1828ac2092fa2"
+      "sha256": "1efd27bd9414d69ac2e76b9998ff06a195533867f3ab26ea2c402b31ce371aa4"
     },
     {
       "executable": true,
@@ -98,5 +98,5 @@
     }
   ],
   "schema": "harness-workflow-manifest/1",
-  "version": "2.4.5"
+  "version": "2.4.6"
 }

@@ -1094,11 +1094,11 @@ function checkAuthorizeInput(input, automation) {
   );
   const manual = manualCriteria(automation);
   ensure(
-    manual.length === 0 || !input.accept && input.acceptancePolicy === "manual" && input.mode !== "full",
+    manual.length === 0 || !input.accept && input.acceptancePolicy === "manual",
     "AUTOPILOT_MANUAL_REQUIRED",
     `Acceptance criteria ${manual.map((index) => index + 1).join(", ")} need the user's manual check; the run stops at acceptance.`,
     { manual },
-    "Grant accept=false with acceptancePolicy manual (after-start), or automate the criteria in a reviewed plan."
+    "Grant accept=false with acceptancePolicy manual, or automate the criteria in a reviewed plan."
   );
   ensure(
     manual.length > 0 || input.acceptancePolicy === "automatic",
@@ -12524,7 +12524,7 @@ in line with the code.
 }
 
 // product-parts/kit-core/clusters/project-workflow/modules/workflow-installer/src/installer-payload.ts
-var KIT_VERSION = "2.4.5";
+var KIT_VERSION = "2.4.6";
 var MANIFEST_PATH = ".harness/workflow/manifest.json";
 var MANIFEST_SCHEMA = "harness-workflow-manifest/1";
 var OWN_HOOKS_DIR = ".harness/workflow/hooks";

@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1341,
+  "revision": 1343,
   "rounds": [
     {
       "digest": {
@@ -199,6 +199,18 @@
       {
         "at": "2026-11-18T12:17:27.939Z",
         "decisionId": "dec-a3b941f7b8bc",
+        "kind": "confirm-delivery",
+        "source": {
+          "kind": "button",
+          "messageId": null,
+          "runId": null,
+          "session": "ffc970ed-20a1-499c-9d2c-47dff30c41a0"
+        },
+        "text": "confirm-delivery: Решение пользователя в панели Workflow Kit"
+      },
+      {
+        "at": "2026-11-18T13:04:19.278Z",
+        "decisionId": "dec-84ce14080efe",
         "kind": "confirm-delivery",
         "source": {
           "kind": "button",
@@ -555,12 +567,21 @@
       ],
       "fixes": null,
       "id": "T007",
-      "iteration": 1,
+      "iteration": 2,
       "kind": "delivery",
       "roundId": "R1",
       "status": "TODO",
       "title": "CI четырёх платформ",
-      "why": "Изменения в хуках и службе: нужна зелёная CI macOS, Linux и Windows x64/ARM64"
+      "why": "Изменения в хуках и службе: нужна зелёная CI macOS, Linux и Windows x64/ARM64",
+      "deferrals": [
+        {
+          "at": "2026-11-18T13:36:03.173Z",
+          "confirmation": "Решение пользователя в панели Workflow Kit",
+          "iteration": 1,
+          "outcome": null,
+          "reason": "CI macOS ARM64 red twice for bc55f778: hook-link.test.ts 'the hook command from settings runs the linked launcher end to end' took 2982/2415 ms (limit 2000; was ~0.9 s before M44): with WFK_PORT=1 the M44 session-start request waits the hook budget on the runner. Linux, Windows x64/ARM64 green. https://github.com/OleynikAleksandr/Workflow_Kit/actions/runs/44310031268"
+        }
+      ]
     }
   ]
 }
@@ -575,7 +596,7 @@
 - Automation: 4 automatic, 1 manual criteria; CI origin ci/M44-autopilot-grant (4 checks); publication main → origin/main
 - Current task: none
 - Progress: 7/8
-- Revision: 1341
+- Revision: 1343
 
 ## Objective
 

@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1343,
+  "revision": 1344,
   "rounds": [
     {
       "digest": {
@@ -49,8 +49,15 @@
       },
       "id": "R1",
       "kind": "implementation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Implementation"
+    },
+    {
+      "digest": null,
+      "id": "R2",
+      "kind": "fixes",
+      "status": "OPEN",
+      "title": "CI macOS: session-start hook test"
     }
   ],
   "schema": "harness-workflow-plan/1",
@@ -545,6 +552,62 @@
     },
     {
       "acceptance": [
+        "The end-to-end hook test in hook-link.test.ts points the launcher at a loopback stub that drops every connection at once instead of port 1, prints the unknown autopilot line and stays under 2 s",
+        "A slow hook reports its WFK_HOOK_DEBUG reason in the assertion message",
+        "test:app passes"
+      ],
+      "checks": [],
+      "commitMessage": "test: give the session-start hook test a service stub that drops the connection",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M44-autopilot-grant-and-agent-state.md",
+          "heading": "5. Проверка",
+          "required": false
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/hook-link.test.ts"
+      ],
+      "fixes": "T002",
+      "id": "T008",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Hook end-to-end test without a hanging port",
+      "why": "CI macOS ARM64 red: with WFK_PORT=1 the M44 session-start request waits the whole hook budget on the runner (2.4-3.0 s against the 2 s limit)"
+    },
+    {
+      "acceptance": [
+        "Project-wide documents describe the round result",
+        "The round digest records result, decisions, contracts and references"
+      ],
+      "checks": [],
+      "commitMessage": "docs: reconcile documentation for R2",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "T008"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/architecture/OVERVIEW.md"
+      ],
+      "fixes": null,
+      "id": "DOCS-R2",
+      "iteration": 1,
+      "kind": "docs",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Reconcile project documentation and write the round digest",
+      "why": "Keep the project context current for the next agent and close the round."
+    },
+    {
+      "acceptance": [
         "CI на ci/M44-autopilot-grant успешен для точного SHA на macOS ARM64, Linux x64, Windows x64 и Windows ARM64; ссылка в evidence"
       ],
       "checks": [],
@@ -559,7 +622,7 @@
       ],
       "dependencies": [
         "T006",
-        "DOCS-R1"
+        "DOCS-R2"
       ],
       "docsWaiver": null,
       "files": [
@@ -569,7 +632,7 @@
       "id": "T007",
       "iteration": 2,
       "kind": "delivery",
-      "roundId": "R1",
+      "roundId": "R2",
       "status": "TODO",
       "title": "CI четырёх платформ",
       "why": "Изменения в хуках и службе: нужна зелёная CI macOS, Linux и Windows x64/ARM64",
@@ -595,8 +658,8 @@
 - Execution: sequential
 - Automation: 4 automatic, 1 manual criteria; CI origin ci/M44-autopilot-grant (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 7/8
-- Revision: 1343
+- Progress: 7/10
+- Revision: 1344
 
 ## Objective
 
@@ -612,7 +675,7 @@
 
 ## Rounds
 
-### R1 — Implementation (implementation, OPEN)
+### R1 — Implementation (implementation, CLOSED)
 
 - [DONE] T001 — Разрешение запуска: воспроизведение, исправление, журнал, повтор (work)
   - Commit: fix: authorize full autopilot runs reliably and log every start outcome
@@ -641,11 +704,22 @@
   - Commit: chore: release Workflow Kit 0.20.0
   - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/evidence/M44-acceptance.md
   - Depends on: T005, DOCS-R1
+
+Digest: Full autopilot runs get the Kit grant (Kit 2.4.6 allows the full mode with a manual criterion: the run waits for the user's acceptance, then closes and publishes); every start and grant outcome is logged and retried up to 3 times; new sessions get the autopilot line at SessionStart; Settings and run changes are queued for the agent; autopilot texts only under a live grant; the panel shows a run without the grant with «Повторить».
+
+### R2 — CI macOS: session-start hook test (fixes, OPEN)
+
+- [TODO] T008 — Hook end-to-end test without a hanging port (work)
+  - Commit: test: give the session-start hook test a service stub that drops the connection
+  - Files: product-parts/backend-core/clusters/runtime/modules/cli/test/hook-link.test.ts
+  - Fixes: T002
+- [TODO] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
+  - Commit: docs: reconcile documentation for R2
+  - Files: README.md, docs/architecture/OVERVIEW.md
+  - Depends on: T008
 - [TODO] T007 — CI четырёх платформ (delivery)
   - Commit: test: verify M44 on four CI platforms
   - Files: docs/evidence/M44-acceptance.md
-  - Depends on: T006, DOCS-R1
-
-Digest: Full autopilot runs get the Kit grant (Kit 2.4.6 allows the full mode with a manual criterion: the run waits for the user's acceptance, then closes and publishes); every start and grant outcome is logged and retried up to 3 times; new sessions get the autopilot line at SessionStart; Settings and run changes are queued for the agent; autopilot texts only under a live grant; the panel shows a run without the grant with «Повторить».
+  - Depends on: T006, DOCS-R2
 
 State changes only through `scripts/workflow` commands. History lives in Git.

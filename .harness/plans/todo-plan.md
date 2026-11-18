@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1320,
+  "revision": 1321,
   "rounds": [
     {
       "digest": {
@@ -57,7 +57,10 @@
       "Выпуск 0.19.0 установлен, CI четырёх платформ зелёный для точного SHA на ci/M43-codex-remote-owner; результаты в docs/evidence/M43-acceptance.md",
       "Живая проверка пользователя на Mac и iPad: ChatGPT держал управление, после создания сессии ChatGPT перезапустился, статус «демон подключён», чат Kit открывается и пишется на iPad"
     ],
-    "acceptanceNote": null,
+    "acceptanceNote": {
+      "at": "2026-11-18T08:40:10.259Z",
+      "text": "Пользователь принял план в панели Workflow Kit"
+    },
     "approval": {
       "at": "2026-11-18T07:18:37.417Z",
       "text": "Пользователь 18.11.2026: «нужно эту проблему решить каким-то административным путем, чтобы при создании сессии новой проверялось, кто держит демон. Если его держит ChatGPT десктоп, то гасить его принудительно. В общем, разберись, как сделать так, чтобы всегда сессия принадлежала Workflow Kit, а не какому-то из ChatGPT, десктоп, мобайл» | Execution mode chosen by the user: sequential: Автоматический выбор по поручению run-khg6_dmzVg8_: sequential (recommended by the plan; ревью: skipped-by-setting)"
@@ -215,9 +218,21 @@
           "session": "ffc970ed-20a1-499c-9d2c-47dff30c41a0"
         },
         "text": "unblock: Добавить в .gitignore"
+      },
+      {
+        "at": "2026-11-18T08:40:10.242Z",
+        "decisionId": "dec-ec08c2315cc9",
+        "kind": "accept",
+        "source": {
+          "kind": "button",
+          "messageId": null,
+          "runId": null,
+          "session": "ffc970ed-20a1-499c-9d2c-47dff30c41a0"
+        },
+        "text": "accept: Пользователь принял план в панели Workflow Kit"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "ACCEPTED",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "ffc970ed-20a1-499c-9d2c-47dff30c41a0",
@@ -395,12 +410,12 @@
 ## State
 
 - Scope: M43-codex-remote-owner (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: ACCEPTED
 - Execution: sequential
 - Automation: 3 automatic, 1 manual criteria; CI origin ci/M43-codex-remote-owner (4 checks); publication main → origin/main
 - Current task: none
 - Progress: 4/4
-- Revision: 1320
+- Revision: 1321
 
 ## Objective
 

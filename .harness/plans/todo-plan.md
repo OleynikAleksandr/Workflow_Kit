@@ -3,7 +3,7 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": "T003",
+  "currentTaskId": null,
   "lastClosed": {
     "closedAt": "2026-11-17T18:40:08.766Z",
     "scopeId": "M41-autopilot-acceptance",
@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1319,
+  "revision": 1320,
   "rounds": [
     {
       "digest": {
@@ -45,7 +45,7 @@
       },
       "id": "R1",
       "kind": "implementation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Implementation"
     }
   ],
@@ -217,7 +217,7 @@
         "text": "unblock: Добавить в .gitignore"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 3,
       "ownerSession": "ffc970ed-20a1-499c-9d2c-47dff30c41a0",
@@ -383,7 +383,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "title": "CI четырёх платформ",
       "why": "Изменение трогает процессы ОС: нужна зелёная CI macOS, Linux и Windows x64/ARM64"
     }
@@ -395,12 +395,12 @@
 ## State
 
 - Scope: M43-codex-remote-owner (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Automation: 3 automatic, 1 manual criteria; CI origin ci/M43-codex-remote-owner (4 checks); publication main → origin/main
-- Current task: T003
-- Progress: 3/4
-- Revision: 1319
+- Current task: none
+- Progress: 4/4
+- Revision: 1320
 
 ## Objective
 
@@ -415,7 +415,7 @@
 
 ## Rounds
 
-### R1 — Implementation (implementation, OPEN)
+### R1 — Implementation (implementation, CLOSED)
 
 - [DONE] T001 — Возврат удалённого управления демону Kit (work)
   - Commit: feat: keep ChatGPT remote control with the Kit daemon
@@ -428,7 +428,7 @@
   - Commit: chore: release Workflow Kit 0.19.0
   - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/evidence/M43-acceptance.md
   - Depends on: T001, DOCS-R1
-- [IN_PROGRESS] T003 — CI четырёх платформ (delivery)
+- [DONE] T003 — CI четырёх платформ (delivery)
   - Commit: test: verify M43 on four CI platforms
   - Files: docs/evidence/M43-acceptance.md, .gitignore
   - Depends on: T002, DOCS-R1

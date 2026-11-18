@@ -35,3 +35,6 @@ __pycache__/
 # wfk:begin
 .workflow-kit/local/
 # wfk:end
+
+# Workflow Kit panel settings of this machine (provider defaults)
+.harness/settings/

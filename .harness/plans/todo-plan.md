@@ -3,7 +3,7 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "DOCS-R1",
   "lastClosed": {
     "closedAt": "2026-11-17T18:40:08.766Z",
     "scopeId": "M41-autopilot-acceptance",
@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1310,
+  "revision": 1312,
   "rounds": [
     {
       "digest": null,
@@ -252,14 +252,16 @@
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/reclaim.md",
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/shared-access.md",
         "docs/architecture/OS-MATRIX.md",
-        "docs/evidence/M43-acceptance.md"
+        "docs/evidence/M43-acceptance.md",
+        "docs/setup.md",
+        "docs/installation.md"
       ],
       "fixes": null,
       "id": "DOCS-R1",
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -342,9 +344,9 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Automation: 3 automatic, 1 manual criteria; CI origin ci/M43-codex-remote-owner (4 checks); publication main → origin/main
-- Current task: none
+- Current task: DOCS-R1
 - Progress: 1/4
-- Revision: 1310
+- Revision: 1312
 
 ## Objective
 
@@ -364,9 +366,9 @@
 - [DONE] T001 — Возврат удалённого управления демону Kit (work)
   - Commit: feat: keep ChatGPT remote control with the Kit daemon
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/reclaim.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/handover.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/provider.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/runtime.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/shared-mode.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/shared-access.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/src/index.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/reclaim.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider-reclaim.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/handover.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/provider.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/shared-mode.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/test/shared-sessions.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/handover.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/reclaim.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/shared-access.md, docs/architecture/OS-MATRIX.md, tools/platform-guard/allowlist.json, docs/evidence/M43-acceptance.md
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [IN_PROGRESS] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
-  - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M43-codex-remote-owner.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/handover.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/reclaim.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/shared-access.md, docs/architecture/OS-MATRIX.md, docs/evidence/M43-acceptance.md
+  - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M43-codex-remote-owner.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/handover.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/reclaim.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/shared-access.md, docs/architecture/OS-MATRIX.md, docs/evidence/M43-acceptance.md, docs/setup.md, docs/installation.md
   - Depends on: T001
 - [TODO] T002 — Поставка 0.19.0 (delivery)
   - Commit: chore: release Workflow Kit 0.19.0

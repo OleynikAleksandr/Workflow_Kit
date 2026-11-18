@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1325,
+  "revision": 1326,
   "rounds": [
     {
       "digest": null,
@@ -218,6 +218,8 @@
         "product-parts/kit-core/clusters/project-workflow/modules/workflow-kit",
         "product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle",
         "product-parts/workflow-engine/clusters/kit-host/modules/kit-update",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/autopiloting-wiring.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
         "docs/architecture/OS-MATRIX.md",
         "docs/planning/M44-autopilot-grant-and-agent-state.md",
         "docs/evidence/M44-acceptance.md"
@@ -479,7 +481,7 @@
 - Automation: 4 automatic, 1 manual criteria; CI origin ci/M44-autopilot-grant (4 checks); publication main → origin/main
 - Current task: T001
 - Progress: 0/8
-- Revision: 1325
+- Revision: 1326
 
 ## Objective
 
@@ -499,7 +501,7 @@
 
 - [IN_PROGRESS] T001 — Разрешение запуска: воспроизведение, исправление, журнал, повтор (work)
   - Commit: fix: authorize full autopilot runs reliably and log every start outcome
-  - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/kit-core/clusters/project-workflow/modules/workflow-plan, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle, product-parts/workflow-engine/clusters/kit-host/modules/kit-update, docs/architecture/OS-MATRIX.md, docs/planning/M44-autopilot-grant-and-agent-state.md, docs/evidence/M44-acceptance.md
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/kit-core/clusters/project-workflow/modules/workflow-plan, product-parts/kit-core/clusters/project-workflow/modules/workflow-installer, product-parts/kit-core/clusters/project-workflow/modules/workflow-kit, product-parts/workflow-engine/clusters/kit-host/modules/kit-bundle, product-parts/workflow-engine/clusters/kit-host/modules/kit-update, product-parts/backend-core/clusters/runtime/modules/cli/src/autopiloting-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/module.md, docs/architecture/OS-MATRIX.md, docs/planning/M44-autopilot-grant-and-agent-state.md, docs/evidence/M44-acceptance.md
 - [TODO] T002 — Строка состояния автопилота при старте сессии (work)
   - Commit: feat: tell every new session the autopilot mode and run state
   - Files: product-parts/backend-core/clusters/runtime/modules/cli, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel, docs/architecture/HTTP-CONTRACTS.md, docs/architecture/OS-MATRIX.md, docs/evidence/M44-acceptance.md

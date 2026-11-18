@@ -7,6 +7,7 @@
 // before the first work message; Settings off pauses every run for good (resumable only by the
 // user). The policy of a plan (automatic, manual acceptance, legacy, Kit update) is told ahead.
 import type { TurnUserSource } from '#agent-channel';
+import { grantFacts, retrySource, retryTarget } from './run-retry.ts';
 import type { KeyedMutex } from '#data-store';
 import { UPDATE_KIT_TEXT } from '#plan-view';
 import { WorkflowActionError } from './autopilot-types.ts';
@@ -87,6 +88,8 @@ export interface Runs {
   resume(projectId: string, key: string): Promise<RunRecord | null>;
   settingsChanged(change: SettingsChange): Promise<void>;
   section(): Promise<{ projects: Record<string, RunBrief> }>;
+  /** M44 «Повторить»: a run without the grant asks Kit again (project lock); a granted one is `already`. */
+  retryGrant(projectId: string, input: unknown): Promise<RunRecord & { already?: true }>;
 }
 
 /** Phases of a started run that is going on (not paused, blocked or final). */
@@ -320,6 +323,16 @@ export function createRuns(options: RunsOptions): Runs {
       return grant(folder, run, scope, status, run.request.source, grantNote(run));
     },
 
+    retryGrant: (projectId, input) =>
+      serial(projectId, async () => {
+        const folder = await root(projectId);
+        const run = await retryTarget(options.journal, folder, input);
+        if (run.authority && !run.authority.revocation) return { ...run, already: true as const };
+        const { status, scope } = grantFacts(run, await options.kit.status(folder), await options.kit.scope(folder));
+        log(`autopiloting: ${run.runId} grant retried from the panel`);
+        return grant(folder, run, scope, status, retrySource(run), `The user pressed «Повторить» for run ${run.runId} without a grant`);
+      }),
+
     async resume(projectId, key) {
       const folder = await root(projectId);
       const run = await options.journal.active(folder);
@@ -327,29 +340,19 @@ export function createRuns(options: RunsOptions): Runs {
       // F001: «Продолжить» of a run that is going on joins it unchanged (one sender, no second message).
       if (RUNNING.has(run.phase)) return run;
       if (run.phase !== 'paused' && run.phase !== 'blocked') return null;
-      // M44: a run whose chosen plan never got the grant (Kit refused it) asks Kit again: a
-      // «Продолжить» without the grant would leave the run looking alive but manual.
+      // M44: a chosen plan without the grant (Kit refused it) asks Kit again instead of looking alive.
       if (!run.authority && run.scopeId !== null) {
-        const status = await options.kit.status(folder);
-        const scope = await options.kit.scope(folder);
-        if (!status?.proposal || !scope?.automation || scope.id !== run.scopeId) {
-          fail('scope-changed', 'План изменился: прежний запуск автопилота нельзя продолжить', 409, 'Запустите план заново.');
-        }
-        const note = `The user pressed «Продолжить» for run ${run.runId} that has no grant yet (session ${key})`;
-        return grant(folder, run, scope!, status!, run.request.source === 'panel-resume' ? 'panel-start' : run.request.source, note);
+        const { status, scope } = grantFacts(run, await options.kit.status(folder), await options.kit.scope(folder));
+        return grant(folder, run, scope, status, retrySource(run), `The user pressed «Продолжить» for run ${run.runId} that has no grant yet (session ${key})`);
       }
       if (!run.authority?.revocation) {
         // A pause of the user or of the M24 stop, or a removed obstacle: the run goes on where it stopped.
         return remember(await options.journal.update(folder, run.runId, (r) => ({ ...r, phase: r.pausedFrom ?? 'executing', pausedFrom: null, reason: null, nextAction: null, noProgress: 0 })));
       }
       if (!run.authority.revocation.resumable) return null;
-      const status = await options.kit.status(folder);
-      const scope = await options.kit.scope(folder);
-      if (!status?.proposal || !scope?.automation || scope.id !== run.scopeId) {
-        fail('scope-changed', 'План изменился: прежний запуск автопилота нельзя продолжить', 409, 'Запустите план заново.');
-      }
+      const { status, scope } = grantFacts(run, await options.kit.status(folder), await options.kit.scope(folder));
       const note = `The user pressed «Продолжить» for run ${run.runId} paused by Settings off (session ${key})`;
-      return grant(folder, { ...run, phase: run.pausedFrom ?? 'executing' }, scope!, status!, 'panel-resume', note);
+      return grant(folder, { ...run, phase: run.pausedFrom ?? 'executing' }, scope, status, 'panel-resume', note);
     },
 
     async settingsChanged({ before, after }) {

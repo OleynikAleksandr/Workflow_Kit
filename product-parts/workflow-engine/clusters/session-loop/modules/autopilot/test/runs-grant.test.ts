@@ -87,3 +87,17 @@ test('a second refusal on «Продолжить» keeps the run blocked with th
   const blocked = (await journal.read(dir, run.runId))!;
   assert.deepEqual([blocked.phase, blocked.pausedFrom, blocked.reason], ['blocked', 'starting', 'AUTOPILOT_PLAN_CHANGED: The digest differs.']);
 });
+
+test('M44 T004: «Повторить» of a working run without the grant asks Kit; a granted run is not asked again; a stale card is refused', async () => {
+  const { runs, journal, dir, run, inputs } = await setup([written]);
+  await journal.update(dir, run.runId, (r) => ({ ...r, phase: 'executing' }));
+  const current = (await journal.read(dir, run.runId))!;
+  await assert.rejects(runs.retryGrant('p1', { runId: run.runId, expectedRevision: current.revision - 1 }), (error: unknown) => (error as { code?: string }).code === 'run-stale');
+  await assert.rejects(runs.retryGrant('p1', { runId: 'run-other', expectedRevision: current.revision }), (error: unknown) => (error as { code?: string }).code === 'run-not-found');
+  const granted = await runs.retryGrant('p1', { runId: run.runId, expectedRevision: current.revision });
+  assert.deepEqual([granted.phase, granted.authority?.grantRevision, inputs.length], ['executing', 1, 1]);
+  const section = (await runs.section()).projects['p1'];
+  assert.equal(section?.authorized, true, 'the panel brief says the grant is there');
+  const again = await runs.retryGrant('p1', { runId: run.runId, expectedRevision: granted.revision });
+  assert.deepEqual([again.already, inputs.length], [true, 1]);
+});

@@ -24,6 +24,8 @@ export function registerAutopilotingRoutes(options: { router: Router; state: Sta
       throw error;
     }
   });
+  // M44: «Повторить» of a run without the Kit grant { runId, expectedRevision }.
+  router.post('/api/projects/:id/autopiloting/retry', ({ params, body }) => runHttp(() => runs.retryGrant(params['id']!, body)));
   // T009: the effective policy of a start before the user presses it (legacy, manual acceptance, …).
   router.get('/api/projects/:id/autopiloting/policy', ({ params }) => runHttp(() => runs.policy(params['id']!)));
   options.state.add('autopiloting', async () => {

@@ -52,10 +52,19 @@ const RUNNING = new Set(['preparing', 'reviewing', 'choosing', 'starting', 'exec
  * @property {'working' | 'waiting' | 'warn' | 'done'} tone
  * @property {string | null} detail what it waits for, or why it stopped
  * @property {string | null} nextAction
- * @property {Array<{ action: 'pause' | 'resume' | 'stop', label: string, primary: boolean }>} buttons
+ * @property {Array<{ action: 'pause' | 'resume' | 'stop' | 'retry', label: string, primary: boolean }>} buttons
  * @property {{ text: string, tone: 'working' | 'done' | 'warn' } | null} publication
  * @property {string | null} notice M41: the early warning that the automatic acceptance will lack checks
  */
+
+/**
+ * M44: a working run (`executing`, `delivering`) whose brief says it holds no Kit grant: the
+ * plan goes on by the user's buttons, not by the autopilot. «Повторить» asks Kit again.
+ */
+export const NO_GRANT_LABEL = 'Автопилот не получил разрешения Kit';
+export const NO_GRANT_DETAIL = 'План идёт вручную: поставки, приёмка и закрытие ждут ваших кнопок.';
+/** Phases whose label would claim the autopilot works. */
+const GRANTED_WORK = new Set(['executing', 'delivering']);
 
 /** M41: the automatic acceptance gave way to the user's; the run waits for «Принять план». */
 export const USER_ACCEPTANCE_LABEL = 'Ждёт вашей приёмки';
@@ -111,10 +120,13 @@ export function runView(state, projectId, key) {
   const expired = phase === 'blocked' && run['reason'] === 'question-expired';
   const manual = record(run['manualAcceptance']);
   const userAccepts = phase === 'accepting' && typeof manual['reason'] === 'string';
-  const phaseLabel = userAccepts ? USER_ACCEPTANCE_LABEL : phase === 'waiting' ? (question ? 'Ждёт ответа на вопрос агента' : 'Ждёт CI') : expired ? 'Нужны данные' : (PHASE_LABELS[phase] ?? phase);
-  const detail = userAccepts ? String(manual['reason']) : stopReason ?? (phase === 'waiting' ? (typeof wait['detail'] === 'string' ? wait['detail'] : null) : phase === 'blocked' || phase === 'paused' ? (typeof run['reason'] === 'string' ? run['reason'] : null) : null);
+  // M44: an older service sends no `authorized`: only an explicit false means «no grant».
+  const noGrant = GRANTED_WORK.has(phase) && run['authorized'] === false;
+  const phaseLabel = noGrant ? NO_GRANT_LABEL : userAccepts ? USER_ACCEPTANCE_LABEL : phase === 'waiting' ? (question ? 'Ждёт ответа на вопрос агента' : 'Ждёт CI') : expired ? 'Нужны данные' : (PHASE_LABELS[phase] ?? phase);
+  const detail = noGrant ? (typeof run['reason'] === 'string' && run['reason'] ? run['reason'] : NO_GRANT_DETAIL) : userAccepts ? String(manual['reason']) : stopReason ?? (phase === 'waiting' ? (typeof wait['detail'] === 'string' ? wait['detail'] : null) : phase === 'blocked' || phase === 'paused' ? (typeof run['reason'] === 'string' ? run['reason'] : null) : null);
   /** @type {RunView['buttons']} */
   const buttons = [];
+  if (noGrant) buttons.push({ action: 'retry', label: 'Повторить', primary: true });
   if (RUNNING.has(phase)) buttons.push({ action: 'pause', label: 'Пауза', primary: false });
   if (phase === 'paused' || phase === 'blocked') buttons.push({ action: 'resume', label: 'Продолжить', primary: true });
   if (phase !== 'completed' && phase !== 'stopped') buttons.push({ action: 'stop', label: 'Остановить автопилот', primary: false });
@@ -124,7 +136,7 @@ export function runView(state, projectId, key) {
     modeLabel: MODE_LABELS[String(run['mode'])] ?? String(run['mode'] ?? ''),
     phase,
     phaseLabel,
-    tone: phase === 'completed' ? 'done' : phase === 'blocked' || phase === 'paused' || phase === 'stopped' ? 'warn' : phase === 'waiting' || userAccepts ? 'waiting' : 'working',
+    tone: phase === 'completed' ? 'done' : noGrant || phase === 'blocked' || phase === 'paused' || phase === 'stopped' ? 'warn' : phase === 'waiting' || userAccepts ? 'waiting' : 'working',
     detail,
     nextAction: typeof run['nextAction'] === 'string' && run['nextAction'] ? run['nextAction'] : null,
     buttons,

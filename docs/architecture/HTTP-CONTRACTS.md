@@ -60,6 +60,11 @@
   blocked (…)>.`, без живого разрешения Kit — с напоминанием о ручных решениях. Отвечает сразу:
   у хука 1,5 с на всё. Контракт — [agent-channel/module.md](../../product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md),
   [cli/commands.md](../../product-parts/backend-core/clusters/runtime/modules/cli/commands.md).
+- M44 T004: `POST /api/projects/:id/autopiloting/retry { runId, expectedRevision }` — «Повторить»
+  запуска без разрешения Kit: запрос разрешения снова (404 `run-not-found`, 409 `run-stale`,
+  `scope-changed`, код отказа Kit); у запуска с разрешением — `already: true`. В разделе
+  `autopiloting.projects[id]` — `authorized` (разрешение Kit записано для запуска). Контракт —
+  [autopilot/grant.md](../../product-parts/workflow-engine/clusters/session-loop/modules/autopilot/grant.md).
 - Контракт — [autopilot/autopiloting.md](../../product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md).
 
 ## Голосовой ввод (speech-integration)

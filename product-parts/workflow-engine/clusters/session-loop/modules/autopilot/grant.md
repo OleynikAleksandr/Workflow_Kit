@@ -81,3 +81,14 @@
   `TURN_TEXTS.noGrant` (решения пользователя остаются ручными, следовать пакету Kit) и
   `TURN_TEXTS.userMessageManual`. Продолжения без запуска (M2) не меняются.
 - Тесты: `test/agent-notices.test.ts`, `test/run-turns.test.ts` (M44).
+
+## «Повторить» в панели (M44 T004)
+
+- `runs.retryGrant(projectId, { runId, expectedRevision })` под мьютексом `project:<id>`,
+  маршрут `POST /api/projects/:id/autopiloting/retry`: другой или исчезнувший запуск — 404
+  `run-not-found`, другая ревизия — 409 `run-stale`, запуск с живым `authority` — сам запуск с
+  `already: true` (Kit не спрашивается), план не выбран или изменился — 409 `scope-changed`;
+  иначе `grant()` с исходным `source` (отказ — `blocked` с причиной Kit и ошибка с кодом Kit).
+- Сводка панели (`RunBrief.authorized`, `src/run-brief.ts`): есть `authority` без отзыва —
+  разрешение Kit записано для этого запуска (служба зеркалит его при записи и отзыве).
+- Тест — `test/runs-grant.test.ts` (M44 T004).

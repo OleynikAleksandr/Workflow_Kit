@@ -17,7 +17,7 @@ import { STOP_CONFIRM } from './run-model.js';
 export function runCard(shell, run, projectId, ctx) {
   const { h } = shell.dom;
   let busy = false;
-  /** @param {'pause' | 'resume' | 'stop'} action */
+  /** @param {'pause' | 'resume' | 'stop' | 'retry'} action */
   const press = async (action) => {
     if (busy) return;
     if (action === 'stop' && !window.confirm(STOP_CONFIRM)) return;

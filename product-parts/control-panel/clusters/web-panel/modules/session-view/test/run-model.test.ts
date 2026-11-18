@@ -6,7 +6,7 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { MODE_LABELS, PHASE_LABELS, STOP_CONFIRM, STOP_REASONS, USER_ACCEPTANCE_LABEL, runView } from '../src/run-model.js';
+import { MODE_LABELS, NO_GRANT_DETAIL, NO_GRANT_LABEL, PHASE_LABELS, STOP_CONFIRM, STOP_REASONS, USER_ACCEPTANCE_LABEL, runView } from '../src/run-model.js';
 import { planView } from '../src/plan-cards.js';
 
 const KEY = 'claude:s-1';
@@ -97,4 +97,21 @@ test('M41: a run that waits for the user\'s acceptance names why; the early noti
   assert.deepEqual([warned.phaseLabel, warned.tone, warned.notice], [PHASE_LABELS['executing'], 'working', notice]);
   assert.equal(runView(state({ phase: 'executing' }), 'p', KEY)!.notice, null);
   assert.equal(runView(state({ phase: 'completed', notice }), 'p', KEY)!.notice, null, 'no warning after the publication');
+});
+
+test('M44: a working run without the Kit grant says so and offers «Повторить»; an older service changes nothing', () => {
+  assert.equal(NO_GRANT_LABEL, 'Автопилот не получил разрешения Kit');
+  for (const phase of ['executing', 'delivering']) {
+    const run = runView(state({ phase, authorized: false }), 'p', KEY)!;
+    assert.deepEqual([run.phaseLabel, run.tone, run.detail], [NO_GRANT_LABEL, 'warn', NO_GRANT_DETAIL], phase);
+    assert.deepEqual(run.buttons.map((b) => [b.action, b.label, b.primary]), [['retry', 'Повторить', true], ['pause', 'Пауза', false], ['stop', 'Остановить автопилот', false]], phase);
+  }
+  const reason = 'AUTOPILOT_MANUAL_REQUIRED: Acceptance criteria 5 need a manual check.';
+  assert.equal(runView(state({ authorized: false, reason }), 'p', KEY)!.detail, reason, 'the Kit reason when there is one');
+  const granted = runView(state({ authorized: true }), 'p', KEY)!;
+  assert.deepEqual([granted.phaseLabel, granted.buttons.map((b) => b.action)], [PHASE_LABELS['executing'], ['pause', 'stop']]);
+  const older = runView(state({}), 'p', KEY)!;
+  assert.equal(older.phaseLabel, PHASE_LABELS['executing'], 'no field: no claim either way');
+  const preparing = runView(state({ phase: 'starting', authorized: false }), 'p', KEY)!;
+  assert.equal(preparing.phaseLabel, PHASE_LABELS['starting'], 'before the start no grant is expected');
 });

@@ -18,6 +18,11 @@ export interface RunBrief {
   source: RunRecord['request']['source'];
   scopeId: string | null;
   review: boolean;
+  /**
+   * M44: the run holds the grant Kit wrote for it (`authority`, mirrored when the grant is
+   * written and revoked); a working run without it is shown «Автопилот не получил разрешения Kit».
+   */
+  authorized: boolean;
   /** What the run waits for (CI of a SHA, an answer), without the agent's words. */
   wait: { reason: 'ci' | 'question'; detail: string; sha: string | null; since: string } | null;
   /** T008: the target and the final SHA after the close; `published` once the remote has it. */
@@ -44,6 +49,7 @@ export function brief(run: RunRecord): RunBrief {
     source: run.request.source,
     scopeId: run.scopeId,
     review: run.review,
+    authorized: Boolean(run.authority && !run.authority.revocation),
     wait: run.wait ? { reason: run.wait.reason, detail: run.wait.detail, sha: run.wait.sha ?? null, since: run.wait.since } : null,
     publication: completion || published
       ? { upstream: completion?.publication?.upstream ?? run.authority?.publication?.upstream ?? null, finalSha: completion?.finalSha ?? null, published: published?.commit ?? null, commits: completion?.published?.commits ?? null, already: completion?.published?.already ?? false, detail: published?.detail ?? null }

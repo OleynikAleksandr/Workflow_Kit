@@ -3,7 +3,7 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": "T004",
+  "currentTaskId": null,
   "lastClosed": {
     "closedAt": "2026-11-18T08:40:14.929Z",
     "scopeId": "M43-codex-remote-owner",
@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1334,
+  "revision": 1335,
   "rounds": [
     {
       "digest": null,
@@ -371,14 +371,26 @@
         "product-parts/workflow-engine/clusters/session-loop/modules/autopilot",
         "docs/architecture/HTTP-CONTRACTS.md",
         "docs/architecture/OS-MATRIX.md",
-        "docs/evidence/M44-acceptance.md"
+        "docs/evidence/M44-acceptance.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/run-card.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/run-model.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/test/m44-run-card.browser.mjs",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/test/run-model.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/grant.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-brief.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-retry.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/runs-routes.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/runs.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/runs-grant.test.ts"
       ],
       "fixes": null,
       "id": "T004",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "title": "Панель: автопилот без разрешения Kit",
       "why": "Панель показывала «Выполняет задачи» при запуске без разрешения"
     },
@@ -527,9 +539,9 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Automation: 4 automatic, 1 manual criteria; CI origin ci/M44-autopilot-grant (4 checks); publication main → origin/main
-- Current task: T004
-- Progress: 3/8
-- Revision: 1334
+- Current task: none
+- Progress: 4/8
+- Revision: 1335
 
 ## Objective
 
@@ -558,9 +570,9 @@
   - Commit: feat: queue autopilot settings and run changes for the agent
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/backend-core/clusters/runtime/modules/cli, docs/architecture/OS-MATRIX.md, docs/evidence/M44-acceptance.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/autopiloting-wiring.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/grant.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/agent-notices.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/autopilot.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-turns.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/agent-notices.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/run-turns.test.ts
   - Depends on: T002
-- [IN_PROGRESS] T004 — Панель: автопилот без разрешения Kit (work)
+- [DONE] T004 — Панель: автопилот без разрешения Kit (work)
   - Commit: feat: show an unauthorized autopilot run with a retry in the panel
-  - Files: product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/workflow-engine/clusters/session-loop/modules/autopilot, docs/architecture/HTTP-CONTRACTS.md, docs/architecture/OS-MATRIX.md, docs/evidence/M44-acceptance.md
+  - Files: product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/workflow-engine/clusters/session-loop/modules/autopilot, docs/architecture/HTTP-CONTRACTS.md, docs/architecture/OS-MATRIX.md, docs/evidence/M44-acceptance.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/run-card.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/run-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/test/m44-run-card.browser.mjs, product-parts/control-panel/clusters/web-panel/modules/session-view/test/run-model.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/grant.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-brief.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-retry.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/runs-routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/runs.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/runs-grant.test.ts
   - Depends on: T003
 - [TODO] T005 — Сквозные сценарии и доказательства (work)
   - Commit: test: verify M44 autopilot grant and agent state end to end

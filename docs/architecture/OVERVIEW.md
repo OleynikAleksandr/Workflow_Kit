@@ -56,7 +56,7 @@ M36: вопрос о плане помнит активный scope (`scopeId`);
 
 Бэкенд-служба пользователя (Node 24, TypeScript без сборки;
 WebSocket speech использует ws) и веб-панель для Mac и iPad. Служба ведёт реестр
-проектов, ставит структуру Kit и процесс Harness Workflow Kit 2.4.5 (собирается здесь из
+проектов, ставит структуру Kit и процесс Harness Workflow Kit 2.4.6 (собирается здесь из
 `kit-core`, M22; с M40 — с `decisions: host`: решения пользователя пишут операции хоста) в папку проекта, показывает версию Kit проекта и обновляет устаревший Kit и
 устаревшую структуру Kit кнопкой «Обновить Kit» (M38), работает с Claude, ChatGPT/Codex и Kimi Code через общий контракт провайдера
 и сама устанавливается как служба с автозапуском. Своего чата нет: сессии
@@ -107,8 +107,8 @@ WebSocket speech использует ws) и веб-панель для Mac и i
 | | | [kit-runner](../../product-parts/workflow-engine/clusters/kit-host/modules/kit-runner/module.md) | команды Kit проекта, установка, слежение за планом, раздел `workflow` |
 | | | [plan-view](../../product-parts/workflow-engine/clusters/kit-host/modules/plan-view/module.md) | модели карточек плана и выбора пути (порт правил Harness); пути вне коммитов `dirty` (M37) |
 | | | [kit-update](../../product-parts/workflow-engine/clusters/kit-host/modules/kit-update/module.md) | версия Kit и структуры Kit проекта (раздел `kitUpdate`), «Обновить Kit» — Kit и структура одним коммитом (M38), одобрение хуков Kit Codex после обновления (M22) |
-| | [session-loop](../../product-parts/workflow-engine/clusters/session-loop/cluster.md) | [agent-channel](../../product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md) | хуки `Stop`/`UserPromptSubmit`, маршрут хука вопроса (M33), очередь сообщений агенту (или `direct`), удержание и конец хода (одно напоминание подряд, M36), активность |
-| | | [autopilot](../../product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md) | «продолжать, держать или отпустить» после хода; действия с планом из панели; сообщения агенту о приёмке и закрытии, `tidy` (M37); автопилотирование M39 — настройки, журнал запусков, подготовка, ожидания CI, приёмка, закрытие и проверенная публикация |
+| | [session-loop](../../product-parts/workflow-engine/clusters/session-loop/cluster.md) | [agent-channel](../../product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md) | хуки `Stop`/`UserPromptSubmit`, маршрут хука вопроса (M33), очередь сообщений агенту (или `direct`), удержание и конец хода (одно напоминание подряд, M36), активность, маршрут хука `SessionStart` — строка автопилота новой сессии (M44) |
+| | | [autopilot](../../product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md) | «продолжать, держать или отпустить» после хода; действия с планом из панели; сообщения агенту о приёмке и закрытии, `tidy` (M37); автопилотирование M39 — настройки, журнал запусков, подготовка, ожидания CI, приёмка, закрытие и проверенная публикация; разрешение запуска с повтором, уведомления агенту и «Повторить» (M44) |
 | | | [plan-review](../../product-parts/workflow-engine/clusters/session-loop/modules/plan-review/module.md) | решение о ревью и вопрос о плане (scope вопроса, закрытие без решения, M36) |
 | | | [cross-review](../../product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md) | ревью плана сессией другого провайдера (M4), закрытие устаревшего вопроса о плане (M36) |
 | | | [session-titles](../../product-parts/workflow-engine/clusters/session-loop/modules/session-titles/module.md) | имена сессий, синхронизация с ChatGPT, архив сессий |

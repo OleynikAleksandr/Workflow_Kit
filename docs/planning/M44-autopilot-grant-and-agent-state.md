@@ -159,6 +159,11 @@ Kit нет разрешения.
   `blocked`, `authorization-missing: <код Kit>: <текст>`. План уже запущен (квитанция `start`), а
   разрешения нет — служба записывает его снова (`authorize` = `runs.beginExecution`), сообщение
   старта агенту повторно не шлётся. Подробно — `autopilot/grant.md`.
+- **T002–T004**: строку SessionStart строит служба (`cli/src/autopilot-line.ts`) по Settings,
+  журналу запуска и разрешению Kit; Kimi получает её как `{ message }`, Claude и Codex — как
+  `additionalContext`. Сообщения об изменениях — только владельцу запуска и владельцу открытого
+  плана. «Повторить» в панели — отдельный маршрут `POST …/autopiloting/retry`; сводка панели
+  получила `authorized`.
 
 ## 7. План
 

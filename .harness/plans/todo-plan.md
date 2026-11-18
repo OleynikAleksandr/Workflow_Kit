@@ -22,10 +22,31 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1337,
+  "revision": 1339,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "Kit workflow-plan checkAuthorizeInput: AUTOPILOT_MANUAL_REQUIRED only for accept=true or a non-manual policy with a manual criterion (Kit 2.4.6)",
+          "POST /api/hooks/session-start { client, input, projectDir? } -> { answer } in the client dialect (agent-channel sessionStart option)",
+          "POST /api/projects/:id/autopiloting/retry { runId, expectedRevision } -> runs.retryGrant; RunBrief.authorized",
+          "createAgentNotices: settings changed and autopilot run <id>: <state> lines for the run owner and the open plan owner",
+          "createPreparation authorize option and START_ATTEMPTS = 3; the service tick reconciles every project"
+        ],
+        "decisions": [
+          "The user chose to change the Kit rule: the full mode with a manual acceptance criterion is granted with accept=false and the manual policy (Kit 2.4.6)",
+          "The grant in the Kit plan is the source of truth for the agent texts and the SessionStart line; the panel brief mirrors it as authorized",
+          "The SessionStart line and the notices are English ASCII, one line per fact, queued without a wake",
+          "This M44 run stays without a grant (the project is on Kit 2.4.5): its deliveries, acceptance and close need the buttons"
+        ],
+        "references": [
+          "docs/planning/M44-autopilot-grant-and-agent-state.md",
+          "docs/evidence/M44-acceptance.md",
+          "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/grant.md",
+          "docs/architecture/HTTP-CONTRACTS.md"
+        ],
+        "result": "Full autopilot runs get the Kit grant (Kit 2.4.6 allows the full mode with a manual criterion: the run waits for the user's acceptance, then closes and publishes); every start and grant outcome is logged and retried up to 3 times; new sessions get the autopilot line at SessionStart; Settings and run changes are queued for the agent; autopilot texts only under a live grant; the panel shows a run without the grant with «Повторить»."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -457,7 +478,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -541,8 +562,8 @@
 - Execution: sequential
 - Automation: 4 automatic, 1 manual criteria; CI origin ci/M44-autopilot-grant (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 5/8
-- Revision: 1337
+- Progress: 6/8
+- Revision: 1339
 
 ## Objective
 
@@ -579,7 +600,7 @@
   - Commit: test: verify M44 autopilot grant and agent state end to end
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test, product-parts/backend-core/clusters/runtime/modules/cli/test, docs/evidence/M44-acceptance.md, product-parts/backend-core/clusters/runtime/modules/cli/test/m44-agent-state.test.ts
   - Depends on: T004
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M44-autopilot-grant-and-agent-state.md, docs/evidence/M44-acceptance.md, docs/architecture/HTTP-CONTRACTS.md, docs/architecture/OS-MATRIX.md
   - Depends on: T001, T002, T003, T004, T005
@@ -591,5 +612,7 @@
   - Commit: test: verify M44 on four CI platforms
   - Files: docs/evidence/M44-acceptance.md
   - Depends on: T006, DOCS-R1
+
+Digest: Full autopilot runs get the Kit grant (Kit 2.4.6 allows the full mode with a manual criterion: the run waits for the user's acceptance, then closes and publishes); every start and grant outcome is logged and retried up to 3 times; new sessions get the autopilot line at SessionStart; Settings and run changes are queued for the agent; autopilot texts only under a live grant; the panel shows a run without the grant with «Повторить».
 
 State changes only through `scripts/workflow` commands. History lives in Git.

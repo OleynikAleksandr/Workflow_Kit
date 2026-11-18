@@ -4,7 +4,7 @@
 // its run before the first work message; Settings off pauses the active runs.
 import type { AgentChannel } from '#agent-channel';
 import type { AutopilotAgentState } from './autopilot-line.ts';
-import { createDecisionJournal, createDecisions, createHostTickets, runMayDecide, createPreparation, createProposalGate, createRunCompletion, createRunControl, createRunJournal, createRunKit, createRunTurns, createRunWaits, createRunWords, createRuns, createSettingsStore, registerAutopilotingRoutes, registerRunControlRoutes, registerSessionRunRoutes, runHttp } from '#autopilot';
+import { createAgentNotices, createDecisionJournal, createDecisions, createHostTickets, runMayDecide, createPreparation, createProposalGate, createRunCompletion, createRunControl, createRunJournal, createRunKit, createRunTurns, createRunWaits, createRunWords, createRuns, createSettingsStore, registerAutopilotingRoutes, registerRunControlRoutes, registerSessionRunRoutes, runHttp } from '#autopilot';
 import type { Decisions, RunCompleter, ControlActions, PrepareActions, ReviewFact, RunControl, RunTurns, RunWaits, RunWords, Runs, SettingsStore } from '#autopilot';
 import { createGitHubCi, createPublisher, runGit } from '#git-publish';
 import type { GitHubCi, GitRunner, Publisher } from '#git-publish';
@@ -72,7 +72,7 @@ export function wireAutopiloting(options: {
   mutex: KeyedMutex;
   projects: ProjectRegistry;
   kit: KitRunner;
-  channel: Pick<AgentChannel, 'enqueue' | 'userSource'>;
+  channel: Pick<AgentChannel, 'enqueue' | 'userSource' | 'list'>;
   configDir: string;
   platform?: NodeJS.Platform;
   /** Stores the review decision of a session (plan-review) and closes its open plan question. */
@@ -132,6 +132,16 @@ export function wireAutopiloting(options: {
     ...(options.log ? { log: options.log } : {}),
   });
   settings.onChange((change) => runs.settingsChanged(change));
+  // M44 3.3: Settings and run changes reach the agent with its next hook (queued, no wake).
+  createAgentNotices({
+    journal,
+    settings,
+    kit: runKit,
+    listProjects: async () => (await options.projects.list()).map((project) => ({ id: project.id, path: project.path })),
+    sessions: (projectId) => options.channel.list().filter((activity) => activity.projectId === projectId).map((activity) => activity.key),
+    enqueue: (projectId, key, text) => void options.channel.enqueue(key, text, 'panel', projectId),
+    ...(options.log ? { log: options.log } : {}),
+  });
   registerAutopilotingRoutes({ router: options.router, state: options.state, settings, runs });
   const listProjects = async () => (await options.projects.list()).map((project) => ({ id: project.id, path: project.path }));
   const send = (projectId: string, key: string, text: string): void => links?.send(projectId, key, text);

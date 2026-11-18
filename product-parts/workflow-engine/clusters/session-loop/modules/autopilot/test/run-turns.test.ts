@@ -22,17 +22,19 @@ const newRun = (over: Partial<NewRun> = {}): NewRun => ({
   proposal: null, scopeId: 'auto', authority: null, phase: 'executing', pausedFrom: null, reason: null, nextAction: null, ...over,
 });
 
-async function setup(over: Partial<NewRun> = {}) {
+async function setup(over: Partial<NewRun> = {}, grant = true) {
   const folder = path.join(tmp, `p${(n += 1)}`);
   const journal = createRunJournal();
   const run = await journal.create(folder, newRun(over));
   const kit = { revision: 1, head: 'h1', progress: true, nextTask: { id: 'T2', kind: 'work', status: 'TODO', title: 't' } as unknown };
+  // M44: the live Kit grant of the run (the texts say «autopilot» only under it).
+  const authorization = grant ? { runId: run.runId, proposalDigest: 'd', revoked: null, accept: false, close: true, delivery: [] } : null;
   const runner = {
     installed: () => true,
     run: async (_root: string, args: string[]) => {
       if (args[0] !== 'autopilot:status') return { ok: true, result: {} };
       if (kit.progress) kit.revision += 1;
-      return { ok: true, result: { head: kit.head, revision: kit.revision, proposalPending: false, scope: 'ACTIVE', delivery: 'IN_PROGRESS', blockedReason: null, transactionPending: false, orchestration: null, paused: false, nextTask: kit.nextTask } };
+      return { ok: true, result: { head: kit.head, revision: kit.revision, proposalPending: false, scope: 'ACTIVE', delivery: 'IN_PROGRESS', blockedReason: null, transactionPending: false, orchestration: null, paused: false, nextTask: kit.nextTask, proposal: { digest: 'd' }, authorization } };
     },
   } as unknown as KitRunner;
   const view = { plan: { phase: 'running', ownerSession: 's-1' } };
@@ -129,4 +131,21 @@ test('F001: «Продолжить» of an idle owner with a continuation alread
   t.channel.enqueue(KEY, 'Workflow Kit: autopilot run goes on after a restart of the service.', 'panel', 'p');
   assert.deepEqual(await t.autopilot.resume('p', KEY), { owner: KEY, runId: t.run.runId });
   assert.equal(t.channel.queued(KEY).length, 1, 'the run is the only sender');
+});
+
+test('M44: a run without the live Kit grant gets manual texts, never «autopilot»', async () => {
+  const t = await setup({}, false);
+  const text = (await t.stop()) ?? '';
+  assert.match(text, /^Workflow Kit: /u);
+  assert.doesNotMatch(text, /autopilot\. /u);
+  assert.ok(text.includes(TURN_TEXTS.noGrant), text);
+  assert.match(text, /task:start T2/u);
+  const prompt = await t.channel.prompt(parseHookInput('claude', { session_id: 's-1', cwd: t.folder, hook_event_name: 'UserPromptSubmit', prompt: 'Как идёт?' })!);
+  prompt.ack();
+  t.autopilot.onPrompt(KEY, false);
+  const answered = (await t.stop()) ?? '';
+  assert.ok(answered.startsWith(`Workflow Kit: ${TURN_TEXTS.userMessageManual}`), answered);
+  assert.doesNotMatch(answered, /wfk session run pause/u);
+  const granted = await setup();
+  assert.match((await granted.stop()) ?? '', /^Workflow Kit: autopilot\. /u);
 });

@@ -113,7 +113,8 @@ UserPromptSubmit; M44 T001 — подготовка запуска получа�
 для повторной записи разрешения, минутный `tick` делает шаг подготовки каждого проекта, чтобы
 отказанный старт повторялся без следующего хода; M44 T002 — `agentState(projectId)` автопилотирования
 и опция `sessionStart` маршрутов канала: строка автопилота новой сессии, `src/autopilot-line.ts`,
-`src/session-start-line.ts`) — в [connected-modules.md](connected-modules.md) и [commands.md](commands.md).
+`src/session-start-line.ts`; M44 T003 — `createAgentNotices`: строки о смене Settings и
+состояния запуска в очередь сессии без пробуждения) — в [connected-modules.md](connected-modules.md) и [commands.md](commands.md).
 
 ## Инварианты
 

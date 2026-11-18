@@ -30,6 +30,9 @@ export type RunTurnDecision =
 
 export const TURN_TEXTS = {
   // M40: «стоп» and «пауза» as the first word never reach this text — the service acted on them.
+  /** M44: a run without a live Kit grant — the user's decisions stay manual, as Kit says. */
+  noGrant: "The autopilot run has no live Kit grant: every user decision (a delivery, the acceptance, the close) stays manual; follow the next line of the Kit recovery packet and do not treat this as autopilot.",
+  userMessageManual: 'The user wrote in this turn. If it was a question about the work, it is answered. Otherwise go on:',
   userMessage: `The user wrote in this turn. If it was a question about the work, it is answered; if the user asked in other words to pause or stop the autopilot, run \`wfk session run pause\` or \`wfk session run stop\` and end the turn. Otherwise go on:`,
   noProgress: (count: number) => `The last turn changed neither the plan nor HEAD (${count} of ${NO_PROGRESS_LIMIT}). Run \`${KIT_COMMAND} recover --format text\`, follow its next line and commit the task; if something blocks it, say what and run \`${KIT_COMMAND} task:block\`.`,
   blocked: `${NO_PROGRESS_LIMIT} ходов подряд без изменений плана и истории: запуск остановлен.`,
@@ -53,7 +56,7 @@ export function createRunTurns(deps: { journal: RunJournal; projectPath(projectI
     },
 
     /** The run's word on the shared decision of a finished turn of its owner. */
-    async turn(live: LiveRun, decision: AutopilotDecision, status: AutopilotProjectStatus, userMessage: boolean): Promise<RunTurnDecision> {
+    async turn(live: LiveRun, decision: AutopilotDecision, status: AutopilotProjectStatus, userMessage: boolean, granted = true): Promise<RunTurnDecision> {
       const { run, folder } = live;
       if (run.wait) {
         const reason = run.wait.reason === 'ci' ? 'waiting-for-ci' : 'waiting-for-question';
@@ -63,8 +66,9 @@ export function createRunTurns(deps: { journal: RunJournal; projectPath(projectI
         const phase = status.nextTask?.kind === 'delivery' ? 'delivering' : 'executing';
         if ((run.noProgress ?? 0) !== 0 || run.phase !== phase) await deps.journal.advance(folder, run.runId, (r) => ({ ...r, noProgress: 0, phase }));
         const ci = (status.authorization as { ci?: unknown } | null | undefined)?.ci;
-        const wait = phase === 'delivering' && ci ? ` ${TURN_TEXTS.ciWait(run.runId, hostInputDigest(ci))}` : '';
-        return { action: 'continue', taskId: decision.taskId, text: `${userMessage ? `${TURN_TEXTS.userMessage} ` : ''}${decision.text}${wait}` };
+        const wait = granted && phase === 'delivering' && ci ? ` ${TURN_TEXTS.ciWait(run.runId, hostInputDigest(ci))}` : '';
+        const said = userMessage ? `${granted ? TURN_TEXTS.userMessage : TURN_TEXTS.userMessageManual} ` : '';
+        return { action: 'continue', taskId: decision.taskId, text: `${said}${decision.text}${wait}${granted ? '' : ` ${TURN_TEXTS.noGrant}`}` };
       }
       if (decision.reason !== 'no-progress') return { action: 'stop', reason: decision.reason, detail: decision.detail };
       const count = (run.noProgress ?? 0) + 1;

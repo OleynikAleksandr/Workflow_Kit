@@ -199,7 +199,10 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
       const next = nextAutopilotState(decisionState, shared);
       entry.continues = next.continues;
       entry.orchestrationKey = next.orchestrationKey;
-      const decision = live ? await options.runs!.turn(live, shared, status, userMessage) : shared;
+      // M44 3.4: «autopilot» only under the live Kit grant of this run; without it the texts are manual.
+      const grant = live ? liveGrant(status) : null;
+      const granted = !live || (grant !== null && grant.runId === live.run.runId);
+      const decision = live ? await options.runs!.turn(live, shared, status, userMessage, granted) : shared;
       if (decision.action === 'continue') {
         entry.before = { head: status.head, revision: status.revision };
         entry.origin = 'kit';
@@ -207,7 +210,7 @@ export function createAutopilot(options: AutopilotOptions): Autopilot {
         log(`autopilot: ${context.key} continue ${decision.taskId}`);
         const procedure = EXECUTOR_HOWTO[clientOf(context.key)];
         const howto = status.orchestration && procedure?.repeat ? ` ${procedure.text}` : '';
-        return { kind: 'continue', text: `${PREFIX} autopilot. ${decision.text}${howto}` };
+        return { kind: 'continue', text: `${PREFIX}${granted ? ' autopilot.' : ''} ${decision.text}${howto}` };
       }
       entry.origin = null;
       // An accepted result waits only for «Закрыть»: nothing to deliver, the Stop is not held.

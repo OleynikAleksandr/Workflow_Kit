@@ -59,3 +59,25 @@
 - `test/m44-manual-full-real.test.ts` — настоящий бандл 2.4.6: квитанции `review`, `choose`,
   `authorize`, `start`, поставка по разрешению, ожидание «Принять план», закрытие и публикация
   запуском.
+
+## Знание агента: уведомления и тексты (M44 T003)
+
+- `createAgentNotices({ journal, settings, kit, listProjects, sessions, enqueue, log? })`
+  (`src/agent-notices.ts`, служба — `cli/autopiloting-wiring.ts`) ставит строки в очередь
+  сессии без пробуждения; их доставляет ближайший хук `UserPromptSubmit` или `Stop`.
+- Смена режима или ревью в Settings: `Workflow Kit: settings changed: autopilot mode=<…>,
+  review=<on|off>.` — владельцу активного запуска и сессии-владельцу открытого плана Kit
+  (`scope.ownerSession` среди сессий канала проекта). Без смены — ничего.
+- Смена состояния запуска (`runNoticeState`): `Workflow Kit: autopilot run <id>: <состояние>.`
+  владельцу — `authorized: the Kit grant is live` (есть `authority` без отзыва), `authorized;
+  waiting for the user's acceptance`, `blocked (<причина>)`, `paused`, `stopped (<причина>)`,
+  `completed (published)`, `finished (the plan was closed)`. Подготовка без разрешения и смена
+  фазы при живом разрешении — не новость. Причина — только ASCII (`asciiNoticeReason`: русская
+  подсказка обрезается, пустое — «see the Workflow Kit panel»).
+- Одна и та же строка подряд одной сессии в очередь второй раз не ставится.
+- Тексты хода (M44 3.4, `autopilot.ts`, `run-turns.ts`): «Workflow Kit: autopilot. …» и
+  подсказки «pause/stop the autopilot», ожидания CI — только при живом разрешении Kit этого
+  запуска (`liveGrant(status).runId` = запуск). Без него — `Workflow Kit: <текст Kit>` с
+  `TURN_TEXTS.noGrant` (решения пользователя остаются ручными, следовать пакету Kit) и
+  `TURN_TEXTS.userMessageManual`. Продолжения без запуска (M2) не меняются.
+- Тесты: `test/agent-notices.test.ts`, `test/run-turns.test.ts` (M44).

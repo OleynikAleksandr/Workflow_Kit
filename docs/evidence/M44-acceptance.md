@@ -76,3 +76,21 @@
 | Linux | CI | typecheck, тесты, platform-guard |
 
 Поставка (T006) и CI четырёх платформ (T007) — ниже, по мере выполнения.
+
+## T006 — выпуск 0.20.0
+
+18.11.2026, macOS ARM64: `npm ci` (lock-файл), затем `node bin/wfk.mjs install` — «Workflow
+Kit 0.20.0 установлен … (обновление с 0.19.0)», LaunchAgent, служба работает (pid 83767,
+версия 0.20.0), «диктовка: helper установлен», удалена старая версия 0.18.0.
+
+`wfk doctor --installed` — «итог: всё в порядке»: установка 0.20.0, зависимости копии `ws`,
+helper диктовки 0.20.0, LaunchAgent загружен, `/api/health` — pid 83767, версия 0.20.0,
+«ChatGPT: общий доступ к чатам: Работает».
+
+Живой ответ установленной службы на `POST /api/hooks/session-start` для этого проекта (запуск
+M44 на Kit 2.4.5 без разрешения):
+
+- Claude: `additionalContext` — `Workflow Kit autopilot: mode=full, review=on;
+  run=run-grGmd5VPjbzn NOT authorized (phase executing without a Kit grant). Without a live Kit
+  grant every user decision stays manual: follow the next line of the Kit recovery packet.`
+- Kimi: та же строка в `{ message }`.

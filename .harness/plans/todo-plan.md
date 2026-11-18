@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1339,
+  "revision": 1341,
   "rounds": [
     {
       "digest": {
@@ -195,6 +195,18 @@
           "authorization": null
         },
         "text": "choose: Автоматический выбор по поручению run-grGmd5VPjbzn: sequential (recommended by the plan; ревью: skipped-by-setting)"
+      },
+      {
+        "at": "2026-11-18T12:17:27.939Z",
+        "decisionId": "dec-a3b941f7b8bc",
+        "kind": "confirm-delivery",
+        "source": {
+          "kind": "button",
+          "messageId": null,
+          "runId": null,
+          "session": "ffc970ed-20a1-499c-9d2c-47dff30c41a0"
+        },
+        "text": "confirm-delivery: Решение пользователя в панели Workflow Kit"
       }
     ],
     "delivery": "IN_PROGRESS",
@@ -490,7 +502,7 @@
         "installed-service"
       ],
       "commitMessage": "chore: release Workflow Kit 0.20.0",
-      "confirmation": null,
+      "confirmation": "Решение пользователя в панели Workflow Kit",
       "context": [
         {
           "path": "docs/planning/M44-autopilot-grant-and-agent-state.md",
@@ -515,7 +527,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Поставка 0.20.0",
       "why": "Пользователь получает надёжный полный автопилот"
     },
@@ -562,8 +574,8 @@
 - Execution: sequential
 - Automation: 4 automatic, 1 manual criteria; CI origin ci/M44-autopilot-grant (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 6/8
-- Revision: 1339
+- Progress: 7/8
+- Revision: 1341
 
 ## Objective
 
@@ -604,7 +616,7 @@
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M44-autopilot-grant-and-agent-state.md, docs/evidence/M44-acceptance.md, docs/architecture/HTTP-CONTRACTS.md, docs/architecture/OS-MATRIX.md
   - Depends on: T001, T002, T003, T004, T005
-- [TODO] T006 — Поставка 0.20.0 (delivery)
+- [DONE] T006 — Поставка 0.20.0 (delivery)
   - Commit: chore: release Workflow Kit 0.20.0
   - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/evidence/M44-acceptance.md
   - Depends on: T005, DOCS-R1

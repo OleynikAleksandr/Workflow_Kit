@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1313,
+  "revision": 1315,
   "rounds": [
     {
       "digest": {
@@ -179,6 +179,18 @@
           "authorization": null
         },
         "text": "choose: Автоматический выбор по поручению run-khg6_dmzVg8_: sequential (recommended by the plan; ревью: skipped-by-setting)"
+      },
+      {
+        "at": "2026-11-18T07:56:58.736Z",
+        "decisionId": "dec-1789105b6484",
+        "kind": "confirm-delivery",
+        "source": {
+          "kind": "button",
+          "messageId": null,
+          "runId": null,
+          "session": "ffc970ed-20a1-499c-9d2c-47dff30c41a0"
+        },
+        "text": "confirm-delivery: Решение пользователя в панели Workflow Kit"
       }
     ],
     "delivery": "IN_PROGRESS",
@@ -290,7 +302,7 @@
         "installed-service"
       ],
       "commitMessage": "chore: release Workflow Kit 0.19.0",
-      "confirmation": null,
+      "confirmation": "Решение пользователя в панели Workflow Kit",
       "context": [
         {
           "path": "docs/planning/M43-codex-remote-owner.md",
@@ -315,7 +327,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Поставка 0.19.0",
       "why": "Пользователь получает автоматический возврат удалённого управления"
     },
@@ -362,8 +374,8 @@
 - Execution: sequential
 - Automation: 3 automatic, 1 manual criteria; CI origin ci/M43-codex-remote-owner (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 2/4
-- Revision: 1313
+- Progress: 3/4
+- Revision: 1315
 
 ## Objective
 
@@ -387,7 +399,7 @@
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M43-codex-remote-owner.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/handover.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/reclaim.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-codex/shared-access.md, docs/architecture/OS-MATRIX.md, docs/evidence/M43-acceptance.md, docs/setup.md, docs/installation.md
   - Depends on: T001
-- [TODO] T002 — Поставка 0.19.0 (delivery)
+- [DONE] T002 — Поставка 0.19.0 (delivery)
   - Commit: chore: release Workflow Kit 0.19.0
   - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/evidence/M43-acceptance.md
   - Depends on: T001, DOCS-R1

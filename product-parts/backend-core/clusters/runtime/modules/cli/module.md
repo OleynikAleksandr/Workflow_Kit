@@ -109,7 +109,9 @@ M39 — `src/autopiloting-wiring.ts`, `src/autopiloting-links.ts`, `wfk session 
 `automation`; M40 T005 — команда `wfk decision` (`src/decision-command.ts`, `COMMANDS` получает
 `decision`), сервис решений `createDecisions` в `wireAutopiloting` и маршруты решений; M40 T006 —
 сервис слов `createRunWords`: «стоп» и «пауза» пользователя в маршруте сообщений панели и в хуке
-UserPromptSubmit) — в [connected-modules.md](connected-modules.md) и [commands.md](commands.md).
+UserPromptSubmit; M44 T001 — подготовка запуска получает `authorize` (`runs.beginExecution`)
+для повторной записи разрешения, минутный `tick` делает шаг подготовки каждого проекта, чтобы
+отказанный старт повторялся без следующего хода) — в [connected-modules.md](connected-modules.md) и [commands.md](commands.md).
 
 ## Инварианты
 

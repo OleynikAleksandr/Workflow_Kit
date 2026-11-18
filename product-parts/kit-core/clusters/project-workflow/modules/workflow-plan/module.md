@@ -87,6 +87,9 @@ Errors are `WorkflowError` codes: `PLAN_SCHEMA`, `TASK_ORDER`, `DOCS_TASK`,
 `PLAN_AUTOMATION` (the automation block, last step of `validatePlan`; see
 [automation.md](automation.md)); the autopilot records are checked after it
 ([authorization.md](authorization.md#validation)).
+Kit 2.4.6 (spec M44 T001): `authorize` grants the full mode with a manual
+acceptance criterion when `accept` is false and the policy is `manual`; the run
+waits for the user's acceptance ([authorization.md](authorization.md)).
 
 Field refusals carry `details.field` with the plan path of the field:
 `scope.objective`, `scope.spec`, `tasks.<ID>.commitMessage`,

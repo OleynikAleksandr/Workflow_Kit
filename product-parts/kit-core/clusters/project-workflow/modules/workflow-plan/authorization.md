@@ -40,9 +40,11 @@ run closed the scope.
   1. an active scope (`AUTOPILOT_SCOPE_MISMATCH`), an automation block
      (`AUTOPILOT_UNAUTHORIZED`: a legacy plan gets no new authority);
   2. the fields (`PLAN_SCHEMA` with `details.field`; `note` at least 10
-     characters); a manual criterion with `accept: true`, a policy other
-     than `manual` or `mode: full` is `AUTOPILOT_MANUAL_REQUIRED`; only
-     automatic criteria need `acceptancePolicy: automatic`;
+     characters); a manual criterion with `accept: true` or a policy other
+     than `manual` is `AUTOPILOT_MANUAL_REQUIRED` (Kit 2.4.6, spec M44: `mode:
+     full` keeps a manual criterion — the run waits for the user's acceptance,
+     then closes; before 2.4.6 `full` was refused); only automatic criteria
+     need `acceptancePolicy: automatic`;
   3. scope id and owner session (`AUTOPILOT_SCOPE_MISMATCH`);
   4. `proposalDigest` equal to `scope.proposal.digest`, `ci` and
      `publication` equal to the automation block (`AUTOPILOT_PLAN_CHANGED`);

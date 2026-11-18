@@ -42,6 +42,11 @@ export interface PreparationDeps {
   /** Whether a provider may run executors (its orchestration capability). */
   orchestration?(client: string): Promise<{ available: boolean; reason?: string }>;
   actions(): PrepareActions | null;
+  /**
+   * M44: writes the grant of the run again (`runs.beginExecution`) when the plan was started but
+   * Kit holds no grant of the run; without it such a run stops at once (M40).
+   */
+  authorize?(projectId: string, key: string): Promise<unknown>;
   mutex?: KeyedMutex;
   log?: (line: string) => void;
   now?: () => Date;
@@ -50,13 +55,23 @@ export interface PreparationDeps {
 /** The phases the reconciler acts in; any other (paused, blocked, executing, stopped…) is left alone. */
 const PREPARING: ReadonlySet<RunRecord['phase']> = new Set(['preparing', 'reviewing', 'choosing', 'starting']);
 
+/** M44: attempts of the start (and of the grant after it) before the run is blocked. */
+export const START_ATTEMPTS = 3;
+
 export const PREPARE_TEXTS = {
   reviewFailed: (status: string, reason: string | null) => `Ревью плана не согласовано (${status}${reason ? `: ${reason}` : ''}): план не запущен автоматически.`,
   changed: 'Предложение или его документы изменились после согласия ревью: допуск отменён, план не запущен.',
   scopeChanged: 'В проекте выбран другой план или другой владелец: автопилот этого запуска его не запускает.',
   next: 'Повторите ревью или запустите план вручную кнопками карточки.',
   noOption: 'Рекомендованный способ выполнения недоступен, последовательное выполнение план не допускает.',
+  retry: 'Нажмите «Продолжить» — служба снова попросит разрешение Kit, — или запустите план кнопками карточки.',
 } as const;
+
+/** The Kit code and text of a refused step, as one line. */
+function causeOf(error: unknown, fallback: string): string {
+  const code = (error as { code?: string }).code ?? fallback;
+  return `${code}: ${error instanceof Error ? error.message : String(error)}`;
+}
 
 export function createPreparation(deps: PreparationDeps) {
   const log = deps.log ?? (() => undefined);
@@ -69,8 +84,32 @@ export function createPreparation(deps: PreparationDeps) {
     return current && PREPARING.has(current.phase) ? current : null;
   }
 
-  const block = (folder: string, run: RunRecord, reason: string, nextAction: string = PREPARE_TEXTS.next): Promise<RunRecord> =>
-    deps.journal.advance(folder, run.runId, (r) => ({ ...r, phase: 'blocked', pausedFrom: r.phase, reason, nextAction }));
+  // M44: a second block (the grant already blocked the run) keeps the phase the run came from.
+  /**
+   * M44: a refused start or grant is tried again by the next step (a finished turn, the minute
+   * tick) up to START_ATTEMPTS times; then the run is blocked `authorization-missing: <cause>`.
+   */
+  async function retry(folder: string, run: RunRecord, kind: 'start' | 'grant', cause: string): Promise<RunRecord> {
+    const current = (await deps.journal.read(folder, run.runId)) ?? run;
+    const count = (current.retries?.[kind]?.count ?? 0) + 1;
+    if (count >= START_ATTEMPTS) {
+      log(`autopiloting: ${run.runId} ${kind} failed ${count} times: ${cause}`);
+      return block(folder, current, `authorization-missing: ${cause}`, PREPARE_TEXTS.retry);
+    }
+    log(`autopiloting: ${run.runId} ${kind} attempt ${count}/${START_ATTEMPTS} failed: ${cause}; the next step retries`);
+    return deps.journal.advance(folder, run.runId, (r) => ({
+      ...r,
+      phase: 'starting',
+      pausedFrom: null,
+      reason: `${cause} (attempt ${count}/${START_ATTEMPTS})`,
+      retries: { ...(r.retries ?? {}), [kind]: { count, nextAt: now().toISOString(), error: cause } },
+    }));
+  }
+
+  const block = (folder: string, run: RunRecord, reason: string, nextAction: string = PREPARE_TEXTS.next): Promise<RunRecord> => {
+    log(`autopiloting: ${run.runId} blocked: ${reason}`);
+    return deps.journal.advance(folder, run.runId, (r) => ({ ...r, phase: 'blocked', pausedFrom: r.phase === 'blocked' ? r.pausedFrom : r.phase, reason, nextAction }));
+  };
 
   const phase = (folder: string, run: RunRecord, next: RunRecord['phase']): Promise<RunRecord> =>
     deps.journal.advance(folder, run.runId, (r) => (r.phase === next ? null : { ...r, phase: next }));
@@ -130,29 +169,48 @@ export function createPreparation(deps: PreparationDeps) {
   async function start(folder: string, run: RunRecord): Promise<RunRecord | null> {
     const actions = deps.actions();
     const fresh = await still(folder, run);
-    if (!actions || !fresh) return fresh;
+    // M44: no silent exit — every outcome of the start is in the service log.
+    if (!actions || !fresh) {
+      log(`autopiloting: ${run.runId} start skipped: ${!actions ? 'the panel actions are not attached yet' : 'the run left the preparation'}`);
+      return fresh;
+    }
     const scope = await deps.kit.scope(folder);
-    if (!scope) return fresh;
+    if (!scope) {
+      log(`autopiloting: ${run.runId} start skipped: Kit reports no scope yet; the next step retries`);
+      return fresh;
+    }
     if (!scope.automation) {
       log(`autopiloting: ${run.runId} stopped: scope ${scope.id} has no automation block`);
       return stopRun(deps.journal, folder, fresh, 'automation-missing');
     }
     const actionId = `start:${scope.id}`;
     if (fresh.receipts.some((receipt) => receipt.actionId === actionId)) {
-      log(`autopiloting: ${run.runId} stopped: scope ${scope.id} was started but has no grant of the run`);
-      return stopRun(deps.journal, folder, fresh, 'authorization-missing');
+      if (!deps.authorize) {
+        log(`autopiloting: ${run.runId} stopped: scope ${scope.id} was started but has no grant of the run`);
+        return stopRun(deps.journal, folder, fresh, 'authorization-missing');
+      }
+      // M44: the plan was started, Kit holds no grant of the run: write the grant again.
+      try {
+        await deps.authorize(run.projectId, run.owner.key);
+      } catch (error) {
+        return retry(folder, fresh, 'grant', causeOf(error, 'grant-failed'));
+      }
+      const granted = (await deps.kit.status(folder))?.authorization;
+      if (!granted || granted.runId !== run.runId || granted.revoked) return retry(folder, fresh, 'grant', 'Kit holds no grant of the run after autopilot:authorize');
+      log(`autopiloting: ${run.runId} grant restored for the started scope ${scope.id}`);
+      return deps.journal.advance(folder, run.runId, (r) => ({ ...r, phase: 'executing', reason: null, retries: {} }));
     }
     try {
       await actions.start(run.projectId, run.owner.key);
     } catch (error) {
-      const code = (error as { code?: string }).code ?? 'start-failed';
-      return block(folder, (await deps.journal.read(folder, run.runId)) ?? fresh, `${code}: ${error instanceof Error ? error.message : String(error)}`);
+      return retry(folder, fresh, 'start', causeOf(error, 'start-failed'));
     }
     const revision = (await deps.kit.status(folder))?.revision ?? null;
+    log(`autopiloting: ${run.runId} started scope ${scope.id} (plan revision ${revision ?? 'unknown'})`);
     return deps.journal.advance(folder, run.runId, (r) =>
       r.receipts.some((receipt) => receipt.actionId === actionId)
         ? null
-        : { ...r, receipts: [...r.receipts, { actionId, type: 'start', at: now().toISOString(), commit: null, detail: `scope ${scope.id}, plan revision ${revision ?? 'unknown'}` }] },
+        : { ...r, reason: null, retries: {}, receipts: [...r.receipts, { actionId, type: 'start', at: now().toISOString(), commit: null, detail: `scope ${scope.id}, plan revision ${revision ?? 'unknown'}` }] },
     );
   }
 

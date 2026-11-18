@@ -144,13 +144,18 @@ try {
   // A blocked scope gets no grant.
   assert.equal(code(() => plans.authorize(plans.block(base, "waiting"), input(), at)), "AUTOPILOT_SCOPE_MISMATCH");
 
-  // A manual criterion: after-start with accept=false; full and accept=true are refused.
+  // A manual criterion: accept=false with the manual policy, after-start or full (Kit 2.4.6,
+  // spec M44: the full run waits for the user's acceptance); accept=true or the automatic
+  // policy are refused.
   const manualBase = scope({ automation: automation(true) });
   assert.equal(code(() => plans.authorize(manualBase, input({ acceptancePolicy: "manual" }), at)), "AUTOPILOT_MANUAL_REQUIRED");
+  assert.equal(code(() => plans.authorize(manualBase, input({ accept: false }), at)), "AUTOPILOT_MANUAL_REQUIRED");
   assert.equal(
-    code(() => plans.authorize(manualBase, input({ accept: false, acceptancePolicy: "manual", mode: "full" }), at)),
+    code(() => plans.authorize(manualBase, input({ accept: true, acceptancePolicy: "manual", mode: "full" }), at)),
     "AUTOPILOT_MANUAL_REQUIRED"
   );
+  const full = plans.authorize(manualBase, input({ accept: false, acceptancePolicy: "manual", mode: "full" }), at);
+  assert.deepEqual([full.grant.mode, full.grant.accept, full.grant.close, full.grant.acceptancePolicy], ["full", false, true, "manual"]);
   const manual = plans.authorize(manualBase, input({ accept: false, acceptancePolicy: "manual" }), at);
   assert.equal(manual.grant.accept, false);
   assert.equal(manual.grant.close, true);
@@ -160,7 +165,8 @@ try {
   // The same run may narrow its delivery tasks, never widen accept or close.
   const narrowed = plans.authorize(first.plan, input({ deliveryTaskIds: ["D1"] }), at);
   assert.equal(narrowed.grant.revision, 2);
-  assert.equal(code(() => plans.authorize(manual.plan, input({ acceptancePolicy: "manual", accept: false, close: true, mode: "full" }), at)), "AUTOPILOT_MANUAL_REQUIRED");
+  // The same run never widens its mode (after-start to full).
+  assert.equal(code(() => plans.authorize(manual.plan, input({ acceptancePolicy: "manual", accept: false, close: true, mode: "full" }), at)), "AUTOPILOT_UNAUTHORIZED");
   const noClose = plans.authorize(base, input({ close: false }), at);
   assert.equal(code(() => plans.authorize(noClose.plan, input(), at)), "AUTOPILOT_UNAUTHORIZED");
 

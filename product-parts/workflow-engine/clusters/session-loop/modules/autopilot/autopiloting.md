@@ -66,6 +66,8 @@
 
 ## Запуски (`src/runs.ts`, `src/run-texts.ts`)
 
+Разрешение запуска, журнал исходов, «Продолжить» без разрешения (M44) — [grant.md](grant.md).
+
 `createRuns({ settings, journal, kit, tickets, userSource, projectPath, listProjects,
 decideReview?, mutex?, log? }) → Runs`:
 

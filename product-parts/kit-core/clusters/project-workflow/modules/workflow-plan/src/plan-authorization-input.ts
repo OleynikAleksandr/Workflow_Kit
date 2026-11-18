@@ -17,7 +17,9 @@ function manualCriteria(automation: ScopeAutomation): number[] {
 
 /**
  * PLAN_SCHEMA for a malformed field; AUTOPILOT_MANUAL_REQUIRED when a
- * manual criterion meets accept=true, a policy other than manual or full mode.
+ * manual criterion meets accept=true or a policy other than manual. Kit 2.4.6
+ * (spec M44): the full mode keeps a manual criterion too - the run does the
+ * tasks, deliveries and CI and waits for the user's acceptance (spec M41 2.2).
  */
 export function checkAuthorizeInput(input: AuthorizeInput, automation: ScopeAutomation): void {
   ensure(
@@ -75,13 +77,11 @@ export function checkAuthorizeInput(input: AuthorizeInput, automation: ScopeAuto
   const manual = manualCriteria(automation);
   ensure(
     manual.length === 0 ||
-      (!input.accept &&
-        input.acceptancePolicy === "manual" &&
-        input.mode !== "full"),
+      (!input.accept && input.acceptancePolicy === "manual"),
     "AUTOPILOT_MANUAL_REQUIRED",
     `Acceptance criteria ${manual.map((index) => index + 1).join(", ")} need the user's manual check; the run stops at acceptance.`,
     { manual },
-    "Grant accept=false with acceptancePolicy manual (after-start), or automate the criteria in a reviewed plan."
+    "Grant accept=false with acceptancePolicy manual, or automate the criteria in a reviewed plan."
   );
   ensure(
     manual.length > 0 || input.acceptancePolicy === "automatic",

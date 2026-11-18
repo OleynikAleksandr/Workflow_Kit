@@ -111,6 +111,8 @@ export function wireAutopiloting(options: {
     reviewOn: (projectId, key) => links?.reviewOn(projectId, key) ?? false,
     orchestration: (client) => links?.orchestration?.(client) ?? Promise.resolve({ available: true }),
     actions: () => links?.actions ?? null,
+    // M44: a started plan without the grant of the run gets the grant written again.
+    authorize: (projectId, key) => runs.beginExecution(projectId, key),
     mutex: options.mutex,
     ...(options.log ? { log: options.log } : {}),
   });
@@ -161,6 +163,8 @@ export function wireAutopiloting(options: {
     waits,
     completion,
     tick: async () => {
+      // M44: a refused start or grant is tried again without waiting for the next turn.
+      for (const project of await options.projects.list()) await preparation.reconcile(project.id);
       await waits.pollAll();
       await completion.advanceAll();
     },

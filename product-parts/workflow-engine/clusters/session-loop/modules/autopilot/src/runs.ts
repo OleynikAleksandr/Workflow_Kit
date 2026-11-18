@@ -172,11 +172,14 @@ export function createRuns(options: RunsOptions): Runs {
     });
     const tickets = step.redeemed ? [step.ticketId] : [];
     if (!step.ok) {
-      await write((r) => ({ ...r, phase: 'blocked', pausedFrom: r.phase, reason: `${step.code}: ${step.message}`, tickets: [...r.tickets, ...tickets] })).then(remember);
+      // M44: the refusal of Kit is logged and kept; a second block keeps the phase it came from.
+      log(`autopiloting: ${run.runId} grant refused for scope ${scope.id}: ${step.code}: ${step.message}`);
+      await write((r) => ({ ...r, phase: 'blocked', pausedFrom: r.phase === 'blocked' ? r.pausedFrom : r.phase, reason: `${step.code}: ${step.message}`, tickets: [...r.tickets, ...tickets] })).then(remember);
       return fail(step.code ?? 'grant-failed', `Kit не записал разрешение запуска: ${step.message ?? step.code}`, 409, 'Проверьте план и нажмите «Начать выполнение плана» ещё раз.');
     }
     const written = step.result?.['grant'] as { revision: number } | undefined;
     const commit = (step.result?.['commit'] as { sha?: string } | null)?.sha ?? null;
+    log(`autopiloting: ${run.runId} grant written for scope ${scope.id}: revision ${written?.revision ?? 1} (${source})`);
     return remember(
       await write((r) => ({
         ...r,
@@ -324,6 +327,17 @@ export function createRuns(options: RunsOptions): Runs {
       // F001: «Продолжить» of a run that is going on joins it unchanged (one sender, no second message).
       if (RUNNING.has(run.phase)) return run;
       if (run.phase !== 'paused' && run.phase !== 'blocked') return null;
+      // M44: a run whose chosen plan never got the grant (Kit refused it) asks Kit again: a
+      // «Продолжить» without the grant would leave the run looking alive but manual.
+      if (!run.authority && run.scopeId !== null) {
+        const status = await options.kit.status(folder);
+        const scope = await options.kit.scope(folder);
+        if (!status?.proposal || !scope?.automation || scope.id !== run.scopeId) {
+          fail('scope-changed', 'План изменился: прежний запуск автопилота нельзя продолжить', 409, 'Запустите план заново.');
+        }
+        const note = `The user pressed «Продолжить» for run ${run.runId} that has no grant yet (session ${key})`;
+        return grant(folder, run, scope!, status!, run.request.source === 'panel-resume' ? 'panel-start' : run.request.source, note);
+      }
       if (!run.authority?.revocation) {
         // A pause of the user or of the M24 stop, or a removed obstacle: the run goes on where it stopped.
         return remember(await options.journal.update(folder, run.runId, (r) => ({ ...r, phase: r.pausedFrom ?? 'executing', pausedFrom: null, reason: null, nextAction: null, noProgress: 0 })));

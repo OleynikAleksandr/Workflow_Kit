@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1346,
+  "revision": 1348,
   "rounds": [
     {
       "digest": {
@@ -53,7 +53,18 @@
       "title": "Implementation"
     },
     {
-      "digest": null,
+      "digest": {
+        "contracts": [],
+        "decisions": [
+          "A CI failure of the delivered SHA was deferred (task:defer-delivery) and fixed in a fixes round, not inside T007",
+          "A test that needs a missing service uses its own loopback stub, never a fixed port"
+        ],
+        "references": [
+          "product-parts/backend-core/clusters/runtime/modules/cli/test/hook-link.test.ts",
+          "docs/evidence/M44-acceptance.md"
+        ],
+        "result": "The end-to-end SessionStart hook test no longer relies on port 1 being refused at once: a loopback stub drops every connection, so the M44 request ends at once on every runner and the test stays under 2 s (CI macOS ARM64 was red at 2.4-3.0 s). No product change; README and OVERVIEW stay as in R1."
+      },
       "id": "R2",
       "kind": "fixes",
       "status": "OPEN",
@@ -602,7 +613,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -658,8 +669,8 @@
 - Execution: sequential
 - Automation: 4 automatic, 1 manual criteria; CI origin ci/M44-autopilot-grant (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 8/10
-- Revision: 1346
+- Progress: 9/10
+- Revision: 1348
 
 ## Objective
 
@@ -713,7 +724,7 @@ Digest: Full autopilot runs get the Kit grant (Kit 2.4.6 allows the full mode wi
   - Commit: test: give the session-start hook test a service stub that drops the connection
   - Files: product-parts/backend-core/clusters/runtime/modules/cli/test/hook-link.test.ts
   - Fixes: T002
-- [TODO] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R2
   - Files: README.md, docs/architecture/OVERVIEW.md
   - Depends on: T008
@@ -721,5 +732,7 @@ Digest: Full autopilot runs get the Kit grant (Kit 2.4.6 allows the full mode wi
   - Commit: test: verify M44 on four CI platforms
   - Files: docs/evidence/M44-acceptance.md
   - Depends on: T006, DOCS-R2
+
+Digest: The end-to-end SessionStart hook test no longer relies on port 1 being refused at once: a loopback stub drops every connection, so the M44 request ends at once on every runner and the test stays under 2 s (CI macOS ARM64 was red at 2.4-3.0 s). No product change; README and OVERVIEW stay as in R1.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

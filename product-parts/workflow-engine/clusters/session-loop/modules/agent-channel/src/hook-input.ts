@@ -103,6 +103,15 @@ export function messageAnswer(text: string): { message: string } {
   return { message: text };
 }
 
+/**
+ * SessionStart hook answer that adds the text to the new session's context (M44): Claude and
+ * Codex take `hookSpecificOutput.additionalContext` (as the Kit recovery hook prints it); the kimi
+ * dialect takes `{ message }`, as for UserPromptSubmit.
+ */
+export function sessionStartAnswer(dialect: HookDialect, text: string): Record<string, unknown> {
+  return dialect === 'kimi' ? messageAnswer(text) : { continue: true, hookSpecificOutput: { hookEventName: 'SessionStart', additionalContext: text } };
+}
+
 /** UserPromptSubmit hook answer with the text, in the client's dialect. */
 export function promptAnswer(dialect: HookDialect, text: string): Record<string, unknown> {
   return dialect === 'kimi' ? messageAnswer(text) : contextAnswer(text);

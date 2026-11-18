@@ -2,6 +2,7 @@
 // the cross review. Nothing here names a provider: what differs between them is read from the
 // registry (hook dialect, wakeSession, sendMessage, sendDirect, promptTitle, capabilities).
 import { createAgentChannel, registerChannelRoutes, nativeControlHookReply } from '#agent-channel';
+import { autopilotLine } from './autopilot-line.ts';
 import type { AgentChannel, SessionActivity, SessionRef } from '#agent-channel';
 import { createAutopilot, createDecisionCommands, registerAutopilotRoutes, registerDecisionRoutes } from '#autopilot';
 import type { Autopilot } from '#autopilot';
@@ -357,6 +358,12 @@ export function wireSessions(options: SessionWiringOptions): SessionWiring {
   registerChannelRoutes({
     router, state, channel: observedChannel, messages: wakingChannel, owns: ownsSession, dialects, direct, interrupt: interruptions.interrupt, interruptions: interruptions.section, question,
     onUserMessage: async (projectId, key, text) => void (await autopiloting.words.received(projectId, key, text)),
+    // M44 3.2: the autopilot line of a new session, by the project of its folder.
+    sessionStart: async (input) => {
+      const folder = input.projectDir ?? input.cwd;
+      const ref = folder ? await resolveFolderProject(folder) : undefined;
+      return autopilotLine(await autopiloting.agentState(ref?.id ?? null));
+    },
   });
   return { channel, autopilot, review, titles, crossReview, autopiloting };
 }

@@ -1,7 +1,8 @@
 // wfk hook session-start|stop|prompt|turn-end|question --client <provider id>. A client that is not a provider of
 // the service (provider-list.ts) is refused: nothing is recorded, asked or printed. session-start reads the hook JSON
-// from stdin and hands it to kit-structure; it never prints to stdout (Claude adds hook stdout to
-// the session context) and gives up after HOOK_BUDGET_MS. stop and prompt ask the running service
+// from stdin and hands it to kit-structure; for a session of a Workflow Kit project it then prints
+// the autopilot line of the service (M44 3.2, session-start-line.ts) — the hook stdout goes into
+// the session context — and gives up after HOOK_BUDGET_MS. stop and prompt ask the running service
 // (hook-service.ts) and print its answer; turn-end only tells it that the turn ended and prints
 // nothing; question holds the AskUserQuestion dialog for an answer from the panel (question-hook.ts,
 // Claude only). Every subcommand always exits with 0.
@@ -10,6 +11,7 @@ import { runServiceHook, runTurnEndHook } from './hook-service.ts';
 import { PROVIDER_IDS } from './provider-list.ts';
 import type { PostJson, RequestJson } from './hook-service.ts';
 import { runQuestionHook } from './question-hook.ts';
+import { printSessionStartLine } from './session-start-line.ts';
 
 /** Whole time budget of the hook; the spec allows 2 s. */
 export const HOOK_BUDGET_MS = 1500;
@@ -33,6 +35,8 @@ export interface HookDeps {
   env: Readonly<Record<string, string | undefined>>;
   cwd: string;
   readStdin: (timeoutMs: number) => Promise<string>;
+  /** Clock of the hook budget; tests inject it. */
+  now?: () => number;
 }
 
 /** Reads the process stdin until it closes or the timeout passes; a terminal gives an empty string. */
@@ -74,10 +78,15 @@ function option(args: readonly string[], name: string): string | undefined {
   return undefined;
 }
 
-async function sessionStart(args: readonly string[], deps: HookDeps): Promise<void> {
+async function sessionStart(args: readonly string[], deps: HookDeps, deadline: number): Promise<void> {
   const stdin = await deps.readStdin(STDIN_TIMEOUT_MS);
-  const result = await recordSessionStart({ client: option(args, '--client'), clients: deps.clients ?? PROVIDER_IDS, stdin, env: deps.env, cwd: deps.cwd });
-  if (!result.recorded && deps.env['WFK_HOOK_DEBUG']) deps.stderr(`wfk hook: ${result.reason}\n`);
+  const client = option(args, '--client');
+  const result = await recordSessionStart({ client, clients: deps.clients ?? PROVIDER_IDS, stdin, env: deps.env, cwd: deps.cwd });
+  if (!result.recorded) {
+    if (deps.env['WFK_HOOK_DEBUG']) deps.stderr(`wfk hook: ${result.reason}\n`);
+    return;
+  }
+  await printSessionStartLine(client!, { ...deps, stdin }, deadline);
 }
 
 /** Runs a hook subcommand; unknown subcommands are ignored. Always resolves to exit code 0. */
@@ -108,7 +117,7 @@ export async function runHook(args: readonly string[], deps: HookDeps): Promise<
     }, HOOK_BUDGET_MS);
   });
   try {
-    await Promise.race([sessionStart(rest, deps), budget]);
+    await Promise.race([sessionStart(rest, deps, (deps.now ?? Date.now)() + HOOK_BUDGET_MS), budget]);
   } catch (error) {
     deps.stderr(`wfk hook: ${error instanceof Error ? error.message : String(error)}\n`);
   } finally {

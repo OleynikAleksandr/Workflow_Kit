@@ -3,6 +3,7 @@
 // user wrote to the session, kept by the agent channel). The manual start records the grant of
 // its run before the first work message; Settings off pauses the active runs.
 import type { AgentChannel } from '#agent-channel';
+import type { AutopilotAgentState } from './autopilot-line.ts';
 import { createDecisionJournal, createDecisions, createHostTickets, runMayDecide, createPreparation, createProposalGate, createRunCompletion, createRunControl, createRunJournal, createRunKit, createRunTurns, createRunWaits, createRunWords, createRuns, createSettingsStore, registerAutopilotingRoutes, registerRunControlRoutes, registerSessionRunRoutes, runHttp } from '#autopilot';
 import type { Decisions, RunCompleter, ControlActions, PrepareActions, ReviewFact, RunControl, RunTurns, RunWaits, RunWords, Runs, SettingsStore } from '#autopilot';
 import { createGitHubCi, createPublisher, runGit } from '#git-publish';
@@ -49,6 +50,8 @@ export interface AutopilotingWiring {
   reconcile(projectId: string): Promise<void>;
   /** The preparation step of every project (after the reviews and runs are loaded). */
   reconcileAll(): Promise<void>;
+  /** M44: Settings and the project's active run with its live Kit grant, for the SessionStart line. */
+  agentState(projectId: string | null): Promise<AutopilotAgentState>;
 }
 
 export interface PreparationLinks {
@@ -186,6 +189,15 @@ export function wireAutopiloting(options: {
     },
     async reconcileAll() {
       for (const project of await options.projects.list()) await preparation.reconcile(project.id);
+    },
+    async agentState(projectId) {
+      const { settings: current } = await settings.read();
+      const folder = projectId ? await projectPath(projectId) : undefined;
+      const run = folder ? await journal.active(folder).catch(() => null) : null;
+      if (!folder || !run) return { mode: current.mode, review: current.review, run: null };
+      const grant = (await runKit.status(folder).catch(() => null))?.authorization;
+      const authorized = Boolean(grant && grant.runId === run.runId && !grant.revoked);
+      return { mode: current.mode, review: current.review, run: { runId: run.runId, phase: run.phase, reason: run.reason, authorized } };
     },
   };
 }

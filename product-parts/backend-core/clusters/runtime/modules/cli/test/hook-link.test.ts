@@ -63,14 +63,22 @@ function exec(file: string, args: string[], env: NodeJS.ProcessEnv, input: strin
   });
 }
 
-test('wfk hook session-start records the session from a substituted stdin', async () => {
+test('wfk hook session-start records the session from a substituted stdin and prints the service line', async () => {
   const stdin = JSON.stringify({ session_id: 's-1', source: 'startup', cwd: path.join(project, 'src') });
+  const posted: Array<[string, unknown]> = [];
+  const answer = { continue: true, hookSpecificOutput: { hookEventName: 'SessionStart', additionalContext: 'Workflow Kit autopilot: mode=full, review=off; run=none.' } };
   const result = await run(['hook', 'session-start', '--client', 'claude'], {
-    app: { env: { CLAUDE_PROJECT_DIR: project } },
+    app: { env: { CLAUDE_PROJECT_DIR: project, WFK_PORT: '1' } },
     cwd: tmp,
     readStdin: async () => stdin,
+    postJson: async (url: string, body: unknown) => {
+      posted.push([url, body]);
+      return { answer };
+    },
   });
-  assert.deepEqual([result.code, result.out], [0, '']);
+  assert.deepEqual([result.code, result.out], [0, `${JSON.stringify(answer)}\n`]);
+  assert.equal(posted[0]?.[0], 'http://127.0.0.1:1/api/hooks/session-start');
+  assert.deepEqual(posted[0]?.[1], { client: 'claude', input: JSON.parse(stdin), projectDir: project, panelProcess: false });
   const last = (await journal()).at(-1);
   assert.equal(last?.['session_id'], 's-1');
   assert.equal(last?.['client'], 'claude');
@@ -131,11 +139,13 @@ test('wfk link writes the launcher into a substituted HOME and refuses foreign f
 test('the hook command from settings runs the linked launcher end to end', { skip: !posix }, async () => {
   assert.equal((await run(['link'], { app: { homedir: home, env: {}, platform: 'darwin' } })).code, 0);
   const before = (await journal()).length;
-  const env = { HOME: home, PATH: '/usr/bin:/bin', CLAUDE_PROJECT_DIR: project };
+  // WFK_PORT 1: no service answers there, whatever runs on this machine.
+  const env = { HOME: home, PATH: '/usr/bin:/bin', CLAUDE_PROJECT_DIR: project, WFK_PORT: '1' };
   const input = JSON.stringify({ session_id: 'e2e-1', transcript_path: '/tmp/e2e.jsonl', model: 'm' });
   const result = await exec('/bin/sh', ['-c', hookCommand('claude')], env, input);
   assert.equal(result.code, 0, result.err);
-  assert.equal(result.out, '');
+  // M44: without the service the session still learns that the autopilot state is unknown.
+  assert.deepEqual(JSON.parse(result.out), { continue: true, hookSpecificOutput: { hookEventName: 'SessionStart', additionalContext: 'Workflow Kit autopilot: unknown (service not reachable).' } });
   assert.ok(result.ms < 2000, `hook took ${result.ms} ms`);
   const lines = await journal();
   assert.equal(lines.length, before + 1);

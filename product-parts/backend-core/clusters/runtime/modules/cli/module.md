@@ -111,7 +111,9 @@ M39 — `src/autopiloting-wiring.ts`, `src/autopiloting-links.ts`, `wfk session 
 сервис слов `createRunWords`: «стоп» и «пауза» пользователя в маршруте сообщений панели и в хуке
 UserPromptSubmit; M44 T001 — подготовка запуска получает `authorize` (`runs.beginExecution`)
 для повторной записи разрешения, минутный `tick` делает шаг подготовки каждого проекта, чтобы
-отказанный старт повторялся без следующего хода) — в [connected-modules.md](connected-modules.md) и [commands.md](commands.md).
+отказанный старт повторялся без следующего хода; M44 T002 — `agentState(projectId)` автопилотирования
+и опция `sessionStart` маршрутов канала: строка автопилота новой сессии, `src/autopilot-line.ts`,
+`src/session-start-line.ts`) — в [connected-modules.md](connected-modules.md) и [commands.md](commands.md).
 
 ## Инварианты
 
@@ -169,6 +171,14 @@ native-вызова адаптера также становится HTTP 504 `i
 После завершившегося тайм-аута адаптера явный повтор разрешён; незавершённый native RPC
 по-прежнему не дублируется. Тест проходит через настоящий HTTP-сервер с подставным
 провайдером; правила одинаковы на macOS, Linux и Windows x64/ARM64.
+
+## Строка автопилота при старте сессии и ОС (M44 T002)
+
+`wfk hook session-start` после записи сессии спрашивает службу (`POST /api/hooks/session-start`)
+в остатке бюджета 1,5 с и печатает её ответ; без службы — `unknown (service not reachable)`.
+macOS и Linux — sh-запуск хука, Windows — `wfk.cmd`/`wfk.mjs`; строка только ASCII, поэтому
+кодовая страница консоли и CRLF на неё не влияют; URL службы — из конфигурации подставленной
+платформы (`test/session-start-line.test.ts`: `win32` и `linux`). Программ ОС нет.
 
 ## Снимок строки состояния Claude (M25)
 

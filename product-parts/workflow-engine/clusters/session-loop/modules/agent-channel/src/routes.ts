@@ -7,8 +7,8 @@ import type { Router, StateRegistry } from '#http-server';
 import type { QuestionHookReply, QuestionHookRequest } from '#provider-registry';
 import { TURN_END_EVENTS, USER_MESSAGE_SOURCE } from './types.ts';
 import type { AgentChannel, HookReply, QueuedMessage, TurnEndEvent } from './types.ts';
-import { parseHookInput } from './hook-input.ts';
-import type { HookDialects } from './hook-input.ts';
+import { parseHookInput, sessionStartAnswer } from './hook-input.ts';
+import type { HookDialects, HookInput } from './hook-input.ts';
 
 export interface ChannelRoutesOptions {
   router: Router;
@@ -36,6 +36,11 @@ export interface ChannelRoutesOptions {
   onUserMessage?: (projectId: string, key: string, text: string) => Promise<void>;
   interrupt?: (projectId: string, key: string, body: unknown) => Promise<unknown>;
   interruptions?: () => Promise<Record<string, unknown>>;
+  /**
+   * M44: the one line about the autopilot a new session gets in its context (wfk hook
+   * session-start); without it the route is not registered.
+   */
+  sessionStart?: (input: HookInput) => Promise<string>;
   /** Holds a question hook request (wfk hook question); without it the route is not registered. */
   question?: (request: QuestionHookRequest, signal: AbortSignal) => Promise<QuestionHookReply>;
 }
@@ -152,6 +157,17 @@ export function registerChannelRoutes(options: ChannelRoutesOptions): void {
       const reply = event === 'stop' ? await channel.stop(input, aborted.signal) : await channel.prompt(input);
       send(res, reply);
       return undefined;
+    });
+  }
+  if (options.sessionStart) {
+    const sessionStart = options.sessionStart;
+    // M44: answers at once (the hook has 1.5 s in all); the answer is in the client's dialect.
+    router.post('/api/hooks/session-start', async ({ body, req }) => {
+      if (classifyAddress(req.socket.remoteAddress) !== 'loopback') throw new HttpError(403, 'loopback-only', LOOPBACK_ONLY);
+      const raw = hookBody(body);
+      const input = parseHookInput(raw.client, raw.input, raw.projectDir, options.dialects, raw.panelProcess);
+      if (!input) throw new HttpError(400, 'bad-hook-input', 'Неизвестный client или нет session_id во входе хука');
+      return { answer: sessionStartAnswer(input.dialect, await sessionStart(input)) };
     });
   }
   if (options.question) {

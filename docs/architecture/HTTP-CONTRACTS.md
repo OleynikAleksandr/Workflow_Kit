@@ -51,6 +51,15 @@
   `run-active`, пока запуск автопилотирования не опубликовал результат (`details { scopeId,
   runId }`); раздел `kitUpdate.projects[id].deferred { code, scopeId, runId } | null`.
   Контракт — [kit-update/module.md](../../product-parts/workflow-engine/clusters/kit-host/modules/kit-update/module.md).
+- M44 T002: `POST /api/hooks/session-start { client, input, projectDir?, panelProcess? }` (только
+  loopback, иначе 403; клиент вне провайдеров или вход без `session_id` — 400 `bad-hook-input`) →
+  `{ answer }` — ответ хука SessionStart в диалекте клиента: Claude и Codex —
+  `{ continue: true, hookSpecificOutput: { hookEventName: "SessionStart", additionalContext } }`,
+  Kimi — `{ message }`. Текст — одна ASCII-строка `Workflow Kit autopilot: mode=<off|after-start|full>,
+  review=<on|off>; run=<none|<id> authorized (phase …)|<id> NOT authorized (…)|<id> paused|<id>
+  blocked (…)>.`, без живого разрешения Kit — с напоминанием о ручных решениях. Отвечает сразу:
+  у хука 1,5 с на всё. Контракт — [agent-channel/module.md](../../product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md),
+  [cli/commands.md](../../product-parts/backend-core/clusters/runtime/modules/cli/commands.md).
 - Контракт — [autopilot/autopiloting.md](../../product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md).
 
 ## Голосовой ввод (speech-integration)

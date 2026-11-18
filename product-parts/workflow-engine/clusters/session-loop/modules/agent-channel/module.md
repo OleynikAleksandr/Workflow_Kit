@@ -36,7 +36,9 @@
 - `blockAnswer(reason)`, `contextAnswer(text)` (`hookSpecificOutput.
   additionalContext` события `UserPromptSubmit`), `messageAnswer(text)`
   (`{ message }` диалекта `kimi`), `promptAnswer(dialect, text)` — ответ
-  `UserPromptSubmit` в диалекте клиента (им отвечает `prompt` канала).
+  `UserPromptSubmit` в диалекте клиента (им отвечает `prompt` канала);
+  `sessionStartAnswer(dialect, text)` (M44) — ответ `SessionStart`: `{ continue: true,
+  hookSpecificOutput: { hookEventName: 'SessionStart', additionalContext } }`, у `kimi` — `{ message }`.
 - `createAgentChannel({ resolveProject, decide?, holdMs?, now?, onChange?,
   log?, detached?, release?, excluded? }) → AgentChannel`:
   - `stop(input, signal?)`: сессия «ждёт»; есть сообщения в очереди —
@@ -117,6 +119,10 @@
   `dialects`, вход без `session_id` или `waiterId` не UUID — 400 `bad-hook-input`; запрос
   (`questionHookRequest(body, dialects)` — поля хука, `tool_name`, `tool_input`) уходит опции
   с сигналом, который кончается с закрытием HTTP-запроса; без опции маршрута нет.
+  Опция `sessionStart(input) → Promise<string>` (M44 T002): `POST /api/hooks/session-start`
+  `{ client, input, projectDir?, panelProcess? }` → `{ answer: sessionStartAnswer(dialect,
+  строка) }`; только loopback (403), неизвестный клиент или нет `session_id` — 400
+  `bad-hook-input`; без опции маршрута нет. Тест — `test/session-start-route.test.ts`.
 - `POST /api/projects/:id/sessions/:sid/message { text }` → `{ sent: true }`
   или `{ queued: <id сообщения> }`: сообщение панели агенту (M18 раздел 2.5).
   Проверки — `checkSessionMessage(channel, projectId, key, text, owned) → string`

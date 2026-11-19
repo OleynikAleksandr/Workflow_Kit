@@ -134,7 +134,13 @@
   `DirectAnswer` (`index.ts`) добавляет `{ refused: string }` — терминал не свободен:
   `{ sent: false, undelivered: { reason: refused } }` (пустая причина — `UNDELIVERED_REASON`), в
   очередь не кладётся; объект без строки `refused` — как `false`. Тест —
-  `test/m46-direct-refused.test.ts`.
+  `test/m46-direct-refused.test.ts`. M47 T001: резерв `directTurn` помечен `direct`; пока идёт
+  отправка и ожидание (`slot.sending`), первый хук `UserPromptSubmit` сессии забирает его и при другом
+  тексте (`ownPrompt` → `'order'`; Claude 2.1.328 оборачивает длинную вставку в `<pasted_content
+  id="…">`): ход — сообщение панели, источник решения — текст резерва, строка журнала `channel:
+  prompt hook of <key> confirmed the pasted message by order: the hook text differs (<n> vs <m>
+  chars)` без текстов. Прочие резервы и хук вне окна сравнивают текст, как раньше. Тесты —
+  `test/m47-paste-order.test.ts`, `cli/test/m47-paste-order-e2e.test.ts` (записи живого Claude).
   Проверки — `checkSessionMessage(channel, projectId, key, text, owned) → string`
   (чистый текст; `queueSessionMessage` зовёт её и кладёт текст в очередь):
   текст обрезается по краям, пустой — 400 `empty-message`, длиннее

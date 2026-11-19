@@ -32,6 +32,12 @@ export interface Reservation {
   started: boolean;
   startedRef: string | null;
   createdAt: number;
+  /**
+   * M47: a panel message pasted into the terminal (directTurn). While it is being sent and
+   * confirmed, the first prompt hook of the session takes it whatever its text (Claude 2.1.328
+   * wraps a long paste in <pasted_content>).
+   */
+  direct?: true;
 }
 export interface TurnState extends TurnSnapshot {
   notifiedRef: string | null;
@@ -85,16 +91,24 @@ export function acceptTurn(slot: Slot, reservation: Reservation, native: string 
   return true;
 }
 
-export function ownPrompt(slot: Slot, prompt: string | null, native: string | null, now: number): 'own' | 'late' | null {
+/**
+ * The prompt hook of a reserved turn: 'own' for the same text, 'order' (M47) for the first hook
+ * while a direct paste is sent or confirmed and the text differs, 'late' for a hook of a turn
+ * already replaced, null otherwise.
+ */
+export function ownPrompt(slot: Slot, prompt: string | null, native: string | null, now: number): 'own' | 'order' | 'late' | null {
   const reservation = slot.turn.reservation;
-  if (!reservation || prompt === null || prompt.trim() !== reservation.text || now - reservation.createdAt > 60_000) return null;
+  if (!reservation || prompt === null || now - reservation.createdAt > 60_000) return null;
+  const same = prompt.trim() === reservation.text;
+  const byOrder = !same && reservation.direct === true && slot.sending && !reservation.started;
+  if (!same && !byOrder) return null;
   if (reservation.started && reservation.startedRef !== slot.turn.turnRef) return 'late';
   acceptTurn(slot, reservation, native);
   if (native && reservation.previousNative && native !== reservation.previousNative) slot.turn.retired.add(reservation.previousNative);
   if (native) { slot.turn.nativeTurnId = native; slot.turn.retired.delete(native); }
   slot.turn.reservation = null;
   slot.turn.lastPrompt = prompt;
-  return 'own';
+  return same ? 'own' : 'order';
 }
 
 /** Stop the old watcher/reminder without throwing away any unsent messages. */

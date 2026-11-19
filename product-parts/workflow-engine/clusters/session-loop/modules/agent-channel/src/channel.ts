@@ -264,6 +264,8 @@ export function createAgentChannel(options: AgentChannelOptions): AgentChannel {
       const slot = await slotOf(input);
       if (leaves(slot)) return empty();
       const own = ownPrompt(slot, input.prompt, input.turnId, now().getTime());
+      // M47: the paste is confirmed by the order of hooks; the text Claude reports differs (no texts logged).
+      if (own === 'order') log(`channel: prompt hook of ${slot.activity.key} confirmed the pasted message by order: the hook text differs (${input.prompt?.trim().length ?? 0} vs ${slot.turn.userSource?.text.length ?? 0} chars)`);
       if (own === 'late' || (!own && input.turnId && slot.turn.retired.has(input.turnId))) return empty();
       slot.wake?.();
       const automaticWake = slot.turn.wakingUntil > now().getTime();

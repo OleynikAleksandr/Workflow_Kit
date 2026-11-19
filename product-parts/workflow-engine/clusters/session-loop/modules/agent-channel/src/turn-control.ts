@@ -72,6 +72,7 @@ export function createTurnControl(core: ChannelCore, ensure: (key: string, proje
       if (slot.turn.barrier || slot.sending || core.excluded(slot) || core.closed()) return false;
       // M40: a panel message given directly is the user's delivered message of the turn it begins.
       const reservation = reserveTurn(slot, text, 'user', [], core.now().getTime(), { id: randomUUID(), text: text.trim(), at: core.iso(), via: 'panel' });
+      reservation.direct = true;
       slot.sending = true;
       let sent = false;
       let unconfirmed = false;

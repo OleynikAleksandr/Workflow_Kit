@@ -1,0 +1,28 @@
+# M47: доказательства приёмки
+
+План — [M47-paste-confirm-host-build.md](../planning/M47-paste-confirm-host-build.md).
+
+## Запись живого Claude 2.1.328 (T001, 19.11.2026)
+
+Агент запустил `claude --model haiku --settings <файл с хуком UserPromptSubmit, пишущим ввод>` во
+временной папке под pty 160×40, вставил текст bracketed paste (`ESC[200~ … ESC[201~`, как
+`session.exp` пишет `.text`), Enter через 700 мс. Пользовательские настройки не менялись; данные
+пробных папок удалены `claude purge`. Сохранение транскрипта внутри сессии агента выключено
+меткой `CLAUDE_CODE_CHILD_SESSION`, для записи — `CLAUDE_CODE_FORCE_SESSION_PERSISTENCE=1`.
+
+| Вставка | `prompt` в хуке `UserPromptSubmit` | Строка пользователя в транскрипте |
+| --- | --- | --- |
+| 7 строк (задача S02 с одной строкой изменённой), экран — `[Pasted text #1 +6 lines]` | `"\n\n<pasted_content id=\"4ec3\">\n<текст>\n</pasted_content id=\"4ec3\">\n"` | та же строка |
+| 3 строки | текст без изменений | — |
+| 1 строка | текст без изменений | текст без изменений |
+
+Вывод: длинная вставка приходит в обёртке, равенство текста с резервом хода невозможно — причина
+ложного «не дошло» в S02 подтверждена. Записанные строки — данные тестов
+`agent-channel/test/m47-paste-order.test.ts` и `cli/test/m47-paste-order-e2e.test.ts`.
+
+## T001: подтверждение по порядку хука
+
+- Код: `agent-channel/src/turn-state.ts` (`Reservation.direct`, `ownPrompt` → `'order'`),
+  `turn-control.ts` (резерв `directTurn` помечен), `channel.ts` (строка журнала).
+- Тесты на прежнем коде: 3 из 5 новых падают (сквозной — `undelivered` через 8 с, как в S02); на
+  новом — проходят; прежние тесты M45 проходят.

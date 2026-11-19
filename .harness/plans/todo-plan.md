@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1394,
+  "revision": 1395,
   "rounds": [
     {
       "digest": null,
@@ -266,6 +266,39 @@
     },
     {
       "acceptance": [
+        "src/chat.ts (unwrapPasted), test/m47-pasted-content.test.ts, chat.md, sessions.md, module.md provider-claude и evidence T002 закоммичены; тесты проходят"
+      ],
+      "checks": [],
+      "commitMessage": "fix: show a pasted user message without the pasted_content wrapper (commit the T002 work)",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/planning/M47-paste-confirm-host-build.md",
+          "heading": "3. Решение",
+          "required": true
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/chat.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/m47-pasted-content.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/chat.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/sessions.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md",
+        "docs/evidence/M47-acceptance.md"
+      ],
+      "fixes": "T002",
+      "id": "F001",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R1",
+      "status": "TODO",
+      "title": "Код T002 в git",
+      "why": "Коммит T002 взял только trust.md: пути --files были переданы через пробел, а не через запятую; код и тест снятия обёртки остались вне git"
+    },
+    {
+      "acceptance": [
         "pty-host считает дайджест исходников хоста (LF, относительные пути с /); хост macOS/Linux и хост ConPTY пишут hostBuild в состояние; тест-сторож списка файлов метки",
         "Состояние с другой меткой или без неё: editable false и причина HOST_OUTDATED; с той же меткой — как раньше; сообщения и прерывание не затронуты",
         "module.md обоих модулей, native-parameters.md, OS-MATRIX.md и OS-MATRIX-M47.md обновлены; docs/evidence/M47-acceptance.md: причины, записи живого Claude, коммиты, проверки, живые проверки по ОС"
@@ -281,7 +314,8 @@
         }
       ],
       "dependencies": [
-        "T002"
+        "T002",
+        "F001"
       ],
       "docsWaiver": null,
       "files": [
@@ -312,6 +346,7 @@
       "dependencies": [
         "T001",
         "T002",
+        "F001",
         "T003"
       ],
       "docsWaiver": null,
@@ -322,7 +357,12 @@
         "docs/architecture/HTTP-CONTRACTS.md",
         "docs/evidence/M47-acceptance.md",
         "docs/architecture/OS-MATRIX.md",
-        "docs/architecture/OS-MATRIX-M47.md"
+        "docs/architecture/OS-MATRIX-M47.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/trust.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/chat.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/sessions.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md"
       ],
       "fixes": null,
       "id": "DOCS-R1",
@@ -413,8 +453,8 @@
 - Execution: sequential
 - Automation: 4 automatic, 1 manual criteria; CI origin ci/M47-paste-confirm-host-build (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 2/6
-- Revision: 1394
+- Progress: 2/7
+- Revision: 1395
 
 ## Objective
 
@@ -439,14 +479,18 @@
   - Commit: fix: show a pasted user message without the pasted_content wrapper
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, docs/evidence/M47-acceptance.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/trust.md
   - Depends on: T001
+- [TODO] F001 — Код T002 в git (work)
+  - Commit: fix: show a pasted user message without the pasted_content wrapper (commit the T002 work)
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/chat.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/m47-pasted-content.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/chat.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/sessions.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, docs/evidence/M47-acceptance.md
+  - Fixes: T002
 - [TODO] T003 — Метка сборки хоста и причина устаревшей сессии (work)
   - Commit: feat: mark sessions whose terminal host predates the installed build
   - Files: product-parts/provider-runtime/clusters/provider-contract/modules/pty-host, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, docs/architecture/OS-MATRIX.md, docs/architecture/OS-MATRIX-M47.md, docs/evidence/M47-acceptance.md
-  - Depends on: T002
+  - Depends on: T002, F001
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
-  - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M47-paste-confirm-host-build.md, docs/architecture/HTTP-CONTRACTS.md, docs/evidence/M47-acceptance.md, docs/architecture/OS-MATRIX.md, docs/architecture/OS-MATRIX-M47.md
-  - Depends on: T001, T002, T003
+  - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M47-paste-confirm-host-build.md, docs/architecture/HTTP-CONTRACTS.md, docs/evidence/M47-acceptance.md, docs/architecture/OS-MATRIX.md, docs/architecture/OS-MATRIX-M47.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/trust.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/chat.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/sessions.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md
+  - Depends on: T001, T002, F001, T003
 - [TODO] T004 — Поставка 0.20.3 (delivery)
   - Commit: chore: release Workflow Kit 0.20.3
   - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/evidence/M47-acceptance.md

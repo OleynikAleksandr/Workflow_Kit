@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1405,
+  "revision": 1406,
   "rounds": [
     {
       "digest": {
@@ -62,7 +62,10 @@
       "Выпуск 0.20.3 установлен, CI четырёх платформ зелёный для точного SHA на ci/M47-paste-confirm-host-build; результаты в docs/evidence/M47-acceptance.md",
       "Живая проверка пользователя на Mac с Claude 2.1.328: многострочное сообщение из панели — поле очищено, ошибки нет, в ленте один раз и без обёртки; сессия, запущенная до 0.20.3, показывает причину, после остановки и возобновления модель и уровень меняются"
     ],
-    "acceptanceNote": null,
+    "acceptanceNote": {
+      "at": "2026-11-19T19:02:39.221Z",
+      "text": "Пользователь принял план в панели Workflow Kit"
+    },
     "approval": {
       "at": "2026-11-19T17:38:51.329Z",
       "text": "Пользователь 19.11.2026 после теста 0.20.2 в проекте S02: «агент получил мое сообщение, при этом оно осталось как будто бы не отправленным в поле ввода пользователя, и высветилась все равно ошибка. Проверь.»; затем: «Давай делать два плана по очереди. Сначала первый проверяем, смотрим на результат.» и «сессия диалог Workflow Kit потеряла полностью контакт и контроль за моделью»; в панели выбраны спецификация и план без ревью | Execution mode chosen by the user: sequential: Выбор пользователя в панели Workflow Kit: выполнить самому, последовательно"
@@ -219,9 +222,21 @@
           "session": "ffc970ed-20a1-499c-9d2c-47dff30c41a0"
         },
         "text": "confirm-delivery: Решение пользователя в панели Workflow Kit"
+      },
+      {
+        "at": "2026-11-19T19:02:39.203Z",
+        "decisionId": "dec-6583bfcf364b",
+        "kind": "accept",
+        "source": {
+          "kind": "button",
+          "messageId": null,
+          "runId": null,
+          "session": "ffc970ed-20a1-499c-9d2c-47dff30c41a0"
+        },
+        "text": "accept: Пользователь принял план в панели Workflow Kit"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "ACCEPTED",
     "execution": {
       "maxWorkers": 1,
       "ownerSession": "ffc970ed-20a1-499c-9d2c-47dff30c41a0",
@@ -509,12 +524,12 @@
 ## State
 
 - Scope: M47-paste-confirm-host-build (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: ACCEPTED
 - Execution: sequential
 - Automation: 4 automatic, 1 manual criteria; CI origin ci/M47-paste-confirm-host-build (4 checks); publication main → origin/main
 - Current task: none
 - Progress: 7/7
-- Revision: 1405
+- Revision: 1406
 
 ## Objective
 

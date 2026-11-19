@@ -12,7 +12,12 @@ export interface DirectMessageOptions {
   project: (id: string) => Promise<Project | undefined>;
   log?: (line: string) => void;
   channel?: Pick<AgentChannel, 'directTurn'>;
+  /** M45: how long a pasted message waits for its prompt hook (DIRECT_CONFIRM_MS). */
+  confirmMs?: number;
 }
+
+/** M45: a pasted message that brings no prompt hook in this time is reported as not delivered. */
+export const DIRECT_CONFIRM_MS = 8000;
 
 /**
  * True when another process leads the session (spec M19 2.3): the provider marks the processes the
@@ -24,7 +29,7 @@ export function ledOutside(provider: Pick<Provider, 'marksPanelProcess'> | undef
 }
 
 /** Route option `direct` of the channel routes: true means the provider took the text. */
-export type DirectMessage = (projectId: string, key: string, text: string) => Promise<boolean>;
+export type DirectMessage = (projectId: string, key: string, text: string) => Promise<boolean | 'unconfirmed'>;
 
 /**
  * Builds the direct path. It calls provider.sendDirect only when the provider has it and has no
@@ -46,7 +51,11 @@ export function createDirectMessage(options: DirectMessageOptions): DirectMessag
     if (!project) return false;
     try {
       const send = async () => (await provider.sendDirect!(project, key.slice(colon + 1), text)) === true;
-      return await (options.channel ? options.channel.directTurn(key, projectId, text, send) : send());
+      // M45: a session whose hooks the channel has seen confirms the paste with its prompt hook.
+      const confirmMs = activity ? options.confirmMs ?? DIRECT_CONFIRM_MS : 0;
+      const result = await (options.channel ? options.channel.directTurn(key, projectId, text, send, confirmMs) : send());
+      if (result === 'unconfirmed') options.log?.(`channel: message to ${key} was pasted, but no prompt hook took it within ${confirmMs} ms`);
+      return result;
     } catch (error) {
       options.log?.(`channel: direct message to ${key} failed, queued instead: ${error instanceof Error ? error.message : String(error)}`);
       return false;

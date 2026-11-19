@@ -4,7 +4,7 @@ import { randomUUID } from 'node:crypto';
 import type { TerminalScreen } from '#pty-host';
 import { freshAck, parameterFrame, sessionAcks } from './parameter-screen.ts';
 import type { ParameterFrame, ModelRow } from './parameter-screen.ts';
-import { EFFORTS, FAST_REASON, MODES, supportedNativeVersion, validNativeRequest } from './parameter-protocol.ts';
+import { DRAFT_REASON, EFFORTS, FAST_REASON, MODES, UNSAFE_REASON, supportedNativeVersion, validNativeRequest } from './parameter-protocol.ts';
 import type { TurnState } from './turn-file.ts';
 import type { NativeAction, NativeCatalog, NativeEfforts, NativeMetadata, NativeParameterRequest, NativeParameterResult, NativeParameterState, NativeWanted, WantedField } from './parameter-protocol.ts';
 import { WantedChoices } from './parameter-wanted.ts';
@@ -186,7 +186,7 @@ export class ParameterEngine {
       : f.kind === 'idle' && this.empty() ? 'idle' : f.kind === 'busy' ? 'busy' : f.kind === 'unknown' ? 'unknown' : 'dialog';
     return { version: 1, hostId: this.hostId, sessionId: m?.sessionId ?? '', epoch: `${this.hostId}:${this.epoch}`,
       at: this.now(), cliVersion: m?.cliVersion ?? '', status, inputEmpty: this.empty(),
-      reason: status === 'idle' ? null : status === 'busy' && this.turnWorking ? 'Claude отвечает' : !m ? 'Нет native statusline этого host' : this.unsafe ? 'Терминал Claude не вернулся к пустому полю после смены параметров' : !this.empty() && f.input !== null ? 'В Claude есть черновик' : 'Терминал Claude занят или не распознан',
+      reason: status === 'idle' ? null : status === 'busy' && this.turnWorking ? 'Claude отвечает' : !m ? 'Нет native statusline этого host' : this.unsafe ? UNSAFE_REASON : !this.empty() && f.input !== null ? DRAFT_REASON : 'Терминал Claude занят или не распознан',
       model: m?.model ?? null, effort: m?.effort === 'ultra' ? f.baseEffort : m?.effort ?? null,
       mode: f.mode ?? this.effectiveMode, fast: m?.fast ?? null, ultracode: f.ultracode ?? (this.request ? this.effectiveUltra : null), ultracodeAvailable: this.ultraAvailable, models: [...this.models.values()].map(({ key, label, group }) => ({ key, label, group })),
       efforts: this.efforts, effortRecommended: this.recommended, fastReason: this.fastReason, pending: this.request ? { id: this.request.id, sessionId: this.request.sessionId,

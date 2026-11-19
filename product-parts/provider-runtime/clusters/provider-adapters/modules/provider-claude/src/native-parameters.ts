@@ -24,6 +24,12 @@ function validState(state: NativeParameterState | null, record: SessionRecord, n
     && ['idle', 'control', 'busy', 'dialog', 'unknown'].includes(state.status)
     && Array.isArray(state.models) && state.models.length <= 64 && Array.isArray(state.efforts) && state.efforts.length <= 5;
 }
+/** M45: the fresh state of the host of a running panel record, or null (no host, stale, invalid). */
+export async function recordNativeState(record: SessionRecord): Promise<NativeParameterState | null> {
+  if (!record.controlHostId) return null;
+  const state = await readNativeJson(record.debugFile + PARAMETER_STATE) as NativeParameterState | null;
+  return validState(state, record, Date.now()) ? state : null;
+}
 export async function nativeParameterState(rt: ClaudeRuntime, project: Project, sid: string): Promise<NativeParameterState | null> {
   const { record } = await findSession(rt, project, sid);
   if (!record?.controlHostId || record.archived || !(await rt.isAlive(record.processId))) return null;

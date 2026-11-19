@@ -42,7 +42,7 @@ truncated, sync? }` (`readMessages?`). M32: необязательный `ChatPa
 reconnecting | unavailable, reason?, retryAfterMs?, gaps?, gapCount? }` (нет — прежний контракт Claude/Kimi);
 `codex-reconnecting` и `codex-unavailable` — HTTP 503 с `details.sync` и `details.retryAfterMs`, прочие отказы
 ленты — 502 (`chat.md` provider-registry, [M32-codex-connection.md](../planning/M32-codex-connection.md)); отправка — `POST …/sessions/:sid/message` → `{ sent: true }`
-(`cli` отдал текст `sendDirect`) или `{ queued }`. Claude (M19): текст — в
+(`cli` отдал текст `sendDirect`), `{ queued }` или (M45) `{ sent: false, undelivered: { reason } }`. Claude (M19): текст — в
 `<debug>.text`; сессия, чей последний хук без `panelProcess` (`SessionActivity.external`),
 получает их только очередью и не будится. Подробно — `chat.md`
 провайдеров, `cli/session-chat.md`.

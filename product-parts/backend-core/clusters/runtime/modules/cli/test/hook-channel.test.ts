@@ -31,7 +31,12 @@ const CODEX_STOP = {
 const reaching = (id: string, marks: boolean) => (): Provider => ({
   ...createStubProvider({ id, title: id, task: 'T' }),
   ...(marks ? { marksPanelProcess: true } : {}),
-  sendDirect: async (_project, sessionId) => (reach.direct.push(`${id}:${sessionId}`), reach.accept),
+  // M45: like Claude, an accepted paste begins a turn: its prompt hook with the same text follows.
+  sendDirect: async (_project, sessionId, text) => {
+    reach.direct.push(`${id}:${sessionId}`);
+    if (reach.accept) setTimeout(() => void hook('prompt', { session_id: sessionId, cwd: folder, hook_event_name: 'UserPromptSubmit', prompt: text }, marks ? { WFK_PANEL_SESSION: '1' } : {}, id), 20);
+    return reach.accept;
+  },
   wakeSession: async (_project, sessionId) => (reach.woken.push(`${id}:${sessionId}`), true),
 });
 

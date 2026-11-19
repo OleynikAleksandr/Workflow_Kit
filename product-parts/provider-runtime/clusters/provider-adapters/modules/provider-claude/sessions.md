@@ -99,3 +99,11 @@ M28/T004. `sendDirect` сначала отменяет транзакцию па
 на Windows) берёт `.text`, `.message`, `.rename` при любом состоянии движка: `yieldToUser`
 отменяет транзакцию и даёт ей не больше 2 с на очистку. `turnState` (`claudeTurnState`)
 отдаёт `<debug>.turn` сессии панели; хук `continue` (Stop с ответом block) снова пишет `working`.
+
+M45/T001–T002: `yieldToUser` держит файлы пользователя и после 2 с, пока терминал `unsafe` с
+непустым полем (до 10 с, [native-parameters.md](native-parameters.md)). `sendDirect` перед записью
+`.text` читает свежее состояние хоста (`recordNativeState`, `native-parameters.ts`) и не вставляет
+текст в открытый диалог (`dialog`), за черновик (`DRAFT_REASON`) или после неубранной смены
+параметров (`UNSAFE_REASON`): `false` и строка журнала `claude: message to <sid> not pasted: the
+terminal is not free (<причина>)` — сообщение идёт очередью. Без свежего состояния — как раньше.
+Тест — `test/m45-direct.test.ts`.

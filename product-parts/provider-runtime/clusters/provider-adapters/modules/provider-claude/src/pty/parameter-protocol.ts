@@ -38,6 +38,9 @@ export interface NativeCatalog {
   /** M45: discovery keys (`catalog:<model>`, `efforts:<model>`) whose tries failed on this CLI version. */
   failed?: string[];
 }
+/** M45: state reasons of an input that is not free: a draft (the user's or a left command) and an unclean cleanup. */
+export const DRAFT_REASON = 'В Claude есть черновик';
+export const UNSAFE_REASON = 'Терминал Claude не вернулся к пустому полю после смены параметров';
 export interface NativePending {
   id: string; sessionId: string; epoch: string; expires: number; field: NativeField; command: string | null;
 }

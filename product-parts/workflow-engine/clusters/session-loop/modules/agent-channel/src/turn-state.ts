@@ -118,6 +118,10 @@ export interface TurnControl {
   interruptionPending(key: string, ref: string, pending: boolean, result?: InterruptionOutcome): void;
   confirmInterrupted(key: string, ref: string, native: string | null): boolean;
   /** Tracks direct sends too, including a prompt hook that arrives before the RPC answer. */
-  directTurn(key: string, projectId: string, text: string, send: () => Promise<boolean>): Promise<boolean>;
+  /**
+   * M45: with `confirmMs` the pasted message counts only once its prompt hook took the reservation;
+   * no hook in that time gives 'unconfirmed' (the panel shows the message as not delivered).
+   */
+  directTurn(key: string, projectId: string, text: string, send: () => Promise<boolean>, confirmMs?: number): Promise<boolean | 'unconfirmed'>;
   automaticWake(key: string, send: () => Promise<boolean>): Promise<boolean>;
 }

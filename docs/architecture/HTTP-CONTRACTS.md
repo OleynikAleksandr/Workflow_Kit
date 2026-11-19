@@ -77,3 +77,12 @@
   `dictationId`; двоичные кадры — `u32` `audioSeq` (LE) и PCM. Аудио и текст не пишутся в
   журнал и не уходят провайдеру. Контракт —
   [speech-service/module.md](../../product-parts/speech-input/clusters/local-recognition/modules/speech-service/module.md).
+
+## Сообщение панели в сессию (M45)
+
+- `POST /api/projects/:id/sessions/:sid/message { text }` → `{ sent: true }` (Claude начал ход с
+  этим текстом: хук `UserPromptSubmit` пришёл в течение `DIRECT_CONFIRM_MS` = 8 с), `{ queued: <id> }`
+  (прямой путь отказал: сессия занята, терминал не свободен — диалог, черновик, неубранная смена
+  параметров) или `{ sent: false, undelivered: { reason } }` — текст вставлен, но хука нет; в очередь
+  не кладётся, панель сохраняет текст и предлагает «Повторить». Подтверждение ждётся только для
+  сессии, чьи хуки канал видел.

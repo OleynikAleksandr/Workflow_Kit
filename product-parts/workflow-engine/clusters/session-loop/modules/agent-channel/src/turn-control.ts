@@ -3,6 +3,10 @@ import { randomUUID } from 'node:crypto';
 import { acceptTurn, beginTurn, cancelTurnWork, reserveTurn } from './turn-state.ts';
 import type { TurnControl } from './turn-state.ts';
 
+/** M45: how often a direct send looks whether its prompt hook arrived. */
+export const CONFIRM_POLL_MS = 50;
+const pause = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
+
 export function createTurnControl(core: ChannelCore, ensure: (key: string, projectId: string) => Slot): TurnControl {
   const visible = (key: string): Slot | undefined => {
     const slot = core.slots.get(key);
@@ -63,14 +67,23 @@ export function createTurnControl(core: ChannelCore, ensure: (key: string, proje
       slot.wake?.();
       return true;
     },
-    async directTurn(key, projectId, text, send) {
+    async directTurn(key, projectId, text, send, confirmMs = 0) {
       const slot = ensure(key, projectId);
       if (slot.turn.barrier || slot.sending || core.excluded(slot) || core.closed()) return false;
       // M40: a panel message given directly is the user's delivered message of the turn it begins.
       const reservation = reserveTurn(slot, text, 'user', [], core.now().getTime(), { id: randomUUID(), text: text.trim(), at: core.iso(), via: 'panel' });
       slot.sending = true;
       let sent = false;
-      try { sent = await send(); }
+      let unconfirmed = false;
+      try {
+        sent = await send();
+        // M45: the paste is the user's message only when Claude began a turn with it (its prompt hook).
+        if (sent && confirmMs > 0) {
+          const until = Date.now() + confirmMs;
+          while (!reservation.started && Date.now() < until && core.slots.get(key) === slot && !core.closed()) await pause(CONFIRM_POLL_MS);
+          if (!reservation.started) { sent = false; unconfirmed = true; }
+        }
+      }
       catch (error) { if (reservation.started) return true; throw error; }
       finally {
         slot.sending = false;
@@ -79,6 +92,7 @@ export function createTurnControl(core: ChannelCore, ensure: (key: string, proje
           if (!sent && !reservation.started && slot.turn.reservation === reservation) slot.turn.reservation = null;
         }
       }
+      if (unconfirmed && !reservation.started) return 'unconfirmed';
       return sent || reservation.started;
     },
   };

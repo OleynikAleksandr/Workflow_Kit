@@ -73,7 +73,10 @@ stripping).
   получают `scopeOf` — id активного scope из состояния Kit — для `scopeId` нового вопроса. Путь без удержания `Stop` (`detached`)
   и прямой путь сообщения панели (`createDirectMessage`, `src/direct-message.ts`, опция
   `direct` маршрутов канала; `sendDirect` только для `waiting` и неизвестной каналу сессии,
-  не `ledOutside`) и сессии вне процесса Kit — в [session-chat.md](session-chat.md).
+  не `ledOutside`) и сессии вне процесса Kit — в [session-chat.md](session-chat.md). M45 T002:
+  сессии, чьи хуки канал видел, `directTurn` ждёт хук вставки `DIRECT_CONFIRM_MS` (8 с);
+  `'unconfirmed'` — строка журнала `channel: message to <key> was pasted, but no prompt hook
+  took it within 8000 ms` (тест `test/m45-direct-message.test.ts`).
 - `detectOs(input)`, `panelUrls(port, interfaces)`, `readPackageVersion()`.
 - Константы `COMMANDS`, `EXIT_USAGE` (64), `EXIT_NOT_IMPLEMENTED` (2).
 - Типы `CliDeps`, `App`, `AppOptions`, `SystemSection`, `OsInfo`,

@@ -3,7 +3,7 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": "T002",
+  "currentTaskId": null,
   "lastClosed": {
     "closedAt": "2026-11-18T18:38:40.143Z",
     "scopeId": "M44-autopilot-grant",
@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1359,
+  "revision": 1360,
   "rounds": [
     {
       "digest": null,
@@ -310,14 +310,31 @@
         "product-parts/backend-core/clusters/runtime/modules/cli",
         "docs/architecture/HTTP-CONTRACTS.md",
         "docs/architecture/CONTRACTS.md",
-        "docs/architecture/OS-MATRIX-M45.md"
+        "docs/architecture/OS-MATRIX-M45.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/direct-message.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/hook-channel.test.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/m45-direct-message.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/sessions.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/direct.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/native-parameters.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-engine.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-protocol.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/m45-direct.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/index.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/routes.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/turn-control.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/turn-state.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/m45-direct-confirm.test.ts"
       ],
       "fixes": null,
       "id": "T002",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "title": "Подтверждённая доставка сообщения панели",
       "why": "Сообщение панели считалось доставленным, даже когда ход не начался"
     },
@@ -503,9 +520,9 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Automation: 4 automatic, 1 manual criteria; CI origin ci/M45-claude-terminal-delivery (4 checks); publication main → origin/main
-- Current task: T002
-- Progress: 1/7
-- Revision: 1359
+- Current task: none
+- Progress: 2/7
+- Revision: 1360
 
 ## Objective
 
@@ -526,9 +543,9 @@
 - [DONE] T001 — Хост параметров убирает за собой (work)
   - Commit: fix: clean up Claude parameter transactions and yield to remote messages
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, docs/architecture/OS-MATRIX.md, docs/architecture/OS-MATRIX-M45.md, docs/planning/M45-claude-terminal-delivery.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/native-parameters.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/native-wanted.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/host.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/interrupt-worker.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-engine.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-files.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-protocol.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/remote-ingress.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/win-host.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/m45-parameter-host.test.ts
-- [IN_PROGRESS] T002 — Подтверждённая доставка сообщения панели (work)
+- [DONE] T002 — Подтверждённая доставка сообщения панели (work)
   - Commit: fix: confirm a panel message to Claude by its prompt hook
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel, product-parts/backend-core/clusters/runtime/modules/cli, docs/architecture/HTTP-CONTRACTS.md, docs/architecture/CONTRACTS.md, docs/architecture/OS-MATRIX-M45.md
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel, product-parts/backend-core/clusters/runtime/modules/cli, docs/architecture/HTTP-CONTRACTS.md, docs/architecture/CONTRACTS.md, docs/architecture/OS-MATRIX-M45.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/direct-message.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/hook-channel.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/m45-direct-message.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/sessions.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/direct.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/native-parameters.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-engine.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-protocol.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/m45-direct.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/turn-control.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/turn-state.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/m45-direct-confirm.test.ts
   - Depends on: T001
 - [TODO] T003 — Панель: «не доставлено» и карточка поставки (work)
   - Commit: feat: show an undelivered panel message and the delivery card without autopilot

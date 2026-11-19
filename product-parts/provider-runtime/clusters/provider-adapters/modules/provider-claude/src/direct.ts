@@ -12,8 +12,9 @@ import { TEXT_FILE_SUFFIX } from './pty/screen.ts';
 import type { ClaudeRuntime } from './runtime.ts';
 import { runningPanelRecord } from './sessions.ts';
 import { withNativeHost, withNativeSession } from './native-arbiter.ts';
-import { cancelNativeParameters } from './native-parameters.ts';
+import { cancelNativeParameters, recordNativeState } from './native-parameters.ts';
 import { questionOpen } from './question-guard.ts';
+import { DRAFT_REASON, UNSAFE_REASON } from './pty/parameter-protocol.ts';
 
 /** How often sendDirect looks whether a control file was taken, ms. */
 export const DIRECT_POLL_MS = 200;
@@ -70,6 +71,13 @@ async function deliver(rt: ClaudeRuntime, project: Project, sid: string, text: s
       // Checked right before the write: the pasted text would become the answer of the question.
       if (await questionOpen(rt, project, sid)) {
         rt.context.log(`claude: message to ${sid} not pasted: a question of the agent waits for an answer`);
+        return false;
+      }
+      // M45: never into an open dialog or after text already in the input (a command the parameter host
+      // left, the user's draft): the message goes to the queue and reaches Claude with its next hook.
+      const terminal = await recordNativeState(record);
+      if (terminal && (terminal.status === 'dialog' || terminal.reason === DRAFT_REASON || terminal.reason === UNSAFE_REASON)) {
+        rt.context.log(`claude: message to ${sid} not pasted: the terminal is not free (${terminal.reason ?? terminal.status})`);
         return false;
       }
       // Written aside and renamed: the script never reads half a message.

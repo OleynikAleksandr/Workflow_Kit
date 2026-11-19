@@ -305,3 +305,5 @@ M29/T005: модель подтверждает строка Claude с её им
 M45/T001: хост уступает сообщениям Remote Control (строка Ingress лога Claude, `remote-ingress.ts`),
 закрывает своё меню без шага через 10 с, держит текст пользователя до пустого поля и не повторяет
 неудачное обнаружение на той же версии CLI (`failed` в каталоге) — там же.
+M45/T002: `sendDirect` не вставляет текст в несвободный терминал (`recordNativeState`: `dialog`,
+`DRAFT_REASON`, `UNSAFE_REASON` из `parameter-protocol.ts`) — [sessions.md](sessions.md).

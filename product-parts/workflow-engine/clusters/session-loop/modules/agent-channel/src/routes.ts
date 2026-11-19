@@ -27,7 +27,8 @@ export interface ChannelRoutesOptions {
    * Hands a checked panel message to the agent at once as a user's message; true means the
    * provider took it and nothing is queued. False, an error or no option keeps the queue path.
    */
-  direct?: (projectId: string, key: string, text: string) => Promise<boolean>;
+  /** True: delivered; 'unconfirmed': pasted, but no prompt hook took it (M45); false: queue it. */
+  direct?: (projectId: string, key: string, text: string) => Promise<boolean | 'unconfirmed'>;
   /**
    * M40: a checked panel message of the user, as the service receives it — before it is given
    * to the agent or queued behind a running turn. The service reads the user's «стоп» and
@@ -96,11 +97,15 @@ export function queueSessionMessage(
   return channel.enqueue(key, clean, USER_MESSAGE_SOURCE, projectId);
 }
 
+/** M45: the reason the panel shows for a pasted message Claude did not take. */
+export const UNDELIVERED_REASON = 'Claude не начал ход с этим сообщением: терминал занят или в нём открыт диалог';
+
 /** True only when the direct path took the message; a thrown error counts as a refusal. */
-async function sendDirect(direct: ChannelRoutesOptions['direct'], projectId: string, key: string, text: string): Promise<boolean> {
+async function sendDirect(direct: ChannelRoutesOptions['direct'], projectId: string, key: string, text: string): Promise<boolean | 'unconfirmed'> {
   if (!direct) return false;
   try {
-    return (await direct(projectId, key, text)) === true;
+    const result = await direct(projectId, key, text);
+    return result === true || result === 'unconfirmed' ? result : false;
   } catch {
     return false;
   }
@@ -201,10 +206,13 @@ export function registerChannelRoutes(options: ChannelRoutesOptions): void {
     }
     channel.resumeDelivery(key); // Only a validated, explicit user message releases the barrier.
     // The direct path gives the text to the agent as a user's message; any refusal queues it.
-    if (await sendDirect(options.direct, projectId, key, clean)) {
+    const direct = await sendDirect(options.direct, projectId, key, clean);
+    if (direct === true) {
       channel.noteUserWords(key, clean);
       return { sent: true };
     }
+    // M45: pasted, but Claude began no turn with it: not queued (it may still be in the terminal).
+    if (direct === 'unconfirmed') return { sent: false, undelivered: { reason: UNDELIVERED_REASON } };
     const message = messages.enqueue(key, clean, USER_MESSAGE_SOURCE, projectId);
     return { queued: message.id };
   });

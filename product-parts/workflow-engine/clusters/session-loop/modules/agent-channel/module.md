@@ -124,7 +124,13 @@
   строка) }`; только loopback (403), неизвестный клиент или нет `session_id` — 400
   `bad-hook-input`; без опции маршрута нет. Тест — `test/session-start-route.test.ts`.
 - `POST /api/projects/:id/sessions/:sid/message { text }` → `{ sent: true }`
-  или `{ queued: <id сообщения> }`: сообщение панели агенту (M18 раздел 2.5).
+  или `{ queued: <id сообщения> }`: сообщение панели агенту (M18 раздел 2.5). M45 T002: опция
+  `direct` отвечает `true | false | 'unconfirmed'`; `'unconfirmed'` (вставлено, но хук
+  `UserPromptSubmit` с этим текстом не пришёл) → `{ sent: false, undelivered: { reason:
+  UNDELIVERED_REASON } }`, в очередь не кладётся. `directTurn(key, projectId, text, send,
+  confirmMs?)`: с `confirmMs` вставка — сообщение пользователя, только когда хук принял резерв хода
+  (`ownPrompt`, опрос `CONFIRM_POLL_MS` = 50 мс); иначе резерв снимается и ответ `'unconfirmed'`;
+  без `confirmMs` — как раньше. Тест — `test/m45-direct-confirm.test.ts`.
   Проверки — `checkSessionMessage(channel, projectId, key, text, owned) → string`
   (чистый текст; `queueSessionMessage` зовёт её и кладёт текст в очередь):
   текст обрезается по краям, пустой — 400 `empty-message`, длиннее

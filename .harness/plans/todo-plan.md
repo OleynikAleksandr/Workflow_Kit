@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1374,
+  "revision": 1375,
   "rounds": [
     {
       "digest": null,
@@ -173,6 +173,51 @@
     "proposal": {
       "digest": "e310e49a756be380a8bd21fe196a119233aa5e6477a34806af9f579781f30b0f",
       "generation": 1
+    },
+    "authorization": {
+      "accept": false,
+      "acceptancePolicy": "manual",
+      "at": "2026-11-19T14:56:30.376Z",
+      "ci": {
+        "remote": "origin",
+        "branch": "ci/M46-claude-2-1-328-menu",
+        "requiredChecks": [
+          "macOS ARM64",
+          "Linux x64",
+          "Windows x64",
+          "Windows ARM64"
+        ],
+        "exactSha": true,
+        "task": "T005"
+      },
+      "close": true,
+      "delivery": [
+        {
+          "taskId": "T004",
+          "effects": [
+            "npm ci",
+            "node bin/wfk.mjs install: установка Workflow Kit 0.20.2 в Application Support и перезапуск службы"
+          ]
+        },
+        {
+          "taskId": "T005",
+          "effects": [
+            "push ci/M46-claude-2-1-328-menu в origin и ожидание CI четырёх платформ"
+          ]
+        }
+      ],
+      "mode": "full",
+      "note": "Full autopilot run run-2dURYOtIflz8: the user's direct instruction «Ну и прямо сразу ничего не работает.» (2026-11-19T14:51:03.745Z) to prepare and carry out the plan",
+      "ownerSession": "ffc970ed-20a1-499c-9d2c-47dff30c41a0",
+      "proposalDigest": "e310e49a756be380a8bd21fe196a119233aa5e6477a34806af9f579781f30b0f",
+      "publication": {
+        "branch": "main",
+        "upstream": "origin/main"
+      },
+      "revision": 1,
+      "revoked": null,
+      "runId": "run-2dURYOtIflz8",
+      "source": "user-command"
     }
   },
   "tasks": [
@@ -394,7 +439,7 @@
 - Automation: 3 automatic, 1 manual criteria; CI origin ci/M46-claude-2-1-328-menu (4 checks); publication main → origin/main
 - Current task: none
 - Progress: 0/6
-- Revision: 1374
+- Revision: 1375
 
 ## Objective
 

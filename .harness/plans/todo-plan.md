@@ -22,10 +22,29 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1381,
+  "revision": 1383,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "Provider.sendDirect -> boolean | DirectRefusal { refused: string } (provider-registry chat.ts)",
+          "agent-channel DirectAnswer = boolean | 'unconfirmed' | { refused }; route answers { sent: false, undelivered: { reason } } for refused",
+          "provider-claude TERMINAL_BUSY_REASON; parameter-screen MODEL_FOOTER"
+        ],
+        "decisions": [
+          "The /model menu is recognized by Select model, no input row and a footer of 2.1.325 or 2.1.328 (MODEL_FOOTER); hidden rows by «… +N models» or «↓ N more»",
+          "A paste refused because the terminal is not free is undelivered with the host's reason, never queued; false (no direct path, busy session) still queues",
+          "M28 rules stay: the host closes only its own menu"
+        ],
+        "references": [
+          "docs/planning/M46-claude-2-1-328-menu.md",
+          "docs/evidence/M46-acceptance.md",
+          "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/native-parameters.md",
+          "docs/architecture/HTTP-CONTRACTS.md",
+          "docs/architecture/OS-MATRIX-M46.md"
+        ],
+        "result": "Claude 2.1.328 works again with the panel: the parameter host recognizes its /model menu (footer «s to use this session only · Enter to save», scroll marker «↓ N more»), reads the whole catalog and closes its menu; a panel message to a terminal that is not free is answered undelivered with the reason at once instead of a queue a waiting session never takes."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -376,7 +395,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -460,8 +479,8 @@
 - Execution: sequential
 - Automation: 3 automatic, 1 manual criteria; CI origin ci/M46-claude-2-1-328-menu (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 3/6
-- Revision: 1381
+- Progress: 4/6
+- Revision: 1383
 
 ## Objective
 
@@ -489,7 +508,7 @@
   - Commit: test: verify M46 end to end
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test, product-parts/backend-core/clusters/runtime/modules/cli/test, docs/evidence/M46-acceptance.md, product-parts/backend-core/clusters/runtime/modules/cli/test/m46-refused-e2e.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/m46-scenarios.test.ts
   - Depends on: T002
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M46-claude-2-1-328-menu.md, docs/architecture/OS-MATRIX.md, docs/architecture/OS-MATRIX-M46.md, docs/architecture/HTTP-CONTRACTS.md, docs/architecture/CONTRACTS.md, docs/evidence/M46-acceptance.md
   - Depends on: T001, T002, T003
@@ -501,5 +520,7 @@
   - Commit: test: verify M46 on four CI platforms
   - Files: docs/evidence/M46-acceptance.md
   - Depends on: T004, DOCS-R1
+
+Digest: Claude 2.1.328 works again with the panel: the parameter host recognizes its /model menu (footer «s to use this session only · Enter to save», scroll marker «↓ N more»), reads the whole catalog and closes its menu; a panel message to a terminal that is not free is answered undelivered with the reason at once instead of a queue a waiting session never takes.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

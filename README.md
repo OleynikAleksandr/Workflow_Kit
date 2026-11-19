@@ -200,6 +200,12 @@ Claude» с причиной, текст остаётся в поле, есть 
 [спецификация M45](docs/planning/M45-claude-terminal-delivery.md),
 [доказательства](docs/evidence/M45-acceptance.md). Выпуск 0.20.1.
 
+**Claude 2.1.328 (M46).** Смена модели и уровня из панели снова работает на Claude 2.1.328: служба
+узнаёт его новое меню `/model`, закрывает его за собой и читает полный список моделей. Если терминал
+Claude занят (открыто окно, черновик), сообщение панели не уходит в очередь, а сразу показано «не
+дошло» с причиной и «Повторить» — [спецификация M46](docs/planning/M46-claude-2-1-328-menu.md),
+[доказательства](docs/evidence/M46-acceptance.md). Выпуск 0.20.2.
+
 ## Запуск из исходников и разработка
 
 `node bin/wfk.mjs serve` запускает сервер из репозитория без установки; `npm ci`,
@@ -234,5 +240,6 @@ Rust-тесты helper);
   через Kit — [M40](docs/planning/M40-user-decisions.md); автоприёмка без тупиков —
   [M41](docs/planning/M41-autopilot-acceptance.md); разрешение запуска и знание агента —
   [M44](docs/planning/M44-autopilot-grant-and-agent-state.md); доставка сообщений в терминал
-  Claude — [M45](docs/planning/M45-claude-terminal-delivery.md); голосовой ввод —
+  Claude — [M45](docs/planning/M45-claude-terminal-delivery.md); меню Claude 2.1.328 —
+  [M46](docs/planning/M46-claude-2-1-328-menu.md); голосовой ввод —
   [Speech](docs/planning/speech-input-macos.md) и [интеграция](docs/planning/speech-integration.md).

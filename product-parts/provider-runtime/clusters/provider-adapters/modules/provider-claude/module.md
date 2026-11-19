@@ -263,3 +263,11 @@ M46/T002: несвободный терминал — `sendDirect` отвеча�
 
 `src/chat.ts` (`unwrapPasted`) показывает строку пользователя без пары меток `<pasted_content id="X">`
 Claude 2.1.328 — подробности в [chat.md](chat.md#вставка-в-обёртке-pasted_content-m47t002).
+
+## Метка сборки хоста (M47/T003)
+
+`src/pty/host-build.ts` (`hostBuild`, `HOST_OUTSIDE_PTY`): хост пишет метку своей сборки в
+состояние (`hostBuild`), `parameter-controls.ts` не даёт управление моделью и уровнем хосту другой
+сборки и называет причину `HOST_OUTDATED` — подробности в
+[native-parameters.md](native-parameters.md#метка-сборки-хоста-m47t003). Поведение на ОС — общее
+(`path`, содержимое с LF), [матрица M47](../../../../../../docs/architecture/OS-MATRIX-M47.md).

@@ -6,6 +6,7 @@ import { nativeParameterState } from './native-parameters.ts';
 import { cachedCatalog, dropWanted, mergeWanted, pruneWanted, saveCatalog } from './native-wanted.ts';
 import { createClaudeParameterReader } from './parameters.ts';
 import { FAST_REASON } from './pty/parameter-protocol.ts';
+import { hostBuild } from './pty/host-build.ts';
 import type { NativeCatalog, NativeModelOption, NativeParameterState, NativeWanted, WantedField } from './pty/parameter-protocol.ts';
 const EFFORT: Record<string, string> = { low: 'Low', medium: 'Medium', high: 'High', xhigh: 'Extra', max: 'Max' };
 export const CLAUDE_MODES = [
@@ -21,6 +22,8 @@ export const EFFORTS_PENDING = 'Варианты усилия появятся, 
 export const NO_EFFORTS = 'У этой модели нет выбора усилия';
 /** M29 3.3: a session without a live host that reads the wanted file stays read-only. */
 export const HOST_REQUIRED = 'Управление доступно для сессий, запущенных панелью Workflow Kit 0.13.3 или новее';
+/** M47: the host of this session runs an older build than the installed one (host-build.ts). */
+export const HOST_OUTDATED = 'Сессия запущена до обновления Workflow Kit: управление моделью и уровнем в ней устарело. Остановите сессию и возобновите её в панели';
 /** How long a failed choice stays in `failures` (M29 3.3). */
 export const FAILURE_MS = 60_000;
 /** Where a pending choice stands: Claude free, answering or holding a draft. */
@@ -29,11 +32,13 @@ export function pendingNote(state: NativeParameterState): string {
   if (state.status === 'busy') return 'применится, когда Claude закончит ответ';
   return 'применится, когда Claude освободится';
 }
-export interface NativeExtras { catalog?: NativeCatalog | null; wanted?: NativeWanted | null; failures?: ParameterFailure[] }
+export interface NativeExtras { catalog?: NativeCatalog | null; wanted?: NativeWanted | null; failures?: ParameterFailure[]; /** M47: the label of the installed host build. */ build?: string | null }
 export function nativeClaudeParameters(base: SessionParameters, state: NativeParameterState | null, extras: NativeExtras = {}): SessionParameters {
   if (!state || state.wantedFile !== true) return { ...base, presentation: { layout: 'claude-controls' }, editable: false,
     reason: !state ? 'Управление этой сессией недоступно: нет свежего состояния нового host Claude' : HOST_REQUIRED,
     ...(base.items.some(i => i.id === 'effort' && i.value === 'ultra') ? { notes: ['Ultracode: базовый effort неизвестен в старом снимке'] } : {}) };
+  // M47: a host of another build keeps its own (older) menu parsing: its controls are not offered.
+  if (extras.build && state.hostBuild !== extras.build) return { ...base, presentation: { layout: 'claude-controls' }, editable: false, reason: HOST_OUTDATED };
   // M29: menus come from the host or the cached catalog of the same CLI version; a turn does not
   // lock them — the choice waits in the wanted file until Claude is free.
   const catalog = extras.catalog?.cliVersion === state.cliVersion ? extras.catalog : null;
@@ -87,12 +92,14 @@ export function createClaudeControls(rt: ClaudeRuntime, reader = createClaudePar
     const [base, state] = await Promise.all([reader.read(found.hook?.hook.sessionId ?? found.record?.localId ?? sid, found.hook?.hook.transcriptPath ?? null, found.hook?.hook.cwd ?? found.record?.projectPath ?? project.path), nativeParameterState(rt, project, sid)]);
     const debug = found.record?.debugFile;
     if (!state || !debug || state.wantedFile !== true) return nativeClaudeParameters(base, state);
+    const build = hostBuild();
+    if (build && state.hostBuild !== build) return nativeClaudeParameters(base, state, { build });
     const { wanted, settled } = await pruneWanted(debug, state);
     const at = rt.context.now().toISOString();
     for (const s of settled) if (s.status === 'failed') failures.set(debug, [...(failures.get(debug) ?? []).filter(f => f.field !== s.field), { field: s.field, value: s.value, reason: s.reason ?? 'Claude не принял изменение', at }]);
     if (state.models.length) await saveCatalog(rt, debug).catch(() => undefined);
     const catalog = state.models.length && state.efforts.length ? null : await cachedCatalog(rt);
-    return nativeClaudeParameters(base, state, { catalog, wanted, failures: failuresOf(debug) });
+    return nativeClaudeParameters(base, state, { catalog, wanted, failures: failuresOf(debug), build });
   }
   return { read, async update(project: Project, sid: string, change: ParameterChange): Promise<SessionParameters> {
     const invalid = (): never => { throw new ProviderError('parameter-invalid', 'Claude принимает одно изменение model/effort/speed/mode/ultracode за запрос', { status: 400 }); };

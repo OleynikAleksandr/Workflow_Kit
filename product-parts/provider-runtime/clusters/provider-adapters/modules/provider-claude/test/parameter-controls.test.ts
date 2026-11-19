@@ -11,6 +11,7 @@ import { CATALOG_CACHE } from '../src/native-wanted.ts';
 import { FAST_REASON, PARAMETER_CATALOG, PARAMETER_STATE, PARAMETER_WANTED } from '../src/pty/parameter-protocol.ts';
 import type { NativeCatalog, NativeParameterState } from '../src/pty/parameter-protocol.ts';
 import { readNativeJson, writeNativeJson } from '../src/native-parameters.ts';
+import { hostBuild } from '../src/pty/host-build.ts';
 const base: SessionParameters = { items: [], context: { usedTokens: 5000, windowTokens: 200000, usedPercent: 2.5 }, limits: [{ id: 'five_hour', label: '5 ч', usedPercent: 20, resetsAt: null }], editable: false, style: { font: 'system-ui', ring: 'last' }, at: 'old' };
 const native = (): NativeParameterState => ({ version: 1, hostId: randomUUID(), sessionId: randomUUID(), epoch: '', at: Date.now(), cliVersion: '2.1.325', status: 'idle', inputEmpty: true, reason: null,
   model: { id: 'claude-sonnet-5-5', label: 'Sonnet 5.5' }, effort: 'high', mode: 'auto', fast: false, ultracode: false, ultracodeAvailable: true, effortRecommended: 'medium',
@@ -64,7 +65,8 @@ test('M30: a model known to have no effort row shows no options and says so', ()
 async function world(platform: NodeJS.Platform) {
   const root = await mkdtemp(path.join(os.tmpdir(), 'wfk-ccontrol-')); const debug = path.join(root, 'native'); const project = { id: 'p', path: root } as Project;
   const stateDir = path.join(root, 'state'); await mkdir(stateDir);
-  const n = native(); n.epoch = n.hostId + ':1';
+  // M47: a host of the installed build writes its label; without it the service calls it outdated.
+  const n = native(); n.epoch = n.hostId + ':1'; n.hostBuild = hostBuild()!;
   const record = { localId: n.sessionId, remoteId: 'session_native', projectPath: root, projectId: 'p', debugFile: debug, controlHostId: n.hostId, processId: 'proc' };
   let now = Date.now();
   const rt = { context: { platform, dirs: { stateDir }, now: () => new Date(now), runCommand() { throw new Error('GET executed program'); } }, store: { read: async () => ({ sessions: [record] }) }, isAlive: async () => true } as unknown as ClaudeRuntime;

@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1397,
+  "revision": 1399,
   "rounds": [
     {
       "digest": null,
@@ -323,14 +323,29 @@
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude",
         "docs/architecture/OS-MATRIX.md",
         "docs/architecture/OS-MATRIX-M47.md",
-        "docs/evidence/M47-acceptance.md"
+        "docs/evidence/M47-acceptance.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/native-parameters.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/parameter-controls.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/host-build.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/host.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/interrupt-worker.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-engine.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-files.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-protocol.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/m47-host-build.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parameter-controls.test.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/module.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/src/index.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/src/source-digest.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/test/source-digest.test.ts"
       ],
       "fixes": null,
       "id": "T003",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Метка сборки хоста и причина устаревшей сессии",
       "why": "Хост живой сессии остаётся от версии Kit, которая её запустила: после обновления панель вечно ждёт каталог моделей и не объясняет почему"
     },
@@ -453,8 +468,8 @@
 - Execution: sequential
 - Automation: 4 automatic, 1 manual criteria; CI origin ci/M47-paste-confirm-host-build (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 3/7
-- Revision: 1397
+- Progress: 4/7
+- Revision: 1399
 
 ## Objective
 
@@ -483,9 +498,9 @@
   - Commit: fix: show a pasted user message without the pasted_content wrapper (commit the T002 work)
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/chat.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/m47-pasted-content.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/chat.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/sessions.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, docs/evidence/M47-acceptance.md
   - Fixes: T002
-- [TODO] T003 — Метка сборки хоста и причина устаревшей сессии (work)
+- [DONE] T003 — Метка сборки хоста и причина устаревшей сессии (work)
   - Commit: feat: mark sessions whose terminal host predates the installed build
-  - Files: product-parts/provider-runtime/clusters/provider-contract/modules/pty-host, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, docs/architecture/OS-MATRIX.md, docs/architecture/OS-MATRIX-M47.md, docs/evidence/M47-acceptance.md
+  - Files: product-parts/provider-runtime/clusters/provider-contract/modules/pty-host, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, docs/architecture/OS-MATRIX.md, docs/architecture/OS-MATRIX-M47.md, docs/evidence/M47-acceptance.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/native-parameters.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/parameter-controls.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/host-build.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/host.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/interrupt-worker.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-engine.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-files.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-protocol.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/m47-host-build.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parameter-controls.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/src/index.ts, product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/src/source-digest.ts, product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/test/source-digest.test.ts
   - Depends on: T002, F001
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1

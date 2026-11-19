@@ -4,6 +4,7 @@ import { randomUUID } from 'node:crypto';
 import { createInterface } from 'node:readline';
 import { InterruptControl, REQUEST_SUFFIX, RESULT_SUFFIX, STATE_SUFFIX, stopFirst } from './interrupt-control.ts';
 import { ParameterHost } from './parameter-files.ts';
+import { hostBuild } from './host-build.ts';
 import type { NativeAction } from './parameter-protocol.ts';
 import type { HostRequest } from './interrupt-control.ts';
 
@@ -25,7 +26,7 @@ const parameters = hostId ? new ParameterHost(debug, hostId, process.argv[4]!, c
     const fd = openSync(file, 'r');
     try { const buffer = Buffer.alloc(Math.max(0, end - start)); const read = readSync(fd, buffer, 0, buffer.length, start); return buffer.subarray(0, read).toString('utf8'); } finally { closeSync(fd); }
   },
-}, Date.now) : null;
+}, Date.now, hostBuild()) : null;
 let action: NativeAction | null = null;
 /** M29: a busy engine is polled every PACE_MS; Node timers are exact, Tcl's `after` is not on macOS. */
 export const PACE_MS = 100;

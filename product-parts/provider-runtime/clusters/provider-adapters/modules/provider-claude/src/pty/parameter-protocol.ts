@@ -54,6 +54,8 @@ export interface NativeParameterState {
   wanted?: Partial<Record<WantedField, NativeWantedStatus>>;
   /** The host reads the wanted file (M29); older hosts lack it and stay read-only. */
   wantedFile?: true;
+  /** M47: the build label of the host (host-build.ts); hosts before 0.20.3 lack it. */
+  hostBuild?: string;
 }
 export interface NativeParameterRequest {
   version: 1; id: string; hostId: string; sessionId: string; epoch: string; expires: number;

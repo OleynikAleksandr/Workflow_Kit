@@ -2,6 +2,7 @@
 // the same arguments, marker lines on stdout (the supervisor's log file), control files
 // <debug>.rename, <debug>.text and <debug>.message, timeouts and terminal size — over ConPTY instead
 // of expect. Pure logic with injected terminal, files and clock; win-host.ts runs it for real.
+import { hostBuild } from './host-build.ts';
 import { ParameterHost } from './parameter-files.ts';
 import { randomUUID } from 'node:crypto';
 import { InterruptControl, REQUEST_SUFFIX, RESULT_SUFFIX, STATE_SUFFIX, stopFirst } from './interrupt-control.ts';
@@ -89,7 +90,7 @@ export function runHost(mode: HostMode, deps: HostDeps, timings: HostTimings = H
   const interrupt = new InterruptControl(randomUUID(), deps.now, (text) => term.write(text));
   const parameters = mode.kind === 'session' && mode.native && deps.readFile && deps.putFile
     ? new ParameterHost(mode.debug, mode.native.hostId, mode.native.cwd, interrupt.screen,
-      { read: deps.readFile, take: deps.takeFile, put: deps.putFile, ...(deps.fileSize && deps.fileSlice ? { size: deps.fileSize, slice: deps.fileSlice } : {}) }, deps.now) : null;
+      { read: deps.readFile, take: deps.takeFile, put: deps.putFile, ...(deps.fileSize && deps.fileSlice ? { size: deps.fileSize, slice: deps.fileSlice } : {}) }, deps.now, hostBuild()) : null;
   let screen = '';
   let copying = true;
   let phase: 'waiting' | 'dialog' | 'running' | 'done' = 'waiting';

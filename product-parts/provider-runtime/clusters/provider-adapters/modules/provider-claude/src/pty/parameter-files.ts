@@ -18,9 +18,10 @@ export class ParameterHost {
   readonly engine: ParameterEngine;
   private debug: string;
   private files: ParameterFiles;
-  constructor(debug: string, hostId: string, cwd: string, screen: TerminalScreen, files: ParameterFiles, now: () => number) {
+  constructor(debug: string, hostId: string, cwd: string, screen: TerminalScreen, files: ParameterFiles, now: () => number, build: string | null = null) {
     this.debug = debug; this.files = files;
     this.engine = new ParameterEngine(hostId, cwd, screen, now); this.screen = screen; this.now = now;
+    this.engine.build = build;
     // M45 3.1: Remote Control messages of the desktop app and the iPad, read from Claude's debug file.
     const { size, slice } = files;
     this.ingress = size && slice ? new IngressWatch(debug, { size, slice }) : null;

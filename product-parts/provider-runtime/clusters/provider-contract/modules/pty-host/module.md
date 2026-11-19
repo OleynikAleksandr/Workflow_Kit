@@ -29,6 +29,11 @@
   `kill()` — один вызов `kill` node-pty (повторный роняет процесс, #983), затем дерево процессов
   `taskkill /PID <pid> /T /F`; ошибки внутренних сокетов подавлены (#976, #942, #960).
 - `taskkillTree(pid)` — `taskkill /T /F` со скрытым окном.
+- M47/T003 (`src/source-digest.ts`): `PTY_HOST_SRC` — каталог `src` модуля; `listSources(dir,
+  prefix) → SourceFile[]` — файлы каталога без подкаталогов с именами `<prefix>/<файл>`;
+  `sourceDigest(files, read?)` — 12 hex SHA-256 по именам в порядке сортировки и содержимому с LF
+  (`\r\n` → `\n`): одна и та же метка на всех ОС. Метку сборки хоста Claude считает
+  `provider-claude/src/pty/host-build.ts`. Тест — `test/source-digest.test.ts`.
 
 ## Инварианты
 

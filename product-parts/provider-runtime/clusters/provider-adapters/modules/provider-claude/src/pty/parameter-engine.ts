@@ -66,6 +66,8 @@ export class ParameterEngine {
   private typed: string | null = null; private cleanups = 0; private failedKeys = new Set<string>(); private quietUntil = 0;
   private turn: TurnState | null = null;
   readonly hostId: string;
+  /** M47: the build label written into the state (hostBuild); null writes none. */
+  build: string | null = null;
   readonly cwd: string;
   private screen: TerminalScreen;
   private now: () => number;
@@ -191,7 +193,7 @@ export class ParameterEngine {
       mode: f.mode ?? this.effectiveMode, fast: m?.fast ?? null, ultracode: f.ultracode ?? (this.request ? this.effectiveUltra : null), ultracodeAvailable: this.ultraAvailable, models: [...this.models.values()].map(({ key, label, group }) => ({ key, label, group })),
       efforts: this.efforts, effortRecommended: this.recommended, fastReason: this.fastReason, pending: this.request ? { id: this.request.id, sessionId: this.request.sessionId,
         epoch: this.request.epoch, expires: this.request.expires, field: this.request.field, command: this.command } : null,
-      wantedFile: true, ...(this.wanted.snapshot() ? { wanted: this.wanted.snapshot()! } : {}) };
+      wantedFile: true, ...(this.wanted.snapshot() ? { wanted: this.wanted.snapshot()! } : {}), ...(this.build ? { hostBuild: this.build } : {}) };
   }
   takeResult(): NativeParameterResult | null { const result = this.result; this.result = null; return result; }
   begin(value: unknown, wanted: { field: WantedField; id: string } | null = null): void {

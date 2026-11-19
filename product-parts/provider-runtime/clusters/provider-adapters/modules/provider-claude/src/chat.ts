@@ -49,6 +49,19 @@ function isServiceText(text: string): boolean {
   return SERVICE_PREFIXES.some((prefix) => start.startsWith(prefix));
 }
 
+/**
+ * M47: Claude 2.1.328 keeps a long paste (more than 6 lines) as `\n\n<pasted_content id="X">\n…\n
+ * </pasted_content id="X">\n` in the user's message. Each pair with one id is replaced by its
+ * content and the line breaks around a removed pair are trimmed; a text without a pair stays as is.
+ */
+const PASTED_PAIR = /<pasted_content id="([^"\n]{1,32})">\n?([\s\S]*?)\n?<\/pasted_content id="\1">/g;
+export function unwrapPasted(text: string): string {
+  if (!text.includes('<pasted_content id="')) return text;
+  let removed = false;
+  const plain = text.replace(PASTED_PAIR, (_pair, _id: string, content: string) => { removed = true; return content; });
+  return removed ? plain.replace(/^\n+|\n+$/g, '') : text;
+}
+
 /** Text of a message content: a whole string or the parts of type "text", joined by a line break. */
 function contentText(content: unknown, skipService: boolean): string {
   const texts: string[] = [];
@@ -91,7 +104,8 @@ function messageOfRow(row: Record<string, unknown>): ChatMessage | null {
   if (typeof id !== 'string' || id === '') return null;
   const message = row['message'];
   if (typeof message !== 'object' || message === null) return null;
-  const text = contentText((message as Record<string, unknown>)['content'], role === 'user');
+  const raw = contentText((message as Record<string, unknown>)['content'], role === 'user');
+  const text = role === 'user' ? unwrapPasted(raw) : raw;
   if (text.trim() === '') return null;
   const at = typeof row['timestamp'] === 'string' ? row['timestamp'] : null;
   return { id, role, text, at };

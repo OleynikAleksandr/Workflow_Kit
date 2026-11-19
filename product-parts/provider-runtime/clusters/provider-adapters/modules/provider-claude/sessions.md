@@ -92,6 +92,7 @@
   намеренно.
 - Диалог (M18): `readMessages` — лента из транскрипта, `sendDirect` — вставка текста в
   терминал (`<debug>.text`, `MESSAGE_SENT`); правила и ОС — [chat.md](chat.md).
+  M47/T002: строка пользователя без обёртки длинной вставки `<pasted_content>` (`unwrapPasted`).
 
 
 M28/T004. `sendDirect` сначала отменяет транзакцию параметров (`cancelNativeParameters`) и

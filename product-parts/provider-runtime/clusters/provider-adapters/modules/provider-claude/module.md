@@ -258,3 +258,8 @@ M46/T001: меню `/model` Claude 2.1.328 (подсказка `s to use this se
 прокрутка `↓ N more`) — кадр `model` хоста — [native-parameters.md](native-parameters.md).
 M46/T002: несвободный терминал — `sendDirect` отвечает `{ refused: <причина> }`, а не `false` (без
 очереди) — [sessions.md](sessions.md).
+
+## Лента без обёртки вставки (M47/T002)
+
+`src/chat.ts` (`unwrapPasted`) показывает строку пользователя без пары меток `<pasted_content id="X">`
+Claude 2.1.328 — подробности в [chat.md](chat.md#вставка-в-обёртке-pasted_content-m47t002).

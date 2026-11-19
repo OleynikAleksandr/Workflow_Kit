@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1395,
+  "revision": 1397,
   "rounds": [
     {
       "digest": null,
@@ -293,7 +293,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Код T002 в git",
       "why": "Коммит T002 взял только trust.md: пути --files были переданы через пробел, а не через запятую; код и тест снятия обёртки остались вне git"
     },
@@ -453,8 +453,8 @@
 - Execution: sequential
 - Automation: 4 automatic, 1 manual criteria; CI origin ci/M47-paste-confirm-host-build (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 2/7
-- Revision: 1395
+- Progress: 3/7
+- Revision: 1397
 
 ## Objective
 
@@ -479,7 +479,7 @@
   - Commit: fix: show a pasted user message without the pasted_content wrapper
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, docs/evidence/M47-acceptance.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/trust.md
   - Depends on: T001
-- [TODO] F001 — Код T002 в git (work)
+- [DONE] F001 — Код T002 в git (work)
   - Commit: fix: show a pasted user message without the pasted_content wrapper (commit the T002 work)
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/chat.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/m47-pasted-content.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/chat.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/sessions.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, docs/evidence/M47-acceptance.md
   - Fixes: T002

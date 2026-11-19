@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1367,
+  "revision": 1369,
   "rounds": [
     {
       "digest": {
@@ -195,6 +195,16 @@
           "authorization": null
         },
         "text": "choose: Автоматический выбор по поручению run-FaBBeFOCW1rL: sequential (recommended by the plan; ревью: skipped-by-setting)"
+      },
+      {
+        "at": "2026-11-19T10:43:52.477Z",
+        "kind": "confirm-delivery",
+        "source": {
+          "authorization": "67b07bed783c267437b62f9f1fc3b62009a103df8cd7764a98d4b062ce19526e",
+          "kind": "grant",
+          "runId": "run-FaBBeFOCW1rL"
+        },
+        "text": "Delivery T005 started by the advance instruction of run run-FaBBeFOCW1rL"
       }
     ],
     "delivery": "IN_PROGRESS",
@@ -482,7 +492,7 @@
         "installed-service"
       ],
       "commitMessage": "chore: release Workflow Kit 0.20.1",
-      "confirmation": null,
+      "confirmation": "Autopilot run run-FaBBeFOCW1rL (authorization 1, user-command, 2026-11-19T10:01:11.310Z): Full autopilot run run-FaBBeFOCW1rL: the user's direct instruction «Ну вот опять я отправил в диалог workflow кит нашей сессии поручение составить спецификацию и план, и оно никуда к тебе не пришло. Пишу теперь в десктопе то же самое.» (2026-11-19T09:57:22.326Z) to prepare and carry out the plan | effects: npm ci; node bin/wfk.mjs install: установка Workflow Kit 0.20.1 в Application Support и перезапуск службы",
       "context": [
         {
           "path": "docs/planning/M45-claude-terminal-delivery.md",
@@ -507,7 +517,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Поставка 0.20.1",
       "why": "Пользователь получает надёжную доставку сообщений"
     },
@@ -554,8 +564,8 @@
 - Execution: sequential
 - Automation: 4 automatic, 1 manual criteria; CI origin ci/M45-claude-terminal-delivery (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 5/7
-- Revision: 1367
+- Progress: 6/7
+- Revision: 1369
 
 ## Objective
 
@@ -592,7 +602,7 @@
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M45-claude-terminal-delivery.md, docs/architecture/OS-MATRIX.md, docs/architecture/OS-MATRIX-M45.md, docs/architecture/HTTP-CONTRACTS.md, design-qa.md, docs/evidence/M45-acceptance.md
   - Depends on: T001, T002, T003, T004
-- [TODO] T005 — Поставка 0.20.1 (delivery)
+- [DONE] T005 — Поставка 0.20.1 (delivery)
   - Commit: chore: release Workflow Kit 0.20.1
   - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/evidence/M45-acceptance.md
   - Depends on: T004, DOCS-R1

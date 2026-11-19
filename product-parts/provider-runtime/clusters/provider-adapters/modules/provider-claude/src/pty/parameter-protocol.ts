@@ -35,6 +35,8 @@ export interface NativeCatalog {
   version: 1; cliVersion: string; primaryLast: number;
   models: (NativeModelOption & { index: number })[];
   efforts: Record<string, NativeEfforts>;
+  /** M45: discovery keys (`catalog:<model>`, `efforts:<model>`) whose tries failed on this CLI version. */
+  failed?: string[];
 }
 export interface NativePending {
   id: string; sessionId: string; epoch: string; expires: number; field: NativeField; command: string | null;
@@ -91,5 +93,6 @@ export function validCatalog(value: unknown): value is NativeCatalog {
   const c = value as NativeCatalog;
   return c.version === 1 && supportedNativeVersion(c.cliVersion) && Number.isInteger(c.primaryLast) && Array.isArray(c.models) && c.models.length <= 64
     && c.models.every(m => typeof m.key === 'string' && typeof m.label === 'string' && Number.isInteger(m.index) && (m.group === 'primary' || m.group === 'more'))
-    && !!c.efforts && typeof c.efforts === 'object' && Object.values(c.efforts).every(e => Array.isArray(e.values) && e.values.every(v => (EFFORTS as readonly string[]).includes(v)));
+    && !!c.efforts && typeof c.efforts === 'object' && Object.values(c.efforts).every(e => Array.isArray(e.values) && e.values.every(v => (EFFORTS as readonly string[]).includes(v)))
+    && (c.failed === undefined || (Array.isArray(c.failed) && c.failed.length <= 32 && c.failed.every(k => typeof k === 'string' && k.length <= 200)));
 }

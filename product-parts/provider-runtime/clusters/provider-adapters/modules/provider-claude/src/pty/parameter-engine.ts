@@ -17,15 +17,13 @@ export function insideFolder(cwd: string, root: string): boolean {
   return a === b || a.startsWith(b + '/');
 }
 /** Discovery of the native catalog: attempts per model and the pause between them (M28 T014). */
-export const DISCOVERY_TRIES = 3;
-export const DISCOVERY_RETRY_MS = 30_000;
+export const DISCOVERY_TRIES = 3; export const DISCOVERY_RETRY_MS = 30_000;
+/** M45: cleanup keys after a cancel, an idle menu of the host, the pause after the user's input. */
+export const CLEANUP_TRIES = 3; export const MENU_IDLE_MS = 10_000; export const INPUT_QUIET_MS = 3000;
+const MENUS = new Set<string>(['model', 'effort', 'fast', 'switch']);
 export class ParameterEngine {
-  private revision = 0;
-  private rendered = '';
-  private renderedAt = 0;
-  private cancelRevision = -1;
-  private epoch = 0;
-  private signature = '';
+  private revision = 0; private rendered = ''; private renderedAt = 0;
+  private cancelRevision = -1; private epoch = 0; private signature = '';
   private frame: ParameterFrame;
   private meta: NativeMetadata | null = null;
   private request: NativeParameterRequest | null = null;
@@ -64,6 +62,8 @@ export class ParameterEngine {
   private unsafe = false;
   private unsafeAt = 0;
   private requestAt = 0;
+  /** M45: the last command this transaction typed, cleanup keys sent, discovery keys that failed on this CLI. */
+  private typed: string | null = null; private cleanups = 0; private failedKeys = new Set<string>(); private quietUntil = 0;
   private turn: TurnState | null = null;
   readonly hostId: string;
   readonly cwd: string;
@@ -89,7 +89,7 @@ export class ParameterEngine {
     const rendered = JSON.stringify([f.text, this.screen.cursor()]);
     if (rendered !== this.rendered) { this.rendered = rendered; this.renderedAt = this.now(); this.revision++; }
   }
-  userInput(): void { if (this.request) this.cancel('user'); }
+  userInput(): void { this.quietUntil = this.now() + INPUT_QUIET_MS; if (this.request) this.cancel('user'); }
   private useModelEfforts(): void {
     const label = this.meta?.model.label ?? null; const e = label ? this.effortsByModel.get(label) : undefined;
     this.effortsLabel = label; this.efforts = e?.values ?? []; this.recommended = e?.recommended ?? null; this.ultraAvailable = e?.ultracode ?? false;
@@ -100,14 +100,15 @@ export class ParameterEngine {
     this.models = new Map(catalog.models.map(m => [m.key, { ...m, selected: false }]));
     this.primaryLast = catalog.primaryLast;
     this.effortsByModel = new Map(Object.entries(catalog.efforts));
+    this.failedKeys = new Set(catalog.failed ?? []);
     this.catalogDone = this.models.size > 0;
     this.useModelEfforts();
     return this.catalogDone;
   }
   exportCatalog(): NativeCatalog | null {
-    return !this.catalogDone || !this.meta ? null : { version: 1, cliVersion: this.meta.cliVersion, primaryLast: this.primaryLast,
-      models: [...this.models.values()].map(({ key, label, group, index }) => ({ key, label, group, index })),
-      efforts: Object.fromEntries(this.effortsByModel) };
+    return (!this.catalogDone && !this.failedKeys.size) || !this.meta ? null : { version: 1, cliVersion: this.meta.cliVersion, primaryLast: this.primaryLast,
+      models: this.catalogDone ? [...this.models.values()].map(({ key, label, group, index }) => ({ key, label, group, index })) : [],
+      efforts: Object.fromEntries(this.effortsByModel), ...(this.failedKeys.size ? { failed: [...this.failedKeys] } : {}) };
   }
   private effective(field: WantedField, value: string): boolean {
     const m = this.meta; if (!m) return false;
@@ -119,7 +120,7 @@ export class ParameterEngine {
   /** Catalog knowledge a field needs and discovery may still bring. */
   private waitsForCatalog(field: WantedField): boolean {
     const need = field === 'model' ? !this.catalogDone : field === 'mode' ? false : !this.effortsKnown();
-    return need && this.discoveryTries < DISCOVERY_TRIES;
+    return need && this.discoveryTries < DISCOVERY_TRIES && !this.failedKeys.has(this.discoveryKey);
   }
   /**
    * Applies the next wanted field on a free, empty input (M29 3.2): one transaction at a time, in
@@ -127,6 +128,8 @@ export class ParameterEngine {
    */
   want(value: NativeWanted | null): void { this.wanted.update(value, this.hostId, this.meta?.sessionId ?? null); }
   pursue(): void {
+    // M45: a choice Claude already has is settled at once, also while the terminal is busy (no blinking).
+    for (const { field, status: st } of this.wanted.open()) if (st.status === 'pending' && this.requestWanted?.field !== field && this.effective(field, st.value)) this.wanted.settle(field, 'applied', null);
     if (!this.wanted.active || this.busy || !this.ready()) return;
     for (const { field, status: st } of this.wanted.open()) {
       if (this.effective(field, st.value)) { this.wanted.settle(field, 'applied', null); continue; }
@@ -157,15 +160,16 @@ export class ParameterEngine {
    * cancelled and gets at most 2 s to clean up (Esc, clearing its command); then the user's text goes.
    */
   yieldToUser(): boolean {
-    const menu = ['model', 'effort', 'fast', 'switch'].includes(this.frame.kind);
-    if (!this.request && !(this.unsafe && menu)) { this.unsafe = false; this.yieldAt = 0; return false; }
-    if (this.request) this.cancel('user');
-    if (!this.yieldAt) this.yieldAt = this.now();
-    if (this.now() - this.yieldAt < 2000) return true;
-    if (this.request) this.finish('cancelled', 'Транзакция отменена сообщением пользователя');
-    this.unsafe = false; this.yieldAt = 0;
-    return false;
+    if (this.request) {
+      this.cancel('user'); if (!this.yieldAt) this.yieldAt = this.now();
+      if (this.now() - this.yieldAt < 2000) return true;
+      this.unsafe = !this.clean(); this.unsafeAt = this.now(); this.finish('cancelled', 'Транзакция отменена сообщением пользователя');
+    }
+    // M45: a cleanup that left no empty input keeps the user's text out of the menu or the typed
+    // command; `unsafe` ends after 10 s (propose), then the text goes as before.
+    this.yieldAt = 0; return this.unsafe && !this.clean();
   }
+  private clean(): boolean { return this.frame.kind === 'idle' && this.empty(); }
   get turnWorking(): boolean { return this.turn?.state === 'working'; }
   current(): ParameterFrame { return this.frame; }
   get busy(): boolean { return this.request !== null || this.unsafe; }
@@ -174,7 +178,7 @@ export class ParameterEngine {
   private empty(): boolean { return this.frame.input === '' || this.frame.placeholder; }
   private ready(): boolean {
     return !!this.meta && supportedNativeVersion(this.meta.cliVersion) && this.frame.kind === 'idle' && !this.turnWorking
-      && this.empty() && this.frame.mode !== null && this.now() >= this.meta.at;
+      && this.empty() && this.frame.mode !== null && this.now() >= this.meta.at && this.now() >= this.quietUntil;
   }
   snapshot(): NativeParameterState {
     const f = this.frame; const m = this.meta;
@@ -182,7 +186,7 @@ export class ParameterEngine {
       : f.kind === 'idle' && this.empty() ? 'idle' : f.kind === 'busy' ? 'busy' : f.kind === 'unknown' ? 'unknown' : 'dialog';
     return { version: 1, hostId: this.hostId, sessionId: m?.sessionId ?? '', epoch: `${this.hostId}:${this.epoch}`,
       at: this.now(), cliVersion: m?.cliVersion ?? '', status, inputEmpty: this.empty(),
-      reason: status === 'idle' ? null : status === 'busy' && this.turnWorking ? 'Claude отвечает' : !m ? 'Нет native statusline этого host' : !this.empty() && f.input !== null ? 'В Claude есть черновик' : 'Терминал Claude занят или не распознан',
+      reason: status === 'idle' ? null : status === 'busy' && this.turnWorking ? 'Claude отвечает' : !m ? 'Нет native statusline этого host' : this.unsafe ? 'Терминал Claude не вернулся к пустому полю после смены параметров' : !this.empty() && f.input !== null ? 'В Claude есть черновик' : 'Терминал Claude занят или не распознан',
       model: m?.model ?? null, effort: m?.effort === 'ultra' ? f.baseEffort : m?.effort ?? null,
       mode: f.mode ?? this.effectiveMode, fast: m?.fast ?? null, ultracode: f.ultracode ?? (this.request ? this.effectiveUltra : null), ultracodeAvailable: this.ultraAvailable, models: [...this.models.values()].map(({ key, label, group }) => ({ key, label, group })),
       efforts: this.efforts, effortRecommended: this.recommended, fastReason: this.fastReason, pending: this.request ? { id: this.request.id, sessionId: this.request.sessionId,
@@ -205,7 +209,7 @@ export class ParameterEngine {
       || (r.field === 'ultracode' && (!this.ultraAvailable || !['on', 'off'].includes(r.value)))) {
       reject('unavailable', 'Вариант не подтверждён нативным каталогом'); return;
     }
-    this.request = r; this.requestAt = this.now(); this.menuOwner = null; this.cancelled = false; this.cancelRevision = -1; this.unsafe = false;
+    this.request = r; this.requestAt = this.now(); this.menuOwner = null; this.cancelled = false; this.cancelRevision = -1; this.unsafe = false; this.typed = null; this.cleanups = 0;
     this.requestWanted = wanted; this.cancelCause = 'other';
     this.flow = r.field === 'catalog' ? (r.value === 'efforts' ? this.readEfforts() : this.catalog()) : this.setter(r);
     this.advance();
@@ -219,7 +223,7 @@ export class ParameterEngine {
     if (!need) return;
     const key = `${need}:${this.meta?.model.label ?? ''}`;
     if (key !== this.discoveryKey) { this.discoveryKey = key; this.discoveryTries = 0; }
-    if (this.discoveryTries >= DISCOVERY_TRIES || (this.discoveryTries > 0 && this.now() - this.discoveryAt < DISCOVERY_RETRY_MS)) return;
+    if (this.failedKeys.has(key) || this.discoveryTries >= DISCOVERY_TRIES || (this.discoveryTries > 0 && this.now() - this.discoveryAt < DISCOVERY_RETRY_MS)) return;
     this.discoveryTries += 1; this.discoveryAt = this.now();
     const state = this.snapshot();
     this.begin({ version: 1, id: randomUUID(), hostId: this.hostId, sessionId: state.sessionId,
@@ -231,8 +235,10 @@ export class ParameterEngine {
   private finish(status: NativeParameterResult['status'], reason?: string): void {
     const r = this.request!;
     if (r.field === 'catalog' && status === 'applied') { if (r.value !== 'efforts') this.catalogDone = true; this.catalogRevision++; }
+    // M45: the last try failed by itself (not by the user or a turn): the catalog file keeps the key for this CLI.
+    else if (r.field === 'catalog' && this.discoveryTries >= DISCOVERY_TRIES && this.cancelCause === 'other') { this.failedKeys.add(this.discoveryKey); this.catalogRevision++; }
     const wanted = this.requestWanted; this.requestWanted = null;
-    this.request = null; this.flow = null; this.step = null; this.command = null; this.menuOwner = null;
+    this.request = null; this.flow = null; this.step = null; this.command = null; this.menuOwner = null; this.typed = null;
     if (this.meta && this.meta.model.label !== this.effortsLabel) this.useModelEfforts();
     if (wanted) {
       // A wanted field: the result goes into the state snapshot, not the legacy result file.
@@ -259,11 +265,16 @@ export class ParameterEngine {
     // Ink paints a frame in several writes; do not classify or navigate an intermediate redraw.
     if (this.now() - this.renderedAt < 200) return null;
     const f = this.frame; if (this.now() >= this.request.expires) this.cancelled = true;
+    // M45: a menu of the host that waits without a key (a frame it does not know) closes after 10 s.
+    if (this.menuOwner && MENUS.has(f.kind) && this.now() - this.changedAt >= MENU_IDLE_MS) this.cancel();
     if (this.cancelled) {
-      if (this.cancelRevision === this.revision) return null;
-      if (f.kind === 'switch' || (this.menuOwner?.submitted && this.menuOwner.kind === f.kind)) return { kind: 'key', value: 'escape', revision: this.revision };
-      if (this.command && f.input === this.command) return { kind: 'key', value: 'clear', revision: this.revision };
-      this.unsafe = !(f.kind === 'idle' && this.empty()); this.unsafeAt = this.now();
+      // M45: a cleanup key that changed nothing is not waited for longer than 1 s, at most CLEANUP_TRIES keys.
+      // M28 holds: only the host's own menu gets Esc and only its exact command is cleared, never a foreign input.
+      if (this.cancelRevision === this.revision && this.now() - this.changedAt < 1000) return null;
+      const typed = this.typed ?? this.command; const more = this.cleanups < CLEANUP_TRIES;
+      if (more && (f.kind === 'switch' || (this.menuOwner?.submitted && this.menuOwner.kind === f.kind))) { this.cleanups++; return { kind: 'key', value: 'escape', revision: this.revision }; }
+      if (more && typed && f.input?.trim() === typed) { this.cleanups++; return { kind: 'key', value: 'clear', revision: this.revision }; }
+      this.unsafe = !this.clean(); this.unsafeAt = this.now();
       this.finish(this.now() >= this.request.expires ? 'timeout' : 'cancelled', 'Транзакция отменена без повтора'); return null;
     }
     const s = this.step;
@@ -296,7 +307,7 @@ export class ParameterEngine {
     if (action.revision !== this.revision || !this.request) return false;
     this.changed = this.revision; this.changedAt = this.now();
     if (this.cancelled) { this.cancelRevision = this.revision; this.written = false; return true; }
-    if (action.kind === 'text') this.commandTyped = true;
+    if (action.kind === 'text') { this.commandTyped = true; this.typed = action.value; }
     else { this.written = true; if (action.value === 'enter' && this.command && this.menuOwner) this.menuOwner.submitted = true; }
     return true;
   }

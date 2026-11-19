@@ -1,5 +1,5 @@
 // Unix expect bridge: pure screen/control logic is shared with ConPTY. No terminal input here.
-import { existsSync, readFileSync, renameSync, unlinkSync, writeFileSync } from 'node:fs';
+import { closeSync, existsSync, openSync, readFileSync, readSync, renameSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
 import { createInterface } from 'node:readline';
 import { InterruptControl, REQUEST_SUFFIX, RESULT_SUFFIX, STATE_SUFFIX, stopFirst } from './interrupt-control.ts';
@@ -20,6 +20,11 @@ const parameters = hostId ? new ParameterHost(debug, hostId, process.argv[4]!, c
   async read(file) { try { return readFileSync(file, 'utf8'); } catch { return null; } },
   async take(file) { try { const raw = readFileSync(file, 'utf8'); unlinkSync(file); return raw; } catch { return null; } },
   async put(file, value) { writeFileSync(file + '.partial', JSON.stringify(value), { encoding: 'utf8', mode: 0o600 }); renameSync(file + '.partial', file); },
+  async size(file) { try { return statSync(file).size; } catch { return null; } },
+  async slice(file, start, end) {
+    const fd = openSync(file, 'r');
+    try { const buffer = Buffer.alloc(Math.max(0, end - start)); const read = readSync(fd, buffer, 0, buffer.length, start); return buffer.subarray(0, read).toString('utf8'); } finally { closeSync(fd); }
+  },
 }, Date.now) : null;
 let action: NativeAction | null = null;
 /** M29: a busy engine is polled every PACE_MS; Node timers are exact, Tcl's `after` is not on macOS. */

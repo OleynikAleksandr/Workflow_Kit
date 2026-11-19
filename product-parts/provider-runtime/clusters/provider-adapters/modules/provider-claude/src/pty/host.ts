@@ -27,6 +27,9 @@ export interface HostDeps {
   takeFile(file: string): Promise<string | null>;
   readFile?(file: string): Promise<string | null>;
   putFile?(file: string, value: unknown): Promise<void>;
+  /** M45: size and a byte range of Claude's debug file (Remote Control messages, remote-ingress.ts). */
+  fileSize?(file: string): Promise<number | null>;
+  fileSlice?(file: string, start: number, end: number): Promise<string>;
   sleep(ms: number): Promise<void>;
   now(): number;
   exit(code: number): void;
@@ -86,7 +89,7 @@ export function runHost(mode: HostMode, deps: HostDeps, timings: HostTimings = H
   const interrupt = new InterruptControl(randomUUID(), deps.now, (text) => term.write(text));
   const parameters = mode.kind === 'session' && mode.native && deps.readFile && deps.putFile
     ? new ParameterHost(mode.debug, mode.native.hostId, mode.native.cwd, interrupt.screen,
-      { read: deps.readFile, take: deps.takeFile, put: deps.putFile }, deps.now) : null;
+      { read: deps.readFile, take: deps.takeFile, put: deps.putFile, ...(deps.fileSize && deps.fileSlice ? { size: deps.fileSize, slice: deps.fileSlice } : {}) }, deps.now) : null;
   let screen = '';
   let copying = true;
   let phase: 'waiting' | 'dialog' | 'running' | 'done' = 'waiting';

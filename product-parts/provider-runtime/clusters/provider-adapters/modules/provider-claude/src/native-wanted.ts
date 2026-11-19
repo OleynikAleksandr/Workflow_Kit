@@ -83,7 +83,10 @@ export async function saveCatalog(rt: ClaudeRuntime, debug: string): Promise<voi
   const fresh = await readNativeJson(debug + PARAMETER_CATALOG);
   if (!validCatalog(fresh)) return;
   const old = await cachedCatalog(rt);
-  const merged: NativeCatalog = old?.cliVersion === fresh.cliVersion ? { ...fresh, efforts: { ...old.efforts, ...fresh.efforts } } : fresh;
+  // M45: a host that only failed (no models) keeps the models it had; failed discovery keys add up.
+  const failed = [...new Set([...(old?.cliVersion === fresh.cliVersion ? old.failed ?? [] : []), ...(fresh.failed ?? [])])];
+  const merged: NativeCatalog = old?.cliVersion === fresh.cliVersion
+    ? { ...fresh, models: fresh.models.length ? fresh.models : old.models, efforts: { ...old.efforts, ...fresh.efforts }, ...(failed.length ? { failed } : {}) } : fresh;
   if (JSON.stringify(merged) !== JSON.stringify(old)) await writeNativeJson(cacheFile(rt), merged);
 }
 /** A new host starts with the cached catalog: it opens no menu if its CLI version matches. */

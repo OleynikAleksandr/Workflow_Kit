@@ -6,7 +6,9 @@ import type { TerminalScreen } from '#pty-host';
 import { screenState } from './interrupt-control.ts';
 import { INTERRUPT_SETTLE_MS, INTERRUPTED_LINE, TURN_SUFFIX, parseTurn } from './turn-file.ts';
 import type { TurnState } from './turn-file.ts';
-export interface ParameterFiles {
+import { IngressWatch } from './remote-ingress.ts';
+import type { IngressFiles } from './remote-ingress.ts';
+export interface ParameterFiles extends Partial<IngressFiles> {
   read(file: string): Promise<string | null>;
   take(file: string): Promise<string | null>;
   put(file: string, value: unknown): Promise<void>;
@@ -19,7 +21,11 @@ export class ParameterHost {
   constructor(debug: string, hostId: string, cwd: string, screen: TerminalScreen, files: ParameterFiles, now: () => number) {
     this.debug = debug; this.files = files;
     this.engine = new ParameterEngine(hostId, cwd, screen, now); this.screen = screen; this.now = now;
+    // M45 3.1: Remote Control messages of the desktop app and the iPad, read from Claude's debug file.
+    const { size, slice } = files;
+    this.ingress = size && slice ? new IngressWatch(debug, { size, slice }) : null;
   }
+  private ingress: IngressWatch | null;
   private meta: NativeMetadata | null = null;
   /** CLI version whose catalog file was read, and the catalog revision last written (M29). */
   private catalogFor: string | null = null;
@@ -38,6 +44,7 @@ export class ParameterHost {
         && typeof metadata.cwd === 'string' && typeof metadata.cliVersion === 'string' && Number.isFinite(metadata.at) ? metadata : null;
       this.engine.observe(this.meta);
       await this.turn();
+      if (await this.ingress?.poll()) this.engine.userInput();
       // The catalog of this CLI version is read once from the file the service placed (M29 3.2).
       if (this.meta && this.catalogFor !== this.meta.cliVersion) {
         this.catalogFor = this.meta.cliVersion;

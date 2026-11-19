@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1383,
+  "revision": 1385,
   "rounds": [
     {
       "digest": {
@@ -177,6 +177,16 @@
           "authorization": null
         },
         "text": "choose: Автоматический выбор по поручению run-2dURYOtIflz8: sequential (recommended by the plan; ревью: skipped-by-setting)"
+      },
+      {
+        "at": "2026-11-19T15:26:41.332Z",
+        "kind": "confirm-delivery",
+        "source": {
+          "authorization": "2b8e7a173bbeafa7980373133c72081106db15902a9edcd4c0691e189c1f8b27",
+          "kind": "grant",
+          "runId": "run-2dURYOtIflz8"
+        },
+        "text": "Delivery T004 started by the advance instruction of run run-2dURYOtIflz8"
       }
     ],
     "delivery": "IN_PROGRESS",
@@ -407,7 +417,7 @@
         "installed-service"
       ],
       "commitMessage": "chore: release Workflow Kit 0.20.2",
-      "confirmation": null,
+      "confirmation": "Autopilot run run-2dURYOtIflz8 (authorization 1, user-command, 2026-11-19T14:56:30.376Z): Full autopilot run run-2dURYOtIflz8: the user's direct instruction «Ну и прямо сразу ничего не работает.» (2026-11-19T14:51:03.745Z) to prepare and carry out the plan | effects: npm ci; node bin/wfk.mjs install: установка Workflow Kit 0.20.2 в Application Support и перезапуск службы",
       "context": [
         {
           "path": "docs/planning/M46-claude-2-1-328-menu.md",
@@ -432,7 +442,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Поставка 0.20.2",
       "why": "Пользователь получает рабочую доставку на Claude 2.1.328"
     },
@@ -479,8 +489,8 @@
 - Execution: sequential
 - Automation: 3 automatic, 1 manual criteria; CI origin ci/M46-claude-2-1-328-menu (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 4/6
-- Revision: 1383
+- Progress: 5/6
+- Revision: 1385
 
 ## Objective
 
@@ -512,7 +522,7 @@
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M46-claude-2-1-328-menu.md, docs/architecture/OS-MATRIX.md, docs/architecture/OS-MATRIX-M46.md, docs/architecture/HTTP-CONTRACTS.md, docs/architecture/CONTRACTS.md, docs/evidence/M46-acceptance.md
   - Depends on: T001, T002, T003
-- [TODO] T004 — Поставка 0.20.2 (delivery)
+- [DONE] T004 — Поставка 0.20.2 (delivery)
   - Commit: chore: release Workflow Kit 0.20.2
   - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/evidence/M46-acceptance.md
   - Depends on: T003, DOCS-R1

@@ -170,3 +170,23 @@ M28/T010, T012 — interrupt.md; T014 — parameters.md.
   которого у Claude уже есть, даже при занятом терминале: режим в панели не мигает.
 - Тесты: `test/m45-parameter-host.test.ts` (Ingress, хост с логом, предел меню, удержание текста,
   неудача и рестарт, отмена пользователем, слияние каталога, хост ConPTY с путём `C:\…`).
+
+## Меню `/model` Claude 2.1.328 (M46/T001)
+
+Claude 2.1.328 изменил подсказки меню `/model` (кадры записаны с живого CLI 19.11.2026):
+
+- подпись под заголовком `Your pick is the default for new sessions. For other models, use --model.`;
+- нижняя строка `s to use this session only · Enter to save · Esc to cancel` вместо `Enter to set as
+  default · s for this session only · Esc to cancel` (клавиши те же: `s` — только эта сессия,
+  `Enter` — по умолчанию для новых сессий, хост его на модели не нажимает);
+- прокрутка `↑ N more` / `↓ N more` вместо `… +N models`;
+- модель без уровней — строка `○ Effort not supported for <модель>`.
+
+`parameterFrame` узнаёт меню по `Select model` без строки ввода и подсказке любой из версий
+(`MODEL_FOOTER`: `Enter to set as default|save|expand|collapse` или `s to use this session only`, затем
+`Esc to cancel`); `hiddenModels` берёт `… +N models` или `↓ N more`. До исправления меню 2.1.328
+считалось чужим окном (`dialog`): хост отменял свою транзакцию, по правилам M28 не закрывал его, и
+терминал оставался в меню; каталог 2.1.328 был пуст.
+
+- Тесты: `test/m46-menu.test.ts` (записанные кадры 2.1.328, кадр 2.1.325, чужое окно; чтение каталога
+  и смена уровня на имитации 2.1.328 `test/claude-2-1-328.ts`; хост ConPTY читает каталог).

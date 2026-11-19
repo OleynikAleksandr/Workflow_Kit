@@ -27,6 +27,7 @@ export function freshAck(baseline: string[], text: string, field: string, value:
   return field === 'model' ? last.includes(`Set model to ${value} for this session only`)
     : field === 'effort' ? last.includes(`Set effort level to ${value} `) || last.includes(` for this session only with ${value} effort`) : last.includes(`Ultracode ${value === 'on' ? 'on' : 'off'}`);
 }
+const MODEL_FOOTER = /(?:Enter to (?:set as default|save|expand|collapse)|s to use this session only).*Esc to cancel/;
 export function parameterFrame(screen: TerminalScreen): ParameterFrame {
   const text = screen.text(); const lines = screenLines(text); const tail = lines.slice(-12).join('\n');
   const frame: ParameterFrame = { kind: 'unknown', input: null, placeholder: false, mode: null, ultracode: null, baseEffort: null,
@@ -42,8 +43,9 @@ export function parameterFrame(screen: TerminalScreen): ParameterFrame {
     frame.baseEffort = /\b(low|medium|high|xhigh|max)\b.*\/effort\s*$/i.exec(lines[root[0] - 2] ?? '')?.[1]?.toLowerCase() ?? null;
   }
   if (/esc to interrupt/i.test(tail) || WORKING_LINE.test(lines.slice(Math.max(0, (root?.[0] ?? lines.length) - 8), root ? root[0] - 1 : undefined).join('\n'))) { frame.kind = 'busy'; return frame; }
-  // The live settings menu replaces the input and ends with its own documented footer.
-  if (!root && /Select model/.test(text) && /Enter to (?:set as default|expand|collapse).*Esc to cancel/.test(tail)) {
+  // The live settings menu replaces the input and ends with its own footer: 2.1.325 `Enter to set as
+  // default · s for this session only`, 2.1.328 `s to use this session only · Enter to save` (M46).
+  if (!root && /Select model/.test(text) && MODEL_FOOTER.test(tail)) {
     frame.kind = 'model'; let more = false;
     for (const line of lines) {
       if (/More models/.test(line)) { frame.more = /▾/.test(line) ? 'open' : 'closed'; more = true; if (/❯/.test(line)) frame.selected = 'more'; }
@@ -56,7 +58,8 @@ export function parameterFrame(screen: TerminalScreen): ParameterFrame {
       const effort = /^\s*\S?\s*(Low|Medium|High|xHigh|Max) effort( \(default\))?\s+←\/→ to adjust/.exec(line);
       if (effort) { frame.effortLevel = effort[1]!.toLowerCase(); frame.effortDefault = !!effort[2]; }
     }
-    frame.hiddenModels = Number(/…\s*\+(\d+) models?/.exec(text)?.[1] ?? 0);
+    // Rows below the viewport: 2.1.325 `… +N models`, 2.1.328 `↓ N more` (M46).
+    frame.hiddenModels = Number(/…\s*\+(\d+) models?/.exec(text)?.[1] ?? /↓\s*(\d+) more\b/.exec(text)?.[1] ?? 0);
     return frame;
   }
   // Claude 2.1.325: switching the model of a cached conversation asks once more (Yes / No, go back).

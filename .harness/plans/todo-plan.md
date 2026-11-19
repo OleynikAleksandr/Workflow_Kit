@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1375,
+  "revision": 1377,
   "rounds": [
     {
       "digest": null,
@@ -242,14 +242,19 @@
       "files": [
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude",
         "docs/architecture/OS-MATRIX.md",
-        "docs/architecture/OS-MATRIX-M46.md"
+        "docs/architecture/OS-MATRIX-M46.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/native-parameters.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-screen.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/claude-2-1-328.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/m46-menu.test.ts"
       ],
       "fixes": null,
       "id": "T001",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Меню /model Claude 2.1.328",
       "why": "Хост принимал своё меню за чужое окно и оставлял его открытым, терминал Claude блокировался"
     },
@@ -438,8 +443,8 @@
 - Execution: sequential
 - Automation: 3 automatic, 1 manual criteria; CI origin ci/M46-claude-2-1-328-menu (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 0/6
-- Revision: 1375
+- Progress: 1/6
+- Revision: 1377
 
 ## Objective
 
@@ -456,9 +461,9 @@
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T001 — Меню /model Claude 2.1.328 (work)
+- [DONE] T001 — Меню /model Claude 2.1.328 (work)
   - Commit: fix: recognize the /model menu of Claude 2.1.328
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, docs/architecture/OS-MATRIX.md, docs/architecture/OS-MATRIX-M46.md
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, docs/architecture/OS-MATRIX.md, docs/architecture/OS-MATRIX-M46.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/native-parameters.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-screen.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/claude-2-1-328.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/m46-menu.test.ts
 - [TODO] T002 — Отказ вставки — «не дошло», без очереди (work)
   - Commit: fix: answer undelivered when Claude's terminal is not free
   - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel, product-parts/backend-core/clusters/runtime/modules/cli, docs/architecture/HTTP-CONTRACTS.md, docs/architecture/CONTRACTS.md, docs/architecture/OS-MATRIX-M46.md

@@ -307,3 +307,5 @@ M45/T001: хост уступает сообщениям Remote Control (стр�
 неудачное обнаружение на той же версии CLI (`failed` в каталоге) — там же.
 M45/T002: `sendDirect` не вставляет текст в несвободный терминал (`recordNativeState`: `dialog`,
 `DRAFT_REASON`, `UNSAFE_REASON` из `parameter-protocol.ts`) — [sessions.md](sessions.md).
+M46/T001: меню `/model` Claude 2.1.328 (подсказка `s to use this session only · Enter to save`,
+прокрутка `↓ N more`) — кадр `model` хоста — [native-parameters.md](native-parameters.md).

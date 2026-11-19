@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1392,
+  "revision": 1394,
   "rounds": [
     {
       "digest": null,
@@ -252,14 +252,15 @@
       "docsWaiver": null,
       "files": [
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude",
-        "docs/evidence/M47-acceptance.md"
+        "docs/evidence/M47-acceptance.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/trust.md"
       ],
       "fixes": null,
       "id": "T002",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Лента без обёртки pasted_content",
       "why": "Сообщение панели в ленте показано со служебными метками Claude и не совпадает с отправленным текстом"
     },
@@ -412,8 +413,8 @@
 - Execution: sequential
 - Automation: 4 automatic, 1 manual criteria; CI origin ci/M47-paste-confirm-host-build (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 1/6
-- Revision: 1392
+- Progress: 2/6
+- Revision: 1394
 
 ## Objective
 
@@ -434,9 +435,9 @@
 - [DONE] T001 — Подтверждение прямой отправки по порядку хука (work)
   - Commit: fix: confirm a pasted panel message by its prompt hook, not by equal text
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/agent-channel, product-parts/backend-core/clusters/runtime/modules/cli, docs/architecture/HTTP-CONTRACTS.md, docs/evidence/M47-acceptance.md, product-parts/backend-core/clusters/runtime/modules/cli/test/m47-paste-order-e2e.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/channel.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/turn-control.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/turn-state.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/m47-paste-order.test.ts
-- [TODO] T002 — Лента без обёртки pasted_content (work)
+- [DONE] T002 — Лента без обёртки pasted_content (work)
   - Commit: fix: show a pasted user message without the pasted_content wrapper
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, docs/evidence/M47-acceptance.md
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, docs/evidence/M47-acceptance.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/trust.md
   - Depends on: T001
 - [TODO] T003 — Метка сборки хоста и причина устаревшей сессии (work)
   - Commit: feat: mark sessions whose terminal host predates the installed build

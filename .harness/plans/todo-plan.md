@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1385,
+  "revision": 1387,
   "rounds": [
     {
       "digest": {
@@ -47,7 +47,7 @@
       },
       "id": "R1",
       "kind": "implementation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Implementation"
     }
   ],
@@ -187,9 +187,19 @@
           "runId": "run-2dURYOtIflz8"
         },
         "text": "Delivery T004 started by the advance instruction of run run-2dURYOtIflz8"
+      },
+      {
+        "at": "2026-11-19T15:31:17.622Z",
+        "kind": "confirm-delivery",
+        "source": {
+          "authorization": "2b8e7a173bbeafa7980373133c72081106db15902a9edcd4c0691e189c1f8b27",
+          "kind": "grant",
+          "runId": "run-2dURYOtIflz8"
+        },
+        "text": "Delivery T005 started by the advance instruction of run run-2dURYOtIflz8"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 1,
       "ownerSession": "ffc970ed-20a1-499c-9d2c-47dff30c41a0",
@@ -452,7 +462,7 @@
       ],
       "checks": [],
       "commitMessage": "test: verify M46 on four CI platforms",
-      "confirmation": null,
+      "confirmation": "Autopilot run run-2dURYOtIflz8 (authorization 1, user-command, 2026-11-19T14:56:30.376Z): Full autopilot run run-2dURYOtIflz8: the user's direct instruction «Ну и прямо сразу ничего не работает.» (2026-11-19T14:51:03.745Z) to prepare and carry out the plan | effects: push ci/M46-claude-2-1-328-menu в origin и ожидание CI четырёх платформ",
       "context": [
         {
           "path": "docs/planning/M46-claude-2-1-328-menu.md",
@@ -473,7 +483,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "CI четырёх платформ",
       "why": "Изменения в хосте терминала и службе: нужна зелёная CI macOS, Linux и Windows x64/ARM64"
     }
@@ -485,12 +495,12 @@
 ## State
 
 - Scope: M46-claude-2-1-328-menu (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Automation: 3 automatic, 1 manual criteria; CI origin ci/M46-claude-2-1-328-menu (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 5/6
-- Revision: 1385
+- Progress: 6/6
+- Revision: 1387
 
 ## Objective
 
@@ -505,7 +515,7 @@
 
 ## Rounds
 
-### R1 — Implementation (implementation, OPEN)
+### R1 — Implementation (implementation, CLOSED)
 
 - [DONE] T001 — Меню /model Claude 2.1.328 (work)
   - Commit: fix: recognize the /model menu of Claude 2.1.328
@@ -526,7 +536,7 @@
   - Commit: chore: release Workflow Kit 0.20.2
   - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/evidence/M46-acceptance.md
   - Depends on: T003, DOCS-R1
-- [TODO] T005 — CI четырёх платформ (delivery)
+- [DONE] T005 — CI четырёх платформ (delivery)
   - Commit: test: verify M46 on four CI platforms
   - Files: docs/evidence/M46-acceptance.md
   - Depends on: T004, DOCS-R1

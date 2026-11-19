@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1379,
+  "revision": 1381,
   "rounds": [
     {
       "digest": null,
@@ -333,14 +333,16 @@
       "files": [
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test",
         "product-parts/backend-core/clusters/runtime/modules/cli/test",
-        "docs/evidence/M46-acceptance.md"
+        "docs/evidence/M46-acceptance.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/m46-refused-e2e.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/m46-scenarios.test.ts"
       ],
       "fixes": null,
       "id": "T003",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Сквозные сценарии и доказательства",
       "why": "Случай S_001 воспроизводится тестами до выпуска"
     },
@@ -458,8 +460,8 @@
 - Execution: sequential
 - Automation: 3 automatic, 1 manual criteria; CI origin ci/M46-claude-2-1-328-menu (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 2/6
-- Revision: 1379
+- Progress: 3/6
+- Revision: 1381
 
 ## Objective
 
@@ -483,9 +485,9 @@
   - Commit: fix: answer undelivered when Claude's terminal is not free
   - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel, product-parts/backend-core/clusters/runtime/modules/cli, docs/architecture/HTTP-CONTRACTS.md, docs/architecture/CONTRACTS.md, docs/architecture/OS-MATRIX-M46.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/direct-message.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/m46-direct-refused.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/sessions.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/direct.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/m45-direct.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/chat.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/m46-direct-refused.test.ts
   - Depends on: T001
-- [TODO] T003 — Сквозные сценарии и доказательства (work)
+- [DONE] T003 — Сквозные сценарии и доказательства (work)
   - Commit: test: verify M46 end to end
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test, product-parts/backend-core/clusters/runtime/modules/cli/test, docs/evidence/M46-acceptance.md
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test, product-parts/backend-core/clusters/runtime/modules/cli/test, docs/evidence/M46-acceptance.md, product-parts/backend-core/clusters/runtime/modules/cli/test/m46-refused-e2e.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/m46-scenarios.test.ts
   - Depends on: T002
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1

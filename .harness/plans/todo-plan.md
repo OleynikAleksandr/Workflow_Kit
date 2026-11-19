@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1369,
+  "revision": 1371,
   "rounds": [
     {
       "digest": {
@@ -49,7 +49,7 @@
       },
       "id": "R1",
       "kind": "implementation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Implementation"
     }
   ],
@@ -205,9 +205,19 @@
           "runId": "run-FaBBeFOCW1rL"
         },
         "text": "Delivery T005 started by the advance instruction of run run-FaBBeFOCW1rL"
+      },
+      {
+        "at": "2026-11-19T10:49:04.368Z",
+        "kind": "confirm-delivery",
+        "source": {
+          "authorization": "67b07bed783c267437b62f9f1fc3b62009a103df8cd7764a98d4b062ce19526e",
+          "kind": "grant",
+          "runId": "run-FaBBeFOCW1rL"
+        },
+        "text": "Delivery T006 started by the advance instruction of run run-FaBBeFOCW1rL"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 1,
       "ownerSession": "ffc970ed-20a1-499c-9d2c-47dff30c41a0",
@@ -527,7 +537,7 @@
       ],
       "checks": [],
       "commitMessage": "test: verify M45 on four CI platforms",
-      "confirmation": null,
+      "confirmation": "Autopilot run run-FaBBeFOCW1rL (authorization 1, user-command, 2026-11-19T10:01:11.310Z): Full autopilot run run-FaBBeFOCW1rL: the user's direct instruction «Ну вот опять я отправил в диалог workflow кит нашей сессии поручение составить спецификацию и план, и оно никуда к тебе не пришло. Пишу теперь в десктопе то же самое.» (2026-11-19T09:57:22.326Z) to prepare and carry out the plan | effects: push ci/M45-claude-terminal-delivery в origin и ожидание CI четырёх платформ",
       "context": [
         {
           "path": "docs/planning/M45-claude-terminal-delivery.md",
@@ -548,7 +558,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "CI четырёх платформ",
       "why": "Изменения в хосте терминала и службе: нужна зелёная CI macOS, Linux и Windows x64/ARM64"
     }
@@ -560,12 +570,12 @@
 ## State
 
 - Scope: M45-claude-terminal-delivery (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Automation: 4 automatic, 1 manual criteria; CI origin ci/M45-claude-terminal-delivery (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 6/7
-- Revision: 1369
+- Progress: 7/7
+- Revision: 1371
 
 ## Objective
 
@@ -581,7 +591,7 @@
 
 ## Rounds
 
-### R1 — Implementation (implementation, OPEN)
+### R1 — Implementation (implementation, CLOSED)
 
 - [DONE] T001 — Хост параметров убирает за собой (work)
   - Commit: fix: clean up Claude parameter transactions and yield to remote messages
@@ -606,7 +616,7 @@
   - Commit: chore: release Workflow Kit 0.20.1
   - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/evidence/M45-acceptance.md
   - Depends on: T004, DOCS-R1
-- [TODO] T006 — CI четырёх платформ (delivery)
+- [DONE] T006 — CI четырёх платформ (delivery)
   - Commit: test: verify M45 on four CI platforms
   - Files: docs/evidence/M45-acceptance.md
   - Depends on: T005, DOCS-R1

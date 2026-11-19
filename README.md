@@ -190,6 +190,16 @@ review=…; run=…`, смена режима в «Настройках» и с�
 «Обновить Kit» до 2.4.6 — [спецификация M44](docs/planning/M44-autopilot-grant-and-agent-state.md),
 [доказательства](docs/evidence/M44-acceptance.md). Выпуск 0.20.0.
 
+**Сообщения панели в Claude не пропадают (M45).** Смена параметров сессии из панели больше не
+держит терминал Claude: служба уступает сообщениям из приложения Claude и с iPad, закрывает своё
+меню `/model` без действий через 10 с и не повторяет неудачное чтение списка моделей на той же
+версии Claude. Сообщение из панели вставляется только в свободный терминал и считается
+доставленным, когда Claude начал с ним ход; иначе под полем ввода — «Сообщение не дошло до
+Claude» с причиной, текст остаётся в поле, есть «Повторить». Режим не мигает, если он уже стоит, а
+«Подтвердить выпуск» видна и при выключенном автопилоте сессии —
+[спецификация M45](docs/planning/M45-claude-terminal-delivery.md),
+[доказательства](docs/evidence/M45-acceptance.md). Выпуск 0.20.1.
+
 ## Запуск из исходников и разработка
 
 `node bin/wfk.mjs serve` запускает сервер из репозитория без установки; `npm ci`,
@@ -223,5 +233,6 @@ Rust-тесты helper);
   закрытие плана из панели — [M37](docs/planning/M37-plan-close-flow.md); решения пользователя
   через Kit — [M40](docs/planning/M40-user-decisions.md); автоприёмка без тупиков —
   [M41](docs/planning/M41-autopilot-acceptance.md); разрешение запуска и знание агента —
-  [M44](docs/planning/M44-autopilot-grant-and-agent-state.md); голосовой ввод —
+  [M44](docs/planning/M44-autopilot-grant-and-agent-state.md); доставка сообщений в терминал
+  Claude — [M45](docs/planning/M45-claude-terminal-delivery.md); голосовой ввод —
   [Speech](docs/planning/speech-input-macos.md) и [интеграция](docs/planning/speech-integration.md).

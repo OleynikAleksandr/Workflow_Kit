@@ -22,10 +22,31 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1365,
+  "revision": 1367,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "POST /api/projects/:id/sessions/:sid/message -> { sent: true } | { queued } | { sent: false, undelivered: { reason } } (DIRECT_CONFIRM_MS 8 s)",
+          "AgentChannel.directTurn(key, projectId, text, send, confirmMs?) -> boolean | 'unconfirmed'",
+          "ParameterFiles size/slice and IngressWatch (pty/remote-ingress.ts); NativeCatalog.failed; DRAFT_REASON, UNSAFE_REASON",
+          "session-chat undeliveredNote(response), RETRY_LABEL; session-view deliveryWaits(state, projectId, plan)"
+        ],
+        "decisions": [
+          "M28 cleanup rules stay: only the host's own menu gets Esc and only its exact command is cleared; the user's text waits while the terminal is unclean (up to 10 s) instead",
+          "A paste counts as delivered only when its prompt hook took the turn reservation; an unconfirmed paste is not queued",
+          "Confirmation is awaited only for a session whose hooks the channel has seen",
+          "The delivery card of a host project follows Kit state (next task a delivery in TODO, no granted run), not the session autopilot turn decision"
+        ],
+        "references": [
+          "docs/planning/M45-claude-terminal-delivery.md",
+          "docs/evidence/M45-acceptance.md",
+          "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/native-parameters.md",
+          "docs/architecture/HTTP-CONTRACTS.md",
+          "docs/architecture/OS-MATRIX-M45.md"
+        ],
+        "result": "Panel messages to Claude are no longer lost: the parameter host yields to Remote Control messages (Ingress line of Claude's debug log), closes its idle /model menu after 10 s, keeps a failed catalog discovery per CLI version and settles a wanted value Claude already has; sendDirect pastes only into a free terminal and the route confirms the paste by its UserPromptSubmit hook within 8 s, else undelivered; the panel shows «Сообщение не дошло до Claude» with «Повторить» and the delivery card without the session autopilot."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -449,7 +470,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -533,8 +554,8 @@
 - Execution: sequential
 - Automation: 4 automatic, 1 manual criteria; CI origin ci/M45-claude-terminal-delivery (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 4/7
-- Revision: 1365
+- Progress: 5/7
+- Revision: 1367
 
 ## Objective
 
@@ -567,7 +588,7 @@
   - Commit: test: verify M45 Claude terminal delivery end to end
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test, product-parts/backend-core/clusters/runtime/modules/cli/test, docs/evidence/M45-acceptance.md, product-parts/backend-core/clusters/runtime/modules/cli/test/m45-undelivered-e2e.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/m45-scenarios.test.ts
   - Depends on: T003
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M45-claude-terminal-delivery.md, docs/architecture/OS-MATRIX.md, docs/architecture/OS-MATRIX-M45.md, docs/architecture/HTTP-CONTRACTS.md, design-qa.md, docs/evidence/M45-acceptance.md
   - Depends on: T001, T002, T003, T004
@@ -579,5 +600,7 @@
   - Commit: test: verify M45 on four CI platforms
   - Files: docs/evidence/M45-acceptance.md
   - Depends on: T005, DOCS-R1
+
+Digest: Panel messages to Claude are no longer lost: the parameter host yields to Remote Control messages (Ingress line of Claude's debug log), closes its idle /model menu after 10 s, keeps a failed catalog discovery per CLI version and settles a wanted value Claude already has; sendDirect pastes only into a free terminal and the route confirms the paste by its UserPromptSubmit hook within 8 s, else undelivered; the panel shows «Сообщение не дошло до Claude» with «Повторить» and the delivery card without the session autopilot.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

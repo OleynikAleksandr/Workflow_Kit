@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1387,
+  "revision": 1388,
   "rounds": [
     {
       "digest": {
@@ -59,7 +59,10 @@
       "Выпуск 0.20.2 установлен, CI четырёх платформ зелёный для точного SHA на ci/M46-claude-2-1-328-menu; результаты в docs/evidence/M46-acceptance.md",
       "Живая проверка пользователя на Mac с Claude 2.1.328: смена уровня и модели из панели не оставляет меню, следующее сообщение панели доходит, панель показывает модели"
     ],
-    "acceptanceNote": null,
+    "acceptanceNote": {
+      "at": "2026-11-19T16:58:12.742Z",
+      "text": "Пользователь принял план в панели Workflow Kit"
+    },
     "approval": {
       "at": "2026-11-19T14:56:28.611Z",
       "text": "Пользователь 19.11.2026 после первого теста 0.20.1 в проекте S_001: «Ну и прямо сразу ничего не работает.» (снимок: сообщение «в очереди» и «Сообщение не дошло до Claude»); план запрошен через wfk session plan, полный автопилот run-2dURYOtIflz8 | Execution mode chosen by the user: sequential: Автоматический выбор по поручению run-2dURYOtIflz8: sequential (recommended by the plan; ревью: skipped-by-setting)"
@@ -197,9 +200,21 @@
           "runId": "run-2dURYOtIflz8"
         },
         "text": "Delivery T005 started by the advance instruction of run run-2dURYOtIflz8"
+      },
+      {
+        "at": "2026-11-19T16:58:12.724Z",
+        "decisionId": "dec-75a3b27c0516",
+        "kind": "accept",
+        "source": {
+          "kind": "button",
+          "messageId": null,
+          "runId": null,
+          "session": "ffc970ed-20a1-499c-9d2c-47dff30c41a0"
+        },
+        "text": "accept: Пользователь принял план в панели Workflow Kit"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "ACCEPTED",
     "execution": {
       "maxWorkers": 1,
       "ownerSession": "ffc970ed-20a1-499c-9d2c-47dff30c41a0",
@@ -495,12 +510,12 @@
 ## State
 
 - Scope: M46-claude-2-1-328-menu (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: ACCEPTED
 - Execution: sequential
 - Automation: 3 automatic, 1 manual criteria; CI origin ci/M46-claude-2-1-328-menu (4 checks); publication main → origin/main
 - Current task: none
 - Progress: 6/6
-- Revision: 1387
+- Revision: 1388
 
 ## Objective
 

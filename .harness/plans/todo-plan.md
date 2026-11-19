@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1371,
+  "revision": 1372,
   "rounds": [
     {
       "digest": {
@@ -62,7 +62,10 @@
       "Выпуск 0.20.1 установлен, CI четырёх платформ зелёный для точного SHA на ci/M45-claude-terminal-delivery; результаты в docs/evidence/M45-acceptance.md",
       "Живая проверка пользователя на Mac: после возобновления сессии из панели сообщения панели и десктопа доходят сразу, смена режима не мигает, поставка без автопилота сессии показывает карточку"
     ],
-    "acceptanceNote": null,
+    "acceptanceNote": {
+      "at": "2026-11-19T14:46:51.478Z",
+      "text": "Пользователь принял план в панели Workflow Kit"
+    },
     "approval": {
       "at": "2026-11-19T10:01:09.483Z",
       "text": "Пользователь 19.11.2026: «Ну вот опять я отправил в диалог workflow кит нашей сессии поручение составить спецификацию и план, и оно никуда к тебе не пришло. Пишу теперь в десктопе то же самое.» — в ответ на предложение исправить доставку сообщений панели, уборку /model хостом параметров, мигание режима и карточки при выключенном автопилоте | Execution mode chosen by the user: sequential: Автоматический выбор по поручению run-FaBBeFOCW1rL: sequential (recommended by the plan; ревью: skipped-by-setting)"
@@ -215,9 +218,21 @@
           "runId": "run-FaBBeFOCW1rL"
         },
         "text": "Delivery T006 started by the advance instruction of run run-FaBBeFOCW1rL"
+      },
+      {
+        "at": "2026-11-19T14:46:51.460Z",
+        "decisionId": "dec-66d7a7ff93ff",
+        "kind": "accept",
+        "source": {
+          "kind": "button",
+          "messageId": null,
+          "runId": null,
+          "session": "ffc970ed-20a1-499c-9d2c-47dff30c41a0"
+        },
+        "text": "accept: Пользователь принял план в панели Workflow Kit"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "ACCEPTED",
     "execution": {
       "maxWorkers": 1,
       "ownerSession": "ffc970ed-20a1-499c-9d2c-47dff30c41a0",
@@ -570,12 +585,12 @@
 ## State
 
 - Scope: M45-claude-terminal-delivery (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: ACCEPTED
 - Execution: sequential
 - Automation: 4 automatic, 1 manual criteria; CI origin ci/M45-claude-terminal-delivery (4 checks); publication main → origin/main
 - Current task: none
 - Progress: 7/7
-- Revision: 1371
+- Revision: 1372
 
 ## Objective
 

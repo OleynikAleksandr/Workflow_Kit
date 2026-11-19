@@ -27,7 +27,7 @@ export type {
   TrustState,
   TrustWrite,
 } from './contract.ts';
-export type { ChatGap, ChatMessage, ChatPage, ChatSync, ChatSyncState } from './chat.ts';
+export type { ChatGap, ChatMessage, ChatPage, ChatSync, ChatSyncState, DirectRefusal } from './chat.ts';
 export type { ChatQuestion, ChatQuestionAnswer, ChatQuestionOption, ChatQuestionPart, ChatQuestionPartAnswer, ChatQuestionState, ProviderQuestions, QuestionAttempt, QuestionHookReply, QuestionHookRequest, QuestionOutcome } from './questions.ts';
 export {
   QUESTIONS_PAGE_MAX, QUESTION_DESCRIPTION_MAX, QUESTION_HEADER_MAX, QUESTION_LABEL_MAX, QUESTION_OPTIONS_MAX, QUESTION_OTHER_MAX, QUESTION_PARTS_MAX, QUESTION_TEXT_MAX,

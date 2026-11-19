@@ -29,7 +29,7 @@ export type { TurnSnapshot, TurnControl, InterruptView, InterruptionOutcome } fr
 export { MAX_SEND_FAILURES, UNDELIVERED_NOTE } from './detached.ts';
 export type { AgentClient, HookDialects, HookInput } from './hook-input.ts';
 export { blockAnswer, contextAnswer, messageAnswer, parseHookInput, promptAnswer, sessionKey, sessionStartAnswer } from './hook-input.ts';
-export type { ChannelRoutesOptions } from './routes.ts';
+export type { ChannelRoutesOptions, DirectAnswer } from './routes.ts';
 export { MESSAGE_MAX_CHARS, UNDELIVERED_REASON, checkSessionMessage, queueSessionMessage, registerChannelRoutes } from './routes.ts';
 
 export { nativeControlHookReply } from './native-hook.ts';

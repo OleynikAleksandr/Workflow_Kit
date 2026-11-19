@@ -6,3 +6,4 @@
 | Возможность | macOS | Linux | Windows |
 | --- | --- | --- | --- |
 | M46 T001: кадр меню `/model` Claude 2.1.328 (`s to use this session only · Enter to save`, `↓ N more`) — `model`, каталог и смена уровня заканчиваются пустым полем | общий `parameter-screen.ts` под `session.exp` + `interrupt-worker.ts` | то же | то же под `pty/host.ts` + `win-host.ts` (ConPTY), x64/ARM64; тест хоста ConPTY читает каталог 2.1.328; ветки ОС нет |
+| M46 T002: несвободный терминал — `sendDirect` отвечает `{ refused }`, маршрут — `undelivered` с причиной, без очереди | общий код службы и `direct.ts` | то же | то же; ветки ОС нет |

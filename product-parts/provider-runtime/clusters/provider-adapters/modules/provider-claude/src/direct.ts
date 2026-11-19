@@ -6,7 +6,7 @@
 // once a second and there is one file per session, so the sends of a session go one after another.
 // While an AskUserQuestion dialog is open nothing is pasted (spec M33, question-guard.ts).
 import { access, rename, rm, writeFile } from 'node:fs/promises';
-import type { Project } from '#provider-registry';
+import type { DirectRefusal, Project } from '#provider-registry';
 import { poll } from './pty.ts';
 import { TEXT_FILE_SUFFIX } from './pty/screen.ts';
 import type { ClaudeRuntime } from './runtime.ts';
@@ -15,6 +15,9 @@ import { withNativeHost, withNativeSession } from './native-arbiter.ts';
 import { cancelNativeParameters, recordNativeState } from './native-parameters.ts';
 import { questionOpen } from './question-guard.ts';
 import { DRAFT_REASON, UNSAFE_REASON } from './pty/parameter-protocol.ts';
+
+/** M46: the reason of a refused paste when the host state names none. */
+export const TERMINAL_BUSY_REASON = 'Терминал Claude занят';
 
 /** How often sendDirect looks whether a control file was taken, ms. */
 export const DIRECT_POLL_MS = 200;
@@ -44,11 +47,11 @@ const exists = (file: string): Promise<boolean> =>
  * previous file was not taken in time, or the script did not take this one in time (the file is
  * then deleted). Never throws.
  */
-export function sendDirect(rt: ClaudeRuntime, project: Project, sid: string, text: string): Promise<boolean> {
+export function sendDirect(rt: ClaudeRuntime, project: Project, sid: string, text: string): Promise<boolean | DirectRefusal> {
   return withNativeSession(rt, project.id, sid, () => deliver(rt, project, sid, text));
 }
 
-async function deliver(rt: ClaudeRuntime, project: Project, sid: string, text: string): Promise<boolean> {
+async function deliver(rt: ClaudeRuntime, project: Project, sid: string, text: string): Promise<boolean | DirectRefusal> {
   const clean = cleanDirectText(text);
   if (clean.trim() === '') return false;
   try {
@@ -74,11 +77,12 @@ async function deliver(rt: ClaudeRuntime, project: Project, sid: string, text: s
         return false;
       }
       // M45: never into an open dialog or after text already in the input (a command the parameter host
-      // left, the user's draft): the message goes to the queue and reaches Claude with its next hook.
+      // left, the user's draft). M46: refused with the reason, not queued — a waiting session sends no
+      // hook that would take a queue; the panel shows it undelivered and the user retries.
       const terminal = await recordNativeState(record);
       if (terminal && (terminal.status === 'dialog' || terminal.reason === DRAFT_REASON || terminal.reason === UNSAFE_REASON)) {
         rt.context.log(`claude: message to ${sid} not pasted: the terminal is not free (${terminal.reason ?? terminal.status})`);
-        return false;
+        return { refused: terminal.reason ?? TERMINAL_BUSY_REASON };
       }
       // Written aside and renamed: the script never reads half a message.
       const partial = `${file}.partial`;

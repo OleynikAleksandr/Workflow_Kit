@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1377,
+  "revision": 1379,
   "rounds": [
     {
       "digest": null,
@@ -285,14 +285,29 @@
         "product-parts/backend-core/clusters/runtime/modules/cli",
         "docs/architecture/HTTP-CONTRACTS.md",
         "docs/architecture/CONTRACTS.md",
-        "docs/architecture/OS-MATRIX-M46.md"
+        "docs/architecture/OS-MATRIX-M46.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/direct-message.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/m46-direct-refused.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/sessions.md",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/direct.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/m45-direct.test.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/chat.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts",
+        "product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/index.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/routes.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/m46-direct-refused.test.ts"
       ],
       "fixes": null,
       "id": "T002",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Отказ вставки — «не дошло», без очереди",
       "why": "Сообщение в несвободный терминал ждущей сессии лежало в очереди, которую никто не забирал"
     },
@@ -443,8 +458,8 @@
 - Execution: sequential
 - Automation: 3 automatic, 1 manual criteria; CI origin ci/M46-claude-2-1-328-menu (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 1/6
-- Revision: 1377
+- Progress: 2/6
+- Revision: 1379
 
 ## Objective
 
@@ -464,9 +479,9 @@
 - [DONE] T001 — Меню /model Claude 2.1.328 (work)
   - Commit: fix: recognize the /model menu of Claude 2.1.328
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, docs/architecture/OS-MATRIX.md, docs/architecture/OS-MATRIX-M46.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/native-parameters.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-screen.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/claude-2-1-328.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/m46-menu.test.ts
-- [TODO] T002 — Отказ вставки — «не дошло», без очереди (work)
+- [DONE] T002 — Отказ вставки — «не дошло», без очереди (work)
   - Commit: fix: answer undelivered when Claude's terminal is not free
-  - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel, product-parts/backend-core/clusters/runtime/modules/cli, docs/architecture/HTTP-CONTRACTS.md, docs/architecture/CONTRACTS.md, docs/architecture/OS-MATRIX-M46.md
+  - Files: product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel, product-parts/backend-core/clusters/runtime/modules/cli, docs/architecture/HTTP-CONTRACTS.md, docs/architecture/CONTRACTS.md, docs/architecture/OS-MATRIX-M46.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/direct-message.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/m46-direct-refused.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/sessions.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/direct.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/m45-direct.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/chat.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/contract.ts, product-parts/provider-runtime/clusters/provider-contract/modules/provider-registry/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/m46-direct-refused.test.ts
   - Depends on: T001
 - [TODO] T003 — Сквозные сценарии и доказательства (work)
   - Commit: test: verify M46 end to end

@@ -130,7 +130,11 @@
   UNDELIVERED_REASON } }`, в очередь не кладётся. `directTurn(key, projectId, text, send,
   confirmMs?)`: с `confirmMs` вставка — сообщение пользователя, только когда хук принял резерв хода
   (`ownPrompt`, опрос `CONFIRM_POLL_MS` = 50 мс); иначе резерв снимается и ответ `'unconfirmed'`;
-  без `confirmMs` — как раньше. Тест — `test/m45-direct-confirm.test.ts`.
+  без `confirmMs` — как раньше. Тест — `test/m45-direct-confirm.test.ts`. M46 T002: тип ответа
+  `DirectAnswer` (`index.ts`) добавляет `{ refused: string }` — терминал не свободен:
+  `{ sent: false, undelivered: { reason: refused } }` (пустая причина — `UNDELIVERED_REASON`), в
+  очередь не кладётся; объект без строки `refused` — как `false`. Тест —
+  `test/m46-direct-refused.test.ts`.
   Проверки — `checkSessionMessage(channel, projectId, key, text, owned) → string`
   (чистый текст; `queueSessionMessage` зовёт её и кладёт текст в очередь):
   текст обрезается по краям, пустой — 400 `empty-message`, длиннее

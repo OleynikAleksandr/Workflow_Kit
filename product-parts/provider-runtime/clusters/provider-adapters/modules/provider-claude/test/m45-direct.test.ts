@@ -1,7 +1,7 @@
 // M45 T002: sendDirect never pastes into a terminal that is not free — an open dialog, a draft in
 // the input (the user's or a command the parameter host left) or an unclean cleanup of the host;
-// the message then goes to the channel queue. A free terminal and a session without a fresh host
-// state paste as before.
+// M46: it answers `{ refused: <reason> }` (the route reports it undelivered, nothing is queued). A
+// free terminal and a session without a fresh host state paste as before.
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { access, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
@@ -68,11 +68,11 @@ for (const [label, status, inputEmpty, reason] of [
   ['a draft in the input', 'unknown', false, DRAFT_REASON],
   ['an open dialog', 'dialog', false, 'Терминал Claude занят или не распознан'],
   ['an unclean cleanup of the host', 'dialog', false, UNSAFE_REASON],
-] as const) test(`${label}: the message is not pasted and goes to the queue`, async () => {
+] as const) test(`${label}: the message is not pasted and is refused with the reason`, async () => {
   const rt = createRuntime(context, { directWaitMs: 300 });
   await hostState(status, inputEmpty, reason);
   logs.length = 0;
-  assert.equal(await sendDirect(rt, project, sessionId, 'составь план'), false);
+  assert.deepEqual(await sendDirect(rt, project, sessionId, 'составь план'), { refused: reason });
   assert.equal(await exists(debug + '.text'), false);
   assert.ok(logs.some((line) => line.includes('not pasted: the terminal is not free')), logs.join('\n'));
 });

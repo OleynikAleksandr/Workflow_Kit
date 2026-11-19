@@ -5,7 +5,7 @@ import type { DataDirs } from '#data-store';
 import type { ProviderContext } from './context.ts';
 export type { ProviderContext } from './context.ts';
 import type { Project } from '#project-registry';
-import type { ChatPage } from './chat.ts';
+import type { ChatPage, DirectRefusal } from './chat.ts';
 import type { SharedAccess } from './shared-access.ts';
 import type { ProviderQuestions } from './questions.ts';
 export type { Project };
@@ -336,8 +336,8 @@ export interface Provider extends ProviderQuestions {
   readMessages?(project: Project, sessionId: string, opts: { limit: number }): Promise<ChatPage>;
   readParameters?(project: Project, sessionId: string): Promise<import('./parameters.ts').SessionParameters>;
   updateParameters?(project: Project, sessionId: string, change: import('./parameters.ts').ParameterChange): Promise<import('./parameters.ts').SessionParameters>;
-  /** Hands text to the agent as a user turn now; false when it cannot now (the caller queues it). */
-  sendDirect?(project: Project, sessionId: string, text: string): Promise<boolean>;
+  /** A user turn now; false: no direct path (queue it); `{ refused }`: terminal not free (M46, chat.ts). */
+  sendDirect?(project: Project, sessionId: string, text: string): Promise<boolean | DirectRefusal>;
   /** Name of the setting that turns session locks off; without locks the turn end cannot be told. */
   readonly lockSwitch?: string;
   actions(project: Project | null): Promise<ProviderAction[]>;

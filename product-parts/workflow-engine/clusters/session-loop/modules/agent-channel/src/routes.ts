@@ -27,8 +27,11 @@ export interface ChannelRoutesOptions {
    * Hands a checked panel message to the agent at once as a user's message; true means the
    * provider took it and nothing is queued. False, an error or no option keeps the queue path.
    */
-  /** True: delivered; 'unconfirmed': pasted, but no prompt hook took it (M45); false: queue it. */
-  direct?: (projectId: string, key: string, text: string) => Promise<boolean | 'unconfirmed'>;
+  /**
+   * True: delivered; 'unconfirmed': pasted, but no prompt hook took it (M45); `{ refused }`: the
+   * terminal is not free, not pasted (M46) — both answer undelivered and queue nothing; false: queue it.
+   */
+  direct?: (projectId: string, key: string, text: string) => Promise<DirectAnswer>;
   /**
    * M40: a checked panel message of the user, as the service receives it — before it is given
    * to the agent or queued behind a running turn. The service reads the user's «стоп» and
@@ -100,11 +103,15 @@ export function queueSessionMessage(
 /** M45: the reason the panel shows for a pasted message Claude did not take. */
 export const UNDELIVERED_REASON = 'Claude не начал ход с этим сообщением: терминал занят или в нём открыт диалог';
 
-/** True only when the direct path took the message; a thrown error counts as a refusal. */
-async function sendDirect(direct: ChannelRoutesOptions['direct'], projectId: string, key: string, text: string): Promise<boolean | 'unconfirmed'> {
+/** An answer of the direct path: delivered, pasted without a turn, refused with a reason, or queue it. */
+export type DirectAnswer = boolean | 'unconfirmed' | { refused: string };
+
+/** A thrown error or an unknown answer counts as false (the message is queued). */
+async function sendDirect(direct: ChannelRoutesOptions['direct'], projectId: string, key: string, text: string): Promise<DirectAnswer> {
   if (!direct) return false;
   try {
     const result = await direct(projectId, key, text);
+    if (typeof result === 'object' && result !== null && typeof result.refused === 'string') return { refused: result.refused };
     return result === true || result === 'unconfirmed' ? result : false;
   } catch {
     return false;
@@ -213,6 +220,8 @@ export function registerChannelRoutes(options: ChannelRoutesOptions): void {
     }
     // M45: pasted, but Claude began no turn with it: not queued (it may still be in the terminal).
     if (direct === 'unconfirmed') return { sent: false, undelivered: { reason: UNDELIVERED_REASON } };
+    // M46: the terminal is not free: a waiting session would never take a queue; the user retries.
+    if (typeof direct === 'object') return { sent: false, undelivered: { reason: direct.refused.trim() || UNDELIVERED_REASON } };
     const message = messages.enqueue(key, clean, USER_MESSAGE_SOURCE, projectId);
     return { queued: message.id };
   });

@@ -155,3 +155,10 @@ export function chatPageOut(page: ChatPage, limit = CHAT_PAGE_LIMIT): ChatPage {
     ...(questions ? { questions } : {}),
   };
 }
+
+/**
+ * M46: the answer of `Provider.sendDirect` when the session's terminal is there but not free (a
+ * dialog, a draft, a parameter change left unclean): the caller reports the message undelivered
+ * with this reason for the user and queues nothing.
+ */
+export interface DirectRefusal { refused: string }

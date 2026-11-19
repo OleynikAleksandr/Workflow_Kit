@@ -76,7 +76,10 @@ stripping).
   не `ledOutside`) и сессии вне процесса Kit — в [session-chat.md](session-chat.md). M45 T002:
   сессии, чьи хуки канал видел, `directTurn` ждёт хук вставки `DIRECT_CONFIRM_MS` (8 с);
   `'unconfirmed'` — строка журнала `channel: message to <key> was pasted, but no prompt hook
-  took it within 8000 ms` (тест `test/m45-direct-message.test.ts`).
+  took it within 8000 ms` (тест `test/m45-direct-message.test.ts`). M46 T002: отказ провайдера
+  `{ refused }` (терминал не свободен) возвращается маршруту с причиной, резерв хода видит `false`,
+  строка журнала `channel: message to <key> refused, not queued: <причина>` (тест
+  `test/m46-direct-refused.test.ts`).
 - `detectOs(input)`, `panelUrls(port, interfaces)`, `readPackageVersion()`.
 - Константы `COMMANDS`, `EXIT_USAGE` (64), `EXIT_NOT_IMPLEMENTED` (2).
 - Типы `CliDeps`, `App`, `AppOptions`, `SystemSection`, `OsInfo`,

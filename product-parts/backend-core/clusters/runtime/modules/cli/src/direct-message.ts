@@ -1,7 +1,7 @@
 // The direct path of a panel message (M18 section 2.5): the text goes to the agent at once as a
 // user's message when the provider can take it (sendDirect) and the session is not in a turn.
 // Nothing here names a provider; a false answer keeps the channel queue path.
-import type { AgentChannel, SessionActivity } from '#agent-channel';
+import type { AgentChannel, DirectAnswer, SessionActivity } from '#agent-channel';
 import type { Project } from '#project-registry';
 import type { Provider } from '#provider-registry';
 
@@ -29,7 +29,7 @@ export function ledOutside(provider: Pick<Provider, 'marksPanelProcess'> | undef
 }
 
 /** Route option `direct` of the channel routes: true means the provider took the text. */
-export type DirectMessage = (projectId: string, key: string, text: string) => Promise<boolean | 'unconfirmed'>;
+export type DirectMessage = (projectId: string, key: string, text: string) => Promise<DirectAnswer>;
 
 /**
  * Builds the direct path. It calls provider.sendDirect only when the provider has it and has no
@@ -50,11 +50,18 @@ export function createDirectMessage(options: DirectMessageOptions): DirectMessag
     const project = await options.project(projectId).catch(() => undefined);
     if (!project) return false;
     try {
-      const send = async () => (await provider.sendDirect!(project, key.slice(colon + 1), text)) === true;
+      // M46: a refusal (the terminal is not free) is passed on with its reason, nothing is queued.
+      let refused: string | null = null;
+      const send = async () => {
+        const answer = await provider.sendDirect!(project, key.slice(colon + 1), text);
+        if (typeof answer === 'object' && answer !== null) { refused = answer.refused; return false; }
+        return answer === true;
+      };
       // M45: a session whose hooks the channel has seen confirms the paste with its prompt hook.
       const confirmMs = activity ? options.confirmMs ?? DIRECT_CONFIRM_MS : 0;
       const result = await (options.channel ? options.channel.directTurn(key, projectId, text, send, confirmMs) : send());
       if (result === 'unconfirmed') options.log?.(`channel: message to ${key} was pasted, but no prompt hook took it within ${confirmMs} ms`);
+      if (refused !== null) { options.log?.(`channel: message to ${key} refused, not queued: ${refused}`); return { refused }; }
       return result;
     } catch (error) {
       options.log?.(`channel: direct message to ${key} failed, queued instead: ${error instanceof Error ? error.message : String(error)}`);

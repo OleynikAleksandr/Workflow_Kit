@@ -46,8 +46,9 @@
   сбой чтения — отказ); сообщение промптом (`true` — принят; `id` один на все
   повторы); имя настройки, отключающей замки сессий (для пометки в панели),
   `readMessages?(project, sid, { limit }) → ChatPage` и
-  `sendDirect?(project, sid, text) → boolean` — диалог сессии (M18): последние
-  сообщения и реплика агенту прямо сейчас (`false` — в очередь); типы `ChatMessage`,
+  `sendDirect?(project, sid, text) → boolean | DirectRefusal` — диалог сессии (M18): последние
+  сообщения и реплика агенту прямо сейчас (`false` — в очередь; M46: `{ refused: <причина> }` —
+  терминал не свободен, сообщение «не дошло», без очереди); типы `ChatMessage`,
   `ChatPage` (необязательный `sync` M32: `ChatSync`, `ChatGap`, `chatSyncOut`), константы
   `CHAT_PAGE_LIMIT`, `CHAT_TEXT_MAX_CHARS`, идемпотентная `cutChatText` — в `chat.ts`,
   503 `CHAT_TRANSIENT_CODES` — в `chat-routes.ts`, подробности — [chat.md](chat.md),

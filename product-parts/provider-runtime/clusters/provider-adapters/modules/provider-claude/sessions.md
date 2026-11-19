@@ -106,4 +106,6 @@ M45/T001–T002: `yieldToUser` держит файлы пользователя 
 текст в открытый диалог (`dialog`), за черновик (`DRAFT_REASON`) или после неубранной смены
 параметров (`UNSAFE_REASON`): `false` и строка журнала `claude: message to <sid> not pasted: the
 terminal is not free (<причина>)` — сообщение идёт очередью. Без свежего состояния — как раньше.
-Тест — `test/m45-direct.test.ts`.
+Тест — `test/m45-direct.test.ts`. M46/T002: вместо `false` — `{ refused: <причина хоста> }`
+(`TERMINAL_BUSY_REASON` «Терминал Claude занят», если причины нет): маршрут отвечает `undelivered`,
+очереди нет — ждущая сессия её бы не забрала.

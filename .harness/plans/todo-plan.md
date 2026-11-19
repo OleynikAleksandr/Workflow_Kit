@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1363,
+  "revision": 1365,
   "rounds": [
     {
       "digest": null,
@@ -405,14 +405,16 @@
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test",
         "product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test",
         "product-parts/backend-core/clusters/runtime/modules/cli/test",
-        "docs/evidence/M45-acceptance.md"
+        "docs/evidence/M45-acceptance.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/m45-undelivered-e2e.test.ts",
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/m45-scenarios.test.ts"
       ],
       "fixes": null,
       "id": "T004",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Сквозные сценарии и доказательства",
       "why": "Сценарии 19.11 воспроизводятся тестами до выпуска"
     },
@@ -531,8 +533,8 @@
 - Execution: sequential
 - Automation: 4 automatic, 1 manual criteria; CI origin ci/M45-claude-terminal-delivery (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 3/7
-- Revision: 1363
+- Progress: 4/7
+- Revision: 1365
 
 ## Objective
 
@@ -561,9 +563,9 @@
   - Commit: feat: show an undelivered panel message and the delivery card without autopilot
   - Files: product-parts/control-panel/clusters/web-panel/modules/session-chat, product-parts/control-panel/clusters/web-panel/modules/session-view, design-qa.md, docs/architecture/OS-MATRIX-M45.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/module.md, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/composer-model.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/composer.js, product-parts/control-panel/clusters/web-panel/modules/session-chat/src/session-chat.css, product-parts/control-panel/clusters/web-panel/modules/session-chat/test/composer-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/plan-cards.js, product-parts/control-panel/clusters/web-panel/modules/session-view/test/m45-cards.browser.mjs, product-parts/control-panel/clusters/web-panel/modules/session-view/test/m45-delivery-card.test.ts
   - Depends on: T002
-- [TODO] T004 — Сквозные сценарии и доказательства (work)
+- [DONE] T004 — Сквозные сценарии и доказательства (work)
   - Commit: test: verify M45 Claude terminal delivery end to end
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test, product-parts/backend-core/clusters/runtime/modules/cli/test, docs/evidence/M45-acceptance.md
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test, product-parts/backend-core/clusters/runtime/modules/cli/test, docs/evidence/M45-acceptance.md, product-parts/backend-core/clusters/runtime/modules/cli/test/m45-undelivered-e2e.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/m45-scenarios.test.ts
   - Depends on: T003
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1

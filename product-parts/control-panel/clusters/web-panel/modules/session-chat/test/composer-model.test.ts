@@ -80,3 +80,10 @@ test('M28: queued user messages come from the activity; malformed ones are skipp
   assert.deepEqual(composerData({}, 'p', 'claude:s', 'claude').queuedMessages, []);
   assert.deepEqual(composerData({ channel: { sessions: [{ projectId: 'p', key: 'claude:s', queued: 'x' }] } }, 'p', 'claude:s', 'claude').queuedMessages, []);
 });
+
+test('M45: the note of an undelivered paste names the reason; other answers give none', async () => {
+  const { UNDELIVERED_PREFIX, undeliveredNote } = await import('../src/composer-model.js');
+  assert.equal(undeliveredNote({ sent: false, undelivered: { reason: 'терминал занят' } }), `${UNDELIVERED_PREFIX}: терминал занят`);
+  assert.equal(undeliveredNote({ sent: false, undelivered: {} }), UNDELIVERED_PREFIX);
+  for (const answer of [{ sent: true }, { queued: 'm1' }, null, 'x']) assert.equal(undeliveredNote(answer), null);
+});

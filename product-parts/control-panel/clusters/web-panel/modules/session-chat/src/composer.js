@@ -1,7 +1,7 @@
 // @ts-check
 import { canSend, errorText, sendUrl } from './chat-model.js';
 import { createParameters } from './parameters.js';
-import { DELIVERY_CONFIRM_MS, NOT_DELIVERED_TEXT, composerData, createInputKeys, effectiveTurn, interruptUrl, isStaleTurn, mayClearDraft, undelivered } from './composer-model.js';
+import { DELIVERY_CONFIRM_MS, NOT_DELIVERED_TEXT, RETRY_LABEL, composerData, createInputKeys, effectiveTurn, interruptUrl, isStaleTurn, mayClearDraft, undelivered, undeliveredNote } from './composer-model.js';
 
 /** Compact composer. Its DOM, draft and request lock belong to one project/session.
  * @param {{ shell: import('./session-chat.js').Shell, projectId: string, key: string, provider: string,
@@ -47,6 +47,9 @@ export function createComposer({ shell, projectId, key, provider, onSent }) {
   // Only an error after the user's own action is shown under the input (M28 3.5).
   const status = h('p', { class: 'sc-status', role: 'status', 'aria-live': 'polite' });
   status.hidden = true;
+  // M45: a pasted message Claude took no turn with keeps its text in the input and offers a retry.
+  const retry = /** @type {HTMLButtonElement} */ (h('button', { type: 'button', class: 'btn sc-retry' }, [RETRY_LABEL]));
+  retry.hidden = true;
   const editor = h('div', {class:'sc-editor'}, [plus, input, action, microphone]);
   const details = h('div', {class:'sc-details'}, [queue]);
   const parameterView = createParameters({ shell, projectId, key, provider, fallback: parameters, report, onLayout(native) {
@@ -58,7 +61,7 @@ export function createComposer({ shell, projectId, key, provider, onSent }) {
   speechStatus.hidden = true;
   details.append(parameterView.node, speechStatus);
   const node = h('div', { class: 'sc-compose' }, [
-    editor, details, status,
+    editor, details, status, retry,
   ]);
 
   function turn() { return effectiveTurn(data.turn, confirmedRef); }
@@ -85,6 +88,7 @@ export function createComposer({ shell, projectId, key, provider, onSent }) {
   }
   /** @param {string} text @param {'muted' | 'ok' | 'error'} tone */
   function report(text, tone) {
+    retry.hidden = true;
     status.textContent = text;
     status.dataset['tone'] = tone;
     status.hidden = !text;
@@ -104,6 +108,13 @@ export function createComposer({ shell, projectId, key, provider, onSent }) {
     report('', 'muted');
     try {
       const response = await shell.api('POST', sendUrl(projectId, key), { text });
+      const note = undeliveredNote(response);
+      if (note) {
+        if (input.value.trim() === '') { input.value = text; draftRevision += 1; }
+        report(note, 'error'); retry.hidden = false;
+        requestRefresh();
+        return;
+      }
       if (mayClearDraft(revision, draftRevision, text, input.value)) input.value = '';
       if (response && typeof response === 'object' && 'queued' in response && data.turn.state === 'waiting') watchDelivery(text);
       onSent();
@@ -180,6 +191,7 @@ export function createComposer({ shell, projectId, key, provider, onSent }) {
   });
   action.addEventListener('click', () => { if (turn().state === 'working') void stop(); else void send(); });
   queue.addEventListener('click', () => void send());
+  retry.addEventListener('click', () => void send());
   // Public browser facade is mounted independently; the URL is deliberately resolved at runtime.
   const speechEntry = '/speech-input/dictation.js';
   void import(speechEntry).then(({ attachDictation }) => {

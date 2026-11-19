@@ -233,3 +233,5 @@
 
 .sc-q-dictation { display: flex; align-items: center; gap: 8px; margin: 4px 0 8px; }
 .sc-q-dictation[hidden] { display: none; }
+/* M45: retry of a pasted message Claude took no turn with. */
+.sc-compose .sc-retry { align-self: flex-start; }

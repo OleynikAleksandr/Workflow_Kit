@@ -47,6 +47,19 @@ export function composerData(state, projectId, key, provider) {
 /** How long a message queued for a waiting agent may stay undelivered before the panel says so (M28). */
 export const DELIVERY_CONFIRM_MS = 10_000;
 export const NOT_DELIVERED_TEXT = 'Сообщение не дошло до Claude. Отправьте ещё раз';
+/** M45: the start of the note about a pasted message Claude began no turn with. */
+export const UNDELIVERED_PREFIX = 'Сообщение не дошло до Claude';
+export const RETRY_LABEL = 'Повторить';
+/**
+ * M45: the note of an answer `{ sent: false, undelivered: { reason } }` of the message route, or null.
+ * @param {unknown} response
+ * @returns {string | null}
+ */
+export function undeliveredNote(response) {
+  const reason = object(object(response)['undelivered'])['reason'];
+  if (!('undelivered' in object(response))) return null;
+  return typeof reason === 'string' && reason.trim() ? `${UNDELIVERED_PREFIX}: ${reason.trim()}` : UNDELIVERED_PREFIX;
+}
 /** A message queued while the agent waits must start a turn; still waiting with a queue means it did not.
  * @param {ComposerData} data */
 export const undelivered = (data) => data.turn.state === 'waiting' && data.queued > 0;

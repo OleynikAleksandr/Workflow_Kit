@@ -1,6 +1,7 @@
 // @ts-check
 // The path choice card and the plan card of the session sidebar (spec sections 8.3, 9.3; M4;
 // M11; M31 3.4: an unstarted plan shows in every main session of the project). No DOM.
+import { hostDecisions } from './decision-model.js';
 
 /**
  * @param {unknown} value
@@ -16,6 +17,28 @@ function record(value) {
  */
 function array(list) {
   return Array.isArray(list) ? list : [];
+}
+
+/** Phases of an autopiloting run that confirms its delivery tasks itself (with a live grant). */
+const CONFIRMING_PHASES = new Set(['executing', 'delivering']);
+
+/**
+ * M45: a `host` project waits for «Подтвердить выпуск» whenever the next task of its running plan is
+ * a delivery not started and no granted autopiloting run confirms it — whatever the autopilot of
+ * the session does (with it switched off the session records no turn decision).
+ * @param {Record<string, unknown>} state
+ * @param {string} projectId
+ * @param {Record<string, any>} plan
+ * @returns {boolean}
+ */
+export function deliveryWaits(state, projectId, plan) {
+  if (!hostDecisions(state, projectId) || plan['phase'] !== 'running') return false;
+  const tasks = array(plan['tasks']);
+  if (tasks.some((t) => record(t)['status'] === 'IN_PROGRESS')) return false;
+  const next = record(tasks.find((t) => record(t)['status'] !== 'DONE'));
+  if (next['kind'] !== 'delivery' || next['status'] !== 'TODO') return false;
+  const run = record(record(record(state['autopiloting'])['projects'])[projectId]);
+  return !(run['authorized'] === true && CONFIRMING_PHASES.has(String(run['phase'])));
 }
 
 /** Plan card buttons in the order they are drawn. */
@@ -174,7 +197,7 @@ export function planView(state, projectId, key) {
   const total = typeof progress['total'] === 'number' ? progress['total'] : 0;
   const done = typeof progress['done'] === 'number' ? progress['done'] : 0;
   const pilot = array(record(state['autopilot'])['sessions']).find((s) => s && s.key === key);
-  const delivery = record(pilot?.last)['reason'] === 'delivery-confirmation';
+  const delivery = record(pilot?.last)['reason'] === 'delivery-confirmation' || deliveryWaits(state, projectId, plan);
   const actions = array(plan['actions']).map(String);
   const phase = String(plan['phase'] ?? '');
   const starting = startingOf(pilot, phase);

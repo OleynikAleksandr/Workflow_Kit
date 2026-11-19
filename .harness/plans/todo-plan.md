@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1353,
+  "revision": 1354,
   "rounds": [
     {
       "digest": null,
@@ -189,6 +189,51 @@
     "proposal": {
       "digest": "d8150187f44d110906b379f5e7e610a8c1598ee75fab59625d0ad7dba477b9bd",
       "generation": 1
+    },
+    "authorization": {
+      "accept": false,
+      "acceptancePolicy": "manual",
+      "at": "2026-11-19T10:01:11.310Z",
+      "ci": {
+        "remote": "origin",
+        "branch": "ci/M45-claude-terminal-delivery",
+        "requiredChecks": [
+          "macOS ARM64",
+          "Linux x64",
+          "Windows x64",
+          "Windows ARM64"
+        ],
+        "exactSha": true,
+        "task": "T006"
+      },
+      "close": true,
+      "delivery": [
+        {
+          "taskId": "T005",
+          "effects": [
+            "npm ci",
+            "node bin/wfk.mjs install: установка Workflow Kit 0.20.1 в Application Support и перезапуск службы"
+          ]
+        },
+        {
+          "taskId": "T006",
+          "effects": [
+            "push ci/M45-claude-terminal-delivery в origin и ожидание CI четырёх платформ"
+          ]
+        }
+      ],
+      "mode": "full",
+      "note": "Full autopilot run run-FaBBeFOCW1rL: the user's direct instruction «Ну вот опять я отправил в диалог workflow кит нашей сессии поручение составить спецификацию и план, и оно никуда к тебе не пришло. Пишу теперь в десктопе то же самое.» (2026-11-19T09:57:22.326Z) to prepare and carry out the plan",
+      "ownerSession": "ffc970ed-20a1-499c-9d2c-47dff30c41a0",
+      "proposalDigest": "d8150187f44d110906b379f5e7e610a8c1598ee75fab59625d0ad7dba477b9bd",
+      "publication": {
+        "branch": "main",
+        "upstream": "origin/main"
+      },
+      "revision": 1,
+      "revoked": null,
+      "runId": "run-FaBBeFOCW1rL",
+      "source": "user-command"
     }
   },
   "tasks": [
@@ -446,7 +491,7 @@
 - Automation: 4 automatic, 1 manual criteria; CI origin ci/M45-claude-terminal-delivery (4 checks); publication main → origin/main
 - Current task: none
 - Progress: 0/7
-- Revision: 1353
+- Revision: 1354
 
 ## Objective
 

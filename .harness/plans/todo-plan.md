@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1401,
+  "revision": 1403,
   "rounds": [
     {
       "digest": {
@@ -195,6 +195,18 @@
           "session": "ffc970ed-20a1-499c-9d2c-47dff30c41a0"
         },
         "text": "choose: Выбор пользователя в панели Workflow Kit: выполнить самому, последовательно"
+      },
+      {
+        "at": "2026-11-19T18:21:31.437Z",
+        "decisionId": "dec-a9554eff11ce",
+        "kind": "confirm-delivery",
+        "source": {
+          "kind": "button",
+          "messageId": null,
+          "runId": null,
+          "session": "ffc970ed-20a1-499c-9d2c-47dff30c41a0"
+        },
+        "text": "confirm-delivery: Решение пользователя в панели Workflow Kit"
       }
     ],
     "delivery": "IN_PROGRESS",
@@ -417,7 +429,7 @@
         "installed-service"
       ],
       "commitMessage": "chore: release Workflow Kit 0.20.3",
-      "confirmation": null,
+      "confirmation": "Решение пользователя в панели Workflow Kit",
       "context": [
         {
           "path": "docs/planning/M47-paste-confirm-host-build.md",
@@ -442,7 +454,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Поставка 0.20.3",
       "why": "Пользователь получает исправление ложного «не дошло» и понятную причину у устаревших сессий"
     },
@@ -489,8 +501,8 @@
 - Execution: sequential
 - Automation: 4 automatic, 1 manual criteria; CI origin ci/M47-paste-confirm-host-build (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 5/7
-- Revision: 1401
+- Progress: 6/7
+- Revision: 1403
 
 ## Objective
 
@@ -527,7 +539,7 @@
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M47-paste-confirm-host-build.md, docs/architecture/HTTP-CONTRACTS.md, docs/evidence/M47-acceptance.md, docs/architecture/OS-MATRIX.md, docs/architecture/OS-MATRIX-M47.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/trust.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/chat.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/sessions.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md
   - Depends on: T001, T002, F001, T003
-- [TODO] T004 — Поставка 0.20.3 (delivery)
+- [DONE] T004 — Поставка 0.20.3 (delivery)
   - Commit: chore: release Workflow Kit 0.20.3
   - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/evidence/M47-acceptance.md
   - Depends on: T003, DOCS-R1

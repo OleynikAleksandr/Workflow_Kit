@@ -206,6 +206,14 @@ Claude занят (открыто окно, черновик), сообщени�
 дошло» с причиной и «Повторить» — [спецификация M46](docs/planning/M46-claude-2-1-328-menu.md),
 [доказательства](docs/evidence/M46-acceptance.md). Выпуск 0.20.2.
 
+**Длинные сообщения в Claude (M47).** Многострочное сообщение из панели больше не показывается «не
+дошло», если Claude начал с ним ход: доставку подтверждает сам ход, а не точный текст (Claude
+2.1.328 оборачивает длинную вставку в `<pasted_content>`); лента показывает его без обёртки.
+Сессия, запущенная до обновления Workflow Kit, говорит, что управление моделью и уровнем в ней
+устарело, и предлагает остановить и возобновить её —
+[спецификация M47](docs/planning/M47-paste-confirm-host-build.md),
+[доказательства](docs/evidence/M47-acceptance.md).
+
 ## Запуск из исходников и разработка
 
 `node bin/wfk.mjs serve` запускает сервер из репозитория без установки; `npm ci`,
@@ -241,5 +249,6 @@ Rust-тесты helper);
   [M41](docs/planning/M41-autopilot-acceptance.md); разрешение запуска и знание агента —
   [M44](docs/planning/M44-autopilot-grant-and-agent-state.md); доставка сообщений в терминал
   Claude — [M45](docs/planning/M45-claude-terminal-delivery.md); меню Claude 2.1.328 —
-  [M46](docs/planning/M46-claude-2-1-328-menu.md); голосовой ввод —
+  [M46](docs/planning/M46-claude-2-1-328-menu.md); подтверждение вставки и устаревший хост —
+  [M47](docs/planning/M47-paste-confirm-host-build.md); голосовой ввод —
   [Speech](docs/planning/speech-input-macos.md) и [интеграция](docs/planning/speech-integration.md).

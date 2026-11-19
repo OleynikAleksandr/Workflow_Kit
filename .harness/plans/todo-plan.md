@@ -22,10 +22,31 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1399,
+  "revision": 1401,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "agent-channel Reservation.direct; ownPrompt -> 'own' | 'order' | 'late' | null; log 'confirmed the pasted message by order'",
+          "provider-claude unwrapPasted (chat.ts); hostBuild, HOST_OUTSIDE_PTY (pty/host-build.ts); NativeParameterState.hostBuild; HOST_OUTDATED (parameter-controls.ts)",
+          "pty-host PTY_HOST_SRC, listSources, sourceDigest"
+        ],
+        "decisions": [
+          "A direct paste is confirmed by the first prompt hook of the session while it is sent and confirmed (slot.sending), not by equal text; a differing text is logged by lengths only",
+          "The pasted_content wrapper is removed by the provider-claude transcript reader (unwrapPasted), the channel does not know it",
+          "An outdated host is told by the build label (digest of the host sources), not the Kit version: a release without host changes marks no session",
+          "No automatic restart of outdated sessions: the panel names the reason and the user's action"
+        ],
+        "references": [
+          "docs/planning/M47-paste-confirm-host-build.md",
+          "docs/evidence/M47-acceptance.md",
+          "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/native-parameters.md",
+          "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/chat.md",
+          "docs/architecture/HTTP-CONTRACTS.md",
+          "docs/architecture/OS-MATRIX-M47.md"
+        ],
+        "result": "A panel message Claude began a turn with is shown sent whatever text its UserPromptSubmit hook carries (Claude 2.1.328 wraps a paste of more than 6 lines in <pasted_content id>); the conversation shows it without the wrapper; a session whose terminal host runs an older build of Kit says its model and effort control is outdated and how to get it back."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -384,7 +405,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -468,8 +489,8 @@
 - Execution: sequential
 - Automation: 4 automatic, 1 manual criteria; CI origin ci/M47-paste-confirm-host-build (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 4/7
-- Revision: 1399
+- Progress: 5/7
+- Revision: 1401
 
 ## Objective
 
@@ -502,7 +523,7 @@
   - Commit: feat: mark sessions whose terminal host predates the installed build
   - Files: product-parts/provider-runtime/clusters/provider-contract/modules/pty-host, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, docs/architecture/OS-MATRIX.md, docs/architecture/OS-MATRIX-M47.md, docs/evidence/M47-acceptance.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/native-parameters.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/parameter-controls.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/host-build.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/host.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/interrupt-worker.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-engine.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-files.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-protocol.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/m47-host-build.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/parameter-controls.test.ts, product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/module.md, product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/src/index.ts, product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/src/source-digest.ts, product-parts/provider-runtime/clusters/provider-contract/modules/pty-host/test/source-digest.test.ts
   - Depends on: T002, F001
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M47-paste-confirm-host-build.md, docs/architecture/HTTP-CONTRACTS.md, docs/evidence/M47-acceptance.md, docs/architecture/OS-MATRIX.md, docs/architecture/OS-MATRIX-M47.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/trust.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/chat.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/sessions.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md
   - Depends on: T001, T002, F001, T003
@@ -514,5 +535,7 @@
   - Commit: test: verify M47 on four CI platforms
   - Files: docs/evidence/M47-acceptance.md
   - Depends on: T004, DOCS-R1
+
+Digest: A panel message Claude began a turn with is shown sent whatever text its UserPromptSubmit hook carries (Claude 2.1.328 wraps a paste of more than 6 lines in <pasted_content id>); the conversation shows it without the wrapper; a session whose terminal host runs an older build of Kit says its model and effort control is outdated and how to get it back.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

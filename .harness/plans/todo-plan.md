@@ -3,7 +3,7 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T003",
   "lastClosed": {
     "closedAt": "2026-11-18T18:38:40.143Z",
     "scopeId": "M44-autopilot-grant",
@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1360,
+  "revision": 1362,
   "rounds": [
     {
       "digest": null,
@@ -342,7 +342,7 @@
       "acceptance": [
         "Ответ undelivered: под полем ввода «Сообщение не дошло до Claude: <причина>», текст остаётся в поле, кнопка «Повторить»",
         "Карточка «Подтвердить выпуск» в проекте decisions host видна, когда следующая задача плана — поставка в TODO без живого разрешения запуска, при любом состоянии автопилота сессии",
-        "Тесты моделей и браузерная проверка карточек в тёмной и светлой теме на 1280 и 390 px; module.md обновлены"
+        "Тесты моделей и браузерная проверка карточек в тёмной и светлой теме на 1280 и 390 px; module.md обновлены (design-qa.md у лимита размера — проверка описана в module.md и evidence)"
       ],
       "checks": [],
       "commitMessage": "feat: show an undelivered panel message and the delivery card without autopilot",
@@ -361,14 +361,15 @@
       "files": [
         "product-parts/control-panel/clusters/web-panel/modules/session-chat",
         "product-parts/control-panel/clusters/web-panel/modules/session-view",
-        "design-qa.md"
+        "design-qa.md",
+        "docs/architecture/OS-MATRIX-M45.md"
       ],
       "fixes": null,
       "id": "T003",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "Панель: «не доставлено» и карточка поставки",
       "why": "Пользователь не видит потерянное сообщение и не может подтвердить поставку без автопилота"
     },
@@ -520,9 +521,9 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Automation: 4 automatic, 1 manual criteria; CI origin ci/M45-claude-terminal-delivery (4 checks); publication main → origin/main
-- Current task: none
+- Current task: T003
 - Progress: 2/7
-- Revision: 1360
+- Revision: 1362
 
 ## Objective
 
@@ -547,9 +548,9 @@
   - Commit: fix: confirm a panel message to Claude by its prompt hook
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel, product-parts/backend-core/clusters/runtime/modules/cli, docs/architecture/HTTP-CONTRACTS.md, docs/architecture/CONTRACTS.md, docs/architecture/OS-MATRIX-M45.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/direct-message.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/hook-channel.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/m45-direct-message.test.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/module.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/sessions.md, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/direct.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/native-parameters.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-engine.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/src/pty/parameter-protocol.ts, product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/m45-direct.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/module.md, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/turn-control.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/src/turn-state.ts, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel/test/m45-direct-confirm.test.ts
   - Depends on: T001
-- [TODO] T003 — Панель: «не доставлено» и карточка поставки (work)
+- [IN_PROGRESS] T003 — Панель: «не доставлено» и карточка поставки (work)
   - Commit: feat: show an undelivered panel message and the delivery card without autopilot
-  - Files: product-parts/control-panel/clusters/web-panel/modules/session-chat, product-parts/control-panel/clusters/web-panel/modules/session-view, design-qa.md
+  - Files: product-parts/control-panel/clusters/web-panel/modules/session-chat, product-parts/control-panel/clusters/web-panel/modules/session-view, design-qa.md, docs/architecture/OS-MATRIX-M45.md
   - Depends on: T002
 - [TODO] T004 — Сквозные сценарии и доказательства (work)
   - Commit: test: verify M45 Claude terminal delivery end to end

@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1403,
+  "revision": 1405,
   "rounds": [
     {
       "digest": {
@@ -49,7 +49,7 @@
       },
       "id": "R1",
       "kind": "implementation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Implementation"
     }
   ],
@@ -207,9 +207,21 @@
           "session": "ffc970ed-20a1-499c-9d2c-47dff30c41a0"
         },
         "text": "confirm-delivery: Решение пользователя в панели Workflow Kit"
+      },
+      {
+        "at": "2026-11-19T18:35:49.448Z",
+        "decisionId": "dec-45bdbe4e68b6",
+        "kind": "confirm-delivery",
+        "source": {
+          "kind": "button",
+          "messageId": null,
+          "runId": null,
+          "session": "ffc970ed-20a1-499c-9d2c-47dff30c41a0"
+        },
+        "text": "confirm-delivery: Решение пользователя в панели Workflow Kit"
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 1,
       "ownerSession": "ffc970ed-20a1-499c-9d2c-47dff30c41a0",
@@ -464,7 +476,7 @@
       ],
       "checks": [],
       "commitMessage": "test: verify M47 on four CI platforms",
-      "confirmation": null,
+      "confirmation": "Решение пользователя в панели Workflow Kit",
       "context": [
         {
           "path": "docs/planning/M47-paste-confirm-host-build.md",
@@ -485,7 +497,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "CI четырёх платформ",
       "why": "Изменения в хосте терминала и службе: нужна зелёная CI macOS, Linux и Windows x64/ARM64"
     }
@@ -497,12 +509,12 @@
 ## State
 
 - Scope: M47-paste-confirm-host-build (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Automation: 4 automatic, 1 manual criteria; CI origin ci/M47-paste-confirm-host-build (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 6/7
-- Revision: 1403
+- Progress: 7/7
+- Revision: 1405
 
 ## Objective
 
@@ -518,7 +530,7 @@
 
 ## Rounds
 
-### R1 — Implementation (implementation, OPEN)
+### R1 — Implementation (implementation, CLOSED)
 
 - [DONE] T001 — Подтверждение прямой отправки по порядку хука (work)
   - Commit: fix: confirm a pasted panel message by its prompt hook, not by equal text
@@ -543,7 +555,7 @@
   - Commit: chore: release Workflow Kit 0.20.3
   - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/evidence/M47-acceptance.md
   - Depends on: T003, DOCS-R1
-- [TODO] T005 — CI четырёх платформ (delivery)
+- [DONE] T005 — CI четырёх платформ (delivery)
   - Commit: test: verify M47 on four CI platforms
   - Files: docs/evidence/M47-acceptance.md
   - Depends on: T004, DOCS-R1

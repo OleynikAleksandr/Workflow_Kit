@@ -3,7 +3,7 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T001",
   "lastClosed": {
     "closedAt": "2026-11-18T18:38:40.143Z",
     "scopeId": "M44-autopilot-grant",
@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1354,
+  "revision": 1356,
   "rounds": [
     {
       "digest": null,
@@ -239,11 +239,12 @@
   "tasks": [
     {
       "acceptance": [
-        "После отмены транзакции меню хоста (model, effort, fast, switch и dialog сразу после его команды) закрывается Escape, поле с набранной хостом командой очищается; транзакция заканчивается при idle и пустом поле или после трёх попыток уборки с unsafe и строкой журнала",
-        "Строка [bridge:repl] Ingress message type=user в логе Claude отменяет транзакцию как ввод пользователя; меню хоста без шага дольше 10 с закрывается",
-        "Неудачное чтение каталога на той же версии CLI и модели не повторяется после рестарта хоста",
-        "Пожелание параметра, равное текущему значению Claude, снимается после отмены",
-        "Тесты движка на записанных кадрах; ветки win32 и linux с подставленной платформой; module.md и OS-MATRIX-M45.md обновлены"
+        "После отмены транзакции хост закрывает Escape только своё меню того же вида и очищает только поле, где ровно его набранная команда (правила M28: чужой ввод, чужой диалог и чужое меню не трогаются); не больше трёх клавиш уборки, клавиша без изменения экрана не ждётся дольше 1 с; терминал, не вернувшийся к пустому полю, — unsafe с причиной в состоянии хоста",
+        "Текст пользователя (.text, .message, .rename) ждёт, пока транзакция убирает за собой и пока терминал unsafe с непустым полем (до 10 с), и не вставляется в меню или за набранную команду",
+        "Строка [bridge:repl] Ingress message type=user в логе Claude отменяет транзакцию как ввод пользователя; после ввода 3 с без обнаружения; меню хоста без шага дольше 10 с закрывается",
+        "Неудачное чтение каталога на той же версии CLI и модели не повторяется после рестарта хоста (failed в каталоге, слияние в службе)",
+        "Пожелание параметра, равное текущему значению Claude, снимается сразу, и при занятом терминале",
+        "Тесты движка и хоста на записанных кадрах, хост ConPTY (Windows) с путём C:; module.md, native-parameters.md, OS-MATRIX-M45.md и уточнения спецификации обновлены"
       ],
       "checks": [],
       "commitMessage": "fix: clean up Claude parameter transactions and yield to remote messages",
@@ -260,14 +261,15 @@
       "files": [
         "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude",
         "docs/architecture/OS-MATRIX.md",
-        "docs/architecture/OS-MATRIX-M45.md"
+        "docs/architecture/OS-MATRIX-M45.md",
+        "docs/planning/M45-claude-terminal-delivery.md"
       ],
       "fixes": null,
       "id": "T001",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "Хост параметров убирает за собой",
       "why": "Набранный /model и открытое меню хоста съедают сообщения панели и держат сообщения десктопа"
     },
@@ -489,9 +491,9 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Automation: 4 automatic, 1 manual criteria; CI origin ci/M45-claude-terminal-delivery (4 checks); publication main → origin/main
-- Current task: none
+- Current task: T001
 - Progress: 0/7
-- Revision: 1354
+- Revision: 1356
 
 ## Objective
 
@@ -509,9 +511,9 @@
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T001 — Хост параметров убирает за собой (work)
+- [IN_PROGRESS] T001 — Хост параметров убирает за собой (work)
   - Commit: fix: clean up Claude parameter transactions and yield to remote messages
-  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, docs/architecture/OS-MATRIX.md, docs/architecture/OS-MATRIX-M45.md
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, docs/architecture/OS-MATRIX.md, docs/architecture/OS-MATRIX-M45.md, docs/planning/M45-claude-terminal-delivery.md
 - [TODO] T002 — Подтверждённая доставка сообщения панели (work)
   - Commit: fix: confirm a panel message to Claude by its prompt hook
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel, product-parts/backend-core/clusters/runtime/modules/cli, docs/architecture/HTTP-CONTRACTS.md, docs/architecture/OS-MATRIX-M45.md

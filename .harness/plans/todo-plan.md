@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1443,
+  "revision": 1445,
   "rounds": [
     {
       "digest": {
@@ -254,6 +254,16 @@
       },
       {
         "at": "2026-11-20T10:37:05.669Z",
+        "kind": "confirm-delivery",
+        "source": {
+          "authorization": "a2fa989a85ec014230e38de82e56e36cbc5c653d01711bef19e6031f74cae7fb",
+          "kind": "grant",
+          "runId": "run-F5nJ3wbBuTxd"
+        },
+        "text": "Delivery T008 started by the advance instruction of run run-F5nJ3wbBuTxd"
+      },
+      {
+        "at": "2026-11-20T10:57:17.055Z",
         "kind": "confirm-delivery",
         "source": {
           "authorization": "a2fa989a85ec014230e38de82e56e36cbc5c653d01711bef19e6031f74cae7fb",
@@ -817,7 +827,7 @@
       ],
       "fixes": null,
       "id": "T008",
-      "iteration": 2,
+      "iteration": 3,
       "kind": "delivery",
       "roundId": "R2",
       "status": "TODO",
@@ -830,6 +840,13 @@
           "iteration": 1,
           "outcome": "red CI of the pushed commit",
           "reason": "CI failed for c1bf9331e4f8168ed7a117a49b7460c8a0f9836b: macOS ARM64: failure"
+        },
+        {
+          "at": "2026-11-20T11:00:20.120Z",
+          "confirmation": "Autopilot run run-F5nJ3wbBuTxd (authorization 1, user-command, 2026-11-20T09:03:55.487Z): Full autopilot run run-F5nJ3wbBuTxd: the user's direct instruction «Отлично, значит, мы сейчас одинаково понимаем, какие правки в коде нужно сделать. Согласен? И до кучи в этом же контексте смотри еще на один баг, который я снял скриншотом. То есть в диалоге четко вид» (2026-11-20T08:59:06.082Z) to prepare and carry out the plan | effects: push ci/M48-session-autopilot в origin и ожидание CI четырёх платформ",
+          "iteration": 2,
+          "outcome": "red CI of the pushed commit",
+          "reason": "CI failed for df004541584b886424f9ba935818fb53bd51ab64: Linux x64: failure"
         }
       ]
     }
@@ -846,7 +863,7 @@
 - Automation: 5 automatic, 1 manual criteria; CI origin ci/M48-session-autopilot (4 checks); publication main → origin/main
 - Current task: none
 - Progress: 11/12
-- Revision: 1443
+- Revision: 1445
 
 ## Objective
 

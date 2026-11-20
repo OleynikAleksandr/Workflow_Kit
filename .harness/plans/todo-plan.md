@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1451,
+  "revision": 1453,
   "rounds": [
     {
       "digest": {
@@ -284,6 +284,16 @@
       },
       {
         "at": "2026-11-20T10:57:17.055Z",
+        "kind": "confirm-delivery",
+        "source": {
+          "authorization": "a2fa989a85ec014230e38de82e56e36cbc5c653d01711bef19e6031f74cae7fb",
+          "kind": "grant",
+          "runId": "run-F5nJ3wbBuTxd"
+        },
+        "text": "Delivery T008 started by the advance instruction of run run-F5nJ3wbBuTxd"
+      },
+      {
+        "at": "2026-11-20T11:11:11.311Z",
         "kind": "confirm-delivery",
         "source": {
           "authorization": "a2fa989a85ec014230e38de82e56e36cbc5c653d01711bef19e6031f74cae7fb",
@@ -889,7 +899,7 @@
       ],
       "checks": [],
       "commitMessage": "test: verify M48 on four CI platforms",
-      "confirmation": null,
+      "confirmation": "Autopilot run run-F5nJ3wbBuTxd (authorization 1, user-command, 2026-11-20T09:03:55.487Z): Full autopilot run run-F5nJ3wbBuTxd: the user's direct instruction «Отлично, значит, мы сейчас одинаково понимаем, какие правки в коде нужно сделать. Согласен? И до кучи в этом же контексте смотри еще на один баг, который я снял скриншотом. То есть в диалоге четко вид» (2026-11-20T08:59:06.082Z) to prepare and carry out the plan | effects: push ci/M48-session-autopilot в origin и ожидание CI четырёх платформ",
       "context": [
         {
           "path": "docs/planning/M48-session-autopilot.md",
@@ -910,7 +920,7 @@
       "iteration": 3,
       "kind": "delivery",
       "roundId": "R3",
-      "status": "TODO",
+      "status": "DONE",
       "title": "CI четырёх платформ",
       "why": "Изменения в службе и панели: нужна зелёная CI macOS, Linux и Windows x64/ARM64",
       "deferrals": [
@@ -974,8 +984,8 @@
 - Execution: sequential
 - Automation: 5 automatic, 1 manual criteria; CI origin ci/M48-session-autopilot (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 13/15
-- Revision: 1451
+- Progress: 14/15
+- Revision: 1453
 
 ## Objective
 
@@ -1054,7 +1064,7 @@ Digest: CI of c1bf9331 failed on deadlines only: a Claude Stop test waited 4.5 s
   - Commit: docs: reconcile documentation for R3
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/architecture/OS-MATRIX-M48.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md
   - Depends on: F003
-- [TODO] T008 — CI четырёх платформ (delivery)
+- [DONE] T008 — CI четырёх платформ (delivery)
   - Commit: test: verify M48 on four CI platforms
   - Files: docs/evidence/M48-acceptance.md
   - Depends on: T007, DOCS-R3

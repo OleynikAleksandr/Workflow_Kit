@@ -42,7 +42,7 @@ export { createRuns } from './runs.ts';
 export { POLICY_TEXTS, preparationText } from './run-texts.ts';
 export { registerAutopilotingRoutes, registerRunControlRoutes, registerSessionRunRoutes, runHttp } from './runs-routes.ts';
 export type { PrepareActions, Preparation, PreparationDeps, ReviewFact } from './run-prepare.ts';
-export { PREPARE_TEXTS, START_ATTEMPTS, createPreparation } from './run-prepare.ts';
+export { CHOICE_ATTEMPTS, PREPARE_TEXTS, START_ATTEMPTS, createPreparation } from './run-prepare.ts';
 export type { AgentNoticesDeps } from './agent-notices.ts';
 export { NOTICE_TEXTS, asciiNoticeReason, createAgentNotices, runNoticeState } from './agent-notices.ts';
 export { grantNote } from './run-texts.ts';

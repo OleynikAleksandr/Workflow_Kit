@@ -202,6 +202,8 @@ M41 T002 — приёмка пользователя вместо останов
 - M48 T005 — сводка запуска `RunBrief.grant` (`accept`, `close`, `publish` разрешения; панель прячет
   эти кнопки, пока запуск идёт) и `RunBrief.returned`; раздел `autopiloting.sessions` с
   `reviewState` и `effect` — [session-settings.md](session-settings.md).
+- M48 F003 — `CHOICE_ATTEMPTS` (3) и `PREPARE_TEXTS.changedWhileChoosing`: выбор способа без ревью
+  перечитывает предложение, изменившееся перед выбором — [autopiloting.md](autopiloting.md).
 
 ## Инварианты
 

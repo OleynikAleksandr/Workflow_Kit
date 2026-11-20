@@ -7,7 +7,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { after, test } from 'node:test';
 import { createKeyedMutex } from '#data-store';
-import { PREPARE_TEXTS, WorkflowActionError, createPreparation, createRunJournal } from '../src/index.ts';
+import { CHOICE_ATTEMPTS, PREPARE_TEXTS, WorkflowActionError, createPreparation, createRunJournal } from '../src/index.ts';
 import type { ChooseRequest, NewRun, ReviewFact, RunKit } from '../src/index.ts';
 
 const tmp = await mkdtemp(path.join(os.tmpdir(), 'wfk-prepare-'));
@@ -26,7 +26,8 @@ function run(over: Partial<NewRun> = {}): NewRun {
   };
 }
 
-async function setup(options: { review?: boolean; fact?: ReviewFact | null; recommended?: 'sequential' | 'orchestrated'; options?: string[]; orchestration?: boolean; chooseError?: string } = {}) {
+async function setup(options: { review?: boolean; fact?: ReviewFact | null; recommended?: 'sequential' | 'orchestrated'; options?: string[]; orchestration?: boolean; chooseError?: string; chooseErrors?: number } = {}) {
+  let refusals = options.chooseErrors ?? Number.POSITIVE_INFINITY;
   const folder = path.join(tmp, `p${(n += 1)}`);
   const journal = createRunJournal();
   const kit = {
@@ -55,7 +56,10 @@ async function setup(options: { review?: boolean; fact?: ReviewFact | null; reco
       choose: async (_id, request) => {
         calls.push('choose');
         chosen.push(request);
-        if (options.chooseError) throw new WorkflowActionError(options.chooseError, 'refused');
+        if (options.chooseError && refusals > 0) {
+          refusals -= 1;
+          throw new WorkflowActionError(options.chooseError, 'refused');
+        }
         kit.scope = { id: 'auto', ownerSession: 's-1', automation: AUTOMATION };
       },
       start: async (_id, session) => {
@@ -112,11 +116,28 @@ test('a changed version, a failed review or a refused choice never start the pla
     assert.match(result!.reason!, new RegExp(status, 'u'));
     assert.deepEqual(t.calls, []);
   }
+  // M48: without a review a proposal that keeps changing stops the run after CHOICE_ATTEMPTS reads.
   const race = await setup({ chooseError: 'PROPOSAL_CHANGED' });
   await race.journal.create(race.folder, run({ review: false }));
   const refused = await race.preparation.reconcile('p1');
-  assert.deepEqual([refused?.phase, refused?.reason], ['blocked', PREPARE_TEXTS.changed]);
-  assert.deepEqual(race.calls, ['choose']);
+  assert.deepEqual([refused?.phase, refused?.reason], ['blocked', PREPARE_TEXTS.changedWhileChoosing]);
+  assert.deepEqual(race.calls, Array(CHOICE_ATTEMPTS).fill('choose'));
+});
+
+test('M48: review off — a proposal changed right before the choice is read again and chosen (A001: proposed again after the return)', async () => {
+  for (const code of ['PROPOSAL_CHANGED', 'DECISION_STALE']) {
+    const t = await setup({ chooseError: code, chooseErrors: 1 });
+    await t.journal.create(t.folder, run({ review: false }));
+    const result = await t.preparation.reconcile('p1');
+    assert.deepEqual([result?.phase, result?.reason], ['executing', null], code);
+    assert.deepEqual(t.calls, ['choose', 'choose', `start:${KEY}`], code);
+  }
+  // With an agreed review the changed version still stops the run: the consent is for one version.
+  const agreed = await setup({ review: true, chooseError: 'PROPOSAL_CHANGED', chooseErrors: 1, fact: { status: 'agreed', scopeId: 'auto', reason: null, reviewedProposal: { scopeId: 'auto', generation: 1, digest: DIGEST } } });
+  await agreed.journal.create(agreed.folder, run());
+  const stopped = await agreed.preparation.reconcile('p1');
+  assert.deepEqual([stopped?.phase, stopped?.reason], ['blocked', PREPARE_TEXTS.changed]);
+  assert.deepEqual(agreed.calls, ['choose']);
 });
 
 test('after-start, paused, stopped and late events: nothing is chosen or started', async () => {

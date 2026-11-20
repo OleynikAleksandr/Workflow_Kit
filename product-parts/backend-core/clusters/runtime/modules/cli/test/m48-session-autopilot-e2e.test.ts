@@ -27,6 +27,8 @@ let tmp = '';
 let app: App;
 let base = '';
 let env: Record<string, string> = {};
+/** The service log of the test (autopiloting lines go into a timeout trace). */
+const serviceLog: string[] = [];
 const roots: Record<string, string> = {};
 const ids: Record<string, string> = {};
 const saved = { HOME: process.env['HOME'], GIT_CONFIG_GLOBAL: process.env['GIT_CONFIG_GLOBAL'], GIT_CONFIG_NOSYSTEM: process.env['GIT_CONFIG_NOSYSTEM'] };
@@ -126,6 +128,7 @@ async function boot(): Promise<void> {
     homedir: tmp,
     getInterfaces: () => ({}),
     providers: ['claude', 'codex'].map((id) => () => createStubProvider({ id, title: id, task: 'T000' })),
+    log: (line) => void serviceLog.push(line),
   });
   base = `http://127.0.0.1:${(await app.start()).port}`;
   env['WFK_PORT'] = new URL(base).port;
@@ -232,7 +235,7 @@ test('1, 2. The plan question is open, the session card switches to «Полны
   const going = await until('the run starts the plan', async () => {
     const now = (await state())['autopiloting']['projects'][id];
     return ['executing', 'delivering'].includes(now['phase']) ? now : null;
-  }, undefined, async () => (await state())['autopiloting']['projects'][id]);
+  }, undefined, async () => ({ run: (await state())['autopiloting']['projects'][id], log: serviceLog.filter((line) => /autopilot|decision|choose/u.test(line)).slice(-12) }));
   assert.deepEqual([going['returned'], (await planOf('a001')).scope?.status], [false, 'ACTIVE']);
   assert.equal((await state())['workflow']['projects'][id]?.['choice'] ?? null, null, 'no mode choice is left');
   void started;

@@ -58,9 +58,17 @@ const PREPARING: ReadonlySet<RunRecord['phase']> = new Set(['preparing', 'review
 /** M44: attempts of the start (and of the grant after it) before the run is blocked. */
 export const START_ATTEMPTS = 3;
 
+/**
+ * M48: reads of the current version when Kit refuses the choice of a run without a review because
+ * the proposal changed meanwhile (the agent proposed again right after a returned proposal, A001).
+ */
+export const CHOICE_ATTEMPTS = 3;
+
 export const PREPARE_TEXTS = {
   reviewFailed: (status: string, reason: string | null) => `Ревью плана не согласовано (${status}${reason ? `: ${reason}` : ''}): план не запущен автоматически.`,
   changed: 'Предложение или его документы изменились после согласия ревью: допуск отменён, план не запущен.',
+  /** M48: without a review the run chooses the current version; it stops only when it keeps changing. */
+  changedWhileChoosing: 'Предложение менялось во время выбора способа выполнения: план не запущен автоматически.',
   scopeChanged: 'В проекте выбран другой план или другой владелец: автопилот этого запуска его не запускает.',
   next: 'Повторите ревью или запустите план вручную кнопками карточки.',
   noOption: 'Рекомендованный способ выполнения недоступен, последовательное выполнение план не допускает.',
@@ -125,8 +133,11 @@ export function createPreparation(deps: PreparationDeps) {
     return { option: 'sequential', why: `orchestration is unavailable for ${run.owner.client} (${capability.reason ?? 'no capability'}); sequential fallback` };
   }
 
-  /** Chooses the agreed version and starts it (the same service actions as the buttons). */
-  async function chooseAndStart(folder: string, run: RunRecord, version: KitProposalDigest, review: 'agreed' | 'skipped-by-setting'): Promise<RunRecord | null> {
+  /**
+   * Chooses the agreed version and starts it (the same service actions as the buttons). `again`
+   * (M48, review off): the step once more with the current version when the proposal changed.
+   */
+  async function chooseAndStart(folder: string, run: RunRecord, version: KitProposalDigest, review: 'agreed' | 'skipped-by-setting', again?: () => Promise<RunRecord | null>): Promise<RunRecord | null> {
     const actions = deps.actions();
     if (!actions) return run;
     const picked = await option(run, folder);
@@ -149,7 +160,14 @@ export function createPreparation(deps: PreparationDeps) {
       log(`autopiloting: ${run.runId} choose refused: ${code}`);
       // M40: the run was paused, stopped or revoked before the ticket — it keeps that state.
       if (code === 'run-not-live') return null;
-      return block(folder, current, code === 'PROPOSAL_CHANGED' || code === 'DECISION_STALE' ? PREPARE_TEXTS.changed : `${code}: ${error instanceof Error ? error.message : String(error)}`);
+      const changed = code === 'PROPOSAL_CHANGED' || code === 'DECISION_STALE';
+      // M48: no review consent to keep — the current version is read again and chosen.
+      if (changed && review === 'skipped-by-setting' && again) {
+        log(`autopiloting: ${run.runId} the proposal changed before the choice (${code}); the current version is read again`);
+        await deps.journal.advance(folder, run.runId, (r) => ({ ...r, phase: 'preparing', pendingAction: null }));
+        return again();
+      }
+      return block(folder, current, changed ? (review === 'agreed' ? PREPARE_TEXTS.changed : PREPARE_TEXTS.changedWhileChoosing) : `${code}: ${error instanceof Error ? error.message : String(error)}`);
     }
     const scope = await deps.kit.scope(folder);
     current = await deps.journal.advance(folder, run.runId, (r) => ({
@@ -214,7 +232,7 @@ export function createPreparation(deps: PreparationDeps) {
     );
   }
 
-  async function step(projectId: string): Promise<RunRecord | null> {
+  async function step(projectId: string, attempt = 1): Promise<RunRecord | null> {
     const folder = await deps.projectPath(projectId);
     if (!folder) return null;
     const active = await deps.journal.active(folder);
@@ -237,7 +255,7 @@ export function createPreparation(deps: PreparationDeps) {
     // M40: no review and no choice for a proposal without the automation block; its author gets
     // it back at the end of the turn (run-proposal.ts).
     if (await proposalLacksAutomation(deps.kit, folder)) return phase(folder, run, 'preparing');
-    if (!deps.reviewOn(projectId, run.owner.key)) return chooseAndStart(folder, run, version, 'skipped-by-setting');
+    if (!deps.reviewOn(projectId, run.owner.key)) return chooseAndStart(folder, run, version, 'skipped-by-setting', attempt < CHOICE_ATTEMPTS ? () => step(projectId, attempt + 1) : undefined);
     const review = deps.review(projectId, run.owner.key);
     if (!review || review.scopeId !== version.scopeId || !['agreed', 'disagreed', 'failed', 'cancelled'].includes(review.status)) return phase(folder, run, 'reviewing');
     if (review.status !== 'agreed') return block(folder, run, PREPARE_TEXTS.reviewFailed(review.status, review.reason));

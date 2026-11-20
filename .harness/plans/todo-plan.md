@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1446,
+  "revision": 1448,
   "rounds": [
     {
       "digest": {
@@ -825,14 +825,19 @@
       "files": [
         "product-parts/workflow-engine/clusters/session-loop/modules/autopilot",
         "product-parts/backend-core/clusters/runtime/modules/cli/test/m48-session-autopilot-e2e.test.ts",
-        "docs/architecture/OS-MATRIX-M48.md"
+        "docs/architecture/OS-MATRIX-M48.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/index.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-prepare.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/prepare.test.ts"
       ],
       "fixes": "T002",
       "id": "F003",
       "iteration": 1,
       "kind": "work",
       "roundId": "R3",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Выбор способа без ревью перечитывает изменившееся предложение",
       "why": "CI df004541 (run 44723538909) Linux x64: сценарий A001 — запуск встал blocked на choosing «Предложение или его документы изменились после согласия ревью»: агент предложил план снова сразу после возврата, Kit отказал в выборе версии, прочитанной мгновением раньше; без ревью согласия нет, остановка ошибочна"
     },
@@ -922,8 +927,8 @@
 - Execution: sequential
 - Automation: 5 automatic, 1 manual criteria; CI origin ci/M48-session-autopilot (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 11/14
-- Revision: 1446
+- Progress: 12/14
+- Revision: 1448
 
 ## Objective
 
@@ -994,9 +999,9 @@ Digest: CI of c1bf9331 failed on deadlines only: a Claude Stop test waited 4.5 s
 
 ### R3 — Fixes: choice of a changed proposal (fixes, OPEN)
 
-- [TODO] F003 — Выбор способа без ревью перечитывает изменившееся предложение (work)
+- [DONE] F003 — Выбор способа без ревью перечитывает изменившееся предложение (work)
   - Commit: fix: choose the current proposal again when it changed before an automatic choice without review
-  - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/backend-core/clusters/runtime/modules/cli/test/m48-session-autopilot-e2e.test.ts, docs/architecture/OS-MATRIX-M48.md
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/backend-core/clusters/runtime/modules/cli/test/m48-session-autopilot-e2e.test.ts, docs/architecture/OS-MATRIX-M48.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-prepare.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/prepare.test.ts
   - Fixes: T002
 - [TODO] DOCS-R3 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R3

@@ -143,7 +143,11 @@ mutex?, log?, now? })` → `{ reconcile(projectId) }`. Один шаг под м
   (`noOption`). `actions.choose` (тот же `autopilot.choose`, что кнопка) с `expectedDigest`
   выбранной версии и `automatic` (`Автоматический выбор по поручению <runId>: …` в заметке
   выбора, без сообщения «ждите кнопку»); отказ Kit `PROPOSAL_CHANGED` (гонка изменения
-  между чтением согласия и выбором) — `blocked` `changed`. Перед вызовом — `pendingAction`
+  между чтением согласия и выбором) — `blocked` `changed`. M48 F003: без ревью согласия нет —
+  отказ `PROPOSAL_CHANGED` или `DECISION_STALE` возвращает запуск в `preparing` и тот же шаг
+  перечитывает текущую версию и выбирает её (агент предложил план снова сразу после возврата,
+  A001; CI Linux x64 `df004541`); после `CHOICE_ATTEMPTS` (3) чтений подряд — `blocked`
+  `changedWhileChoosing`. С согласованным ревью — прежнее `blocked` `changed`. Перед вызовом — `pendingAction`
   (`choose:<generation>:<digest>`), после — квитанция `choose`, `scopeId`, фаза `starting`.
 - Старт: `actions.start(projectId, owner)` — тот же старт, что кнопка; разрешение пишет
   `authority.beforeStart` (`beginExecution`) до первого сообщения, примечание разрешения —

@@ -74,15 +74,19 @@ async function kit<T = Record<string, unknown>>(id: string, ...args: string[]): 
  */
 async function slowAgentKit(id: string, ...args: string[]) {
   const preload = path.join(tmp, 'slow-git-commit.cjs');
+  const marker = `${preload}.held`;
   await writeFile(preload, [
     "const cp = require('node:child_process');",
+    "const fs = require('node:fs');",
+    `const marker = ${JSON.stringify(marker)};`,
     "const { syncBuiltinESMExports } = require('node:module');",
     // `git commit` by name, by a full path (git.exe on Windows) or through `cmd /c`.
     "const slow = (cmd, args) => { const words = [String(cmd), ...(Array.isArray(args) ? args.map(String) : [])]; return words.some((w) => /(^|[\\\\/])git(\\.exe)?$/iu.test(w)) && words.includes('commit'); };",
     "for (const name of ['spawn', 'spawnSync', 'execFile', 'execFileSync']) {",
     "  const original = cp[name];",
     "  cp[name] = function (cmd, args, ...rest) {",
-    "    if (slow(cmd, args)) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 4000);",
+    // The marker tells the test that Kit holds its lock now (it is inside the commit).
+    "    if (slow(cmd, args)) { fs.writeFileSync(marker, 'held'); Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 4000); }",
     "    return original.call(this, cmd, args, ...rest);",
     "  };",
     "}",
@@ -90,7 +94,7 @@ async function slowAgentKit(id: string, ...args: string[]) {
   ].join('\n'));
   // NODE_OPTIONS reads a backslash in quotes as an escape: the path goes with «/» (Windows takes it too).
   const runner = createKitRunner({ runCommand, appBundle: async () => { throw new Error('the project bundle is used'); }, env: { ...env, NODE_OPTIONS: `--require "${preload.replaceAll('\\', '/')}"` } });
-  return runner.run(roots[id]!, args);
+  return { done: runner.run(roots[id]!, args), held: () => until('Kit holds its lock', async () => (await readFile(marker, 'utf8').catch(() => '')) === 'held') };
 }
 
 async function propose(id: string, body: Record<string, unknown>): Promise<void> {
@@ -156,7 +160,7 @@ async function planOf(id: string): Promise<Plan> {
 }
 
 /** A hook of the Claude session as the CLI sends it; the Stop answer the agent would get (or none within `ms`). */
-async function hook(event: string, input: Record<string, unknown>, ms = 8_000): Promise<string> {
+async function hook(event: string, input: Record<string, unknown>, ms = 30_000): Promise<string> {
   const out: string[] = [];
   const run = main(['hook', event, '--client', 'claude'], {
     stdout: (text: string) => void out.push(text), stderr: () => undefined,
@@ -174,12 +178,17 @@ async function post(url: string, body: unknown): Promise<{ status: number; body:
   const reply = await fetch(`${base}${url}`, { method: 'POST', headers: H(), body: JSON.stringify(body) });
   return { status: reply.status, body: (await reply.json()) as Record<string, any> };
 }
-async function until<T>(what: string, read: () => Promise<T | null | undefined | false>, ms = 20_000): Promise<T> {
+/**
+ * Waits for a condition of the service. Windows runners run Kit several times slower (M48 CI: 51 s
+ * against 11 s): the deadline only bounds a hang, a passing run ends at the condition. On a timeout
+ * the error carries what `trace` saw last (the run brief).
+ */
+async function until<T>(what: string, read: () => Promise<T | null | undefined | false>, ms = 90_000, trace?: () => Promise<unknown>): Promise<T> {
   const end = Date.now() + ms;
   for (;;) {
     const value = await read();
     if (value) return value;
-    if (Date.now() > end) throw new Error(`timed out: ${what}`);
+    if (Date.now() > end) throw new Error(`timed out: ${what}${trace ? `; last seen: ${JSON.stringify(await trace().catch((error: unknown) => String(error)))}` : ''}`);
     await sleep(150);
   }
 }
@@ -219,11 +228,11 @@ test('1, 2. The plan question is open, the session card switches to «Полны
   assert.deepEqual([back['mode'], back['phase'], back['returned']], ['full', 'preparing', true], 'the panel shows the line instead of the mode choice');
   // The plan with the block: the run chooses the mode and starts the plan itself.
   await propose('a001', scope('a001', true));
-  const started = await hook('stop', { ...turn, hook_event_name: 'Stop', stop_hook_active: false }, 15_000);
+  const started = await hook('stop', { ...turn, hook_event_name: 'Stop', stop_hook_active: false });
   const going = await until('the run starts the plan', async () => {
     const now = (await state())['autopiloting']['projects'][id];
     return ['executing', 'delivering'].includes(now['phase']) ? now : null;
-  });
+  }, undefined, async () => (await state())['autopiloting']['projects'][id]);
   assert.deepEqual([going['returned'], (await planOf('a001')).scope?.status], [false, 'ACTIVE']);
   assert.equal((await state())['workflow']['projects'][id]?.['choice'] ?? null, null, 'no mode choice is left');
   void started;
@@ -246,8 +255,8 @@ test('3. «Подтвердить выпуск» while the agent holds the Kit l
   await kit('locked', 'commit', '--task', 'DOCS-R1', '--digest', '.harness/inputs/digest.json');
   // The agent commits a document (Kit holds its lock 4 s); the user presses «Подтвердить выпуск» meanwhile.
   await put('locked', 'docs/x.md', '# Between the tasks\n');
-  const agent = slowAgentKit('locked', 'docs:commit', '--files', 'docs/x.md');
-  await sleep(1_500);
+  const agent = await slowAgentKit('locked', 'docs:commit', '--files', 'docs/x.md');
+  await agent.held();
   const first = await post(`/api/projects/${id}/workflow/confirm-delivery`, { session: 'claude:s-4' });
   const second = await post(`/api/projects/${id}/workflow/confirm-delivery`, { session: 'claude:s-4' });
   assert.equal(first.status, 202, JSON.stringify(first.body));
@@ -256,7 +265,7 @@ test('3. «Подтвердить выпуск» while the agent holds the Kit l
   assert.equal(second.body['wait']['id'], first.body['wait']['id'], 'the second press joins the wait');
   const shown = (await state())['kitWaits']['projects'][id] as Array<Record<string, unknown>>;
   assert.equal(shown[0]?.['state'], 'waiting');
-  const committed = await agent;
+  const committed = await agent.done;
   assert.ok(committed.ok, JSON.stringify(committed));
   const done = await until('the wait is done', async () => ((await state())['kitWaits']['projects'][id] as Array<Record<string, any>>).find((w) => w['state'] !== 'waiting'));
   assert.equal(done['state'], 'done', JSON.stringify(done));
@@ -284,7 +293,7 @@ test('4. B001: a run of a plan without publication blocked at no-upstream by an 
   const done = await until('the run completes', async () => {
     const now = (await state())['autopiloting']['projects'][ids['b001']!];
     return now?.['phase'] === 'completed' ? now : null;
-  });
+  }, undefined, async () => (await state())['autopiloting']['projects'][ids['b001']!]);
   assert.deepEqual([done['reason'], done['nextAction'], done['local'], done['publication']?.['published'] ?? null], [null, null, true, null]);
   const record = (await journal.read(root, run.runId))!;
   assert.equal(record.receipts.at(-1)?.actionId, `local:${head}`);

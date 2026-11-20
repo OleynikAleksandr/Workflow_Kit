@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1439,
+  "revision": 1441,
   "rounds": [
     {
       "digest": {
@@ -752,7 +752,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Сквозные сценарии M48 с запасом времени на Windows",
       "why": "CI c1bf9331 (run 44720800213): Windows x64 — сценарий 4 B001 «timed out: the run completes» (20 с), Windows ARM64 — сценарий 1–2 «timed out: the run starts the plan» (20 с); сценарий 3 на Windows шёл 51 с против 11 с на macOS — короткие сроки ожидания, не ошибка службы"
     },
@@ -835,8 +835,8 @@
 - Execution: sequential
 - Automation: 5 automatic, 1 manual criteria; CI origin ci/M48-session-autopilot (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 9/12
-- Revision: 1439
+- Progress: 10/12
+- Revision: 1441
 
 ## Objective
 
@@ -894,7 +894,7 @@ Digest: Each session has its own autopilot mode and review, changed on its card 
 - [DONE] F001 — Тест остановки ответа Claude без гонки по времени на загруженном CI (work)
   - Commit: test: give the Claude Stop confirmation room on a loaded CI runner
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/interrupt.test.ts
-- [TODO] F002 — Сквозные сценарии M48 с запасом времени на Windows (work)
+- [DONE] F002 — Сквозные сценарии M48 с запасом времени на Windows (work)
   - Commit: test: give the M48 end-to-end scenarios room on Windows runners
   - Files: product-parts/backend-core/clusters/runtime/modules/cli/test/m48-session-autopilot-e2e.test.ts
   - Fixes: T006

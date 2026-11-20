@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1435,
+  "revision": 1436,
   "rounds": [
     {
       "digest": {
@@ -52,8 +52,15 @@
       },
       "id": "R1",
       "kind": "implementation",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Implementation"
+    },
+    {
+      "digest": null,
+      "id": "R2",
+      "kind": "fixes",
+      "status": "OPEN",
+      "title": "Fixes: CI macOS ARM64"
     }
   ],
   "schema": "harness-workflow-plan/1",
@@ -699,6 +706,60 @@
     },
     {
       "acceptance": [
+        "Тесты interrupt.test.ts, которые ждут подтверждённой остановки, ждут до 15 с вместо 4,5 с; тесты, ждущие отказа по времени, — прежние сроки",
+        "Тест проходит локально повторно; поведение продукта не меняется"
+      ],
+      "checks": [],
+      "commitMessage": "test: give the Claude Stop confirmation room on a loaded CI runner",
+      "confirmation": null,
+      "context": [
+        {
+          "path": "docs/evidence/M48-acceptance.md",
+          "required": false
+        }
+      ],
+      "dependencies": [],
+      "docsWaiver": "Only the test deadline changes; no module code or contract changes.",
+      "files": [
+        "product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/interrupt.test.ts"
+      ],
+      "fixes": null,
+      "id": "F001",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Тест остановки ответа Claude без гонки по времени на загруженном CI",
+      "why": "CI c1bf9331 (run 44720800213) на macOS ARM64: M28 T010 darwin — interrupt-timeout: подтверждение остановки не пришло за 4,5 с под нагрузкой; локально 3 из 3, код M48 тест не трогал"
+    },
+    {
+      "acceptance": [
+        "Project-wide documents describe the round result",
+        "The round digest records result, decisions, contracts and references"
+      ],
+      "checks": [],
+      "commitMessage": "docs: reconcile documentation for R2",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "F001"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/architecture/OVERVIEW.md"
+      ],
+      "fixes": null,
+      "id": "DOCS-R2",
+      "iteration": 1,
+      "kind": "docs",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Reconcile project documentation and write the round digest",
+      "why": "Keep the project context current for the next agent and close the round."
+    },
+    {
+      "acceptance": [
         "CI на ci/M48-session-autopilot успешен для точного SHA на macOS ARM64, Linux x64, Windows x64 и Windows ARM64; ссылка в evidence"
       ],
       "checks": [],
@@ -713,7 +774,7 @@
       ],
       "dependencies": [
         "T007",
-        "DOCS-R1"
+        "DOCS-R2"
       ],
       "docsWaiver": null,
       "files": [
@@ -723,7 +784,7 @@
       "id": "T008",
       "iteration": 2,
       "kind": "delivery",
-      "roundId": "R1",
+      "roundId": "R2",
       "status": "TODO",
       "title": "CI четырёх платформ",
       "why": "Изменения в службе и панели: нужна зелёная CI macOS, Linux и Windows x64/ARM64",
@@ -749,8 +810,8 @@
 - Execution: sequential
 - Automation: 5 automatic, 1 manual criteria; CI origin ci/M48-session-autopilot (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 8/9
-- Revision: 1435
+- Progress: 8/11
+- Revision: 1436
 
 ## Objective
 
@@ -767,7 +828,7 @@
 
 ## Rounds
 
-### R1 — Implementation (implementation, OPEN)
+### R1 — Implementation (implementation, CLOSED)
 
 - [DONE] T001 — Настройки автопилота сессии (work)
   - Commit: feat: keep autopilot mode and review per session, Settings as defaults
@@ -800,11 +861,21 @@
   - Commit: chore: release Workflow Kit 0.21.0
   - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/evidence/M48-acceptance.md
   - Depends on: T006, DOCS-R1
+
+Digest: Each session has its own autopilot mode and review, changed on its card at any stage; Settings are the defaults of new sessions. The panel hides the buttons a running autopilot presses itself. A plan without publication ends completed (local result) instead of no-upstream. A user press refused with Kit LOCKED waits and is applied once. Verified end to end on a real service with the real Kit.
+
+### R2 — Fixes: CI macOS ARM64 (fixes, OPEN)
+
+- [TODO] F001 — Тест остановки ответа Claude без гонки по времени на загруженном CI (work)
+  - Commit: test: give the Claude Stop confirmation room on a loaded CI runner
+  - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/interrupt.test.ts
+- [TODO] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
+  - Commit: docs: reconcile documentation for R2
+  - Files: README.md, docs/architecture/OVERVIEW.md
+  - Depends on: F001
 - [TODO] T008 — CI четырёх платформ (delivery)
   - Commit: test: verify M48 on four CI platforms
   - Files: docs/evidence/M48-acceptance.md
-  - Depends on: T007, DOCS-R1
-
-Digest: Each session has its own autopilot mode and review, changed on its card at any stage; Settings are the defaults of new sessions. The panel hides the buttons a running autopilot presses itself. A plan without publication ends completed (local result) instead of no-upstream. A user press refused with Kit LOCKED waits and is applied once. Verified end to end on a real service with the real Kit.
+  - Depends on: T007, DOCS-R2
 
 State changes only through `scripts/workflow` commands. History lives in Git.

@@ -22,10 +22,34 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1429,
+  "revision": 1431,
   "rounds": [
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "autopilot session-settings: <project>/.workflow-kit/local/autopiloting/sessions/<client>.<id>.json; GET/POST /api/projects/:id/sessions/:sid/autopiloting -> { settings, stage, effect, reviewState }.",
+          "autopilot kit-waits: plan, decision and run buttons answer 202 { pending, wait } on Kit LOCKED; state section kitWaits.",
+          "autopilot run brief: local (completed without publication), grant { accept, close, publish }, returned; RunCompletion.local.",
+          "session-view: sessionAutopilotView, autopilotPresses, kitWaitsView; panel-shell DEFAULTS_HINT and no publish button under a publishing run."
+        ],
+        "decisions": [
+          "Settings only seed a session when it begins; a running session never changes when Settings change (no more pause or notice on Settings change).",
+          "Switching a session off pauses its run (settings-off) and switching it on resumes the same run; a started plan without automation stays manual and the card says so.",
+          "The session review is one value with the plan question answer; it changes until the mode is chosen, turning it off during a review cancels the review.",
+          "A press refused with LOCKED is retried every 2 s for up to 15 minutes; the same decision pressed again joins the wait, so it is applied once.",
+          "The panel hides a button only while the run goes on and its grant covers the step; paused, blocked or stopped runs give the buttons back."
+        ],
+        "references": [
+          "docs/planning/M48-session-autopilot.md",
+          "docs/evidence/M48-acceptance.md",
+          "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/session-settings.md",
+          "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/session-switch.md",
+          "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/kit-waits.md",
+          "product-parts/control-panel/clusters/web-panel/modules/session-view/session-autopilot.md",
+          "docs/usage-autopiloting.md"
+        ],
+        "result": "Each session has its own autopilot mode and review, changed on its card at any stage; Settings are the defaults of new sessions. The panel hides the buttons a running autopilot presses itself. A plan without publication ends completed (local result) instead of no-upstream. A user press refused with Kit LOCKED waits and is applied once. Verified end to end on a real service with the real Kit."
+      },
       "id": "R1",
       "kind": "implementation",
       "status": "OPEN",
@@ -612,7 +636,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -696,8 +720,8 @@
 - Execution: sequential
 - Automation: 5 automatic, 1 manual criteria; CI origin ci/M48-session-autopilot (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 6/9
-- Revision: 1429
+- Progress: 7/9
+- Revision: 1431
 
 ## Objective
 
@@ -739,7 +763,7 @@
   - Commit: test: verify M48 end to end
   - Files: product-parts/backend-core/clusters/runtime/modules/cli/test, docs/evidence/M48-acceptance.md, product-parts/backend-core/clusters/runtime/modules/cli/test/m48-session-autopilot-e2e.test.ts
   - Depends on: T005
-- [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/planning/M48-session-autopilot.md, docs/architecture/HTTP-CONTRACTS.md, docs/architecture/CONTRACTS.md, docs/architecture/OS-MATRIX.md, docs/architecture/OS-MATRIX-M48.md, docs/usage-autopiloting.md, docs/evidence/M48-acceptance.md
   - Depends on: T001, T002, T003, T004, T005, T006
@@ -751,5 +775,7 @@
   - Commit: test: verify M48 on four CI platforms
   - Files: docs/evidence/M48-acceptance.md
   - Depends on: T007, DOCS-R1
+
+Digest: Each session has its own autopilot mode and review, changed on its card at any stage; Settings are the defaults of new sessions. The panel hides the buttons a running autopilot presses itself. A plan without publication ends completed (local result) instead of no-upstream. A user press refused with Kit LOCKED waits and is applied once. Verified end to end on a real service with the real Kit.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

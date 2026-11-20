@@ -176,3 +176,5 @@ Kit занят командой агента, не отказывает, а жд
 | T006 | сквозные сценарии и доказательства | `cli` (тесты), evidence |
 | T007 | выпуск 0.21.0 (delivery) | версии, CHANGELOG, README, evidence |
 | T008 | CI четырёх платформ (delivery) | evidence |
+
+Ход и результаты задач — [M48-acceptance.md](../evidence/M48-acceptance.md).

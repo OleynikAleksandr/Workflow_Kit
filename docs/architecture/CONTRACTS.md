@@ -151,6 +151,12 @@ M48 T001: Settings — значения по умолчанию; у каждой
 `.workflow-kit/local/autopiloting/sessions/<client>.<id>.json` (режим и ревью, взятые при её начале
 или изменённые на её карточке), и точки решения запуска читают её; `off` карточки сессии ставит на
 паузу её запуск — [autopilot/session-settings.md](../../product-parts/workflow-engine/clusters/session-loop/modules/autopilot/session-settings.md).
+T002–T003: включение на любом этапе задания (запуск `session-card`), ревью сессии до выбора способа —
+[session-switch.md](../../product-parts/workflow-engine/clusters/session-loop/modules/autopilot/session-switch.md).
+T004: план без публикации — `completed` с `local`; нажатие при `LOCKED` Kit — 202 и одно применение —
+[kit-waits.md](../../product-parts/workflow-engine/clusters/session-loop/modules/autopilot/kit-waits.md).
+T005: панель не показывает кнопки, которые нажимает идущий запуск —
+[session-view/session-autopilot.md](../../product-parts/control-panel/clusters/web-panel/modules/session-view/session-autopilot.md).
 
 ## Мастер проекта (`project-setup`, веха 2)
 

@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1445,
+  "revision": 1446,
   "rounds": [
     {
       "digest": {
@@ -69,8 +69,15 @@
       },
       "id": "R2",
       "kind": "fixes",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Fixes: CI macOS ARM64"
+    },
+    {
+      "digest": null,
+      "id": "R3",
+      "kind": "fixes",
+      "status": "OPEN",
+      "title": "Fixes: choice of a changed proposal"
     }
   ],
   "schema": "harness-workflow-plan/1",
@@ -805,6 +812,59 @@
     },
     {
       "acceptance": [
+        "Без ревью отказ выбора PROPOSAL_CHANGED или DECISION_STALE возвращает запуск в preparing и тот же шаг выбирает текущую версию; после 3 чтений подряд — blocked с текстом «Предложение менялось во время выбора способа…»",
+        "С согласованным ревью изменённая версия по-прежнему останавливает запуск (changed)",
+        "Тесты подготовки; сквозной тест печатает журнал автопилота службы при тайм-ауте; контракт autopiloting.md обновлён"
+      ],
+      "checks": [],
+      "commitMessage": "fix: choose the current proposal again when it changed before an automatic choice without review",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [],
+      "docsWaiver": null,
+      "files": [
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/m48-session-autopilot-e2e.test.ts",
+        "docs/architecture/OS-MATRIX-M48.md"
+      ],
+      "fixes": "T002",
+      "id": "F003",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R3",
+      "status": "TODO",
+      "title": "Выбор способа без ревью перечитывает изменившееся предложение",
+      "why": "CI df004541 (run 44723538909) Linux x64: сценарий A001 — запуск встал blocked на choosing «Предложение или его документы изменились после согласия ревью»: агент предложил план снова сразу после возврата, Kit отказал в выборе версии, прочитанной мгновением раньше; без ревью согласия нет, остановка ошибочна"
+    },
+    {
+      "acceptance": [
+        "Project-wide documents describe the round result",
+        "The round digest records result, decisions, contracts and references"
+      ],
+      "checks": [],
+      "commitMessage": "docs: reconcile documentation for R3",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "F003"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "README.md",
+        "docs/architecture/OVERVIEW.md",
+        "docs/architecture/OS-MATRIX-M48.md"
+      ],
+      "fixes": null,
+      "id": "DOCS-R3",
+      "iteration": 1,
+      "kind": "docs",
+      "roundId": "R3",
+      "status": "TODO",
+      "title": "Reconcile project documentation and write the round digest",
+      "why": "Keep the project context current for the next agent and close the round."
+    },
+    {
+      "acceptance": [
         "CI на ci/M48-session-autopilot успешен для точного SHA на macOS ARM64, Linux x64, Windows x64 и Windows ARM64; ссылка в evidence"
       ],
       "checks": [],
@@ -819,7 +879,7 @@
       ],
       "dependencies": [
         "T007",
-        "DOCS-R2"
+        "DOCS-R3"
       ],
       "docsWaiver": null,
       "files": [
@@ -829,7 +889,7 @@
       "id": "T008",
       "iteration": 3,
       "kind": "delivery",
-      "roundId": "R2",
+      "roundId": "R3",
       "status": "TODO",
       "title": "CI четырёх платформ",
       "why": "Изменения в службе и панели: нужна зелёная CI macOS, Linux и Windows x64/ARM64",
@@ -862,8 +922,8 @@
 - Execution: sequential
 - Automation: 5 automatic, 1 manual criteria; CI origin ci/M48-session-autopilot (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 11/12
-- Revision: 1445
+- Progress: 11/14
+- Revision: 1446
 
 ## Objective
 
@@ -916,7 +976,7 @@
 
 Digest: Each session has its own autopilot mode and review, changed on its card at any stage; Settings are the defaults of new sessions. The panel hides the buttons a running autopilot presses itself. A plan without publication ends completed (local result) instead of no-upstream. A user press refused with Kit LOCKED waits and is applied once. Verified end to end on a real service with the real Kit.
 
-### R2 — Fixes: CI macOS ARM64 (fixes, OPEN)
+### R2 — Fixes: CI macOS ARM64 (fixes, CLOSED)
 
 - [DONE] F001 — Тест остановки ответа Claude без гонки по времени на загруженном CI (work)
   - Commit: test: give the Claude Stop confirmation room on a loaded CI runner
@@ -929,11 +989,22 @@ Digest: Each session has its own autopilot mode and review, changed on its card 
   - Commit: docs: reconcile documentation for R2
   - Files: README.md, docs/architecture/OVERVIEW.md
   - Depends on: F001, F002
+
+Digest: CI of c1bf9331 failed on deadlines only: a Claude Stop test waited 4.5 s on a loaded macOS runner, two M48 end-to-end scenarios waited 20 s on Windows runners that run Kit several times slower. Tests now wait up to 15 s / 90 s and end at the condition; the locked scenario presses when Kit is known to hold its lock; a timeout prints the last run brief.
+
+### R3 — Fixes: choice of a changed proposal (fixes, OPEN)
+
+- [TODO] F003 — Выбор способа без ревью перечитывает изменившееся предложение (work)
+  - Commit: fix: choose the current proposal again when it changed before an automatic choice without review
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/backend-core/clusters/runtime/modules/cli/test/m48-session-autopilot-e2e.test.ts, docs/architecture/OS-MATRIX-M48.md
+  - Fixes: T002
+- [TODO] DOCS-R3 — Reconcile project documentation and write the round digest (docs)
+  - Commit: docs: reconcile documentation for R3
+  - Files: README.md, docs/architecture/OVERVIEW.md, docs/architecture/OS-MATRIX-M48.md
+  - Depends on: F003
 - [TODO] T008 — CI четырёх платформ (delivery)
   - Commit: test: verify M48 on four CI platforms
   - Files: docs/evidence/M48-acceptance.md
-  - Depends on: T007, DOCS-R2
-
-Digest: CI of c1bf9331 failed on deadlines only: a Claude Stop test waited 4.5 s on a loaded macOS runner, two M48 end-to-end scenarios waited 20 s on Windows runners that run Kit several times slower. Tests now wait up to 15 s / 90 s and end at the condition; the locked scenario presses when Kit is known to hold its lock; a timeout prints the last run brief.
+  - Depends on: T007, DOCS-R3
 
 State changes only through `scripts/workflow` commands. History lives in Git.

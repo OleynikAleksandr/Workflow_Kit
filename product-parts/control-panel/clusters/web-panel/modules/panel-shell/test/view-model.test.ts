@@ -270,3 +270,14 @@ test('the GitHub line: published, ready with the button, or why it waits; nothin
   const waits = publicationView(st({ status: 'blocked', ahead: 2, reason: 'Scope открыт — опубликовать можно после приёмки и закрытия' }), 'p1')!;
   assert.deepEqual([waits.button, waits.text], [null, 'Неопубликованных коммитов: 2 · Scope открыт — опубликовать можно после приёмки и закрытия']);
 });
+
+test('M48 T005: under a run that publishes itself there is no «Опубликовать»; Settings say they are the defaults of new sessions', async () => {
+  const { AUTOPILOT_PUBLISHES, publicationView } = await import('../src/publication.js');
+  const { DEFAULTS_HINT } = await import('../src/autopiloting-model.js');
+  const st = (run: unknown) => ({ publication: { projects: { p1: { status: 'ready', ahead: 2 } } }, autopiloting: { projects: { p1: run } } });
+  const live = publicationView(st({ phase: 'publishing', grant: { accept: true, close: true, publish: true } }), 'p1')!;
+  assert.deepEqual([live.button, live.text], [null, `Неопубликованных коммитов: 2 · ${AUTOPILOT_PUBLISHES}`]);
+  assert.equal(publicationView(st({ phase: 'blocked', grant: { accept: true, close: true, publish: true } }), 'p1')!.button, 'Опубликовать на GitHub (2 коммита)');
+  assert.equal(publicationView(st({ phase: 'executing', grant: { accept: true, close: true, publish: false } }), 'p1')!.button, 'Опубликовать на GitHub (2 коммита)');
+  assert.match(DEFAULTS_HINT, /^Значения для новых сессий/u);
+});

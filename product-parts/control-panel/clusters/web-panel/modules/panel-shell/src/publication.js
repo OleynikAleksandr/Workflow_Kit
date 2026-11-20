@@ -20,6 +20,20 @@ export function commitsLabel(n) {
  * @property {string | null} button label of the publish button, null when publishing waits
  */
 
+/** M48 T005: phases of an autopiloting run that goes on (it publishes itself with the grant). */
+const LIVE_RUN = new Set(['preparing', 'reviewing', 'choosing', 'starting', 'executing', 'delivering', 'verifying', 'accepting', 'closing', 'publishing', 'waiting']);
+export const AUTOPILOT_PUBLISHES = 'Опубликует автопилот: публикация входит в его запуск.';
+
+/**
+ * Whether the project's run goes on and its grant includes the publication.
+ * @param {Record<string, unknown>} state
+ * @param {string} projectId
+ */
+function autopilotPublishes(state, projectId) {
+  const run = /** @type {any} */ (state['autopiloting'])?.projects?.[projectId];
+  return Boolean(run && typeof run === 'object' && LIVE_RUN.has(String(run.phase)) && run.grant?.publish === true);
+}
+
 /**
  * @param {Record<string, unknown>} state /api/state
  * @param {string} projectId
@@ -32,6 +46,8 @@ export function publicationView(state, projectId) {
   const ahead = Number(entry.ahead) || 0;
   const branch = typeof entry.branch === 'string' ? entry.branch : '';
   if (entry.status === 'up-to-date') return { tone: 'ok', text: `Опубликовано, ветка ${branch} совпадает с ${entry.upstream}`, button: null };
+  // M48 T005: under a run that publishes itself there is no «Опубликовать».
+  if (entry.status === 'ready' && autopilotPublishes(state, projectId)) return { tone: 'muted', text: `Неопубликованных коммитов: ${ahead} · ${AUTOPILOT_PUBLISHES}`, button: null };
   if (entry.status === 'ready') return { tone: 'muted', text: `Неопубликованных коммитов: ${ahead}`, button: `Опубликовать на GitHub (${commitsLabel(ahead)})` };
   const reason = typeof entry.reason === 'string' ? entry.reason : 'публикация сейчас невозможна';
   return { tone: 'warn', text: ahead > 0 ? `Неопубликованных коммитов: ${ahead} · ${reason}` : reason, button: null };

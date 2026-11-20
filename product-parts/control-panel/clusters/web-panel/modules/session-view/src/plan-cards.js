@@ -2,6 +2,7 @@
 // The path choice card and the plan card of the session sidebar (spec sections 8.3, 9.3; M4;
 // M11; M31 3.4: an unstarted plan shows in every main session of the project). No DOM.
 import { hostDecisions } from './decision-model.js';
+import { autopilotPresses } from './session-autopilot-model.js';
 
 /**
  * @param {unknown} value
@@ -145,7 +146,8 @@ export function choiceView(state, projectId, key) {
  * @property {boolean} delivery the autopilot waits for «Подтвердить выпуск»
  * @property {StartingView | null} starting the press of «Начать выполнение плана» Kit has not seen yet (spec M11)
  * @property {string[]} dirty paths outside commits that keep the plan from closing (spec M37 2.4)
- * @property {string | null} autopilotingMode the mode of «Автопилотирование» while the plan waits for its start (M39)
+ * @property {string | null} autopilotingMode the mode of the session's autopilot while the plan waits for its start (M39; M48: the session's own mode)
+ * @property {string | null} autopilotNote M48 T005: what the run does instead of the hidden buttons
  */
 
 /**
@@ -197,12 +199,16 @@ export function planView(state, projectId, key) {
   const total = typeof progress['total'] === 'number' ? progress['total'] : 0;
   const done = typeof progress['done'] === 'number' ? progress['done'] : 0;
   const pilot = array(record(state['autopilot'])['sessions']).find((s) => s && s.key === key);
-  const delivery = record(pilot?.last)['reason'] === 'delivery-confirmation' || deliveryWaits(state, projectId, plan);
-  const actions = array(plan['actions']).map(String);
+  // M48 T005: under a run that goes on no button it presses itself is shown.
+  const presses = autopilotPresses(state, projectId);
+  const delivery = !presses.delivery && (record(pilot?.last)['reason'] === 'delivery-confirmation' || deliveryWaits(state, projectId, plan));
+  const hidden = new Set([presses.start ? 'start' : '', presses.accept ? 'accept' : '', presses.close ? 'close' : '']);
+  const actions = array(plan['actions']).map(String).filter((action) => !hidden.has(action));
   const phase = String(plan['phase'] ?? '');
   const starting = startingOf(pilot, phase);
   // M11 2.4: while a start runs the button gives way to the spinner; after a problem it starts anew.
   const shown = starting && !starting.problem ? actions.filter((action) => action !== 'start') : actions;
+  const own = record(record(record(record(state['autopiloting'])['sessions'])[projectId])[key]);
   return {
     scopeId: plan['scopeId'],
     phase,
@@ -226,8 +232,9 @@ export function planView(state, projectId, key) {
     starting,
     // M37 2.4: paths outside commits while the plan waits for acceptance or closing.
     dirty: array(plan['dirty']).map(String),
-    // M39: the effective policy is shown before the start, for the mode of the settings.
-    autopilotingMode: shown.includes('start') ? (record(record(state['autopiloting'])['settings'])['mode'] ?? null) : null,
+    // M39: the effective policy is shown before the start; M48: for the mode of this session.
+    autopilotingMode: shown.includes('start') ? (typeof own['mode'] === 'string' ? own['mode'] : (record(record(state['autopiloting'])['settings'])['mode'] ?? null)) : null,
+    autopilotNote: (phase === 'ready' && presses.start) || (['acceptance', 'accepted'].includes(phase) && (presses.accept || presses.close)) ? presses.note : null,
   };
 }
 

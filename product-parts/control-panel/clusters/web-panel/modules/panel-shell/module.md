@@ -176,7 +176,15 @@
   - отказ (`refusalOf`): `settings-stale` возвращает `details.current` и «изменили на другом
     устройстве», иначе «Не сохранено: …» и сохранённое значение. `ApiError.details` хранит
     все поля ответа об ошибке;
-  - в браузере настройки не хранятся.
+  - в браузере настройки не хранятся;
+  - M48 T005: под заголовком — `DEFAULTS_HINT` «Значения для новых сессий. Чтобы изменить режим
+    уже открытой сессии — карточка автопилота под сессией.» (карточка сессии — модуль
+    `session-view`, [session-autopilot.md](../session-view/session-autopilot.md)).
+- M48 T005, строка «GitHub» (`publication.js`): пока запуск автопилотирования проекта идёт и его
+  разрешение включает публикацию (`autopiloting.projects[id].grant.publish`), кнопки
+  «Опубликовать на GitHub» нет, строка — «Неопубликованных коммитов: N · Опубликует автопилот:
+  публикация входит в его запуск.» (`AUTOPILOT_PUBLISHES`); на паузе, после блокировки или
+  остановки — кнопка как раньше.
 - Свёрнутые карточки: `CardDefinition.collapsible` / `CardGroupDefinition.collapsible`.
   `card-grid.js` (`collapsibleCard`) рисует `details.panel.service-card` с `summary`
   (заголовок и стрелка, `aria-expanded` синхронизируется с `toggle`, `aria-controls` на тело):

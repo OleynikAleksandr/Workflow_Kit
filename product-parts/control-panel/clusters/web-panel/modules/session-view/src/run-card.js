@@ -59,18 +59,19 @@ const policies = new Map();
  * asked once per plan and mode; the card is drawn again when it arrives.
  * @param {import('./session-view.js').Shell} shell
  * @param {string} projectId
+ * @param {string} session the session key: M48 — the policy of its own mode
  * @param {{ scopeId: string, autopilotingMode: string | null }} plan
  * @param {() => void} redraw
  * @returns {HTMLElement | null}
  */
-export function policyLine(shell, projectId, plan, redraw) {
+export function policyLine(shell, projectId, session, plan, redraw) {
   if (!plan.autopilotingMode || plan.autopilotingMode === 'off') return null;
-  const key = `${projectId}\n${plan.scopeId}\n${plan.autopilotingMode}`;
+  const key = `${projectId}\n${session}\n${plan.scopeId}\n${plan.autopilotingMode}`;
   const known = policies.get(key);
   if (!known) {
     policies.set(key, 'loading');
     shell
-      .api('GET', `/api/projects/${encodeURIComponent(projectId)}/autopiloting/policy`)
+      .api('GET', `/api/projects/${encodeURIComponent(projectId)}/autopiloting/policy?session=${encodeURIComponent(session)}`)
       .then((answer) => policies.set(key, { text: typeof answer?.text === 'string' ? answer.text : '' }))
       .catch(() => policies.set(key, 'failed'))
       .finally(redraw);

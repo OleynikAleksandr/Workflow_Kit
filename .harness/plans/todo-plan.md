@@ -3,7 +3,7 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": "T005",
+  "currentTaskId": null,
   "lastClosed": {
     "closedAt": "2026-11-19T19:02:47.878Z",
     "scopeId": "M47-paste-confirm-host-build",
@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1426,
+  "revision": 1427,
   "rounds": [
     {
       "digest": null,
@@ -510,14 +510,38 @@
         "docs/usage-autopiloting.md",
         "docs/architecture/OS-MATRIX-M48.md",
         "product-parts/workflow-engine/clusters/session-loop/modules/autopilot",
-        "docs/architecture/HTTP-CONTRACTS.md"
+        "docs/architecture/HTTP-CONTRACTS.md",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/autopiloting-card.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/autopiloting-model.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/publication.js",
+        "product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/autopiloting.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/module.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/session-autopilot.md",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/plan-cards.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/run-card.css",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/run-card.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/run-model.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-autopilot-card.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-autopilot-model.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/src/sidebar-view.js",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/test/m48-session-autopilot.test.ts",
+        "product-parts/control-panel/clusters/web-panel/modules/session-view/test/m48-session-card.browser.mjs",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/session-settings.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-brief.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/runs-routes.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/complete.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/m48-session-settings.test.ts"
       ],
       "fixes": null,
       "id": "T005",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "title": "Панель: карточка сессии и ручные кнопки только без автопилота",
       "why": "Панель показывала ручные кнопки, которые затем нажимал автопилот, и «Остановить автопилот» у законченного запуска"
     },
@@ -670,9 +694,9 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Automation: 5 automatic, 1 manual criteria; CI origin ci/M48-session-autopilot (4 checks); publication main → origin/main
-- Current task: T005
-- Progress: 4/9
-- Revision: 1426
+- Current task: none
+- Progress: 5/9
+- Revision: 1427
 
 ## Objective
 
@@ -706,9 +730,9 @@
   - Commit: fix: complete a local-only run and wait out a busy Kit for user decisions
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/backend-core/clusters/runtime/modules/cli, docs/architecture/HTTP-CONTRACTS.md, docs/architecture/OS-MATRIX-M48.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/autopiloting-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting-completion.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/kit-waits.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/run-end.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/agent-notices.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/decision-commands.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/kit-waits.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-brief.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-complete.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-journal.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/runs-routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/complete.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/m48-kit-waits.test.ts
   - Depends on: T003
-- [IN_PROGRESS] T005 — Панель: карточка сессии и ручные кнопки только без автопилота (work)
+- [DONE] T005 — Панель: карточка сессии и ручные кнопки только без автопилота (work)
   - Commit: feat: show the session autopilot card and hide the buttons the autopilot presses
-  - Files: product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/control-panel/clusters/web-panel/modules/panel-shell, docs/usage-autopiloting.md, docs/architecture/OS-MATRIX-M48.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot, docs/architecture/HTTP-CONTRACTS.md
+  - Files: product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/control-panel/clusters/web-panel/modules/panel-shell, docs/usage-autopiloting.md, docs/architecture/OS-MATRIX-M48.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot, docs/architecture/HTTP-CONTRACTS.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/autopiloting-card.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/autopiloting-model.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/publication.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/session-view/autopiloting.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/session-autopilot.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/plan-cards.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/run-card.css, product-parts/control-panel/clusters/web-panel/modules/session-view/src/run-card.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/run-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-autopilot-card.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-autopilot-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/sidebar-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/test/m48-session-autopilot.test.ts, product-parts/control-panel/clusters/web-panel/modules/session-view/test/m48-session-card.browser.mjs, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/session-settings.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-brief.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/runs-routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/complete.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/m48-session-settings.test.ts
   - Depends on: T004
 - [TODO] T006 — Сквозные сценарии и доказательства (work)
   - Commit: test: verify M48 end to end

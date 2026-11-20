@@ -5,7 +5,7 @@
 import { api } from './api.js';
 import { requestRefresh } from './cards.js';
 import { h, notice } from './dom.js';
-import { AUTOPILOTING_MODES, REVIEW_CAPTION, REVIEW_LABEL, autopilotingOf, newerSettings, refusalOf, settingsOf } from './autopiloting-model.js';
+import { AUTOPILOTING_MODES, DEFAULTS_HINT, REVIEW_CAPTION, REVIEW_LABEL, autopilotingOf, newerSettings, refusalOf, settingsOf } from './autopiloting-model.js';
 
 /** @typedef {import('./autopiloting-model.js').AutopilotingSettings} AutopilotingSettings */
 
@@ -27,6 +27,7 @@ export function createAutopilotingCard() {
   const reviewRow = h('label', { class: 'ap-option ap-review' }, [review, h('span', {}, [h('b', {}, [REVIEW_LABEL]), h('small', {}, [REVIEW_CAPTION])])]);
   const element = h('section', { class: 'panel', 'aria-labelledby': 'autopiloting-title' }, [
     h('h2', { id: 'autopiloting-title' }, ['Автопилотирование']),
+    h('p', { class: 'muted' }, [DEFAULTS_HINT]),
     options,
     reviewRow,
     status,

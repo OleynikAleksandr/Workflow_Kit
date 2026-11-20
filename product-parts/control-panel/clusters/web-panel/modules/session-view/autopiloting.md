@@ -31,8 +31,9 @@
     «Пауза», «Остановить автопилот». Нет поля (старая служба) — прежняя подпись. Браузерная
     проверка — `test/m44-run-card.browser.mjs` (Chromium, обе темы, 1280 и 390 px).
   Остановленный или ждущий запуск зажигает `data-needs-attention`.
-- `planView.autopilotingMode` — режим настроек, пока у плана есть кнопка старта.
+- `planView.autopilotingMode` — режим настроек, пока у плана есть кнопка старта (M48: режим
+  этой сессии, [session-autopilot.md](session-autopilot.md)).
   `policyLine` один раз на план и режим спрашивает `GET
-  /api/projects/:id/autopiloting/policy` и показывает «Автопилот после старта: …»
+  /api/projects/:id/autopiloting/policy` (M48: `?session=<key>`) и показывает «Автопилот после старта: …»
   (legacy, ручная приёмка, «Обновите Kit проекта»), затем карточка перерисовывается.
 - Тест — `test/run-model.test.ts`.

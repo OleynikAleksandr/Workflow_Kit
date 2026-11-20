@@ -32,7 +32,9 @@ Settings («Автопилотирование», «Ревью специфик�
   after })`. Отказы — `SettingsError`: `bad-request` (400), `project-not-found` (404),
   `settings-stale` (409, `current` — сохранённая запись сессии).
 - `load(projects)` — при старте службы читает записи всех проектов для раздела состояния;
-  `section()` → `{ <projectId>: { <key>: запись } }`.
+  `section()` → `{ <projectId>: { <key>: запись } }`; раздел состояния `autopiloting.sessions`
+  (`runs-routes.ts`, M48 T005) добавляет к каждой записи `reviewState` (опция `review`) и `effect`
+  (последнее переключение, опция `switcher`) для карточки сессии панели.
 
 ## Где читается
 

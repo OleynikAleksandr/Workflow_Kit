@@ -3,6 +3,7 @@ import { activityView, choiceView, crossReviewView, foreignPlanView, planQuestio
 import { runView } from './run-model.js';
 import { decisionCardsView, decisionFields, hostDecisions } from './decision-model.js';
 import { projectReviews as projectReviewsOf } from './plan-cards.js';
+import { autopilotPresses, cardNotes, kitWaitsView, sessionAutopilotView } from './session-autopilot-model.js';
 
 /** @typedef {import('../../panel-shell/src/slots.js').SessionContext} SessionContext */
 /** @typedef {import('../../panel-shell/src/slots.js').SlotContext} SlotContext */
@@ -32,7 +33,13 @@ export function installSidebarSlot(shell, renderers, version = () => 0) {
     select(state, session) {
       const { id } = session.project;
       const { key } = session.session;
-      return { version: version(session), activity: activityView(state, id, key), question: planQuestionView(state, id, key), choice: choiceView(state, id, key), plan: planView(state, id, key), foreign: foreignPlanView(state, id, key), review: crossReviewView(state, id, key), run: runView(state, id, key), name: session.session.name , decisions: decisionCardsView(state, id, key, (s, p, k) => projectReviewsOf(s, p).some((r) => r.reviewerKey === k)),
+      const isReviewer = (/** @type {Record<string, unknown>} */ s, /** @type {string} */ p, /** @type {string} */ k) => projectReviewsOf(s, p).some((r) => r.reviewerKey === k);
+      const pilot = sessionAutopilotView(state, id, key, isReviewer);
+      return {
+        // M48 T005: the autopilot card of the session, what the run presses itself, the waiting presses.
+        autopilot: pilot ? { ...pilot, note: cardNotes.get(`${id}\n${key}`) ?? null } : null,
+        autoChoice: autopilotPresses(state, id).choice,
+        waits: pilot ? kitWaitsView(state, id) : [], version: version(session), activity: activityView(state, id, key), question: planQuestionView(state, id, key), choice: choiceView(state, id, key), plan: planView(state, id, key), foreign: foreignPlanView(state, id, key), review: crossReviewView(state, id, key), run: runView(state, id, key), name: session.session.name , decisions: decisionCardsView(state, id, key, (s, p, k) => projectReviewsOf(s, p).some((r) => r.reviewerKey === k)),
         // M40: the requests of Kit the plan buttons send (`host` projects); empty objects otherwise.
         host: hostDecisions(state, id), requests: Object.fromEntries(['accept', 'close', 'choose', 'confirm-delivery'].map((kind) => [kind, decisionFields(state, id, kind)])) };
     },
@@ -45,10 +52,13 @@ export function installSidebarSlot(shell, renderers, version = () => 0) {
       }
       const descriptions = [
         ['question', data.question],
+        ['waits', data.waits?.length ? data.waits : null],
         ['decisions', data.decisions?.length ? data.decisions : null],
         ['review', showsReview(data) ? data.review : null],
         ['delivery', data.plan?.delivery ? { host: data.host, request: data.requests['confirm-delivery'] } : null],
-        ['choice', data.choice ? { ...data.choice, request: data.requests.choose } : null],
+        ['choice', data.choice && !data.autoChoice ? { ...data.choice, request: data.requests.choose } : null],
+        ['autoChoice', data.choice && data.autoChoice ? data.autoChoice : null],
+        ['autopilot', data.autopilot],
         ['run', data.run],
         ['plan', data.plan ? { ...data.plan, name: data.name, version: data.version, requests: data.requests } : null],
         ['foreign', data.foreign],
@@ -77,7 +87,7 @@ export function installSidebarSlot(shell, renderers, version = () => 0) {
       for (const [name, part] of entry.parts) {
         if (!keep.has(name)) { part.node.remove(); entry.parts.delete(name); }
       }
-      entry.root.dataset['needsAttention'] = String(Boolean(data.question || data.choice || data.decisions?.length || data.plan?.delivery || ['ready', 'acceptance', 'accepted', 'blocked'].includes(data.plan?.phase) || ['blocked', 'paused'].includes(data.run?.phase)));
+      entry.root.dataset['needsAttention'] = String(Boolean(data.question || (data.choice && !data.autoChoice) || data.decisions?.length || data.plan?.delivery || ['ready', 'acceptance', 'accepted', 'blocked'].includes(data.plan?.phase) || ['blocked', 'paused'].includes(data.run?.phase)));
       return entry.root;
     },
   });

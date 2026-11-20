@@ -75,7 +75,10 @@
   ревью), выключение во время ревью отменяет его ([autopilot/session-switch.md](../../product-parts/workflow-engine/clusters/session-loop/modules/autopilot/session-switch.md)); 400 `bad-request` (ключ не `<client>:<id>`, неизвестное
   значение), 404 `project-not-found`, 409 `settings-stale` с `current`. `GET
   /api/projects/:id/autopiloting/policy?session=<key>` — политика по режиму сессии. Раздел
-  `autopiloting` — плюс `sessions: { <projectId>: { <key>: запись } }`. Контракт —
+  `autopiloting` — плюс `sessions: { <projectId>: { <key>: запись } }` (T005: у записи ещё
+  `reviewState` и `effect`); сводка запуска `autopiloting.projects[id]` (T005) — плюс
+  `grant: { accept, close, publish }` (что запуск нажимает сам; всё `false` без разрешения) и
+  `returned` (полный запуск вернул предложение без `automation` автору). Контракт —
   [autopilot/session-settings.md](../../product-parts/workflow-engine/clusters/session-loop/modules/autopilot/session-settings.md).
 - M48 T004: кнопки плана (`…/workflow/choose|start|accept|close|confirm-delivery`), карточки
   решения (`…/workflow/decision`) и запуска (`…/autopiloting/pause|resume|stop`) при отказе Kit

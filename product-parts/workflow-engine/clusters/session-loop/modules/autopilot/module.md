@@ -199,6 +199,9 @@ M41 T002 — приёмка пользователя вместо останов
   [run-end.md](run-end.md); ожидание занятого Kit `createKitWaits` (`KitWaits`, `KitWait`,
   `kitLocked`, `pressSignature`, `KIT_WAIT_*`), опция `waits` у `registerAutopilotRoutes`,
   `registerDecisionRoutes`, `registerRunControlRoutes` — [kit-waits.md](kit-waits.md).
+- M48 T005 — сводка запуска `RunBrief.grant` (`accept`, `close`, `publish` разрешения; панель прячет
+  эти кнопки, пока запуск идёт) и `RunBrief.returned`; раздел `autopiloting.sessions` с
+  `reviewState` и `effect` — [session-settings.md](session-settings.md).
 
 ## Инварианты
 

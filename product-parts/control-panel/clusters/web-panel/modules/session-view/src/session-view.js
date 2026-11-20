@@ -9,6 +9,7 @@ import { dirtyBlock } from './plan-dirty.js';
 import { crossReviewCard } from './review-card.js';
 import { installSidebarSlot } from './sidebar-view.js';
 import { policyLine, runCard } from './run-card.js';
+import { autoChoiceLine, kitWaitsBlock, sessionAutopilotCard } from './session-autopilot-card.js';
 import { START_SLOW_TEXT, START_STEPS, activityView, choiceView, crossReviewView, planQuestionView, planView, timer } from './session-model.js';
 
 /**
@@ -278,7 +279,8 @@ export function install(shell) {
       dirtyBlock(h, plan.dirty, button('Попросить агента убрать', () => void send(ctx, projectId, 'tidy', { session: key }, 'Не удалось попросить агента'))),
       h('hr'),
       plan.starting?.problem ? h('p', { class: 'sv-warn' }, [plan.starting.problem]) : null,
-      policyLine(shell, projectId, plan, () => {
+      plan.autopilotNote ? h('p', { class: 'sv-muted sv-policy' }, [plan.autopilotNote]) : null,
+      policyLine(shell, projectId, key, plan, () => {
         fields.version += 1;
         ctx.requestRefresh();
       }),
@@ -330,6 +332,9 @@ export function install(shell) {
     choice: choiceCard,
     plan: planCard,
     run: (data, session, ctx) => runCard(shell, data, session.project.id, ctx),
+    autopilot: (data, session, ctx) => sessionAutopilotCard(shell, data, session.project.id, session.session.key, ctx),
+    autoChoice: (text) => autoChoiceLine(shell, text),
+    waits: (data) => kitWaitsBlock(shell, data),
     foreign: (data, session, ctx) => foreignPlanCard(h, data, (key) => (ctx.openSession ? ctx.openSession(session.project.id, key) : ctx.navigate({ screen: 'session', projectId: session.project.id, key }))),
     activity: activityBlock,
     empty: () => h('p', { class: 'sv-empty sv-muted' }, ['План появится, когда агент его предложит.']),

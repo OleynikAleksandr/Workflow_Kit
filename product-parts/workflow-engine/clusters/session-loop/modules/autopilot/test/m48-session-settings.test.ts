@@ -150,6 +150,22 @@ test('GET and POST /api/projects/:id/sessions/:sid/autopiloting and the sessions
   assert.equal(section.sessions['p1']?.[KEY]?.mode, 'off');
 });
 
+test('T005: the sessions part of the state carries the review state and the last switch of each session', async () => {
+  const t = await setup();
+  const router = createRouter();
+  const state = createStateRegistry();
+  registerAutopilotingRoutes({
+    router, state, settings: t.settings, runs: t.runs, sessions: t.sessions,
+    switcher: { stage: async () => 'idle', effect: (_p: string, key: string) => (key === KEY ? 'Автопилот сессии выключен' : null) },
+    review: { state: (_p: string, key: string) => (key === KEY ? 'running' : null), guard: async () => undefined },
+  } as unknown as Parameters<typeof registerAutopilotingRoutes>[0]);
+  await t.sessions.ensure('p1', KEY);
+  await t.sessions.ensure('p1', 'codex:s-2');
+  const section = (await state.collect())['autopiloting'] as { sessions: Record<string, Record<string, { mode: string; reviewState: unknown; effect: unknown }>> };
+  assert.deepEqual([section.sessions['p1']?.[KEY]?.reviewState, section.sessions['p1']?.[KEY]?.effect], ['running', 'Автопилот сессии выключен']);
+  assert.deepEqual([section.sessions['p1']?.['codex:s-2']?.reviewState, section.sessions['p1']?.['codex:s-2']?.effect], [null, null]);
+});
+
 test('T003: a decided review wins over the Settings default; syncReview follows it without the listeners', async () => {
   const t = await setup();
   await t.setSettings('full', true);

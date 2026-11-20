@@ -42,3 +42,39 @@
 .sv-policy {
   margin: 8px 0 0;
 }
+
+/* M48: the autopilot card of a session — the mode buttons, the review switch, the last switch. */
+.sv-run .sv-ap-modes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.sv-ap-modes .btn[aria-pressed='true'] {
+  border-color: var(--teal);
+  font-weight: 600;
+}
+
+.sv-ap-review {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  min-height: 44px;
+  margin-top: 6px;
+}
+
+.sv-ap-review input {
+  accent-color: var(--teal);
+}
+
+.sv-ap-effect {
+  font-weight: 500;
+}
+
+.sv-waits p {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 4px 0;
+}

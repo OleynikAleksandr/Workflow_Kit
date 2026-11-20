@@ -77,11 +77,16 @@ function record(value) {
 /** @param {unknown} sha */
 const short = (sha) => (typeof sha === 'string' ? sha.slice(0, 7) : '');
 
+/** M48 T004: the end of a plan without a publication; the label of such a completed run. */
+export const LOCAL_RESULT = 'Результат остаётся локальным: публикация в плане не предусмотрена.';
+export const LOCAL_LABEL = 'Завершён: план принят и закрыт';
+
 /**
  * @param {Record<string, any>} run
  * @returns {RunView['publication']}
  */
 function publicationOf(run) {
+  if (run['phase'] === 'completed' && run['local'] === true) return { text: LOCAL_RESULT, tone: 'done' };
   const pub = record(run['publication']);
   const upstream = typeof pub['upstream'] === 'string' ? pub['upstream'] : 'upstream';
   if (run['phase'] === 'completed' && typeof pub['published'] === 'string') {
@@ -122,7 +127,7 @@ export function runView(state, projectId, key) {
   const userAccepts = phase === 'accepting' && typeof manual['reason'] === 'string';
   // M44: an older service sends no `authorized`: only an explicit false means «no grant».
   const noGrant = GRANTED_WORK.has(phase) && run['authorized'] === false;
-  const phaseLabel = noGrant ? NO_GRANT_LABEL : userAccepts ? USER_ACCEPTANCE_LABEL : phase === 'waiting' ? (question ? 'Ждёт ответа на вопрос агента' : 'Ждёт CI') : expired ? 'Нужны данные' : (PHASE_LABELS[phase] ?? phase);
+  const phaseLabel = noGrant ? NO_GRANT_LABEL : userAccepts ? USER_ACCEPTANCE_LABEL : phase === 'completed' && run['local'] === true ? LOCAL_LABEL : phase === 'waiting' ? (question ? 'Ждёт ответа на вопрос агента' : 'Ждёт CI') : expired ? 'Нужны данные' : (PHASE_LABELS[phase] ?? phase);
   const detail = noGrant ? (typeof run['reason'] === 'string' && run['reason'] ? run['reason'] : NO_GRANT_DETAIL) : userAccepts ? String(manual['reason']) : stopReason ?? (phase === 'waiting' ? (typeof wait['detail'] === 'string' ? wait['detail'] : null) : phase === 'blocked' || phase === 'paused' ? (typeof run['reason'] === 'string' ? run['reason'] : null) : null);
   /** @type {RunView['buttons']} */
   const buttons = [];

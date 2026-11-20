@@ -67,7 +67,14 @@ export function registerAutopilotingRoutes(options: {
   router.get('/api/projects/:id/autopiloting/policy', ({ params, query }) => runHttp(() => runs.policy(params['id']!, query.get('session') ?? undefined)));
   options.state.add('autopiloting', async () => {
     const view = await settings.read();
-    return { settings: view.settings, error: view.error, ...(await runs.section()), sessions: sessions?.section() ?? {} };
+    // M48 T005: each known session record with its review state and the last switch, for the session card.
+    const known = sessions?.section() ?? {};
+    const cards = Object.fromEntries(Object.entries(known).map(([projectId, records]) => [projectId, Object.fromEntries(Object.entries(records).map(([key, record]) => [key, {
+      ...record,
+      reviewState: options.review?.state(projectId, key) ?? null,
+      effect: switcher?.effect(projectId, key) ?? null,
+    }]))]));
+    return { settings: view.settings, error: view.error, ...(await runs.section()), sessions: cards };
   });
 }
 

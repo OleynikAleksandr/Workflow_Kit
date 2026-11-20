@@ -11,6 +11,8 @@ export const AUTOPILOTING_MODES = Object.freeze([
 ]);
 
 export const REVIEW_LABEL = 'Ревью спецификации и плана';
+/** M48 T005: Settings are the defaults of new sessions; a session changes its own on its card. */
+export const DEFAULTS_HINT = 'Значения для новых сессий. Чтобы изменить режим уже открытой сессии — карточка автопилота под сессией.';
 export const REVIEW_CAPTION = 'Ревью другим провайдером до начала выполнения.';
 
 /**

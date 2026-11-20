@@ -34,11 +34,13 @@
 | `session-view.js` | DOM: строка активности (таймер тикает раз в секунду; очередь спящего агента — «уйдут агенту со следующим сообщением в чате»), карточка выбора («Выбрать» → `POST …/workflow/choose { session, generation, option }`), карточка плана («Начать выполнение плана» — по нажатию сразу спиннер «Запускаю план · ступень · таймер», он держится, пока запрос в пути и пока у службы идёт запуск; отказ запроса возвращает кнопку и показывает ошибку; проблема запуска — предупреждение и «Начать заново», M11; «Пауза», «Продолжить», «Принять план» и «Закрыть план» с подтверждением, «Нужны исправления» — поле текста → `…/workflow/fixes { text, session }`), «Подтвердить выпуск» (слова пользователя → `…/workflow/confirm-delivery`), карточка «Ревью плана» (M4: ревьюер, «Круг N из 5 · кто отвечает», «Открыть сессию ревьюера» / «Открыть основную сессию», «Открыть чат ревьюера» при `reviewerLinks` (M12: на компьютере — `POST /api/open-link` со ссылкой `desktop`, на сенсорном устройстве — переход по `mobile`), «Прервать ревью» → `POST …/reviews/:key/cancel`, журнал реплик; после окончания — итог над карточкой выбора); введённый текст хранится в полях по сессии и переживает опрос; карточки «Сообщение агенту» здесь нет — агенту пишут из карточки «Диалог» модуля `session-chat` (слот `sessionChat`, M18) или в самом чате |
 | `run-model.js` | запуск автопилотирования в сайдбаре (M39): `runView(state, projectId, key)` — только у сессии-владельца (`autopiloting.projects[id].owner`), без запуска, остановленного пользователем, и законченного запуска прежнего плана; `MODE_LABELS`, `PHASE_LABELS`, `STOP_CONFIRM`. M40 T004A: запуск в фазе `finished` (scope принят и закрыт вручную) карточки не даёт; запуск, остановленный службой (`stopped` с причиной из `STOP_REASONS`: `automation-missing`, `authorization-missing`), показывает «Автопилот остановлен», причину по-русски и `nextAction` без кнопок, пока план тот же (`plan.scopeId` равен `scopeId` запуска; для остановленного в подготовке — пока план не выбран) |
 | `run-card.js` | DOM карточки запуска и `policyLine` (M39), описание — раздел «Автопилотирование (M39)» |
+| `session-autopilot-model.js` | M48 T005, без DOM: `sessionAutopilotView`, `autopilotPresses`, `liveRun`, `kitWaitsView`, `sessionRefusal`, `cardNotes`, `SESSION_MODES`, `SESSION_AUTOPILOT_TEXTS` — [session-autopilot.md](session-autopilot.md) |
+| `session-autopilot-card.js` | M48 T005, DOM: `sessionAutopilotCard`, `autoChoiceLine`, `kitWaitsBlock` — [session-autopilot.md](session-autopilot.md) |
 | `decision-model.js` | M40 T008, модель карточек решений Kit (без DOM): `pendingDecisions(state, projectId)` — запросы `pending` с `id` и `inputDigest` из `workflow.projects[id].decisions`, только при `decisionsMode: host`; `decisionCardsView(state, projectId, key, isReviewer?)` — карточки `unblock` (причина — `plan.blockedReason`), `approve-install` (точные команды `executable args…` из `params.install`), `adopt-commits` (SHA из `params.commits`) у сессии-владельца плана или у любой, пока владельца нет, не у ревьюера; пустой список — `noReason` вместо списка; `DECISION_CARD_KINDS`, `DECISION_CARD_TEXTS`; `decisionBody(card, key)` → `{ kind, decision: { id, inputDigest }, requestId: "card:<id>", session }`; `decisionFields(state, projectId, kind, taskId?)` — то же для кнопок плана (`accept`, `close`, `choose`, `confirm-delivery`), `{}` без запроса и в проекте `agent`; `hostDecisions(state, projectId)` |
 | `decision-card.js` | M40 T008, DOM карточек решений: `section.choice.sv-decision` с `aria-labelledby` заголовка, «Выбор пользователя», заголовок, пояснение, причина (`.sv-warn`) или список `code`, одна кнопка (`aria-describedby` — заголовок; на время запроса `disabled` и `aria-busy`) → `POST /api/projects/:id/workflow/decision` (`decisionBody`); отказ (`DECISION_STALE` и др.) — ошибка над экраном, после ответа — обновление состояния |
 | `decision-card.css` | M40 T008: список `.sv-decision-items` (моноширинные команды и SHA переносятся), отступ кнопки; цвета — токены темы (`--text`), карточка — `.choice`, поэтому светлая и тёмная темы как у карточки выбора |
 | `review-card.js` | карточка «Ревью плана» (`crossReviewCard(shell, review, session, ctx, journalOpen)`, `openReviewerChat`) — вынесена из `session-view.js` в M40 T008 ради лимита 400 строк, поведение прежнее |
-| `run-card.css` | вид `.sv-run` (рамка как у `.plan-card`; предупреждение — `--warn`, опубликовано — `--ok`), строка политики `.sv-policy` |
+| `run-card.css` | вид `.sv-run` (рамка как у `.plan-card`; предупреждение — `--warn`, опубликовано — `--ok`), строка политики `.sv-policy`; M48 — кнопки режима сессии `.sv-ap-modes`, флажок ревью, строка `.sv-waits` |
 | `session-view.css` | вид карточек по макету: `.work`, `.choice`, `.opt`, `.plan-card`, `.tasks`, `.sv-sidebar` (одна колонка в изменяемом сайдбаре), спиннер запуска `.sv-starting`, переключатель `.sw`, карточка ревью `.sv-xreview` и журнал `.sv-xr-*` |
 
 ## Карточки решений Kit (M40 T008)
@@ -83,6 +85,8 @@ CSS карточек переносит длинные тексты и кноп�
 Пути вне коммитов (M37) приходят от службы через `/` на всех ОС и показываются как есть.
 Карточка запуска без разрешения Kit (M44) — тот же ES-код на всех ОС; браузерная проверка
 запускается Chromium Playwright на macOS (`test/m44-run-card.browser.mjs`).
+Карточка автопилота сессии и скрытие кнопок под автопилотом (M48) — тот же ES-код на всех ОС;
+браузерная проверка — `test/m48-session-card.browser.mjs` на macOS.
 
 ## Конец плана (M37)
 
@@ -91,6 +95,11 @@ CSS карточек переносит длинные тексты и кноп�
 ## Автопилотирование (M39)
 
 Полный текст раздела — [autopiloting.md](autopiloting.md).
+
+## Автопилот сессии (M48)
+
+Карточка автопилота сессии, кнопки, которые панель не показывает под идущим запуском, итог
+локального запуска и нажатия при занятом Kit — [session-autopilot.md](session-autopilot.md).
 
 ## Инварианты
 

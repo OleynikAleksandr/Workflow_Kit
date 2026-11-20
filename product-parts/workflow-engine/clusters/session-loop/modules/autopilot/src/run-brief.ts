@@ -29,6 +29,13 @@ export interface RunBrief {
   publication: { upstream: string | null; finalSha: string | null; published: string | null; commits: number | null; already: boolean; detail: string | null } | null;
   /** M48 T004: the run ended without a publication: the plan has none, the result stays local. */
   local: boolean;
+  /**
+   * M48 T005: what the grant lets the run do itself — accept (no manual criterion), close, publish;
+   * the panel hides those buttons while the run goes on. All false without a grant.
+   */
+  grant: { accept: boolean; close: boolean; publish: boolean };
+  /** M48 T005: a full run returned a proposal without `automation` to its author and waits for a new one. */
+  returned: boolean;
   /** M41: why the automatic acceptance gave way to the user's, while the run waits for it. */
   manualAcceptance: { reason: string; since: string } | null;
   /** M41: the early warning about checks the automatic acceptance will lack. */
@@ -57,6 +64,10 @@ export function brief(run: RunRecord): RunBrief {
       ? { upstream: completion?.publication?.upstream ?? run.authority?.publication?.upstream ?? null, finalSha: completion?.finalSha ?? null, published: published?.commit ?? null, commits: completion?.published?.commits ?? null, already: completion?.published?.already ?? false, detail: published?.detail ?? null }
       : null,
     local: run.phase === 'completed' && run.completion?.local === true,
+    grant: run.authority && !run.authority.revocation
+      ? { accept: run.authority.accept, close: run.authority.close, publish: Boolean(run.authority.publication) }
+      : { accept: false, close: false, publish: false },
+    returned: run.phase === 'preparing' && (run.automationMissing ?? 0) > 0,
     manualAcceptance: run.phase === 'accepting' && run.manualAcceptance ? { reason: run.manualAcceptance.reason, since: run.manualAcceptance.since } : null,
     notice: run.notice?.text ?? null,
     updatedAt: run.updatedAt,

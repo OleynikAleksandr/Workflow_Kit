@@ -184,7 +184,11 @@ test('M48 T004: a plan without publication ends after the close — no push, no 
   assert.deepEqual(local.pushes, [], 'nothing is pushed: neither the CI branch nor main');
   assert.equal(done.receipts.at(-1)?.actionId, `local:${FINAL}`);
   const brief = runBrief(done);
-  assert.deepEqual([brief.local, brief.publication?.published], [true, null]);
+  assert.deepEqual([brief.local, brief.publication?.published, brief.returned], [true, null, false]);
+  // T005: what the grant lets the run press itself; nothing without a grant.
+  assert.deepEqual(brief.grant, { accept: true, close: true, publish: true });
+  assert.deepEqual(runBrief({ ...done, authority: null }).grant, { accept: false, close: false, publish: false });
+  assert.equal(runBrief({ ...done, phase: 'preparing', automationMissing: 1 }).returned, true);
   assert.equal(runNoticeState(done), 'completed (the result stays local: the plan has no publication)');
   assert.equal(COMPLETE_TEXTS.local, 'Результат остаётся локальным: публикация в плане не предусмотрена.');
   // A run of an older version blocked at «no-upstream» for such a plan ends at the next step (B001).

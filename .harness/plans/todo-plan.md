@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1427,
+  "revision": 1429,
   "rounds": [
     {
       "digest": null,
@@ -566,14 +566,15 @@
       "docsWaiver": null,
       "files": [
         "product-parts/backend-core/clusters/runtime/modules/cli/test",
-        "docs/evidence/M48-acceptance.md"
+        "docs/evidence/M48-acceptance.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/m48-session-autopilot-e2e.test.ts"
       ],
       "fixes": null,
       "id": "T006",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Сквозные сценарии и доказательства",
       "why": "Случаи A001, B001 и M47 воспроизводятся на настоящей службе до выпуска"
     },
@@ -695,8 +696,8 @@
 - Execution: sequential
 - Automation: 5 automatic, 1 manual criteria; CI origin ci/M48-session-autopilot (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 5/9
-- Revision: 1427
+- Progress: 6/9
+- Revision: 1429
 
 ## Objective
 
@@ -734,9 +735,9 @@
   - Commit: feat: show the session autopilot card and hide the buttons the autopilot presses
   - Files: product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/control-panel/clusters/web-panel/modules/panel-shell, docs/usage-autopiloting.md, docs/architecture/OS-MATRIX-M48.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot, docs/architecture/HTTP-CONTRACTS.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/module.md, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/autopiloting-card.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/autopiloting-model.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/src/publication.js, product-parts/control-panel/clusters/web-panel/modules/panel-shell/test/view-model.test.ts, product-parts/control-panel/clusters/web-panel/modules/session-view/autopiloting.md, product-parts/control-panel/clusters/web-panel/modules/session-view/module.md, product-parts/control-panel/clusters/web-panel/modules/session-view/session-autopilot.md, product-parts/control-panel/clusters/web-panel/modules/session-view/src/plan-cards.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/run-card.css, product-parts/control-panel/clusters/web-panel/modules/session-view/src/run-card.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/run-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-autopilot-card.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-autopilot-model.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/session-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/src/sidebar-view.js, product-parts/control-panel/clusters/web-panel/modules/session-view/test/m48-session-autopilot.test.ts, product-parts/control-panel/clusters/web-panel/modules/session-view/test/m48-session-card.browser.mjs, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/session-settings.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-brief.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/runs-routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/complete.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/m48-session-settings.test.ts
   - Depends on: T004
-- [TODO] T006 — Сквозные сценарии и доказательства (work)
+- [DONE] T006 — Сквозные сценарии и доказательства (work)
   - Commit: test: verify M48 end to end
-  - Files: product-parts/backend-core/clusters/runtime/modules/cli/test, docs/evidence/M48-acceptance.md
+  - Files: product-parts/backend-core/clusters/runtime/modules/cli/test, docs/evidence/M48-acceptance.md, product-parts/backend-core/clusters/runtime/modules/cli/test/m48-session-autopilot-e2e.test.ts
   - Depends on: T005
 - [TODO] DOCS-R1 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R1

@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1455,
+  "revision": 1456,
   "rounds": [
     {
       "digest": {
@@ -103,7 +103,10 @@
       "Выпуск 0.21.0 установлен, CI четырёх платформ зелёный для точного SHA на ci/M48-session-autopilot; результаты в docs/evidence/M48-acceptance.md",
       "Живая проверка пользователя на Mac: новый проект с выключенными Settings — карточка сессии «Выкл», включение полного автопилота и ревью посреди подготовки плана, план без кнопок, которые нажимает автопилот, проект без удалённого репозитория завершается «результат локальный»"
     ],
-    "acceptanceNote": null,
+    "acceptanceNote": {
+      "at": "2026-11-20T16:08:22.431Z",
+      "text": "Пользователь принял план в панели Workflow Kit"
+    },
     "approval": {
       "at": "2026-11-20T09:03:53.621Z",
       "text": "Пользователь 20.11.2026: «Настройки Settings считать дефолтными и их изменение применяется только если они были сделаны до начала формирования какой-либо сессии… изменение этих параметров для конкретной сессии… делать в карточке автопилота… самой сессии»; «Если план появился и при этом включен автопилот, то там не будет и никакой кнопки начать выполнение»; затем «Отлично, значит, мы сейчас одинаково понимаем, какие правки в коде нужно сделать. Согласен? И до кучи… ещё на один баг» (B001 no-upstream) | Execution mode chosen by the user: sequential: Автоматический выбор по поручению run-F5nJ3wbBuTxd: sequential (recommended by the plan; ревью: skipped-by-setting)"
@@ -313,9 +316,21 @@
           "session": "ffc970ed-20a1-499c-9d2c-47dff30c41a0"
         },
         "text": "confirm-delivery: Принимаю."
+      },
+      {
+        "at": "2026-11-20T16:08:22.412Z",
+        "decisionId": "dec-1d3e5e34b94b",
+        "kind": "accept",
+        "source": {
+          "kind": "button",
+          "messageId": null,
+          "runId": null,
+          "session": "ffc970ed-20a1-499c-9d2c-47dff30c41a0"
+        },
+        "text": "accept: Пользователь принял план в панели Workflow Kit"
       }
     ],
-    "delivery": "READY_FOR_ACCEPTANCE",
+    "delivery": "ACCEPTED",
     "execution": {
       "maxWorkers": 1,
       "ownerSession": "ffc970ed-20a1-499c-9d2c-47dff30c41a0",
@@ -992,12 +1007,12 @@
 ## State
 
 - Scope: M48-session-autopilot (ACTIVE)
-- Delivery: READY_FOR_ACCEPTANCE
+- Delivery: ACCEPTED
 - Execution: sequential
 - Automation: 5 automatic, 1 manual criteria; CI origin ci/M48-session-autopilot (4 checks); publication main → origin/main
 - Current task: none
 - Progress: 15/15
-- Revision: 1455
+- Revision: 1456
 
 ## Objective
 

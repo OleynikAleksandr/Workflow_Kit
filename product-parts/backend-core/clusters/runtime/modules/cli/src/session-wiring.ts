@@ -21,6 +21,7 @@ import type { SessionTitles, SessionTitlesOptions } from '#session-titles';
 import { createTurnInterruption, deliverAfterInterruption } from './turn-interruption.ts';
 import { createDirectMessage, ledOutside } from './direct-message.ts';
 import { lateReviewDecider, toggleLock, wireCrossReview } from './review-wiring.ts';
+import { createSessionReview } from './session-review.ts';
 import type { Publisher } from '#git-publish';
 import { wireAutopiloting } from './autopiloting-wiring.ts';
 import type { AutopilotingWiring } from './autopiloting-wiring.ts';
@@ -254,12 +255,18 @@ export function wireSessions(options: SessionWiringOptions): SessionWiring {
     listProjects: async () => (await projects.list()).map((project) => ({ id: project.id, path: project.path })),
     pathChosen: (id) => Boolean(workflow.get(id)?.execution),
     locked: (id, key) => toggleLock(crossReview, workflow, id, key),
-    onChange: (id, key, on) => crossReview.toggled(id, key, on),
+    // M48 T003: the session card shows the same review value.
+    onChange: async (id, key, on) => {
+      await crossReview.toggled(id, key, on);
+      await autopiloting.sessions.syncReview(id, key, on).catch(() => undefined);
+    },
     scopeOf: (id) => workflow.get(id)?.scope?.id ?? null,
   });
   registerReviewRoutes({ router, state, toggles: review });
   // M48 T002: awaited, so the full-run instruction is queued before the answer message and the wake.
   review.onAnswer(async (id, key, choice, question) => {
+    // M48 T003: «С ревью / Без ревью» is the review of the session card too (while the path is open).
+    if (choice !== 'talk' && !workflow.get(id)?.execution) await autopiloting.sessions.syncReview(id, key, choice === 'review').catch(() => undefined);
     if (question.kind === 'agent') await autopiloting.answered(id, key, choice, question.summary).catch((error: unknown) => options.log?.(`autopiloting: ${key}: ${error instanceof Error ? error.message : String(error)}`));
   });
 
@@ -305,6 +312,7 @@ export function wireSessions(options: SessionWiringOptions): SessionWiring {
     onReviewFinished: (finished) => void autopiloting.reconcile(finished.projectId),
   });
   reviewDecider.attach(crossReview);
+  const sessionReview = createSessionReview({ toggles: review, review: crossReview, workflow });
   // M39 T006: a full run goes from its proposal to the started plan; every finished turn asks again.
   autopiloting.attach({
     actions: autopilot,
@@ -317,6 +325,10 @@ export function wireSessions(options: SessionWiringOptions): SessionWiring {
     send: (id, key, text) => void wakingChannel.enqueue(key, text, 'panel', id),
     question: (id, key) => review.question(id, key),
     wake: (key) => channel.wake(key),
+    reviewDecided: sessionReview.decided,
+    reviewState: sessionReview.state,
+    reviewGuard: sessionReview.guard,
+    applyReview: sessionReview.apply,
   });
   channel.onStop((event) => void (event.projectId && autopiloting.reconcile(event.projectId)));
   // The session leaves at once: out of the channel (a held Stop is released) and out of a running

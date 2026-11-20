@@ -124,7 +124,8 @@ UserPromptSubmit; M44 T001 — подготовка запуска получа�
 первый `SessionStart` сессии берёт Settings в её запись, строка — режим и ревью сессии; строки
 о смене Settings больше нет, есть строка о смене карточки сессии; M48 T002 — `switcher` и
 `answered`: переключение карточки сессии на любом этапе и инструкция полного запуска агенту после
-ответа на вопрос о плане) — в [connected-modules.md](connected-modules.md) и [commands.md](commands.md).
+ответа на вопрос о плане; T003 — `src/session-review.ts`: ревью сессии — одно значение карточки и
+вопроса о плане, проверка до записи, отмена идущего ревью; `toggleLock` не блокирует после отмены) — в [connected-modules.md](connected-modules.md) и [commands.md](commands.md).
 
 ## Инварианты
 

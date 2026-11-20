@@ -195,3 +195,14 @@ test('the answer on the plan question: the full mode tells the agent the run; ot
   await t.switcher.settle('p1');
   assert.equal((await t.sessions.get('p1', KEY))?.preparing, undefined);
 });
+
+test('T003: the review of the card follows into the snapshot of the session run before its start', async () => {
+  const t = await setup();
+  const run = await t.journal.create(t.dir, newRun({ review: false }));
+  await t.toggle(KEY, { review: true });
+  assert.equal((await t.journal.read(t.dir, run.runId))?.review, true);
+  const started = await setup();
+  const going = await started.journal.create(started.dir, newRun({ review: false, phase: 'executing' }));
+  await started.toggle(KEY, { review: true });
+  assert.equal((await started.journal.read(started.dir, going.runId))?.review, false, 'a started run keeps its snapshot');
+});

@@ -58,6 +58,25 @@ send, wake, reconcile, mutex?, log?, now? }) → SessionSwitch`. `stage(projectI
 агент получает `preparationText('full', review, runId, 'plan-decision')` с требованием блока
 `automation`; иначе `review`/`plan` ставят пометку `preparing`, `talk` — ничего.
 
+## Ревью сессии (T003)
+
+- Одно значение: ревью записи сессии и переключатель plan-review (ответ «С ревью / Без ревью»).
+  Карточка → слушатель записи сессии → `applyReview` службы (`toggles.set`, или `answer` открытого
+  вопроса вида `proposal`) → шаг подготовки полного запуска; переключатель или ответ → запись сессии
+  (`syncReview`: новая ревизия, без слушателей). Новая запись сессии берёт уже принятое решение
+  сессии (`reviewOf`) вместо Settings.
+- Состояние ревью `SessionReviewState` (`reviewState` маршрутов): `open` — меняется; `running` —
+  ревью этой сессии идёт, выключение отменяет его (`cancel`); `reviewed` — открытый план уже прошёл
+  ревью, 409 `review-locked`; `closed` — способ выполнения выбран, 409 `review-closed`, карточка
+  прячет переключатель. Проверка (`review.guard`) идёт до записи и только при смене значения.
+  Отменённое ревью переключатель не блокирует.
+- Включение при открытом непроверенном предложении будит сессию (`toggled`), ревью начинается на
+  её `Stop`; выключение без ревью — шаг подготовки выбирает способ и запускает план.
+- Снимок `review` запуска этой сессии до старта плана следует за картой (`changed`).
+- Служба: `cli/src/session-review.ts` (`createSessionReview`: `state`, `decided`, `guard`, `apply`,
+  `CARD_CANCEL_REASON`), связи `reviewDecided`, `reviewState`, `reviewGuard`, `applyReview`;
+  тесты — `cli/test/m48-session-review.test.ts`, `test/m48-session-settings.test.ts` (T003).
+
 ## Связанные изменения
 
 - `RunSource` — плюс `session-card`; `grantNote` — «the user switched the autopilot of the

@@ -30,11 +30,12 @@ export function lateReviewDecider(): ReviewDecider & { attach(review: CrossRevie
 
 /**
  * Why the toggle of a session can no longer change (spec M4 section 10): its review runs, or the
- * open proposal was already reviewed. A review of an earlier scope does not lock it.
+ * open proposal was already reviewed. A review of an earlier scope does not lock it; M48 — nor does
+ * a review the user cancelled (the plan then goes on without it).
  */
 export function toggleLock(review: CrossReview, workflow: WorkflowState, projectId: string, key: string): string | null {
   const found = review.get(projectId, key);
-  if (!found) return null;
+  if (!found || found.status === 'cancelled') return null;
   if (!FINISHED.has(found.status)) return 'Ревью плана этой сессии идёт: его можно прервать на карточке ревью';
   const open = workflow.get(projectId)?.proposal?.scopeId ?? null;
   return open !== null && found.scopeId === open ? 'Этот план уже прошёл ревью' : null;

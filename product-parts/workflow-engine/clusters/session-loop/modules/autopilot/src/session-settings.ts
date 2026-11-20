@@ -16,6 +16,13 @@ export const SESSION_SETTINGS_DIR = `${RUNS_DIR}/sessions`;
 
 export type SessionSettingsSource = 'defaults' | 'user' | 'run';
 
+/**
+ * M48 T003: where the review of a session is — `open` (it changes), `running` (off cancels it),
+ * `reviewed` (the open plan was reviewed: the decision stays), `closed` (the path is chosen: the
+ * card hides the switch).
+ */
+export type SessionReviewState = 'open' | 'running' | 'reviewed' | 'closed';
+
 export interface SessionAutopiloting {
   version: 1;
   revision: number;
@@ -49,6 +56,11 @@ export interface SessionSettingsStore {
   ensure(projectId: string, key: string): Promise<SessionAutopiloting>;
   /** The user's change on the session card: `{ expectedRevision, mode?, review? }`. */
   write(projectId: string, key: string, input: unknown): Promise<SessionAutopiloting>;
+  /**
+   * M48 T003: the review decided elsewhere (the plan question answer, the old toggle, a run): the
+   * record follows with a new revision, without the listeners (the decision is already applied).
+   */
+  syncReview(projectId: string, key: string, on: boolean): Promise<void>;
   /** M48 T002: sets or clears the «writing the plan» mark of a session (the revision stays). */
   mark(projectId: string, key: string, at: string | null): Promise<void>;
   /** Reads the records of every project once (service start), for the panel state. */
@@ -95,6 +107,8 @@ export function createSessionSettings(options: {
   platform?: NodeJS.Platform;
   now?: () => Date;
   log?: (line: string) => void;
+  /** M48 T003: the review decision a session already has (plan-review), taken over the Settings default. */
+  reviewOf?: (projectId: string, key: string) => boolean | null;
 }): SessionSettingsStore {
   const now = options.now ?? (() => new Date());
   const writeOptions = { mode: 0o600, dirMode: 0o700, ...(options.platform ? { platform: options.platform } : {}) };
@@ -122,11 +136,12 @@ export function createSessionSettings(options: {
     const value = await readJsonFile(sessionSettingsFile(folder, key)).catch(() => undefined);
     return value === undefined ? null : parse(value, key);
   }
-  async function taken(folder: string, key: string): Promise<SessionAutopiloting> {
+  async function taken(projectId: string, folder: string, key: string): Promise<SessionAutopiloting> {
     const run = await options.journal.active(folder).catch(() => null);
     if (run && run.owner.key === key) return { version: 1, revision: 0, key, mode: run.mode, review: run.review, source: 'run', at: now().toISOString() };
     const { settings } = await options.settings.read();
-    return { version: 1, revision: 0, key, mode: settings.mode, review: settings.review, source: 'defaults', at: now().toISOString() };
+    const decided = options.reviewOf?.(projectId, key) ?? null;
+    return { version: 1, revision: 0, key, mode: settings.mode, review: decided ?? settings.review, source: 'defaults', at: now().toISOString() };
   }
 
   async function ensure(projectId: string, key: string): Promise<SessionAutopiloting> {
@@ -136,7 +151,7 @@ export function createSessionSettings(options: {
     return serial(file, async () => {
       const known = await read(folder, key);
       if (known) return remember(projectId, known);
-      const record = await taken(folder, key);
+      const record = await taken(projectId, folder, key);
       await writeJsonAtomic(file, record, writeOptions);
       options.log?.(`autopiloting: session ${key} of ${projectId} begins with mode=${record.mode}, review=${record.review ? 'on' : 'off'} (${record.source})`);
       return remember(projectId, record);
@@ -182,6 +197,19 @@ export function createSessionSettings(options: {
       });
       for (const listener of listeners) await listener(change);
       return change.after;
+    },
+    async syncReview(projectId, key, on) {
+      const record = await ensure(projectId, key);
+      if (record.review === on) return;
+      const folder = await folderOf(projectId);
+      const file = sessionSettingsFile(folder, key);
+      await serial(file, async () => {
+        const current = (await read(folder, key)) ?? record;
+        if (current.review === on) return;
+        const next: SessionAutopiloting = { ...current, revision: current.revision + 1, review: on, source: 'user', at: now().toISOString() };
+        await writeJsonAtomic(file, next, writeOptions);
+        remember(projectId, next);
+      });
     },
     async mark(projectId, key, at) {
       const record = await ensure(projectId, key);

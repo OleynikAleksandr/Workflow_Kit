@@ -10,7 +10,7 @@ import { after, test } from 'node:test';
 import { createRouter, createStateRegistry } from '#http-server';
 import type { TurnUserSource } from '#agent-channel';
 import { SUPPORTED_HOST_PROTOCOL } from '#plan-view';
-import { SESSION_SETTINGS_DIR, createHostTickets, createRunJournal, createRuns, createSessionSettings, createSettingsStore, registerAutopilotingRoutes, sessionSettingsName, validSessionKey } from '../src/index.ts';
+import { SESSION_SETTINGS_DIR, SettingsError, createHostTickets, createRunJournal, createRuns, createSessionSettings, createSettingsStore, registerAutopilotingRoutes, sessionSettingsName, validSessionKey } from '../src/index.ts';
 import type { NewRun, RunKit, RunKitStatus, SessionSettingsChange } from '../src/index.ts';
 
 const tmp = await mkdtemp(path.join(os.tmpdir(), 'wfk-m48-sessions-'));
@@ -148,4 +148,47 @@ test('GET and POST /api/projects/:id/sessions/:sid/autopiloting and the sessions
   await assert.rejects(call('GET', `/api/projects/p9/sessions/${KEY}/autopiloting`), { status: 404 });
   const section = (await state.collect())['autopiloting'] as { sessions: Record<string, Record<string, { mode: string }>> };
   assert.equal(section.sessions['p1']?.[KEY]?.mode, 'off');
+});
+
+test('T003: a decided review wins over the Settings default; syncReview follows it without the listeners', async () => {
+  const t = await setup();
+  await t.setSettings('full', true);
+  const decided = createSessionSettings({ settings: t.settings, journal: t.journal, projectPath: async () => t.dir, reviewOf: (_id, key) => (key === 'codex:s-2' ? false : null) });
+  assert.equal((await decided.ensure('p1', 'codex:s-2')).review, false);
+  assert.equal((await decided.ensure('p1', 'codex:s-3')).review, true);
+  const record = await t.sessions.ensure('p1', KEY);
+  await t.sessions.syncReview('p1', KEY, false);
+  const synced = (await t.sessions.get('p1', KEY))!;
+  assert.deepEqual([synced.review, synced.revision, synced.source], [false, record.revision + 1, 'user']);
+  await t.sessions.syncReview('p1', KEY, false);
+  assert.equal((await t.sessions.get('p1', KEY))?.revision, record.revision + 1, 'the same value writes nothing');
+  assert.equal(t.changes.length, 0, 'no listener: the decision is already applied');
+});
+
+test('T003: the card checks a review change first; an unchanged review is not checked; the view tells the review state', async () => {
+  const t = await setup();
+  const router = createRouter();
+  const guarded: boolean[] = [];
+  let refuse = false;
+  registerAutopilotingRoutes({
+    router, state: createStateRegistry(), settings: t.settings, runs: t.runs, sessions: t.sessions,
+    review: {
+      state: () => 'reviewed',
+      guard: async (_id, _key, on) => {
+        guarded.push(on);
+        if (refuse) throw new SettingsError('review-locked', 'Этот план уже прошёл ревью: решение о ревью не меняется');
+      },
+    },
+  });
+  const call = (method: 'GET' | 'POST', body?: unknown): Promise<unknown> => {
+    const route = router.match(method, `/api/projects/p1/sessions/${KEY}/autopiloting`) as unknown as { handler(input: unknown): Promise<unknown>; params: Record<string, string> };
+    return route.handler({ params: route.params, body, query: new URLSearchParams() });
+  };
+  const read = (await call('GET')) as { reviewState: string; settings: { review: boolean } };
+  assert.deepEqual([read.reviewState, read.settings.review], ['reviewed', false]);
+  await call('POST', { expectedRevision: 0, mode: 'full', review: false });
+  assert.deepEqual(guarded, [], 'the review did not change');
+  refuse = true;
+  await assert.rejects(call('POST', { expectedRevision: 1, review: true }), { status: 409, code: 'review-locked' });
+  assert.equal((await t.sessions.get('p1', KEY))?.review, false, 'a refused change writes nothing');
 });

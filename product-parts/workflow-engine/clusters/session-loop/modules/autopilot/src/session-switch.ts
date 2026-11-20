@@ -133,6 +133,13 @@ export function createSessionSwitch(deps: SessionSwitchDeps) {
     return typeof decided === 'boolean' ? decided : on;
   }
 
+  async function reviewSnapshot(projectId: string, key: string, review: boolean): Promise<void> {
+    const folder = await deps.projectPath(projectId);
+    const run = folder ? await deps.journal.active(folder).catch(() => null) : null;
+    if (!folder || !run || run.owner.key !== key || !PRE_START.has(run.phase) || run.review === review) return;
+    await deps.journal.advance(folder, run.runId, (r) => ({ ...r, review }));
+  }
+
   /** The step of a switch on; `followUp` runs after the project lock is released. */
   async function on(projectId: string, key: string, mode: 'after-start' | 'full', review: boolean): Promise<{ effect: string; followUp?: () => Promise<void> }> {
     const f = await facts(projectId, key);
@@ -200,6 +207,8 @@ export function createSessionSwitch(deps: SessionSwitchDeps) {
     effect: (projectId: string, key: string): string | null => effects.get(id(projectId, key)) ?? null,
     /** The listener of the session card (after the pause of runs.sessionChanged for off). */
     async changed({ projectId, key, before, after }: SessionSettingsChange): Promise<void> {
+      // T003: the snapshot of the session's run before its start follows its review.
+      if (before.review !== after.review) await reviewSnapshot(projectId, key, after.review);
       if (before.mode === after.mode) return;
       if (after.mode === 'off') {
         const f = await facts(projectId, key);

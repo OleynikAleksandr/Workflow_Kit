@@ -192,7 +192,9 @@ M41 T002 — приёмка пользователя вместо останов
 - M48 T002 — переключение на любом этапе `createSessionSwitch` (`SessionSwitch`,
   `SessionSwitchDeps`, `SessionStage`, `SWITCH_TEXTS`), `PRE_START`, источник запуска
   `session-card`, `preparationText(…, by)`, опция `switcher` у `registerAutopilotingRoutes`,
-  пометка `preparing` и `SessionSettingsStore.mark` — в [session-switch.md](session-switch.md).
+  пометка `preparing` и `SessionSettingsStore.mark` — в [session-switch.md](session-switch.md);
+  T003 — `SessionReviewState`, `SessionSettingsStore.syncReview`, опция `reviewOf`, опция `review`
+  у `registerAutopilotingRoutes`, коды `review-closed`/`review-locked` у `SettingsError` — там же.
 
 ## Инварианты
 

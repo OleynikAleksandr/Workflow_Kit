@@ -70,7 +70,9 @@
   key, mode, review, source, at, preparing? }, stage, effect }` (первое чтение берёт Settings;
   T002 — `stage`: `idle | question | writing | proposed | executing | other-plan | run | paused |
   other-run`, `effect` — строка последнего переключения или `null`); `POST … { expectedRevision,
-  mode?, review? }` → то же после переключения ([autopilot/session-switch.md](../../product-parts/workflow-engine/clusters/session-loop/modules/autopilot/session-switch.md)); 400 `bad-request` (ключ не `<client>:<id>`, неизвестное
+  mode?, review? }` → то же после переключения; T003 — `reviewState` (`open | running | reviewed |
+  closed`), смена ревью: 409 `review-closed` (способ выбран), 409 `review-locked` (план прошёл
+  ревью), выключение во время ревью отменяет его ([autopilot/session-switch.md](../../product-parts/workflow-engine/clusters/session-loop/modules/autopilot/session-switch.md)); 400 `bad-request` (ключ не `<client>:<id>`, неизвестное
   значение), 404 `project-not-found`, 409 `settings-stale` с `current`. `GET
   /api/projects/:id/autopiloting/policy?session=<key>` — политика по режиму сессии. Раздел
   `autopiloting` — плюс `sessions: { <projectId>: { <key>: запись } }`. Контракт —

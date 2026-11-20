@@ -10,10 +10,19 @@ import type { RunControl } from './run-control.ts';
 import type { RunWaits } from './run-waits.ts';
 import { SettingsError } from './settings.ts';
 import type { SettingsStore } from './settings.ts';
-import type { SessionSettingsStore } from './session-settings.ts';
+import type { SessionReviewState, SessionSettingsStore } from './session-settings.ts';
 import type { SessionSwitch } from './session-switch.ts';
 
-export function registerAutopilotingRoutes(options: { router: Router; state: StateRegistry; settings: SettingsStore; runs: Runs; sessions?: SessionSettingsStore; switcher?: Pick<SessionSwitch, 'stage' | 'effect'> }): void {
+export function registerAutopilotingRoutes(options: {
+  router: Router;
+  state: StateRegistry;
+  settings: SettingsStore;
+  runs: Runs;
+  sessions?: SessionSettingsStore;
+  switcher?: Pick<SessionSwitch, 'stage' | 'effect'>;
+  /** M48 T003: where the session's review is, and the check before the card changes it (throws SettingsError). */
+  review?: { state(projectId: string, key: string): SessionReviewState | null; guard(projectId: string, key: string, on: boolean): Promise<void> };
+}): void {
   const { router, settings, runs } = options;
   const settingsHttp = async <T>(action: () => Promise<T>): Promise<T> => {
     try {
@@ -36,10 +45,18 @@ export function registerAutopilotingRoutes(options: { router: Router; state: Sta
     settings,
     stage: switcher ? await switcher.stage(projectId, key).catch(() => null) : null,
     effect: switcher?.effect(projectId, key) ?? null,
+    reviewState: options.review?.state(projectId, key) ?? null,
   });
   if (sessions) {
     router.get('/api/projects/:id/sessions/:sid/autopiloting', ({ params }) => settingsHttp(async () => view(params['id']!, params['sid']!, await sessions.ensure(params['id']!, params['sid']!))));
-    router.post('/api/projects/:id/sessions/:sid/autopiloting', ({ params, body }) => settingsHttp(async () => view(params['id']!, params['sid']!, await sessions.write(params['id']!, params['sid']!, body))));
+    router.post('/api/projects/:id/sessions/:sid/autopiloting', ({ params, body }) =>
+      settingsHttp(async () => {
+        const [projectId, key] = [params['id']!, params['sid']!];
+        const review = body && typeof body === 'object' ? (body as Record<string, unknown>)['review'] : undefined;
+        // T003: a review change is checked first (closed, reviewed); off over a running review cancels it.
+        if (typeof review === 'boolean' && options.review && (await sessions.ensure(projectId, key)).review !== review) await options.review.guard(projectId, key, review);
+        return view(projectId, key, await sessions.write(projectId, key, body));
+      }));
   }
   // M44: «Повторить» of a run without the Kit grant { runId, expectedRevision }.
   router.post('/api/projects/:id/autopiloting/retry', ({ params, body }) => runHttp(() => runs.retryGrant(params['id']!, body)));

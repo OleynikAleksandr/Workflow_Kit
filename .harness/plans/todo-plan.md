@@ -3,7 +3,7 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": "T003",
+  "currentTaskId": null,
   "lastClosed": {
     "closedAt": "2026-11-19T19:02:47.878Z",
     "scopeId": "M47-paste-confirm-host-build",
@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1421,
+  "revision": 1422,
   "rounds": [
     {
       "digest": null,
@@ -403,14 +403,31 @@
         "product-parts/workflow-engine/clusters/session-loop/modules/autopilot",
         "product-parts/backend-core/clusters/runtime/modules/cli",
         "docs/architecture/OS-MATRIX-M48.md",
-        "docs/architecture/HTTP-CONTRACTS.md"
+        "docs/architecture/HTTP-CONTRACTS.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/autopiloting-wiring.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/review-wiring.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/session-review.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/m48-session-review.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/session-switch.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/index.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/runs-routes.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/session-settings.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/session-switch.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/settings.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/m48-session-settings.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/m48-session-switch.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/plan-review/module.md"
       ],
       "fixes": null,
       "id": "T003",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "title": "Ревью сессии до карточки плана",
       "why": "Ревью из Settings после ответа на вопрос о плане не применялось, а отменить идущее было нельзя с карточки"
     },
@@ -633,9 +650,9 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Automation: 5 automatic, 1 manual criteria; CI origin ci/M48-session-autopilot (4 checks); publication main → origin/main
-- Current task: T003
-- Progress: 2/9
-- Revision: 1421
+- Current task: none
+- Progress: 3/9
+- Revision: 1422
 
 ## Objective
 
@@ -661,9 +678,9 @@
   - Commit: feat: switch the autopilot of a session at any stage of its task
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/workflow-engine/clusters/session-loop/modules/plan-review, product-parts/workflow-engine/clusters/session-loop/modules/cross-review, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel, docs/architecture/HTTP-CONTRACTS.md, docs/architecture/OS-MATRIX-M48.md, product-parts/backend-core/clusters/runtime/modules/cli/connected-modules.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/autopiloting-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/session-settings.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/session-switch.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-journal.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-texts.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/runs-routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/runs.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/session-settings.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/session-switch.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/m48-session-switch-real.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/m48-session-switch.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/run-end.test.ts
   - Depends on: T001
-- [IN_PROGRESS] T003 — Ревью сессии до карточки плана (work)
+- [DONE] T003 — Ревью сессии до карточки плана (work)
   - Commit: feat: switch the review of a session until its plan card appears
-  - Files: product-parts/workflow-engine/clusters/session-loop/modules/plan-review, product-parts/workflow-engine/clusters/session-loop/modules/cross-review, product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/backend-core/clusters/runtime/modules/cli, docs/architecture/OS-MATRIX-M48.md, docs/architecture/HTTP-CONTRACTS.md
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/plan-review, product-parts/workflow-engine/clusters/session-loop/modules/cross-review, product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/backend-core/clusters/runtime/modules/cli, docs/architecture/OS-MATRIX-M48.md, docs/architecture/HTTP-CONTRACTS.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/autopiloting-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/review-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/session-review.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/m48-session-review.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/session-switch.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/runs-routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/session-settings.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/session-switch.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/settings.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/m48-session-settings.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/m48-session-switch.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/module.md
   - Depends on: T002
 - [TODO] T004 — Конец запуска без публикации и нажатия при занятом Kit (work)
   - Commit: fix: complete a local-only run and wait out a busy Kit for user decisions

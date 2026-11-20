@@ -30,10 +30,11 @@ export const DEFAULT_SETTINGS: AutopilotingSettings = { version: 1, revision: 0,
 
 /**
  * A refused write: 400 bad-request (unknown value), 404 project-not-found (M48, a session card of an
- * unknown project) or 409 settings-stale (with the current values).
+ * unknown project) or 409 settings-stale (with the current values); M48 T003 — 409 review-closed
+ * (the execution path is chosen) and review-locked (the plan was reviewed).
  */
 export class SettingsError extends Error {
-  readonly code: 'bad-request' | 'project-not-found' | 'settings-stale';
+  readonly code: 'bad-request' | 'project-not-found' | 'settings-stale' | 'review-closed' | 'review-locked';
   readonly status: number;
   /** The stored values the write was refused against (Settings or, M48, the session's record). */
   readonly current: object | null;

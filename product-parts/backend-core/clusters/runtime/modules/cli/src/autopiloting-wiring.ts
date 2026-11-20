@@ -6,7 +6,7 @@
 import type { AgentChannel } from '#agent-channel';
 import type { AutopilotAgentState } from './autopilot-line.ts';
 import { createAgentNotices, createDecisionJournal, createDecisions, createHostTickets, runMayDecide, createPreparation, createProposalGate, createRunCompletion, createRunControl, createRunJournal, createRunKit, createRunTurns, createRunWaits, createRunWords, createRuns, createSessionSettings, createSessionSwitch, createSettingsStore, registerAutopilotingRoutes, registerRunControlRoutes, registerSessionRunRoutes, runHttp, validSessionKey } from '#autopilot';
-import type { Decisions, RunCompleter, ControlActions, PrepareActions, ReviewFact, RunControl, RunTurns, RunWaits, RunWords, Runs, SessionSettingsStore, SessionSwitch, SettingsStore } from '#autopilot';
+import type { Decisions, RunCompleter, ControlActions, PrepareActions, ReviewFact, RunControl, RunTurns, RunWaits, RunWords, Runs, SessionReviewState, SessionSettingsStore, SessionSwitch, SettingsStore } from '#autopilot';
 import { createGitHubCi, createPublisher, runGit } from '#git-publish';
 import type { GitHubCi, GitRunner, Publisher } from '#git-publish';
 import type { KeyedMutex } from '#data-store';
@@ -82,6 +82,14 @@ export interface PreparationLinks {
   question?(projectId: string, key: string): { kind: 'agent' | 'proposal' } | null;
   /** M48 T002: wakes a session (a held Stop goes on; the cross review starts at its Stop). */
   wake?(key: string): void;
+  /** M48 T003: the review decision a session already has (plan-review), or null. */
+  reviewDecided?(projectId: string, key: string): boolean | null;
+  /** M48 T003: where the session's review is (the card shows it). */
+  reviewState?(projectId: string, key: string): SessionReviewState;
+  /** M48 T003: before the card changes the review (throws SettingsError; off cancels a running review). */
+  reviewGuard?(projectId: string, key: string, on: boolean): Promise<void>;
+  /** M48 T003: after the card changed the review: the plan-review toggle follows. */
+  applyReview?(projectId: string, key: string, on: boolean): Promise<void>;
 }
 
 export function wireAutopiloting(options: {
@@ -107,7 +115,13 @@ export function wireAutopiloting(options: {
   const journal = createRunJournal(options.platform ? { platform: options.platform } : {});
   const runKit = createRunKit({ runner: options.kit, tickets });
   const projectPath = async (id: string): Promise<string | undefined> => (await options.projects.get(id))?.path;
-  const sessions = createSessionSettings({ settings, journal, projectPath, ...(options.platform ? { platform: options.platform } : {}), ...(options.log ? { log: options.log } : {}) });
+  const sessions = createSessionSettings({
+    settings, journal, projectPath,
+    // T003: a session that already decided the review keeps it over the Settings default.
+    reviewOf: (projectId, key) => links?.reviewDecided?.(projectId, key) ?? null,
+    ...(options.platform ? { platform: options.platform } : {}),
+    ...(options.log ? { log: options.log } : {}),
+  });
   // The panel's first message of a project is a service greeting, not an instruction of the user.
   const userSource = (key: string) => {
     const source = options.channel.userSource(key);
@@ -173,7 +187,19 @@ export function wireAutopiloting(options: {
     ...(options.log ? { log: options.log } : {}),
   });
   sessions.onChange((change) => switcher.changed(change));
-  registerAutopilotingRoutes({ router: options.router, state: options.state, settings, runs, sessions, switcher });
+  // T003: the review of the card is the plan-review toggle as well; a full run takes the new value at once.
+  sessions.onChange(async ({ projectId, key, before, after }) => {
+    if (before.review === after.review) return;
+    await links?.applyReview?.(projectId, key, after.review).catch((error: unknown) => options.log?.(`autopiloting: review of ${key} on the card: ${error instanceof Error ? error.message : String(error)}`));
+    await preparation.reconcile(projectId);
+  });
+  registerAutopilotingRoutes({
+    router: options.router, state: options.state, settings, runs, sessions, switcher,
+    review: {
+      state: (projectId, key) => links?.reviewState?.(projectId, key) ?? null,
+      guard: async (projectId, key, on) => void (await links?.reviewGuard?.(projectId, key, on)),
+    },
+  });
   const turns = { ...createRunTurns({ journal, projectPath, ...(options.log ? { log: options.log } : {}) }), proposal: gate.check };
   const control = createRunControl({
     journal, kit: runKit, projectPath, listProjects, send, mutex: options.mutex,

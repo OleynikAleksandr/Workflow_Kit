@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1413,
+  "revision": 1414,
   "rounds": [
     {
       "digest": null,
@@ -414,9 +414,11 @@
       ],
       "docsWaiver": null,
       "files": [
+        "product-parts/control-panel/clusters/web-panel/modules/session-view",
         "product-parts/workflow-engine/clusters/session-loop/modules/autopilot",
-        "product-parts/backend-core/clusters/runtime/modules/cli",
-        "docs/architecture/HTTP-CONTRACTS.md"
+        "docs/architecture/HTTP-CONTRACTS.md",
+        "docs/architecture/OS-MATRIX.md",
+        "docs/evidence/M44-acceptance.md"
       ],
       "fixes": null,
       "id": "T004",
@@ -612,7 +614,7 @@
 - Automation: 5 automatic, 1 manual criteria; CI origin ci/M48-session-autopilot (4 checks); publication main → origin/main
 - Current task: T002
 - Progress: 1/9
-- Revision: 1413
+- Revision: 1414
 
 ## Objective
 
@@ -644,7 +646,7 @@
   - Depends on: T002
 - [TODO] T004 — Конец запуска без публикации и нажатия при занятом Kit (work)
   - Commit: fix: complete a local-only run and wait out a busy Kit for user decisions
-  - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/backend-core/clusters/runtime/modules/cli, docs/architecture/HTTP-CONTRACTS.md
+  - Files: product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/workflow-engine/clusters/session-loop/modules/autopilot, docs/architecture/HTTP-CONTRACTS.md, docs/architecture/OS-MATRIX.md, docs/evidence/M44-acceptance.md
   - Depends on: T003
 - [TODO] T005 — Панель: карточка сессии и ручные кнопки только без автопилота (work)
   - Commit: feat: show the session autopilot card and hide the buttons the autopilot presses

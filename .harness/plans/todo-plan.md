@@ -3,7 +3,7 @@
 <!-- harness-workflow:begin -->
 ```json
 {
-  "currentTaskId": null,
+  "currentTaskId": "T005",
   "lastClosed": {
     "closedAt": "2026-11-19T19:02:47.878Z",
     "scopeId": "M47-paste-confirm-host-build",
@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1424,
+  "revision": 1426,
   "rounds": [
     {
       "digest": null,
@@ -508,14 +508,16 @@
         "product-parts/control-panel/clusters/web-panel/modules/session-view",
         "product-parts/control-panel/clusters/web-panel/modules/panel-shell",
         "docs/usage-autopiloting.md",
-        "docs/architecture/OS-MATRIX-M48.md"
+        "docs/architecture/OS-MATRIX-M48.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot",
+        "docs/architecture/HTTP-CONTRACTS.md"
       ],
       "fixes": null,
       "id": "T005",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "title": "Панель: карточка сессии и ручные кнопки только без автопилота",
       "why": "Панель показывала ручные кнопки, которые затем нажимал автопилот, и «Остановить автопилот» у законченного запуска"
     },
@@ -668,9 +670,9 @@
 - Delivery: IN_PROGRESS
 - Execution: sequential
 - Automation: 5 automatic, 1 manual criteria; CI origin ci/M48-session-autopilot (4 checks); publication main → origin/main
-- Current task: none
+- Current task: T005
 - Progress: 4/9
-- Revision: 1424
+- Revision: 1426
 
 ## Objective
 
@@ -704,9 +706,9 @@
   - Commit: fix: complete a local-only run and wait out a busy Kit for user decisions
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/backend-core/clusters/runtime/modules/cli, docs/architecture/HTTP-CONTRACTS.md, docs/architecture/OS-MATRIX-M48.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/autopiloting-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting-completion.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/kit-waits.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/run-end.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/agent-notices.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/decision-commands.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/kit-waits.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-brief.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-complete.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-journal.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/runs-routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/complete.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/m48-kit-waits.test.ts
   - Depends on: T003
-- [TODO] T005 — Панель: карточка сессии и ручные кнопки только без автопилота (work)
+- [IN_PROGRESS] T005 — Панель: карточка сессии и ручные кнопки только без автопилота (work)
   - Commit: feat: show the session autopilot card and hide the buttons the autopilot presses
-  - Files: product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/control-panel/clusters/web-panel/modules/panel-shell, docs/usage-autopiloting.md, docs/architecture/OS-MATRIX-M48.md
+  - Files: product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/control-panel/clusters/web-panel/modules/panel-shell, docs/usage-autopiloting.md, docs/architecture/OS-MATRIX-M48.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot, docs/architecture/HTTP-CONTRACTS.md
   - Depends on: T004
 - [TODO] T006 — Сквозные сценарии и доказательства (work)
   - Commit: test: verify M48 end to end

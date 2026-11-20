@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1449,
+  "revision": 1451,
   "rounds": [
     {
       "digest": {
@@ -73,7 +73,20 @@
       "title": "Fixes: CI macOS ARM64"
     },
     {
-      "digest": null,
+      "digest": {
+        "contracts": [
+          "autopilot run-prepare: CHOICE_ATTEMPTS = 3, PREPARE_TEXTS.changedWhileChoosing; review off: a refused choice returns to preparing and chooses the current version."
+        ],
+        "decisions": [
+          "Without a review there is no consent bound to one version, so PROPOSAL_CHANGED or DECISION_STALE of the automatic choice means read again, not stop.",
+          "The fix ships as 0.21.1 (a delivery the user confirms): the live check must run on the build with it."
+        ],
+        "references": [
+          "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md",
+          "docs/evidence/M48-acceptance.md"
+        ],
+        "result": "A full run without review no longer stops when the proposal changes right before its automatic choice (the agent proposed again after a returned proposal, A001): the step reads the current version again and chooses it, up to 3 reads; with an agreed review a changed version still stops the run. The end-to-end test prints the autopilot service log on a timeout. Release 0.21.1 follows so the installed build has the fix."
+      },
       "id": "R3",
       "kind": "fixes",
       "status": "OPEN",
@@ -866,7 +879,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R3",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -961,8 +974,8 @@
 - Execution: sequential
 - Automation: 5 automatic, 1 manual criteria; CI origin ci/M48-session-autopilot (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 12/15
-- Revision: 1449
+- Progress: 13/15
+- Revision: 1451
 
 ## Objective
 
@@ -1037,7 +1050,7 @@ Digest: CI of c1bf9331 failed on deadlines only: a Claude Stop test waited 4.5 s
   - Commit: fix: choose the current proposal again when it changed before an automatic choice without review
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/backend-core/clusters/runtime/modules/cli/test/m48-session-autopilot-e2e.test.ts, docs/architecture/OS-MATRIX-M48.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-prepare.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/prepare.test.ts
   - Fixes: T002
-- [TODO] DOCS-R3 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R3 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R3
   - Files: README.md, docs/architecture/OVERVIEW.md, docs/architecture/OS-MATRIX-M48.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md
   - Depends on: F003
@@ -1050,5 +1063,7 @@ Digest: CI of c1bf9331 failed on deadlines only: a Claude Stop test waited 4.5 s
   - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/evidence/M48-acceptance.md
   - Depends on: F003, DOCS-R3
   - Fixes: T007
+
+Digest: A full run without review no longer stops when the proposal changes right before its automatic choice (the agent proposed again after a returned proposal, A001): the step reads the current version again and chooses it, up to 3 reads; with an agreed review a changed version still stops the run. The end-to-end test prints the autopilot service log on a timeout. Release 0.21.1 follows so the installed build has the fix.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

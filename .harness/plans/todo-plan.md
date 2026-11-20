@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1441,
+  "revision": 1443,
   "rounds": [
     {
       "digest": {
@@ -56,7 +56,17 @@
       "title": "Implementation"
     },
     {
-      "digest": null,
+      "digest": {
+        "contracts": [],
+        "decisions": [
+          "No product code changes: the failures were test deadlines on slow CI runners, not service defects (local runs and Linux green).",
+          "The lock scenario waits for a marker the preload writes inside the delayed git commit instead of a fixed pause."
+        ],
+        "references": [
+          "docs/evidence/M48-acceptance.md"
+        ],
+        "result": "CI of c1bf9331 failed on deadlines only: a Claude Stop test waited 4.5 s on a loaded macOS runner, two M48 end-to-end scenarios waited 20 s on Windows runners that run Kit several times slower. Tests now wait up to 15 s / 90 s and end at the condition; the locked scenario presses when Kit is known to hold its lock; a timeout prints the last run brief."
+      },
       "id": "R2",
       "kind": "fixes",
       "status": "OPEN",
@@ -779,7 +789,7 @@
       "iteration": 1,
       "kind": "docs",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Reconcile project documentation and write the round digest",
       "why": "Keep the project context current for the next agent and close the round."
     },
@@ -835,8 +845,8 @@
 - Execution: sequential
 - Automation: 5 automatic, 1 manual criteria; CI origin ci/M48-session-autopilot (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 10/12
-- Revision: 1441
+- Progress: 11/12
+- Revision: 1443
 
 ## Objective
 
@@ -898,7 +908,7 @@ Digest: Each session has its own autopilot mode and review, changed on its card 
   - Commit: test: give the M48 end-to-end scenarios room on Windows runners
   - Files: product-parts/backend-core/clusters/runtime/modules/cli/test/m48-session-autopilot-e2e.test.ts
   - Fixes: T006
-- [TODO] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
+- [DONE] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R2
   - Files: README.md, docs/architecture/OVERVIEW.md
   - Depends on: F001, F002
@@ -906,5 +916,7 @@ Digest: Each session has its own autopilot mode and review, changed on its card 
   - Commit: test: verify M48 on four CI platforms
   - Files: docs/evidence/M48-acceptance.md
   - Depends on: T007, DOCS-R2
+
+Digest: CI of c1bf9331 failed on deadlines only: a Claude Stop test waited 4.5 s on a loaded macOS runner, two M48 end-to-end scenarios waited 20 s on Windows runners that run Kit several times slower. Tests now wait up to 15 s / 90 s and end at the condition; the locked scenario presses when Kit is known to hold its lock; a timeout prints the last run brief.
 
 State changes only through `scripts/workflow` commands. History lives in Git.

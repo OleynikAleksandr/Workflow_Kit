@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1448,
+  "revision": 1449,
   "rounds": [
     {
       "digest": {
@@ -857,7 +857,9 @@
       "files": [
         "README.md",
         "docs/architecture/OVERVIEW.md",
-        "docs/architecture/OS-MATRIX-M48.md"
+        "docs/architecture/OS-MATRIX-M48.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md"
       ],
       "fixes": null,
       "id": "DOCS-R3",
@@ -914,6 +916,38 @@
           "reason": "CI failed for df004541584b886424f9ba935818fb53bd51ab64: Linux x64: failure"
         }
       ]
+    },
+    {
+      "acceptance": [
+        "Версия 0.21.1 установлена через npm ci и node bin/wfk.mjs install, wfk doctor --installed — всё в порядке, запуск этой сессии продолжается после перезапуска службы",
+        "CHANGELOG — раздел 0.21.1 (выбор способа без ревью перечитывает изменившееся предложение; тесты CI), README — «Текущая версия: 0.21.1»; результат в docs/evidence/M48-acceptance.md"
+      ],
+      "checks": [
+        "installed-service"
+      ],
+      "commitMessage": "chore: release Workflow Kit 0.21.1",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [
+        "F003",
+        "DOCS-R3"
+      ],
+      "docsWaiver": null,
+      "files": [
+        "package.json",
+        "package-lock.json",
+        "CHANGELOG.md",
+        "README.md",
+        "docs/evidence/M48-acceptance.md"
+      ],
+      "fixes": "T007",
+      "id": "F004",
+      "iteration": 1,
+      "kind": "delivery",
+      "roundId": "R3",
+      "status": "TODO",
+      "title": "Поставка 0.21.1",
+      "why": "F003 исправляет код службы: установленная 0.21.0 его не содержит, живая проверка пользователя должна идти на сборке с исправлением"
     }
   ]
 }
@@ -927,8 +961,8 @@
 - Execution: sequential
 - Automation: 5 automatic, 1 manual criteria; CI origin ci/M48-session-autopilot (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 12/14
-- Revision: 1448
+- Progress: 12/15
+- Revision: 1449
 
 ## Objective
 
@@ -1005,11 +1039,16 @@ Digest: CI of c1bf9331 failed on deadlines only: a Claude Stop test waited 4.5 s
   - Fixes: T002
 - [TODO] DOCS-R3 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R3
-  - Files: README.md, docs/architecture/OVERVIEW.md, docs/architecture/OS-MATRIX-M48.md
+  - Files: README.md, docs/architecture/OVERVIEW.md, docs/architecture/OS-MATRIX-M48.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md
   - Depends on: F003
 - [TODO] T008 — CI четырёх платформ (delivery)
   - Commit: test: verify M48 on four CI platforms
   - Files: docs/evidence/M48-acceptance.md
   - Depends on: T007, DOCS-R3
+- [TODO] F004 — Поставка 0.21.1 (delivery)
+  - Commit: chore: release Workflow Kit 0.21.1
+  - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/evidence/M48-acceptance.md
+  - Depends on: F003, DOCS-R3
+  - Fixes: T007
 
 State changes only through `scripts/workflow` commands. History lives in Git.

@@ -32,7 +32,7 @@ export function asciiNoticeReason(reason: string | null): string {
  * preparation before the grant, a phase change of a granted run).
  */
 export function runNoticeState(run: RunRecord): string | null {
-  if (run.phase === 'completed') return 'completed (published)';
+  if (run.phase === 'completed') return run.completion?.local ? 'completed (the result stays local: the plan has no publication)' : 'completed (published)';
   if (run.phase === 'finished') return 'finished (the plan was closed)';
   if (run.phase === 'stopped') return `stopped (${asciiNoticeReason(run.reason)})`;
   if (run.phase === 'paused') return 'paused';

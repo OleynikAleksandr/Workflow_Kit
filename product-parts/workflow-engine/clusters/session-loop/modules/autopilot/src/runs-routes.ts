@@ -12,6 +12,8 @@ import { SettingsError } from './settings.ts';
 import type { SettingsStore } from './settings.ts';
 import type { SessionReviewState, SessionSettingsStore } from './session-settings.ts';
 import type { SessionSwitch } from './session-switch.ts';
+import { pressSignature } from './kit-waits.ts';
+import type { KitWaits } from './kit-waits.ts';
 
 export function registerAutopilotingRoutes(options: {
   router: Router;
@@ -85,9 +87,13 @@ export async function runHttp<T>(action: () => Promise<T>): Promise<T> {
  * POST /api/projects/:id/autopiloting/pause|resume|stop { runId, expectedRevision } (spec M39
  * runtime 1, T007): only that run of that project; a changed run — 409 run-stale with `current`.
  */
-export function registerRunControlRoutes(options: { router: Router; control: RunControl }): void {
+export function registerRunControlRoutes(options: { router: Router; control: RunControl; waits?: KitWaits }): void {
   for (const action of ['pause', 'resume', 'stop'] as const) {
-    options.router.post(`/api/projects/:id/autopiloting/${action}`, ({ params, body }) => runHttp<unknown>(() => options.control[action](params['id']!, body)));
+    options.router.post(`/api/projects/:id/autopiloting/${action}`, ({ params, body }) => {
+      const act = () => runHttp<unknown>(() => options.control[action](params['id']!, body));
+      // M48 T004: the run buttons wait out a busy Kit (LOCKED) as the plan buttons do.
+      return options.waits ? options.waits.run(params['id']!, `run:${action}`, pressSignature(`run:${action}`, body), act) : act();
+    });
   }
 }
 

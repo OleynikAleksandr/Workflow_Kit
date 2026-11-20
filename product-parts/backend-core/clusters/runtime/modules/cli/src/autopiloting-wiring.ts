@@ -5,8 +5,8 @@
 // from Settings when it begins; the session card's off pauses that session's run.
 import type { AgentChannel } from '#agent-channel';
 import type { AutopilotAgentState } from './autopilot-line.ts';
-import { createAgentNotices, createDecisionJournal, createDecisions, createHostTickets, runMayDecide, createPreparation, createProposalGate, createRunCompletion, createRunControl, createRunJournal, createRunKit, createRunTurns, createRunWaits, createRunWords, createRuns, createSessionSettings, createSessionSwitch, createSettingsStore, registerAutopilotingRoutes, registerRunControlRoutes, registerSessionRunRoutes, runHttp, validSessionKey } from '#autopilot';
-import type { Decisions, RunCompleter, ControlActions, PrepareActions, ReviewFact, RunControl, RunTurns, RunWaits, RunWords, Runs, SessionReviewState, SessionSettingsStore, SessionSwitch, SettingsStore } from '#autopilot';
+import { createAgentNotices, createDecisionJournal, createDecisions, createHostTickets, runMayDecide, createPreparation, createProposalGate, createRunCompletion, createRunControl, createRunJournal, createRunKit, createRunTurns, createRunWaits, createRunWords, createRuns, createSessionSettings, createSessionSwitch, createSettingsStore, createKitWaits, registerAutopilotingRoutes, registerRunControlRoutes, registerSessionRunRoutes, runHttp, validSessionKey } from '#autopilot';
+import type { Decisions, KitWaits, RunCompleter, ControlActions, PrepareActions, ReviewFact, RunControl, RunTurns, RunWaits, RunWords, Runs, SessionReviewState, SessionSettingsStore, SessionSwitch, SettingsStore } from '#autopilot';
 import { createGitHubCi, createPublisher, runGit } from '#git-publish';
 import type { GitHubCi, GitRunner, Publisher } from '#git-publish';
 import type { KeyedMutex } from '#data-store';
@@ -21,6 +21,8 @@ export interface AutopilotingWiring {
   sessions: SessionSettingsStore;
   /** M48 T002: the switch of a session card at any stage of its task (stage, effect). */
   switcher: SessionSwitch;
+  /** M48 T004: the user's presses that wait out a busy Kit (LOCKED); state section `kitWaits`. */
+  kitWaits: KitWaits;
   /**
    * M48 T002: the user answered the agent's plan question. In the full mode of the session the run
    * is registered and the agent gets the full-run instruction (queued before the answer message);
@@ -213,12 +215,16 @@ export function wireAutopiloting(options: {
   const waits = createRunWaits({ journal, kit: runKit, ci: options.ci ?? createGitHubCi(), projectPath, listProjects, send, mutex: options.mutex, ...(options.log ? { log: options.log } : {}) });
   const git = options.git ?? runGit;
   const completion = createRunCompletion({ journal, kit: runKit, publisher: options.publisher ?? createPublisher({ git }), git, projectPath, listProjects, mutex: options.mutex, ...(options.log ? { log: options.log } : {}) });
-  registerRunControlRoutes({ router: options.router, control });
+  // M48 T004: one wait list of the service for every button of the user (plan, decisions, runs).
+  const kitWaits = createKitWaits(options.log ? { log: options.log } : {});
+  options.state.add('kitWaits', () => kitWaits.section());
+  registerRunControlRoutes({ router: options.router, control, waits: kitWaits });
   registerSessionRunRoutes({ router: options.router, waits, control, locate: (input) => (links ? links.locate(input) : Promise.reject(new Error('service is starting'))) });
   return {
     settings,
     sessions,
     switcher,
+    kitWaits,
     answered: (projectId, key, choice, summary) => switcher.answered(projectId, key, choice, summary),
     runs,
     decisions,

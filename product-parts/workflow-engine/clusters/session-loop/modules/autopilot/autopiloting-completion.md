@@ -67,8 +67,12 @@ log? }) → RunCompleter`:
    - иначе `close --scope <id> --autopilot-run <id> --expected-revision N` через тикет.
      `DIRTY_TREE` — `blocked`: чужие файлы не удаляются и не коммитятся.
    - `finalSha` — коммит закрытия; фаза `publishing`.
-4. `publishing` (scope `NONE` сохраняет запуск; открыт другой scope — `scope-changed`; нет
-   адресата — `no-upstream`):
+4. `publishing` (scope `NONE` сохраняет запуск; открыт другой scope — `scope-changed`; M48 T004:
+   в плане нет публикации (`automation.publication: null`) — сразу `completed` без push и без CI
+   финального SHA, `completion.local: true`, `published: null`, квитанция `local:<sha>`,
+   `COMPLETE_TEXTS.local`; запуск старой версии, вставший `blocked` `no-upstream` для такого плана,
+   завершается так же следующим шагом; `no-upstream` остаётся только сбоем публикатора для плана с
+   публикацией):
    - при `exactSha` и без зелёной квитанции `ci` для `finalSha` — `stage(finalSha)`;
    - затем `publisher.publish(folder, false, { sha: finalSha, branch, upstream })`:
      квитанция `publish` (`already` — SHA уже был на удалённой ветке и проверен после

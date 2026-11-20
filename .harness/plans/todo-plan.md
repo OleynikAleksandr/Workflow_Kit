@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1422,
+  "revision": 1424,
   "rounds": [
     {
       "digest": null,
@@ -455,14 +455,32 @@
         "product-parts/workflow-engine/clusters/session-loop/modules/autopilot",
         "product-parts/backend-core/clusters/runtime/modules/cli",
         "docs/architecture/HTTP-CONTRACTS.md",
-        "docs/architecture/OS-MATRIX-M48.md"
+        "docs/architecture/OS-MATRIX-M48.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/autopiloting-wiring.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting-completion.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/kit-waits.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/run-end.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/agent-notices.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/decision-commands.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/index.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/kit-waits.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/routes.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-brief.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-complete.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-journal.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/runs-routes.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/complete.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/m48-kit-waits.test.ts"
       ],
       "fixes": null,
       "id": "T004",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Конец запуска без публикации и нажатия при занятом Kit",
       "why": "B001: план без публикации блокировался no-upstream; нажатие «Подтвердить выпуск» во время команды агента пропадало (LOCKED)"
     },
@@ -651,8 +669,8 @@
 - Execution: sequential
 - Automation: 5 automatic, 1 manual criteria; CI origin ci/M48-session-autopilot (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 3/9
-- Revision: 1422
+- Progress: 4/9
+- Revision: 1424
 
 ## Objective
 
@@ -682,9 +700,9 @@
   - Commit: feat: switch the review of a session until its plan card appears
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/plan-review, product-parts/workflow-engine/clusters/session-loop/modules/cross-review, product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/backend-core/clusters/runtime/modules/cli, docs/architecture/OS-MATRIX-M48.md, docs/architecture/HTTP-CONTRACTS.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/autopiloting-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/review-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/session-review.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/m48-session-review.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/session-switch.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/runs-routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/session-settings.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/session-switch.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/settings.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/m48-session-settings.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/m48-session-switch.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/cross-review/module.md, product-parts/workflow-engine/clusters/session-loop/modules/plan-review/module.md
   - Depends on: T002
-- [TODO] T004 — Конец запуска без публикации и нажатия при занятом Kit (work)
+- [DONE] T004 — Конец запуска без публикации и нажатия при занятом Kit (work)
   - Commit: fix: complete a local-only run and wait out a busy Kit for user decisions
-  - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/backend-core/clusters/runtime/modules/cli, docs/architecture/HTTP-CONTRACTS.md, docs/architecture/OS-MATRIX-M48.md
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/backend-core/clusters/runtime/modules/cli, docs/architecture/HTTP-CONTRACTS.md, docs/architecture/OS-MATRIX-M48.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/autopiloting-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting-completion.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/kit-waits.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/run-end.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/agent-notices.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/decision-commands.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/kit-waits.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-brief.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-complete.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/run-journal.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/runs-routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/complete.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/m48-kit-waits.test.ts
   - Depends on: T003
 - [TODO] T005 — Панель: карточка сессии и ручные кнопки только без автопилота (work)
   - Commit: feat: show the session autopilot card and hide the buttons the autopilot presses

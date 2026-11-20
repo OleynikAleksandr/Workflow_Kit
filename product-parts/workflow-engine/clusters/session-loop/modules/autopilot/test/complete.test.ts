@@ -6,7 +6,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { after, test } from 'node:test';
-import { COMPLETE_TEXTS, RETRY_DELAYS_MS, createRunCompletion, createRunJournal, createRunWaits } from '../src/index.ts';
+import { COMPLETE_TEXTS, RETRY_DELAYS_MS, createRunCompletion, createRunJournal, createRunWaits, runBrief, runNoticeState } from '../src/index.ts';
 import type { NewRun, RunKit, RunRecord } from '../src/index.ts';
 
 const tmp = await mkdtemp(path.join(os.tmpdir(), 'wfk-complete-'));
@@ -111,7 +111,7 @@ test('a restart after accept or close finds the facts and repeats no Kit step', 
   assert.deepEqual([ended?.phase, ended?.reason, ended?.pausedFrom, ended?.nextAction, elsewhere.pushes], ['finished', 'closed-manually', 'closing', null, []]);
 });
 
-test('typed stops: manual criterion, revoked grant, pause, another scope, no upstream; missing evidence and a refusal of Kit wait for the user (M41)', async () => {
+test('typed stops: manual criterion, revoked grant, pause, another scope; missing evidence and a refusal of Kit wait for the user (M41)', async () => {
   const manual = await setup();
   (manual.kit.status['authorization'] as { accept: boolean }).accept = false;
   assert.equal((await manual.completer.advance('p'))?.nextAction, COMPLETE_TEXTS.manual);
@@ -123,9 +123,6 @@ test('typed stops: manual criterion, revoked grant, pause, another scope, no ups
   assert.deepEqual(paused.pushes, [], 'a paused run publishes nothing');
   const other = await setup({ phase: 'publishing', completion: { ci: null, publication: PUB, finalSha: FINAL } });
   assert.equal((await other.completer.advance('p'))?.reason, 'scope-changed');
-  const local = await setup({ phase: 'publishing', completion: { ci: null, publication: null, finalSha: FINAL } });
-  local.kit.status = { ...local.kit.status, scope: 'NONE' };
-  assert.equal((await local.completer.advance('p'))?.reason, 'no-upstream');
   const missing = await setup({ phase: 'accepting', completion: { ci: null, publication: PUB, finalSha: null } });
   missing.kit.status = { ...missing.kit.status, acceptance: [{ criterion: 0, kind: 'automatic', checks: [], evidence: ['r.md'], evidenceMissing: ['r.md'] }] };
   const waiting = await missing.completer.advance('p');
@@ -177,4 +174,26 @@ test('a red CI of the final SHA blocks the closed run: a repair needs a new scop
   const run = await t.read();
   assert.deepEqual([run.phase, run.pausedFrom, run.nextAction], ['blocked', 'publishing', COMPLETE_TEXTS.afterClose]);
   assert.deepEqual(t.pushes, [], 'main is never pushed after a red CI');
+});
+
+test('M48 T004: a plan without publication ends after the close — no push, no CI of the final SHA, the result stays local', async () => {
+  const local = await setup({ phase: 'publishing', completion: { ci: CI, publication: null, finalSha: FINAL } });
+  local.kit.status = { ...local.kit.status, scope: 'NONE' };
+  const done = (await local.completer.advance('p'))!;
+  assert.deepEqual([done.phase, done.reason, done.nextAction, done.completion?.published, done.completion?.local], ['completed', null, null, null, true]);
+  assert.deepEqual(local.pushes, [], 'nothing is pushed: neither the CI branch nor main');
+  assert.equal(done.receipts.at(-1)?.actionId, `local:${FINAL}`);
+  const brief = runBrief(done);
+  assert.deepEqual([brief.local, brief.publication?.published], [true, null]);
+  assert.equal(runNoticeState(done), 'completed (the result stays local: the plan has no publication)');
+  assert.equal(COMPLETE_TEXTS.local, 'Результат остаётся локальным: публикация в плане не предусмотрена.');
+  // A run of an older version blocked at «no-upstream» for such a plan ends at the next step (B001).
+  const old = await setup({ phase: 'blocked', pausedFrom: 'publishing', reason: 'no-upstream', nextAction: COMPLETE_TEXTS.noUpstream, completion: { ci: null, publication: null, finalSha: FINAL } });
+  old.kit.status = { ...old.kit.status, scope: 'NONE' };
+  const ended = (await old.completer.advance('p'))!;
+  assert.deepEqual([ended.phase, ended.reason, ended.nextAction, ended.completion?.local], ['completed', null, null, true]);
+  // A plan with publication and a lost upstream still stops with its reason.
+  const lost = await setup({ phase: 'blocked', pausedFrom: 'publishing', reason: 'no-upstream', completion: { ci: null, publication: PUB, finalSha: FINAL } });
+  lost.kit.status = { ...lost.kit.status, scope: 'NONE' };
+  assert.equal((await lost.completer.advance('p'))?.phase, 'blocked');
 });

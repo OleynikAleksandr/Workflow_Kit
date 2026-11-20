@@ -15,6 +15,8 @@ import type { Autopilot } from './autopilot-types.ts';
 import { originOf } from './decisions.ts';
 import type { DecisionBy, DecisionDone, Decisions } from './decisions.ts';
 import { runHttp } from './runs-routes.ts';
+import { pressSignature } from './kit-waits.ts';
+import type { KitWaits } from './kit-waits.ts';
 import { PREFIX } from './texts.ts';
 
 export const DECISION_KINDS: readonly KitDecisionKind[] = ['accept', 'adopt-commits', 'approve-install', 'choose', 'close', 'confirm-delivery', 'unblock'];
@@ -132,6 +134,8 @@ export function registerDecisionRoutes(options: {
   locate(input: Record<string, unknown>): Promise<{ projectId: string; key: string }>;
   /** Serializes the actions on a project, like the other plan buttons. */
   mutex?: KeyedMutex;
+  /** M48 T004: a button Kit refuses with LOCKED waits and is applied once Kit is free. */
+  waits?: KitWaits;
 }): void {
   const serial = <T>(projectId: string, action: () => Promise<T>): Promise<T> => runHttp(() => (options.mutex ? options.mutex.run(`project:${projectId}`, action) : action()));
   options.router.post('/api/sessions/decision', async ({ body, req }) => {
@@ -145,6 +149,8 @@ export function registerDecisionRoutes(options: {
   options.router.post('/api/projects/:id/workflow/decision', ({ params, body }) => {
     const input = fields(body);
     const session = text(input['session']);
-    return serial(params['id']!, () => options.commands.run(params['id']!, { ...commandOf(input), ...(session ? { session } : {}), by: decisionBy(input) }));
+    const command = commandOf(input);
+    const act = () => serial(params['id']!, () => options.commands.run(params['id']!, { ...command, ...(session ? { session } : {}), by: decisionBy(input) }));
+    return options.waits ? options.waits.run(params['id']!, `decision:${command.kind}`, pressSignature(`decision:${command.kind}`, input), act) : act();
   });
 }

@@ -77,6 +77,13 @@
   /api/projects/:id/autopiloting/policy?session=<key>` — политика по режиму сессии. Раздел
   `autopiloting` — плюс `sessions: { <projectId>: { <key>: запись } }`. Контракт —
   [autopilot/session-settings.md](../../product-parts/workflow-engine/clusters/session-loop/modules/autopilot/session-settings.md).
+- M48 T004: кнопки плана (`…/workflow/choose|start|accept|close|confirm-delivery`), карточки
+  решения (`…/workflow/decision`) и запуска (`…/autopiloting/pause|resume|stop`) при отказе Kit
+  `LOCKED` отвечают 202 `{ pending: true, wait: { id, action, since, attempts, state, error, text } }`
+  и применяются, когда Kit освободится (повтор каждые 2 с до 15 мин, одно применение; повторное
+  нажатие того же решения — тот же ответ). Раздел состояния `kitWaits: { projects: { <id>: [wait] } }`.
+  Раздел `autopiloting.projects[id]` — плюс `local` (план без публикации завершён, результат
+  локальный). Контракт — [autopilot/kit-waits.md](../../product-parts/workflow-engine/clusters/session-loop/modules/autopilot/kit-waits.md).
 - Контракт — [autopilot/autopiloting.md](../../product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md).
 
 ## Голосовой ввод (speech-integration)

@@ -83,6 +83,8 @@ export interface RunCompletion {
   finalSha: string | null;
   /** T009: the verified publication (commits pushed; `already` — the remote had the SHA). */
   published?: { sha: string; upstream: string; commits: number; already: boolean; at: string } | null;
+  /** M48 T004: the plan publishes nothing (`automation.publication: null`); the run ended after the close. */
+  local?: boolean;
 }
 
 export interface RunReceipt {

@@ -236,11 +236,12 @@ export function wireSessions(options: SessionWiringOptions): SessionWiring {
   // A panel message goes to a waiting agent at once as a user's message when its provider can do
   // it (sendDirect); otherwise, and for the autopilot and the cross review, through the queue.
   const direct = createDirectMessage({ channel, activity: (key) => channel.get(key), provider: (id) => providers.get(id), project: (id) => projects.get(id), log: options.log });
-  registerAutopilotRoutes({ router, state, autopilot, mutex });
+  registerAutopilotRoutes({ router, state, autopilot, mutex, waits: autopiloting.kitWaits });
   // M40: `wfk decision <kind>` and the buttons of the decision cards (a `decisions: host` project).
   registerDecisionRoutes({
     router,
     mutex,
+    waits: autopiloting.kitWaits,
     commands: createDecisionCommands({
       autopilot,
       decisions: autopiloting.decisions,

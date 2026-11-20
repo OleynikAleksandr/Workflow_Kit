@@ -38,6 +38,8 @@ export const COMPLETE_TEXTS = {
   afterClose: 'Scope уже закрыт: исправление требует отдельного согласованного scope.',
   scopeChanged: 'Открыт другой scope: старый запуск не публикует его незаконченный результат.',
   noUpstream: 'У запуска нет адресата публикации (upstream): результат остаётся локальным.',
+  /** M48 T004: a plan without publication ends after the close; nothing is pushed. */
+  local: 'Результат остаётся локальным: публикация в плане не предусмотрена.',
   retry: 'Устраните причину и нажмите «Продолжить».',
   /** M41: the automatic acceptance gives way to the user's instead of stopping the run. */
   awaitUser: (reason: string) => `Автоприёмка не смогла доказать результат: ${reason}. Проверьте результат и нажмите «Принять план» — запуск сам закроет план и опубликует.`,
@@ -224,12 +226,23 @@ export function createRunCompletion(deps: RunCompletionDeps) {
     return update(folder, run, (r) => ({ ...r, phase: 'publishing', tickets: [...r.tickets, ...tickets], completion: { ...r.completion!, finalSha: sha }, receipts: [...r.receipts, receipt(`close:${r.scopeId}`, 'close', sha, `closed by run ${r.runId}`)] }));
   }
 
+  /** M48 T004: the end of a run whose plan publishes nothing (no push, no CI of the final SHA). */
+  function completeLocal(folder: string, run: RunRecord, sha: string): Promise<RunRecord | null> {
+    log(`autopiloting: ${run.runId} completed at ${sha}: the plan has no publication, the result stays local`);
+    return update(folder, run, (r) => ({
+      ...r, phase: 'completed', pausedFrom: null, reason: null, nextAction: null, retries: {},
+      completion: { ...r.completion!, published: null, local: true },
+      receipts: [...r.receipts, receipt(`local:${sha}`, 'local', sha, 'no publication in the plan: the result stays local')],
+    }));
+  }
+
   async function publish(folder: string, run: RunRecord, status: RunKitStatus): Promise<RunRecord | null> {
     const completion = run.completion;
     const sha = completion?.finalSha;
     if (!sha) return block(folder, run, 'no-final-sha: нет коммита закрытия запуска');
     if (status.scope !== 'NONE') return block(folder, run, 'scope-changed', COMPLETE_TEXTS.scopeChanged);
-    if (!completion.publication) return block(folder, run, 'no-upstream', COMPLETE_TEXTS.noUpstream);
+    // M48 T004: `automation.publication: null` — the plan publishes nothing: the run ends after the close.
+    if (!completion.publication) return completeLocal(folder, run, sha);
     if (completion.ci?.exactSha && !greenFor(run, sha)) return stage(folder, run, sha);
     const actionId = `publish:${sha}`;
     if (!due(run, actionId)) return null;
@@ -279,6 +292,8 @@ export function createRunCompletion(deps: RunCompletionDeps) {
       const active = await deps.journal.active(folder);
       // M40: a run whose scope is gone (accepted and closed by hand) ends, whatever its phase.
       let run = active ? await settleRunEnd({ journal: deps.journal, kit: deps.kit, log }, folder, active) : null;
+      // M48 T004: a run of an older version that stopped at «no-upstream» for a plan without publication ends now.
+      if (run?.phase === 'blocked' && run.reason === 'no-upstream' && run.completion?.finalSha && !run.completion.publication) run = await completeLocal(folder, run, run.completion.finalSha);
       // accept → close → stage/publish in one pass; every step re-reads the facts.
       for (let i = 0; i < 6 && run && run.authority && !run.authority.revocation && ACTING.has(run.phase); i += 1) {
         const next = await step(folder, run);

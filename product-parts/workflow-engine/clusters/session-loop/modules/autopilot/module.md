@@ -195,6 +195,10 @@ M41 T002 — приёмка пользователя вместо останов
   пометка `preparing` и `SessionSettingsStore.mark` — в [session-switch.md](session-switch.md);
   T003 — `SessionReviewState`, `SessionSettingsStore.syncReview`, опция `reviewOf`, опция `review`
   у `registerAutopilotingRoutes`, коды `review-closed`/`review-locked` у `SettingsError` — там же.
+- M48 T004 — план без публикации (`completion.local`, `RunBrief.local`, `COMPLETE_TEXTS.local`) —
+  [run-end.md](run-end.md); ожидание занятого Kit `createKitWaits` (`KitWaits`, `KitWait`,
+  `kitLocked`, `pressSignature`, `KIT_WAIT_*`), опция `waits` у `registerAutopilotRoutes`,
+  `registerDecisionRoutes`, `registerRunControlRoutes` — [kit-waits.md](kit-waits.md).
 
 ## Инварианты
 

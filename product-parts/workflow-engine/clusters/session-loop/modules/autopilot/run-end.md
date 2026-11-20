@@ -78,6 +78,15 @@
 Ручная приёмка без закрытия запуск не заканчивает: завершение видит `ACCEPTED` как факт и
 закрывает scope само, повторной приёмки нет (M39).
 
+## План без публикации (M48 T004)
+
+План с `automation.publication: null` (результат локальный — так разрешает схема Kit) после
+закрытия заканчивается `completed` с `completion.local: true` и строкой
+`COMPLETE_TEXTS.local` «Результат остаётся локальным: публикация в плане не предусмотрена.» вместо
+`blocked` `no-upstream` (B001, 20.11.2026). Сводка панели — `RunBrief.local`, строка агенту —
+`completed (the result stays local: the plan has no publication)`. Подробно —
+[autopiloting-completion.md](autopiloting-completion.md).
+
 ## Подключение (`cli`)
 
 `autopiloting-wiring.ts` создаёт `createProposalGate` и отдаёт автопилоту

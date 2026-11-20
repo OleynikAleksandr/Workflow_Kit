@@ -58,6 +58,8 @@ export type { GitRead, PublisherLike, RunCompleter, RunCompletionDeps } from './
 export { COMPLETE_TEXTS, createRunCompletion } from './run-complete.ts';
 export type { RunCompletion } from './run-journal.ts';
 export { RUN_END_REASON, finishRun, settleRunEnd } from './run-end.ts';
+export type { KitWait, KitWaits, KitWaitsDeps } from './kit-waits.ts';
+export { KIT_WAIT_LIMIT_MS, KIT_WAIT_RETRY_MS, KIT_WAIT_TEXTS, createKitWaits, kitLocked, pressSignature } from './kit-waits.ts';
 export type { ProposalGate } from './run-proposal.ts';
 export { AUTOMATION_ATTEMPTS, createProposalGate, proposalLacksAutomation, stopRun } from './run-proposal.ts';
 export type { RunStopReason } from './run-texts.ts';

@@ -15,12 +15,19 @@ async function ready(provider: Provider, project: Project, sid: string) {
   await until(async () => { await provider.listSessions(project); return provider.interruptAvailability!(project, sid).available; }, 'fresh managed terminal state');
 }
 
+/**
+ * How long a test that expects a confirmed Stop waits for it. A confirmation comes in well under a
+ * second, but a loaded CI runner once took over 4.5 s (M48, macOS ARM64): the deadline only bounds a
+ * hang, a passing run ends at the confirmation. Tests that expect the timeout keep their short waits.
+ */
+const CONFIRM_WAIT_MS = 15_000;
+
 for (const platform of ['darwin', 'linux'] as const) test(`expect ${platform}: fresh confirmation, no Stop hook, process remains alive and next prompt works`, { skip }, async () => {
   const h = await createHarness(() => ({}));
   try {
     const project = await h.project('Interrupt');
     await writeFile(h.configFile, JSON.stringify({ projects: { [project.path]: { hasTrustDialogAccepted: true } } }));
-    const provider = createClaudeProvider({ ...h.context, platform, env: { ...h.context.env, FAKE_CLAUDE_MODE: 'interrupt-old-marker' } }, { pollMs: 50, interruptWaitMs: 4500 });
+    const provider = createClaudeProvider({ ...h.context, platform, env: { ...h.context.env, FAKE_CLAUDE_MODE: 'interrupt-old-marker' } }, { pollMs: 50, interruptWaitMs: CONFIRM_WAIT_MS });
     const session = await provider.createSession(project, { title: 'Test' });
     await ready(provider, project, session.localId);
     assert.equal((await provider.interruptTurn!(project, session.localId, target)).status, 'interrupted');
@@ -67,7 +74,7 @@ test('expect confirms an already completed observed epoch without Escape or proc
   try {
     const project = await h.project('AlreadyIdle');
     await writeFile(h.configFile, JSON.stringify({ projects: { [project.path]: { hasTrustDialogAccepted: true } } }));
-    const provider = h.withEnv({ FAKE_CLAUDE_MODE: 'interrupt-working' }, { interruptWaitMs: 4500 });
+    const provider = h.withEnv({ FAKE_CLAUDE_MODE: 'interrupt-working' }, { interruptWaitMs: CONFIRM_WAIT_MS });
     const session = await provider.createSession(project, { title: 'Test' });
     await ready(provider, project, session.localId);
     const call = (await h.fakeCalls()).find((c) => c.argv.includes('--debug-file'))!;
@@ -86,7 +93,7 @@ for (const platform of ['darwin', 'linux'] as const) test(`M28 T010 ${platform}:
   try {
     const project = await h.project('Fresh');
     await writeFile(h.configFile, JSON.stringify({ projects: { [project.path]: { hasTrustDialogAccepted: true } } }));
-    const provider = createClaudeProvider({ ...h.context, platform, env: { ...h.context.env, FAKE_CLAUDE_MODE: 'interrupt-working' } }, { pollMs: 50, interruptWaitMs: 4500 });
+    const provider = createClaudeProvider({ ...h.context, platform, env: { ...h.context.env, FAKE_CLAUDE_MODE: 'interrupt-working' } }, { pollMs: 50, interruptWaitMs: CONFIRM_WAIT_MS });
     const session = await provider.createSession(project, { title: 'Test' });
     assert.deepEqual(provider.interruptAvailability!(project, session.localId), { available: true, reason: null }, 'no listing yet');
     assert.equal((await provider.interruptTurn!(project, session.localId, target)).status, 'interrupted', 'the press reads the host itself');

@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1436,
+  "revision": 1438,
   "rounds": [
     {
       "digest": {
@@ -728,7 +728,7 @@
       "iteration": 1,
       "kind": "work",
       "roundId": "R2",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Тест остановки ответа Claude без гонки по времени на загруженном CI",
       "why": "CI c1bf9331 (run 44720800213) на macOS ARM64: M28 T010 darwin — interrupt-timeout: подтверждение остановки не пришло за 4,5 с под нагрузкой; локально 3 из 3, код M48 тест не трогал"
     },
@@ -810,8 +810,8 @@
 - Execution: sequential
 - Automation: 5 automatic, 1 manual criteria; CI origin ci/M48-session-autopilot (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 8/11
-- Revision: 1436
+- Progress: 9/11
+- Revision: 1438
 
 ## Objective
 
@@ -866,7 +866,7 @@ Digest: Each session has its own autopilot mode and review, changed on its card 
 
 ### R2 — Fixes: CI macOS ARM64 (fixes, OPEN)
 
-- [TODO] F001 — Тест остановки ответа Claude без гонки по времени на загруженном CI (work)
+- [DONE] F001 — Тест остановки ответа Claude без гонки по времени на загруженном CI (work)
   - Commit: test: give the Claude Stop confirmation room on a loaded CI runner
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/interrupt.test.ts
 - [TODO] DOCS-R2 — Reconcile project documentation and write the round digest (docs)

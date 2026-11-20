@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1415,
+  "revision": 1416,
   "rounds": [
     {
       "digest": null,
@@ -380,10 +380,11 @@
       ],
       "docsWaiver": null,
       "files": [
+        "product-parts/workflow-engine/clusters/session-loop/modules/plan-review",
+        "product-parts/workflow-engine/clusters/session-loop/modules/cross-review",
         "product-parts/workflow-engine/clusters/session-loop/modules/autopilot",
         "product-parts/backend-core/clusters/runtime/modules/cli",
-        "docs/architecture/OS-MATRIX.md",
-        "docs/evidence/M44-acceptance.md"
+        "docs/architecture/OS-MATRIX-M48.md"
       ],
       "fixes": null,
       "id": "T003",
@@ -615,7 +616,7 @@
 - Automation: 5 automatic, 1 manual criteria; CI origin ci/M48-session-autopilot (4 checks); publication main → origin/main
 - Current task: T002
 - Progress: 1/9
-- Revision: 1415
+- Revision: 1416
 
 ## Objective
 
@@ -643,7 +644,7 @@
   - Depends on: T001
 - [TODO] T003 — Ревью сессии до карточки плана (work)
   - Commit: feat: switch the review of a session until its plan card appears
-  - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/backend-core/clusters/runtime/modules/cli, docs/architecture/OS-MATRIX.md, docs/evidence/M44-acceptance.md
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/plan-review, product-parts/workflow-engine/clusters/session-loop/modules/cross-review, product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/backend-core/clusters/runtime/modules/cli, docs/architecture/OS-MATRIX-M48.md
   - Depends on: T002
 - [TODO] T004 — Конец запуска без публикации и нажатия при занятом Kit (work)
   - Commit: fix: complete a local-only run and wait out a busy Kit for user decisions

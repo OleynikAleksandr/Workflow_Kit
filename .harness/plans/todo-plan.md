@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1453,
+  "revision": 1455,
   "rounds": [
     {
       "digest": {
@@ -89,7 +89,7 @@
       },
       "id": "R3",
       "kind": "fixes",
-      "status": "OPEN",
+      "status": "CLOSED",
       "title": "Fixes: choice of a changed proposal"
     }
   ],
@@ -301,9 +301,21 @@
           "runId": "run-F5nJ3wbBuTxd"
         },
         "text": "Delivery T008 started by the advance instruction of run run-F5nJ3wbBuTxd"
+      },
+      {
+        "at": "2026-11-20T14:51:05.958Z",
+        "decisionId": "dec-25a818661723",
+        "kind": "confirm-delivery",
+        "source": {
+          "kind": "message",
+          "messageId": "6a4c1a9d-478d-4316-abf9-a66d35fbe19d",
+          "runId": null,
+          "session": "ffc970ed-20a1-499c-9d2c-47dff30c41a0"
+        },
+        "text": "confirm-delivery: Принимаю."
       }
     ],
-    "delivery": "IN_PROGRESS",
+    "delivery": "READY_FOR_ACCEPTANCE",
     "execution": {
       "maxWorkers": 1,
       "ownerSession": "ffc970ed-20a1-499c-9d2c-47dff30c41a0",
@@ -949,7 +961,7 @@
         "installed-service"
       ],
       "commitMessage": "chore: release Workflow Kit 0.21.1",
-      "confirmation": null,
+      "confirmation": "Принимаю. (decision dec-25a818661723, message)",
       "context": [],
       "dependencies": [
         "F003",
@@ -968,7 +980,7 @@
       "iteration": 1,
       "kind": "delivery",
       "roundId": "R3",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Поставка 0.21.1",
       "why": "F003 исправляет код службы: установленная 0.21.0 его не содержит, живая проверка пользователя должна идти на сборке с исправлением"
     }
@@ -980,12 +992,12 @@
 ## State
 
 - Scope: M48-session-autopilot (ACTIVE)
-- Delivery: IN_PROGRESS
+- Delivery: READY_FOR_ACCEPTANCE
 - Execution: sequential
 - Automation: 5 automatic, 1 manual criteria; CI origin ci/M48-session-autopilot (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 14/15
-- Revision: 1453
+- Progress: 15/15
+- Revision: 1455
 
 ## Objective
 
@@ -1054,7 +1066,7 @@ Digest: Each session has its own autopilot mode and review, changed on its card 
 
 Digest: CI of c1bf9331 failed on deadlines only: a Claude Stop test waited 4.5 s on a loaded macOS runner, two M48 end-to-end scenarios waited 20 s on Windows runners that run Kit several times slower. Tests now wait up to 15 s / 90 s and end at the condition; the locked scenario presses when Kit is known to hold its lock; a timeout prints the last run brief.
 
-### R3 — Fixes: choice of a changed proposal (fixes, OPEN)
+### R3 — Fixes: choice of a changed proposal (fixes, CLOSED)
 
 - [DONE] F003 — Выбор способа без ревью перечитывает изменившееся предложение (work)
   - Commit: fix: choose the current proposal again when it changed before an automatic choice without review
@@ -1068,7 +1080,7 @@ Digest: CI of c1bf9331 failed on deadlines only: a Claude Stop test waited 4.5 s
   - Commit: test: verify M48 on four CI platforms
   - Files: docs/evidence/M48-acceptance.md
   - Depends on: T007, DOCS-R3
-- [TODO] F004 — Поставка 0.21.1 (delivery)
+- [DONE] F004 — Поставка 0.21.1 (delivery)
   - Commit: chore: release Workflow Kit 0.21.1
   - Files: package.json, package-lock.json, CHANGELOG.md, README.md, docs/evidence/M48-acceptance.md
   - Depends on: F003, DOCS-R3

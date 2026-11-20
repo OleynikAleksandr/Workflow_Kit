@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1417,
+  "revision": 1418,
   "rounds": [
     {
       "digest": null,
@@ -453,7 +453,8 @@
       "files": [
         "product-parts/control-panel/clusters/web-panel/modules/session-view",
         "product-parts/control-panel/clusters/web-panel/modules/panel-shell",
-        "docs/usage-autopiloting.md"
+        "docs/usage-autopiloting.md",
+        "docs/architecture/OS-MATRIX-M48.md"
       ],
       "fixes": null,
       "id": "T005",
@@ -615,7 +616,7 @@
 - Automation: 5 automatic, 1 manual criteria; CI origin ci/M48-session-autopilot (4 checks); publication main → origin/main
 - Current task: T002
 - Progress: 1/9
-- Revision: 1417
+- Revision: 1418
 
 ## Objective
 
@@ -651,7 +652,7 @@
   - Depends on: T003
 - [TODO] T005 — Панель: карточка сессии и ручные кнопки только без автопилота (work)
   - Commit: feat: show the session autopilot card and hide the buttons the autopilot presses
-  - Files: product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/control-panel/clusters/web-panel/modules/panel-shell, docs/usage-autopiloting.md
+  - Files: product-parts/control-panel/clusters/web-panel/modules/session-view, product-parts/control-panel/clusters/web-panel/modules/panel-shell, docs/usage-autopiloting.md, docs/architecture/OS-MATRIX-M48.md
   - Depends on: T004
 - [TODO] T006 — Сквозные сценарии и доказательства (work)
   - Commit: test: verify M48 end to end

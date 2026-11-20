@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1408,
+  "revision": 1409,
   "rounds": [
     {
       "digest": null,
@@ -215,6 +215,51 @@
     "proposal": {
       "digest": "66a78c69d5413e469fd804a5b2b1767eb8b79c9113e0467e2cc1347e2f77fdf9",
       "generation": 1
+    },
+    "authorization": {
+      "accept": false,
+      "acceptancePolicy": "manual",
+      "at": "2026-11-20T09:03:55.487Z",
+      "ci": {
+        "remote": "origin",
+        "branch": "ci/M48-session-autopilot",
+        "requiredChecks": [
+          "macOS ARM64",
+          "Linux x64",
+          "Windows x64",
+          "Windows ARM64"
+        ],
+        "exactSha": true,
+        "task": "T008"
+      },
+      "close": true,
+      "delivery": [
+        {
+          "taskId": "T007",
+          "effects": [
+            "npm ci",
+            "node bin/wfk.mjs install: установка Workflow Kit 0.21.0 в Application Support и перезапуск службы"
+          ]
+        },
+        {
+          "taskId": "T008",
+          "effects": [
+            "push ci/M48-session-autopilot в origin и ожидание CI четырёх платформ"
+          ]
+        }
+      ],
+      "mode": "full",
+      "note": "Full autopilot run run-F5nJ3wbBuTxd: the user's direct instruction «Отлично, значит, мы сейчас одинаково понимаем, какие правки в коде нужно сделать. Согласен? И до кучи в этом же контексте смотри еще на один баг, который я снял скриншотом. То есть в диалоге четко вид» (2026-11-20T08:59:06.082Z) to prepare and carry out the plan",
+      "ownerSession": "ffc970ed-20a1-499c-9d2c-47dff30c41a0",
+      "proposalDigest": "66a78c69d5413e469fd804a5b2b1767eb8b79c9113e0467e2cc1347e2f77fdf9",
+      "publication": {
+        "branch": "main",
+        "upstream": "origin/main"
+      },
+      "revision": 1,
+      "revoked": null,
+      "runId": "run-F5nJ3wbBuTxd",
+      "source": "user-command"
     }
   },
   "tasks": [
@@ -545,7 +590,7 @@
 - Automation: 5 automatic, 1 manual criteria; CI origin ci/M48-session-autopilot (4 checks); publication main → origin/main
 - Current task: none
 - Progress: 0/9
-- Revision: 1408
+- Revision: 1409
 
 ## Objective
 

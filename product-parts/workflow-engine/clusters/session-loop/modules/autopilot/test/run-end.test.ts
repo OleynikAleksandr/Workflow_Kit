@@ -78,7 +78,7 @@ test('the preparation text of the full mode names the automation block; an old K
   const propose = 'write the specification and the plan, then run `scripts/workflow scope:propose --input <file.json> --recommended <mode> --reason "<why>"`';
   assert.equal(
     preparationText('kit-update-required', true, null),
-    `Full autopilot is on in Settings, but the project's Kit cannot autopilot (update Kit). Continue this turn without the plan question: ${propose}, then end the turn; the user chooses the mode and starts the plan in the panel. The plan gets a cross review before it starts.`,
+    `Full autopilot is on for this session, but the project's Kit cannot autopilot (update Kit). Continue this turn without the plan question: ${propose}, then end the turn; the user chooses the mode and starts the plan in the panel. The plan gets a cross review before it starts.`,
   );
   assert.equal(preparationText('kit-update-required', false, null).includes('automation'), false);
 });

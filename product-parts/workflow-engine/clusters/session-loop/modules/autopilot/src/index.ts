@@ -29,8 +29,10 @@ export type { AutopilotingMode, AutopilotingSettings, SettingsChange, SettingsSt
 export { AUTOPILOTING_MODES, DEFAULT_SETTINGS, SETTINGS_FILE, SettingsError, createSettingsStore } from './settings.ts';
 export type { SessionAutopiloting, SessionSettingsChange, SessionSettingsSource, SessionSettingsStore } from './session-settings.ts';
 export { SESSION_SETTINGS_DIR, createSessionSettings, sessionSettingsFile, sessionSettingsName, validSessionKey } from './session-settings.ts';
+export type { SessionStage, SessionSwitch, SessionSwitchDeps } from './session-switch.ts';
+export { SWITCH_TEXTS, createSessionSwitch } from './session-switch.ts';
 export type { NewRun, RunAuthority, RunJournal, RunPhase, RunReceipt, RunRecord, RunRequest, RunSource } from './run-journal.ts';
-export { FINAL_PHASES, RUNS_DIR, createRunJournal, newRunId } from './run-journal.ts';
+export { FINAL_PHASES, PRE_START, RUNS_DIR, createRunJournal, newRunId } from './run-journal.ts';
 export type { HostStep, RunAutomation, RunKit, RunKitStatus, RunScope } from './run-kit.ts';
 export { createRunKit } from './run-kit.ts';
 export type { PreparationResult, Runs, RunsOptions, StartPolicy, StartPolicyKind } from './runs.ts';

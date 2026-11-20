@@ -84,7 +84,9 @@ decideReview?, sessions?, mutex?, log? }) → Runs` (M48: с `sessions` режи
   есть, сохраняется) и запуск `user-command`, `phase=preparing`: `request.quote` — текст
   сообщения (до `RUN_QUOTE_MAX` = 500 символов), `request.turnId` — id сообщения, `at` — его
   время. Повтор той же сессии с тем же сообщением возвращает тот же `runId`; другой активный
-  запуск проекта — 409 `run-active`. Ответ `PreparationResult`: `action: prepare`, `runId`,
+  запуск проекта — 409 `run-active`. M48 T002: полный запуск этой сессии до старта с источником
+  `session-card` или `plan-decision` возвращается сразу, без сообщения пользователя
+  ([session-switch.md](session-switch.md)). Ответ `PreparationResult`: `action: prepare`, `runId`,
   `mode: full`, `review`, `policy` (`full` или `kit-update-required`), `instruction`
   (`preparationText`, английский). Сообщение, зарегистрировавшее запуск, больше не источник
   решений (`Decisions` опция `sourceTaken`, [decisions.md](decisions.md)).

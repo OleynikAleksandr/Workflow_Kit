@@ -258,8 +258,9 @@ export function wireSessions(options: SessionWiringOptions): SessionWiring {
     scopeOf: (id) => workflow.get(id)?.scope?.id ?? null,
   });
   registerReviewRoutes({ router, state, toggles: review });
-  review.onAnswer((id, key, choice, question) => {
-    if (question.kind === 'agent') void autopiloting.runs.planDecision(id, key, choice, question.summary).catch((error: unknown) => options.log?.(`autopiloting: ${key}: ${error instanceof Error ? error.message : String(error)}`));
+  // M48 T002: awaited, so the full-run instruction is queued before the answer message and the wake.
+  review.onAnswer(async (id, key, choice, question) => {
+    if (question.kind === 'agent') await autopiloting.answered(id, key, choice, question.summary).catch((error: unknown) => options.log?.(`autopiloting: ${key}: ${error instanceof Error ? error.message : String(error)}`));
   });
 
   // Keys of the sessions the providers list for a project, filtered by their state.
@@ -314,6 +315,8 @@ export function wireSessions(options: SessionWiringOptions): SessionWiring {
     activity: (key) => channel.get(key),
     unreachable: async (id, key) => ownerUnreachable(providers.get(clientOf(key)), titles.excluded(id, key)),
     send: (id, key, text) => void wakingChannel.enqueue(key, text, 'panel', id),
+    question: (id, key) => review.question(id, key),
+    wake: (key) => channel.wake(key),
   });
   channel.onStop((event) => void (event.projectId && autopiloting.reconcile(event.projectId)));
   // The session leaves at once: out of the channel (a held Stop is released) and out of a running

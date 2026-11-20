@@ -26,6 +26,12 @@ export interface SessionAutopiloting {
   source: SessionSettingsSource;
   /** When the values were taken or last changed (ISO). */
   at: string;
+  /**
+   * M48 T002: when the user answered the session's plan question with a specification and a plan
+   * (ISO) — the agent writes them; cleared once Kit shows a proposal or a plan. Not a change of the
+   * user: the revision stays.
+   */
+  preparing?: string | null;
 }
 
 export interface SessionSettingsChange {
@@ -43,6 +49,8 @@ export interface SessionSettingsStore {
   ensure(projectId: string, key: string): Promise<SessionAutopiloting>;
   /** The user's change on the session card: `{ expectedRevision, mode?, review? }`. */
   write(projectId: string, key: string, input: unknown): Promise<SessionAutopiloting>;
+  /** M48 T002: sets or clears the «writing the plan» mark of a session (the revision stays). */
+  mark(projectId: string, key: string, at: string | null): Promise<void>;
   /** Reads the records of every project once (service start), for the panel state. */
   load(projects: Array<{ id: string; path: string }>): Promise<void>;
   /** The known records by project and session key (the `autopiloting.sessions` section). */
@@ -76,7 +84,8 @@ function parse(value: unknown, key: string): SessionAutopiloting | null {
   if (!AUTOPILOTING_MODES.includes(v['mode'] as AutopilotingMode) || typeof v['review'] !== 'boolean') return null;
   const source = (['defaults', 'user', 'run'] as const).find((s) => s === v['source']);
   if (!source || typeof v['at'] !== 'string') return null;
-  return { version: 1, revision: v['revision'] as number, key, mode: v['mode'] as AutopilotingMode, review: v['review'], source, at: v['at'] };
+  const preparing = typeof v['preparing'] === 'string' ? v['preparing'] : null;
+  return { version: 1, revision: v['revision'] as number, key, mode: v['mode'] as AutopilotingMode, review: v['review'], source, at: v['at'], ...(preparing ? { preparing } : {}) };
 }
 
 export function createSessionSettings(options: {
@@ -173,6 +182,19 @@ export function createSessionSettings(options: {
       });
       for (const listener of listeners) await listener(change);
       return change.after;
+    },
+    async mark(projectId, key, at) {
+      const record = await ensure(projectId, key);
+      if ((record.preparing ?? null) === at) return;
+      const folder = await folderOf(projectId);
+      const file = sessionSettingsFile(folder, key);
+      await serial(file, async () => {
+        const current = (await read(folder, key)) ?? record;
+        const { preparing: _old, ...rest } = current;
+        const next: SessionAutopiloting = at ? { ...rest, preparing: at } : rest;
+        await writeJsonAtomic(file, next, writeOptions);
+        remember(projectId, next);
+      });
     },
     async load(projects) {
       for (const project of projects) {

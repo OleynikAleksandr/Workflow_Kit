@@ -67,8 +67,10 @@
   `autopiloting.projects[id]` — `authorized` (разрешение Kit записано для запуска). Контракт —
   [autopilot/grant.md](../../product-parts/workflow-engine/clusters/session-loop/modules/autopilot/grant.md).
 - M48 T001: `GET /api/projects/:id/sessions/:sid/autopiloting` → `{ settings: { version, revision,
-  key, mode, review, source, at } }` (первое чтение берёт Settings); `POST … { expectedRevision,
-  mode?, review? }` → `{ settings }`; 400 `bad-request` (ключ не `<client>:<id>`, неизвестное
+  key, mode, review, source, at, preparing? }, stage, effect }` (первое чтение берёт Settings;
+  T002 — `stage`: `idle | question | writing | proposed | executing | other-plan | run | paused |
+  other-run`, `effect` — строка последнего переключения или `null`); `POST … { expectedRevision,
+  mode?, review? }` → то же после переключения ([autopilot/session-switch.md](../../product-parts/workflow-engine/clusters/session-loop/modules/autopilot/session-switch.md)); 400 `bad-request` (ключ не `<client>:<id>`, неизвестное
   значение), 404 `project-not-found`, 409 `settings-stale` с `current`. `GET
   /api/projects/:id/autopiloting/policy?session=<key>` — политика по режиму сессии. Раздел
   `autopiloting` — плюс `sessions: { <projectId>: { <key>: запись } }`. Контракт —

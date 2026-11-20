@@ -5,8 +5,8 @@
 // from Settings when it begins; the session card's off pauses that session's run.
 import type { AgentChannel } from '#agent-channel';
 import type { AutopilotAgentState } from './autopilot-line.ts';
-import { createAgentNotices, createDecisionJournal, createDecisions, createHostTickets, runMayDecide, createPreparation, createProposalGate, createRunCompletion, createRunControl, createRunJournal, createRunKit, createRunTurns, createRunWaits, createRunWords, createRuns, createSessionSettings, createSettingsStore, registerAutopilotingRoutes, registerRunControlRoutes, registerSessionRunRoutes, runHttp, validSessionKey } from '#autopilot';
-import type { Decisions, RunCompleter, ControlActions, PrepareActions, ReviewFact, RunControl, RunTurns, RunWaits, RunWords, Runs, SessionSettingsStore, SettingsStore } from '#autopilot';
+import { createAgentNotices, createDecisionJournal, createDecisions, createHostTickets, runMayDecide, createPreparation, createProposalGate, createRunCompletion, createRunControl, createRunJournal, createRunKit, createRunTurns, createRunWaits, createRunWords, createRuns, createSessionSettings, createSessionSwitch, createSettingsStore, registerAutopilotingRoutes, registerRunControlRoutes, registerSessionRunRoutes, runHttp, validSessionKey } from '#autopilot';
+import type { Decisions, RunCompleter, ControlActions, PrepareActions, ReviewFact, RunControl, RunTurns, RunWaits, RunWords, Runs, SessionSettingsStore, SessionSwitch, SettingsStore } from '#autopilot';
 import { createGitHubCi, createPublisher, runGit } from '#git-publish';
 import type { GitHubCi, GitRunner, Publisher } from '#git-publish';
 import type { KeyedMutex } from '#data-store';
@@ -19,6 +19,14 @@ export interface AutopilotingWiring {
   settings: SettingsStore;
   /** M48: the mode and review of each session (Settings are the defaults a session takes when it begins). */
   sessions: SessionSettingsStore;
+  /** M48 T002: the switch of a session card at any stage of its task (stage, effect). */
+  switcher: SessionSwitch;
+  /**
+   * M48 T002: the user answered the agent's plan question. In the full mode of the session the run
+   * is registered and the agent gets the full-run instruction (queued before the answer message);
+   * otherwise a specification and a plan mark the session «writing the plan».
+   */
+  answered(projectId: string, key: string, choice: 'review' | 'plan' | 'talk', summary: string): Promise<void>;
   runs: Runs;
   /**
    * M40: the user's decisions of a `decisions: host` project — host operations with the tickets
@@ -70,6 +78,10 @@ export interface PreparationLinks {
   review(projectId: string, key: string): ReviewFact | null;
   reviewOn(projectId: string, key: string): boolean;
   orchestration?(client: string): Promise<{ available: boolean; reason?: string }>;
+  /** M48 T002: the open plan question of a session (plan-review). */
+  question?(projectId: string, key: string): { kind: 'agent' | 'proposal' } | null;
+  /** M48 T002: wakes a session (a held Stop goes on; the cross review starts at its Stop). */
+  wake?(key: string): void;
 }
 
 export function wireAutopiloting(options: {
@@ -148,10 +160,20 @@ export function wireAutopiloting(options: {
     enqueue: (projectId, key, text) => void options.channel.enqueue(key, text, 'panel', projectId),
     ...(options.log ? { log: options.log } : {}),
   });
-  registerAutopilotingRoutes({ router: options.router, state: options.state, settings, runs, sessions });
   const listProjects = async () => (await options.projects.list()).map((project) => ({ id: project.id, path: project.path }));
   const send = (projectId: string, key: string, text: string): void => links?.send(projectId, key, text);
   const gate = createProposalGate({ journal, kit: runKit, projectPath, ...(options.log ? { log: options.log } : {}) });
+  // M48 T002: the switch on a session card acts at the stage of its task (after the pause of off above).
+  const switcher = createSessionSwitch({
+    journal, kit: runKit, runs, sessions, gate, projectPath, send, mutex: options.mutex,
+    question: (projectId, key) => links?.question?.(projectId, key) ?? null,
+    decideReview: options.decideReview,
+    wake: (key) => links?.wake?.(key),
+    reconcile: async (projectId) => void (await preparation.reconcile(projectId)),
+    ...(options.log ? { log: options.log } : {}),
+  });
+  sessions.onChange((change) => switcher.changed(change));
+  registerAutopilotingRoutes({ router: options.router, state: options.state, settings, runs, sessions, switcher });
   const turns = { ...createRunTurns({ journal, projectPath, ...(options.log ? { log: options.log } : {}) }), proposal: gate.check };
   const control = createRunControl({
     journal, kit: runKit, projectPath, listProjects, send, mutex: options.mutex,
@@ -170,6 +192,8 @@ export function wireAutopiloting(options: {
   return {
     settings,
     sessions,
+    switcher,
+    answered: (projectId, key, choice, summary) => switcher.answered(projectId, key, choice, summary),
     runs,
     decisions,
     authority: {
@@ -184,7 +208,10 @@ export function wireAutopiloting(options: {
     completion,
     tick: async () => {
       // M44: a refused start or grant is tried again without waiting for the next turn.
-      for (const project of await options.projects.list()) await preparation.reconcile(project.id);
+      for (const project of await options.projects.list()) {
+        await preparation.reconcile(project.id);
+        await switcher.settle(project.id).catch(() => undefined);
+      }
       await waits.pollAll();
       await completion.advanceAll();
     },
@@ -203,6 +230,7 @@ export function wireAutopiloting(options: {
     },
     reconcile: async (projectId) => {
       await preparation.reconcile(projectId);
+      await switcher.settle(projectId).catch(() => undefined);
       await completion.advance(projectId);
     },
     async reconcileAll() {

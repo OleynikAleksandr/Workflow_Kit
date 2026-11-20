@@ -11,8 +11,9 @@ import type { RunWaits } from './run-waits.ts';
 import { SettingsError } from './settings.ts';
 import type { SettingsStore } from './settings.ts';
 import type { SessionSettingsStore } from './session-settings.ts';
+import type { SessionSwitch } from './session-switch.ts';
 
-export function registerAutopilotingRoutes(options: { router: Router; state: StateRegistry; settings: SettingsStore; runs: Runs; sessions?: SessionSettingsStore }): void {
+export function registerAutopilotingRoutes(options: { router: Router; state: StateRegistry; settings: SettingsStore; runs: Runs; sessions?: SessionSettingsStore; switcher?: Pick<SessionSwitch, 'stage' | 'effect'> }): void {
   const { router, settings, runs } = options;
   const settingsHttp = async <T>(action: () => Promise<T>): Promise<T> => {
     try {
@@ -28,10 +29,17 @@ export function registerAutopilotingRoutes(options: { router: Router; state: Sta
   });
   router.post('/api/settings/autopiloting', ({ body }) => settingsHttp(() => settings.write(body)));
   // M48 T001: the autopiloting of one session; the first read takes the defaults of Settings.
+  // T002: with the stage of the session's task and what the last switch did.
   const sessions = options.sessions;
+  const switcher = options.switcher;
+  const view = async (projectId: string, key: string, settings: unknown) => ({
+    settings,
+    stage: switcher ? await switcher.stage(projectId, key).catch(() => null) : null,
+    effect: switcher?.effect(projectId, key) ?? null,
+  });
   if (sessions) {
-    router.get('/api/projects/:id/sessions/:sid/autopiloting', ({ params }) => settingsHttp(async () => ({ settings: await sessions.ensure(params['id']!, params['sid']!) })));
-    router.post('/api/projects/:id/sessions/:sid/autopiloting', ({ params, body }) => settingsHttp(async () => ({ settings: await sessions.write(params['id']!, params['sid']!, body) })));
+    router.get('/api/projects/:id/sessions/:sid/autopiloting', ({ params }) => settingsHttp(async () => view(params['id']!, params['sid']!, await sessions.ensure(params['id']!, params['sid']!))));
+    router.post('/api/projects/:id/sessions/:sid/autopiloting', ({ params, body }) => settingsHttp(async () => view(params['id']!, params['sid']!, await sessions.write(params['id']!, params['sid']!, body))));
   }
   // M44: «Повторить» of a run without the Kit grant { runId, expectedRevision }.
   router.post('/api/projects/:id/autopiloting/retry', ({ params, body }) => runHttp(() => runs.retryGrant(params['id']!, body)));

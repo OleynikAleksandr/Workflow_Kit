@@ -189,6 +189,10 @@ M41 T002 — приёмка пользователя вместо останов
   `SettingsError` `project-not-found`, `NOTICE_TEXTS.session` вместо `NOTICE_TEXTS.settings`,
   опция `sessions` у `createAgentNotices` и `registerAutopilotingRoutes` — в
   [session-settings.md](session-settings.md).
+- M48 T002 — переключение на любом этапе `createSessionSwitch` (`SessionSwitch`,
+  `SessionSwitchDeps`, `SessionStage`, `SWITCH_TEXTS`), `PRE_START`, источник запуска
+  `session-card`, `preparationText(…, by)`, опция `switcher` у `registerAutopilotingRoutes`,
+  пометка `preparing` и `SessionSettingsStore.mark` — в [session-switch.md](session-switch.md).
 
 ## Инварианты
 

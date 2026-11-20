@@ -114,7 +114,10 @@
   вопроса о плане; ответ `review`/`plan` на карточке в режиме `full` регистрирует запуск
   (`runs.planDecision`); переход Settings в `off` ставил запуски на паузу до M48 (M48 T001:
   `sessions` — настройки автопилота сессии, `off` её карточки ставит на паузу её запуск,
-  `sessions.load` в `recoverAll`, [session-settings.md](../../../../../workflow-engine/clusters/session-loop/modules/autopilot/session-settings.md)); при старте
+  `sessions.load` в `recoverAll`, [session-settings.md](../../../../../workflow-engine/clusters/session-loop/modules/autopilot/session-settings.md);
+  T002 — `switcher` (`createSessionSwitch`: слушатель записи сессии, `settle` в `reconcile` и
+  `tick`), `answered` — слушатель ответа на вопрос о плане, который служба ждёт, связи `question`
+  и `wake` у `attach`, [session-switch.md](../../../../../workflow-engine/clusters/session-loop/modules/autopilot/session-switch.md)); при старте
   службы `runs.load()`. T006: `attach` связывает подготовку полного запуска с автопилотом
   (кнопки), ревью (`reviewFact` из `src/autopiloting-links.ts` — ревью, где сессия основная) и
   решением ревью сессии; `reconcile` вызывается на каждый `Stop` проекта, на окончание ревью

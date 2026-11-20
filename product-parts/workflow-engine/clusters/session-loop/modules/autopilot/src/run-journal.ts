@@ -12,7 +12,8 @@ import type { AutopilotingMode } from './settings.ts';
 export const RUNS_DIR = '.workflow-kit/local/autopiloting';
 
 /** Where the user's instruction came from (spec M39 runtime 2). */
-export type RunSource = 'panel-start' | 'user-command' | 'plan-decision' | 'panel-resume';
+/** M48: `session-card` — the user switched the session's autopilot on its card. */
+export type RunSource = 'panel-start' | 'user-command' | 'plan-decision' | 'panel-resume' | 'session-card';
 
 export type RunPhase =
   | 'preparing'
@@ -37,6 +38,8 @@ export type RunPhase =
  * because its scope is gone (M40: the user accepted and closed it by hand).
  */
 export const FINAL_PHASES: ReadonlySet<RunPhase> = new Set(['completed', 'finished', 'stopped']);
+/** M48: the phases of a run before its plan is started (the preparation of a full run). */
+export const PRE_START: ReadonlySet<RunPhase> = new Set(['preparing', 'reviewing', 'choosing', 'starting']);
 
 export interface RunRequest {
   source: RunSource;

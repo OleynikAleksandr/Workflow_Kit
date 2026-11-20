@@ -60,7 +60,7 @@ Settings («Автопилотирование», «Ревью специфик�
   `{ settings }`; 400, 404, 409 `settings-stale` с `current`.
 - `GET /api/projects/:id/autopiloting/policy?session=<key>` — политика по режиму сессии.
 - Раздел `autopiloting` состояния — плюс `sessions: { <projectId>: { <key>: запись } }`.
-- Этап задания и строка последствия (`stage`, `effect`) — T002.
+- Этап задания и строка последствия (`stage`, `effect`) — T002, [session-switch.md](session-switch.md).
 
 ## Поведение на ОС
 

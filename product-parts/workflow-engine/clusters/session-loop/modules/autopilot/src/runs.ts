@@ -12,7 +12,7 @@ import type { KeyedMutex } from '#data-store';
 import { UPDATE_KIT_TEXT } from '#plan-view';
 import { WorkflowActionError } from './autopilot-types.ts';
 import type { HostTickets } from './host-ticket.ts';
-import { FINAL_PHASES } from './run-journal.ts';
+import { FINAL_PHASES, PRE_START } from './run-journal.ts';
 import { brief } from './run-brief.ts';
 import type { RunBrief } from './run-brief.ts';
 import type { RunJournal, RunRecord, RunSource } from './run-journal.ts';
@@ -246,10 +246,14 @@ export function createRuns(options: RunsOptions): Runs {
           const review = await decideReview(projectId, key, settings.review);
           return { action: 'prepare', runId: null, mode: 'full', review, policy: 'kit-update-required', instruction: preparationText('kit-update-required', review, null) };
         }
+        const active = await options.journal.active(folder);
+        // M48: a full run of this session registered by its card or a plan answer goes on, no message needed.
+        if (active?.owner.key === key && active.mode === 'full' && PRE_START.has(active.phase) && (active.request.source === 'session-card' || active.request.source === 'plan-decision')) {
+          return { action: 'prepare', runId: active.runId, mode: 'full', review: active.review, policy: 'full', instruction: preparationText('full', active.review, active.runId, active.request.source) };
+        }
         // Only the user's own message that began this turn registers a run (contract section 3).
         const source = options.userSource(key);
         if (!source || source.text.trimStart().startsWith(PREFIX)) return null;
-        const active = await options.journal.active(folder);
         if (active && active.owner.key === key && active.request.turnId === source.id && active.request.source === 'user-command') {
           return { action: 'prepare', runId: active.runId, mode: 'full', review: active.review, policy: 'full', instruction: preparationText('full', active.review, active.runId) };
         }

@@ -3,6 +3,8 @@
 // missing file means off without review; an unreadable or invalid one never turns the autopilot
 // on: it reads as off and the error is shown in Settings. Writes are atomic and check the
 // revision; the file is the same for every panel of the service (Mac, iPad, other devices).
+// M48: these are the defaults a session takes when it begins (session-settings.ts); a change
+// never reaches a session that has begun.
 import path from 'node:path';
 import { InvalidJsonFileError, readJsonFile, writeJsonAtomic } from '#data-store';
 
@@ -26,16 +28,20 @@ export interface SettingsView {
 
 export const DEFAULT_SETTINGS: AutopilotingSettings = { version: 1, revision: 0, mode: 'off', review: false };
 
-/** A refused write: 400 bad-request (unknown value) or 409 settings-stale (with the current values). */
+/**
+ * A refused write: 400 bad-request (unknown value), 404 project-not-found (M48, a session card of an
+ * unknown project) or 409 settings-stale (with the current values).
+ */
 export class SettingsError extends Error {
-  readonly code: 'bad-request' | 'settings-stale';
+  readonly code: 'bad-request' | 'project-not-found' | 'settings-stale';
   readonly status: number;
-  readonly current: AutopilotingSettings | null;
-  constructor(code: SettingsError['code'], message: string, current: AutopilotingSettings | null = null) {
+  /** The stored values the write was refused against (Settings or, M48, the session's record). */
+  readonly current: object | null;
+  constructor(code: SettingsError['code'], message: string, current: object | null = null) {
     super(message);
     this.name = 'SettingsError';
     this.code = code;
-    this.status = code === 'bad-request' ? 400 : 409;
+    this.status = code === 'bad-request' ? 400 : code === 'project-not-found' ? 404 : 409;
     this.current = current;
   }
 }

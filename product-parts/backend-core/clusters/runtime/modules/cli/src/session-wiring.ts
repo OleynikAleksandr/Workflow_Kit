@@ -358,11 +358,12 @@ export function wireSessions(options: SessionWiringOptions): SessionWiring {
   registerChannelRoutes({
     router, state, channel: observedChannel, messages: wakingChannel, owns: ownsSession, dialects, direct, interrupt: interruptions.interrupt, interruptions: interruptions.section, question,
     onUserMessage: async (projectId, key, text) => void (await autopiloting.words.received(projectId, key, text)),
-    // M44 3.2: the autopilot line of a new session, by the project of its folder.
+    // M44 3.2: the autopilot line of a new session, by the project of its folder; M48 — the session
+    // begins here with the defaults of Settings (a resume keeps its own values).
     sessionStart: async (input) => {
       const folder = input.projectDir ?? input.cwd;
       const ref = folder ? await resolveFolderProject(folder) : undefined;
-      return autopilotLine(await autopiloting.agentState(ref?.id ?? null));
+      return autopilotLine(await autopiloting.agentState(ref?.id ?? null, `${input.client}:${input.sessionId}`));
     },
   });
   return { channel, autopilot, review, titles, crossReview, autopiloting };

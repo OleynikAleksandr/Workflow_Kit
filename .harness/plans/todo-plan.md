@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1409,
+  "revision": 1411,
   "rounds": [
     {
       "digest": null,
@@ -289,14 +289,36 @@
         "docs/architecture/HTTP-CONTRACTS.md",
         "docs/architecture/CONTRACTS.md",
         "docs/architecture/OS-MATRIX.md",
-        "docs/architecture/OS-MATRIX-M48.md"
+        "docs/architecture/OS-MATRIX-M48.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/connected-modules.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/module.md",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/autopilot-line.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/autopiloting-wiring.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/autopiloting.test.ts",
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/m44-agent-state.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/grant.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/session-settings.md",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/agent-notices.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/index.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/runs-routes.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/runs.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/session-pause.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/session-settings.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/settings.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/agent-notices.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/m48-session-settings.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/runs-real.test.ts",
+        "product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/runs.test.ts"
       ],
       "fixes": null,
       "id": "T001",
       "iteration": 1,
       "kind": "work",
       "roundId": "R1",
-      "status": "TODO",
+      "status": "DONE",
       "title": "Настройки автопилота сессии",
       "why": "Settings читались в момент решения: смена посреди задания давала разное поведение в зависимости от этапа"
     },
@@ -589,8 +611,8 @@
 - Execution: sequential
 - Automation: 5 automatic, 1 manual criteria; CI origin ci/M48-session-autopilot (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 0/9
-- Revision: 1409
+- Progress: 1/9
+- Revision: 1411
 
 ## Objective
 
@@ -609,9 +631,9 @@
 
 ### R1 — Implementation (implementation, OPEN)
 
-- [TODO] T001 — Настройки автопилота сессии (work)
+- [DONE] T001 — Настройки автопилота сессии (work)
   - Commit: feat: keep autopilot mode and review per session, Settings as defaults
-  - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel, product-parts/workflow-engine/clusters/session-loop/modules/session-titles, docs/architecture/HTTP-CONTRACTS.md, docs/architecture/CONTRACTS.md, docs/architecture/OS-MATRIX.md, docs/architecture/OS-MATRIX-M48.md
+  - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel, product-parts/workflow-engine/clusters/session-loop/modules/session-titles, docs/architecture/HTTP-CONTRACTS.md, docs/architecture/CONTRACTS.md, docs/architecture/OS-MATRIX.md, docs/architecture/OS-MATRIX-M48.md, product-parts/backend-core/clusters/runtime/modules/cli/connected-modules.md, product-parts/backend-core/clusters/runtime/modules/cli/module.md, product-parts/backend-core/clusters/runtime/modules/cli/src/autopilot-line.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/autopiloting-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/src/session-wiring.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/autopiloting.test.ts, product-parts/backend-core/clusters/runtime/modules/cli/test/m44-agent-state.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/grant.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/module.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/session-settings.md, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/agent-notices.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/index.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/runs-routes.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/runs.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/session-pause.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/session-settings.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/src/settings.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/agent-notices.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/m48-session-settings.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/runs-real.test.ts, product-parts/workflow-engine/clusters/session-loop/modules/autopilot/test/runs.test.ts
 - [TODO] T002 — Включение и выключение автопилота сессии на любом этапе (work)
   - Commit: feat: switch the autopilot of a session at any stage of its task
   - Files: product-parts/workflow-engine/clusters/session-loop/modules/autopilot, product-parts/workflow-engine/clusters/session-loop/modules/plan-review, product-parts/workflow-engine/clusters/session-loop/modules/cross-review, product-parts/backend-core/clusters/runtime/modules/cli, product-parts/workflow-engine/clusters/session-loop/modules/agent-channel, docs/architecture/HTTP-CONTRACTS.md

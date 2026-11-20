@@ -1,9 +1,10 @@
 // M44 3.2: the one line about the autopilot a new agent session gets at its start (wfk hook
-// session-start): the Settings mode and review and the state of the project's run, where the
+// session-start): the mode and review of the session (M48: taken from Settings when the session
+// begins, then its own) and the state of the project's run, where the
 // grant of the run in the Kit plan (autopilot:status) is the source of truth. ASCII only: the
 // line goes through every hook dialect and every console code page unchanged.
 
-/** The facts of the line: Settings and the active run of the project, if any. */
+/** The facts of the line: the session's mode and review and the active run of the project, if any. */
 export interface AutopilotAgentState {
   mode: 'off' | 'after-start' | 'full';
   review: boolean;

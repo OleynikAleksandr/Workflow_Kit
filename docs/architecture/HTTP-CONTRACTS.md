@@ -22,7 +22,8 @@
   `off`, `review=false`; нечитаемый — те же значения и текст `error`).
 - `POST /api/settings/autopiloting { expectedRevision, mode: off | after-start | full,
   review }` → сохранённые настройки; 400 `bad-request`, 409 `settings-stale` с `current`.
-  Сначала запись `autopiloting.json`, затем слушатели (переход в `off` ставит запуски на паузу).
+  Сначала запись `autopiloting.json`, затем слушатели (до M48 переход в `off` ставил запуски на
+  паузу; M48 — Settings только значения для новых сессий).
 - Раздел `autopiloting`: `{ settings, error, projects: { <id>: { runId, mode, phase, reason,
   source, scopeId, review, updatedAt } } }` — без цитат пользователя.
 - `POST /api/sessions/plan` принимает `authorized` (точные слова поручения): ответ
@@ -65,6 +66,13 @@
   `scope-changed`, код отказа Kit); у запуска с разрешением — `already: true`. В разделе
   `autopiloting.projects[id]` — `authorized` (разрешение Kit записано для запуска). Контракт —
   [autopilot/grant.md](../../product-parts/workflow-engine/clusters/session-loop/modules/autopilot/grant.md).
+- M48 T001: `GET /api/projects/:id/sessions/:sid/autopiloting` → `{ settings: { version, revision,
+  key, mode, review, source, at } }` (первое чтение берёт Settings); `POST … { expectedRevision,
+  mode?, review? }` → `{ settings }`; 400 `bad-request` (ключ не `<client>:<id>`, неизвестное
+  значение), 404 `project-not-found`, 409 `settings-stale` с `current`. `GET
+  /api/projects/:id/autopiloting/policy?session=<key>` — политика по режиму сессии. Раздел
+  `autopiloting` — плюс `sessions: { <projectId>: { <key>: запись } }`. Контракт —
+  [autopilot/session-settings.md](../../product-parts/workflow-engine/clusters/session-loop/modules/autopilot/session-settings.md).
 - Контракт — [autopilot/autopiloting.md](../../product-parts/workflow-engine/clusters/session-loop/modules/autopilot/autopiloting.md).
 
 ## Голосовой ввод (speech-integration)

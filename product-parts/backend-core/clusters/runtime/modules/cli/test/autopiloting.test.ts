@@ -73,15 +73,24 @@ test('M40 T007: wfk session plan — the service decides; --authorized with any 
     const reply = await post(authorized === undefined ? {} : { authorized });
     assert.deepEqual([reply.status, reply.body['action'], reply.body['policy']], [200, 'prepare', 'kit-update-required'], String(authorized));
   }
-  // «После ручного запуска Плана»: the usual question card, whatever the agent passes.
+  // M48: Settings are the defaults of new sessions — «После ручного запуска Плана» there does not
+  // reach this session, which began in the full mode.
   const settings = (await (await fetch(`${base}/api/settings/autopiloting`, { headers: H() })).json()) as { revision: number };
   await fetch(`${base}/api/settings/autopiloting`, { method: 'POST', headers: H(), body: JSON.stringify({ expectedRevision: settings.revision, mode: 'after-start', review: false }) });
+  assert.equal((await post()).body['action'], 'prepare', 'the session keeps the mode it began with');
+  // «После ручного запуска Плана» on the session's own card: the usual question card, whatever the agent passes.
+  const card = `${base}/api/projects/${encodeURIComponent(String(plain.body['projectId']))}/sessions/claude:s-auth/autopiloting`;
+  const own = (await (await fetch(card, { headers: H() })).json()) as { settings: { revision: number; mode: string } };
+  assert.equal(own.settings.mode, 'full');
+  const changed = await fetch(card, { method: 'POST', headers: H(), body: JSON.stringify({ expectedRevision: own.settings.revision, mode: 'after-start' }) });
+  assert.equal(changed.status, 200);
   for (const extra of [{}, { authorized: 'Да, составляй спецификацию и план' }]) {
-    const card = await post(extra);
-    assert.equal(card.status, 200, JSON.stringify(card.body));
-    assert.equal(card.body['action'], undefined);
-    assert.ok(card.body['question'], 'the plan question card');
+    const answer = await post(extra);
+    assert.equal(answer.status, 200, JSON.stringify(answer.body));
+    assert.equal(answer.body['action'], undefined);
+    assert.ok(answer.body['question'], 'the plan question card');
   }
+  await fetch(card, { method: 'POST', headers: H(), body: JSON.stringify({ expectedRevision: own.settings.revision + 1, mode: 'full', review: true }) });
   await fetch(`${base}/api/settings/autopiloting`, { method: 'POST', headers: H(), body: JSON.stringify({ expectedRevision: settings.revision + 1, mode: 'full', review: true }) });
 });
 

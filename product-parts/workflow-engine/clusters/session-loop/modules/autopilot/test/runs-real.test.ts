@@ -1,6 +1,7 @@
 // M39 T005: autopiloting runs against the real Kit bundle: the manual start records the grant
-// through a host ticket the bundle verifies, a repeat adds nothing, Settings off revokes it
-// (resumable) and «Продолжить» writes a new revision; a legacy plan gets no authority.
+// through a host ticket the bundle verifies, a repeat adds nothing, the session card's off (M48;
+// Settings off before) revokes it (resumable) and «Продолжить» writes a new revision; Settings
+// pause nothing; a legacy plan gets no authority.
 // HOME and the global git config point into the temporary folder.
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
@@ -11,14 +12,15 @@ import { after, before, test } from 'node:test';
 import { ensureKitBundle } from '#kit-bundle';
 import { createKitRunner, type KitRunner } from '#kit-runner';
 import { runCommand } from '#process-supervisor';
-import { POLICY_TEXTS, createHostTickets, createRunJournal, createRunKit, createRuns, createSettingsStore } from '../src/index.ts';
-import type { RunKitStatus, Runs, SettingsStore } from '../src/index.ts';
+import { POLICY_TEXTS, createHostTickets, createRunJournal, createRunKit, createRuns, createSessionSettings, createSettingsStore } from '../src/index.ts';
+import type { RunKitStatus, Runs, SessionSettingsStore, SettingsStore } from '../src/index.ts';
 
 let tmp = '';
 let runner: KitRunner;
 let env: Record<string, string | undefined> = {};
 const roots: Record<string, string> = {};
 let settings: SettingsStore;
+let sessions: SessionSettingsStore;
 let runs: Runs;
 
 const CI = 'name: CI\non:\n  push:\njobs:\n  test:\n    name: ${{ matrix.name }}\n    runs-on: ${{ matrix.os }}\n    strategy:\n      matrix:\n        include:\n          - name: Linux x64\n            os: ubuntu-latest\n    steps:\n      - run: npm test\n';
@@ -94,16 +96,19 @@ before(async () => {
   await mkdir(path.join(tmp, 'config'));
   settings = createSettingsStore({ configDir: path.join(tmp, 'config') });
   const tickets = createHostTickets();
+  const journal = createRunJournal();
+  sessions = createSessionSettings({ settings, journal, projectPath: async (id) => roots[id] });
   runs = createRuns({
     settings,
-    journal: createRunJournal(),
+    sessions,
+    journal,
     kit: createRunKit({ runner, tickets }),
     tickets,
     userSource: () => null,
     projectPath: async (id) => roots[id],
     listProjects: async () => Object.entries(roots).map(([id, root]) => ({ id, path: root })),
   });
-  settings.onChange((change) => runs.settingsChanged(change));
+  sessions.onChange((change) => runs.sessionChanged(change));
   await settings.write({ expectedRevision: 0, mode: 'after-start', review: false });
 });
 
@@ -140,14 +145,25 @@ test('after-start: the manual start records the grant the bundle verifies; a rep
   assert.equal(git(roots['auto']!, 'status', '--porcelain'), '');
 });
 
-test('Settings off revokes the grant (resumable); on again does not resume; «Продолжить» writes a new revision', async () => {
+test('M48: Settings off pauses nothing; the session card off revokes the grant (resumable); on again does not resume; «Продолжить» writes a new revision', async () => {
   const current = (await settings.read()).settings;
   await settings.write({ expectedRevision: current.revision, mode: 'off', review: false });
+  assert.equal((await runs.section()).projects['auto']?.phase, 'executing', 'Settings are the defaults of new sessions only');
+  assert.equal((await status('auto')).authorization?.revoked, null);
+  const own = await sessions.ensure('auto', 'claude:s-1');
+  assert.deepEqual([own.mode, own.source], ['after-start', 'defaults'], 'the session kept the Settings of its start');
+  // Another session's card does not touch the run of claude:s-1.
+  const other = await sessions.ensure('auto', 'codex:s-9');
+  assert.equal(other.mode, 'off', 'a new session takes the Settings of its start');
+  await sessions.write('auto', 'codex:s-9', { expectedRevision: other.revision, mode: 'full' });
+  await sessions.write('auto', 'codex:s-9', { expectedRevision: other.revision + 1, mode: 'off' });
+  assert.equal((await runs.section()).projects['auto']?.phase, 'executing');
+  await sessions.write('auto', 'claude:s-1', { expectedRevision: own.revision, mode: 'off' });
   const paused = (await runs.section()).projects['auto'];
   assert.deepEqual([paused?.phase, paused?.reason], ['paused', 'settings-off']);
   const revoked = (await status('auto')).authorization?.revoked as { reason?: string } | null;
   assert.equal(revoked?.reason, 'settings-off');
-  await settings.write({ expectedRevision: current.revision + 1, mode: 'after-start', review: false });
+  await sessions.write('auto', 'claude:s-1', { expectedRevision: own.revision + 1, mode: 'after-start' });
   assert.equal((await runs.section()).projects['auto']?.phase, 'paused');
   await assert.rejects(runs.beginExecution('auto', 'claude:s-1'), { code: 'run-paused' });
   const resumed = await runs.resume('auto', 'claude:s-1');

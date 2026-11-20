@@ -217,6 +217,6 @@ test('T009: GET /api/projects/:id/autopiloting/policy tells the effective policy
   const router = createRouter();
   registerAutopilotingRoutes({ router, state: createStateRegistry(), settings, runs });
   const route = router.match('GET', '/api/projects/p1/autopiloting/policy') as unknown as { handler(input: unknown): Promise<{ policy: string; text: string }>; params: unknown };
-  const answer = await route.handler({ params: route.params, body: {} });
+  const answer = await route.handler({ params: route.params, body: {}, query: new URLSearchParams() });
   assert.deepEqual([answer.policy, answer.text], ['manual-acceptance', POLICY_TEXTS.manual([1])]);
 });

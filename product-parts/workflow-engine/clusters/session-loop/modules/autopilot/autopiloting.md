@@ -69,7 +69,9 @@
 Разрешение запуска, журнал исходов, «Продолжить» без разрешения (M44) — [grant.md](grant.md).
 
 `createRuns({ settings, journal, kit, tickets, userSource, projectPath, listProjects,
-decideReview?, mutex?, log? }) → Runs`:
+decideReview?, sessions?, mutex?, log? }) → Runs` (M48: с `sessions` режим и ревью каждой точки
+решения — настройки сессии, [session-settings.md](session-settings.md); ниже «Settings» значит
+настройки сессии, когда опция есть):
 
 - `authorizePreparation(projectId, key, summary) → PreparationResult | null` — `wfk session plan`
   (под мьютексом `project:<id>`); решает служба, агент цитату не передаёт (M40 T007, раздел 2.3
@@ -88,7 +90,7 @@ decideReview?, mutex?, log? }) → Runs`:
   решений (`Decisions` опция `sourceTaken`, [decisions.md](decisions.md)).
 - `planDecision(projectId, key, choice, summary)` — ответ на карточке вопроса о плане: в
   `full` `review`/`plan` регистрируют запуск (`plan-decision`, ревью по ответу), `talk` — нет.
-- `policy(projectId)` → `StartPolicy` (`off`, `automatic`, `manual-acceptance` с номерами
+- `policy(projectId, key?)` (M48: с ключом — по режиму сессии) → `StartPolicy` (`off`, `automatic`, `manual-acceptance` с номерами
   ручных критериев, `legacy` без automation, `kit-update-required`) и точный текст
   `POLICY_TEXTS` для карточки до нажатия «Начать выполнение плана».
 - `beginExecution(projectId, key)` — ручной старт (`authority.beforeStart` автопилота, под
@@ -99,14 +101,16 @@ decideReview?, mutex?, log? }) → Runs`:
   publication и CI плана, `proposalDigest` из `autopilot:status`. Запись получает
   `authority`, `phase=executing`, квитанцию `authorize:<revision>` и тикет. Живое
   разрешение этого запуска — повтор без записи; запуск другого scope — 409 `run-active`;
-  пауза из Settings — 409 `run-paused`; отказ Kit — `phase=blocked` и ошибка, сообщение не уходит.
-- `resume(projectId, key)` — «Продолжить» запуска, остановленного Settings off
+  пауза из Settings (M48 — карточки сессии) — 409 `run-paused`; отказ Kit — `phase=blocked` и ошибка, сообщение не уходит.
+- `resume(projectId, key)` — «Продолжить» запуска, остановленного Settings off (M48 — `off` на
+  карточке сессии)
   (`authority.beforeResume`): новая ревизия разрешения того же `runId` в прежних границах
   (`panel-resume`); другой scope — 409 `scope-changed`.
-- `settingsChanged({ before, after })` — переход в `off`: каждый активный запуск — `paused`,
+- `sessionChanged({ projectId, key, before, after })` (M48, вместо `settingsChanged`) — переход
+  сессии в `off`: активный запуск проекта, владелец которого эта сессия, — `paused`,
   `reason=settings-off`, `pausedFrom`; живое разрешение отзывается
   (`autopilot:revoke --reason settings-off`, `resumable=true`). Повторное включение
-  запуски не возобновляет.
+  запуск не возобновляет. Смена Settings ничего не ставит на паузу.
 - `load()` — при старте службы: краткие записи и погашенные тикеты (`tickets.restore`).
 - `section()` → `{ projects: { <id>: RunBrief } }` (`runId`, `mode`, `phase`, `reason`,
   `source`, `scopeId`, `review`, `updatedAt`) — без цитат пользователя.

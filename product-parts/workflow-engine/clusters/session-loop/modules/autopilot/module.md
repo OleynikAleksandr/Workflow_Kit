@@ -182,6 +182,14 @@ M41 T002 — приёмка пользователя вместо останов
 `checksPending`/`checksUnreachable` в `RunKitStatus.acceptance` (Kit 2.4.5) —
 [autopiloting-completion.md](autopiloting-completion.md).
 
+- M48 T001 — настройки автопилота сессии `createSessionSettings` (`SessionSettingsStore`,
+  `SessionAutopiloting`, `SessionSettingsChange`, `SESSION_SETTINGS_DIR`, `sessionSettingsFile`,
+  `sessionSettingsName`, `validSessionKey`), опция `sessions` у `createRuns`,
+  `Runs.sessionChanged` вместо `settingsChanged`, `Runs.policy(projectId, key?)`,
+  `SettingsError` `project-not-found`, `NOTICE_TEXTS.session` вместо `NOTICE_TEXTS.settings`,
+  опция `sessions` у `createAgentNotices` и `registerAutopilotingRoutes` — в
+  [session-settings.md](session-settings.md).
+
 ## Инварианты
 
 - M44: исход каждого старта и разрешения — в журнале службы; запуск без разрешения не

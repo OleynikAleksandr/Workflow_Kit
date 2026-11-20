@@ -62,12 +62,15 @@
 
 ## Знание агента: уведомления и тексты (M44 T003)
 
-- `createAgentNotices({ journal, settings, kit, listProjects, sessions, enqueue, log? })`
+- `createAgentNotices({ journal, sessions?, enqueue, log? })` (M48; до M48 — `settings`, `kit`,
+  `listProjects` и ключи сессий канала)
   (`src/agent-notices.ts`, служба — `cli/autopiloting-wiring.ts`) ставит строки в очередь
   сессии без пробуждения; их доставляет ближайший хук `UserPromptSubmit` или `Stop`.
-- Смена режима или ревью в Settings: `Workflow Kit: settings changed: autopilot mode=<…>,
-  review=<on|off>.` — владельцу активного запуска и сессии-владельцу открытого плана Kit
-  (`scope.ownerSession` среди сессий канала проекта). Без смены — ничего.
+- Смена режима или ревью в Settings: до M48 — `Workflow Kit: settings changed: autopilot mode=<…>,
+  review=<on|off>.` владельцу активного запуска и сессии-владельцу открытого плана Kit. M48:
+  Settings — значения для новых сессий, строка никому не уходит; смена карточки сессии —
+  `Workflow Kit: the autopilot of this session changed: mode=<…>, review=<on|off>.` только этой
+  сессии ([session-settings.md](session-settings.md)). Без смены — ничего.
 - Смена состояния запуска (`runNoticeState`): `Workflow Kit: autopilot run <id>: <состояние>.`
   владельцу — `authorized: the Kit grant is live` (есть `authority` без отзыва), `authorized;
   waiting for the user's acceptance`, `blocked (<причина>)`, `paused`, `stopped (<причина>)`,

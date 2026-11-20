@@ -1,11 +1,11 @@
-// M44 3.3: the agent learns about changes no later than its next hook. A change of the Settings
-// mode or review and a change of a run's state (grant written, blocked, paused, stopped, ended)
-// put one English ASCII line into the queue of the session concerned without waking it; the
-// queue is delivered by the next UserPromptSubmit (with the user's message) or Stop hook. The
-// same line twice in a row for a session is not queued again.
+// M44 3.3: the agent learns about changes no later than its next hook. A change of a run's state
+// (grant written, blocked, paused, stopped, ended) and, M48, the user's change of the session's own
+// autopilot card put one English ASCII line into the queue of the session concerned without waking
+// it; the queue is delivered by the next UserPromptSubmit (with the user's message) or Stop hook.
+// The same line twice in a row for a session is not queued again. A Settings change tells nobody:
+// Settings are the defaults of new sessions only (M48).
 import type { RunJournal, RunRecord } from './run-journal.ts';
-import type { RunKit } from './run-kit.ts';
-import type { AutopilotingSettings, SettingsChange } from './settings.ts';
+import type { SessionAutopiloting, SessionSettingsChange } from './session-settings.ts';
 import { PREFIX } from './texts.ts';
 
 /** The longest reason a notice keeps. */
@@ -14,7 +14,7 @@ const REASON_MAX = 160;
 const RUNNING: ReadonlySet<RunRecord['phase']> = new Set(['executing', 'delivering', 'verifying', 'accepting', 'closing', 'publishing', 'waiting']);
 
 export const NOTICE_TEXTS = {
-  settings: (settings: Pick<AutopilotingSettings, 'mode' | 'review'>) => `${PREFIX} settings changed: autopilot mode=${settings.mode}, review=${settings.review ? 'on' : 'off'}.`,
+  session: (settings: Pick<SessionAutopiloting, 'mode' | 'review'>) => `${PREFIX} the autopilot of this session changed: mode=${settings.mode}, review=${settings.review ? 'on' : 'off'}.`,
   run: (runId: string, state: string) => `${PREFIX} autopilot run ${runId}: ${state}.`,
 } as const;
 
@@ -44,12 +44,9 @@ export function runNoticeState(run: RunRecord): string | null {
 }
 
 export interface AgentNoticesDeps {
-  journal: Pick<RunJournal, 'onChange' | 'active'>;
-  settings: { onChange(listener: (change: SettingsChange) => Promise<void> | void): () => void };
-  kit: Pick<RunKit, 'status' | 'scope'>;
-  listProjects(): Promise<Array<{ id: string; path: string }>>;
-  /** The session keys the channel knows for the project (`<client>:<session id>`). */
-  sessions(projectId: string): string[];
+  journal: Pick<RunJournal, 'onChange'>;
+  /** M48: the user's change of a session's autopilot card, told to that session alone. */
+  sessions?: { onChange(listener: (change: SessionSettingsChange) => Promise<void> | void): () => void };
   /** Queues the text for the session without waking it. */
   enqueue(projectId: string, key: string, text: string): void;
   log?: (line: string) => void;
@@ -74,25 +71,9 @@ export function createAgentNotices(deps: AgentNoticesDeps): { close(): void } {
     tell(run.projectId, run.owner.key, NOTICE_TEXTS.run(run.runId, state));
   });
 
-  /** The owner of the active run and the owner session of an open plan of the project. */
-  async function concerned(project: { id: string; path: string }): Promise<string[]> {
-    const keys = new Set<string>();
-    const run = await deps.journal.active(project.path).catch(() => null);
-    if (run) keys.add(run.owner.key);
-    const status = await deps.kit.status(project.path).catch(() => null);
-    if (status?.scope === 'ACTIVE') {
-      const owner = (await deps.kit.scope(project.path).catch(() => null))?.ownerSession ?? null;
-      for (const key of deps.sessions(project.id)) if (owner && key.slice(key.indexOf(':') + 1) === owner) keys.add(key);
-    }
-    return [...keys];
-  }
-
-  const off = deps.settings.onChange(async ({ before, after }) => {
+  const off = deps.sessions?.onChange(({ projectId, key, before, after }) => {
     if (before.mode === after.mode && before.review === after.review) return;
-    const text = NOTICE_TEXTS.settings(after);
-    for (const project of await deps.listProjects()) {
-      for (const key of await concerned(project)) tell(project.id, key, text);
-    }
+    tell(projectId, key, NOTICE_TEXTS.session(after));
   });
-  return { close: off };
+  return { close: () => off?.() };
 }

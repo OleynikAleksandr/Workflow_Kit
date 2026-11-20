@@ -17,7 +17,9 @@ import { brief } from './run-brief.ts';
 import type { RunBrief } from './run-brief.ts';
 import type { RunJournal, RunRecord, RunSource } from './run-journal.ts';
 import type { RunKit, RunKitStatus, RunScope } from './run-kit.ts';
-import type { AutopilotingMode, SettingsChange, SettingsStore } from './settings.ts';
+import type { AutopilotingMode, SettingsStore } from './settings.ts';
+import type { SessionSettingsChange, SessionSettingsStore } from './session-settings.ts';
+import { pauseForSessionOff } from './session-pause.ts';
 import { POLICY_TEXTS, grantNote, preparationText } from './run-texts.ts';
 import { PREFIX } from './texts.ts';
 
@@ -59,6 +61,11 @@ export interface RunsOptions {
    * effective one: a decision the session already has wins over the Settings default (T006).
    */
   decideReview?: (projectId: string, key: string, on: boolean) => Promise<boolean | void>;
+  /**
+   * M48: the autopiloting of each session; every decision point reads the session's mode and review.
+   * Without it (older wiring, tests) Settings decide, as before.
+   */
+  sessions?: Pick<SessionSettingsStore, 'ensure'>;
   /** Serializes the work on a project with the panel actions (key `project:<id>`). */
   mutex?: KeyedMutex;
   log?: (line: string) => void;
@@ -75,18 +82,21 @@ export interface Runs {
   authorizePreparation(projectId: string, key: string, summary: string): Promise<PreparationResult | null>;
   /** The user's answer on the plan question card: in full mode review/plan register a run. */
   planDecision(projectId: string, key: string, choice: 'review' | 'plan' | 'talk', summary: string): Promise<RunRecord | null>;
-  policy(projectId: string): Promise<StartPolicy>;
+  /** M48: with `key` the policy of that session's mode, else of Settings. */
+  policy(projectId: string, key?: string): Promise<StartPolicy>;
   /**
    * The manual start: records the grant before the first work message; null for off and legacy
    * plans. Called under the project lock of the panel action (it takes no lock itself), as resume.
    */
   beginExecution(projectId: string, key: string): Promise<RunRecord | null>;
   /**
-   * «Продолжить»: a run paused by Settings off gets a new grant revision in the old boundaries; a
-   * run paused by the user or blocked goes on from the phase it stopped in (T007).
+   * «Продолжить»: a run paused by the session's autopilot off (M48; Settings off before) gets a new
+   * grant revision in the old boundaries; a run paused by the user or blocked goes on from the phase
+   * it stopped in (T007).
    */
   resume(projectId: string, key: string): Promise<RunRecord | null>;
-  settingsChanged(change: SettingsChange): Promise<void>;
+  /** M48: the user changed the session's card; off pauses the session's active run (resumable). */
+  sessionChanged(change: SessionSettingsChange): Promise<void>;
   section(): Promise<{ projects: Record<string, RunBrief> }>;
   /** M44 «Повторить»: a run without the grant asks Kit again (project lock); a granted one is `already`. */
   retryGrant(projectId: string, input: unknown): Promise<RunRecord & { already?: true }>;
@@ -123,6 +133,16 @@ export function createRuns(options: RunsOptions): Runs {
 
   async function root(projectId: string): Promise<string> {
     return (await options.projectPath(projectId)) ?? fail('project-not-found', 'Проект не найден', 404);
+  }
+
+  /** M48: the mode and review of the session (taken from Settings when it begins), or Settings. */
+  async function modeOf(projectId: string, key: string): Promise<{ mode: AutopilotingMode; review: boolean }> {
+    if (options.sessions) {
+      const record = await options.sessions.ensure(projectId, key);
+      return { mode: record.mode, review: record.review };
+    }
+    const { settings } = await options.settings.read();
+    return { mode: settings.mode, review: settings.review };
   }
 
   async function decideReview(projectId: string, key: string, on: boolean): Promise<boolean> {
@@ -219,7 +239,7 @@ export function createRuns(options: RunsOptions): Runs {
 
     authorizePreparation: (projectId, key, summary) =>
       serial(projectId, async () => {
-        const { settings } = await options.settings.read();
+        const settings = await modeOf(projectId, key);
         if (settings.mode !== 'full') return null; // off, after-start: the plan question
         const folder = await root(projectId);
         if (!options.kit.supported(await options.kit.status(folder)).ready) {
@@ -258,7 +278,7 @@ export function createRuns(options: RunsOptions): Runs {
     planDecision: (projectId, key, choice, summary) =>
       serial(projectId, async () => {
         if (choice === 'talk') return null;
-        const { settings } = await options.settings.read();
+        const settings = await modeOf(projectId, key);
         if (settings.mode !== 'full') return null;
         const folder = await root(projectId);
         if (!options.kit.supported(await options.kit.status(folder)).ready) return null;
@@ -282,12 +302,12 @@ export function createRuns(options: RunsOptions): Runs {
         );
       }),
 
-    async policy(projectId) {
-      return policyOf(projectId, (await options.settings.read()).settings.mode);
+    async policy(projectId, key) {
+      return policyOf(projectId, key ? (await modeOf(projectId, key)).mode : (await options.settings.read()).settings.mode);
     },
 
     async beginExecution(projectId, key) {
-      const { settings } = await options.settings.read();
+      const settings = await modeOf(projectId, key);
       if (settings.mode === 'off') return null;
       const folder = await root(projectId);
       const policy = await policyOf(projectId, settings.mode);
@@ -355,40 +375,17 @@ export function createRuns(options: RunsOptions): Runs {
       return grant(folder, { ...run, phase: run.pausedFrom ?? 'executing' }, scope, status, 'panel-resume', note);
     },
 
-    async settingsChanged({ before, after }) {
+    // M48: Settings are the defaults of new sessions and pause nothing; the session card's off pauses
+    // the run that session owns, with the resumable revocation Kit knows as settings-off.
+    async sessionChanged({ projectId, key, before, after }) {
       if (after.mode !== 'off' || before.mode === 'off') return;
-      for (const project of await options.listProjects()) {
-        await serial(project.id, async () => {
-          const run = await options.journal.active(project.path).catch(() => null);
-          if (!run || run.phase === 'paused') return;
-          let revocation: NonNullable<RunRecord['authority']>['revocation'] = null;
-          if (run.authority && !run.authority.revocation) {
-            const step = await options.kit.host(project.path, {
-              operation: 'autopilot:revoke',
-              runId: run.runId,
-              scopeId: run.scopeId ?? 'NONE',
-              ownerSession: run.owner.sessionId,
-              input: { note: 'Settings: autopiloting off', reason: 'settings-off', runId: run.runId },
-              file: false,
-              args: (_file, revision) => ['autopilot:revoke', '--run', run.runId, '--reason', 'settings-off', '--note', 'Settings: autopiloting off', '--expected-revision', String(revision)],
-            });
-            if (!step.ok) log(`autopiloting: revoke of ${run.runId} failed: ${step.code} ${step.message}`);
-            revocation = { at: new Date().toISOString(), reason: 'settings-off', resumable: true };
-            await options.journal.advance(project.path, run.runId, (r) => ({ ...r, tickets: step.redeemed ? [...r.tickets, step.ticketId] : r.tickets }));
-          }
-          remember(
-            await options.journal.advance(project.path, run.runId, (r) => ({
-              ...r,
-              phase: 'paused',
-              pausedFrom: r.phase,
-              reason: 'settings-off',
-              nextAction: 'Нажмите «Продолжить», чтобы продолжить запуск в прежних границах.',
-              authority: r.authority ? { ...r.authority, revocation: r.authority.revocation ?? revocation } : null,
-            })),
-          );
-          log(`autopiloting: ${project.id} run ${run.runId} paused by Settings off`);
-        });
-      }
+      const folder = await root(projectId);
+      await serial(projectId, async () => {
+        const run = await options.journal.active(folder).catch(() => null);
+        if (!run || run.phase === 'paused' || run.owner.key !== key) return;
+        remember(await pauseForSessionOff({ journal: options.journal, kit: options.kit, log }, folder, run));
+        log(`autopiloting: ${projectId} run ${run.runId} paused: the autopilot of session ${key} is off`);
+      });
     },
 
     async section() {

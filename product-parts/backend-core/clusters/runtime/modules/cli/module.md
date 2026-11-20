@@ -120,7 +120,9 @@ UserPromptSubmit; M44 T001 — подготовка запуска получа�
 отказанный старт повторялся без следующего хода; M44 T002 — `agentState(projectId)` автопилотирования
 и опция `sessionStart` маршрутов канала: строка автопилота новой сессии, `src/autopilot-line.ts`,
 `src/session-start-line.ts`; M44 T003 — `createAgentNotices`: строки о смене Settings и
-состояния запуска в очередь сессии без пробуждения) — в [connected-modules.md](connected-modules.md) и [commands.md](commands.md).
+состояния запуска в очередь сессии без пробуждения; M48 T001 — `agentState(projectId, key)`:
+первый `SessionStart` сессии берёт Settings в её запись, строка — режим и ревью сессии; строки
+о смене Settings больше нет, есть строка о смене карточки сессии) — в [connected-modules.md](connected-modules.md) и [commands.md](commands.md).
 
 ## Инварианты
 

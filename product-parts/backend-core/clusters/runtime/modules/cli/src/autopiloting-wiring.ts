@@ -1,11 +1,12 @@
 // Wiring of M39 autopiloting: the settings in the configuration folder, the run journal of each
 // project, the host tickets of the service and the source of a direct instruction (the words the
 // user wrote to the session, kept by the agent channel). The manual start records the grant of
-// its run before the first work message; Settings off pauses the active runs.
+// its run before the first work message. M48: each session keeps its own mode and review, taken
+// from Settings when it begins; the session card's off pauses that session's run.
 import type { AgentChannel } from '#agent-channel';
 import type { AutopilotAgentState } from './autopilot-line.ts';
-import { createAgentNotices, createDecisionJournal, createDecisions, createHostTickets, runMayDecide, createPreparation, createProposalGate, createRunCompletion, createRunControl, createRunJournal, createRunKit, createRunTurns, createRunWaits, createRunWords, createRuns, createSettingsStore, registerAutopilotingRoutes, registerRunControlRoutes, registerSessionRunRoutes, runHttp } from '#autopilot';
-import type { Decisions, RunCompleter, ControlActions, PrepareActions, ReviewFact, RunControl, RunTurns, RunWaits, RunWords, Runs, SettingsStore } from '#autopilot';
+import { createAgentNotices, createDecisionJournal, createDecisions, createHostTickets, runMayDecide, createPreparation, createProposalGate, createRunCompletion, createRunControl, createRunJournal, createRunKit, createRunTurns, createRunWaits, createRunWords, createRuns, createSessionSettings, createSettingsStore, registerAutopilotingRoutes, registerRunControlRoutes, registerSessionRunRoutes, runHttp, validSessionKey } from '#autopilot';
+import type { Decisions, RunCompleter, ControlActions, PrepareActions, ReviewFact, RunControl, RunTurns, RunWaits, RunWords, Runs, SessionSettingsStore, SettingsStore } from '#autopilot';
 import { createGitHubCi, createPublisher, runGit } from '#git-publish';
 import type { GitHubCi, GitRunner, Publisher } from '#git-publish';
 import type { KeyedMutex } from '#data-store';
@@ -16,6 +17,8 @@ import type { ProjectRegistry } from '#project-registry';
 
 export interface AutopilotingWiring {
   settings: SettingsStore;
+  /** M48: the mode and review of each session (Settings are the defaults a session takes when it begins). */
+  sessions: SessionSettingsStore;
   runs: Runs;
   /**
    * M40: the user's decisions of a `decisions: host` project — host operations with the tickets
@@ -50,8 +53,11 @@ export interface AutopilotingWiring {
   reconcile(projectId: string): Promise<void>;
   /** The preparation step of every project (after the reviews and runs are loaded). */
   reconcileAll(): Promise<void>;
-  /** M44: Settings and the project's active run with its live Kit grant, for the SessionStart line. */
-  agentState(projectId: string | null): Promise<AutopilotAgentState>;
+  /**
+   * M44: the mode and review and the project's active run with its live Kit grant, for the
+   * SessionStart line; M48 — the session's own values (taken from Settings when it begins).
+   */
+  agentState(projectId: string | null, key?: string | null): Promise<AutopilotAgentState>;
 }
 
 export interface PreparationLinks {
@@ -89,6 +95,7 @@ export function wireAutopiloting(options: {
   const journal = createRunJournal(options.platform ? { platform: options.platform } : {});
   const runKit = createRunKit({ runner: options.kit, tickets });
   const projectPath = async (id: string): Promise<string | undefined> => (await options.projects.get(id))?.path;
+  const sessions = createSessionSettings({ settings, journal, projectPath, ...(options.platform ? { platform: options.platform } : {}), ...(options.log ? { log: options.log } : {}) });
   // The panel's first message of a project is a service greeting, not an instruction of the user.
   const userSource = (key: string) => {
     const source = options.channel.userSource(key);
@@ -128,21 +135,20 @@ export function wireAutopiloting(options: {
     projectPath,
     listProjects: async () => (await options.projects.list()).map((project) => ({ id: project.id, path: project.path })),
     decideReview: options.decideReview,
+    sessions,
     mutex: options.mutex,
     ...(options.log ? { log: options.log } : {}),
   });
-  settings.onChange((change) => runs.settingsChanged(change));
-  // M44 3.3: Settings and run changes reach the agent with its next hook (queued, no wake).
+  // M48: Settings pause nothing; the session card's off pauses the run of that session.
+  sessions.onChange((change) => runs.sessionChanged(change));
+  // M44 3.3: run changes and (M48) the session card's changes reach the agent with its next hook (queued, no wake).
   createAgentNotices({
     journal,
-    settings,
-    kit: runKit,
-    listProjects: async () => (await options.projects.list()).map((project) => ({ id: project.id, path: project.path })),
-    sessions: (projectId) => options.channel.list().filter((activity) => activity.projectId === projectId).map((activity) => activity.key),
+    sessions,
     enqueue: (projectId, key, text) => void options.channel.enqueue(key, text, 'panel', projectId),
     ...(options.log ? { log: options.log } : {}),
   });
-  registerAutopilotingRoutes({ router: options.router, state: options.state, settings, runs });
+  registerAutopilotingRoutes({ router: options.router, state: options.state, settings, runs, sessions });
   const listProjects = async () => (await options.projects.list()).map((project) => ({ id: project.id, path: project.path }));
   const send = (projectId: string, key: string, text: string): void => links?.send(projectId, key, text);
   const gate = createProposalGate({ journal, kit: runKit, projectPath, ...(options.log ? { log: options.log } : {}) });
@@ -163,6 +169,7 @@ export function wireAutopiloting(options: {
   registerSessionRunRoutes({ router: options.router, waits, control, locate: (input) => (links ? links.locate(input) : Promise.reject(new Error('service is starting'))) });
   return {
     settings,
+    sessions,
     runs,
     decisions,
     authority: {
@@ -182,6 +189,7 @@ export function wireAutopiloting(options: {
       await completion.advanceAll();
     },
     recoverAll: async () => {
+      await sessions.load(await listProjects()).catch(() => undefined);
       await control.recoverAll();
       await completion.advanceAll();
     },
@@ -200,8 +208,10 @@ export function wireAutopiloting(options: {
     async reconcileAll() {
       for (const project of await options.projects.list()) await preparation.reconcile(project.id);
     },
-    async agentState(projectId) {
-      const { settings: current } = await settings.read();
+    async agentState(projectId, key) {
+      // M48: a session begins here (its first SessionStart) with the defaults of Settings; a resume keeps its record.
+      const own = projectId && key && validSessionKey(key) ? await sessions.ensure(projectId, key).catch(() => null) : null;
+      const current = own ?? (await settings.read()).settings;
       const folder = projectId ? await projectPath(projectId) : undefined;
       const run = folder ? await journal.active(folder).catch(() => null) : null;
       if (!folder || !run) return { mode: current.mode, review: current.review, run: null };

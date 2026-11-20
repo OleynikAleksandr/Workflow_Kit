@@ -1,13 +1,13 @@
-// M44 T003: Settings and run changes queued for the agent (no wake): the owner of the active run
-// and the owner session of an open plan get «settings changed»; the owner gets «autopilot run <id>:
+// M44 T003: run changes queued for the agent (no wake): the owner gets «autopilot run <id>:
 // <state>» for a grant, a pause, a block, a stop and the end; the same line is not queued twice.
+// M48: a change of a session's autopilot card is told to that session alone; Settings tell nobody.
 import assert from 'node:assert/strict';
 import { mkdtemp, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { after, test } from 'node:test';
 import { NOTICE_TEXTS, createAgentNotices, createRunJournal, runNoticeState } from '../src/index.ts';
-import type { NewRun, RunKit, RunRecord, SettingsChange } from '../src/index.ts';
+import type { NewRun, RunRecord, SessionAutopiloting, SessionSettingsChange } from '../src/index.ts';
 
 const tmp = await mkdtemp(path.join(os.tmpdir(), 'wfk-notices-'));
 after(() => rm(tmp, { recursive: true, force: true }));
@@ -20,24 +20,19 @@ const newRun = (over: Partial<NewRun> = {}): NewRun => ({
   proposal: null, scopeId: 'auto', authority: null, phase: 'starting', pausedFrom: null, reason: null, nextAction: null, ...over,
 });
 
-async function setup(options: { scope?: 'ACTIVE' | 'NONE'; owner?: string | null; sessions?: string[] } = {}) {
+async function setup() {
   const folder = await mkdtemp(path.join(tmp, 'p-'));
   const journal = createRunJournal();
   const queued: Array<[string, string, string]> = [];
-  let listener: ((change: SettingsChange) => Promise<void> | void) | null = null;
-  const kit = {
-    status: async () => ({ scope: options.scope ?? 'ACTIVE' }),
-    scope: async () => ({ id: 'auto', ownerSession: options.owner === undefined ? 's-2' : options.owner, automation: null }),
-  } as unknown as RunKit;
+  let listener: ((change: SessionSettingsChange) => Promise<void> | void) | null = null;
   const notices = createAgentNotices({
-    journal, kit,
-    settings: { onChange: (l) => ((listener = l), () => (listener = null)) },
-    listProjects: async () => [{ id: 'p1', path: folder }],
-    sessions: () => options.sessions ?? ['codex:s-2', 'claude:s-3'],
+    journal,
+    sessions: { onChange: (l: (change: SessionSettingsChange) => Promise<void> | void) => ((listener = l), () => (listener = null)) },
     enqueue: (projectId, key, text) => void queued.push([projectId, key, text]),
   });
-  const change = (before: Partial<SettingsChange['after']>, afterValue: Partial<SettingsChange['after']>) =>
-    listener!({ before: { version: 1, revision: 1, mode: 'full', review: false, ...before } as SettingsChange['before'], after: { version: 1, revision: 2, mode: 'full', review: false, ...afterValue } as SettingsChange['after'] });
+  const record = (over: Partial<SessionAutopiloting>): SessionAutopiloting => ({ version: 1, revision: 1, key: 'codex:s-2', mode: 'full', review: false, source: 'user', at: '2026-11-20T10:00:00.000Z', ...over });
+  const change = (key: string, before: Partial<SessionAutopiloting>, afterValue: Partial<SessionAutopiloting>) =>
+    listener!({ projectId: 'p1', folder, key, before: record({ key, ...before }), after: record({ key, revision: 2, ...afterValue }) });
   return { folder, journal, queued, change, notices };
 }
 
@@ -70,19 +65,15 @@ test('run changes are queued for the owner once per state', async () => {
   assert.ok(t.queued.every(([, , text]) => /^[\x20-\x7e]+$/u.test(text)), 'ASCII only');
 });
 
-test('a Settings change reaches the run owner and the owner of an open plan, once; an unchanged one nothing', async () => {
+test('M48: a change of the session card reaches that session alone, once; an unchanged one nothing', async () => {
   const t = await setup();
   await t.journal.create(t.folder, newRun());
-  await t.change({}, { mode: 'full', review: false });
+  await t.change('codex:s-2', {}, { mode: 'full', review: false });
   assert.equal(t.queued.length, 0, 'nothing changed');
-  await t.change({ mode: 'full' }, { mode: 'after-start' });
-  const text = NOTICE_TEXTS.settings({ mode: 'after-start', review: false });
-  assert.equal(text, 'Workflow Kit: settings changed: autopilot mode=after-start, review=off.');
-  assert.deepEqual(t.queued.map(([, key, line]) => [key, line]), [[KEY, text], ['codex:s-2', text]], 'claude:s-3 owns no plan');
-  await t.change({ mode: 'full' }, { mode: 'after-start' });
-  assert.equal(t.queued.length, 2, 'the same line is not queued twice');
-  // No open plan: only the run owner.
-  const closed = await setup({ scope: 'NONE' });
-  await closed.change({ review: false }, { review: true });
-  assert.deepEqual(closed.queued, [], 'no run and no open plan: nobody to tell');
+  await t.change('codex:s-2', { mode: 'full' }, { mode: 'off' });
+  const text = NOTICE_TEXTS.session({ mode: 'off', review: false });
+  assert.equal(text, 'Workflow Kit: the autopilot of this session changed: mode=off, review=off.');
+  assert.deepEqual(t.queued.map(([, key, line]) => [key, line]), [['codex:s-2', text]], 'the run owner claude:s-1 is not told');
+  await t.change('codex:s-2', { mode: 'full' }, { mode: 'off' });
+  assert.equal(t.queued.length, 1, 'the same line is not queued twice');
 });

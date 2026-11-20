@@ -27,6 +27,8 @@ export { HOST_TICKET_TTL_MS, createHostTickets, hostInputDigest } from './host-t
 export { realRoot, rootKey, sameRoot } from './root-path.ts';
 export type { AutopilotingMode, AutopilotingSettings, SettingsChange, SettingsStore, SettingsView } from './settings.ts';
 export { AUTOPILOTING_MODES, DEFAULT_SETTINGS, SETTINGS_FILE, SettingsError, createSettingsStore } from './settings.ts';
+export type { SessionAutopiloting, SessionSettingsChange, SessionSettingsSource, SessionSettingsStore } from './session-settings.ts';
+export { SESSION_SETTINGS_DIR, createSessionSettings, sessionSettingsFile, sessionSettingsName, validSessionKey } from './session-settings.ts';
 export type { NewRun, RunAuthority, RunJournal, RunPhase, RunReceipt, RunRecord, RunRequest, RunSource } from './run-journal.ts';
 export { FINAL_PHASES, RUNS_DIR, createRunJournal, newRunId } from './run-journal.ts';
 export type { HostStep, RunAutomation, RunKit, RunKitStatus, RunScope } from './run-kit.ts';

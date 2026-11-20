@@ -1,7 +1,9 @@
 // M44 T005, end to end in the service (createApp on loopback, stub providers, a Kit project
-// folder): `wfk hook session-start` prints the autopilot line built from Settings and the run;
-// the Kit grant, not the run journal, decides «authorized»; a Settings change reaches the run
-// owner with its next UserPromptSubmit hook, once; without the service the line is «unknown».
+// folder): `wfk hook session-start` prints the autopilot line built from the session's mode and
+// review (M48: taken from Settings when the session begins) and the run; the Kit grant, not the
+// run journal, decides «authorized»; a change of the session card reaches the session with its next
+// UserPromptSubmit hook, once, and a Settings change reaches nobody; without the service the line
+// is «unknown».
 import assert from 'node:assert/strict';
 import { mkdir, mkdtemp, rm } from 'node:fs/promises';
 import os from 'node:os';
@@ -68,7 +70,7 @@ test('a new session learns the Settings and that there is no run; each client in
   assert.deepEqual(JSON.parse(await start('kimi')), { message: 'Workflow Kit autopilot: mode=off, review=off; run=none.' });
 });
 
-test('a run the journal calls executing but Kit holds no grant for is «NOT authorized»; a Settings change reaches its owner once', async () => {
+test('a run the journal calls executing but Kit holds no grant for is «NOT authorized»; the session card, not Settings, changes the line', async () => {
   const settings = (await (await fetch(`${base}/api/settings/autopiloting`, { headers: H() })).json()) as { revision: number };
   const saved = await fetch(`${base}/api/settings/autopiloting`, { method: 'POST', headers: H(), body: JSON.stringify({ expectedRevision: settings.revision, mode: 'full', review: false }) });
   assert.equal(saved.status, 200);
@@ -78,16 +80,24 @@ test('a run the journal calls executing but Kit holds no grant for is «NOT auth
     request: { source: 'user-command', quote: 'Сделай', at: '2026-11-18T10:00:00.000Z', turnId: null, goal: 'g' }, proposal: null, scopeId: 'auto',
     authority: null, phase: 'executing', pausedFrom: null, reason: null, nextAction: null,
   });
+  // M48: the session began with Settings «off» (the test above): a resume keeps it.
+  assert.match(context(await start()), /^Workflow Kit autopilot: mode=off, review=off; run=/u);
+  const card = `${base}/api/projects/${encodeURIComponent(run.projectId)}/sessions/claude:${SESSION}/autopiloting`;
+  const own = (await (await fetch(card, { headers: H() })).json()) as { settings: { revision: number } };
+  assert.equal((await fetch(card, { method: 'POST', headers: H(), body: JSON.stringify({ expectedRevision: own.settings.revision, mode: 'full' }) })).status, 200);
+  const prompt = { session_id: SESSION, cwd: folder, hook_event_name: 'UserPromptSubmit', prompt: 'Как идёт?' };
+  assert.match(context(await hook('prompt', prompt)), /Workflow Kit: the autopilot of this session changed: mode=full, review=off\./u);
   const line = context(await start());
   assert.equal(line, `Workflow Kit autopilot: mode=full, review=off; run=${run.runId} NOT authorized (phase executing without a Kit grant). Without a live Kit grant every user decision stays manual: follow the next line of the Kit recovery packet.`);
   assert.ok(/^[\x20-\x7e]+$/u.test(line), 'ASCII only');
-  // Settings change: queued without a wake, delivered by the owner's next prompt hook, once.
+  // A Settings change tells nobody; a change of the card: queued without a wake, delivered once.
   const now = (await (await fetch(`${base}/api/settings/autopiloting`, { headers: H() })).json()) as { revision: number };
-  await fetch(`${base}/api/settings/autopiloting`, { method: 'POST', headers: H(), body: JSON.stringify({ expectedRevision: now.revision, mode: 'full', review: true }) });
-  const prompt = { session_id: SESSION, cwd: folder, hook_event_name: 'UserPromptSubmit', prompt: 'Как идёт?' };
+  await fetch(`${base}/api/settings/autopiloting`, { method: 'POST', headers: H(), body: JSON.stringify({ expectedRevision: now.revision, mode: 'off', review: true }) });
+  assert.doesNotMatch(context((await hook('prompt', prompt)) || '{}'), /changed/u, 'Settings reach no session');
+  await fetch(card, { method: 'POST', headers: H(), body: JSON.stringify({ expectedRevision: own.settings.revision + 1, review: true }) });
   const first = context(await hook('prompt', prompt));
-  assert.match(first, /Workflow Kit: settings changed: autopilot mode=full, review=on\./u);
-  assert.doesNotMatch(context((await hook('prompt', prompt)) || '{}'), /settings changed/u, 'delivered once');
+  assert.match(first, /Workflow Kit: the autopilot of this session changed: mode=full, review=on\./u);
+  assert.doesNotMatch(context((await hook('prompt', prompt)) || '{}'), /changed/u, 'delivered once');
 });
 
 test('without the service the new session is told the state is unknown', async () => {

@@ -147,6 +147,11 @@ SHA на CI-ветку замороженной политики (`git-publish` 
 Контракты — `module.md` модулей части
 [workflow-engine](../../product-parts/workflow-engine/product-part.md).
 
+M48 T001: Settings — значения по умолчанию; у каждой сессии своя запись
+`.workflow-kit/local/autopiloting/sessions/<client>.<id>.json` (режим и ревью, взятые при её начале
+или изменённые на её карточке), и точки решения запуска читают её; `off` карточки сессии ставит на
+паузу её запуск — [autopilot/session-settings.md](../../product-parts/workflow-engine/clusters/session-loop/modules/autopilot/session-settings.md).
+
 ## Мастер проекта (`project-setup`, веха 2)
 
 `POST /api/setup/preview` только читает и даёт токен; `POST /api/setup/apply` по одному

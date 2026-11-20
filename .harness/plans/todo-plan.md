@@ -22,7 +22,7 @@
   },
   "projectId": "workflow-kit",
   "projectName": "Workflow_Kit",
-  "revision": 1438,
+  "revision": 1439,
   "rounds": [
     {
       "digest": {
@@ -734,6 +734,30 @@
     },
     {
       "acceptance": [
+        "Ожидания состояния службы в m48-session-autopilot-e2e.test.ts — до 90 с, ожидание ответа хука Stop — до 30 с; проходящий прогон заканчивается, как только условие выполнено",
+        "При истечении ожидания ошибка показывает последнее увиденное состояние (фаза, причина запуска)",
+        "Сценарии проходят локально; поведение службы не меняется"
+      ],
+      "checks": [],
+      "commitMessage": "test: give the M48 end-to-end scenarios room on Windows runners",
+      "confirmation": null,
+      "context": [],
+      "dependencies": [],
+      "docsWaiver": "Only the test deadlines and the timeout message change; no module code or contract changes.",
+      "files": [
+        "product-parts/backend-core/clusters/runtime/modules/cli/test/m48-session-autopilot-e2e.test.ts"
+      ],
+      "fixes": "T006",
+      "id": "F002",
+      "iteration": 1,
+      "kind": "work",
+      "roundId": "R2",
+      "status": "TODO",
+      "title": "Сквозные сценарии M48 с запасом времени на Windows",
+      "why": "CI c1bf9331 (run 44720800213): Windows x64 — сценарий 4 B001 «timed out: the run completes» (20 с), Windows ARM64 — сценарий 1–2 «timed out: the run starts the plan» (20 с); сценарий 3 на Windows шёл 51 с против 11 с на macOS — короткие сроки ожидания, не ошибка службы"
+    },
+    {
+      "acceptance": [
         "Project-wide documents describe the round result",
         "The round digest records result, decisions, contracts and references"
       ],
@@ -742,7 +766,8 @@
       "confirmation": null,
       "context": [],
       "dependencies": [
-        "F001"
+        "F001",
+        "F002"
       ],
       "docsWaiver": null,
       "files": [
@@ -810,8 +835,8 @@
 - Execution: sequential
 - Automation: 5 automatic, 1 manual criteria; CI origin ci/M48-session-autopilot (4 checks); publication main → origin/main
 - Current task: none
-- Progress: 9/11
-- Revision: 1438
+- Progress: 9/12
+- Revision: 1439
 
 ## Objective
 
@@ -869,10 +894,14 @@ Digest: Each session has its own autopilot mode and review, changed on its card 
 - [DONE] F001 — Тест остановки ответа Claude без гонки по времени на загруженном CI (work)
   - Commit: test: give the Claude Stop confirmation room on a loaded CI runner
   - Files: product-parts/provider-runtime/clusters/provider-adapters/modules/provider-claude/test/interrupt.test.ts
+- [TODO] F002 — Сквозные сценарии M48 с запасом времени на Windows (work)
+  - Commit: test: give the M48 end-to-end scenarios room on Windows runners
+  - Files: product-parts/backend-core/clusters/runtime/modules/cli/test/m48-session-autopilot-e2e.test.ts
+  - Fixes: T006
 - [TODO] DOCS-R2 — Reconcile project documentation and write the round digest (docs)
   - Commit: docs: reconcile documentation for R2
   - Files: README.md, docs/architecture/OVERVIEW.md
-  - Depends on: F001
+  - Depends on: F001, F002
 - [TODO] T008 — CI четырёх платформ (delivery)
   - Commit: test: verify M48 on four CI platforms
   - Files: docs/evidence/M48-acceptance.md
